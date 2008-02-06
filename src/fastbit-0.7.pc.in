@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: fastbit
+Description: FastBit library @VERSION@.
+Version: @VERSION@
+Libs: -L${libdir} -lfastbit-0.7
+#Cflags: -I${includedir}/fastbit-0.7 -I${libdir}/fastbit-0.7/include

@@ -1,0 +1,24 @@
+AUTOMAKE_OPTIONS=gnu
+bin_PROGRAMS = ibis tcapi thula ardea
+#EXTRA_PROGRAMS =
+ibis_SOURCES = ibis.cpp
+ibis_DEPENDENCIES = ../src/libfastbit.la
+ibis_LDADD = ../src/libfastbit.la
+thula_SOURCES = thula.cpp
+thula_DEPENDENCIES = ../src/libfastbit.la
+thula_LDADD = ../src/libfastbit.la
+ardea_SOURCES = ardea.cpp
+ardea_DEPENDENCIES = ../src/libfastbit.la
+ardea_LDADD = ../src/libfastbit.la
+tcapi_SOURCES = tcapi.c
+tcapi_DEPENDENCIES = ../src/libfastbit.la
+tcapi_LDADD = ../src/libfastbit.la
+#
+../src/libfastbit.la::
+	cd ../src && $(MAKE) libfastbit.la
+# has to be linked with $(CXXLINK)
+tcapi$(EXEEXT): tcapi.$(OBJEXT) $(tcapi_LDADD)
+	$(CXXLINK) tcapi.$(OBJEXT) $(tcapi_LDADD) $(LIBS)
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR) .ibis
+	-rm -f Makefile

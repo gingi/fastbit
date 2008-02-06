@@ -1,0 +1,89 @@
+Wed Feb  6 09:47:21 PST 2008
+Version b0.8.3
+-- fix a number of bugs reported by Jochen Schlosser of University of
+   Hamburg: (1) seg fault due to minimum actually being negative even
+   though the metadata indicate it is to be zero or positive, (2) when
+   index ibis::direkte is used to answer a query, it erroneously casts
+   negative integers numbers to unsigned values and produces incorrect
+   answers
+-- fix performance a problem reported by Prabhat: a long list in the
+   form of "A in (...)" is translated into a massive set of equality
+   conditions joined with OR.  Evaluate such a query condition as
+   qDiscreteRange.
+-- fix bugs in assigning bin boundaries for log-scaled bin on integer
+   values and low cardinality columns
+
+Wed Jan 16 12:37:24 PST 2008
+Version b0.8.2
+-- fix a number of bugs reported by Jochen Schlosser of University of
+   Hamburg: ibis::column::evaluateRange calls ibis::part::doScan
+   unnecessarily, a number of functions in ibis::fileManager::storage
+   class does not check for nil pointers before using them, ibis::part
+   has a number of funtions that neglected to free memory returned by
+   ibis::column::dataFileName
+-- change exception handler to not remove index files unless the index
+   files are really at fault
+-- add return values to query evaluation function so that a negative
+   number will be returned if it fails for any reason, previous version
+   neglects to return the error condition to the user
+
+Sun Dec 23 19:33:34 PST 2007
+Version b0.8.1
+-- add win/MinGW.mak for compiling code under MinGW/MSYS
+-- fix ibis::util::makeDir perblem with execute bit in directory permission
+
+Tue Dec 11 15:36:04 PST 2007
+Version b0.8.0
+-- add DLLSPEC macro to invoke dllexport for building DLL on MS Windows
+-- update configuration script to better handle java stuff
+ 
+Wed Oct 24 17:18:51 PDT 2007
+Version a0.7.9
+-- add functions to C API to allow for input of data records to be
+   managed by FastBit
+-- add functions to JNI interface for input of data records
+-- fix a bug in ibis::tafel::write that leaves tdesc nil
+
+Thu Oct 18 18:53:45 PDT 2007
+Version a0.7.8
+-- add Jave Native Interface for some querying functions and a test program
+-- fix errors found on an intel-base Mac
+-- fix errors in the ardea.cpp (when run without any arguments)
+-- removed -DDEBUG from configuration option --enable-debug
+
+Tue Oct  9 16:52:55 PDT 2007
+Version a0.7.7 includes a couple of bug fixes and some minor clean up
+-- incorporates a bug fix from Matthias Vallentin to correct a wrong
+   function call in ibis::part::reactivate (src/parti.cpp:1261)
+-- add test cases for ibis::part::reactivate in ibis.cpp and
+   tests/Makefile.am
+-- add checks for array_t::m_begin to ensure it is valid before use
+-- renamed all functions named dataTable() to partition() to match the
+   name of the classes involved
+
+Sun Oct  7 17:21:16 PDT 2007
+Version a0.7.6 introduces a new logging mechanism
+-- the new class ibis::util::logger is introduced to allow the error
+   message to be redirected to a file.  To specify the name for this
+   file, use either the function ibis::util::getLofFile or specify
+   logfile in a RC file.
+
+Mon Sep 17 17:09:48 PDT 2007
+Version a0.7.5 introduces two new features.
+-- allow out-dated indexes to be used during query processing.  Since
+   the time needed to full update the indexes are typically longer than
+   the time need to answer the queries using the raw data, this option
+   improves the query response time for the queries that come right
+   after the arrival of new rows.
+-- allow for rows to be marked as inactive in a data partition.  These
+   inactive rows may eventually be re-activated or permenantly purged
+   from a data partition.
+
+Fri Jul 27 21:53:57 PDT 2007
+-- First public release, version a0.7.
+
+
+*NOTE* Versions not mentioned here contain bug fixes only.  A more
+       detailed revision history is available in file ChangeLog in the
+       source code distribution.  The lastest version of source code is
+       available at <http://sdm.lbl.gov/fastbit/src/>.

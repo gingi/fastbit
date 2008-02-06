@@ -1,0 +1,281 @@
+2008-02-06 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp: change all decisions regarding when to use
+	single-valued bins to use than when there are number of distinct
+	values is no more than 3/2 of specified bins.
+
+2008-02-04 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp:1314-1318 comment out the section that converts a
+	discrete range into a set of continuous ranges
+	* src/index.h:192 add function evaluate for ibis::qDiscreteRange
+	* src/part.h, src/column.h, src/part.cpp, src/column.cpp: add
+	function to evaluate qDiscreteRange
+	* tests/scripts/query-count.list:28&29 modified queries to use
+	long lists
+	* src/ibin.cpp:3467 col->type() == ibis::DOUBLE should be
+	col->type != ibis::DOUBLE; update the block to produce at least
+	one bin boundary per inner loop
+
+2008-01-25 John Wu <John.Wu at ACM.org>
+	* src/idirekte.cpp:482&483 add conditions to prevent casting
+	negative floarting-point numbers to unsigned integers
+	* tests/scripts/query-count.list: modify some of the 0 query
+	boundaries to be negative numbers to exercise the above fix
+
+2008-01-23 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp:3929 add fudge factor of 3/2 to allow 50% more bins
+	than specified when it can put each value in its own bin.  A user
+	was specifying nbins=72 for a variable with 73 distinct values,
+	and was confused about why FastBit put two values in the same
+	bin.  This should avoid that type of situation.
+	* src/index.cpp:534&841 add additional condition to make sure when
+	ibis::index::create invokes ibis::direkte, the actual minimum is
+	not a negative number.  In a case where the user specified
+	minimum=0, but the actual minimum is -1, FastBit crashes when
+	building an index
+
+2008-01-16 John Wu <John.Wu at ACM.org>
+	* src/column.cpp:4412 remove the line that assigns ierr from low.cnt()
+
+2008-01-16 Jochen Schlosser <schlosser at zbh.uni-hamburg.de>
+	* src/part.cpp:2791 add 'delete [] file;' before return statement,
+	fix memory leak.  The problem is that the pointer returned by
+	dataFileName is not deleted before exiting the function.  The same
+	problem appears in a number of different places in src/part.cpp,
+	src/parti.cpp and src/party.cpp.
+
+2008-01-15 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: in column::evaluateRange, add better detection
+	for the need of invoking doScan, add print statements
+	* src/array_c.cpp: add statements to check for nil pointers in all
+	constructors
+	* src/fileManager.cpp: add statements to prevent printStatus from
+	dereferencing nil pointers
+
+2008-01-14 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: the return values of a few calls to
+	ibis::part::doScan did not get passed back to the caller
+
+2008-01-08 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: comment out most of the calls to purgeIndexFiles
+	* src/part.cpp: add checks for the existence of raw data file before
+	attempting to scan the values
+	* src/query.h and src/query.cpp: add functioins to accept new
+	forms of query conditions, allow return values to propergate from
+	ibis::part and ibis::column functions to ibis::query::evaluate
+	* examples/ibis.cpp: add code to check the return values of
+	ibis::query::estimate and ibis::query::evaluate
+
+2007-12-22 John Wu <John.Wu at ACM.org>
+	* util.h: add explicit O_BINARY in the macros for file modes,
+	without this option, the files are opened in text-mode under MinGW
+	following the default on MS Windows systems (there are already
+	explicit calls to _setmode under MS Visual Studio environment).
+	* util.cpp:104 add execute bit to the mode for the directory
+	created by ibis::util::makeDir, a recent change has messed this
+	one up
+
+2007-12-20 John Wu <John.Wu at ACM.org>
+	* add FASTBIT_DLLSPEC to table.h, remove FASTBIT_DLLSPEC from
+	explicit instantiation of array_t
+	* update win/Win.mak and win/MinGW.mak to add dependcies for
+	trydll.cpp
+
+2007-12-14 John Wu <John.Wu at ACM.org>
+	* add documentation to ibis::qContinuousRange
+
+2007-12-14 John Wu <John.Wu at ACM.org>
+	* change all DLLSPEC to FASTBIT_DLLSPEC
+	* add win/MinGW.mak to compile under MinGW/MSYS with GNU g++
+
+2007-12-12 John Wu <John.Wu at ACM.org>
+	* add DLLSPEC to classes part, part::info, quey, query::result,
+	all members of ibis::bundle hierarchy and many more
+	* add win/trydll.cpp to test the new DLL library
+
+2007-12-11 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:908 update the names used in readMeshShape to match
+	those in readTDC
+	* src/ibis.h: correct typos in the doxygen documentation
+
+2007-12-10 John Wu <John.Wu at ACM.org>
+	* src/capi.h:209 partitioin -> partition
+	* examples/tcapi.h:56 missed dir (to match %s in fprintf)
+
+2007-12-6 John Wu <John.Wu at ACM.org>
+	* change all LOGGER(ibis::gVerbose) to LOGGER(0)
+	* const.h:252 & 254 -- add definition of DLLSPEC
+	* capi.h:46-54 -- add macro DLLSPEC because it does not include const.h
+
+2007-10-29 John Wu <John.Wu at ACM.org>
+	* src/index.cpp:539&846: switch > to <
+
+2007-10-25 John Wu <John.Wu at ACM.org>
+	* src/meshQuery.*: change getHitsAsRanges to getHitsAsBlocks
+
+2007-10-24 John Wu <John.Wu at ACM.org>
+	* src/capi.h and src/capi.cpp: add two functions to accept new
+	data records.
+	* examples/tcapi.c: add test case for the two new functions in C
+	API
+	* java: add new functions to allow a java program to input data to
+	Fastbit, add a small test section to milky.cpp to be executed when
+	no arguments are provided
+	* src/tafel.cpp:740 add a line to assign value to tdesc
+	* src/capi.cpp:84 add a block to check for the size of the data
+	partition found
+
+2007-10-18 John Wu <John.Wu at ACM.org>
+	* src/bitvector.h:814&844, add check for nw > 0 *
+	src/bitvector64.h:724&754, add check for nw > 0.  These two fix a
+	problem caused by a particular word that causes
+	ibis::bitvector::copy_runs to pass beyond the end of the array
+	m_vec.  This can happen when the word beyond the last element of
+	the m_vec is equivalent to a 0-length fill.  Out of 4 billion
+	possible values in a 32-bit word just beyond the end of the array
+	in a bitvector, 2 of them can do this and they are somehow used by
+	the GNU C++ compiler on the intel-based Mac probably for some
+	internal marking.
+
+2007-10-17 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp:901 add statement to prevent FastBit from
+	attempting to build indexes for arbitrary strings (ibis::TEXT).
+	To build an index for such type of column, FastBit requires
+	something called a term-document list (matrix), which most users
+	are unlikely to have.  This removes the warning messages when
+	running examples/ardea.cpp without any arguments.
+
+2007-10-16 John Wu <John.Wu at ACM.org>
+	* java/Makefile.am: add the initial version of automake file
+	* tests/scripts/matchCounts.pl: add additional check for error messages
+
+2007-10-14 John Wu <John.Wu at ACM.org>
+	* java/milky.java: add a test program that mirros examples/tcapi.c
+
+2007-10-13 John Wu <John.Wu at ACM.org>
+	* capi.h, capi.cpp: update the C API in preparation for java
+	interface
+
+2007-10-11 John Wu <John.Wu at ACM.org>
+	* src/resoruce.cpp: change all calls to logMessage to use LOGGER
+	macro
+	* src/predicate.l, src/predicate.y, src/qExpr.h: add operator %
+
+2007-10-07 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp -- add reverseDeletion and option -k to exercise
+	the function ibis::part::reactivate (change doDelete to doDeletion)
+	* tests/Makefile.am -- add a small test case for -j and -k options
+	of ibis, correct the test cases for check-tcapi
+	* src/index.cpp -- in function create, add calls to compute the
+	actual min and max when deciding what index to build for default
+	options
+	* src/array_t.cpp:187 -- add check for isFileMap, otherwise, some
+	functions may attempt to modify files open in read-only mode
+	* src/array_t.cpp: -- add checks for uninitialized m_begin
+	* renamed all dataTable() to partition(), theTable to thePart
+
+2007-10-07 matthias Vallentin <vallentin at icsi.berkeley.edu>
+	* src/parti.cpp:1261 -- change deactivate to reactivate
+
+2007-10-07 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: line 912 -- add call to flushDir to remove stale
+	references to files.  This may be related to a crash experienced
+	by Matthias Vallentin, but I am not able reproduce the crash on
+	a MacOS accessible to me.  Add a call to flushDir in
+	ibis::part::append1 (in parti.cpp) to address the same problem.
+	* tests/Makefile.am: add a second run of ardea to generate 200
+	rows of test data for checking the three test programs.  In the
+	previous version of the code, running ardea a second time would
+	cause errors.
+
+2007-10-05 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add command line option -l for user to
+	specify a file to log error messages
+
+2007-10-04 John Wu <John.Wu at ACM.org>
+	* src/util.h, ...: add functions ibis::util::getLogFile and
+	ibis::util::setLogFile, add class ibis::util::logger, replace all
+	explicit use of std::cout, std::cerr, and std::clog with calls to
+	ibis::util::logger
+
+2007-09-24 John Wu <John.Wu at ACM.org>
+	* ixfuge.cpp: add this file to implement ibis::fuge class
+	for interval-equality encoding with binning
+
+2007-09-17 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add option -j to deactivate rows (reuse -z as
+	secondary option to actually expunge the inactive rows)
+
+2007-09-13 John Wu <John.Wu at ACM.org>
+	* src/i*.cpp: change most references to col->dataTable->nRows() to
+	nrows stored in the index class.  This change is required to make
+	it possible to use index built earlier for a partition with a
+	smaller number of rows.
+
+2007-08-30 John Wu <John.Wu at ACM.org>
+	* ibis::part: add five new functions to allow existing rows to be
+	marked inactive or removed
+
+2007-08-29 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: add code to make use of indexes built form
+	smaller number of rows than currently available
+
+2007-08-23 Matthias Vallentin <vallentin at icsi.berkeley.edu>
+	* examples/ardea.cpp:53-54 fix wrong flags in usage example
+
+2007-08-23 John Wu <John.Wu at ACM.org>
+	* src/capi.h: add conditional macros to include config.h
+	* tests/readcsv.cpp: add conditional macro __APPLE__ for compiling
+	on Apple MacOS
+	* tests/Makefile.am: change ++ to expr expression for
+	compatibility with bourne shell
+
+2007-08-22 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp: in ibis::bundles::sort add special case for
+	nPlain() == 0
+	* src/mensa.cpp: change ibis::nameList to ibis::selected to
+	correct problems with select clauses containing functions
+	* examples/thula.cpp: terminate doQuery when the select clause
+	contains functions (as indicated by the presence of '(')
+	
+2007-08-11 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add case number in print out and count the
+	number of successful test cases in match-counts
+
+2007-08-10 John Wu <John.Wu at ACM.org>
+	* array_t.cpp: change the variables used to store differences
+	between two pointers to type size_t or off_t instead of uint32_t
+	or int32_t
+
+	* category.cpp: to avoid problems with bad data files, swap
+	arguements 2 and 3, truncate large files that have extra records
+	(keeping only the first nRows), check number of records in
+	function fillIndex when working with a stable copy of the current
+	data
+
+	* tests/Makefile.am: add more operations to run for target check
+
+	* doc/quickstart.html: currect typoes and formating mistakes
+
+	* examples/ibis.cpp:2191 add test to prevent the call to indexSpec
+	when the user did not specify an indexing option.  Without this
+	check, it removes the existing indexing specification when nothing
+	is specified.  Change all table to partition in the comments.
+
+2007-08-09 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add test case check-ardea to check for the
+	problem found by Mark
+
+	* query.cpp: add code to accept count(*) as select clause
+
+	* ibis.cpp: allow multiple threads being used on MS windows; set
+	the default number of threads to the number of processors online
+	(minus one if more than than two processors are on line)
+
+2007-08-09 Mark Sordo <msordo at yahoo-inc.com>
+	* tafel.cpp:746 add tname != 0 to if test
+
+2007-07-27 John Wu <John.Wu at ACM.org>
+	* copied files into this new directory structure, start building a
+	new set of autoconf/automake scripts.
+
+	* designate the current version a0.7.

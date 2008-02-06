@@ -1,0 +1,43 @@
+This directory contains a set of tests on predefined data records.  The
+simplest way to run them is to issue 'make check' from either this
+directory or the directory above this one.  When it passes a test, it
+will print
+
+Passed such-and-such test
+
+or
+
+All 40 queries match the expected results
+
+In case of failure, it will indicate where to find the detailed logs
+about the error.  Please review the error logs for clues to resolve the
+problems.  To request for help, please email
+fastbit-users@hpcrdm.lbl.gov.
+
+A more extensive test option is also available by issuing 'make
+all-tests' from either this directory or the directory above this one.
+This option goes through a set of tests on a large data set and it also
+tests a few older indexing options that have not been used by the
+developers for a while.
+
+About the data: There are two CSV files named test0.csv and test1.csv.
+They are converted into the binary format used by FastBit with
+readcsv.exe (from readcsv.cpp).  Larger test data sets are simply
+replicated from these two small data sets.
+
+About the tests: There are two types of tests, the tests built into
+ibis::part class (ibis::part::selfTest) and a set of queries defined in
+scripts/query-count.list (parsed by scripts/match-count.pl).  All tests
+are executed through the executable compiled from ibis.cpp (in directory
+../examples).
+
+----------
+KNOWN PROBLEMS
+
+-- The command 'make all-tests' somehow stalls on cygwin and the smaller
+   set of tests also take extra long on cygwin compared to other
+   systems.  If you have any suggestions on address this problem, please
+   post it to fastbit-users@hpcrdm.lbl.gov.
+
+-- This suite of tests rely on perl for many of its functions.  I have
+   not found a way to run it on MS Windows outside of cygwin.

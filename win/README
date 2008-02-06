@@ -1,0 +1,72 @@
+This directory contains a makefile (Win.mak) and a set of project files
+for building the library and the examples.  They require Visual Studio
+.NET or later as well as a version of pthreads-win32.  You have to edit
+this files to point to the correct locations of the compiler and the
+pthreads-win32 library.
+
+Pthreads-win32 is available for download (under LGPL, for free) from
+http://sourceware.org/pthreads-win32/
+
+I have pthreads-win32 installed at C:\Tool\pthread.  If you install it
+in a different directory, you will need to edit file Win.mak or the
+properties of the Visual Studio projects.
+
+NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
+with command line such as
+
+nmake -f Win.mak all
+
+
+It is possible to build a DLL library that exports ibis::part and
+ibis::query interface as well as the C API of Fastbit.
+To use the nmake system directly, one may build the DLL library and the
+test program tcapi.exe with the following commands (on one line)
+
+make -f Win.mak clean && make -f Win.mak dll && make -f win.mak tcapi trydll
+
+The test program trydll.cpp is a modified version of
+..\examples\ibis.cpp with troublesome functions removed.  It maintains
+the key functionality of ibis.cpp, which exercise the ibis::part and
+ibis::query functions.
+
+The test program tcapi.c exercises the C API of FastBit.  Please refere
+the source code ..\examples\tcapi.c for usage of tcapi.exe.
+
+Here is a set of comments to try assuming that you've built tcapi.exe
+and trydll.exe in this directory.
+
+# generate a sample data with 100 rows and 3 columns named a, b, and c
+tcapi.exe -v
+# the following two commands should produce the same number of hits
+tcapi.exe tmp "a=0"
+trydll.exe -d tmp -q "where a=0"
+# the following two commands should print same values for column c
+tcapi.exe tmp "a < 10" c f
+trydll.exe -d tmp -q "select c where a < 10"
+
+
+To compile under MinGW/MSYS with dll use the following command
+make -f MinGW.mak pthreads-w32 dll trydll tcapi
+
+NOTE: One can not compile examples/ibis.cpp, use win/trydll.cpp instead.
+
+Known problem with DLL under MS windows (either Visual studio or MinGW/MSYS)
+
+As of Dec. 22, 2007, the biggest problem seems to be the use of
+ibis::bitvector in a client code.  Somehow pointers to
+ibis::bitvector (created by the DLL) are fine, but a locally declared
+ibis::bitvector object has problems of creating the underlying support
+object array_t<uint32_t> (compiler may complain about array_t<unsigned
+long int> instead).  If you are a familiar with such type of problem,
+please email your suggestion to <fastbit-users@hpcrdm.lbl.gov>.
+
+NOTE: Due to extensive uses of std::map and other STL classes in class
+      hierarchy ibis::table, they are not suitable for DLL exporting
+      <http://support.microsoft.com/kb/168958>.  The ibis::part and
+      ibis::query interface and the C API seem to work fine.
+
+NOTE: The test suite in ../tests rely on too many features that are only
+      available on Unix type of machines and can not be run on MS
+      Windows.
+
+
