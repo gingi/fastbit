@@ -746,8 +746,9 @@ long ibis::category::append(const char* dt, const char* df,
 
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
-		UnixSeek(fptr, 0, SEEK_SET);
-		while ((ierr = UnixRead(fptr, buf, nbuf))) {
+		ierr = UnixSeek(fptr, 0, SEEK_SET);
+		if (ierr < 0) return -2;
+		while ((ierr = UnixRead(fptr, buf, nbuf)) > 0) {
 		    ret = UnixWrite(fdest, buf, ierr);
 		    if (ret != ierr && ibis::gVerbose > 2)
 			logMessage("append", "expected to write %ld bytes "
@@ -757,13 +758,14 @@ long ibis::category::append(const char* dt, const char* df,
 #if _POSIX_FSYNC+0 > 0
 		(void) fsync(fdest); // write to disk
 #endif
-		ierr = UnixClose(fdest);
+		(void) UnixClose(fdest);
 	    }
 	    else {
 		logMessage("append", "unable to open \"%s\" to appending",
 			   dest.c_str());
 	    }
-	    ierr = UnixClose(fptr);
+	    (void) UnixClose(fptr);
+	    if (ierr < 0) return -3;
 	}
 	else {
 	    if (ibis::gVerbose > 5)

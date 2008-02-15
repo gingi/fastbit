@@ -933,9 +933,8 @@ int ibis::query::evaluate(const bool evalSelect) {
     ibis::horometer timer;
     double pcnt = ibis::fileManager::instance().pageCount();
     writeLock lck(this, "evaluate");
-    if ((state != FULL_EVALUATE) ||
+    if ((state < FULL_EVALUATE) ||
 	(dstime != 0 && dstime != table0->timestamp())) {
-	//writeLock lck(this, "evaluate");
 	if (dstime != 0 && dstime != table0->timestamp()) {
 	    // clear the current results and prepare for re-evaluation
 	    dstime = 0;
@@ -2885,7 +2884,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 
     if (ierr > 0 && ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("sequentialScan", "produced %l hit%s in %g sec(CPU) "
+	logMessage("sequentialScan", "produced %ld hit%s in %g sec(CPU) "
 		   "%g sec(elapsed).", ierr, (ierr>1?"s":""),
 		   timer.CPUTime(), timer.realTime());
 	if (ibis::gVerbose > 4 && hits != 0 && state == FULL_EVALUATE) {
@@ -7099,7 +7098,7 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 	    else {
 		logWarning("mergePairs", "failed to write %ld-th pair to %s",
 			   static_cast<long>(cnt), outfile.c_str());
-		UnixSeek(outdes, cnt*idsize, SEEK_SET);
+		ierr = UnixSeek(outdes, cnt*idsize, SEEK_SET);
 	    }
 
 	    ierr = UnixRead(indes, buf1, idsize);

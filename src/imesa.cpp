@@ -137,9 +137,16 @@ void ibis::mesa::write(const char* dt) const {
     int32_t ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, ((sizeof(int32_t)*(nobs+1)+
-			    2*sizeof(uint32_t)+15)/8)*8,
-		    SEEK_SET);
+    offs[0] = ((sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+15)/8)*8;
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::mesa::write(" << fnm << ") failed to seek to "
+		  << offs[0];
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
@@ -180,10 +187,15 @@ void ibis::mesa::write(int fdes) const {
     array_t<int32_t> offs(nobs+1);
     int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixSeek(fdes,
-		    ((start+sizeof(int32_t)*(nobs+1)+
-		      2*sizeof(uint32_t)+7)/8)*8,
-		    SEEK_SET);
+    offs[0] = ((start+sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+7)/8) * 8;
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::mesa::write(" << fdes << ") failed to seek to "
+		  << offs[0];
+	UnixSeek(fdes, start, SEEK_SET);
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);

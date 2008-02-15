@@ -519,7 +519,12 @@ void ibis::ambit::read(const char* f) {
 	array_t<double> dbl(fdes, begin, end);
 	minval.swap(dbl);
     }
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	UnixClose(fdes);
+	clear();
+	return;
+    }
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
@@ -722,7 +727,12 @@ void ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
 	array_t<double> dbl(fdes, begin, end);
 	minval.swap(dbl);
     }
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	UnixClose(fdes);
+	clear();
+	return;
+    }
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
@@ -974,10 +984,15 @@ void ibis::ambit::write(int fdes) const {
     // write out bit sequences of this level of the index
     long ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixSeek(fdes,
-		    ((start+sizeof(int32_t)*(nobs+1)+
-		      2*sizeof(uint32_t)+7)/8)*8,
-		    SEEK_SET);
+    offs[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::ambit::write(" << fdes << ") failed to seek to "
+		  << offs[0];
+	UnixSeek(fdes, start, SEEK_SET);
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);

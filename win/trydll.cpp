@@ -219,7 +219,7 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 	std::vector<uint32_t> counts;
 	double amin = col->getActualMin();
 	double amax = col->getActualMax();
-	long nb = tbl.getCumulativeDistribution(cname, cond, bounds, counts);
+	long nb = tbl.getCumulativeDistribution(cond, cname, bounds, counts);
 
 	ibis::util::logger lg(0);
 	lg.buffer() << "Column " << cname << " in Partition "
@@ -313,7 +313,7 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
     std::vector<double> bds1, bds2;
     std::vector<uint32_t> cnts;
     ibis::util::logger lg(0);
-    long ierr = tbl.getJointDistribution(col1, col2, cond, bds1, bds2, cnts);
+    long ierr = tbl.getJointDistribution(cond, col1, col2, bds1, bds2, cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	const uint32_t nb2p1 = bds2.size() + 1;
 	lg.buffer() << "\nJoint distribution of " << col1 << " and " << col2;

@@ -117,7 +117,14 @@ void ibis::fade::write(const char* dt) const {
     ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
     ierr = UnixWrite(fdes, &card, sizeof(card));
-    ierr = UnixSeek(fdes, 8*((3*sizeof(uint32_t)+15)/8), SEEK_SET);
+    offs[0] = 8*((3*sizeof(uint32_t)+15)/8);
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) { // unable to write to file
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	return;
+    }
+
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     ierr = UnixWrite(fdes, &nb, sizeof(nb));
@@ -157,7 +164,15 @@ void ibis::fade::write(int fdes) const {
     int32_t ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
     ierr = UnixWrite(fdes, &card, sizeof(card));
-    ierr = UnixSeek(fdes, 8*((start+sizeof(uint32_t)*3+7)/8), SEEK_SET);
+    offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::fade::write(" << fdes << ") failed to seek to"
+		  << offs[0];
+	UnixSeek(fdes, start, SEEK_SET);
+	return;
+    }
+
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     ierr = UnixWrite(fdes, &nb, sizeof(nb));
@@ -235,7 +250,15 @@ void ibis::fade::read(const char* f) {
     }
     // nbases, cnts, and bases
     uint32_t nb;
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	LOGGER(1) << "ibis::fade::read(" << fnm << ") failed to seek to "
+		  << end;
+	UnixClose(fdes);
+	clear();
+	return;
+    }
+
     ierr = UnixRead(fdes, static_cast<void*>(&nb), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);

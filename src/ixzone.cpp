@@ -259,10 +259,15 @@ void ibis::zone::write(int fdes) const {
     // write out bit sequences of this level of the index
     int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixSeek(fdes,
-		    ((start+sizeof(int32_t)*(nobs+1)+
-		      2*sizeof(uint32_t)+7)/8)*8,
-		    SEEK_SET);
+    offs[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(1) << "ibis::zone::write(" << fdes << ") failed to seek to "
+		  << offs[0];
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);

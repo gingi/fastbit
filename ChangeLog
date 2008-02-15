@@ -1,3 +1,32 @@
+2008-02-14 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: change doScan and doCompare to return long
+	* src/part.cpp:2890&2911 change calls to doIntCompare to
+	doCompare<int64_t> and doCompare<uint64_t>
+	* src/part.h, src/part.cpp: replace comparison functions for
+	specific element types with the template functions
+	* src/part.cpp:10486&10695: arguments constraints and name were in
+	wrong order (problem first reported by Mr. Prabhat)
+	* src/column.h: add virtual keyword to selectBytes and friends
+	* src/part.cpp: check the return values of selectBytes and friends
+	in getDistribution and varients
+	* tests/test0.csv, tests/test1.csv: add decimal points to induce
+	readcsv.cpp to interpret some columns as double.  This introduces
+	one more type of data tested by the automatic test program
+	* examples/ibis.cpp:223 swap cname and cond
+	* tests/hist0, tests/hist1: add two files for testing
+	histogramming functions
+	* tests/Makefile.am: add two test cases under check-ibis to test
+	histograming functions
+
+2008-02-12 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:2815 add return value -4 when elementSize() is not
+	a positive number
+	* src/category.cpp, src/column.cpp, src/ibin.cpp, src/icegale.cpp,
+	src/ifade.cpp, src/imesa.cpp, src/irange.cpp, src/ixambit.cpp,
+	src/ixpack.cpp, src/ixpale.cpp, src/part.cpp: capture the return
+	value of call to UnixSeek in an attempt to prevent a segementation
+	fault encounted by Jochen who removes the base data files
+
 2008-02-06 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp: change all decisions regarding when to use
 	single-valued bins to use than when there are number of distinct

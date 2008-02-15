@@ -812,6 +812,11 @@ void ibis::zona::writeCoarse(int fdes) const {
 			 cbounds.size()-1 : cbits.size());
     array_t<int32_t> offs(nc+1);
     ierr = UnixWrite(fdes, &nc, sizeof(nc));
+    if (ierr < 0) {
+	LOGGER(1) << "ibis::zona::writeCoarse(" << fdes << ") failed to write "
+		  << "an integer";
+	return;
+    }
     ierr = UnixWrite(fdes, cbounds.begin(), sizeof(unsigned)*(nc+1));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {

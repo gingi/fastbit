@@ -122,7 +122,15 @@ void ibis::slice::write(int fdes) const {
     int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &card, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, 8*((start+sizeof(uint32_t)*3+7)/8), SEEK_SET);
+    offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::slice::write(" << fdes << ") failed to seek to "
+		  << offs[0];
+	UnixSeek(fdes, start, SEEK_SET);
+	return;
+    }
+
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);

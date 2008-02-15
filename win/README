@@ -11,6 +11,17 @@ I have pthreads-win32 installed at C:\Tool\pthread.  If you install it
 in a different directory, you will need to edit file Win.mak or the
 properties of the Visual Studio projects.
 
+NOTE: Visual Studio may produce a large number of warnings, most of
+which are harmless as far as we know.  However, if you do notice
+something of consequence, please report them to
+<fastbit-users@hpcrdm.lbl.gov>.
+
+NOTE: Visual Studio has to build the DLL project and trydll project
+separately!  Simply telling it to build the whole solution will produce
+two failures because it fails to build DLL project and trydll project.
+The solution is to build them separately.  If you know of a way to do
+this in a nicer way, please let use know.
+
 NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
 with command line such as
 

@@ -34,10 +34,9 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(dist_doc_DATA) \
-	$(dist_java_DATA) $(dist_win_DATA) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
+	$(dist_win_DATA) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
+	config.guess config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -62,12 +61,10 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(docdir)" "$(DESTDIR)$(javadir)" \
-	"$(DESTDIR)$(windir)"
+am__installdirs = "$(DESTDIR)$(docdir)" "$(DESTDIR)$(windir)"
 dist_docDATA_INSTALL = $(INSTALL_DATA)
-dist_javaDATA_INSTALL = $(INSTALL_DATA)
 dist_winDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(dist_doc_DATA) $(dist_java_DATA) $(dist_win_DATA)
+DATA = $(dist_doc_DATA) $(dist_win_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
@@ -201,14 +198,14 @@ AUTOMAKE_OPTIONS = gnu
 SUBDIRS = src examples java tests
 windir = $(prefix)/share/win
 javadir = $(prefix)/share/java
-dist_win_DATA = win/README win/Win.mak win/ardea.vcproj win/ibis.sln \
-	win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj
+dist_win_DATA = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
+	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
+	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj
 
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html
 
-dist_java_DATA = java/FastBit.java java/milky.java
 all: all-recursive
 
 .SUFFIXES:
@@ -270,23 +267,6 @@ uninstall-dist_docDATA:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(docdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(docdir)/$$f"; \
-	done
-install-dist_javaDATA: $(dist_java_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(javadir)" || $(MKDIR_P) "$(DESTDIR)$(javadir)"
-	@list='$(dist_java_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_javaDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(javadir)/$$f'"; \
-	  $(dist_javaDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(javadir)/$$f"; \
-	done
-
-uninstall-dist_javaDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(dist_java_DATA)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(javadir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(javadir)/$$f"; \
 	done
 install-dist_winDATA: $(dist_win_DATA)
 	@$(NORMAL_INSTALL)
@@ -584,7 +564,7 @@ check: check-recursive
 all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(docdir)" "$(DESTDIR)$(javadir)" "$(DESTDIR)$(windir)"; do \
+	for dir in "$(DESTDIR)$(docdir)" "$(DESTDIR)$(windir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -626,8 +606,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-dist_docDATA install-dist_javaDATA \
-	install-dist_winDATA
+install-data-am: install-dist_docDATA install-dist_winDATA
 
 install-dvi: install-dvi-recursive
 
@@ -659,8 +638,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-dist_docDATA uninstall-dist_javaDATA \
-	uninstall-dist_winDATA
+uninstall-am: uninstall-dist_docDATA uninstall-dist_winDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
 	install-strip
@@ -672,16 +650,16 @@ uninstall-am: uninstall-dist_docDATA uninstall-dist_javaDATA \
 	distclean-generic distclean-libtool distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-data \
-	install-data-am install-dist_docDATA install-dist_javaDATA \
-	install-dist_winDATA install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+	install-data-am install-dist_docDATA install-dist_winDATA \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am uninstall-dist_docDATA \
-	uninstall-dist_javaDATA uninstall-dist_winDATA
+	uninstall-dist_winDATA
 
 
 docs:
@@ -691,7 +669,7 @@ all-tests:
 	cd tests && $(MAKE) all-tests
 
 clean: clean-recursive
-	-rm -f win/ibis.suo win/ibis.ncb
+	-rm -f win/ibis.suo win/ibis.ncb win/fastbit.def
 	-rm -fr doc/html doc/latex win/Debug win/Release win/dll
 
 distclean: distclean-recursive

@@ -1283,7 +1283,7 @@ void ibis::bylt::writeCoarse(int fdes) const {
     }
     offs[nc] = UnixSeek(fdes, 0, SEEK_CUR);
     ierr -= sizeof(int32_t) * (nc+1);
-    UnixSeek(fdes, ierr, SEEK_SET);
+    ierr = UnixSeek(fdes, ierr, SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nc+1));
     ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
 } // ibis::bylt::writeCoarse

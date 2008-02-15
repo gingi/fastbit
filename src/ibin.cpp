@@ -1900,16 +1900,21 @@ void ibis::bin::binningT(const char* f) {
 	const uint32_t elem = sizeof(E);
 	array_t<int32_t> pos(nobs+1);
 	pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
-	UnixSeek(fdes, pos[0], SEEK_SET);
+	long ierr = UnixSeek(fdes, pos[0], SEEK_SET);
+	if (ierr != pos[0]) { // write operation failed
+	    UnixClose(fdes);
+	    remove(fnm.c_str());
+	    return;
+	}
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    if (maxval[i] > minval[i])
 		UnixWrite(fdes, binned[i]->begin(), elem * binned[i]->size());
 	    delete binned[i];
 	    pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
 	}
-	UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
+	ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
 	UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
-	UnixSeek(fdes, pos.back(), SEEK_SET);
+	ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
 	UnixClose(fdes);
 	if (ibis::gVerbose > 3)
 	    col->logMessage("bin::binning", "wrote bin-ordered values to %s",
@@ -2030,7 +2035,12 @@ long ibis::bin::binOrderT(const char* basename) const {
     binned.reserve(nrows / nobs);
     pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
 
-    UnixSeek(fdes, pos[0], SEEK_SET);
+    ierr = UnixSeek(fdes, pos[0], SEEK_SET);
+    if (ierr != pos[0]) { // write operation failed
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	return -3;
+    }
     for (uint32_t i = 0; i < nobs; ++ i) {
 	if (maxval[i] > minval[i] && bits[i] != 0) {
 	    binned.clear();
@@ -5003,9 +5013,14 @@ void ibis::bin::write(const char* dt) const {
     uint32_t ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes,
-		    ((2*sizeof(uint32_t)+sizeof(int32_t)*(nobs+1)+15)/8)*8,
-		    SEEK_SET);
+    offs[0] = ((2*sizeof(uint32_t)+sizeof(int32_t)*(nobs+1)+15)/8)*8;
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) { // failed the seek operation
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);

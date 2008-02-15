@@ -171,7 +171,14 @@ void ibis::egale::write(const char* dt) const {
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nbits, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, 8*((15+3*sizeof(uint32_t))/8), SEEK_SET);
+    offs[0] = 8*((15+3*sizeof(uint32_t))/8);
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	return;
+    }
+
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
@@ -200,10 +207,22 @@ void ibis::egale::write(int fdes) const {
     int32_t ierr;
     array_t<int32_t> offs(nbits+1);
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    if (start < 0) {
+	LOGGER(1) << "ibis::egale::write(" << fdes << ") failed to compute "
+	    "the current file pointer position, must be an invalid file";
+	return;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nbits, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, 8*((7+start+3*sizeof(uint32_t))/8), SEEK_SET);
+    offs[0] = 8*((7+start+3*sizeof(uint32_t))/8);
+    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
+    if (ierr != offs[0]) {
+	LOGGER(1) << "ibis::egale::write(" << fdes << ") failed to seek to "
+		  << offs[0];
+	UnixSeek(fdes, start, SEEK_SET);
+	return;
+    }
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
@@ -334,7 +353,14 @@ void ibis::egale::read(const char* f) {
 	cnts.swap(szt);
     }
     // nbases and bases
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	clear();
+	UnixClose(fdes);
+	LOGGER(1) << "ibis::egale::read(" << fnm << ") failed to seek to "
+		  << end;
+	return;
+    }
     ierr = UnixRead(fdes, &nbases, sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);

@@ -559,109 +559,27 @@ protected:
 
     // evaluate the range conditions -- the actual comparison functions
     // comparisons are only conducted on entries with mask == 1
-    void doCompare(const array_t<int32_t>& array,
-		   const ibis::bitvector& mask,
-		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
-    void doCompare(const array_t<uint32_t>& array,
-		   const ibis::bitvector& mask,
-		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
-    void doCompare(const array_t<float>& array,
-		   const ibis::bitvector& mask,
-		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
-    void doCompare(const array_t<double>& array,
+    template <typename T>
+    long doCompare(const array_t<T>& array,
 		   const ibis::bitvector& mask,
  		   ibis::bitvector& hits,
 		   const ibis::qRange& cmp) const;
-
-    void doByteCompare(const char* file,
-		       const ibis::bitvector& mask,
-		       ibis::bitvector& hits,
-		       const ibis::qRange& cmp) const;
-    void doUByteCompare(const char* file,
-			const ibis::bitvector& mask,
-			ibis::bitvector& hits,
-			const ibis::qRange& cmp) const;
-    void doShortCompare(const char* file,
-			const ibis::bitvector& mask,
-			ibis::bitvector& hits,
-			const ibis::qRange& cmp) const;
-    void doUShortCompare(const char* file,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-    void doIntCompare(const char* file,
-		      const ibis::bitvector& mask,
-		      ibis::bitvector& hits,
-		      const ibis::qRange& cmp) const;
-    void doUIntCompare(const char* file,
-		       const ibis::bitvector& mask,
-		       ibis::bitvector& hits,
-		       const ibis::qRange& cmp) const;
-    void doFloatCompare(const char* file,
-			const ibis::bitvector& mask,
-			ibis::bitvector& hits,
-			const ibis::qRange& cmp) const;
-    void doDoubleCompare(const char* file,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
 
     // perform the negative comparison, hits are those don't satisfy the
     // range conditions (comparison only performed for those rows with mask
     // == 1
-    void negativeCompare(const array_t<int32_t>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-    void negativeCompare(const array_t<uint32_t>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-    void negativeCompare(const array_t<float>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-    void negativeCompare(const array_t<double>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-
-    void negativeIntCompare(const char* file,
-			    const ibis::bitvector& mask,
-			    ibis::bitvector& hits,
-			    const ibis::qRange& cmp) const;
-    void negativeUIntCompare(const char* file,
-			     const ibis::bitvector& mask,
-			     ibis::bitvector& hits,
-			     const ibis::qRange& cmp) const;
-    void negativeFloatCompare(const char* file,
-			      const ibis::bitvector& mask,
-			      ibis::bitvector& hits,
-			      const ibis::qRange& cmp) const;
-    void negativeDoubleCompare(const char* file,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& hits,
-			       const ibis::qRange& cmp) const;
     template <typename T>
-    void doCompare(const array_t<T>& array,
+    long negativeCompare(const array_t<T>& array,
+			 const ibis::bitvector& mask,
+			 ibis::bitvector& hits,
+			 const ibis::qRange& cmp) const;
+    template <typename T>
+    long doCompare(const char *file,
 		   const ibis::bitvector& mask,
  		   ibis::bitvector& hits,
 		   const ibis::qRange& cmp) const;
     template <typename T>
-    void negativeCompare(const array_t<T>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
-    template <typename T>
-    void doCompare(const char *file,
-		   const ibis::bitvector& mask,
- 		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
-    template <typename T>
-    void negativeCompare(const char *file,
+    long negativeCompare(const char *file,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector& hits,
 			 const ibis::qRange& cmp) const;

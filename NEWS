@@ -1,3 +1,14 @@
+Version b0.8.4
+-- remove ibis::part::doCompare and friend with templated functions
+-- add checks for the values returned by lseek and other I/O functions
+   to fix a segmentation fault observed by Jochen Schlosser of
+   University of Hamburg
+-- fix bugs in histogramming functions found by Prabhat: unchecked
+   pointers returned by selectInts and friends, uncheck empty arrays,
+   swapped string arguments
+-- add test cases for checking the histogramming functions in directory
+   tests
+
 Wed Feb  6 09:47:21 PST 2008
 Version b0.8.3
 -- fix a number of bugs reported by Jochen Schlosser of University of

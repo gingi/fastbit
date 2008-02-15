@@ -127,18 +127,17 @@ public:
 
     /// Return selected rows of the column as an array_t object.  Caller is
     /// responsible for deleting the returned object.
-    array_t<char>*     selectBytes(const bitvector& mask) const;
-    array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
-    array_t<int16_t>*  selectShorts(const bitvector& mask) const;
-    array_t<uint16_t>* selectUShorts(const bitvector& mask) const;
-    array_t<int32_t>*  selectInts(const bitvector& mask) const;
-    array_t<int64_t>*  selectLongs(const bitvector& mask) const;
-    array_t<uint64_t>* selectULongs(const bitvector& mask) const;
-    array_t<float>*    selectFloats(const bitvector& mask) const;
-    array_t<double>*   selectDoubles(const bitvector& mask) const;
-    virtual
-    std::vector<std::string>* selectStrings(const bitvector& mask) const {
-	return 0;}
+    virtual array_t<char>*     selectBytes(const bitvector& mask) const;
+    virtual array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
+    virtual array_t<int16_t>*  selectShorts(const bitvector& mask) const;
+    virtual array_t<uint16_t>* selectUShorts(const bitvector& mask) const;
+    virtual array_t<int32_t>*  selectInts(const bitvector& mask) const;
+    virtual array_t<int64_t>*  selectLongs(const bitvector& mask) const;
+    virtual array_t<uint64_t>* selectULongs(const bitvector& mask) const;
+    virtual array_t<float>*    selectFloats(const bitvector& mask) const;
+    virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
+    virtual std::vector<std::string>*
+	selectStrings(const bitvector& mask) const {return 0;}
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     template <typename T>
     long selectValues(const bitvector& mask,

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: MinGW.mak,v 1.1 2008/02/06 18:10:05 kewu Exp $
 # Makefile for mingw32-make on windows using MinGW g++ port
 #
 CXX=g++.exe

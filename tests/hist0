@@ -1,0 +1,25 @@
+Column c in Partition tmp:
+c:  (SHORT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
+cumulative distribution [20] under the condition of "c>80"
+(bound,	# records < bound)
+81,	0
+82,	2
+83,	4
+84,	6
+85,	8
+86,	10
+87,	12
+88,	14
+89,	16
+90,	18
+91,	20
+92,	22
+93,	24
+94,	26
+95,	28
+96,	30
+97,	32
+98,	34
+99,	36
+100,	38
+

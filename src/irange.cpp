@@ -214,7 +214,15 @@ void ibis::range::read(const char* f) {
 	array_t<double> dbl(fdes, begin, end);
 	minval.swap(dbl);
     }
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	UnixClose(fdes);
+	remove(fnm.c_str());
+	LOGGER(1) << "ibis::range::read(" << fnm << ") failed to seek to "
+		  << end;
+	return;
+    }
+
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
@@ -342,7 +350,12 @@ void ibis::range::read(int fdes, uint32_t start, const char *fn) {
 	array_t<double> dbl(fdes, begin, end);
 	minval.swap(dbl);
     }
-    UnixSeek(fdes, end, SEEK_SET);
+    ierr = UnixSeek(fdes, end, SEEK_SET);
+    if (ierr != end) {
+	UnixClose(fdes);
+	clear();
+	return;
+    }
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);

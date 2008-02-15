@@ -4879,9 +4879,13 @@ long ibis::column::append(const char* dt, const char* df,
 	    j += diff;
 	}
     }
-    UnixSeek(dest, sz, SEEK_SET); // file pointer to the expected location
-    ret = 0;	// to count the number of bytes written
+    if (UnixSeek(dest, sz, SEEK_SET) < 0) {
+	// can not move file pointer to the expected location
+	UnixClose(dest);
+	return -3;
+    }
 
+    ret = 0;	// to count the number of bytes written
     int src = UnixOpen(from, OPEN_READONLY); // open the files
     if (src >= 0) { // open the source file, copy it
 #if defined(_WIN32) && defined(_MSC_VER)

@@ -2807,18 +2807,23 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	    LOGGER(0) << "Warning -- part[" << (m_name?m_name:"?")
 		      << "]::doScan(" << cmp
 		      << ") can not proceed because of missing data file \""
-		      << file << "\"";
+		      << file << "\" or unexpected file size (" << fsize << ")";
 	    delete [] file;
 	    return -3;
 	}
     }
+    else {
+	return -4;
+    }
 
+    long ierr = 0;
     switch ((*it).second->type()) {
     default:
 	logWarning("doScan", "unable to process data type %d (%s)",
 		   (*it).second->type(),
 		   ibis::TYPESTRING[(int)(*it).second->type()]);
 	hits.set(0, nEvents);
+	ierr = -5;
 	break;
 
     case ibis::CATEGORY: {
@@ -2875,14 +2880,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doIntCompare(file, mask, hits, cmp);
+	    ierr = doCompare<int64_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -2896,14 +2901,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldUnsignedBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doUIntCompare(file, mask, hits, cmp);
+	    ierr = doCompare<uint64_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -2917,14 +2922,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doIntCompare(file, mask, hits, cmp);
+	    ierr = doCompare<int32_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -2938,14 +2943,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldUnsignedBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doUIntCompare(file, mask, hits, cmp);
+	    ierr = doCompare<uint32_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -2959,14 +2964,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doShortCompare(file, mask, hits, cmp);
+	    ierr = doCompare<int16_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -2980,14 +2985,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldUnsignedBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doUShortCompare(file, mask, hits, cmp);
+	    ierr = doCompare<uint16_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -3001,14 +3006,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doByteCompare(file, mask, hits, cmp);
+	    ierr = doCompare<char>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -3022,14 +3027,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 					   tmp.colName(), tmp.rightOperator(),
 					   tmp.rightBound());
 		rng.foldUnsignedBoundaries();
-		doScan(intarray, rng, mask, hits);
+		ierr = doScan(intarray, rng, mask, hits);
 	    }
 	    else {
-		doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare(intarray, mask, hits, cmp);
 	    }
 	}
 	else {
-	    doUByteCompare(file, mask, hits, cmp);
+	    ierr = doCompare<unsigned char>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -3037,14 +3042,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	array_t<float> floatarray;
 	if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
-		doScan(floatarray,
-		       static_cast<const ibis::qContinuousRange&>(cmp),
-		       mask, hits);
+		ierr = doScan(floatarray,
+			      static_cast<const ibis::qContinuousRange&>(cmp),
+			      mask, hits);
 	    else
-		doCompare(floatarray, mask, hits, cmp);
+		ierr = doCompare(floatarray, mask, hits, cmp);
 	}
 	else {
-	    doFloatCompare(file, mask, hits, cmp);
+	    ierr = doCompare<float>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -3052,14 +3057,14 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	array_t<double> doublearray;
 	if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
-		doScan(doublearray,
-		       static_cast<const ibis::qContinuousRange&>(cmp),
-		       mask, hits);
+		ierr = doScan(doublearray,
+			      static_cast<const ibis::qContinuousRange&>(cmp),
+			      mask, hits);
 	    else
-		doCompare(doublearray, mask, hits, cmp);
+		ierr = doCompare(doublearray, mask, hits, cmp);
 	}
 	else {
-	    doDoubleCompare(file, mask, hits, cmp);
+	    ierr = doCompare<double>(file, mask, hits, cmp);
 	}
 	break;}
     }
@@ -3075,7 +3080,7 @@ long ibis::part::doScan(const ibis::qRange& cmp,
     LOGGER(12) << "ibis::part[" << name() << "]: comparison " << cmp
 	       << " is evaluated to have " << hits.cnt()
 	       << " hits out of " << mask.cnt() << " candidates";
-    return hits.cnt();
+    return ierr;
 } // ibis::part::doScan
 
 template <typename E>
@@ -3102,8 +3107,7 @@ long ibis::part::doScan(const array_t<E>& varr,
 		if (iix[i] < varr.size() && cmp.inRange(varr[iix[i]])) {
 		    hits.setBit(i, 1);
 #if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< varr[iix[i]] << " is in " << cmp;
+		    LOGGER(0) << varr[iix[i]] << " is in " << cmp;
 #endif
 		}
 	    }
@@ -3148,6 +3152,7 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
 	}
     }
 
+    long ierr = -4;
     switch ((*it).second->type()) {
     default:
 	logWarning("negativeScan",
@@ -3168,15 +3173,36 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
 		(reinterpret_cast<const ibis::qDiscreteRange&>(cmp),
 		 hits, tmp);
 	hits &= mask;
+	ierr = 0;
+	break;}
+
+    case ibis::LONG: {
+	array_t<int64_t> intarray;
+	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	}
+	else {
+	    ierr = negativeCompare<int64_t>(file, mask, hits, cmp);
+	}
+	break;}
+
+    case ibis::ULONG: {
+	array_t<uint64_t> intarray;
+	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	}
+	else {
+	    ierr = negativeCompare<uint64_t>(file, mask, hits, cmp);
+	}
 	break;}
 
     case ibis::INT: {
 	array_t<int32_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeIntCompare(file, mask, hits, cmp);
+	    ierr = negativeCompare<int32_t>(file, mask, hits, cmp);
 	}
 	break;}
 
@@ -3184,70 +3210,70 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
     case ibis::UINT: {
 	array_t<uint32_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeUIntCompare(file, mask, hits, cmp);
+	    ierr = negativeCompare<uint32_t>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::SHORT: {
 	array_t<int16_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeCompare<short int>(file, mask, hits, cmp);
+	    ierr = negativeCompare<int16_t>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::USHORT: {
 	array_t<uint16_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeCompare<unsigned short int>(file, mask, hits, cmp);
+	    ierr = negativeCompare<uint16_t>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::BYTE: {
 	array_t<signed char> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeCompare<signed char>(file, mask, hits, cmp);
+	    ierr = negativeCompare<signed char>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::UBYTE: {
 	array_t<unsigned char> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, mask, hits, cmp);
 	}
 	else {
-	    negativeCompare<unsigned char>(file, mask, hits, cmp);
+	    ierr = negativeCompare<unsigned char>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::FLOAT: {
 	array_t<float> floatarray;
 	if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
-	    negativeCompare(floatarray, mask, hits, cmp);
+	    ierr = negativeCompare(floatarray, mask, hits, cmp);
 	}
 	else {
-	    negativeFloatCompare(file, mask, hits, cmp);
+	    ierr = negativeCompare<float>(file, mask, hits, cmp);
 	}
 	break;}
 
     case ibis::DOUBLE: {
 	array_t<double> doublearray;
 	if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
-	    negativeCompare(doublearray, mask, hits, cmp);
+	    ierr = negativeCompare(doublearray, mask, hits, cmp);
 	}
 	else {
-	    negativeDoubleCompare(file, mask, hits, cmp);
+	    ierr = negativeCompare<double>(file, mask, hits, cmp);
 	}
 	break;}
     }
@@ -3263,7 +3289,7 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
     LOGGER(12) << "ibis::part[" << name() << "]: negative comparison "
 	       << cmp << " is evaluated to have " << hits.cnt()
 	       << " hits out of " << mask.cnt() << " candidates";
-    return hits.cnt();
+    return ierr;
 } // ibis::part::negativeScan
 
 float ibis::part::getUndecidable(const ibis::qContinuousRange& cmp,
@@ -3366,6 +3392,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 
     ibis::compRange::barrel* vlist = bar;
     ibis::compRange::barrel* barr = 0;
+    long ierr;
     if (bar == 0) { // need to collect the names of all variables
 	barr = new ibis::compRange::barrel;
 	if (cmp.getLeft())
@@ -3456,67 +3483,179 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			uint32_t tmp1, tmp2;
 			tmp1 = cols[i]->elementSize() * *iix;
 			tmp2 = cols[i]->elementSize() * iix[1];
-			UnixSeek(fdes[i], tmp1, SEEK_SET);
+			ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
+			if (ierr < 0) {
+			    LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+				      << "]::doScan(" << cmp
+				      << ") failed to seek to " << tmp1
+				      << " in file " << fdes[i];
+			    for (size_t k = 0; k < vlist->size(); ++k) {
+				if (fdes[k] >= 0)
+				    UnixClose(fdes[k]);
+			    }
+			    if (bar == 0) delete barr;
+			    return -2;
+			}
 			ibis::fileManager::instance().recordPages(tmp1, tmp2);
 		    }
 		}
 		for (uint32_t j = 0; j < idx.nIndices(); ++j) {
 		    for (uint32_t i = 0; i < vlist->size(); ++i) {
 			switch (cols[i]->type()) {
-			case ibis::CATEGORY:
-			case ibis::UINT:
-			case ibis::TEXT: {
+			case ibis::ULONG: {
 			    // unsigned integer
-			    unsigned utmp;
+			    uint64_t utmp;
 			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned*>
+				utmp = *(reinterpret_cast<uint64_t*>
 					 (stores[i]->begin() +
 					  sizeof(utmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
+			    }
+			    vlist->value(i) = utmp;
+			    break;
+			}
+			case ibis::LONG: {
+			    // signed integer
+			    int64_t itmp;
+			    if (stores[i]) {
+				itmp = *(reinterpret_cast<int64_t*>
+					 (stores[i]->begin() +
+					  sizeof(itmp) * (j + *iix)));
+			    }
+			    else {
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
+			    }
+			    vlist->value(i) = itmp;
+			    break;
+			}
+			case ibis::CATEGORY:
+			case ibis::UINT:
+			case ibis::TEXT: {
+			    // unsigned integer
+			    uint32_t utmp;
+			    if (stores[i]) {
+				utmp = *(reinterpret_cast<uint32_t*>
+					 (stores[i]->begin() +
+					  sizeof(utmp) * (j + *iix)));
+			    }
+			    else {
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
 			}
 			case ibis::INT: {
 			    // signed integer
-			    int itmp;
+			    int32_t itmp;
 			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int*>
+				itmp = *(reinterpret_cast<int32_t*>
 					 (stores[i]->begin() +
 					  sizeof(itmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
 			}
 			case ibis::USHORT: {
 			    // unsigned short integer
-			    unsigned short utmp;
+			    uint16_t utmp;
 			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned short*>
+				utmp = *(reinterpret_cast<uint16_t*>
 					 (stores[i]->begin() +
 					  sizeof(utmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
 			}
 			case ibis::SHORT: {
 			    // signed short integer
-			    short int itmp;
+			    int16_t itmp;
 			    if (stores[i]) {
-				itmp = *(reinterpret_cast<short int*>
+				itmp = *(reinterpret_cast<int16_t*>
 					 (stores[i]->begin() +
 					  sizeof(itmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
@@ -3530,7 +3669,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(utmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
@@ -3544,7 +3695,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(itmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
@@ -3558,7 +3721,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(ftmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &ftmp, sizeof(ftmp));
+				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = ftmp;
 			    break;
@@ -3572,7 +3747,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(dtmp) * (j + *iix)));
 			    }
 			    else {
-				UnixRead(fdes[i], &dtmp, sizeof(dtmp));
+				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = dtmp;
 			    break;
@@ -3603,64 +3790,176 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			if (fdes[i] >= 0) {
 			    // move the file pointers of open files
 			    unsigned tmp1 = cols[i]->elementSize() * iix[j];
-			    UnixSeek(fdes[i], tmp1, SEEK_SET);
+			    ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
+			    if (ierr < 0) {
+				LOGGER(1) << "Warning -- ibis::part["
+					  << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					  << ") failed to seek to " << tmp1
+					  << " in file " << fdes[i];
+				for (size_t k = 0; k < vlist->size(); ++k) {
+				    if (fdes[k] >= 0)
+					UnixClose(fdes[k]);
+				}
+				if (bar == 0) delete barr;
+				return -2;
+			    }
 			}
 
 			switch (cols[i]->type()) {
-			case ibis::CATEGORY:
-			case ibis::UINT:
-			case ibis::TEXT: {
+			case ibis::ULONG: {
 			    // unsigned integer
-			    unsigned utmp;
+			    uint64_t utmp;
 			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned*>
+				utmp = *(reinterpret_cast<uint64_t*>
 					 (stores[i]->begin() +
 					  sizeof(utmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
+			    }
+			    vlist->value(i) = utmp;
+			    break;
+			}
+			case ibis::LONG: {
+			    // signed integer
+			    int64_t itmp;
+			    if (stores[i]) {
+				itmp = *(reinterpret_cast<int64_t*>
+					 (stores[i]->begin() +
+					  sizeof(itmp) * (iix[j])));
+			    }
+			    else {
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
+			    }
+			    vlist->value(i) = itmp;
+			    break;
+			}
+			case ibis::CATEGORY:
+			case ibis::UINT:
+			case ibis::TEXT: {
+			    // unsigned integer
+			    uint32_t utmp;
+			    if (stores[i]) {
+				utmp = *(reinterpret_cast<uint32_t*>
+					 (stores[i]->begin() +
+					  sizeof(utmp) * (iix[j])));
+			    }
+			    else {
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
 			}
 			case ibis::INT: {
 			    // signed integer
-			    int itmp;
+			    int32_t itmp;
 			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int*>
+				itmp = *(reinterpret_cast<int32_t*>
 					 (stores[i]->begin() +
 					  sizeof(itmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
 			}
 			case ibis::USHORT: {
 			    // unsigned short integer
-			    unsigned short utmp;
+			    uint16_t utmp;
 			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned short*>
+				utmp = *(reinterpret_cast<uint16_t*>
 					 (stores[i]->begin() +
 					  sizeof(utmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
 			}
 			case ibis::SHORT: {
 			    // signed short integer
-			    short int itmp;
+			    int16_t itmp;
 			    if (stores[i]) {
-				itmp = *(reinterpret_cast<short int*>
+				itmp = *(reinterpret_cast<int16_t*>
 					 (stores[i]->begin() +
 					  sizeof(itmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
@@ -3674,7 +3973,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(utmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &utmp, sizeof(utmp));
+				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = utmp;
 			    break;
@@ -3688,7 +3999,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(itmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &itmp, sizeof(itmp));
+				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = itmp;
 			    break;
@@ -3702,7 +4025,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(ftmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &ftmp, sizeof(ftmp));
+				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = ftmp;
 			    break;
@@ -3716,7 +4051,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 					  sizeof(dtmp) * (iix[j])));
 			    }
 			    else {
-				UnixRead(fdes[i], &dtmp, sizeof(dtmp));
+				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
+				if (ierr < 0) {
+				    LOGGER(1) << "Warning -- ibis::part["
+					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << ") failed to read "
+					      << "from file " << fdes[i];
+				    for (size_t k = 0; k < vlist->size(); ++k) {
+					if (fdes[k] >= 0)
+					    UnixClose(fdes[k]);
+				    }
+				    if (bar == 0) delete barr;
+				    return -3;
+				}
 			    }
 			    vlist->value(i) = dtmp;
 			    break;
@@ -3726,7 +4073,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			    logWarning("doScan", "unable to evaluate "
 				       "attribute of type %d (name: %s)",
 				       cols[i]->type(), cols[i]->name());
-			    for (uint32_t k = 0; k < vlist->size(); ++k) {
+			    for (size_t k = 0; k < vlist->size(); ++k) {
 				if (fdes[k] >= 0)
 				    UnixClose(fdes[k]);
 			    }
@@ -3769,7 +4116,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg(1);
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doScan -- evaluating "
 		    << cmp << " on " << mask.cnt() << " records (total: "
 		    << nEvents << ") took " << timer.realTime()
@@ -3779,7 +4126,9 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
-    return hits.cnt();
+    if (ierr >= 0)
+	ierr = hits.cnt();
+    return ierr;
 } // ibis::part::doScan
 
 long ibis::part::matchAny(const ibis::qAnyAny& cmp,
@@ -5024,462 +5373,15 @@ void ibis::part::logMessage(const char* event,
 // only mask.cnt() elements of array are checked but position of the bits
 // that need to be set in the output bitvector @c hits have to be handled
 // differently.
-void ibis::part::doCompare(const array_t<int32_t>& array,
-			   const ibis::bitvector& mask,
-			   ibis::bitvector& hits,
-			   const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    if (array.size() == mask.size()) { // full array available
-	while (idx.nIndices() > 0) { // the outer loop
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (j = *ii; j < ii[1]; ++j) {
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0) << "DEBUG: doCompare "
-					       << array[j] << " is in " << cmp;
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[i];
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0) << "DEBUG: doCompare "
-					       << array[j] << " is in " << cmp;
-#endif
-		    }
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	}
-    }
-    else if (array.size() == mask.cnt()) { // packed array available
-	while (idx.nIndices() > 0) {
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (unsigned k = *ii; k < ii[1]; ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(k, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << k
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(ii[k], 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << ii[k]
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    ++ idx;
-	}
-    }
-    else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
-    }
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::doCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " integers from an array of "
-		  << array.size() << " elements took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
-#endif
-    }
-} // ibis::part::doCompare
-
-// the function that performs the actual comparison for range queries
-void ibis::part::doCompare(const array_t<uint32_t>& array,
-			   const ibis::bitvector& mask,
-			   ibis::bitvector& hits,
-			   const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    if (array.size() == mask.size()) { // full array available
-	while (idx.nIndices() > 0) { // the outer loop
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (j = *ii; j < ii[1]; ++j) {
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[i];
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	}
-    }
-    else if (array.size() == mask.cnt()) { // packed array available
-	while (idx.nIndices() > 0) {
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (unsigned k = *ii; k < ii[1]; ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(k, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << k
-			    << " of hit vector to 1" ;
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(ii[k], 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << ii[k]
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    ++ idx;
-	}
-    }
-    else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (nEvents > hits.size())
-	hits.adjustSize(0, nEvents);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " unsigned integers from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
-#endif
-    }
-} // ibis::part::doCompare
-
-// the function that performs the actual comparison for range queries
-void ibis::part::doCompare(const array_t<float>& array,
-			   const ibis::bitvector& mask,
-			   ibis::bitvector& hits,
-			   const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    if (array.size() == mask.size()) { // full array available
-	while (idx.nIndices() > 0) { // the outer loop
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (j = *ii; j < ii[1]; ++j) {
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[i];
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	}
-    }
-    else if (array.size() == mask.cnt()) { // packed array available
-	while (idx.nIndices() > 0) {
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (unsigned k = *ii; k < ii[1]; ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(k, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << k
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(ii[k], 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << ii[k]
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    ++ idx;
-	}
-    }
-    else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::doCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " floats from an array of "
-		  << array.size() << " elements took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
-#endif
-    }
-} // ibis::part::doCompare
-
-// the function that performs the actual comparison for range queries
-void ibis::part::doCompare(const array_t<double>& array,
-			   const ibis::bitvector& mask,
-			   ibis::bitvector& hits,
-			   const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    if (array.size() == mask.size()) { // full array available
-	while (idx.nIndices() > 0) { // the outer loop
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (j = *ii; j < ii[1]; ++j) {
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[i];
-		    if (cmp.inRange(array[j])) {
-			hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp;
-#endif
-		    }
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	}
-    }
-    else if (array.size() == mask.cnt()) { // packed array available
-	while (idx.nIndices() > 0) {
-	    const ibis::bitvector::word_t *ii = idx.indices();
-	    if (idx.isRange()) {
-		for (unsigned k = *ii; k < ii[1]; ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(k, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << k
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    else {
-		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
-		    if (cmp.inRange(array[j++])) {
-			hits.setBit(ii[k], 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-			LOGGER(0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
-			    << cmp << ", setting position " << ii[k]
-			    << " of hit vector to 1";
-#endif
-		    }
-		}
-	    }
-	    ++ idx;
-	}
-    }
-    else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " doubles from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
-#endif
-    }
-} // ibis::part::doCompare
-
 template <typename T>
-void ibis::part::doCompare(const array_t<T>& array,
+long ibis::part::doCompare(const array_t<T>& array,
 			   const ibis::bitvector& mask,
 			   ibis::bitvector& hits,
 			   const ibis::qRange& cmp) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
+    long ierr = 0;
     uint32_t i=0, j=0;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -5499,6 +5401,7 @@ void ibis::part::doCompare(const array_t<T>& array,
 		for (j = *ii; j < ii[1]; ++j) {
 		    if (cmp.inRange(array[j])) {
 			hits.setBit(j, 1);
+			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(0)
 			    << "DEBUG: doCompare" << array[j] << " is in "
@@ -5512,6 +5415,7 @@ void ibis::part::doCompare(const array_t<T>& array,
 		    j = ii[i];
 		    if (cmp.inRange(array[j])) {
 			hits.setBit(j, 1);
+			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(0)
 			    << "DEBUG: doCompare " << array[j] << " is in "
@@ -5531,6 +5435,7 @@ void ibis::part::doCompare(const array_t<T>& array,
 		for (unsigned k = *ii; k < ii[1]; ++ k) {
 		    if (cmp.inRange(array[j++])) {
 			hits.setBit(k, 1);
+			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(0)
 			    << "DEBUG: doCompare" << array[j] << " is in "
@@ -5544,6 +5449,7 @@ void ibis::part::doCompare(const array_t<T>& array,
 		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
 		    if (cmp.inRange(array[j++])) {
 			hits.setBit(ii[k], 1);
+			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(0)
 			    << "DEBUG: doCompare " << array[j] << " is in "
@@ -5562,6 +5468,7 @@ void ibis::part::doCompare(const array_t<T>& array,
 		   static_cast<long unsigned>(array.size()),
 		   static_cast<long unsigned>(mask.size()),
 		   static_cast<long unsigned>(mask.cnt()));
+	ierr = -6;
     }
 
     if (uncomp)
@@ -5572,7 +5479,7 @@ void ibis::part::doCompare(const array_t<T>& array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison "
 		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
 		    << "s from an array of "
@@ -5583,10 +5490,11 @@ void ibis::part::doCompare(const array_t<T>& array,
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
+    return ierr;
 } // ibis::part::doCompare
 
 template <typename T>
-void ibis::part::doCompare(const char* file,
+long ibis::part::doCompare(const char* file,
 			   const ibis::bitvector& mask,
 			   ibis::bitvector& hits,
 			   const ibis::qRange& cmp) const {
@@ -5598,7 +5506,7 @@ void ibis::part::doCompare(const char* file,
     if (fdes < 0) {
 	logWarning("doCompare", "unable to open file \"%s\"", file);
 	hits.set(0, mask.size());
-	return;
+	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -5611,7 +5519,7 @@ void ibis::part::doCompare(const char* file,
     T *buf = reinterpret_cast<T*>(cbuf);
 
     uint32_t i=0, j=0;
-    long diff;
+    long diff, ierr=0;
     const ibis::bitvector::word_t *ii;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -5630,7 +5538,14 @@ void ibis::part::doCompare(const char* file,
 	    ii = idx.indices();
 	    if (idx.isRange()) {
 		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "ibis::part::doCompare(" << file
+			      << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -2;
+		}
 		ibis::fileManager::instance().recordPages
 		    (diff, elem*ii[1]);
 		j = ii[1];
@@ -5638,13 +5553,16 @@ void ibis::part::doCompare(const char* file,
 		    diff = nbuf;
 		    if (i+diff > ii[1])
 			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (diff == ierr && ierr >= 0) {
+			j = ierr;
+		    }
+		    else {
+			j = 0;
+			logWarning("doCompare", "expected to read %ld "
+				   "integers from \"%s\" but got only %ld",
+				   diff, file, ierr);
+		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (cmp.inRange(buf[k])) {
 			    hits.setBit(i+k, 1);
@@ -5656,9 +5574,26 @@ void ibis::part::doCompare(const char* file,
 		j = idx.nIndices() - 1;
 		diff = ii[j] - *ii + 1;
 		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
+		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
+		    if (ierr != *ii * elem) {
+			LOGGER(1) << "Warning -- ibis::part["
+				  << (m_name ? m_name : "?")
+				  << "]::doCompare(" << file << ", " << cmp
+				  << ") failed to seek to " << *ii *elem;
+			UnixClose(fdes);
+			hits.clear();
+			return -3;
+		    }
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (diff == ierr && ierr >= 0) {
+			j = ierr;
+		    }
+		    else {
+			j = 0;
+			logWarning("doCompare", "expected to read %ld "
+				   "integers from \"%s\" but got only %ld",
+				   diff, file, ierr);
+		    }
 		    for (i = 0; i < j; ++i) {
 			uint32_t k0 = ii[i] - *ii;
 			if (cmp.inRange(buf[k0])) {
@@ -5666,30 +5601,64 @@ void ibis::part::doCompare(const char* file,
 			}
 		    }
 		}
-		else {
+		else if (diff > 0) { // read one element at a time
 		    for (i = 0; i < idx.nIndices(); ++i) {
 			j = ii[i];
 			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
+			ierr = UnixSeek(fdes, diff, SEEK_SET);
+			if (ierr != diff) {
+			    LOGGER(1) << "Warning -- ibis::part["
+				      << (m_name ? m_name : "?")
+				      << "]::doCompare(" << file << ", "
+				      << cmp << ") failed to seek to " << diff;
+			    UnixClose(fdes);
+			    hits.clear();
+			    return -4;
+			}
+			ierr = UnixRead(fdes, buf, elem);
+			if (ierr > 0) {
+			    if (cmp.inRange(*buf)) {
+				hits.setBit(j, 1);
+			    }
+			}
+			else {
+			    LOGGER(1) << "Warning -- ibis::part["
+				      << (m_name ? m_name : "?")
+				      << "]::doCompare(" << file << ", "
+				      << cmp << ") failed to read a value at "
+				      << diff;
 			}
 		    }
 		}
 		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
+		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
 	    }
-	    else {
+	    else { // read a single value
 		j = *ii;
 		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::doCompare(" << file << ", "
+			      << cmp << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -4;
+		}
+		ierr = UnixRead(fdes, buf, elem);
+		if (ierr > 0) {
+		    ibis::fileManager::instance().recordPages(diff, diff+elem);
+		    if (cmp.inRange(*buf)) {
+			hits.setBit(j, 1);
+		    }
+		}
+		else {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::doCompare(" << file << ", "
+			      << cmp << ") failed to read a value at "
+			      << diff;
 		}
 	    }
 
@@ -5697,19 +5666,28 @@ void ibis::part::doCompare(const char* file,
 	} // while (idx.nIndices() > 0)
 	delete [] buf;
     }
-    else { // no user buffer to use
+    else { // no user buffer to use, read a single value at a time
 	T tmp;
 	while (idx.nIndices() > 0) { // the outer loop
 	    ii = idx.indices();
 	    if (idx.isRange()) {
 		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::doCompare(" << file << ", "
+			      << cmp << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -5;
+		}
+
+		ibis::fileManager::instance().recordPages(diff, elem*ii[1]);
 		j = ii[1];
 		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0 && cmp.inRange(tmp)) {
 			hits.setBit(i, 1);
 		    }
 		}
@@ -5718,15 +5696,24 @@ void ibis::part::doCompare(const char* file,
 		for (i = 0; i < idx.nIndices(); ++i) {
 		    j = ii[1];
 		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
+		    ierr = UnixSeek(fdes, diff, SEEK_SET);
+		    if (ierr != diff) {
+			LOGGER(1) << "Warning -- ibis::part["
+				  << (m_name ? m_name : "?")
+				  << "]::doCompare(" << file << ", "
+				  << cmp << ") failed to seek to " << diff;
+			UnixClose(fdes);
+			hits.clear();
+			return -6;
+		    }
+
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0 && cmp.inRange(tmp)) {
 			hits.setBit(j, 1);
 		    }
 		}
 		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
+		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
 	    }
 
 	    ++idx; // next set of selected entries
@@ -5742,7 +5729,7 @@ void ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison "
 		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
 		    << "s from file \"" << file << "\" took "
@@ -5752,305 +5739,20 @@ void ibis::part::doCompare(const char* file,
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
+    return ierr;
 } // ibis::part::doCompare
 
 // hits are those do not satisfy the speficied range condition
-void ibis::part::negativeCompare(const array_t<int32_t>& array,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0, diff;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    while (idx.nIndices() > 0) { // the outer loop
-	const ibis::bitvector::word_t *ii = idx.indices();
-	if (idx.isRange()) {
-	    diff = (ii[1] <= nelm ? ii[1] : nelm);
-	    for (j = *ii; j < diff; ++j) {
-		if (! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-	else {
-	    for (i = 0; i < idx.nIndices(); ++i) {
-		j = ii[i];
-		if (j < nelm && ! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-
-	++idx; // next set of selected entries
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " integers from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeCompare
-
-// hits are those does not satisfy the specified range condition
-void ibis::part::negativeCompare(const array_t<uint32_t>& array,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0, diff;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    while (idx.nIndices() > 0) { // the outer loop
-	const ibis::bitvector::word_t *ii = idx.indices();
-	if (idx.isRange()) {
-	    diff = (ii[1] <= nelm ? ii[1] : nelm);
-	    for (j = *ii; j < diff; ++j) {
-		if (! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-	else {
-	    for (i = 0; i < idx.nIndices(); ++i) {
-		j = ii[i];
-		if (j < nelm && ! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-
-	++idx;
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (nEvents > hits.size())
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " unsigned integers from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeCompare
-
-// hits are those do not satisfy the range condition
-void ibis::part::negativeCompare(const array_t<float>& array,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0, diff=0;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    while (idx.nIndices() > 0) { // the outer loop
-	const ibis::bitvector::word_t *ii = idx.indices();
-	if (idx.isRange()) {
-	    diff = (ii[1] <= nelm ? ii[1] : nelm);
-	    for (j = *ii; j < diff; ++j) {
-		if (! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-	else {
-	    for (i = 0; i < idx.nIndices(); ++i) {
-		j = ii[i];
-		if (j < nelm && ! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-
-	++idx;
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " floats from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeCompare
-
-// hits are those do not satisfy the range condition
-void ibis::part::negativeCompare(const array_t<double>& array,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
-
-    uint32_t i=0, j=0, diff=0;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-    while (idx.nIndices() > 0) { // the outer loop
-	const ibis::bitvector::word_t *ii = idx.indices();
-	if (idx.isRange()) {
-	    diff = (ii[1] <= nelm ? ii[1] : nelm);
-	    for (j = *ii; j < diff; ++j) {
-		if (! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-	else {
-	    for (i = 0; i < idx.nIndices(); ++i) {
-		j = ii[i];
-		if (j < nelm && ! cmp.inRange(array[j])) {
-		    hits.setBit(j, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(0)
-			<< "DEBUG: doCompare " << array[j] << " is in " << cmp;
-#endif
-		}
-	    }
-	}
-
-	++idx;
-    }
-
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::negativeCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " doubles from an array of "
-		  << array.size() << " elements took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeCompare
-
 template <typename T>
-void ibis::part::negativeCompare(const array_t<T>& array,
+long ibis::part::negativeCompare(const array_t<T>& array,
 				 const ibis::bitvector& mask,
 				 ibis::bitvector& hits,
 				 const ibis::qRange& cmp) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
-    uint32_t i=0, j=0, diff=0;
+    uint32_t i=0, j=0;
+    long ierr=0;
     const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -6066,10 +5768,11 @@ void ibis::part::negativeCompare(const array_t<T>& array,
     while (idx.nIndices() > 0) { // the outer loop
 	const ibis::bitvector::word_t *ii = idx.indices();
 	if (idx.isRange()) {
-	    diff = (ii[1] <= nelm ? ii[1] : nelm);
+	    uint32_t diff = (ii[1] <= nelm ? ii[1] : nelm);
 	    for (j = *ii; j < diff; ++j) {
 		if (! cmp.inRange(array[j])) {
 		    hits.setBit(j, 1);
+		    ++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 		    LOGGER(0)
 			<< "DEBUG: negativeCompare " << array[j]
@@ -6083,6 +5786,7 @@ void ibis::part::negativeCompare(const array_t<T>& array,
 		j = ii[i];
 		if (j < nelm && ! cmp.inRange(array[j])) {
 		    hits.setBit(j, 1);
+		    ++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 		    LOGGER(0)
 			<< "DEBUG: negativeCompare " << array[j]
@@ -6103,7 +5807,7 @@ void ibis::part::negativeCompare(const array_t<T>& array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison "
 		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
 		    << "s from an array of "
@@ -6114,10 +5818,11 @@ void ibis::part::negativeCompare(const array_t<T>& array,
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
+    return ierr;
 } // ibis::part::negativeCompare
 
 template <typename T>
-void ibis::part::negativeCompare(const char* file,
+long ibis::part::negativeCompare(const char* file,
 				 const ibis::bitvector& mask,
 				 ibis::bitvector& hits,
 				 const ibis::qRange& cmp) const {
@@ -6131,7 +5836,7 @@ void ibis::part::negativeCompare(const char* file,
 	logWarning("negativeCompare", "unable to open file \"%s\"",
 		   file);
 	hits.set(0, mask.size());
-	return;
+	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -6144,7 +5849,7 @@ void ibis::part::negativeCompare(const char* file,
     T *buf = reinterpret_cast<T*>(cbuf);
 
     uint32_t i=0, j=0;
-    long diff;
+    long diff, ierr;
     const ibis::bitvector::word_t *ii;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -6163,7 +5868,17 @@ void ibis::part::negativeCompare(const char* file,
 	    ii = idx.indices();
 	    if (idx.isRange()) {
 		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::negativeCompare(" << file << ", " << cmp
+			      << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -3;
+		}
+
 		ibis::fileManager::instance().recordPages
 		    (diff, elem*ii[1]);
 		j = ii[1];
@@ -6171,11 +5886,16 @@ void ibis::part::negativeCompare(const char* file,
 		    diff = nbuf;
 		    if (i+diff > ii[1])
 			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("negativeCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file, j);
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (ierr > 0 && static_cast<uint32_t>(diff) == diff) {
+			j = diff;
+		    }
+		    else {
+			j = 0;
+			logWarning("negativeCompare", "expected to read %ld "
+				   "integers from \"%s\" but got only %ld",
+				   diff, file, ierr);
+		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (! cmp.inRange(buf[k])) {
 			    hits.setBit(i+k, 1);
@@ -6187,8 +5907,30 @@ void ibis::part::negativeCompare(const char* file,
 		j = idx.nIndices() - 1;
 		diff = ii[j] - *ii + 1;
 		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
+		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
+		    if (ierr != *ii * elem) {
+			LOGGER(1) << "Warning -- ibis::part["
+				  << (m_name ? m_name : "?")
+				  << "]::negativeCompare(" << file << ", "
+				  << cmp << ") failed to seek to " << *ii *elem;
+			UnixClose(fdes);
+			hits.clear();
+			return -4;
+		    }
+
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (ierr > 0 && ierr == diff) {
+			j = diff;
+		    }
+		    else {
+			j = 0;
+			LOGGER(1) << "Warning -- ibis::part["
+				  << (m_name ? m_name : "?")
+				  << "]::negativeCompare(" << file << ", "
+				  << cmp << ") expected to read " << diff
+				  << " elements of " << elem << "-byte each, "
+				  << "but got " << ierr;
+		    }
 		    for (i = 0; i < j; ++i) {
 			uint32_t k0 = ii[i] - *ii;
 			if (! cmp.inRange(buf[k0])) {
@@ -6200,10 +5942,21 @@ void ibis::part::negativeCompare(const char* file,
 		    for (i = 0; i < idx.nIndices(); ++i) {
 			j = ii[i];
 			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (! cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
+			ierr = UnixSeek(fdes, diff, SEEK_SET);
+			if (ierr != diff) {
+			    LOGGER(1) << "Warning -- ibis::part["
+				      << (m_name ? m_name : "?")
+				      << "]::negativeCompare(" << file << ", "
+				      << cmp << ") failed to seek to " << diff;
+			    UnixClose(fdes);
+			    hits.clear();
+			    return -5;
+			}
+			ierr = UnixRead(fdes, buf, elem);
+			if (ierr > 0) {
+			    if (! cmp.inRange(*buf)) {
+				hits.setBit(j, 1);
+			    }
 			}
 		    }
 		}
@@ -6213,12 +5966,22 @@ void ibis::part::negativeCompare(const char* file,
 	    else {
 		j = *ii;
 		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (! cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::negativeCompare(" << file << ", "
+			      << cmp << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -6;
+		}
+		ierr = UnixRead(fdes, buf, elem);
+		if (ierr > 0) {
+		    ibis::fileManager::instance().recordPages(diff, diff+elem);
+		    if (! cmp.inRange(*buf)) {
+			hits.setBit(j, 1);
+		    }
 		}
 	    }
 
@@ -6226,20 +5989,30 @@ void ibis::part::negativeCompare(const char* file,
 	} // while (idx.nIndices() > 0)
 	delete [] buf;
     }
-    else { // no user buffer to use
+    else { // no user buffer to use, read one element at a time
 	T tmp;
 	while (idx.nIndices() > 0) { // the outer loop
 	    ii = idx.indices();
 	    if (idx.isRange()) {
 		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(1) << "Warning -- ibis::part["
+			      << (m_name ? m_name : "?")
+			      << "]::negativeCompare(" << file << ", "
+			      << cmp << ") failed to seek to " << diff;
+		    UnixClose(fdes);
+		    hits.clear();
+		    return -7;
+		}
+		ibis::fileManager::instance().recordPages(diff, elem*ii[1]);
 		j = ii[1];
 		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0) {
+			if (! cmp.inRange(tmp)) {
+			    hits.setBit(i, 1);
+			}
 		    }
 		}
 	    }
@@ -6247,10 +6020,21 @@ void ibis::part::negativeCompare(const char* file,
 		for (i = 0; i < idx.nIndices(); ++i) {
 		    j = ii[1];
 		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
+		    ierr = UnixSeek(fdes, diff, SEEK_SET);
+		    if (ierr != diff) {
+			LOGGER(1) << "Warning -- ibis::part["
+				  << (m_name ? m_name : "?")
+				  << "]::negativeCompare(" << file << ", "
+				  << cmp << ") failed to seek to " << diff;
+			UnixClose(fdes);
+			hits.clear();
+			return -8;
+		    }
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0) {
+			if (! cmp.inRange(tmp)) {
+			    hits.setBit(j, 1);
+			}
 		    }
 		}
 		ibis::fileManager::instance().recordPages
@@ -6270,7 +6054,7 @@ void ibis::part::negativeCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison "
 		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
 		    << "s from file \"" << file << "\" took "
@@ -6280,2023 +6064,12 @@ void ibis::part::negativeCompare(const char* file,
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
+    ierr = hits.cnt();
+    return ierr;
 } // ibis::part::negativeCompare
 
 // perform the actual comparison for range queries on file directly (without
 // file mapping) assuming the file contains signed integers in binary
-void ibis::part::doIntCompare(const char* file,
-			      const ibis::bitvector& mask,
-			      ibis::bitvector& hits,
-			      const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doIntCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(int);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    int *buf = reinterpret_cast<int*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem*(ii[1]-ii[0]));
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doIntCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	int tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doIntCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doIntCompare
-
-void ibis::part::doUIntCompare(const char* file,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& hits,
-			       const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doUIntCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(unsigned);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    unsigned *buf = reinterpret_cast<unsigned*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doUIntCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	unsigned tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doUIntCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " unsigned integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doUIntCompare
-
-// perform the actual comparison for range queries on file directly (without
-// file mapping) assuming the file contains signed chars in binary
-void ibis::part::doByteCompare(const char* file,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& hits,
-			       const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doByteCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(char);
-    // attempt to allocate a decent size buffer for operations
-    char *buf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf) / elem;
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem*(ii[1]-ii[0]));
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doByteCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	char tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doByteCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doByteCompare
-
-void ibis::part::doUByteCompare(const char* file,
-				const ibis::bitvector& mask,
-				ibis::bitvector& hits,
-				const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doUByteCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(unsigned char);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    unsigned char *buf = reinterpret_cast<unsigned char*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doUByteCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	unsigned char tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doUByteCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " unsigned integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doUByteCompare
-
-// perform the actual comparison for range queries on file directly (without
-// file mapping) assuming the file contains signed short integers in binary
-void ibis::part::doShortCompare(const char* file,
-				const ibis::bitvector& mask,
-				ibis::bitvector& hits,
-				const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doShortCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(short int);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    short int *buf = reinterpret_cast<short int*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem*(ii[1]-ii[0]));
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doShortCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	short int tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doShortCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doShortCompare
-
-void ibis::part::doUShortCompare(const char* file,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doUShortCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(unsigned short int);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    unsigned *buf = reinterpret_cast<unsigned*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doUShortCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	unsigned short int tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::doUShortCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " unsigned integers from file \"" << file << "\" took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doUShortCompare
-
-void ibis::part::doFloatCompare(const char* file,
-				const ibis::bitvector& mask,
-				ibis::bitvector& hits,
-				const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doFloatCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(float);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    float *buf = reinterpret_cast<float*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff)
-			/ elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doFloatCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff)
-			/ elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	float tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::doFloatCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " floats from file \"" << file << "\" took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doFloatCompare
-
-void ibis::part::doDoubleCompare(const char* file,
-				 const ibis::bitvector& mask,
-				 ibis::bitvector& hits,
-				 const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("doDoubleCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(double);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    double *buf = reinterpret_cast<double*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("doDoubleCompare", "expected to read %lu "
-				   "integers from \"%s\" but got only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	double tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::doDoubleCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " doubles from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::doDoubleCompare
-
-// perform the negative comparison for range queries on file directly
-// (without file mapping) assuming the file contains signed integers in
-// binary
-void ibis::part::negativeIntCompare(const char* file,
-				    const ibis::bitvector& mask,
-				    ibis::bitvector& hits,
-				    const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("negativeIntCompare", "unable to open file \"%s\"", file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(int);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    int *buf = reinterpret_cast<int*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem*(ii[1]-ii[0]));
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning
-			    ("negativeIntCompare", "expected to read "
-			     "%lu integers from \"%s\" but got only %lu",
-			     static_cast<long unsigned>(diff), file,
-			     static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (! cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (! cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (! cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (! cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	int tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeIntCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeIntCompare
-
-void ibis::part::negativeUIntCompare(const char* file,
-				     const ibis::bitvector& mask,
-				     ibis::bitvector& hits,
-				     const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("negativeUIntCompare", "unable to open file \"%s\"",
-		   file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(unsigned);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    unsigned *buf = reinterpret_cast<unsigned*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("negativeUIntCompare", "expected to "
-				   "read %lu integers from \"%s\" but got "
-				   "only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (! cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) /
-			elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (! cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (! cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (! cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	unsigned tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeUIntCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " unsigned integers from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeUIntCompare
-
-void ibis::part::negativeFloatCompare(const char* file,
-				      const ibis::bitvector& mask,
-				      ibis::bitvector& hits,
-				      const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("negativeFloatCompare", "unable to open file \"%s\"",
-		   file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(float);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    float *buf = reinterpret_cast<float*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff)
-			/ elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("negativeFloatCompare", "expected to "
-				   "read %lu integers from \"%s\" but got "
-				   "only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (! cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (! cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (! cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0],
-		     elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (! cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	float tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		    << "]::negativeFloatCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()
-		    << " floats from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
-		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeFloatCompare
-
-void ibis::part::negativeDoubleCompare(const char* file,
-				       const ibis::bitvector& mask,
-				       ibis::bitvector& hits,
-				       const ibis::qRange& cmp) const {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 1)
-	timer.start(); // start the timer
-
-    hits.clear(); // clear the existing content
-    int fdes = UnixOpen(file, OPEN_READONLY);
-    if (fdes < 0) {
-	logWarning("negativeDoubleCompare", "unable to open file \"%s\"",
-		   file);
-	hits.set(0, mask.size());
-	return;
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    const unsigned elem = sizeof(double);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    double *buf = reinterpret_cast<double*>(cbuf);
-
-    uint32_t i=0, j=0;
-    long diff;
-    const ibis::bitvector::word_t *ii;
-    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mask.size());
-	hits.decompress();
-    }
-    else {
-	hits.clear();
-	hits.reserve(mask.size(), mask.cnt());
-    }
-
-    ibis::bitvector::indexSet idx = mask.firstIndexSet();
-
-    if (buf) { // has a good size buffer to read data into
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < ii[1]; i += diff) {
-		    diff = nbuf;
-		    if (i+diff > ii[1])
-			diff = ii[1] - i;
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (static_cast<uint32_t>(diff) != j)
-			logWarning("negativeDoubleCompare", "expected to "
-				   "read %lu integers from \"%s\" but got "
-				   "only %lu",
-				   static_cast<long unsigned>(diff), file,
-				   static_cast<long unsigned>(j));
-		    for (uint32_t k = 0; k < j; ++k) {
-			if (! cmp.inRange(buf[k])) {
-			    hits.setBit(i+k, 1);
-			}
-		    }
-		}
-	    }
-	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
-		if (static_cast<uint32_t>(diff) < nbuf) {
-		    UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    j = UnixRead(fdes, buf, elem*diff) / elem;
-		    for (i = 0; i < j; ++i) {
-			uint32_t k0 = ii[i] - *ii;
-			if (! cmp.inRange(buf[k0])) {
-			    hits.setBit(ii[i], 1);
-			}
-		    }
-		}
-		else {
-		    for (i = 0; i < idx.nIndices(); ++i) {
-			j = ii[i];
-			diff = j * elem;
-			UnixSeek(fdes, diff, SEEK_SET);
-			UnixRead(fdes, buf, elem);
-			if (! cmp.inRange(*buf)) {
-			    hits.setBit(j, 1);
-			}
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-	    else {
-		j = *ii;
-		diff = j * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		UnixRead(fdes, buf, elem);
-		ibis::fileManager::instance().recordPages
-		    (diff, diff+elem);
-		if (! cmp.inRange(*buf)) {
-		    hits.setBit(j, 1);
-		}
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-	delete [] buf;
-    }
-    else { // no user buffer to use
-	double tmp;
-	while (idx.nIndices() > 0) { // the outer loop
-	    ii = idx.indices();
-	    if (idx.isRange()) {
-		diff = *ii * elem;
-		UnixSeek(fdes, diff, SEEK_SET);
-		ibis::fileManager::instance().recordPages
-		    (diff, elem*ii[1]);
-		j = ii[1];
-		for (i = *ii; i < j; ++i) {
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(i, 1);
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < idx.nIndices(); ++i) {
-		    j = ii[1];
-		    diff = j * elem;
-		    UnixSeek(fdes, diff, SEEK_SET);
-		    UnixRead(fdes, &tmp, elem);
-		    if (! cmp.inRange(tmp)) {
-			hits.setBit(j, 1);
-		    }
-		}
-		ibis::fileManager::instance().recordPages
-		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
-	    }
-
-	    ++idx; // next set of selected entries
-	} // while (idx.nIndices() > 0)
-    }
-
-    UnixClose(fdes);
-    if (uncomp)
-	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
-
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
-		  << "]::negativeDoubleCompare -- performing comparison "
-		  << cmp << " on " << mask.cnt()
-		  << " doubles from file \"" << file << "\" took "
-		  << timer.realTime() << " sec elapsed time and produced "
-		  << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
-#endif
-    }
-} // ibis::part::negativeDoubleCompare
-
 template <typename T>
 long ibis::part::doScan(const array_t<T>& vals,
 			const ibis::qContinuousRange& rng,
@@ -8981,7 +6754,7 @@ long ibis::part::doScan(const array_t<T>& vals,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doScan -- evaluating "
 		    << rng << " on " << mask.cnt() << " " << typeid(T).name()
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
@@ -9345,7 +7118,7 @@ long ibis::part::countHits(const ibis::qRange& cmp) const {
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << m_name
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::countHits -- evaluating "
 		    << cmp << " on " << nEvents << " records took "
 		    << timer.realTime()
@@ -10196,6 +7969,9 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    }
 	    delete vals;
 	}
+	else {
+	    ierr = -4;
+	}
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
@@ -10208,6 +7984,9 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    }
 	    delete vals;
 	}
+	else {
+	    ierr = -4;
+	}
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
@@ -10219,6 +7998,9 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    }
 	    delete vals;
 	}
+	else {
+	    ierr = -4;
+	}
 	break;}
     case ibis::FLOAT: {
 	array_t<float>* vals = col->selectFloats(*(qq.getHitVector()));
@@ -10229,6 +8011,9 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    }
 	    delete vals;
 	}
+	else {
+	    ierr = -4;
+	}
 	break;}
     case ibis::DOUBLE: {
 	array_t<double>* vals = col->selectDoubles(*(qq.getHitVector()));
@@ -10238,6 +8023,9 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
+	}
+	else {
+	    ierr = -4;
 	}
 	break;}
     default: {
@@ -10355,14 +8143,20 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::SHORT:
     case ibis::INT: {
 	array_t<int32_t>* vals1 = col1->selectInts(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10371,7 +8165,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10379,21 +8176,30 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10413,14 +8219,20 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::USHORT:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10429,7 +8241,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10437,21 +8252,30 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10470,14 +8294,20 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::ULONG:
     case ibis::LONG: {
 	array_t<int64_t>* vals1 = col1->selectLongs(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10486,7 +8316,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10494,21 +8327,30 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10526,14 +8368,20 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::FLOAT: {
 	array_t<float>* vals1 = col1->selectFloats(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10542,7 +8390,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10550,21 +8401,30 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10582,14 +8442,20 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::DOUBLE: {
 	array_t<double>* vals1 = col1->selectDoubles(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10598,7 +8464,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10606,21 +8475,30 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 	    ierr = count2DBins(*vals1, begin1, end1, stride1,
 			       *vals2, begin2, end2, stride2, counts);
 	    delete vals2;
@@ -10712,14 +8590,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::SHORT:
     case ibis::INT: {
 	array_t<int32_t>* vals1 = col1->selectInts(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -10727,7 +8611,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10738,7 +8625,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10748,7 +8638,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10757,7 +8650,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10766,7 +8662,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -10787,7 +8686,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -10795,7 +8697,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10806,7 +8711,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10816,7 +8724,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10825,7 +8736,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10834,7 +8748,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -10854,7 +8771,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -10862,7 +8782,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10873,7 +8796,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10883,7 +8809,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10892,7 +8821,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10901,7 +8833,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -10920,7 +8855,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -10928,7 +8866,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10939,7 +8880,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10949,7 +8893,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -10958,7 +8905,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -10967,7 +8917,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -10986,7 +8939,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -10994,7 +8950,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11005,7 +8964,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11015,7 +8977,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11024,7 +8989,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11033,7 +9001,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11065,14 +9036,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::USHORT:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11080,7 +9057,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11091,7 +9071,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11101,7 +9084,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11110,7 +9096,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11119,7 +9108,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11140,7 +9132,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11148,7 +9143,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11159,7 +9157,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11169,7 +9170,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11178,7 +9182,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11187,7 +9194,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11207,7 +9217,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11215,7 +9228,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11226,7 +9242,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11236,7 +9255,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11245,7 +9267,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11254,7 +9279,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11273,7 +9301,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11281,7 +9312,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11292,7 +9326,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11302,7 +9339,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11311,7 +9351,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11320,7 +9363,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11339,7 +9385,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11347,7 +9396,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11358,7 +9410,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11368,7 +9423,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11377,7 +9435,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11386,7 +9447,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11417,14 +9481,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::ULONG:
     case ibis::LONG: {
 	array_t<int64_t>* vals1 = col1->selectLongs(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11432,7 +9502,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11443,7 +9516,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11453,7 +9529,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11462,7 +9541,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11471,7 +9553,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11492,7 +9577,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11500,7 +9588,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11511,7 +9602,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11521,7 +9615,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11530,7 +9627,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11539,7 +9639,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11559,7 +9662,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11567,7 +9673,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11578,7 +9687,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11588,7 +9700,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11597,7 +9712,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11606,7 +9724,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11625,7 +9746,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11633,7 +9757,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11644,7 +9771,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11654,7 +9784,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11663,7 +9796,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11672,7 +9808,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11691,7 +9830,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11699,7 +9841,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11710,7 +9855,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11720,7 +9868,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11729,7 +9880,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11738,7 +9892,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11768,14 +9925,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::FLOAT: {
 	array_t<float>* vals1 = col1->selectFloats(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11783,7 +9946,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11794,7 +9960,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11804,7 +9973,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11813,7 +9985,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11822,7 +9997,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11843,7 +10021,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11851,7 +10032,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11862,7 +10046,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11872,7 +10059,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11881,7 +10071,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11890,7 +10083,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11910,7 +10106,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11918,7 +10117,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11929,7 +10131,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11939,7 +10144,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -11948,7 +10156,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11957,7 +10168,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -11976,7 +10190,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -11984,7 +10201,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -11995,7 +10215,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12005,7 +10228,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12014,7 +10240,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12023,7 +10252,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12042,7 +10274,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12050,7 +10285,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12061,7 +10299,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12071,7 +10312,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12080,7 +10324,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12089,7 +10336,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12119,14 +10369,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::DOUBLE: {
 	array_t<double>* vals1 = col1->selectDoubles(*(qq.getHitVector()));
-	if (vals1 == 0) break;
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
 	switch (col2->type()) {
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
 	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12134,7 +10390,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12145,7 +10404,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12155,7 +10417,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12164,7 +10429,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12173,7 +10441,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12194,7 +10465,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::USHORT:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12202,7 +10476,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12213,7 +10490,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12223,7 +10503,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12232,7 +10515,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12241,7 +10527,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12261,7 +10550,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::ULONG:
 	case ibis::LONG: {
 	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12269,7 +10561,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12280,7 +10575,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12290,7 +10588,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12299,7 +10600,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12308,7 +10612,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12327,7 +10634,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12335,7 +10645,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12346,7 +10659,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12356,7 +10672,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12365,7 +10684,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12374,7 +10696,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12393,7 +10718,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
-	    if (vals2 == 0) break;
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
 	    switch (col3->type()) {
 	    case ibis::BYTE:
@@ -12401,7 +10729,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
 		    col3->selectInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12412,7 +10743,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12422,7 +10756,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
 		    col3->selectLongs(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end2, stride3, counts);
@@ -12431,7 +10768,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
 		    col3->selectFloats(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals3, begin3, end3, stride3, counts);
@@ -12440,7 +10780,10 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
 		    col3->selectDoubles(*(qq.getHitVector()));
-		if (vals3 == 0) break;
+		if (vals3 == 0) {
+		    ierr = -6;
+		    break;
+		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
 				   *vals2, begin3, end3, stride3, counts);
@@ -12501,17 +10844,17 @@ ibis::part::getDistribution(const char *constraints,
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
-    //     if (constraints == 0 || *constraints == 0) {
-    // 	ierr = (*it).second->getDistribution(bounds, counts);
-    // 	if (ierr > 0 && ibis::gVerbose > 2) {
-    // 	    timer.stop();
-    // 	    logMessage("getDistribution",
-    // 		       "computing the distribution of column %s took %g "
-    // 		       "sec(CPU) and %g sec(elapsed)",
-    // 		       (*it).first, timer.CPUTime(), timer.realTime());
-    // 	}
-    // 	return ierr;
-    //     }
+//     if (constraints == 0 || *constraints == 0) {
+// 	ierr = (*it).second->getDistribution(bounds, counts);
+// 	if (ierr > 0 && ibis::gVerbose > 2) {
+// 	    timer.stop();
+// 	    logMessage("getDistribution",
+// 		       "computing the distribution of column %s took %g "
+// 		       "sec(CPU) and %g sec(elapsed)",
+// 		       (*it).first, timer.CPUTime(), timer.realTime());
+// 	}
+// 	return ierr;
+//     }
 
     ibis::bitvector mask;
     mask.set(1, nEvents);
@@ -12543,6 +10886,10 @@ ibis::part::getDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *vals = col->selectInts(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    array_t<int32_t> bnds(bounds.size());
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
 		bnds[i] = static_cast<int32_t>(bounds[i]);
@@ -12554,6 +10901,10 @@ ibis::part::getDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *vals = col->selectUInts(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    array_t<uint32_t> bnds(bounds.size());
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
 		bnds[i] = static_cast<uint32_t>(bounds[i]);
@@ -12562,6 +10913,10 @@ ibis::part::getDistribution(const char *constraints,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *vals = col->selectFloats(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    array_t<float> bnds(bounds.size());
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
 		bnds[i] = static_cast<float>(bounds[i]);
@@ -12570,6 +10925,10 @@ ibis::part::getDistribution(const char *constraints,
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double> *vals = col->selectDoubles(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    array_t<double> bnds(bounds.size());
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
 		bnds[i] = bounds[i];
@@ -12577,6 +10936,7 @@ ibis::part::getDistribution(const char *constraints,
 	    delete vals;
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>((*it).second->type()));
@@ -12592,6 +10952,10 @@ ibis::part::getDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *vals = col->selectInts(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    ibis::index::mapValues<int32_t>(*vals, hist);
 	    delete vals;
 	    break;}
@@ -12600,20 +10964,33 @@ ibis::part::getDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *vals = col->selectUInts(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    ibis::index::mapValues<uint32_t>(*vals, hist);
 	    delete vals;
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *vals = col->selectFloats(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    ibis::index::mapValues<float>(*vals, hist);
 	    delete vals;
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double> *vals = col->selectDoubles(mask);
+	    if (vals == 0) {
+		ierr = -4;
+		break;
+	    }
 	    ibis::index::mapValues<double>(*vals, hist);
 	    delete vals;
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>((*it).second->type()));
@@ -12643,7 +11020,7 @@ ibis::part::getDistribution(const char *constraints,
 		counts.push_back((*it1).second);
 	    }
 	}
-	else { // too many values, reduce to 1000 bins
+	else if (hist.size() > 0) { // too many values, reduce to 1000 bins
 	    array_t<double> vals(hist.size());
 	    array_t<uint32_t> cnts(hist.size());
 	    vals.clear();
@@ -12674,7 +11051,8 @@ ibis::part::getDistribution(const char *constraints,
 	    }
 	}
     }
-    ierr = counts.size();
+    if (ierr >= 0)
+	ierr = counts.size();
     if (ierr > 0 && ibis::gVerbose > 2) {
 	timer.stop();
 	logMessage("getDistribution",
@@ -12710,7 +11088,7 @@ ibis::part::getDistribution
 	for (uint32_t i = 0; i < nbc; ++i)
 	    bds[i] = bounds[i];
     }
-    long mbc = getDistribution(name, constraints, bds, cts);
+    long mbc = getDistribution(constraints, name, bds, cts);
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
 	ibis::util::logger lg;
@@ -12816,6 +11194,10 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 		case ibis::BYTE:
 		case ibis::INT: {
 		    array_t<int32_t> *vals = col->selectInts(*hits);
+		    if (vals == 0) {
+			ierr = -4;
+			break;
+		    }
 		    ibis::index::mapValues<int32_t>(*vals, hist);
 		    delete vals;
 		    break;}
@@ -12824,27 +11206,44 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 		case ibis::UINT:
 		case ibis::CATEGORY: {
 		    array_t<uint32_t> *vals = col->selectUInts(*hits);
+		    if (vals == 0) {
+			ierr = -4;
+			break;
+		    }
 		    ibis::index::mapValues<uint32_t>(*vals, hist);
 		    delete vals;
 		    break;}
 		case ibis::FLOAT: {
 		    array_t<float> *vals = col->selectFloats(*hits);
+		    if (vals == 0) {
+			ierr = -4;
+			break;
+		    }
 		    ibis::index::mapValues<float>(*vals, hist);
 		    delete vals;
 		    break;}
 		case ibis::DOUBLE: {
 		    array_t<double> *vals = col->selectDoubles(*hits);
+		    if (vals == 0) {
+			ierr = -4;
+			break;
+		    }
 		    ibis::index::mapValues<double>(*vals, hist);
 		    delete vals;
 		    break;}
 		default: {
+		    ierr = -3;
 		    logWarning("getCumulativeDistribution",
 			       "unable to handle column type %d",
 			       static_cast<int>((*it).second->type()));
 		    break;}
 		}
 
-		if (hist.size() < 10000) {
+		if (hist.empty()) {
+		    if (ierr >= 0)
+			ierr = -7;
+		}
+		else if (hist.size() < 10000) {
 		    // convert the histogram into cumulative distribution
 		    bounds.reserve(hits->cnt()+1);
 		    counts.reserve(hits->cnt()+1);
@@ -12889,7 +11288,8 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 		    }
 		}
 	    }
-	    ierr = counts.size();
+	    if (ierr >= 0)
+		ierr = counts.size();
 	    if (ierr > 0 && ibis::gVerbose > 2) {
 		timer.stop();
 		logMessage("getCumulativeDistribution",
@@ -12919,7 +11319,7 @@ ibis::part::getCumulativeDistribution
 
     std::vector<double> bds;
     std::vector<uint32_t> cts;
-    long mbc = getCumulativeDistribution(name, constraints, bds, cts);
+    long mbc = getCumulativeDistribution(constraints, name, bds, cts);
     mbc = packCumulativeDistribution(bds, cts, nbc, bounds, counts);
     return mbc;
 } // ibis::part::getCumulativeDistribution
@@ -12977,6 +11377,10 @@ ibis::part::getJointDistribution(const char *constraints,
     case ibis::BYTE:
     case ibis::INT: {
 	array_t<int32_t> *val1 = col1->selectInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 	array_t<int32_t> bnd1;
 	if (bounds1.size() > 0) {
 	    bnd1.resize(bounds1.size());
@@ -12988,6 +11392,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<int32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13008,6 +11417,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<uint32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13025,6 +11439,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<float> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13043,6 +11462,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::DOUBLE: {
 	    array_t<double> bnd2;
 	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
 		for (uint32_t i = 0; i < bounds2.size(); ++ i)
@@ -13058,6 +11482,7 @@ ibis::part::getJointDistribution(const char *constraints,
 		bounds2[i] = bnd2[i];
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getJointDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>(col2->type()));
@@ -13070,6 +11495,11 @@ ibis::part::getJointDistribution(const char *constraints,
     case ibis::UINT:
     case ibis::CATEGORY: {
 	array_t<uint32_t> *val1 = col1->selectUInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
 	array_t<uint32_t> bnd1;
 	if (bounds1.size() > 0) {
 	    bnd1.resize(bounds1.size());
@@ -13081,6 +11511,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<int32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13101,6 +11536,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<uint32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13118,6 +11558,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<float> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13136,6 +11581,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::DOUBLE: {
 	    array_t<double> bnd2;
 	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
 		for (uint32_t i = 0; i < bounds2.size(); ++ i)
@@ -13151,6 +11601,7 @@ ibis::part::getJointDistribution(const char *constraints,
 		bounds2[i] = bnd2[i];
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getJointDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>(col2->type()));
@@ -13160,6 +11611,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	break;}
     case ibis::FLOAT: {
 	array_t<float> *val1 = col1->selectFloats(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
 	array_t<float> bnd1;
 	if (bounds1.size() > 0) {
 	    bnd1.resize(bounds1.size());
@@ -13171,6 +11627,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<int32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13191,6 +11652,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<uint32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13208,6 +11674,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<float> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13226,6 +11697,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::DOUBLE: {
 	    array_t<double> bnd2;
 	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
 		for (uint32_t i = 0; i < bounds2.size(); ++ i)
@@ -13241,6 +11717,7 @@ ibis::part::getJointDistribution(const char *constraints,
 		bounds2[i] = bnd2[i];
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getJointDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>(col2->type()));
@@ -13250,6 +11727,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> *val1 = col1->selectDoubles(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
 	array_t<double> bnd1;
 	if (bounds1.size() > 0) {
 	    bnd1.resize(bounds1.size());
@@ -13261,6 +11743,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::BYTE:
 	case ibis::INT: {
 	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<int32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13281,6 +11768,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::UINT:
 	case ibis::CATEGORY: {
 	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<uint32_t> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13298,6 +11790,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    array_t<float> bnd2;
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
@@ -13316,6 +11813,11 @@ ibis::part::getJointDistribution(const char *constraints,
 	case ibis::DOUBLE: {
 	    array_t<double> bnd2;
 	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
 	    if (bounds2.size() > 0) {
 		bnd2.resize(bounds2.size());
 		for (uint32_t i = 0; i < bounds2.size(); ++ i)
@@ -13331,6 +11833,7 @@ ibis::part::getJointDistribution(const char *constraints,
 		bounds2[i] = bnd2[i];
 	    break;}
 	default: {
+	    ierr = -3;
 	    logWarning("getJointDistribution",
 		       "unable to handle column type %d",
 		       static_cast<int>(col2->type()));
@@ -13339,6 +11842,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	delete val1;
 	break;}
     default: {
+	ierr = -3;
 	logWarning("getJointDistribution",
 		   "unable to handle column type %d",
 		   static_cast<int>(col1->type()));
@@ -13475,22 +11979,22 @@ long ibis::part::packCumulativeDistribution
 	    cptr[i] = cts[i];
 	}
     }
-    //     else if (static_cast<uint32_t>(mbc) <= nbc+nbc-3) {
-    // 	// less than two values in a bin on average
-    // 	uint32_t start = nbc + nbc - mbc - 2;
-    // 	for (uint32_t i = 0; i <= start; ++ i) {
-    // 	    bptr[i] = bds[i];
-    // 	    cptr[i] = cts[i];
-    // 	}
-    // 	for (uint32_t i = start+1; i < nbc-1; ++ i) {
-    // 	    uint32_t j = i + i - start;
-    // 	    bptr[i] = bds[j];
-    // 	    cptr[i] = cts[j];
-    // 	}
-    // 	bptr[nbc-1] = bds[mbc-1];
-    // 	cptr[nbc-1] = cts[mbc-1];
-    // 	mbc = nbc; // mbc is the return value
-    //     }
+//     else if (static_cast<uint32_t>(mbc) <= nbc+nbc-3) {
+// 	// less than two values in a bin on average
+// 	uint32_t start = nbc + nbc - mbc - 2;
+// 	for (uint32_t i = 0; i <= start; ++ i) {
+// 	    bptr[i] = bds[i];
+// 	    cptr[i] = cts[i];
+// 	}
+// 	for (uint32_t i = start+1; i < nbc-1; ++ i) {
+// 	    uint32_t j = i + i - start;
+// 	    bptr[i] = bds[j];
+// 	    cptr[i] = cts[j];
+// 	}
+// 	bptr[nbc-1] = bds[mbc-1];
+// 	cptr[nbc-1] = cts[mbc-1];
+// 	mbc = nbc; // mbc is the return value
+//     }
     else { // make the distribution fit the given space
 	// the first entries are always copied
 	bptr[0] = bds[0];
@@ -14189,14 +12693,19 @@ long ibis::part::vault::seek(double val) {
 /// one at a time to do the comparison
 template <class T>
 uint32_t ibis::part::vault::seekValue(int fd, const T& val) const {
+    long ierr;
     uint32_t i = 0;
     uint32_t j = _roster.size();
     uint32_t m = (i + j) / 2;
     while (i < m) {
 	T tmp;
 	uint32_t pos = sizeof(T) * _roster[m];
-	UnixSeek(fd, pos, SEEK_SET);
-	UnixRead(fd, &tmp, sizeof(T));
+	ierr = UnixSeek(fd, pos, SEEK_SET);
+	if (ierr < 0)
+	    return _roster.size();
+	ierr = UnixRead(fd, &tmp, sizeof(T));
+	if (ierr < 0)
+	    return _roster.size();
 	if (tmp < val)
 	    i = m;
 	else
@@ -14206,8 +12715,12 @@ uint32_t ibis::part::vault::seekValue(int fd, const T& val) const {
     if (i == 0) { // it is possible that 0th value has not been checked
 	T tmp;
 	uint32_t pos = sizeof(T) * _roster[0];
-	UnixSeek(fd, pos, SEEK_SET);
-	UnixRead(fd, &tmp, sizeof(T));
+	ierr = UnixSeek(fd, pos, SEEK_SET);
+	if (ierr < 0)
+	    return _roster.size();
+	ierr = UnixRead(fd, &tmp, sizeof(T));
+	if (ierr < 0)
+	    return _roster.size();
 	if (tmp >= val)
 	    j = 0;
     }
@@ -14507,9 +13020,9 @@ template long
 ibis::part::doScan(const array_t<double>&,
 		   const ibis::qRange&, const ibis::bitvector&,
 		   ibis::bitvector&) const;
-template void
+template long
 ibis::part::doCompare(const array_t<char>&, const ibis::bitvector&,
 		      ibis::bitvector&, const ibis::qRange&) const;
-template void
+template long
 ibis::part::doCompare<char>(const char*, const ibis::bitvector&,
 			    ibis::bitvector&, const ibis::qRange&) const;
