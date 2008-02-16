@@ -1,4 +1,11 @@
 2008-02-14 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/part.cpp: change <size_t> to <uint32_t> for
+	get[1|2|3]DDistribution and supporting functions (requested by
+	Prabhat)
+	* src/bord.cpp, src/mensa.cpp: update to accomodate the changes to
+	get[1|2|3]DDistribution
+
+2008-02-14 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: change doScan and doCompare to return long
 	* src/part.cpp:2890&2911 change calls to doIntCompare to
 	doCompare<int64_t> and doCompare<uint64_t>

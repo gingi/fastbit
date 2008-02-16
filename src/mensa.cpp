@@ -1688,13 +1688,34 @@ long ibis::mensa::getHistogram(const char* constraints,
 			       double begin, double end, double stride,
 			       std::vector<size_t>& counts) const {
     long ierr = -1;
-    if (cname == 0 || *cname == 0 || stride == 0.0) return ierr;
-    counts.clear();
-    for (ibis::partList::const_iterator it = parts.begin();
-	 it != parts.end(); ++ it) {
-	ierr = (*it).second->get1DDistribution(constraints, cname, begin,
-					       end, stride, counts);
-	if (ierr < 0) return ierr;
+    if (cname == 0 || *cname == 0 || (begin >= end && !(stride < 0.0)) ||
+	(begin <= end && !(stride > 0.0))) return ierr;
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	counts.clear();
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    ierr = (*it).second->get1DDistribution(constraints, cname, begin,
+						   end, stride, counts);
+	    if (ierr < 0) return ierr;
+	}
+    }
+    else {
+	const size_t nbins = 1 + 
+	    static_cast<uint32_t>(std::floor((end - begin) / stride));
+	counts.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    counts[i] = 0;
+
+	std::vector<uint32_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    tmp.clear();
+	    ierr = (*it).second->get1DDistribution(constraints, cname, begin,
+						   end, stride, tmp);
+	    if (ierr < 0) return ierr;
+	    for (size_t i = 0; i < nbins; ++ i)
+		counts[i] += tmp[i];
+	}
     }
     return ierr;
 } // ibis::mensa::getHistogram
@@ -1706,16 +1727,41 @@ long ibis::mensa::getHistogram2D(const char* constraints,
 				 double begin2, double end2, double stride2,
 				 std::vector<size_t>& counts) const {
     long ierr = -1;
-    if (cname1 == 0 || cname2 == 0 || stride1 == 0.0 ||
-	*cname1 == 0 || *cname2 == 0 || stride2 == 0.0) return ierr;
-    counts.clear();
+    if (cname1 == 0 || cname2 == 0 || (begin1 >= end1 && !(stride1 < 0.0)) ||
+	(begin1 <= end1 && !(stride1 > 0.0)) ||
+	*cname1 == 0 || *cname2 == 0 ||  (begin2 >= end2 && !(stride2 < 0.0)) ||
+	(begin2 <= end2 && !(stride2 > 0.0))) return ierr;
 
-    for (ibis::partList::const_iterator it = parts.begin();
-	 it != parts.end(); ++ it) {
-	ierr = (*it).second->get2DDistribution
-	    (constraints, cname1, begin1, end1, stride1, cname2, begin2,
-	     end2, stride2, counts);
-	if (ierr < 0) return ierr;
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	counts.clear();
+
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    ierr = (*it).second->get2DDistribution
+		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
+		 end2, stride2, counts);
+	    if (ierr < 0) return ierr;
+	}
+    }
+    else {
+	const size_t nbins =
+	    (1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
+	    (1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
+	counts.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    counts[i] = 0;
+
+	std::vector<uint32_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    ierr = (*it).second->get2DDistribution
+		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
+		 end2, stride2, tmp);
+	    if (ierr < 0) return ierr;
+
+	    for (size_t i = 0; i < nbins; ++ i)
+		counts[i] += tmp[i];
+	}
     }
     return ierr;
 } // ibis::mensa::getHistogram2D
@@ -1731,16 +1777,46 @@ long ibis::mensa::getHistogram3D(const char* constraints,
     long ierr = -1;
     if (cname1 == 0 || cname2 == 0 || cname3 == 0 ||
 	*cname1 == 0 || *cname2 == 0 || *cname3 == 0 ||
-	stride1 == 0.0 || stride2 == 0.0 || stride3 == 0.0) return -1;
-    counts.clear();
+	(begin1 >= end1 && !(stride1 < 0.0)) ||
+	(begin1 <= end1 && !(stride1 > 0.0)) ||
+	(begin2 >= end2 && !(stride2 < 0.0)) ||
+	(begin2 <= end2 && !(stride2 > 0.0)) ||
+	(begin3 >= end3 && !(stride3 < 0.0)) ||
+	(begin3 <= end3 && !(stride3 > 0.0))) return -1;
 
-    for (ibis::partList::const_iterator it = parts.begin();
-	 it != parts.end(); ++ it) {
-	ierr = (*it).second->get3DDistribution
-	    (constraints, cname1, begin1, end1, stride1, cname2, begin2,
-	     end2, stride2, cname3, begin3, end3, stride3, counts);
-	if (ierr < 0) return ierr;
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	counts.clear();
+
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    ierr = (*it).second->get3DDistribution
+		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
+		 end2, stride2, cname3, begin3, end3, stride3, counts);
+	    if (ierr < 0) return ierr;
+	}
     }
+    else {
+	const size_t nbins =
+	    (1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
+	    (1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2))) *
+	    (1 + static_cast<uint32_t>(std::floor((end3 - begin3) / stride3)));
+	counts.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    counts[i] = 0;
+
+	std::vector<uint32_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    ierr = (*it).second->get3DDistribution
+		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
+		 end2, stride2, cname3, begin3, end3, stride3, tmp);
+	    if (ierr < 0) return ierr;
+
+	    for (size_t i = 0; i < nbins; ++ i)
+		counts[i] += tmp[i];
+	}
+    }
+
     return ierr;
 } // ibis::mensa::getHistogram3D
 

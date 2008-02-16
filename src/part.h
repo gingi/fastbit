@@ -328,14 +328,14 @@ public:
     /// @sa ibis::table::getHistogram
     long get1DDistribution(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
-			   std::vector<size_t>& counts) const;
+			   std::vector<uint32_t>& counts) const;
     /// @sa ibis::part::get1DDistribution
     /// @sa ibis::table::getHistogram2D
     long get2DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
 			   double begin2, double end2, double stride2,
-			   std::vector<size_t>& counts) const;
+			   std::vector<uint32_t>& counts) const;
     /// @sa ibis::part::get1DDistribution
     /// @sa ibis::table::getHistogram3D
     long get3DDistribution(const char *constraints, const char *cname1,
@@ -344,7 +344,7 @@ public:
 			   double begin2, double end2, double stride2,
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
-			   std::vector<size_t>& counts) const;
+			   std::vector<uint32_t>& counts) const;
 
     /// Compute the joint distribution of two variables.  It returns three
     /// arrays, @c bounds1, @c bounds2, and @c counts.  The arrays @c
@@ -638,7 +638,7 @@ protected:
 		     const array_t<T2>& vals2,
 		     const double& begin2, const double& end2,
 		     const double& stride2,
-		     std::vector<size_t>& counts) const;
+		     std::vector<uint32_t>& counts) const;
     /// Count the number of values falling in 3D bins.
     template <typename T1, typename T2, typename T3>
     long count3DBins(const array_t<T1>& vals1,
@@ -650,7 +650,7 @@ protected:
 		     const array_t<T3>& vals3,
 		     const double& begin3, const double& end3,
 		     const double& stride3,
-		     std::vector<size_t>& counts) const;
+		     std::vector<uint32_t>& counts) const;
 
     /// Log functions
     void logError(const char* event, const char* fmt, ...) const;

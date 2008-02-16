@@ -7923,9 +7923,9 @@ ibis::part::getDistribution
 
 long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 				   double begin, double end, double stride,
-				   std::vector<size_t>& counts) const {
-    if (cname == 0 || *cname == 0 || (begin >= end && stride >= 0.0) ||
-	(begin <= end && stride <= 0.0))
+				   std::vector<uint32_t>& counts) const {
+    if (cname == 0 || *cname == 0 || (begin >= end && !(stride < 0.0)) ||
+	(begin <= end && !(stride > 0.0)))
 	return -1L;
 
     const ibis::column* col = getColumn(cname);
@@ -7933,7 +7933,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	return -2L;
 
     const size_t nbins = 1 + 
-	static_cast<size_t>(std::floor((end - begin) / stride));
+	static_cast<uint32_t>(std::floor((end - begin) / stride));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (size_t i = 0; i < nbins; ++i)
@@ -7964,7 +7964,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<int32_t>* vals = col->selectInts(*(qq.getHitVector()));
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<size_t>
+		++ counts[static_cast<uint32_t>
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
@@ -7979,7 +7979,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<uint32_t>* vals = col->selectUInts(*(qq.getHitVector()));
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<size_t>
+		++ counts[static_cast<uint32_t>
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
@@ -7993,7 +7993,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<int64_t>* vals = col->selectLongs(*(qq.getHitVector()));
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<size_t>
+		++ counts[static_cast<uint32_t>
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
@@ -8006,7 +8006,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<float>* vals = col->selectFloats(*(qq.getHitVector()));
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<size_t>
+		++ counts[static_cast<uint32_t>
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
@@ -8019,7 +8019,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<double>* vals = col->selectDoubles(*(qq.getHitVector()));
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<size_t>
+		++ counts[static_cast<uint32_t>
 			  (std::floor(((*vals)[i] - begin) / stride))];
 	    }
 	    delete vals;
@@ -8047,14 +8047,14 @@ long ibis::part::count2DBins(const array_t<T1>& vals1,
 			     const array_t<T2>& vals2,
 			     const double& begin2, const double& end2,
 			     const double& stride2,
-			     std::vector<size_t>& counts) const {
+			     std::vector<uint32_t>& counts) const {
     const size_t dim2 = 1+
-	static_cast<size_t>(std::floor((end2-begin2)/stride2));
+	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
     for (size_t i1 = 0; i1 < vals1.size(); ++ i1) {
 	size_t j1 = dim2 *
-	    static_cast<size_t>(std::floor((vals1[i1]-begin1)/stride1));
+	    static_cast<uint32_t>(std::floor((vals1[i1]-begin1)/stride1));
 	for (size_t i2 = 0; i2 < vals2.size(); ++ i2)
-	    ++ counts[j1+static_cast<size_t>
+	    ++ counts[j1+static_cast<uint32_t>
 		      (std::floor((vals2[i2]-begin2)/stride2))];
     }
     return counts.size();
@@ -8070,19 +8070,19 @@ long ibis::part::count3DBins(const array_t<T1>& vals1,
 			     const array_t<T3>& vals3,
 			     const double& begin3, const double& end3,
 			     const double& stride3,
-			     std::vector<size_t>& counts) const {
+			     std::vector<uint32_t>& counts) const {
     const size_t dim3 = 1 +
-	static_cast<size_t>(std::floor((end3 - begin3)/stride3));
+	static_cast<uint32_t>(std::floor((end3 - begin3)/stride3));
     const size_t dim2 = dim3 + dim3 *
-	static_cast<size_t>(std::floor((end2 - begin2)/stride2));
+	static_cast<uint32_t>(std::floor((end2 - begin2)/stride2));
     for (size_t i1 = 0; i1 < vals1.size(); ++ i1) {
 	size_t j1 = dim2 *
-	    static_cast<size_t>(std::floor((vals1[i1]-begin1)/stride1));
+	    static_cast<uint32_t>(std::floor((vals1[i1]-begin1)/stride1));
 	for (size_t i2 = 0; i2 < vals2.size(); ++ i2) {
 	    size_t j2 = j1 + dim3 *
-		static_cast<size_t>(std::floor((vals2[i2]-begin2)/stride2));
+		static_cast<uint32_t>(std::floor((vals2[i2]-begin2)/stride2));
 	    for (size_t i3 = 0; i3 < vals3.size(); ++ i3)
-		++ counts[j2 + static_cast<size_t>
+		++ counts[j2 + static_cast<uint32_t>
 			  (std::floor((vals3[i3]-begin3)/stride3))];
 	}
     }
@@ -8093,11 +8093,11 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 				   double begin1, double end1, double stride1,
 				   const char *cname2,
 				   double begin2, double end2, double stride2,
-				   std::vector<size_t>& counts) const {
-    if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && stride1 >= 0.0) ||
-	(begin1 <= end1 && stride1 <= 0.0) ||
-	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && stride2 >= 0.0) ||
-	(begin2 <= end2 && stride2 <= 0.0))
+				   std::vector<uint32_t>& counts) const {
+    if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && !(stride1 < 0.0)) ||
+	(begin1 <= end1 && !(stride1 > 0.0)) ||
+	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && !(stride2 < 0.0)) ||
+	(begin2 <= end2 && !(stride2 > 0.0)))
 	return -1L;
 
     const ibis::column* col1 = getColumn(cname1);
@@ -8106,8 +8106,8 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	return -2L;
 
     const size_t nbins =
-	(1 + static_cast<size_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<size_t>(std::floor((end2 - begin2) / stride2)));
+	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (size_t i = 0; i < nbins; ++i)
@@ -8532,13 +8532,13 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 				   double begin2, double end2, double stride2,
 				   const char *cname3,
 				   double begin3, double end3, double stride3,
-				   std::vector<size_t>& counts) const {
-    if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && stride1 >= 0.0) ||
-	(begin1 <= end1 && stride1 <= 0.0) ||
-	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && stride2 >= 0.0) ||
-	(begin2 <= end2 && stride2 <= 0.0) ||
-	cname3 == 0 || *cname3 == 0 || (begin3 >= end3 && stride3 >= 0.0) ||
-	(begin3 <= end3 && stride3 <= 0.0))
+				   std::vector<uint32_t>& counts) const {
+    if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && !(stride1 < 0.0)) ||
+	(begin1 <= end1 && !(stride1 > 0.0)) ||
+	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && !(stride2 < 0.0)) ||
+	(begin2 <= end2 && !(stride2 > 0.0)) ||
+	cname3 == 0 || *cname3 == 0 || (begin3 >= end3 && !(stride3 < 0.0)) ||
+	(begin3 <= end3 && !(stride3 > 0.0)))
 	return -1L;
 
     const ibis::column* col1 = getColumn(cname1);
@@ -8548,9 +8548,9 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	return -2L;
 
     const size_t nbins =
-	(1 + static_cast<size_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<size_t>(std::floor((end2 - begin2) / stride2))) *
-	(1 + static_cast<size_t>(std::floor((end3 - begin3) / stride3)));
+	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2))) *
+	(1 + static_cast<uint32_t>(std::floor((end3 - begin3) / stride3)));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (size_t i = 0; i < nbins; ++i)

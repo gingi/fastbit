@@ -10,7 +10,7 @@
 #include "bord.h"	// ibis::bord
 #include "query.h"	// ibis::query
 #include "bundle.h"	// ibis::bundle
-#include <algorithm>	// std::reverse
+#include <algorithm>	// std::reverse, std::copy
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 
@@ -653,8 +653,20 @@ long ibis::bord::getHistogram(const char *constraints,
 			     const char *cname,
 			     double begin, double end, double stride,
 			     std::vector<size_t>& counts) const {
-    return mypart.get1DDistribution(constraints, cname, begin, end, stride,
-				    counts);
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	return mypart.get1DDistribution(constraints, cname, begin, end, stride,
+					counts);
+    }
+    else {
+	std::vector<uint32_t> tmp;
+	long ierr = mypart.get1DDistribution(constraints, cname, begin, end,
+					     stride, tmp);
+	if (ierr >= 0) {
+	    counts.resize(tmp.size());
+	    std::copy(tmp.begin(), tmp.end(), counts.begin());
+	}
+	return ierr;
+    }
 } // ibis::bord::getHistogram
 
 long ibis::bord::getHistogram2D(const char *constraints,
@@ -663,9 +675,22 @@ long ibis::bord::getHistogram2D(const char *constraints,
 				const char* cname2,
 				double begin2, double end2, double stride2,
 				std::vector<size_t>& counts) const {
-    return mypart.get2DDistribution(constraints,
-				    cname1, begin1, end1, stride1,
-				    cname2, begin2, end2, stride2, counts);
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	return mypart.get2DDistribution(constraints,
+					cname1, begin1, end1, stride1,
+					cname2, begin2, end2, stride2, counts);
+    }
+    else {
+	std::vector<uint32_t> tmp;
+	long ierr = mypart.get2DDistribution
+	    (constraints, cname1, begin1, end1, stride1,
+	     cname2, begin2, end2, stride2, tmp);
+	if (ierr >= 0) {
+	    counts.resize(tmp.size());
+	    std::copy(tmp.begin(), tmp.end(), counts.begin());
+	}
+	return ierr;
+    }
 } // ibis::bord::getHistogram2D
 
 long ibis::bord::getHistogram3D(const char *constraints,
@@ -676,10 +701,24 @@ long ibis::bord::getHistogram3D(const char *constraints,
 				const char *cname3,
 				double begin3, double end3, double stride3,
 				std::vector<size_t>& counts) const {
-    return mypart.get3DDistribution(constraints,
-				    cname1, begin1, end1, stride1,
-				    cname2, begin2, end2, stride2,
-				    cname3, begin3, end3, stride3, counts);
+    if (sizeof(size_t) == sizeof(uint32_t)) {
+	return mypart.get3DDistribution(constraints,
+					cname1, begin1, end1, stride1,
+					cname2, begin2, end2, stride2,
+					cname3, begin3, end3, stride3, counts);
+    }
+    else {
+	std::vector<uint32_t> tmp;
+	long ierr = mypart.get3DDistribution
+	    (constraints, cname1, begin1, end1, stride1,
+	     cname2, begin2, end2, stride2,
+	     cname3, begin3, end3, stride3, tmp);
+	if (ierr >= 0) {
+	    counts.resize(tmp.size());
+	    std::copy(tmp.begin(), tmp.end(), counts.begin());
+	}
+	return ierr;
+    }
 } // ibis::bord::getHistogram3D
 
 void ibis::bord::estimate(const char *cond,
