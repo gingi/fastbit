@@ -15,6 +15,7 @@
 
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
+#include <cmath>	// std::floor
 
 ibis::mensa::mensa(const char* dir) : nrows(0) {
     if (dir != 0 && *dir != 0)
@@ -1694,8 +1695,9 @@ long ibis::mensa::getHistogram(const char* constraints,
 	counts.clear();
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get1DDistribution(constraints, cname, begin,
-						   end, stride, counts);
+	    ierr = (*it).second->get1DDistribution
+		(constraints, cname, begin, end, stride,
+		 reinterpret_cast<std::vector<uint32_t>&>(counts));
 	    if (ierr < 0) return ierr;
 	}
     }
@@ -1739,7 +1741,8 @@ long ibis::mensa::getHistogram2D(const char* constraints,
 	     it != parts.end(); ++ it) {
 	    ierr = (*it).second->get2DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
-		 end2, stride2, counts);
+		 end2, stride2,
+		 reinterpret_cast<std::vector<uint32_t>&>(counts));
 	    if (ierr < 0) return ierr;
 	}
     }
@@ -1791,7 +1794,8 @@ long ibis::mensa::getHistogram3D(const char* constraints,
 	     it != parts.end(); ++ it) {
 	    ierr = (*it).second->get3DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
-		 end2, stride2, cname3, begin3, end3, stride3, counts);
+		 end2, stride2, cname3, begin3, end3, stride3,
+		 reinterpret_cast<std::vector<uint32_t>&>(counts));
 	    if (ierr < 0) return ierr;
 	}
     }

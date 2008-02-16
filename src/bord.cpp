@@ -654,8 +654,9 @@ long ibis::bord::getHistogram(const char *constraints,
 			     double begin, double end, double stride,
 			     std::vector<size_t>& counts) const {
     if (sizeof(size_t) == sizeof(uint32_t)) {
-	return mypart.get1DDistribution(constraints, cname, begin, end, stride,
-					counts);
+	return mypart.get1DDistribution
+	    (constraints, cname, begin, end, stride,
+	     reinterpret_cast<std::vector<uint32_t>&>(counts));
     }
     else {
 	std::vector<uint32_t> tmp;
@@ -676,9 +677,10 @@ long ibis::bord::getHistogram2D(const char *constraints,
 				double begin2, double end2, double stride2,
 				std::vector<size_t>& counts) const {
     if (sizeof(size_t) == sizeof(uint32_t)) {
-	return mypart.get2DDistribution(constraints,
-					cname1, begin1, end1, stride1,
-					cname2, begin2, end2, stride2, counts);
+	return mypart.get2DDistribution
+	    (constraints, cname1, begin1, end1, stride1,
+	     cname2, begin2, end2, stride2,
+	     reinterpret_cast<std::vector<uint32_t>&>(counts));
     }
     else {
 	std::vector<uint32_t> tmp;
@@ -702,10 +704,11 @@ long ibis::bord::getHistogram3D(const char *constraints,
 				double begin3, double end3, double stride3,
 				std::vector<size_t>& counts) const {
     if (sizeof(size_t) == sizeof(uint32_t)) {
-	return mypart.get3DDistribution(constraints,
-					cname1, begin1, end1, stride1,
-					cname2, begin2, end2, stride2,
-					cname3, begin3, end3, stride3, counts);
+	return mypart.get3DDistribution
+	    (constraints, cname1, begin1, end1, stride1,
+	     cname2, begin2, end2, stride2,
+	     cname3, begin3, end3, stride3,
+	     reinterpret_cast<std::vector<uint32_t>&>(counts));
     }
     else {
 	std::vector<uint32_t> tmp;
