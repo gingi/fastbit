@@ -1,3 +1,10 @@
+2008-02-17 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: add try-catch block in selectInts, selectUInts,
+	selectLongs, selectFloats, and selectDoubles to address the
+	seg fault reported by Jochen on Feb 16.
+	* src/query.cpp: update the use of variable newlock to make them
+	more consistent across functions
+
 2008-02-14 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: change <size_t> to <uint32_t> for
 	get[1|2|3]DDistribution and supporting functions (requested by

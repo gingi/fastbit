@@ -1315,10 +1315,9 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 	delete [] name;
     }
     if (noBundles) { // attempt to create the bundles if no record of them
-	bool newlock = false;
-	if (dslock == 0) {
+	const bool newlock = (dslock == 0);
+	if (newlock) {
 	    dslock = new ibis::part::readLock(partition(), id());
-	    newlock = true;
 	}
 	ibis::bundle* bdtmp = ibis::bundle::create(*this);
 	if (newlock) {
@@ -1363,14 +1362,15 @@ ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
 
     ibis::part::readLock tmp(table0, myID);
     ridset = table0->getRIDs(mask);
-    if (ridset->size() != mask.cnt())
+    if (ridset == 0 || ridset->size() != mask.cnt())
 	logWarning("getRIDs", "got %lu row IDs from table %s, expected %lu",
-		   static_cast<long unsigned>(ridset->size()),
+		   static_cast<long unsigned>(ridset != 0 ? ridset->size() : 0),
 		   table0->name(),
 		   static_cast<long unsigned>(mask.cnt()));
     else if (ibis::gVerbose > 5)
 	logMessage("getRIDs", "retrieved %lu row IDs from table %s",
-		   static_cast<long unsigned>(ridset->size()), table0->name());
+		   static_cast<long unsigned>(ridset!=0 ? ridset->size() : 0),
+		   table0->name());
     return ridset;
 } // ibis::query::getRIDs
 
@@ -1383,7 +1383,7 @@ array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
 	res = table0->selectInts(colname, *hits);
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedInts", "got %lu integer value(s)",
-		       static_cast<long unsigned>(res->size()));
+		       static_cast<long unsigned>(res != 0 ? res->size(): 0));
     }
     return res;
 } // ibis::query::getQualifiedInts
@@ -1397,7 +1397,7 @@ array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
 	res = table0->selectUInts(colname, *hits);
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedUInts", "got %lu integer value(s)",
-		       static_cast<long unsigned>(res->size()));
+		       static_cast<long unsigned>(res != 0 ? res->size() : 0));
     }
     return res;
 } // ibis::query::getQualifiedUInts
@@ -1407,10 +1407,9 @@ array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
 	evaluate();
     array_t<float>* res = 0;
     if (dstime == table0->timestamp() && hits != 0) {
-	bool newlock = false;
-	if (dslock == 0) {
+	const bool newlock = (dslock == 0);
+	if (newlock) {
 	    dslock = new ibis::part::readLock(table0, myID);
-	    newlock = true;
 	}
 	readLock lck(this, "getQualifiedFloats");
 	res = table0->selectFloats(colname, *hits);
@@ -1421,7 +1420,7 @@ array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
 	}
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedFloats", "got %lu float value(s)",
-		       static_cast<long unsigned>(res->size()));
+		       static_cast<long unsigned>(res!=0 ? res->size() : 0));
     }
     return res;
 } // ibis::query::getQualifiedFloats
@@ -1431,10 +1430,9 @@ array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
 	evaluate();
     array_t<double>* res = 0;
     if (dstime == table0->timestamp() && hits != 0) {
-	bool newlock = false;
-	if (dslock == 0) {
+	const bool newlock = (dslock == 0);
+	if (newlock) {
 	    dslock = new ibis::part::readLock(table0, myID);
-	    newlock = true;
 	}
 	readLock lck(this, "getQualifiedDoubles");
 	res = table0->selectDoubles(colname, *hits);
@@ -1445,7 +1443,7 @@ array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
 	}
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedDoubles", "got %lu double value(s)",
-		       static_cast<long unsigned>(res->size()));
+		       static_cast<long unsigned>(res!=0 ? res->size() : 0));
     }
     return res;
 } // ibis::query::getQualifiedDoubles

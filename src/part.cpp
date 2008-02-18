@@ -2171,57 +2171,187 @@ ibis::part::accessHint(const ibis::bitvector& mask,
 // retrieve value for the qualified events
 array_t<int32_t>* ibis::part::selectInts
 (const char* pname, const ibis::bitvector& mask) const {
-    columnList::const_iterator it = columns.find(pname);
-    if (it != columns.end()) { // got it
-	return (*it).second->selectInts(mask);
+    array_t<int32_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res = (*it).second->selectInts(mask);
+	}
     }
-    else {
-	return 0;
+    catch (const std::exception& e) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
     }
+    catch (const char* s) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
 } // ibis::part::selectInts
 
 array_t<uint32_t>* ibis::part::selectUInts
 (const char* pname, const ibis::bitvector& mask) const {
-    columnList::const_iterator it = columns.find(pname);
-    if (it != columns.end()) { // got it
-	return (*it).second->selectUInts(mask);
+    array_t<uint32_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res = (*it).second->selectUInts(mask);
+	}
     }
-    else {
-	return 0;
+    catch (const std::exception& e) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
     }
+    catch (const char* s) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
 } // ibis::part::selectUInts
 
 array_t<int64_t>* ibis::part::selectLongs
 (const char* pname, const ibis::bitvector& mask) const {
-    columnList::const_iterator it = columns.find(pname);
-    if (it != columns.end()) { // got it
-	return (*it).second->selectLongs(mask);
+    array_t<int64_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectLongs(mask);
+	}
     }
-    else {
-	return 0;
+    catch (const std::exception& e) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
     }
+    catch (const char* s) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
+		  << mask.cnt() << " out of " << mask.size() 
+		  << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
 } // ibis::part::selectLongs
 
 array_t<float>* ibis::part::selectFloats
 (const char* pname, const ibis::bitvector& mask) const {
-    columnList::const_iterator it = columns.find(pname);
-    if (it != columns.end()) { // got it
-	return (*it).second->selectFloats(mask);
+    array_t<float>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res = (*it).second->selectFloats(mask);
+	}
     }
-    else {
-	return 0;
+    catch (const std::exception& e) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectFloats(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
     }
+    catch (const char* s) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectFloats(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectFloats(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
 } // ibis::part::selectFloats
 
 array_t<double>* ibis::part::selectDoubles
 (const char* pname, const ibis::bitvector& mask) const {
-    columnList::const_iterator it = columns.find(pname);
-    if (it != columns.end()) { // got it
-	return (*it).second->selectDoubles(mask);
+    array_t<double>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res = (*it).second->selectDoubles(mask);
+	}
     }
-    else {
-	return 0;
+    catch (const std::exception& e) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectDoubles(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
     }
+    catch (const char* s) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectDoubles(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::selectDoubles(" << (pname ? pname : "")
+		  << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+		  << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
 } // ibis::part::selectDoubles
 
 // convert a list of RIDs into a bitvector
@@ -4587,7 +4717,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
     }
     catch (const std::exception& e) {
 	ibis::util::logMessage("Warning", "ibis::part::selfTest() received "
-			       "the following a std::exception\n%s",
+			       "the following std::exception\n%s",
 			       e.what());
 	++ nerr;
     }

@@ -282,6 +282,44 @@ public:
     /// Sum of all value in the named column.
     double getColumnSum(const char *name) const;
 
+    /// Count the number of records falling in the bins defined by the
+    /// begin:end:stride triplets.  The triplets defines @code
+    /// 1+std::floor((end-begin)/stride) @endcode bins: @code [begin,
+    /// begin+stride) [begin+stride, begin+stride*2)
+    /// ... [begin+stride*std::floor((end-begin)/stride), end] @endcode.
+    ///
+    /// When this function completes successfully, it the array @c counts
+    /// should @code 1+std::floor((end-begin)/stride) @endcode values, one
+    /// for each bin.  The return value should be the number of bins,
+    /// otherwise, it indicates an error.  If array @c counts has the same
+    /// size as the number of bins on input, the count values will be added
+    /// to the array.  This is intended to be used to accumulate counts
+    /// from different data partitions.  If the array @c counts does not
+    /// have the correct size, it will be resized to the correct size and
+    /// initialized to contain only zero before counting the the current
+    /// data partition.
+    ///
+    /// @sa ibis::table::getHistogram
+    long get1DDistribution(const char *constraints, const char *cname,
+			   double begin, double end, double stride,
+			   std::vector<uint32_t>& counts) const;
+    /// @sa ibis::part::get1DDistribution
+    /// @sa ibis::table::getHistogram2D
+    long get2DDistribution(const char *constraints, const char *cname1,
+			   double begin1, double end1, double stride1,
+			   const char *cname2,
+			   double begin2, double end2, double stride2,
+			   std::vector<uint32_t>& counts) const;
+    /// @sa ibis::part::get1DDistribution
+    /// @sa ibis::table::getHistogram3D
+    long get3DDistribution(const char *constraints, const char *cname1,
+			   double begin1, double end1, double stride1,
+			   const char *cname2,
+			   double begin2, double end2, double stride2,
+			   const char *cname3,
+			   double begin3, double end3, double stride3,
+			   std::vector<uint32_t>& counts) const;
+
     /// Compute the binned distribution of the name variable.  The array
     /// @c bounds defines the following bins:
     ///
@@ -310,41 +348,6 @@ public:
     long getDistribution(const char *name, const char *constraints,
 			 uint32_t nbc, double *bounds,
 			 uint32_t *counts) const;
-
-    /// Count the number of records falling in the bins defined by the
-    /// begin:end:stride triplets.  The triplets defines @code
-    /// std::ceil((end-begin)/stride) @endcode bins.  When this function
-    /// completes successfully, it the array @c counts should @code
-    /// std::ceil((end-begin)/stride) @endcode values, one for each bin.
-    /// The return value should be the number of bins, otherwise, it
-    /// indicates an error.  If array @c counts has the same size as the
-    /// number of bins on input, the count values will be added to the
-    /// array.  This is intended to be used to accumulate counts from
-    /// different data partitions.  If the array @c counts does not have
-    /// the correct size, it will be resized to the correct size and
-    /// initialized to contain only zero before counting the the current
-    /// data partition.
-    ///
-    /// @sa ibis::table::getHistogram
-    long get1DDistribution(const char *constraints, const char *cname,
-			   double begin, double end, double stride,
-			   std::vector<uint32_t>& counts) const;
-    /// @sa ibis::part::get1DDistribution
-    /// @sa ibis::table::getHistogram2D
-    long get2DDistribution(const char *constraints, const char *cname1,
-			   double begin1, double end1, double stride1,
-			   const char *cname2,
-			   double begin2, double end2, double stride2,
-			   std::vector<uint32_t>& counts) const;
-    /// @sa ibis::part::get1DDistribution
-    /// @sa ibis::table::getHistogram3D
-    long get3DDistribution(const char *constraints, const char *cname1,
-			   double begin1, double end1, double stride1,
-			   const char *cname2,
-			   double begin2, double end2, double stride2,
-			   const char *cname3,
-			   double begin3, double end3, double stride3,
-			   std::vector<uint32_t>& counts) const;
 
     /// Compute the joint distribution of two variables.  It returns three
     /// arrays, @c bounds1, @c bounds2, and @c counts.  The arrays @c
