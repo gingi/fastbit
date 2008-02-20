@@ -4447,10 +4447,22 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     low.clear();
     unloadIndex();
     //purgeIndexFile();
-    if (thePart != 0)
-	ierr = thePart->doScan(cmp, mymask, low);
-    else
-	ierr = -2;
+    if (thePart != 0) {
+	try {
+	    ierr = thePart->doScan(cmp, mymask, low);
+	}
+	catch (...) {
+	    LOGGER(2) << "ibis::column[" << thePart->name() << "." << name()
+		      << "]::evaluateRange(" << cmp << ") receied an "
+		"exception from doScan in the exception handling code, "
+		"giving up...";
+	    low.clear();
+	    ierr = -2;
+	}
+    }
+    else {
+	ierr = -3;
+    }
 
     LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
 	      << "]::evaluateRange(" << cmp
@@ -4548,10 +4560,22 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     low.clear();
     unloadIndex();
     //purgeIndexFile();
-    if (thePart != 0)
-	ierr = thePart->doScan(cmp, mymask, low);
-    else
-	ierr = -2;
+    if (thePart != 0) {
+	try {
+	    ierr = thePart->doScan(cmp, mymask, low);
+	}
+	catch (...) {
+	    LOGGER(2) << "ibis::column[" << thePart->name() << "." << name()
+		      << "]::evaluateRange(" << cmp << ") receied an "
+		"exception from doScan in the exception handling code, "
+		"giving up...";
+	    low.clear();
+	    ierr = -2;
+	}
+    }
+    else {
+	ierr = -3;
+    }
 
     LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
 	      << "]::evaluateRange(" << cmp

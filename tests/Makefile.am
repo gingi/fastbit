@@ -16,14 +16,16 @@ dist_data_DATA=test0.csv test1.csv hist0 hist1 scripts/matchCounts.pl \
 	scripts/printWarning.pl scripts/query-count.list
 #
 # small tests
-small-tests: append-test sanity-check match-counts
 check: check-am
 	$(MAKE) check-ibis && $(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) small-tests
+check-all:
+	$(MAKE) small-tests && $(MAKE) large-tests
+small-tests: append-test sanity-check match-counts
 #
 # the following target excercises larger tests and also excercieses
 # obselete index options
 # the tests run on the same set of data files and can not be run in parallel
-all-tests: large-append-test
+large-tests: large-append-test
 	${MAKE} large-sanity-check && ${MAKE} match-counts && ${MAKE} multilevel
 #
 check-thula: $(TESTDIR)/-part.txt $(THULAEXE)
@@ -84,7 +86,7 @@ BINNINGS="none" "nbins=10" "nbins=20 equal-weight" "nbins=23 scale=simple" \
 	"start=0, end=1000, nbins=100, scale=simple" \
 	"(start=0, end=100, nbins=10, scale=log)(start=100, end=1000, nbins=10, scale=linear)"
 #
-large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log
+large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	@$(ECHO) > ${TESTDIR}/large-sanity-check.log
 	for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
@@ -93,7 +95,8 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log
 	$(ECHO) >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	else \
 	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	fi; \
@@ -157,10 +160,11 @@ ${TESTDIR}/append.rc: ${TESTDIR}
 	@$(ECHO) "CacheDir=${TESTDIR}/queryCache" >> ${TESTDIR}/append.rc
 	@$(ECHO) "useBackupDir=1" >> ${TESTDIR}/append.rc
 	@$(ECHO) "preferMMapIndex=1" >> ${TESTDIR}/append.rc
-#	@$(ECHO) "fileManager.maxBytes=1.3GB" >> ${TESTDIR}/append.rc
-	@$(ECHO) "fileManager.maxBytes=100MB" >> ${TESTDIR}/append.rc
+${TESTDIR}/smallmem.rc: ${TESTDIR}
+#	@$(ECHO) "fileManager.maxBytes=1.3GB" > ${TESTDIR}/smallmem.rc
+	@$(ECHO) "fileManager.maxBytes=60MB" > ${TESTDIR}/smallmem.rc
 # the above configuration statement instructs ibis to limit the amount
-# of memory used to 100MB, which is not sufficient for many of the
+# of memory used to 60MB, which is not sufficient for many of the
 # operations such index building.  However, it has been useful to test
 # the error handling functions to include this memory restriction.
 #
@@ -203,6 +207,6 @@ $(THULAEXE):
 $(TCAPIEXE):
 	@cd $(EXDIR) && $(MAKE) tcapi$(EXEEXT)
 # these targets do not refer to files
-.PHONY: clean multilevel match-counts large-sanity-check
-.PHONY: large-append-test append-test sanity-check all-tests small-tests
-.PHONY: check-ibis check-thula check-tcapi
+.PHONY: clean multilevel match-counts large-sanity-check large-tests
+.PHONY: large-append-test append-test sanity-check check-all small-tests
+.PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append

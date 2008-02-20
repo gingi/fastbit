@@ -340,7 +340,6 @@ public:
 	if (theColumn->idxcnt == 0 && theColumn->idx == 0)
 	    theColumn->loadIndex();
 	if (theColumn->idx != 0) {
-	    ibis::util::mutexLock lock(&(theColumn->mutex), mesg);
 	    ++ theColumn->idxcnt; // increment counter
 
 	    int ierr = pthread_rwlock_rdlock(&(col->rwlock));
@@ -358,7 +357,6 @@ public:
 			       "unlocking column %s (%s)", theColumn->name(),
 			       (mesg ? mesg : "?"));
 #endif
-	ibis::util::mutexLock lock(&(theColumn->mutex), mesg);
 	if (theColumn->idx != 0) {
 	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
 	    if (ierr)

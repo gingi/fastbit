@@ -12,8 +12,8 @@ dist_doc_DATA = doc/dataDistributions.html \
 docs:
 	cd src && $(MAKE) docs
 
-all-tests:
-	cd tests && $(MAKE) all-tests
+check-all:
+	cd tests && $(MAKE) check-all
 
 clean: clean-recursive
 	-rm -f win/ibis.suo win/ibis.ncb win/fastbit.def

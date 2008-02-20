@@ -1,3 +1,17 @@
+2008-02-18 John Wu <John.Wu at ACM.org>
+	* Makefile.am, tests/Makefile.am: change target all-tests to
+	check-all and have it include both small and large tests
+	* src/column.h: remove mutex lock from ibis::column::indexLock
+	class, having it causes deadlocks when multiple threads tries to
+	access the same index.
+
+2008-02-18 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: add try-catch blocks in the error-handling code
+	of ibis::column::evaluateRange (attempt to address problems
+	observed by Jochen on Feb 18)
+	* tests/Makefile.am: add test cases in large-sanity-check to limit
+	the memory usage during build-in tests
+
 2008-02-17 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: add try-catch block in selectInts, selectUInts,
 	selectLongs, selectFloats, and selectDoubles to address the

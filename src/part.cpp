@@ -4753,7 +4753,7 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
     int i = (static_cast<int>(ibis::util::rand() * columns.size()) +
 	     ibis::fileManager::instance().iBeat()) % columns.size();
     columnList::const_iterator it = columns.begin();
-    while (i) {++it; --i;};
+    while (i > 0) {++it; --i;}
     for (i = 0; static_cast<unsigned>(i) < columns.size() &&
 	     (*it).second->type() == ibis::TEXT; ++ i) {
 	// skip over string attributes
