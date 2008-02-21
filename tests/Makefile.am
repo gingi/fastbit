@@ -66,7 +66,8 @@ sanity-check: $(IBISEXE) ${TESTDIR}/append.log
 append-test: ${TESTDIR}/append.log
 	@$(ECHO)
 	@if [ `fgrep ' 0 error' ${TESTDIR}/append.log | fgrep appendTest | wc -l` -lt 20 ]; then $(ECHO) Errors found during test of append operations.  Please look through ${TESTDIR}/append.log.; else $(ECHO) Passed append tests.; fi
-${TESTDIR}/append.log: do-small-append
+${TESTDIR}/append.log:
+	$(MAKE) do-small-append
 # make 1024 copies of the results of append-test
 large-append-test: do-large-append
 	rm -rf ${TESTDIR}/at0 ${TESTDIR}/at1
@@ -98,7 +99,7 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	else \
-	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	fi; \
 	done; \
 	done
@@ -108,12 +109,12 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	$(ECHO) >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	else \
-	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	fi; \
 	done;
-	@if [ `fgrep 'self tests' ${TESTDIR}/large-sanity-check.log | fgrep 'found no error' | wc -l` -lt 338 ]; then $(ECHO) Errors found during internal sanity checks.  Please look through ${TESTDIR}/large-sanity-check.log.; else $(ECHO) Passed large internal sanity checks.; fi
+	@if [ `fgrep 'self tests' ${TESTDIR}/large-sanity-check.log | fgrep 'found no error' | wc -l` -lt 370 ]; then $(ECHO) Errors found during internal sanity checks.  Please look through ${TESTDIR}/large-sanity-check.log.; else $(ECHO) Passed large internal sanity checks.; fi
 	@$(ECHO)
 #
 match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTDIR}/test.rc
@@ -162,9 +163,9 @@ ${TESTDIR}/append.rc: ${TESTDIR}
 	@$(ECHO) "preferMMapIndex=1" >> ${TESTDIR}/append.rc
 ${TESTDIR}/smallmem.rc: ${TESTDIR}
 #	@$(ECHO) "fileManager.maxBytes=1.3GB" > ${TESTDIR}/smallmem.rc
-	@$(ECHO) "fileManager.maxBytes=60MB" > ${TESTDIR}/smallmem.rc
+	@$(ECHO) "fileManager.maxBytes=160MB" > ${TESTDIR}/smallmem.rc
 # the above configuration statement instructs ibis to limit the amount
-# of memory used to 60MB, which is not sufficient for many of the
+# of memory used to 160MB, which is not sufficient for many of the
 # operations such index building.  However, it has been useful to test
 # the error handling functions to include this memory restriction.
 #
@@ -180,6 +181,7 @@ distclean: distclean-am
 do-small-append: ${TESTDIR}/append.rc ${TESTDIR}/0/test0/-part.txt ${TESTDIR}/0/test1/-part.txt $(IBISEXE)
 	@rm -rf ${TESTDIR}/append.log ${TESTDIR}/1 ${TESTDIR}/2
 	@/bin/date > ${TESTDIR}/append.log
+	@$(ECHO) Append the test data 10 times >> ${TESTDIR}/append.log
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
 	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test0 appendTest0 >> ${TESTDIR}/append.log 2>&1; \
 	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test1 appendTest1 >> ${TESTDIR}/append.log 2>&1; \
@@ -191,6 +193,9 @@ ${TESTDIR}/at0: ${TESTDIR}
 ${TESTDIR}/at1: ${TESTDIR}
 	test -d ${TESTDIR}/at1 || mkdir ${TESTDIR}/at1
 do-large-append: do-small-append ${TESTDIR}/at0 ${TESTDIR}/at1
+	@$(ECHO) >> ${TESTDIR}/append.log
+	@/bin/date >> ${TESTDIR}/append.log
+	@$(ECHO) Double the test data 10 times >> ${TESTDIR}/append.log
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
 	/bin/cp -pr ${TESTDIR}/2/appendTest0/* ${TESTDIR}/at0; \
 	/bin/cp -pr ${TESTDIR}/2/appendTest1/* ${TESTDIR}/at1; \

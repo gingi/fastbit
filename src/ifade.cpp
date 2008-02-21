@@ -66,16 +66,16 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t offset)
     : ibis::relic(c, st, offset),
-      cnts(st, 8*((offset+sizeof(uint32_t)*2+7)/8)+sizeof(uint32_t)
+      cnts(st, 8*((offset+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
 	   +sizeof(int32_t)*(ibis::relic::bits.size()+1)
 	   +sizeof(double)*ibis::relic::vals.size(),
 	   *(reinterpret_cast<uint32_t*>(st->begin()+offset+
-					 sizeof(uint32_t)))),
-      bases(st, 8*((offset+sizeof(uint32_t)*2+7)/8)+sizeof(uint32_t)
+					 sizeof(uint32_t)*2))),
+      bases(st, 8*((offset+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
 	    +sizeof(int32_t)*(ibis::relic::bits.size()+1)
 	    +(sizeof(uint32_t)+sizeof(double))*ibis::relic::vals.size(),
 	    *(reinterpret_cast<uint32_t*>
-	      (st->begin()+8*((offset+sizeof(uint32_t)*2+7)/8)+
+	      (st->begin()+8*((offset+sizeof(uint32_t)*3+7)/8)+
 	       sizeof(int32_t)*(ibis::relic::bits.size()+1)+
 	       sizeof(double)*ibis::relic::vals.size()))) {
     if (ibis::gVerbose > 8 &&

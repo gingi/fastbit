@@ -7,7 +7,7 @@
 ///@file
 /// Define ibis::bin and derived classes.
 ///@verbatim
-/// bin -> range, mesa, ambit, pale, pack, zone, egale, bak, bak2
+/// bin -> range, mesa, ambit, pale, pack, zone, fuge, egale, bak, bak2
 /// egale -> moins, entre
 ///@endverbatim
 #include "index.h"

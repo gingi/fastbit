@@ -1,5 +1,6 @@
+Wed Feb 20 11:26:11 PST 2008
 Version b0.8.4
--- remove ibis::part::doCompare and friend with templated functions
+-- replace ibis::part::doCompare and friends with templated functions
 -- add checks for the values returned by lseek and other I/O functions
    to fix a segmentation fault observed by Jochen Schlosser of
    University of Hamburg
@@ -8,6 +9,10 @@ Version b0.8.4
    swapped string arguments
 -- add test cases for checking the histogramming functions in directory
    tests
+-- add target check-all to the top-level makefile
+-- separate the index generation from their uses in tests (as part of
+   check-all) to exercise the index reconstruction functions, fix bug
+   revealed by this separation (ibis::fade and ibis::bin)
 
 Wed Feb  6 09:47:21 PST 2008
 Version b0.8.3

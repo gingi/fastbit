@@ -189,16 +189,21 @@ ibis::bin::bin(const ibis::bin& rhs)
     rhs.activate(); // make sure all the bitvectors are in memory
     try {
 	nrows = rhs.nrows;
+	offsets.resize(nobs+1);
 	bounds.copy(rhs.bounds);
 	maxval.copy(rhs.maxval);
 	minval.copy(rhs.minval);
+
+	offsets[0] = 0;
 	for (uint32_t i=0; i<nobs; ++i) {
 	    if (rhs.bits[i]) {
 		bits[i] = new ibis::bitvector;
 		bits[i]->copy(*(rhs.bits[i]));
+		offsets[i+1] = offsets[i] + bits[i]->bytes();
 	    }
 	    else {
 		bits[i] = 0;
+		offsets[i+1] = offsets[i];
 	    }
 	}
     }
@@ -240,7 +245,6 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	    bits[i] = 0;
 	array_t<int32_t> offs(st, start+2*sizeof(uint32_t), nobs+1);
 	if (st->isFileMap()) {// only map the first bitvector
-	    offsets.copy(offs); // need a copy of the offsets
 	    str = st;
 #if defined(ALWAY_READ_BITVECTOR0)
 	    if (offs[1] > offs[0]) {
@@ -287,6 +291,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 
+	offsets.swap(offs); // save the offsets
 	if (c->partition()->getState() == ibis::part::STABLE_STATE &&
 	    nrows != c->partition()->nRows() && ibis::gVerbose > 0) {
 	    errno = 0;
@@ -326,7 +331,6 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 			      3*nobs*sizeof(double),
 			      nbits+1);
 	if (st->isFileMap()) { // map only the first bitvector
-	    offsets.copy(offs);
 	    str = st;
 	    bits.resize(nbits);
 	    for (uint32_t i = 1; i < nbits; ++i)
@@ -374,6 +378,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 	    // no need to save anything for future activation
 	    str = 0;
 	}
+	offsets.swap(offs); // save offsets
     }
     catch (...) {
 	clear();

@@ -3001,200 +3001,290 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	break;}
 
     case ibis::LONG: {
-	array_t<int64_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<int64_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<int64_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<int64_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::ULONG: {
-	array_t<uint64_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldUnsignedBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<uint64_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldUnsignedBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<uint64_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::INT: {
-	array_t<int32_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<int32_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<int32_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<int32_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::UINT: {
-	array_t<uint32_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldUnsignedBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<uint32_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldUnsignedBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<uint32_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint32_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::SHORT: {
-	array_t<int16_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<int16_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<int16_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<int16_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::USHORT: {
-	array_t<uint16_t> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldUnsignedBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<uint16_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldUnsignedBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<uint16_t>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint16_t>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::BYTE: {
-	array_t<char> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<char> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<char>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<char>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::UBYTE: {
-	array_t<unsigned char> intarray;
-	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE) {
-		const ibis::qContinuousRange& tmp =
-		    static_cast<const ibis::qContinuousRange&>(cmp);
-		ibis::qContinuousRange rng(tmp.leftBound(), tmp.leftOperator(),
-					   tmp.colName(), tmp.rightOperator(),
-					   tmp.rightBound());
-		rng.foldUnsignedBoundaries();
-		ierr = doScan(intarray, rng, mask, hits);
+	try {
+	    array_t<unsigned char> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange& tmp =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ibis::qContinuousRange
+			rng(tmp.leftBound(), tmp.leftOperator(),
+			    tmp.colName(), tmp.rightOperator(),
+			    tmp.rightBound());
+		    rng.foldUnsignedBoundaries();
+		    ierr = doScan(intarray, rng, mask, hits);
+		}
+		else {
+		    ierr = doCompare(intarray, mask, hits, cmp);
+		}
 	    }
 	    else {
-		ierr = doCompare(intarray, mask, hits, cmp);
+		ierr = doCompare<unsigned char>(file, mask, hits, cmp);
 	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<unsigned char>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::FLOAT: {
-	array_t<float> floatarray;
-	if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE)
-		ierr = doScan(floatarray,
-			      static_cast<const ibis::qContinuousRange&>(cmp),
-			      mask, hits);
-	    else
-		ierr = doCompare(floatarray, mask, hits, cmp);
+	try {
+	    array_t<float> floatarray;
+	    if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE)
+		    ierr = doScan
+			(floatarray,
+			 static_cast<const ibis::qContinuousRange&>(cmp),
+			 mask, hits);
+		else
+		    ierr = doCompare(floatarray, mask, hits, cmp);
+	    }
+	    else {
+		ierr = doCompare<float>(file, mask, hits, cmp);
+	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<float>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
 
     case ibis::DOUBLE: {
-	array_t<double> doublearray;
-	if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
-	    if (cmp.getType() == ibis::qExpr::RANGE)
-		ierr = doScan(doublearray,
-			      static_cast<const ibis::qContinuousRange&>(cmp),
-			      mask, hits);
-	    else
-		ierr = doCompare(doublearray, mask, hits, cmp);
+	try {
+	    array_t<double> doublearray;
+	    if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE)
+		    ierr = doScan
+			(doublearray,
+			 static_cast<const ibis::qContinuousRange&>(cmp),
+			 mask, hits);
+		else
+		    ierr = doCompare(doublearray, mask, hits, cmp);
+	    }
+	    else {
+		ierr = doCompare<double>(file, mask, hits, cmp);
+	    }
 	}
-	else {
+	catch (const std::bad_alloc&) {
 	    ierr = doCompare<double>(file, mask, hits, cmp);
+	}
+	catch (...) {
+	    throw;
 	}
 	break;}
     }
@@ -3615,7 +3705,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			tmp2 = cols[i]->elementSize() * iix[1];
 			ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
 			if (ierr < 0) {
-			    LOGGER(1) << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			    LOGGER(1) << "Warning -- ibis::part["
+				      << (m_name ? m_name : "?")
 				      << "]::doScan(" << cmp
 				      << ") failed to seek to " << tmp1
 				      << " in file " << fdes[i];
@@ -3644,7 +3735,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3670,7 +3762,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3698,7 +3791,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3724,7 +3818,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3750,7 +3845,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3776,7 +3872,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3802,7 +3899,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3828,7 +3926,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3854,7 +3953,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3880,7 +3980,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3923,7 +4024,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			    ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
 			    if (ierr < 0) {
 				LOGGER(1) << "Warning -- ibis::part["
-					  << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					  << (m_name ? m_name : "?")
+					  << "]::doScan(" << cmp
 					  << ") failed to seek to " << tmp1
 					  << " in file " << fdes[i];
 				for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3948,7 +4050,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -3974,7 +4077,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4002,7 +4106,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4028,7 +4133,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4054,7 +4160,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4080,7 +4187,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4106,7 +4214,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4132,7 +4241,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4158,7 +4268,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4184,7 +4295,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
 				if (ierr < 0) {
 				    LOGGER(1) << "Warning -- ibis::part["
-					      << (m_name ? m_name : "?") << "]::doScan(" << cmp
+					      << (m_name ? m_name : "?")
+					      << "]::doScan(" << cmp
 					      << ") failed to read "
 					      << "from file " << fdes[i];
 				    for (size_t k = 0; k < vlist->size(); ++k) {
@@ -4524,6 +4636,10 @@ void ibis::part::unloadIndex() const {
 	 ++it) {
 	(*it).second->unloadIndex();
     }
+    if (activeDir)
+	ibis::fileManager::instance().flushDir(activeDir);
+    if (backupDir)
+	ibis::fileManager::instance().flushDir(backupDir);
 } // ibis::part::unloadIndex
 
 /// @note The indices will be rebuilt next time they are needed.  This
@@ -4973,6 +5089,11 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     sprintf(clause, "%s >= %g", att->name(), upper);
     qtmp.setWhereClause(clause);
     ierr = qtmp.evaluate();
+    if (ierr < 0) { // unload all indexes, try once more
+	mutexLock lock(this, "quickTest");
+	unloadIndex();
+	ierr = qtmp.evaluate();
+    }
     if (ierr >= 0) {
 	total += qtmp.getNumHits();
 	if (ibis::gVerbose > 2) { // use sequential scan to verify counts
@@ -5013,6 +5134,11 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	sprintf(clause, "%g <= %s < %g", b1, att->name(), b2);
 	qtmp.setWhereClause(clause);
 	ierr = qtmp.evaluate();
+	if (ierr < 0) { // unload all indexes, try once more
+	    mutexLock lock(this, "quickTest");
+	    unloadIndex();
+	    ierr = qtmp.evaluate();
+	}
 	if (ierr >= 0) {
 	    total += qtmp.getNumHits();
 	    if (ibis::gVerbose > 2) { // use sequential scan to verify counts
@@ -5051,6 +5177,11 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     sprintf(clause, "%g <= %s < %g", lower, att->name(), b2);
     qtmp.setWhereClause(clause);
     ierr = qtmp.evaluate();
+    if (ierr < 0) { // unload all indexes, try once more
+	mutexLock lock(this, "quickTest");
+	unloadIndex();
+	ierr = qtmp.evaluate();
+    }
     if (ierr >= 0)
 	total += qtmp.getNumHits();
     else
@@ -5170,6 +5301,11 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     rid1 = rid2;
     qtmp.setRIDs(*rid1);
     ierr = qtmp.evaluate();
+    if (ierr < 0) { // unload all indexes, try once more
+	mutexLock lock(this, "quickTest");
+	unloadIndex();
+	ierr = qtmp.evaluate();
+    }
     if (ierr >= 0) {
 	rid2 = qtmp.getRIDs();
 	std::sort(rid2->begin(), rid2->end());
@@ -5266,6 +5402,11 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	// compute the number of hits
 	qtmp.estimate(); // to provide some timing data
 	int ierr = qtmp.evaluate();
+	if (ierr < 0) { // unload all indexes, try once more
+	    mutexLock lock(this, "queryTest");
+	    unloadIndex();
+	    ierr = qtmp.evaluate();
+	}
 	if (ierr >= 0) {
 	    cnt0 = qtmp.getNumHits();
 	}
@@ -5325,6 +5466,11 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    sprintf(predicate, "%s < %g", att->name(), low);
 	    qtmp.setWhereClause(predicate);
 	    ierr = qtmp.evaluate();
+	    if (ierr < 0) { // unload all indexes, try once more
+		mutexLock lock(this, "queryTest");
+		unloadIndex();
+		ierr = qtmp.evaluate();
+	    }
 	    if (ierr >= 0) {
 		cnt1 = qtmp.getNumHits();
 	    }
@@ -5335,6 +5481,11 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    sprintf(predicate, "%s >= %g", att->name(), high);
 	    qtmp.setWhereClause(predicate);
 	    ierr = qtmp.evaluate();
+	    if (ierr < 0) { // unload all indexes, try once more
+		mutexLock lock(this, "queryTest");
+		unloadIndex();
+		ierr = qtmp.evaluate();
+	    }
 	    if (ierr >= 0) {
 		cnt2 = qtmp.getNumHits();
 	    }
@@ -5701,8 +5852,7 @@ long ibis::part::doCompare(const char* file,
 		}
 	    }
 	    else if (idx.nIndices() > 1) {
-		j = idx.nIndices() - 1;
-		diff = ii[j] - *ii + 1;
+		diff = ii[idx.nIndices()-1] - *ii + 1;
 		if (static_cast<uint32_t>(diff) < nbuf) {
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != *ii * elem) {
@@ -5716,7 +5866,7 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
 		    if (diff == ierr && ierr >= 0) {
-			j = ierr;
+			j = idx.nIndices();
 		    }
 		    else {
 			j = 0;

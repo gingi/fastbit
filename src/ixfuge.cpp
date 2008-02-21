@@ -61,9 +61,9 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
 
 /// Reconstruct from content of a file.
 /**
-   The leading portion of the index file is the same as ibis::relic, which
+   The leading portion of the index file is the same as ibis::bin, which
    allows the constructor of the base class to work properly.  The content
-   following the last bitvector in ibis::relic is as follows, @sa
+   following the last bitvector in ibis::bin is as follows, @sa
    ibis::fuge::writeCoarse.
 
    nc      (uint32_t)         -- number of coarse bins.

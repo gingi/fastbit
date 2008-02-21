@@ -1,4 +1,16 @@
-2008-02-18 John Wu <John.Wu at ACM.org>
+2008-02-20 John Wu <John.Wu at ACM.org>
+	* src/ifade.cpp:69&74 correct the offset set calculations, was
+	only counting two leading integers.  This causes crashes when
+	multi-level range and interval encodings are used without binning
+	* src/part.cpp:5869 wrong formula for variable j -- this is
+	probably the real cause of the problem observed by Jochen on Feb
+	18
+	* src/part.cpp: in queryTest and quickTest, call unloadIndex if
+	query::evaluate returns an error
+	* src/ibin.cpp: modify ibis::bin constructors to consistently fill
+	the content of array offsets, ibis::fuge depends on this
+
+2008-02-19 John Wu <John.Wu at ACM.org>
 	* Makefile.am, tests/Makefile.am: change target all-tests to
 	check-all and have it include both small and large tests
 	* src/column.h: remove mutex lock from ibis::column::indexLock

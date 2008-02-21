@@ -4263,13 +4263,18 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 
 // This function requires a write lock just like loadIndex.
 void ibis::column::unloadIndex() const {
-    if (0 == idxcnt && 0 != idx) {
+    if (0 != idx) {
 	writeLock lock(this, "unloadIndex");
 	if (0 == idxcnt && 0 != idx) {
 	    delete idx;
 	    idx = 0;
 	    if (ibis::gVerbose > 7)
 		logMessage("unloadIndex", "successfully removed the index");
+	}
+	else if (idxcnt != 0 && 0 != idx && ibis::gVerbose > 0) {
+	    LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
+		      << "." << name() << "]::unloadIndex failed because "
+		"idxcnt (" << idxcnt << ") is not zero";
 	}
     }
 } // ibis::column::unloadIndex
