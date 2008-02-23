@@ -4636,10 +4636,6 @@ void ibis::part::unloadIndex() const {
 	 ++it) {
 	(*it).second->unloadIndex();
     }
-    if (activeDir)
-	ibis::fileManager::instance().flushDir(activeDir);
-    if (backupDir)
-	ibis::fileManager::instance().flushDir(backupDir);
 } // ibis::part::unloadIndex
 
 /// @note The indices will be rebuilt next time they are needed.  This

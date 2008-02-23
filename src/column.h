@@ -294,10 +294,12 @@ protected:
 
     class readLock;
     class writeLock;
+    class softWriteLock;
     friend class readLock;
     friend class writeLock;
     friend class indexLock;
     friend class mutexLock;
+    friend class softWriteLock;
 
 private:
     // these are for tracking idx only and are accessed through indexLock
@@ -457,6 +459,50 @@ private:
     writeLock(const writeLock&);
     const writeLock& operator=(const writeLock&);
 }; // ibis::column::writeLock
+
+/// Provide a write lock on a ibis::column object.
+class ibis::column::softWriteLock {
+public:
+    softWriteLock(const ibis::column* col, const char* m)
+	: theColumn(col), mesg(m),
+	  locked(0 == pthread_rwlock_trywrlock(&(col->rwlock))) {
+#if defined(DEBUG) && DEBUG > 0
+	ibis::util::logMessage("ibis::column::softWriteLock",
+			       "locking column %s for %s", col->name(),
+			       (m ? m : "?"));
+#endif
+	if (ibis::gVerbose > 9 && locked)
+	    col->logMessage("gainWriteAccess",
+			    "pthread_rwlock_wrlock for %s", m);
+    }
+    ~softWriteLock() {
+#if defined(DEBUG) && DEBUG > 0
+	ibis::util::logMessage("ibis::column::softWriteLock",
+			       "unlocking column %s (%s)", theColumn->name(),
+			       (mesg ? mesg : "?"));
+#endif
+	if (locked) {
+	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+	    if (ierr)
+		theColumn->logWarning("releaseWriteAccess",
+				      "pthread_rwlock_unlock() for %s "
+				      "returned %d", mesg, ierr);
+	    else if (ibis::gVerbose > 9)
+		theColumn->logMessage("releaseWriteAccess",
+				      "pthread_rwlock_unlock for %s", mesg);
+	}
+    }
+    bool isLocked() const {return locked;}
+
+private:
+    const ibis::column* theColumn;
+    const char* mesg;
+    const bool locked;
+
+    softWriteLock();
+    softWriteLock(const softWriteLock&);
+    const softWriteLock& operator=(const softWriteLock&);
+}; // ibis::column::softWriteLock
 
 /// Provide a write lock on a ibis::column object.
 class ibis::column::readLock {

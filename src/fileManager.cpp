@@ -70,7 +70,7 @@ template int ibis::fileManager::getFile<double>
 #if defined(DEBUG) || defined(_DEBUG)
 #define FILEMANAGER_UNLOAD_TIME 5
 #else
-#define FILEMANAGER_UNLOAD_TIME 600
+#define FILEMANAGER_UNLOAD_TIME 60
 #endif
 #endif
 // minimum size for doMap

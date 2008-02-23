@@ -1,3 +1,22 @@
+2008-02-22 John Wu <John.Wu at ACM.org>
+	* src/Doxyfile:1008 enable PREDEFINED macro expansion to make sure
+	FASTBIT_DLLSPEC is blank so that doxygen can process the file
+	correctly
+	* src/bitvector.cpp: update the documentation of bitwise logical
+	operations.
+
+2008-02-21 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:4639 remove calls to function flushDir, then
+	require a mutex lock on the file manager can cause deadlock
+	* src/column.cpp: in evaluateRange, limit the scope of indexLock
+	to reduce the chance of deadlock (when memory is running low)
+	* src/column.h: add softWriteLock class to try to acquire lock
+	when possible -- used in ibis::column::unloadIndex.  While working
+	with an index (i.e., holding a read lock), it may be necessary to
+	free some memory, which can invoke the unloadIndex function.
+	Changing to a soft write lock would allow the invocation to
+	complete and avoid deadlock.
+
 2008-02-20 John Wu <John.Wu at ACM.org>
 	* src/ifade.cpp:69&74 correct the offset set calculations, was
 	only counting two leading integers.  This causes crashes when

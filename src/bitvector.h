@@ -96,27 +96,32 @@ public:
 
     bitvector& operator+=(const bitvector& bv); ///< Append a bitvector.
     inline bitvector& operator+=(int b);	///< Append a single bit.
-    void appendWord(word_t w);		///< Append a word of bits.
+    void appendWord(word_t w);		///< Append a WAH word.
     /// Append @c n bits of @c val.
     inline void appendFill(int val, word_t n);
 
-    // Return 1 if two bit sequences have the same content, 0 otherwise
+    /// Return 1 if two bit sequences have the same content, 0 otherwise
     int operator==(const bitvector& rhs) const;
 
-    /// Bitwise operations.
     /// Complement all bits of a bit sequence.
     void flip();
-    /// Perform bitwise AND between this bitvector and @c rhs.
+    ///@brief Perform bitwise AND between this bitvector and @c rhs.
     void operator&=(const bitvector& rhs);
+    ///@brief Perform bitwise AND between this bitvector and @c rhs, return
+    /// the result as a new bitvector.
     bitvector* operator&(const bitvector&) const;
-    /// Perform bitwise OR.
+    ///@brief Perform bitwise OR.
     void operator|=(const bitvector& rhs);
+    ///@brief Perform bitwise OR and return the result as a new bitvector.
     bitvector* operator|(const bitvector&) const;
-    /// Perform bitwise exclusive or (XOR).
+    ///@brief Perform bitwise exclusive or (XOR).
     void operator^=(const bitvector& rhs);
+    ///@brief Perform bitwise XOR and return the result as a new bitvector.
     bitvector* operator^(const bitvector&) const;
-    /// Perform bitwise subtraction (a & !b).
+    ///@brief Perform bitwise subtraction (a & !b).
     void operator-=(const bitvector& rhs);
+    ///@brief Perform bitwise subtraction and return the result as a new
+    /// bitvector.
     bitvector* operator-(const bitvector&) const;
 
     void subset(const ibis::bitvector& mask, ibis::bitvector& res) const;

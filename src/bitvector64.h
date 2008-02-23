@@ -84,30 +84,34 @@ public:
 
     bitvector64& operator+=(const bitvector64& bv); ///< Append a bitvector64.
     inline bitvector64& operator+=(int b);	///< Append a single bit.
-    void appendWord(word_t w);			///< Append a word of bits.
+    void appendWord(word_t w);			///< Append a WAH word.
     /// Append @c n bits of @c val.
     inline void appendFill(int val, word_t n);
 
-    // Return 1 if two bit sequences have the same content, 0 otherwise
+    /// Return 1 if two bit sequences have the same content, 0 otherwise
     int operator==(const bitvector64& rhs) const;
 
-    /// Bitwise operations.
     /// Complement all bits of a bit sequence.
     void flip();
-    /// Perform bitwise AND between this bitvector64 and @c rhs.
+    ///@brief Perform bitwise AND between this bitvector64 and @c rhs.
     void operator&=(const bitvector64& rhs);
+    ///@brief Perform bitwise AND, return the pointer to the result.
     bitvector64* operator&(const bitvector64&) const;
-    /// Perform bitwise OR.
+    ///@brief Perform bitwise OR.
     void operator|=(const bitvector64& rhs);
+    ///@brief Perform bitwise OR, return the pointer to the result.
     bitvector64* operator|(const bitvector64&) const;
-    /// Perform bitwise exclusive or (XOR).
+    ///@brief Perform bitwise exclusive or (XOR).
     void operator^=(const bitvector64& rhs);
+    ///@brief Perform bitwise XOR, return the pointer to the result.
     bitvector64* operator^(const bitvector64&) const;
-    /// Perform bitwise subtraction (a & !b).
+    ///@brief Perform bitwise subtraction (a & !b).
     void operator-=(const bitvector64& rhs);
+    ///@brief Perform bitwise subtraction and return the pointer to the
+    /// result.
     bitvector64* operator-(const bitvector64&) const;
 
-    /// I/O functions.
+    // I/O functions.
     /// Read a bit vector from the file.  Purge current contents before
     /// read.
     void read(const char *fn);

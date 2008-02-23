@@ -82,7 +82,8 @@ void ibis::bitvector64::set(int val, word_t n) {
     }
 } // ibis::bitvector64::set(int val, ibis::bitvector64::word_t n)
 
-// append a word -- the general case, active word may not be empty
+/// Append a WAH compressed word.  The general case, active word may not be
+/// empty.
 void ibis::bitvector64::appendWord(word_t w) {
     word_t nb1, nb2;
     int64_t cps = (w>>MAXBITS);
@@ -676,8 +677,8 @@ void ibis::bitvector64::flip() {
     if (nbits == 0)
 	nbits = nb;
     if (nb != nbits)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::flip() expects to "
-			       "have %lu bits but got %lu",
+	ibis::util::logMessage("Warning", "ibis::bitvector64::flip() expects "
+			       "to have %lu bits but got %lu",
 			       static_cast<long unsigned>(nbits),
 			       static_cast<long unsigned>(nb));
 #endif
@@ -695,6 +696,7 @@ int ibis::bitvector64::operator==(const ibis::bitvector64& rhs) const {
 } // ibis::bitvector64::operator==
 
 // bitwise and (&) operation
+///@sa ibis::bitvector::operator&=
 void ibis::bitvector64::operator&=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
@@ -751,6 +753,7 @@ void ibis::bitvector64::operator&=(const ibis::bitvector64& rhs) {
 #endif
 } // ibis::bitvector64::operator&=
 
+/// @sa ibis::bitvector::operator&
 ibis::bitvector64* ibis::bitvector64::operator&(const ibis::bitvector64& rhs)
     const {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
@@ -812,6 +815,7 @@ ibis::bitvector64* ibis::bitvector64::operator&(const ibis::bitvector64& rhs)
 } // ibis::bitvector64::operator&
 
 // bitwise or (|) operation
+/// @sa ibis::bitvector::operator|=
 void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
@@ -869,6 +873,7 @@ void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
 #endif
 } // ibis::bitvector64::operator|=(const bitvector64& rhs)
 
+/// @sa ibis::bitvector::operator|
 ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
     const {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
@@ -930,6 +935,7 @@ ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
 } // ibis::bitvector64::operator|()
 
 // bitwise xor (^) operation
+/// @sa ibis::bitvector::operator^=
 void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
@@ -977,6 +983,7 @@ void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
 #endif
 } // ibis::bitvector64::operator^=(const bitvector64& rhs)
 
+/// @sa ibis::bitvector::operator^=
 ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
     const {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
@@ -1030,6 +1037,7 @@ ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
 } // ibis::bitvector64::operator^
 
 // bitwise minus (-) operation
+/// @sa ibis::bitvector::operator-=
 void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
@@ -1093,6 +1101,7 @@ void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
 #endif
 } // ibis::bitvector64::operator-=
 
+/// @sa ibis::bitvector::operator-
 ibis::bitvector64* ibis::bitvector64::operator-(const ibis::bitvector64& rhs)
     const {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||

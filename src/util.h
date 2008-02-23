@@ -366,7 +366,7 @@ namespace ibis {
 	inline void removeTail(char* str, char tail);
 	///@brief Treat all bytes in buf as the string.
 	FASTBIT_DLLSPEC char* getString(const char* buf);
-	///@breif Extract the next quoted string or the blank delimited string.
+	///@brief Extract the next quoted string or the blank delimited string.
 	FASTBIT_DLLSPEC void
 	getString(std::string& str, const char*& buf, const char *delim=0);
 	const char* getToken(char*& str, const char* tok_chrs);

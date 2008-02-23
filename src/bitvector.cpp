@@ -159,8 +159,8 @@ void ibis::bitvector::compress() {
 	return;
 
     struct xrun {
-	bool isFill;
-	int fillBit;
+	bool   isFill;
+	int    fillBit;
 	word_t nWords;
 	array_t<word_t>::iterator it;
 
@@ -172,8 +172,8 @@ void ibis::bitvector::compress() {
 	}
     };
     xrun last;	// point to the last code word in m_vec that might be modified
+                // NOTE: last.nWords is not used by this function
     xrun current;// point to the current code to be examined
-    // NOTE: last.nWords is not used by this function
 
     current.it = m_vec.begin();
     last.it = m_vec.begin();
@@ -198,8 +198,8 @@ void ibis::bitvector::compress() {
 	    }
 	    else  { // move last forward by one
 		++ last.it;
-		*(last.it) = *(current.it);
 		last.isFill = false;
+		*(last.it) = *(current.it);
 	    }
 	}
 	else if (current.isFill) {
@@ -223,13 +223,13 @@ void ibis::bitvector::compress() {
 	    // the same
 	    if (*(current.it) == 0) { // make a 2-word 0-fill
 		*(last.it) = HEADER0 | 2;
-		last.fillBit = 0;
 		last.isFill = true;
+		last.fillBit = 0;
 	    }
 	    else if (*(current.it) == ALLONES) { // make a 2-word 1-fill
 		*(last.it) = HEADER1 | 2;
-		last.fillBit = 1;
 		last.isFill = true;
+		last.fillBit = 1;
 	    }
 	    else { // move last forward
 		++ last.it;
@@ -857,7 +857,12 @@ int ibis::bitvector::operator==(const ibis::bitvector& rhs) const {
     return 1;
 } // ibis::bitvector::operator==
 
-// bitwise and (&) operation
+/// The in-place version of the bitwise logical AND operator.  It performs
+/// the bitwise logical AND operation between this bitvector and @c rhs,
+/// then stores the result back to this bitvector.
+///
+///@note If the two bit vectors are not of the same length, the shorter one
+/// is implicitly padded with 0 bits so the two are of the same length.
 void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 #if defined(WAH_CHECK_SIZE)
     if (nbits == 0)
@@ -930,6 +935,12 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 #endif
 } // ibis::bitvector::operator&=
 
+/// This version of bitwise logical operator produces a new bitvector as
+/// the result and return a pointer to the new object.
+///
+/// @note The caller is responsible for deleting the bitvector returned.
+///
+///@sa ibis::bitvector::operator&=
 ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
@@ -988,7 +999,10 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     return res;
 } // ibis::bitvector::operator&
 
-// bitwise or (|) operation
+/// The is the in-place version of the bitwise OR (|) operator.  This
+/// bitvector is modified to store the result of the operation.
+///
+///@sa ibis::bitvector::operator&=
 void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 #if defined(WAH_CHECK_SIZE)
     if (nbits == 0)
@@ -1062,6 +1076,9 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 #endif
 } // ibis::bitvector::operator|=
 
+/// This bitvector is not modified, instead a new bitvector is generated.
+///
+///@sa ibis::bitvector::operator&
 ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
@@ -1120,7 +1137,10 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     return res;
 } // ibis::bitvector::operator|
 
-// bitwise xor (^) operation
+/// The in-place version of the bitwise XOR (^) operator.  This bitvector
+/// is modified to store the result.
+///
+///@sa ibis::bitvector::operator&=
 void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 #if defined(WAH_CHECK_SIZE)
     if (nbits == 0)
@@ -1184,6 +1204,10 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 #endif
 } // ibis::bitvector::operator^=
 
+/// This bitvector is not modified, instead a new bitvector object is
+/// generated to store the result.
+///
+///@sa ibis::bitvector::operator&
 ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
@@ -1234,7 +1258,10 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     return res;
 } // ibis::bitvector::operator^
 
-// bitwise minus (-) operation
+/// The in-place version of the bitwise minus (-) operator.  This bitvector
+///is modified to store the result of the operation.
+///
+///@sa ibis::bitvector::operator&=
 void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 #if defined(WAH_CHECK_SIZE)
     if (nbits == 0)
@@ -1313,6 +1340,10 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 #endif
 } // ibis::bitvector::operator-=
 
+/// The operands of the bitwise minus operation are not modified, instead a
+/// new bitvector object is gnerated.
+///
+///@sa ibis::bitvector::operator&
 ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)

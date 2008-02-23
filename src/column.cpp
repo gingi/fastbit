@@ -4264,17 +4264,19 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 // This function requires a write lock just like loadIndex.
 void ibis::column::unloadIndex() const {
     if (0 != idx) {
-	writeLock lock(this, "unloadIndex");
-	if (0 == idxcnt && 0 != idx) {
-	    delete idx;
-	    idx = 0;
-	    if (ibis::gVerbose > 7)
-		logMessage("unloadIndex", "successfully removed the index");
-	}
-	else if (idxcnt != 0 && 0 != idx && ibis::gVerbose > 0) {
-	    LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
-		      << "." << name() << "]::unloadIndex failed because "
-		"idxcnt (" << idxcnt << ") is not zero";
+	softWriteLock lock(this, "unloadIndex");
+	if (lock.isLocked() && 0 != idx) {
+	    if (0 == idxcnt) {
+		delete idx;
+		idx = 0;
+		if (ibis::gVerbose > 7)
+		    logMessage("unloadIndex", "successfully removed the index");
+	    }
+	    else {
+		LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
+			  << "." << name() << "]::unloadIndex failed because "
+		    "idxcnt (" << idxcnt << ") is not zero";
+	    }
 	}
     }
 } // ibis::column::unloadIndex
@@ -4367,67 +4369,35 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     mymask &= mask;
 
     try {
-	indexLock lock(this, "evaluateRange");
-	if (idx) {
-	    ierr = idx->evaluate(cmp, low);
-	    if (ierr >= 0) {
-		if (low.size() < mymask.size()) { // short index, scan
-		    ibis::bitvector b1, b2;
-		    b1.appendFill(0, low.size());
-		    b1.appendFill(1, mymask.size()-low.size());
-		    ierr = thePart->doScan(cmp, b1, b2);
-		    if (ierr >= 0) {
-			low.adjustSize(0, mymask.size());
-			low |= b2;
-		    }
+	ibis::bitvector high;
+	{ // always attempt to do an estimate first
+	    indexLock lock(this, "evaluateRange");
+	    idx->estimate(cmp, low, high);
+	}
+	if (low.size() != mymask.size()) { // short index
+	    if (high.size() != low.size())
+		high.copy(low);
+	    high.adjustSize(mymask.size(), mymask.size());
+	    low.adjustSize(0, mymask.size());
+	}
+	low &= mymask;
+	if (low.size() == high.size()) { // need scan
+	    ibis::bitvector b2;
+	    high &= mymask;
+	    high -= low;
+	    if (high.cnt() > 0) {
+		ierr = thePart->doScan(cmp, high, b2);
+		if (ierr >= 0) {
+		    low.adjustSize(0, mymask.size());
+		    low |= b2;
 		}
-		low &= mymask;
 	    }
 	    else {
-		LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
-			  << "." << name() << "]::evaluateRange(" << cmp
-			  << ") -- idx(" << idx->name()
-			  << ")->evaluate returned " << ierr
-			  << ", attempt to use idx->estimate";
-
-		ibis::bitvector high;
-		idx->estimate(cmp, low, high);
-		if (low.size() != mymask.size()) {
-		    if (high.size() == low.size()) {
-			high.adjustSize(mymask.size(), mymask.size());
-		    }
-		    else if (high.size() == 0) {
-			high.copy(low);
-			high.adjustSize(mymask.size(), mymask.size());
-		    }
-		    low.adjustSize(0, mymask.size());
-		}
-		low &= mymask;
-		if (high.size() == low.size()) {
-		    high &= mymask;
-		    if (high.cnt() > low.cnt()) {
-			high -= low;
-			ibis::bitvector delta;
-			if (high.cnt() > 0 && thePart != 0) {
-			    ierr = thePart->doScan(cmp, high, delta);
-			    if (ierr >= 0)
-				low |= delta;
-			}
-		    }
-		    else {
-			ierr = 0;
-		    }
-		}
-		else {
-		    ierr = 0;
-		}
+		ierr = 0;
 	    }
 	}
-	else if (thePart != 0) {
-	    ierr = thePart->doScan(cmp, mymask, low);
-	}
 	else {
-	    ierr = -1;
+	    ierr = 0;
 	}
 
 	LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
