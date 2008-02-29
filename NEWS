@@ -1,3 +1,8 @@
+Version b0.8.5
+-- add ibis::column::softWriteLock to prevent deadlock during tight
+   memory situations
+-- update doxygen documents to work around __declspec directives
+
 Wed Feb 20 11:26:11 PST 2008
 Version b0.8.4
 -- replace ibis::part::doCompare and friends with templated functions
@@ -46,7 +51,7 @@ Version b0.8.2
 Sun Dec 23 19:33:34 PST 2007
 Version b0.8.1
 -- add win/MinGW.mak for compiling code under MinGW/MSYS
--- fix ibis::util::makeDir perblem with execute bit in directory permission
+-- fix ibis::util::makeDir problem with execute bit in directory permission
 
 Tue Dec 11 15:36:04 PST 2007
 Version b0.8.0

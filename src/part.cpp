@@ -4511,6 +4511,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 			   reinterpret_cast<long int>(j));
 	    }
 	}
+	++ nthr; // restore the original value
     }
     else { // do not spawn any new threads
 	for (columnList::iterator it=columns.begin();
@@ -4521,10 +4522,10 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 	    (*it).second->loadIndex(opt);
 	    (*it).second->unloadIndex();
 	}
+	nthr = 1; // used only this thread
     }
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	nthr = (nthr > 0 ? nthr+1 : 1);
 	ibis::util::logger lg(0);
 	lg.buffer() << "ibis::part[" << name() << "]::buildIndex build "
 		    << nColumns() << " index" << (nColumns()>1 ? "es" : "")
@@ -5759,8 +5760,8 @@ long ibis::part::doCompare(const array_t<T>& array,
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison "
 		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
-		    << "s from an array of "
-		    << array.size() << " elements took "
+		    << " element" << (mask.cnt() > 1 ? "s" : "") << " from a "
+		    << array.size() << "-element array took "
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -8326,12 +8327,13 @@ long ibis::part::count2DBins(const array_t<T1>& vals1,
 			     std::vector<uint32_t>& counts) const {
     const size_t dim2 = 1+
 	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
-    for (size_t i1 = 0; i1 < vals1.size(); ++ i1) {
-	size_t j1 = dim2 *
-	    static_cast<uint32_t>(std::floor((vals1[i1]-begin1)/stride1));
-	for (size_t i2 = 0; i2 < vals2.size(); ++ i2)
-	    ++ counts[j1+static_cast<uint32_t>
-		      (std::floor((vals2[i2]-begin2)/stride2))];
+    const size_t nr = (vals1.size() <= vals2.size() ?
+		       vals1.size() : vals2.size());
+    for (size_t ir = 0; ir < nr; ++ ir) {
+	++ counts[dim2 * static_cast<uint32_t>
+		  (std::floor((vals1[ir]-begin1)/stride1)) +
+		  static_cast<uint32_t>
+		  (std::floor((vals2[ir]-begin2)/stride2))];
     }
     return counts.size();
 } // ibis::part::count2DBins
@@ -8349,18 +8351,20 @@ long ibis::part::count3DBins(const array_t<T1>& vals1,
 			     std::vector<uint32_t>& counts) const {
     const size_t dim3 = 1 +
 	static_cast<uint32_t>(std::floor((end3 - begin3)/stride3));
-    const size_t dim2 = dim3 + dim3 *
+    const size_t dim2 = 1 +
 	static_cast<uint32_t>(std::floor((end2 - begin2)/stride2));
-    for (size_t i1 = 0; i1 < vals1.size(); ++ i1) {
-	size_t j1 = dim2 *
-	    static_cast<uint32_t>(std::floor((vals1[i1]-begin1)/stride1));
-	for (size_t i2 = 0; i2 < vals2.size(); ++ i2) {
-	    size_t j2 = j1 + dim3 *
-		static_cast<uint32_t>(std::floor((vals2[i2]-begin2)/stride2));
-	    for (size_t i3 = 0; i3 < vals3.size(); ++ i3)
-		++ counts[j2 + static_cast<uint32_t>
-			  (std::floor((vals3[i3]-begin3)/stride3))];
-	}
+    const size_t nr = (vals1.size() <= vals2.size() ?
+		       (vals1.size() <= vals3.size() ?
+			vals1.size() : vals3.size()) :
+		       (vals2.size() <= vals3.size() ?
+			vals2.size() : vals3.size()));
+    for (size_t ir = 0; ir < nr; ++ ir) {
+	++ counts[(static_cast<uint32_t>
+		   (std::floor((vals1[ir]-begin1)/stride1)) * dim2 +
+		   static_cast<uint32_t>
+		   (std::floor((vals2[ir]-begin2)/stride2))) * dim3 +
+		  static_cast<uint32_t>
+		  (std::floor((vals3[ir]-begin3)/stride3))];
     }
     return counts.size();
 } // ibis::part::count3DBins

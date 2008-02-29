@@ -63,7 +63,7 @@
 	[-c[onf] conf_file] [-d[atadir] data_dir]
         [-q[uery] [SELECT ...] [FROM ...] WHERE ... [ORDER BY ...] [LIMIT ...]]
         [-ou[tput-file] filename] [-l logfilename] [-i[nteractive]]
-        [-b[uild-indices]] [-k[eep-tempory-files]]
+        [-b[uild-indexes]] [-k[eep-tempory-files]]
  	[-n[o-estimation]] [-e[stimation-only]] [-s[quential-scan]]
         [-r[id-check] [filename]] [-v[=n]] [-t[est]] [-h[elp]]
 
@@ -525,7 +525,7 @@ static void parse_args(int argc, char** argv,
 		}
 		break;
 	    case 'b':
-	    case 'B': { // build indices,
+	    case 'B': { // build indexes,
 		// it also accepts an optional argument to indicate the
 		// number of threads to use
 		char *ptr = strchr(argv[i], '=');
@@ -847,7 +847,7 @@ static void parse_args(int argc, char** argv,
 		    << (mode ? "interactive mode" : "batch mode")
 		    << ", log level " << ibis::gVerbose;
 	if (build_index > 0) {
-	    lg.buffer() << ", building indices";
+	    lg.buffer() << ", building indexes";
 	    if (zapping)
 		lg.buffer() << " (remove any existing indexes)";
 	}
@@ -2317,9 +2317,11 @@ int main(int argc, char** argv) {
 	if (keepstring != 0 && *keepstring != 0)
 	    reverseDeletion(tlist);
 
-	// build new indices
+	// build new indexes
 	if (build_index > 0 && ! tlist.empty()) {
-	    LOGGER(1) << *argv << ": start building indices...";
+	    LOGGER(1) << *argv << ": start building indexes (nthreads="
+		      << build_index << ", indexingOption="
+		      << (indexingOption ? indexingOption : "-") << ") ...";
 	    ibis::horometer timer1;
 	    timer1.start();
 	    for (ibis::partList::const_iterator it = tlist.begin();
@@ -2332,7 +2334,7 @@ int main(int argc, char** argv) {
 		//(*it).second->loadIndex(indexingOption);
 	    }
 	    timer1.stop();
-	    LOGGER(0) << *argv << ": building indices for " << tlist.size()
+	    LOGGER(0) << *argv << ": building indexes for " << tlist.size()
 		      << " data partition"
 		      << (tlist.size()>1 ? "s" : "") << " took "
 		      << timer1.CPUTime() << " CPU seconds and "

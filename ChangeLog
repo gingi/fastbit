@@ -1,3 +1,7 @@
+2008-02-29 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: fix count2DBins and count3DBins had logical
+	problems
+
 2008-02-22 John Wu <John.Wu at ACM.org>
 	* src/Doxyfile:1008 enable PREDEFINED macro expansion to make sure
 	FASTBIT_DLLSPEC is blank so that doxygen can process the file
