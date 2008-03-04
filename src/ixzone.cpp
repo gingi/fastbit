@@ -505,7 +505,7 @@ void ibis::zone::read(const char* f) {
 	    sub[i] = 0;
 	}
 	else {
-	    if (ibis::gVerbose> -1) {
+	    if (ibis::gVerbose > -1) {
 		ibis::util::logger lg(-1);
 		lg.buffer() << " Error *** ibis::zone::read(";
 		if (fname)
@@ -566,7 +566,7 @@ void ibis::zone::read(ibis::fileManager::storage* st) {
 	    sub[i] = 0;
 	}
 	else {
-	    if (ibis::gVerbose> -1) {
+	    if (ibis::gVerbose > -1) {
 		ibis::util::logger lg(ibis::gVerbose);
 		lg.buffer() << " Error *** ibis::zone::read(";
 		if (st->filename())

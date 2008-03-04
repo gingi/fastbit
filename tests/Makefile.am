@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS=gnu
+UTOMAKE_OPTIONS=gnu
 EXTRA_PROGRAMS = readcsv
 readcsv_SOURCES = readcsv.cpp
 check_SCRIPTS = scripts/matchCounts.pl
@@ -15,11 +15,12 @@ TESTDIR=$(PWD)/tmp
 dist_data_DATA=test0.csv test1.csv hist0 hist1 scripts/matchCounts.pl \
 	scripts/printWarning.pl scripts/query-count.list
 #
-# small tests
-check: check-am
-	$(MAKE) check-ibis && $(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) small-tests
-check-all:
-	$(MAKE) small-tests && $(MAKE) large-tests
+# tests with different levels of thoroughness
+quick-check: check-am check-ibis check-thula check-tcapi check-text
+check: quick-check small-tests
+full-check: check large-tests
+#
+# small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
 #
 # the following target excercises larger tests and also excercieses
@@ -29,27 +30,36 @@ large-tests: large-append-test
 	${MAKE} large-sanity-check && ${MAKE} match-counts && ${MAKE} multilevel
 #
 check-thula: $(TESTDIR)/-part.txt $(THULAEXE)
-	@$(THULAEXE) -d $(TESTDIR) -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1.; else $(ECHO) $@ failed test 1.; fi
-	@$(THULAEXE) -d $(TESTDIR) -w "a = b and c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2.; else $(ECHO) $@ failed test 2.; fi
+	@$(THULAEXE) -d $(TESTDIR) -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
+	@$(THULAEXE) -d $(TESTDIR) -w "a = b and c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
 	@$(ECHO)
 check-tcapi: $(TESTDIR)/-part.txt $(TCAPIEXE)
-	@$(TCAPIEXE) $(TESTDIR) "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1.; else $(ECHO) $@ failed test 1.; fi
-	@$(TCAPIEXE) $(TESTDIR) "a = b and c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2.; else $(ECHO) $@ failed test 2.; fi
+	@$(TCAPIEXE) $(TESTDIR) "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
+	@$(TCAPIEXE) $(TESTDIR) "a = b and c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
 	@$(ECHO)
 check-ibis: $(IBISEXE) $(TESTDIR)/-part.txt $(TESTDIR)/rowlist
-	@$(IBISEXE) -d $(TESTDIR) -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1.; else $(ECHO) $@ failed test 1.; fi
-	@$(IBISEXE) -d $(TESTDIR) -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2.; else $(ECHO) $@ failed test 2.; fi
-	@$(IBISEXE) -d $(TESTDIR) -j $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3.; else $(ECHO) $@ failed test 3.; fi
-	@$(IBISEXE) -d $(TESTDIR) -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 4.; else $(ECHO) $@ failed test 4.; fi
-	@$(IBISEXE) -d $(TESTDIR) -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 5.; else $(ECHO) $@ failed test 5.; fi
-	@$(IBISEXE) -d $(TESTDIR) -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 6.; else $(ECHO) $@ failed test 6.; fi
-	@$(IBISEXE) -d $(TESTDIR) -p "c : c>80" > $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 7.; else $(ECHO) $@ failed test 7.; fi
-	@$(IBISEXE) -d $(TESTDIR) -p "a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8.; else $(ECHO) $@ failed test 8.; fi
+	@$(IBISEXE) -d $(TESTDIR) -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
+	@$(IBISEXE) -d $(TESTDIR) -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
+	@$(IBISEXE) -d $(TESTDIR) -j $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3; else $(ECHO) $@ failed test 3; fi
+	@$(IBISEXE) -d $(TESTDIR) -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 4; else $(ECHO) $@ failed test 4; fi
+	@$(IBISEXE) -d $(TESTDIR) -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 5; else $(ECHO) $@ failed test 5; fi
+	@$(IBISEXE) -d $(TESTDIR) -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 6; else $(ECHO) $@ failed test 6; fi
+	@$(IBISEXE) -d $(TESTDIR) -p "c : c>80" > $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 7; else $(ECHO) $@ failed test 7; fi
+	@$(IBISEXE) -d $(TESTDIR) -p "a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ failed test 8; fi
+	@$(ECHO)
+check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0
+	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-0 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c between 10 and 20" -o $(TESTDIR)/t0-1
+	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
 	@$(ECHO)
 $(TESTDIR)/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)
 	$(ARDEAEXE) -d $(TESTDIR) -m "a:int, b:float, c:short" -t test0.csv
 	$(ARDEAEXE) -d $(TESTDIR) -m "a:int, b:float, c:short" -t test0.csv
+$(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
+	rm -rf $(TESTDIR)/t0
+	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:short" -t test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/-part.txt
 	$(ECHO) 0 > $(TESTDIR)/rowlist; $(ECHO) 99 >> $(TESTDIR)/rowlist;
 # a simple internal sanity check
@@ -94,9 +104,10 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" ${TESTDIR}/?/*/-part.txt; \
 	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
 	$(ECHO) >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b -z >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	else \
 	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
@@ -107,6 +118,7 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	perl -pi -e "s#index = .*#index = $$i#" ${TESTDIR}/?/*/-part.txt; \
 	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
 	$(ECHO) >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
 	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
@@ -124,7 +136,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTD
 	rm -f ${TESTDIR}/0/test?/*.idx ${TESTDIR}/0/test?/*.bin; \
 	ncases=`expr 1 + $$ncases`; $(ECHO); $(ECHO) "test case # $${ncases}"; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
 	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 4" scripts/query-count.list ${TESTDIR} && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	$(ECHO); $(ECHO) $@: passed $${npassed} out of $${ncases} test cases; $(ECHO)
@@ -213,5 +225,5 @@ $(TCAPIEXE):
 	@cd $(EXDIR) && $(MAKE) tcapi$(EXEEXT)
 # these targets do not refer to files
 .PHONY: clean multilevel match-counts large-sanity-check large-tests
-.PHONY: large-append-test append-test sanity-check check-all small-tests
+.PHONY: large-append-test append-test sanity-check full-check long-check small-tests
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append

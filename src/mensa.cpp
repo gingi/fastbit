@@ -12,6 +12,7 @@
 #include "part.h"	// ibis::part
 #include "query.h"	// ibis::query
 #include "index.h"	// ibis::index
+#include "category.h"	// ibis::text
 
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
@@ -1835,6 +1836,95 @@ int ibis::mensa::dump(std::ostream& out, const char* del) const {
     }
     return 0;
 } // ibis::mensa::dump
+
+int
+ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
+    int ierr = 0;
+    switch (buffer[j].ctype) {
+    default: {
+	ierr = -2;
+	break;}
+    case ibis::BYTE: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const signed char *tmp 
+	    = reinterpret_cast<const signed char*>(buffer[j].cval->begin());
+	out << (int) tmp[i];
+	break;}
+    case ibis::UBYTE: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const unsigned char *tmp 
+	    = reinterpret_cast<const unsigned char*>(buffer[j].cval->begin());
+	out << (unsigned int) tmp[i];
+	break;}
+    case ibis::SHORT: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const int16_t *tmp 
+	    = reinterpret_cast<const int16_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::USHORT: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const uint16_t *tmp 
+	    = reinterpret_cast<const uint16_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::INT: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const int32_t *tmp 
+	    = reinterpret_cast<const int32_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::UINT: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const uint32_t *tmp 
+	    = reinterpret_cast<const uint32_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::LONG: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const int64_t *tmp 
+	    = reinterpret_cast<const int64_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::ULONG: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const uint64_t *tmp 
+	    = reinterpret_cast<const uint64_t*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::FLOAT: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const float *tmp 
+	    = reinterpret_cast<const float*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::DOUBLE: {
+	if (buffer[j].cval == 0) return 0; // null value
+	const double *tmp 
+	    = reinterpret_cast<const double*>(buffer[j].cval->begin());
+	out << tmp[i];
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	if (curPart != tab.parts.end()) {
+	    const ibis::column* col = 0;
+	    if (buffer[j].cval != 0) {
+		col = reinterpret_cast<const ibis::column*>(buffer[j].cval);
+	    }
+	    else {
+		col = (*curPart).second->getColumn(buffer[j].cname);
+	    }
+	    if (col != 0) {
+		std::string val;
+		static_cast<const ibis::text*>(col)
+		    ->ibis::text::getString(static_cast<uint32_t>(i), val);
+		out << '"' << val << '"';
+	    }
+	}
+	break;}
+    }
+    return ierr;
+} // ibis::mensa::cursor::dumpIJ
 
 ibis::table::cursor* ibis::mensa::createCursor() const {
     return new ibis::mensa::cursor(*this);

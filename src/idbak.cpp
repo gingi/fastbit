@@ -22,7 +22,7 @@ ibis::bak::bak(const ibis::column* c, const char* f) : ibis::bin() {
     try {
 	if (f) { // f is not null
 	    read(f);
-	}   
+	}
 	if (nobs == 0) {
 	    bakMap bmap;
 	    mapValues(f, bmap);
@@ -419,7 +419,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	    printMap(lg.buffer(), bmap);
 	}
     }
-} // ibis::bak::mapValues (equal weight)
+} // ibis::bak::mapValues
 
 void ibis::bak::printMap(std::ostream& out,
 			 const ibis::bak::bakMap& bmap) const {
@@ -481,7 +481,8 @@ void ibis::bak::write(const char* dt) const {
     int32_t ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes, ((sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8,
+    ierr = UnixSeek(fdes,
+		    ((sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8,
 		    SEEK_SET);
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
@@ -508,7 +509,7 @@ void ibis::bak::write(const char* dt) const {
 // covert the hash structure in bakMap into the array structure in ibis::bin
 // NOTE: the pointers to bitvectors in bakMap is copied! Those pointers
 // should NOT be deleted when freeing the bakMap!
-void ibis::bak::construct(const ibis::bak::bakMap& bmap) {
+void ibis::bak::construct(ibis::bak::bakMap& bmap) {
     // clear the existing content
     clear();
 
@@ -520,7 +521,7 @@ void ibis::bak::construct(const ibis::bak::bakMap& bmap) {
     maxval.resize(nobs);
 
     // copy the values
-    ibis::bak::bakMap::const_iterator ib = bmap.begin();
+    ibis::bak::bakMap::iterator ib = bmap.begin();
     for (uint32_t i = 0; i < nobs; ++ i, ++ib) {
 	bits[i] = (*ib).second.loc;
 	bounds[i] = (*ib).first;
@@ -528,6 +529,7 @@ void ibis::bak::construct(const ibis::bak::bakMap& bmap) {
 	maxval[i] = (*ib).second.max;
 	if (nrows == 0 && (*ib).second.loc != 0)
 	    nrows = (*ib).second.loc->size();
+	(*ib).second.loc = 0;
     }
 } // ibis::bak::construct
 

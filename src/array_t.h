@@ -103,6 +103,8 @@ public:
     /// Make a not-shared copy of the array if it is actually a shared
     /// array.
     void nosharing();
+    /// Is the content of the array solely in memory?
+    bool incore() const {return(actual != 0 ? actual->unnamed() != 0 : false);}
 
     /// Insert one value or a list of values before p.  Return pointer to
     /// new elem.

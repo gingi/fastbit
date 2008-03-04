@@ -86,12 +86,12 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 	return -1;
     }
 
-    char* buf;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    uint32_t nbuf = mybuf.size();
+    char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {
 	LOGGER(2) << "ibis::keywords::readTermDocFile(" << f
 		  << ") -- failed to acquire a buffer to reading";
-	delete [] buf;
 	return -2;
     }
     nrows = col->partition()->nRows();
@@ -133,7 +133,6 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 	} // reading a line of the term-document list file
     }
     tdf.close();
-    delete buf;
     if (tbmap.empty())
 	return ierr;
     if (ierr > 0) // ignore warnings

@@ -212,7 +212,8 @@ namespace ibis {
 
     class bitvector64; // the 64-bit version of bitvector class
 
-    ///@brief Compute the outer product of @c a and @c b, add the result to @c c.
+    ///@brief Compute the outer product of @c a and @c b, add the result to
+    ///@c c.
     const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
 					  const ibis::bitvector& b,
 					  ibis::bitvector64& c);
@@ -372,11 +373,6 @@ namespace ibis {
 	const char* getToken(char*& str, const char* tok_chrs);
 	int readInt(int64_t& val, const char *&str, const char* del);
 	int readDouble(double& val, const char *&str, const char* del);
-
-	/// Generate a reasonably sized buffer for storing temporary
-	/// contents.  Return the size of the buffer.  Caller is
-	/// responsible for deleting the buffer.
-	uint32_t getBuffer(char *& buf);
 
 	/// Remove the content of named directory.  The directory itself is
 	/// removed unless the second argument is true.
@@ -662,6 +658,25 @@ namespace ibis {
 	    counter(const counter&);
 	    const counter& operator=(const counter&);
 	}; // counter
+
+	/// A buffer is intended to some temporary workspace in memory.
+	/// The constructor allocates a certain amount of memory, default
+	/// 16 MB; the destructor release the memory.
+	template <typename T>
+	class buffer {
+	public:
+	    buffer(uint32_t sz=0);
+	    ~buffer() {delete [] buf;}
+
+	    T& operator[](uint32_t i) {return buf[i];}
+	    const T& operator[](uint32_t i) const {return buf[i];}
+	    T* address() const {return buf;}
+	    uint32_t size() const {return nbuf;}
+
+	private:
+	    T* buf;
+	    uint32_t nbuf;
+	}; // buffer
 
 	/// A class for logging error messages.  The caller can use the
 	/// function buffer to get a reference to std::ostream and write

@@ -707,7 +707,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 	    printMap(lg.buffer(), bmap);
 	}
     }
-} // ibis::bak2::mapValues (equal weight)
+} // ibis::bak2::mapValues
 
 void ibis::bak2::printMap(std::ostream& out,
 			  const ibis::bak2::bakMap& bmap) const {
@@ -802,7 +802,8 @@ void ibis::bak2::write(const char* dt) const {
     int32_t ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes, ((sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+15)/8)*8,
+    ierr = UnixSeek(fdes,
+		    ((sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+15)/8)*8,
 		    SEEK_SET);
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
@@ -829,7 +830,7 @@ void ibis::bak2::write(const char* dt) const {
 // covert the hash structure in bakMap into the array structure in ibis::bin
 // NOTE: the pointers to bitvectors in bakMap is copied! Those pointers
 // should NOT be deleted when freeing the bakMap!
-void ibis::bak2::construct(const ibis::bak2::bakMap& bmap) {
+void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     // clear the existing content
     clear();
 
@@ -847,7 +848,7 @@ void ibis::bak2::construct(const ibis::bak2::bakMap& bmap) {
     maxval.resize(nobs);
 
     // copy the values
-    ibis::bak2::bakMap::const_iterator it = bmap.begin();
+    ibis::bak2::bakMap::iterator it = bmap.begin();
     for (uint32_t i = 0; i < nobs; ++it) {
 	if ((*it).second.loc0) {
 	    bits[i] = (*it).second.loc0;
@@ -861,6 +862,7 @@ void ibis::bak2::construct(const ibis::bak2::bakMap& bmap) {
 		nrows = (*it).second.loc0->size();
 	    minval[i] = (*it).second.min0;
 	    maxval[i] = (*it).second.max0;
+	    (*it).second.loc0 = 0;
 	    ++ i;
 	}
 	if ((*it).second.loc1) {
@@ -870,6 +872,7 @@ void ibis::bak2::construct(const ibis::bak2::bakMap& bmap) {
 	    maxval[i] = (*it).second.max1;
 	    if (nrows == 0)
 		nrows = (*it).second.loc1->size();
+	    (*it).second.loc1 = 0;
 	    ++ i;
 	}
     }

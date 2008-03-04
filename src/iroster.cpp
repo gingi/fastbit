@@ -1763,19 +1763,19 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     }
 
     int ierr;
-    char *cbuf;
     uint32_t iv = 0; // index for vals
     uint32_t ir = 0; // index for the rows to be read
-    uint32_t ncbuf = ibis::util::getBuffer(cbuf);
-    const uint32_t nbuf = ncbuf / sizeof(T);
     const unsigned int tbytes = sizeof(T);
-    ncbuf = nbuf * tbytes;
+
+    ibis::util::buffer<T> mybuf;
+    char *cbuf = reinterpret_cast<char*>(mybuf.address());
+    const uint32_t ncbuf = tbytes * mybuf.size();
+    const uint32_t nbuf = mybuf.size();
     if (nbuf > 0 && ind.size() == nrows) {
 	// each read operation fills the buffer, use in-memory ind array
 	while (iv < nvals && ir < nrows) {
 	    ierr = UnixRead(srtdes, cbuf, ncbuf);
 	    if (ierr < static_cast<int>(tbytes)) {
-		delete [] cbuf;
 		return;
 	    }
 
@@ -1785,7 +1785,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		while (iv < nvals && vals[iv] < *curr)
 		    ++ iv;
 		if (iv >= nvals) {
-		    delete [] cbuf;
 		    return;
 		}
 		while (curr < end && vals[iv] > *curr) {
@@ -1800,7 +1799,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    }
 	}
 
-	delete [] cbuf;
 	return;
     }
 
@@ -1820,7 +1818,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	while (iv < nvals && ir < nrows) {
 	    ierr = UnixRead(srtdes, cbuf, ncbuf);
 	    if (ierr < static_cast<int>(tbytes)) {
-		delete [] cbuf;
 		return;
 	    }
 
@@ -1830,7 +1827,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		while (iv < nvals && vals[iv] < *curr)
 		    ++ iv;
 		if (iv >= nvals) {
-		    delete [] cbuf;
 		    return;
 		}
 		while (curr < end && vals[iv] > *curr) {
@@ -1846,7 +1842,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 			    ("Warning", "ibis::roster::oocSearch "
 			     "failed to %lu-th index value",
 			     static_cast<long unsigned>(ir));
-			delete [] cbuf;
 			return;
 		    }
 		    pos.push_back(tmp);
@@ -1857,7 +1852,6 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	}
     }
     else { // read one value at a time, very slow!
-	delete [] cbuf;
 	cbuf = 0;
 
 	T curr;

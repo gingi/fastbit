@@ -156,7 +156,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 	bmap.clear();
 	ibis::fileManager::instance().signalMemoryAvailable();
 
-	if (ibis::gVerbose> -1) {
+	if (ibis::gVerbose > -1) {
 	    LOGGER(0)
 		<< "Warning -- ibis::sapid::construct1 the bitvectors "
 		"do not have the expected size(" << col->partition()->nRows()

@@ -2,10 +2,11 @@
 // Author: John Wu <John.Wu@ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 the Regents of the University of California
 //
-// The implementation of class bitvector as defined in bitvector.h
-// The major goal of this implementation is to avoid accessing anything
-// smaller than a word (unsigned int)
-//
+/// @file
+/// The implementation of class bitvector as defined in bitvector.h.
+/// The major goal of this implementation is to avoid accessing anything
+/// smaller than a word (uint32_t).
+///
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
@@ -155,7 +156,7 @@ ibis::bitvector& ibis::bitvector::operator+=(const ibis::bitvector& bv) {
 
 /// Compress the current m_vec in-place.
 void ibis::bitvector::compress() {
-    if (m_vec.size() < 2) // there is nothing to do
+    if (m_vec.size() < 2 || m_vec.incore() == false) // there is nothing to do
 	return;
 
     struct xrun {
@@ -247,7 +248,8 @@ void ibis::bitvector::compress() {
     }
 } // ibis::bitvector::compress
 
-// decompress the current compressed bitvector
+/// Decompress the currently compressed bitvector.  Throw ibis::bad_alloc
+/// exception if fails to allocate enough memory.
 void ibis::bitvector::decompress() {
     if (nbits == 0 && m_vec.size() > 0)
 	nbits = do_cnt();
@@ -255,23 +257,13 @@ void ibis::bitvector::decompress() {
 	return;
 
     array_t<word_t> tmp;
-    try {
-	tmp.resize(nbits/MAXBITS);
-	if (nbits != tmp.size()*MAXBITS) {
-	    ibis::util::logMessage
-		("Warning", "bitvector nbits=%lu is not an integer "
-		 "multiple of %lu", static_cast<long unsigned>(nbits),
-		 static_cast<long unsigned>(MAXBITS));
-	    return;
-	}
-    }
-    catch (const std::exception& e) {
-	ibis::util::logMessage
-	    ("Warning", "bitvector::decompress() failed to "
-	     "allocate %lu words to store decompressed "
-	     "bitvector -- exception \"%s\"",
-	     static_cast<long unsigned>(nbits/MAXBITS), e.what());
-	return;
+    tmp.resize(nbits/MAXBITS);
+    if (nbits != tmp.size()*MAXBITS) {
+	LOGGER(1) << "Warning -- bitvector::decompress(nbits=" << nbits
+		  << ") failed to allocate a temp array of "
+		  << nbits/MAXBITS << "-word";
+	throw ibis::bad_alloc("ibis::bitvector::decompress failed to "
+			      "allocate array to uncompressed bits");
     }
 
     array_t<word_t>::iterator it = tmp.begin();

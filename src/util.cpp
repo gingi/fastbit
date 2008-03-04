@@ -1401,36 +1401,6 @@ void ibis::util::getGMTime(char *str) {
 #endif
 } // ibis::util::getGMTime
 
-/// Return the size (in bytes) of the buffer allocated.  Caller is
-/// responsible for deleting buf.
-uint32_t ibis::util::getBuffer(char *& buf) {
-    uint32_t nbuf = 16777216; // preferred buffer size is 16 MB
-    buf = 0;
-    try {buf = new char[nbuf];}
-    catch (const std::bad_alloc&) {
-	nbuf >>= 1; // reduce the size by half and try again
-	try {buf = new char[nbuf];}
-	catch (const std::bad_alloc&) {
-	    nbuf >>= 2; // reduce the size by a quarter and try again
-	    try {buf = new char[nbuf];}
-	    catch (const std::bad_alloc&) {
-		nbuf >>= 2; // reduce the size by a quarter and try again
-		try {buf = new char[nbuf];}
-		catch (const std::bad_alloc&) {
-		    nbuf >>= 2;
-		    buf = new char[nbuf];
-		    // let the exception pass through if can not
-		    // allocate 128 KB
-		}
-	    }
-	}
-    }
-    // code commented out because it requires more support structure to
-    // track the usage correctly
-    //    ibis::fileManager::increaseUse(nbuf, "getBuffer");
-    return nbuf;
-} // ibis::util::getBuffer
-
 /// Constructor of ibis::util::counter.
 ibis::util::counter::counter(const char *m) : mesg_(m), count_(0) {
     if (0 != pthread_mutex_init
@@ -1439,6 +1409,52 @@ ibis::util::counter::counter(const char *m) : mesg_(m), count_(0) {
 	    ("ibis::util::counter unable to initialize the mutex lock");
     }
 } // ibis::util::counter
+
+/// Constructor.  
+template <typename T>
+ibis::util::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
+    if (nbuf == 0)
+	nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
+
+    try {buf = new T[nbuf];}
+    catch (const std::bad_alloc&) {
+	nbuf >>= 1; // reduce the size by half and try again
+	try {buf = new T[nbuf];}
+	catch (const std::bad_alloc&) {
+	    nbuf >>= 2; // reduce the size by a quarter and try again
+	    try {buf = new T[nbuf];}
+	    catch (const std::bad_alloc&) {
+		nbuf >>= 2; // reduce the size by a quarter and try again
+		try {buf = new T[nbuf];}
+		catch (const std::bad_alloc&) {
+		    nbuf >>= 2;
+		    try {buf = new T[nbuf];}
+		    catch (const std::bad_alloc&) {
+			nbuf >>= 2;
+			try {buf = new T[nbuf];}
+			catch (const std::bad_alloc&) {
+			    nbuf = 0;
+			    buf = 0;
+			}
+		    }
+		}
+	    }
+	}
+    }
+} // ibis::util::buffer::ctor
+
+// explicit template instantiation required
+template class ibis::util::buffer<char>;
+template class ibis::util::buffer<signed char>;
+template class ibis::util::buffer<unsigned char>;
+template class ibis::util::buffer<float>;
+template class ibis::util::buffer<double>;
+template class ibis::util::buffer<int16_t>;
+template class ibis::util::buffer<uint16_t>;
+template class ibis::util::buffer<int32_t>;
+template class ibis::util::buffer<uint32_t>;
+template class ibis::util::buffer<int64_t>;
+template class ibis::util::buffer<uint64_t>;
 
 #ifdef IBIS_REPLACEMENT_RWLOCK
 //
@@ -1562,26 +1578,26 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwp) {
 
 #if defined(WIN32) && ! defined(__CYGWIN__)
 #include <conio.h>
-char* ibis::util::getpass_r(const char *prompt, char *buffer, uint32_t buflen) {
+char* ibis::util::getpass_r(const char *prompt, char *buff, uint32_t buflen) {
     uint32_t i;
     printf("%s ", prompt);
 
     for(i = 0; i < buflen; ++ i) {
-	buffer[i] = getch();
-	if ( buffer[i] == '\r' ) { /* return key */
-	    buffer[i] = 0;
+	buff[i] = getch();
+	if ( buff[i] == '\r' ) { /* return key */
+	    buff[i] = 0;
 	    break;
 	}
 	else {
-	    if ( buffer[i] == '\b')	/* backspace */
+	    if ( buff[i] == '\b')	/* backspace */
 		i = i - (i>=1?2:1);
 	}
     }
 
-    if (i==buflen)    /* terminate buffer */
-	buffer[buflen-1] = 0;
+    if (i==buflen)    /* terminate buff */
+	buff[buflen-1] = 0;
 
-    return buffer;
+    return buff;
 } // getpass_r
 
 char* getpass(const char *prompt) {

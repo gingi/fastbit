@@ -1926,7 +1926,7 @@ void ibis::bin::binningT(const char* f) {
 			    fnm.c_str());
     }
     else {
-	if (ibis::gVerbose> -1)
+	if (ibis::gVerbose > -1)
 	    col->logMessage("bin::binning", "unable to write bin-ordered "
 			    "values to %s", fnm.c_str());
 	for (uint32_t i = 0; i < nobs; ++ i) {
@@ -2023,7 +2023,7 @@ long ibis::bin::binOrderT(const char* basename) const {
     fnm += ".bin";
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	if (ibis::gVerbose> -1)
+	if (ibis::gVerbose > -1)
 	    col->logMessage("bin::binOrder", "unable to open file \"%s\" "
 			    "for writing", fnm.c_str());
 	ierr = -2;

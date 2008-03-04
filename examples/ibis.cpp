@@ -1276,7 +1276,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		if (output) {
 		    LOGGER(0) << "doQuery -- query ("
 			      <<  aQuery.getWhereClause()
-			      << ") results writtent to file \""
+			      << ") results written to file \""
 			      <<  outputfile << "\"";
 		    printQueryResults(output, aQuery);
 		}
@@ -1301,7 +1301,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    if (output) {
 		LOGGER(0) << "doQuery -- query ("
 			  <<  aQuery.getWhereClause()
-			  << ") results writtent to file \""
+			  << ") results written to file \""
 			  <<  outputfile << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)
 		    aQuery.printSelectedWithRID(output);
@@ -1675,7 +1675,7 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    if (output) {
 		LOGGER(1) << "doMeshQuery -- query ("
 			  << aQuery.getWhereClause()
-			  << ") results writtent to file \""
+			  << ") results written to file \""
 			  << outputfile << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)
 		    aQuery.printSelectedWithRID(output);

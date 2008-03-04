@@ -1007,7 +1007,7 @@ array_t<T>::insert(typename array_t<T>::iterator p, const T& val) {
 /// Insert n copies of a value (val) before p.
 template<class T> void
 array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
-    if (actual->inUse() > 1 && ibis::gVerbose> -1)
+    if (actual->inUse() > 1 && ibis::gVerbose > -1)
 	ibis::util::logMessage("Warning", "array_t -- should not insert "
 			       "to a shared array");
 
@@ -1048,7 +1048,7 @@ template<class T> void
 array_t<T>::insert(typename array_t<T>::iterator p,
 		   typename array_t<T>::const_iterator front,
 		   typename array_t<T>::const_iterator back) {
-    if (actual->inUse() > 1 && ibis::gVerbose> -1)
+    if (actual->inUse() > 1 && ibis::gVerbose > -1)
 	ibis::util::logMessage("Warning", "array_t -- should not insert "
 			       "to a shared array");
 
@@ -1090,7 +1090,7 @@ array_t<T>::insert(typename array_t<T>::iterator p,
 /// Erase one element.
 template<class T> typename array_t<T>::iterator
 array_t<T>::erase(typename array_t<T>::iterator p) {
-    if (actual->inUse() > 1 && ibis::gVerbose> -1)
+    if (actual->inUse() > 1 && ibis::gVerbose > -1)
 	ibis::util::logMessage("Warning", "array_t -- should not erase "
 			       "part of a shared array");
 
@@ -1112,7 +1112,7 @@ array_t<T>::erase(typename array_t<T>::iterator p) {
 template<class T> typename array_t<T>::iterator
 array_t<T>::erase(typename array_t<T>::iterator i,
 		  typename array_t<T>::iterator j) {
-    if (actual->inUse() > 1 && ibis::gVerbose> -1)
+    if (actual->inUse() > 1 && ibis::gVerbose > -1)
 	ibis::util::logMessage("Warning", "array_t -- should not erase "
 			       "part of a shared array");
 
@@ -1140,7 +1140,7 @@ void array_t<T>::read(const char* file) {
 	m_end = (T*)(actual->end());
 	actual->beginUse();
     }
-    else if (ibis::gVerbose> -1) {
+    else if (ibis::gVerbose > -1) {
 	ibis::util::logMessage("Warning", "array_t<T>::read(%s) failed",
 			       file);
     }

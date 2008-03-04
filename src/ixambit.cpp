@@ -627,7 +627,7 @@ void ibis::ambit::read(const char* f) {
 	    sub[i] = 0;
 	}
 	else {
-	    if (ibis::gVerbose> -1) {
+	    if (ibis::gVerbose > -1) {
 		ibis::util::logger lg(-1);
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (fname)
@@ -867,7 +867,7 @@ void ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
 	    sub[i] = 0;
 	}
 	else {
-	    if (ibis::gVerbose> -1) {
+	    if (ibis::gVerbose > -1) {
 		ibis::util::logger lg(-1);
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (fname)
@@ -924,7 +924,7 @@ void ibis::ambit::read(ibis::fileManager::storage* st) {
 	    sub[i] = 0;
 	}
 	else {
-	    if (ibis::gVerbose> -1) {
+	    if (ibis::gVerbose > -1) {
 		ibis::util::logger lg(-1);
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (st->filename())

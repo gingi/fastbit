@@ -23,7 +23,7 @@ assumed to the same type (not checked).  When the names do not match, the
 rows with missing values are padded with NULL values.  See @c
 ibis::tablex::appendRow for more information about NULL values.
 
-@note Ardea ibis, the Latin name for Cattle Egret.
+@note Ardea ibis, the Latin name for <A HREF="http://www.birds.cornell.edu/AllAboutBirds/BirdGuide/Cattle_Egret.html">Cattle Egret</A>.
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -42,7 +42,7 @@ static std::string metadata;
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
-	"[-r a-row-in-ASCII-form] [-t text-file-to-read] "
+	"[-r a-row-in-ASCII-form] [-t text-file-to-read] [-b break/delimiters-in-text-file]"
 	"[-m name:type[,name:type,...]] [-s select-clause]"
 	"[-w where-clause] [-v[=| ]verbose_level]\n\n"
 	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values\n"
@@ -66,7 +66,8 @@ static void addTables(ibis::tableList& tlist, const char* dir) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
-		       const char*& outdir, const char*& dsname) {
+		       const char*& outdir, const char*& dsname,
+		       const char*& del) {
     sel = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
@@ -76,6 +77,13 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	    case 'H':
 		usage(*argv);
 		exit(0);
+	    case 'b':
+	    case 'B': // break/delimiters
+		if (i+1 < argc) {
+		    ++ i;
+		    del = argv[i];
+		}
+		break;
 	    case 'c':
 	    case 'C':
 		if (i+1 < argc) {
@@ -685,10 +693,11 @@ int main(int argc, char** argv) {
     const char* outdir = "tmp";
     const char* sel;
     const char* dsn = 0;
+    const char* del = 0; // delimiters
     int ierr;
     qList qcnd;
 
-    parse_args(argc, argv, qcnd, sel, outdir, dsn);
+    parse_args(argc, argv, qcnd, sel, outdir, dsn, del);
     bool usersupplied = (! metadata.empty() &&
 			 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
@@ -696,14 +705,14 @@ int main(int argc, char** argv) {
     if (usersupplied) { // use user-supplied data
 	parseNamesTypes(*ta);
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
-	    ierr = ta->readCSV(csvfiles[i]);
+	    ierr = ta->readCSV(csvfiles[i], del);
 	    if (ierr < 0)
 		std::clog << *argv << " failed to parse file \""
 			  << csvfiles[i] << "\", readCSV returned "
 			  << ierr << std::endl;
 	}
 	for (size_t i = 0; i < inputrows.size(); ++ i) {
-	    ierr = ta->appendRow(inputrows[i]);
+	    ierr = ta->appendRow(inputrows[i], del);
 	    if (ierr < 0)
 		std::clog << *argv
 			  << " failed to parse text (appendRow returned "

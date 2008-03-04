@@ -10,9 +10,10 @@ executables, for example,
 gmake -j 3 all
 
 Since it take a while (~ 20 min) to build the libraries, it is a good
-idea to spawn multiple jobs to compile the executables.  However, it is
-NOT safe to run the tests in parallel.  The commands 'make check' and
-'make all-tests' must be run as a single job.
+idea to spawn multiple jobs to compile them.  However, it is NOT safe to
+run the tests in parallel because different jobs may attempt to write
+the same files.  The commands 'make quick-check', 'make check', and
+'make full-check' must be run as a single job.
 
 
 ----------

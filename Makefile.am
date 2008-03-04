@@ -12,8 +12,14 @@ dist_doc_DATA = doc/dataDistributions.html \
 docs:
 	cd src && $(MAKE) docs
 
-check-all:
-	cd tests && $(MAKE) check-all
+# three levels of thoroughness are available for checking the
+# correctness of FastBit functions: quick-check, check, full-check.
+# The normal check may take about ten minutes on a typical Linux machine.
+quick-check:
+	cd tests && $(MAKE) quick-check
+
+full-check:
+	cd tests && $(MAKE) full-check
 
 clean: clean-recursive
 	-rm -f win/ibis.suo win/ibis.ncb win/fastbit.def

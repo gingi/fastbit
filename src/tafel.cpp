@@ -741,16 +741,25 @@ int ibis::tafel::write(const char* dir, const char* tname,
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
 	tname = strrchr(dir, DIRSEP);
-	if (tname != 0 && tname[1] == 0) { // dir ends with DIRSEP
-	    oldnm = dir;
-	    oldnm.erase(oldnm.size()-1); // remove the last DIRSEP
-	    size_t j = 1 + oldnm.rfind(DIRSEP);
-	    if (j < oldnm.size())
-		oldnm.erase(0, j);
-	    if (! oldnm.empty())
-		tname = oldnm.c_str();
-	    else
-		tname = 0;
+	if (tname == 0)
+	    tname = strrchr(dir, '/');
+	if (tname != 0) {
+	    if (tname[1] != 0) {
+		++ tname;
+	    }
+	    else { // dir ends with DIRSEP
+		oldnm = dir;
+		oldnm.erase(oldnm.size()-1); // remove the last DIRSEP
+		size_t j = 1 + oldnm.rfind(DIRSEP);
+		if (j > oldnm.size())
+		    j = 1 + oldnm.rfind('/');
+		if (j < oldnm.size())
+		    oldnm.erase(0, j);
+		if (! oldnm.empty())
+		    tname = oldnm.c_str();
+		else
+		    tname = 0;
+	    }
 	}
 	else if (tname == 0 && *dir != '.') { // no directory separator
 	    tname = dir;
@@ -794,7 +803,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	cnm += (*it).first;
 	int fdes = UnixOpen(cnm.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		ibis::util::logMessage("ibis::tafel::write",
 				       "failed to open file %s for writing",
 				       cnm.c_str()); 
@@ -1265,9 +1274,8 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     std::string id = "string ";
     id.append(line, 10);
     id += " ...";
-    std::string delimiters = ",";
-    if (del != 0)
-	delimiters += del;
+    std::string delimiters = (del != 0 && *del != 0 ? del : ", ");
+
     normalize();
     int ierr = parseLine(line, delimiters.c_str(), id.c_str());
     nrows += (ierr > 0);
@@ -1278,9 +1286,7 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
 int ibis::tafel::readCSV(const char* filename, const char* del) {
     if (filename == 0 || *filename == 0) return -1;
     if (colorder.empty()) return -2;
-    std::string delimiters = ",";
-    if (del != 0)
-	delimiters += del;
+    std::string delimiters = (del != 0 && *del != 0 ? del : ", ");
 
     char linebuf[MAX_LINE];
     std::ifstream csv(filename);

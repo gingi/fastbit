@@ -558,7 +558,7 @@ void ibis::bundle1::print(std::ostream& out) const {
 	    << (col->canSort() ? " distinct" : "")
 	    << (nbdl > 1 ? " values" : " value")
 	    << std::endl;
-    if (ibis::gVerbose> -1 && starts != 0) {
+    if (ibis::gVerbose > -1 && starts != 0) {
 	out << *comps << " (with counts)\n";
 	for (uint32_t i=0; i < nbdl; ++i) {
 	    col->write(out, i);
@@ -1063,9 +1063,9 @@ void ibis::bundles::print(std::ostream& out) const {
 	distinct = cols[i]->canSort();
     if (ibis::gVerbose > 0)
 	out << "Bundle " << id << " contains " << size
-	    << (distinct ? " distinct " : "") << ncol << "-tuple"
+	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << std::endl;
-    if (ibis::gVerbose> -1 && starts != 0) {
+    if (ibis::gVerbose > -1 && starts != 0) {
 	out << *comps << " (with counts)\n";
 	for (uint32_t i=0; i<size; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
@@ -1101,7 +1101,7 @@ void ibis::bundles::printAll(std::ostream& out) const {
     ibis::util::ioLock lock;
     if (ibis::gVerbose > 0)
 	out << "Bundle " << id << " contains " << size
-	    << (distinct ? " distinct " : "") << ncol << "-tuple"
+	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << " from "
 	    << rids->size() << (rids->size()>1 ? " rows" : " row")
 	    << std::endl;
@@ -1449,7 +1449,7 @@ void ibis::bundles::reverse() {
 	    (*starts)[i] = cumu;
 	    cumu += tmp;
 	}
-	if (cumu != (*starts)[ngroups] && ibis::gVerbose> -1) {
+	if (cumu != (*starts)[ngroups] && ibis::gVerbose > -1) {
 	    ibis::util::logMessage
 		("Warning", "ibis::bundles::reverse internal error, "
 		 "cumu (%lu) and (*starts)[%lu] (%lu) are expected to "

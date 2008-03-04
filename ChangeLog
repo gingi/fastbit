@@ -1,3 +1,59 @@
+2008-03-03 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: change ibis::column::loadIndex to modify the
+	in-memory version index specification for the column to prevent it
+	from trying to build an index again in the same run.  The
+	configuration parameter "disableIndexOnFailure" affects whether
+	the new index specification is written down to the metadata file
+	-part.txt.
+	* Makefile.am, tests/Makefile.am: reorganize the top-level targets
+	for checking the correctness of FastBit into three levels of
+	thoroughness: quick-check, check, and full-check.  Note:
+	full-check replaces the earlier target check-all.
+
+2008-03-03 John Wu <John.Wu at ACM.org>
+	* src/bitvector.cpp:261 throw ibis::bad_alloc exception instead of
+	just printing a warning message in case of memory allocation
+	failure
+	* src/array.h:107 add function incore to tell caller whether the
+	content of the array is in memory
+	* src/bitvector:159 add check in ibis::bitvector::compress to not
+	attempt to compress bitvector not in memory.  Because the file
+	associated with the array was opened read-only, modifying it will
+	cause segmentation fault.
+	* src/tafel.cpp: modify appendRow and readCSV to allow the caller
+	to completely override the default delimiters (in response to
+	question from Devin McNamara)
+	* examples/ardea.cpp: add option -b to accept user to pass in a
+	set of breaks (or more commonly known as delimiters) for the text
+	file/lines to be parsed
+	* src/ibin.h: add destructor to ibis::bak::grain and
+	ibis::bak2::grain
+	* src/util.h: delete getBuffer, add ibis::util::buffer, replace
+	all calls to getBuffer to a buffer object.  This should provide
+	better buffer management than using raw pointer.
+	* src/mensa.h:271 explicitly case col to use ibis::text::getString
+	(same problem as reported by Ross Bates <rbates@gmail.com>)
+	* src/idirekte.cpp: use mask to limit the number of elements
+	examined in function ibis::direkte::construct
+	* src/tafel.cpp: add check for '/' in ibis::tafel::write to remove
+	the possbility of having a data partition name starting with '/'
+	* tests/Makefile.am: add target test-text to check for categorical
+	values to always check for the problem reported by Ross
+
+2008-03-02 John Wu <John.Wu at ACM.org>
+	* src/colValues.h: combines the cases for ibis::CATEGORY and
+	ibis::text, remove the previous code for ibis::CATEGORY that
+	returns null string (problem reported by Ross Bates
+	<rbates@gmail.com>)
+	* src/column.h:109 remove getString that returns char*, no longer
+	used
+	* src/category.h: add ibis::category::getString
+	* tests/Makefile.am: add -z option to ibis commands with -b option
+	* src/column.cpp:4375 check that idx is a valid pointer before
+	using it  (a problem revealed with make check-all, which involves
+	tests cases of relatively large datasets but a very restrictive
+	memory upper bound)
+
 2008-02-29 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: fix count2DBins and count3DBins had logical
 	problems

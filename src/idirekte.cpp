@@ -84,7 +84,8 @@ int ibis::direkte::construct(const char* dfname) {
     if (ibis::gVerbose > 4)
 	col->logMessage("direkte::construct", "starting to process file %s",
 			dfname);
-
+    ibis::bitvector mask;
+    col->getNullMask(mask);
     nrows = col->partition()->nRows();
     ierr = ibis::fileManager::instance().getFile(dfname, vals);
     if (ierr == 0) { // got a pointer to the base data
@@ -108,15 +109,34 @@ int ibis::direkte::construct(const char* dfname) {
 	if (vals.size() > nrows)
 	    vals.resize(nrows);
 
-	for (uint32_t j = 0; j < vals.size(); ++ j) {
-	    const uint32_t nbits = bits.size();
-	    if (nbits <= static_cast<uint32_t>(vals[j])) {
-		const uint32_t newsize = vals[j]+1;
-		bits.resize(newsize);
-		for (uint32_t i = nbits; i < newsize; ++ i)
-		    bits[i] = new ibis::bitvector;
+	for (ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	     iset.nIndices() > 0; ++ iset) {
+	    const ibis::bitvector::word_t *iis = iset.indices();
+	    if (iset.isRange()) { // a range
+		for (uint32_t j = *iis; j < iis[1]; ++ j) {
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(vals[j])) {
+			const uint32_t newsize = vals[j]+1;
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[vals[j]]->setBit(j, 1);
+		}
 	    }
-	    bits[vals[j]]->setBit(j, 1);
+	    else {
+		for (uint32_t i = 0; i < iset.nIndices(); ++ i) {
+		    const ibis::bitvector::word_t j = iis[i];
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(vals[j])) {
+			const uint32_t newsize = vals[j]+1;
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[vals[j]]->setBit(j, 1);
+		}
+	    }
 	}
     }
     else { // failed to read or memory map the data file, try to read the
@@ -154,22 +174,56 @@ int ibis::direkte::construct(const char* dfname) {
 	    return ierr;
 	}
 
-	for (uint32_t j = 0; j < sz; ++ j) {
-	    T val;
-	    ierr = UnixRead(fdes, &val, elemsize);
-	    if (ierr < static_cast<int>(elemsize)) {
-		ierr = -3;
-		break;
+	for (ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	     iset.nIndices() > 0; ++ iset) {
+	    const ibis::bitvector::word_t *iis = iset.indices();
+	    if (iset.isRange()) { // a range
+		ierr = UnixSeek(fdes, *iis * elemsize, SEEK_SET);
+		for (uint32_t j = *iis; j < iis[1]; ++ j) {
+		    T val;
+		    ierr = UnixRead(fdes, &val, elemsize);
+		    if (ierr < static_cast<int>(elemsize)) {
+			ierr = -3;
+			break;
+		    }
+
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(val)) {
+			const uint32_t newsize = val + 1;
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[val]->setBit(j, 1);
+		}
+	    }
+	    else {
+		for (uint32_t i = 0; i < iset.nIndices(); ++ i) {
+		    const ibis::bitvector::word_t j = iis[i];
+		    T val;
+		    ierr = UnixSeek(fdes, j * elemsize, SEEK_SET);
+		    if (ierr < 0 || static_cast<unsigned>(ierr) != j*elemsize) {
+			ierr = -3;
+			break;
+		    }
+		    ierr = UnixRead(fdes, &val, elemsize);
+		    if (ierr < static_cast<int>(elemsize)) {
+			ierr = -4;
+			break;
+		    }
+
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(val)) {
+			const uint32_t newsize = val + 1;
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[val]->setBit(j, 1);
+		}
 	    }
 
-	    const uint32_t nbits = bits.size();
-	    if (nbits <= static_cast<uint32_t>(val)) {
-		const uint32_t newsize = val + 1;
-		bits.resize(newsize);
-		for (uint32_t i = nbits; i < newsize; ++ i)
-		    bits[i] = new ibis::bitvector;
-	    }
-	    bits[val]->setBit(j, 1);
+	    if (ierr < 0) break;
 	}
 	UnixClose(fdes);
     }
@@ -714,7 +768,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	    break;}
 	default: {
 	    // nothing specified, match all
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		col->logWarning("direkte::locate", "no operator specified "
 				"in a qContinuousQuery object");
 	    ib = 0;

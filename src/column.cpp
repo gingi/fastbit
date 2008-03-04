@@ -4160,18 +4160,20 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 					  opt);
 	    }
 	    if (idx == 0) {
+		purgeIndexFile(); // remove any left over index file
+		const_cast<column*>(this)->m_bins = "noindex";
 		std::string key = thePart->name();
 		key += '.';
 		key += m_name;
 		key += ".disableIndexOnFailure";
 		if (ibis::gParameters().isTrue(key.c_str())) {
 		    // don't try to build index any more
-		    const_cast<column*>(this)->m_bins = "noindex";
 		    thePart->updateTDC();
 		}
-		purgeIndexFile(); // remove any left over index file
 		return;
 	    }
+	    if (idx == 0) return;
+
 	    if (idx->getNRows()
 #if defined(DELETE_INDEX_ON_SIZE_MISMATCH)
 		!=
@@ -4295,7 +4297,7 @@ void ibis::column::preferredBounds(std::vector<double>& tmp) const {
 
 void ibis::column::binWeights(std::vector<uint32_t>& tmp) const {
     indexLock lock(this, "binWeights");
-    if (idx) {
+    if (idx != 0) {
 	idx->binWeights(tmp);
     }
     else {
@@ -4305,7 +4307,7 @@ void ibis::column::binWeights(std::vector<uint32_t>& tmp) const {
 
 void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
-    if (idx) {
+    if (idx != 0) {
 	ibis::util::logger lg(ibis::gVerbose);
 	idx->speedTest(lg.buffer());
     }
@@ -4344,7 +4346,7 @@ void ibis::column::purgeIndexFile(const char *dir) const {
 int ibis::column::expandRange(ibis::qContinuousRange& rng) const {
     int ret = 0;
     indexLock lock(this, "expandRange");
-    if (idx) {
+    if (idx != 0) {
 	ret = idx->expandRange(rng);
     }
     return ret;
@@ -4354,7 +4356,7 @@ int ibis::column::expandRange(ibis::qContinuousRange& rng) const {
 int ibis::column::contractRange(ibis::qContinuousRange& rng) const {
     int ret = 0;
     indexLock lock(this, "contractRange");
-    if (idx) {
+    if (idx != 0) {
 	ret = idx->contractRange(rng);
     }
     return ret;
@@ -4372,7 +4374,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ibis::bitvector high;
 	{ // always attempt to do an estimate first
 	    indexLock lock(this, "evaluateRange");
-	    idx->estimate(cmp, low, high);
+	    if (idx != 0)
+		idx->estimate(cmp, low, high);
 	}
 	if (low.size() != mymask.size()) { // short index
 	    if (high.size() != low.size())
@@ -4457,7 +4460,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 
     try {
 	indexLock lock(this, "evaluateRange");
-	if (idx) {
+	if (idx != 0) {
 	    ierr = idx->evaluate(cmp, low);
 	    if (ierr >= 0) {
 		if (low.size() < mymask.size()) { // short index, scan
@@ -4567,7 +4570,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
     long ierr = 0;
     try {
 	indexLock lock(this, "estimateRange");
-	if (idx) {
+	if (idx != 0) {
 	    idx->estimate(cmp, low, high);
 	    if (low.size() != thePart->nRows()) {
 		if (high.size() == low.size()) {
@@ -4626,7 +4629,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
 	indexLock lock(this, "estimateRange");
-	if (idx)
+	if (idx != 0)
 	    ret = idx->estimate(cmp);
 	return ret;
     }
@@ -4650,24 +4653,22 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
     double ret;
     indexLock lock(this, "estimateCost");
-    if (idx)
+    if (idx != 0)
 	ret = idx->estimateCost(cmp);
     else
 	ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-				  0xFFFFFFFFU)
-	    * elementSize();
+				  0xFFFFFFFFU) * elementSize();
     return ret;
 } // ibis::column::estimateCost
 
 double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
     double ret;
     indexLock lock(this, "estimateCost");
-    if (idx)
+    if (idx != 0)
 	ret = idx->estimateCost(cmp);
     else
 	ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-				  0xFFFFFFFFU)
-	    * elementSize();
+				  0xFFFFFFFFU) * elementSize();
     return ret;
 } // ibis::column::estimateCost
 
@@ -4678,7 +4679,7 @@ float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
     float ret = 1.0;
     try {
 	indexLock lock(this, "getUndecidable");
-	if (idx) {
+	if (idx != 0) {
 	    ret = idx->undecidable(cmp, iffy);
 	}
 	else {
@@ -4715,7 +4716,7 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
     long ierr = 0;
     try {
 	indexLock lock(this, "estimateRange");
-	if (idx) {
+	if (idx != 0) {
 	    idx->estimate(cmp, low, high);
 	    if (low.size() > 0 && low.size() != thePart->nRows()) {
 		if (high.size() == low.size()) {
@@ -4766,7 +4767,7 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp) const {
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
 	indexLock lock(this, "estimateRange");
-	if (idx)
+	if (idx != 0)
 	    ret = idx->estimate(cmp);
 	return ret;
     }
@@ -4794,7 +4795,7 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
     float ret = 1.0;
     try {
 	indexLock lock(this, "getUndecidable");
-	if (idx) {
+	if (idx != 0) {
 	    ret = idx->undecidable(cmp, iffy);
 	}
 	else {
@@ -5850,14 +5851,13 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
     if (elm <= 0) return -1;
 
     long ierr;
-    const bool mybuf = (buf == 0);
-    if (buf == 0)
-	nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf(buf != 0);
     if (buf == 0) {
-	buf = new char[elm * 32];
-	if (buf == 0)
-	    throw new
-		ibis::bad_alloc("saveSelected cannot allocate workspace");
+	nbuf = mybuf.size();
+	buf = mybuf.address();
+    }
+    if (buf == 0) {
+	throw new ibis::bad_alloc("saveSelected cannot allocate workspace");
     }
 
     if (dest == 0 || dest == thePart->currentDataDir() ||
@@ -5873,11 +5873,9 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	ibis::fileManager::instance().flushFile(fname.c_str());
 	FILE* fptr = fopen(fname.c_str(), "r+b");
 	if (fptr == 0) {
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("saveSelected", "failed to open file \"%s\"",
 			   fname.c_str());
-	    if (mybuf)
-		delete [] buf;
 	    return -1;
 	}
 
@@ -5899,8 +5897,6 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 					   fname.c_str());
 			    ierr = -2;
 			    fclose(fptr);
-			    if (mybuf)
-				delete [] buf;
 			    return ierr;
 			}
 
@@ -5949,8 +5945,6 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 				   fname.c_str());
 		    ierr = -3;
 		    fclose(fptr);
-		    if (mybuf)
-			delete [] buf;
 		    return ierr;
 		}
 		const off_t nread = elm * (idx[ix.nIndices()-1] - *idx + 1);
@@ -6017,8 +6011,6 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	    if (ibis::gVerbose > 0)
 		logWarning("saveSelected", "failed to open file \"%s\" for "
 			   "reading", sfname.c_str());
-	    if (mybuf)
-		delete [] buf;
 	    return -4;
 	}
 	ibis::fileManager::instance().flushFile(dfname.c_str());
@@ -6028,8 +6020,6 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 		logWarning("saveSelected", "failed to open file \"%s\" for "
 			   "writing", dfname.c_str());
 	    fclose(sfptr);
-	    if (mybuf)
-		delete [] buf;
 	    return -5;
 	}
 
@@ -6044,8 +6034,6 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 			       sfname.c_str());
 		fclose(sfptr);
 		fclose(dfptr);
-		if (mybuf)
-		    delete [] buf;
 		return -6;
 	    }
 

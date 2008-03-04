@@ -448,12 +448,12 @@ void ibis::resource::write(const char* fn) const {
 	    write(out);
 	    out.close();
 	}
-	else if (ibis::gVerbose> -1) {
+	else if (ibis::gVerbose > -1) {
 	    ibis::util::logger lg(ibis::gVerbose - 1);
 	    write(lg.buffer());
 	}
     }
-    else if (ibis::gVerbose> -1) {
+    else if (ibis::gVerbose > -1) {
 	ibis::util::logger lg(ibis::gVerbose - 1);
 	write(lg.buffer());
     }

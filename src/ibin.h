@@ -997,6 +997,7 @@ public:
 
 	// the default construct, user to explicitly allocated the bitvector
 	grain() : min(DBL_MAX), max(-DBL_MAX), loc(0) {}
+	~grain() {delete loc;}
     };
 
     typedef std::map< double, grain > bakMap;
@@ -1021,7 +1022,7 @@ protected:
 
 private:
     // coverts the std::map structure into the structure defined in ibis::bin
-    void construct(const bakMap& bmap);
+    void construct(bakMap& bmap);
 
     bak(const bak&);
     const bak& operator&=(const bak&);
@@ -1067,6 +1068,7 @@ public:
 	// the default construct, user to explicitly allocated the bitvector
 	grain() : min0(DBL_MAX), max0(-DBL_MAX), min1(DBL_MAX), max1(-DBL_MAX),
 		  loc0(0), loc1(0) {}
+	~grain() {delete loc0; delete loc1;}
     };
 
     typedef std::map< double, grain > bakMap;
@@ -1092,7 +1094,7 @@ protected:
 private:
     /// Coverts the @c std::map structure into the structure defined in @c
     /// ibis::bin.
-    void construct(const bakMap& bmap);
+    void construct(bakMap& bmap);
 
     bak2(const bak2&);
     const bak2& operator=(const bak2&);

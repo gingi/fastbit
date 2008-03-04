@@ -225,14 +225,7 @@ public:
     }
     /// Write the ith element as text.
     virtual void write(std::ostream& out, uint32_t i) const {
-	if (col->type() == ibis::CATEGORY) {
-	    const char *str = col->getString((*array)[i]);
-	    out << (str?str:"<NULL>");
-	}
-	else if (col->type() != ibis::TEXT) {
-	    out << (*array)[i];
-	}
-	else {
+	if (col->type() == ibis::CATEGORY || col->type() == ibis::TEXT) {
 	    std::string str;
 	    col->getString((*array)[i], str);
 	    if (str.empty()) {
@@ -241,6 +234,9 @@ public:
 	    else {
 		out << str;
 	    }
+	}
+	else {
+	    out << (*array)[i];
 	}
     }
 
@@ -415,14 +411,7 @@ public:
     }
     /// Write the ith element as text.
     virtual void write(std::ostream& out, uint32_t i) const {
-	if (col->type() == ibis::CATEGORY) {
-	    const char *str = col->getString((*array)[i]);
-	    out << (str?str:"<NULL>");
-	}
-	else if (col->type() != ibis::TEXT) {
-	    out << (*array)[i];
-	}
-	else {
+	if (col->type() == ibis::CATEGORY || col->type() == ibis::TEXT) {
 	    std::string str;
 	    col->getString((*array)[i], str);
 	    if (str.empty()) {
@@ -431,6 +420,9 @@ public:
 	    else {
 		out << str;
 	    }
+	}
+	else {
+	    out << (*array)[i];
 	}
     }
 

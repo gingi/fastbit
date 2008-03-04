@@ -706,7 +706,7 @@ long ibis::part::append1(const char *dir) {
 	}
     }
     ibis::fileManager::instance().flushDir(activeDir);
-    if (ibis::gVerbose> -1) {
+    if (ibis::gVerbose > -1) {
 	logMessage("append", "committed to use the "
 		   "updated dataset with %lu rows and %lu "
 		   "columns", static_cast<long unsigned>(nEvents),
@@ -836,7 +836,7 @@ long ibis::part::append2(const char *dir) {
 	    ibis::fileManager::instance().flushFile(mskfile.c_str());
 	}
     }
-    if (ibis::gVerbose> -1) {
+    if (ibis::gVerbose > -1) {
 	logMessage("append", "switched (with possibility of rollback) to use "
 		   "the updated dataset with %lu rows and %lu columns",
 		   static_cast<long unsigned>(nEvents),
@@ -898,7 +898,7 @@ long ibis::part::rollback() {
 
 	if (rids != 0 && nEvents != rids->size())
 	    nEvents = rids->size();
-	if (ibis::gVerbose> -1) { // switched successfully
+	if (ibis::gVerbose > -1) { // switched successfully
 	    logMessage("rollback", "switched to use the "
 		       "previous dataset with %lu rows, %lu "
 		       "columns", static_cast<long unsigned>(nEvents),
@@ -1132,13 +1132,9 @@ long ibis::part::appendToBackup(const char* dir) {
 	    lg.buffer() << *((*cit).second) << "\n";
     }
 
-    // TODO: need to make the buffer in a self-contained data strcture so
-    // it can be automatically deallocated in case of abnormal termination
-    // (exception)
-
-    // try to allocate a common buffer for file transfers
-    char* buf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    char* buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
     // ibis::fileManager::increaseUse(nbuf, "appendToBackup");
     uint32_t nold = nEvents;
     if (state == TRANSITION_STATE)
@@ -1192,7 +1188,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	    (*cit).second->lowerBound() > (*cit).second->upperBound())
 	    (*cit).second->computeMinMax(backupDir);
     }
-    delete [] buf;
+
     // ibis::fileManager::decreaseUse(nbuf, "appendToBackup");
     if (ibis::gVerbose > 0) {
 	timer.stop();
@@ -1295,8 +1291,9 @@ long ibis::part::purgeInactive() {
     mutexLock lock(this, "purgeInactive");
     if (amask.cnt() == amask.size()) return nEvents;
 
-    char *mybuf;
-    uint32_t nbuf = ibis::util::getBuffer(mybuf);
+    ibis::util::buffer<char> buf_;
+    char *mybuf = buf_.address();
+    uint32_t nbuf = buf_.size();
 
     if (backupDir != 0 && *backupDir != 0) { // has backup dir
 	for (columnList::iterator it = columns.begin();
@@ -1431,6 +1428,5 @@ long ibis::part::purgeInactive() {
 	writeTDC(nEvents, columns, activeDir); // rewrite the metadata file
     }
 
-    delete [] mybuf;
     return ierr;
 } // ibis::part::purgeInactive

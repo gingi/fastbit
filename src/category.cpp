@@ -327,8 +327,9 @@ void ibis::category::fillIndex(const char *dir) {
 	}
 
 	int ret;
-	char *buf = 0;
-	uint32_t nbuf = ibis::util::getBuffer(buf);
+	ibis::util::buffer<char> mybuf;
+	char *buf = mybuf.address();
+	uint32_t nbuf = mybuf.size();
 	const bool iscurrent =
 	    (strcmp(dir, thePart->currentDataDir()) == 0 &&
 	     thePart->getState() != ibis::part::PRETRANSITION_STATE);
@@ -344,7 +345,6 @@ void ibis::category::fillIndex(const char *dir) {
 	    }
 	} while (ret > 0 && (! iscurrent || ints.size() < thePart->nRows()));
 	(void)UnixClose(fdata);
-	delete [] buf;
 
 	if (iscurrent) {
 	    if (ints.size() > thePart->nRows()) {
@@ -353,12 +353,12 @@ void ibis::category::fillIndex(const char *dir) {
 		for (unsigned i = 0; i < nints; ++ i)
 		    cnt += (ints[i] == 0);
 		if (cnt + thePart->nRows() == nints) {
-		    if (ibis::gVerbose > 1)
-			logMessage("category::fillIndex", "found %u strings "
-				   "while expecting %lu; remove %u null strings",
-				   nints,
-				   static_cast<long unsigned>(thePart->nRows()),
-				   cnt);
+		    LOGGER(2) << "ibis::category["
+			      << (thePart != 0 ? thePart->name() : "")
+			      << "." << name() << "]::fillIndex -- found "
+			      << nints << " strings while expecting "
+			      << thePart->nRows() << "; remove "
+			      << cnt << " null strings";
 
 		    cnt = 0;
 		    for (unsigned i = 0; i < nints; ++ i) {
@@ -423,7 +423,7 @@ long ibis::category::search(const char* str, ibis::bitvector& hits) const {
 					ibis::qExpr::OP_EQ, ind);
 	    ibis::bitvector high;
 	    idx->estimate(expr, hits, high);
-	    if (high.cnt() > hits.cnt() && ibis::gVerbose> -1)
+	    if (high.cnt() > hits.cnt() && ibis::gVerbose > -1)
 		logWarning("category::search", "expecting an accurate "
 			   "result from the index scan, but high.cnt() "
 			   "= %lu (> hits.cnt() = %lu)",
@@ -539,7 +539,7 @@ long ibis::category::search(const std::vector<std::string>& strs,
 	    ibis::qDiscreteRange expr(m_name.c_str(), inds);
 	    ibis::bitvector high;
 	    idx->estimate(expr, hits, high);
-	    if (high.cnt() > hits.cnt() && ibis::gVerbose> -1)
+	    if (high.cnt() > hits.cnt() && ibis::gVerbose > -1)
 		logWarning("category::search", "expecting an accurate "
 			   "result from the index scan, but high.cnt() "
 			   "= %lu (> hits.cnt() = %lu)",
@@ -548,7 +548,7 @@ long ibis::category::search(const std::vector<std::string>& strs,
 	}
 	else { // index must exist! can not proceed
 	    hits.set(0, thePart->nRows());
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("category::search", "can not obtain a lock on the "
 			   "index or there is no index");
 	}
@@ -588,7 +588,7 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
 	    }
 	    else { // index must exist
 		ret = 0;
-		if (ibis::gVerbose> -1)
+		if (ibis::gVerbose > -1)
 		    logWarning("category::search", "can not obtain a lock on "
 			       "the index or there is no index");
 	    }
@@ -674,7 +674,7 @@ long ibis::category::append(const char* dt, const char* df,
 		array_t<uint32_t> tmp;
 		ret = string2int(fptr, dic, nbuf, buf, tmp);
 		if (ret < 0) {
-		    if (ibis::gVerbose> -1)
+		    if (ibis::gVerbose > -1)
 			logWarning("append", "string2int returned %ld "
 				   "after processed %lu strings from \"%s\"",
 				   ret, static_cast<long unsigned>(cnt),
@@ -736,7 +736,7 @@ long ibis::category::append(const char* dt, const char* df,
 		ierr = ints.size() * (binp != 0);
 	    }
 	    if (static_cast<uint32_t>(ierr) != ints.size() &&
-		ibis::gVerbose> -1) {
+		ibis::gVerbose > -1) {
 		logWarning("append", "string2int processed %lu "
 			   "strings from \"%s\" but was only able "
 			   "append %ld to the index",
@@ -1044,9 +1044,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	return;
     }
 
-    const bool myBuffer = (nbuf == 0);
-    if (nbuf == 0)
-	nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf(nbuf != 0);
+    if (nbuf == 0) {
+	nbuf = mybuf.size();
+	buf = mybuf.address();
+    }
 
     long pos = 0;
     uint32_t nold = 0;
@@ -1058,13 +1060,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	ierr = -1;
     if (ierr == 0) { // try to read the last word in .sp file
 	if (fread(&pos, sizeof(long), 1, fsp) != 1) {
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("startPositions", "unable to read the last "
 			   "integer in file \"%s\"", spfile.c_str());
 	    fclose(fsp);
 	    fclose(fdata);
-	    if (myBuffer)
-		delete [] buf;
 	    return;
 	}
 	if (pos > 0 && pos <= dfbytes) {// within the valid range
@@ -1101,7 +1101,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	for (const char *s = buf+offset; s < end; ++ s, ++pos) {
 	    if (*s == 0) {
 		if (1 > fwrite(&last, sizeof(last), 1, fsp))
-		    if (ibis::gVerbose> -1)
+		    if (ibis::gVerbose > -1)
 			logWarning("startPositions", "unable to write an "
 				   "integer of %ld to file \"%s\"",
 				   last, spfile.c_str());
@@ -1150,8 +1150,6 @@ void ibis::text::startPositions(const char *dir, char *buf,
     (void) fclose(fdata);
     (void) fclose(fsp);
 
-    if (myBuffer)
-	delete [] buf;
     LOGGER(3)
 	<< "ibis::text::startPositions located the starting "
 	"positions of " << nnew << " new string" << (nnew > 1 ? "s" : "")
@@ -1208,7 +1206,7 @@ long ibis::text::append(const char* dt, const char* df,
 
     int fsrc = UnixOpen(src.c_str(), OPEN_READONLY);
     if (fsrc < 0) {
-	if (ibis::gVerbose> -1)
+	if (ibis::gVerbose > -1)
 	    logWarning("append", "unableto open file \"%s\" for reading",
 		       src.c_str());
 	return -1;
@@ -1216,7 +1214,7 @@ long ibis::text::append(const char* dt, const char* df,
     int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (fdest < 0) {
 	UnixClose(fsrc);
-	if (ibis::gVerbose> -1) {
+	if (ibis::gVerbose > -1) {
 	    logWarning("append", "unableto open file \"%s\" for appending",
 		       dest.c_str());
 	}
@@ -1226,7 +1224,7 @@ long ibis::text::append(const char* dt, const char* df,
     while (0 < (ierr = UnixRead(fsrc, buf, nbuf))) {
 	ret = UnixWrite(fdest, buf, ierr);
 	if (ret < ierr) {
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("append", "failed to write %ld bytes to file "
 			   "\"%s\", only wrote %ld", ierr, dest.c_str(), ret);
 	    ret = -3;
@@ -1263,15 +1261,18 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     data += m_name;
     FILE *fdata = fopen(data.c_str(), "rb");
     if (fdata == 0) {
-	if (ibis::gVerbose> -1) {
+	if (ibis::gVerbose > -1) {
 	    logWarning("search", "can not open data file \"%s\" for reading",
 		       data.c_str());
 	}
 	return -1;
     }
 
-    char *buf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    char *buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
+    if (buf == 0 || nbuf == 0) return -2;
+
     std::string sp = data;
     sp += ".sp";
     FILE *fsp = fopen(sp.c_str(), "rb");
@@ -1279,12 +1280,11 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	startPositions(thePart->currentDataDir(), buf, nbuf);
 	fsp = fopen(sp.c_str(), "rb");
 	if (fsp == 0) { // really won't work out
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("search", "can not create or open file \"%s\"",
 			   sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
-	    return -2;
+	    return -3;
 	}
     }
 
@@ -1299,12 +1299,11 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	startPositions(thePart->currentDataDir(), buf, nbuf);
 	fsp = fopen(sp.c_str(), "rb");
 	if (fsp == 0) { // really won't work out
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("search", "can not create, open or read file "
 			   "\"%s\"", sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
-	    return -3;
+	    return -4;
 	}
     }
     if (str == 0 || *str == 0) { // only match empty strings
@@ -1312,7 +1311,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    bool moresp = true;
 	    fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
-		if (ibis::gVerbose> -1)
+		if (ibis::gVerbose > -1)
 		    logWarning("search", "string %lu in file \"%s\" is longer "
 			       "than internal buffer (size %ld), skipping %ld "
 			       "bytes", static_cast<long unsigned>(irow),
@@ -1345,7 +1344,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    bool moresp = true;
 	    fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
-		if (ibis::gVerbose> -1)
+		if (ibis::gVerbose > -1)
 		    logWarning("search", "string %lu in file \"%s\" is longer "
 			       "than internal buffer (size %ld), skipping %ld "
 			       "bytes", static_cast<long unsigned>(irow),
@@ -1383,12 +1382,11 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 
     fclose(fsp);
     fclose(fdata);
-    delete [] buf;
     ibis::fileManager::instance().recordPages(0, next);
     ibis::fileManager::instance().recordPages
 	(0, sizeof(uint32_t)*thePart->nRows());
     if (hits.size() != thePart->nRows()) {
-	if (irow != thePart->nRows() && ibis::gVerbose> -1)
+	if (irow != thePart->nRows() && ibis::gVerbose > -1)
 	    logWarning("search", "data file \"%s\" contains %lu strings, "
 		       "but expected %lu", data.c_str(),
 		       static_cast<long unsigned>(irow),
@@ -1418,14 +1416,17 @@ long ibis::text::search(const std::vector<std::string>& strs,
     data += m_name;
     FILE *fdata = fopen(data.c_str(), "rb");
     if (fdata == 0) {
-	if (ibis::gVerbose> -1)
+	if (ibis::gVerbose > -1)
 	    logWarning("search", "can not open data file \"%s\" for reading",
 		       data.c_str());
 	return -1;
     }
 
-    char *buf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    char *buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
+    if (buf == 0 || nbuf == 0) return -2;
+
     std::string sp = data;
     sp += ".sp";
     FILE *fsp = fopen(sp.c_str(), "rb");
@@ -1433,12 +1434,11 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	startPositions(thePart->currentDataDir(), buf, nbuf);
 	fsp = fopen(sp.c_str(), "rb");
 	if (fsp == 0) { // really won't work out
-	    if (ibis::gVerbose> -1)
+	    if (ibis::gVerbose > -1)
 		logWarning("search", "can not create or open file \"%s\"",
 			   sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
-	    return -2;
+	    return -3;
 	}
     }
 
@@ -1456,8 +1456,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	    logWarning("search", "can not create, open or read file \"%s\"",
 		       sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
-	    return -3;
+	    return -4;
 	}
     }
     while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
@@ -1497,7 +1496,6 @@ long ibis::text::search(const std::vector<std::string>& strs,
 
     fclose(fsp);
     fclose(fdata);
-    delete [] buf;
     ibis::fileManager::instance().recordPages(0, next);
     ibis::fileManager::instance().recordPages
 	(0, sizeof(uint32_t)*thePart->nRows());
@@ -1587,10 +1585,16 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 
     int ierr;
     std::string tmp;
-    char* buf = 0;
     off_t boffset = 0;
     uint32_t inbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    char* buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
+    if (buf == 0 || nbuf == 0) {
+	delete res;
+	return 0;
+    }
+
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
 	 ix.nIndices() > 0; ++ ix) {
 	const ibis::bitvector::word_t *ixval = ix.indices();
@@ -1604,7 +1608,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 		    res->push_back(tmp);
 		}
 		else {
-		    if (ibis::gVerbose> -1)
+		    if (ibis::gVerbose > -1)
 			logWarning("selectStrings", "failed to read strings "
 				   "from file \"%s\" (position %ld), "
 				   "readString returned ierr=%d",
@@ -1625,7 +1629,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 			res->push_back(tmp);
 		    }
 		    else {
-			if (ibis::gVerbose> -1)
+			if (ibis::gVerbose > -1)
 			    logWarning("selectStrings",
 				       "failed to read strings from "
 				       "file \"%s\" (position %ld), "
@@ -1644,7 +1648,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     return res;
 } // ibis::text::selectStrings
 
-/// Read on string from an open file.  The string starts at position @c be
+/// Read one string from an open file.  The string starts at position @c be
 /// and ends at @c en.  The content may be in the array @c buf.
 int ibis::text::readString(std::string& res, int fdes, long be, long en,
 			   char* buf, uint32_t nbuf, uint32_t& inbuf,
@@ -1730,9 +1734,10 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
     return 0;
 } // ibis::text::readString
 
-/// Return the ith string, i.e., the string in the ith row/record.  It goes
-/// through a two-stage process by reading from two files.  This is quite
-/// slow!
+/// It goes through a two-stage process by reading from two files, first
+/// from the .sp file to read the position of the string in the second file
+/// and the second file contains the actual string values (with nil
+/// terminators).  This can be quite slow!
 void ibis::text::readString(uint32_t i, std::string &ret) const {
     ret.clear();
     if (i >= thePart->nRows()) return;
@@ -1791,8 +1796,17 @@ const char* ibis::text::findString(const char *str) const {
 	return 0;
     }
 
-    char *buf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(buf);
+    ibis::util::buffer<char> mybuf;
+    char *buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
+    if (buf == 0 || nbuf == 0) {
+	LOGGER(0) << "Warning -- ibis::text["
+		  << (thePart != 0 ? thePart->name() : "") << "." << name()
+		  << "]::findString(" << str << ") unable to allocate "
+	    "enough work space";
+	return 0;
+    }
+
     std::string sp = data;
     sp += ".sp";
     FILE *fsp = fopen(sp.c_str(), "rb");
@@ -1803,7 +1817,6 @@ const char* ibis::text::findString(const char *str) const {
 	    logWarning("findString", "can not create or open file \"%s\"",
 		       sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
 	    return 0;
 	}
     }
@@ -1821,7 +1834,6 @@ const char* ibis::text::findString(const char *str) const {
 	    logWarning("findString", "can not create, open or read starting "
 		       "position file \"%s\"", sp.c_str());
 	    fclose(fdata);
-	    delete [] buf;
 	    return 0;
 	}
     }
@@ -1906,7 +1918,6 @@ const char* ibis::text::findString(const char *str) const {
 
     fclose(fsp);
     fclose(fdata);
-    delete [] buf;
     ibis::fileManager::instance().recordPages(0, next);
     ibis::fileManager::instance().recordPages
 	(0, sizeof(uint32_t)*thePart->nRows());

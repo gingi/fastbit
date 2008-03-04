@@ -72,6 +72,7 @@ protected:
     /// Locate the starting position of each string and write the positions
     /// as unsigned integers to a file with .sp as extension.
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;
+    /// Read the string value of <code>i</code>th row.
     void readString(uint32_t i, std::string &val) const;
     int readString(std::string&, int, long, long, char*, uint32_t,
 		   uint32_t&, off_t&) const;
@@ -168,6 +169,7 @@ public:
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
 //     virtual
 //     std::vector<std::string>* selectStrings(const bitvector& mask) const;
+    virtual void getString(uint32_t i, std::string &val) const {val=dic[i];}
 
     /// Return the ith value in the dictionary.
     virtual const char* getKey(uint32_t i) const {return dic[i];}

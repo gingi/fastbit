@@ -5791,10 +5791,10 @@ long ibis::part::doCompare(const char* file,
 #endif
 
     const unsigned elem = sizeof(T);
-    // attempt to allocate a decent size buffer for operations
-    char *cbuf = 0;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    T *buf = reinterpret_cast<T*>(cbuf);
+    // attempt to allocate a decent sized buffer for operations
+    ibis::util::buffer<T> mybuf;
+    uint32_t nbuf = mybuf.size();
+    T *buf = mybuf.address();
 
     uint32_t i=0, j=0;
     long diff, ierr=0;
@@ -5941,7 +5941,6 @@ long ibis::part::doCompare(const char* file,
 
 	    ++idx; // next set of selected entries
 	} // while (idx.nIndices() > 0)
-	delete [] buf;
     }
     else { // no user buffer to use, read a single value at a time
 	T tmp;
@@ -6121,9 +6120,9 @@ long ibis::part::negativeCompare(const char* file,
 
     const unsigned elem = sizeof(T);
     // attempt to allocate a decent size buffer for operations
-    char *cbuf;
-    uint32_t nbuf = ibis::util::getBuffer(cbuf) / elem;
-    T *buf = reinterpret_cast<T*>(cbuf);
+    ibis::util::buffer<T> mybuf;
+    uint32_t nbuf = mybuf.size();
+    T *buf = mybuf.address();
 
     uint32_t i=0, j=0;
     long diff, ierr;
@@ -6264,7 +6263,6 @@ long ibis::part::negativeCompare(const char* file,
 
 	    ++idx; // next set of selected entries
 	} // while (idx.nIndices() > 0)
-	delete [] buf;
     }
     else { // no user buffer to use, read one element at a time
 	T tmp;
@@ -7384,7 +7382,7 @@ long ibis::part::countHits(const ibis::qRange& cmp) const {
 	ierr = doCount<double>(cmp);
 	break;
     default:
-	if (ibis::gVerbose> -1)
+	if (ibis::gVerbose > -1)
 	    logWarning("countHits", "does not support type %d (%s)",
 		       static_cast<int>((*it).second->type()),
 		       cmp.colName());

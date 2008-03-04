@@ -1,7 +1,30 @@
+Tue Mar  4 08:43:42 PST 2008
 Version b0.8.5
--- add ibis::column::softWriteLock to prevent deadlock during tight
-   memory situations
 -- update doxygen documents to work around __declspec directives
+-- fix bug reported by Ross Bates <rbates@gmail.com> regarding printing
+   categorical values (key), add test cases to check for this error in
+   'make check' and 'make quick-check'
+-- fix bugs in histograming function ibis::part::count2DBins and
+   count3DBins, update the related documentation (bugs reported by Prabhat)
+-- in reponse to a question from Devin McNamara, modified readCSV to
+   allow arbitrary user-specified delimiters
+-- add a set of tests cases that works with very limited memory allowed
+   for file manager (invoked through 'make full-check'; inspired by
+   Jochen Schlosser).  This has revealed a number of serious problems as
+   follows:
+-- add ibis::column::softWriteLock to prevent deadlock during tight
+   memory situations,
+-- add checks for nil pointer of idx before using it,
+-- add function in array_t to tell users that it is attached to a file
+   or in-memory, this is needed so that ibis::bitvector::compress can
+   avoid modifying the ones in files (modifying such bitvector causes
+   segmentation faults)
+-- add destructors to ibis::bak::grain and ibis::bak2::grain.  If the
+   constructor of ibis::bak or ibis::bak2 fails, previous
+   implementation of grain do not automatically release the bitvectors
+   allocated
+-- replace function ibis::util::getBuffer with class ibis::util::buffer
+   to ensure the memory allocated is always freed
 
 Wed Feb 20 11:26:11 PST 2008
 Version b0.8.4

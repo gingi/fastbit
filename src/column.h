@@ -103,12 +103,9 @@ public:
     char* nullMaskName() const; ///< Name of the NULL mask file.
     void  getNullMask(bitvector& mask) const;
 
-    /// Return the internal string value for the integer.  Only valid for
-    /// ibis::text and ibis::category.
-    ///@ref ibis::category
+    /// Return the string value for the <code>i</code>th row.  Only valid
+    /// for ibis::text and ibis::category.
     ///@ref ibis::text
-    virtual const char* getString(uint32_t i) const
-    {return static_cast<const char*>(0);}
     virtual void getString(uint32_t i, std::string &val) const {};
     /// Determine if the input string is one of the records.  If yes,
     /// return the pointer to the incoming string, otherwise return nil.
