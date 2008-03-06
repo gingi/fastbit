@@ -130,9 +130,9 @@ extern "C" {
 			col->computeMinMax();
 		    col->loadIndex(pool.opt);
 		    col->unloadIndex();
-		    char *fnm = col->dataFileName();
+		    std::string snm;
+		    const char *fnm = col->dataFileName(snm);
 		    ibis::fileManager::instance().flushFile(fnm);
-		    delete [] fnm;
 		}
 	    }
 	    return 0;
@@ -2924,7 +2924,8 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	return -1;
     }
 
-    char* file = (*it).second->dataFileName();
+    std::string sname;
+    const char* file = (*it).second->dataFileName(sname);
     if (file == 0) {
 	logWarning("doScan", "unable to locate the vertically "
 		   "partitioned data file");
@@ -2938,7 +2939,6 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 		      << "]::doScan(" << cmp
 		      << ") can not proceed because of missing data file \""
 		      << file << "\" or unexpected file size (" << fsize << ")";
-	    delete [] file;
 	    return -3;
 	}
     }
@@ -3288,7 +3288,6 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	}
 	break;}
     }
-    delete [] file;
 
     if (hits.size() != nEvents) {
 	if (ibis::gVerbose > 3) // could happen when no hits
@@ -3354,7 +3353,8 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
 	return -1;
     }
 
-    char* file = (*it).second->dataFileName();
+    std::string sname;
+    const char* file = (*it).second->dataFileName(sname);
     if (file == 0) {
 	logWarning("negativeScan", "unable to locate the vertically "
 		   "partitioned data file");
@@ -3367,7 +3367,6 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
 	    LOGGER(0) << "Warning -- part[" << (m_name?m_name:"?")
 		      << "]::negativeScan(" << cmp << "can not proceed"
 		"because of missing data file \"" << file << "\"";
-	    delete [] file;
 	    return -3;
 	}
     }
@@ -3497,7 +3496,6 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
 	}
 	break;}
     }
-    delete [] file;
 
     if (hits.size() != nEvents) {
 	logError("negativeScan",
@@ -3638,7 +3636,8 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	    columnList::const_iterator it = columns.find(vlist->name(i));
 	    if (it != columns.end()) {
 		cols[i] = (*it).second;
-		char* file = (*it).second->dataFileName();
+		std::string sname;
+		const char* file = (*it).second->dataFileName(sname);
 		if (0 != ibis::fileManager::instance().
 		    getFile(file, &(stores[i]))) {
 		    delete stores[i];
@@ -3657,7 +3656,6 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 			    delete barr;
 			return 0;
 		    }
-		    delete [] file;
 #if defined(_WIN32) && defined(_MSC_VER)
 		    (void)_setmode(fdes[i], _O_BINARY);
 #endif
@@ -4692,9 +4690,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 	for (it = columns.begin(); it != columns.end(); ++it) {
 	    int elm = (*it).second->elementSize();
 	    if (elm > 0) { // the column has fixed element size
-		char* fname = (*it).second->dataFileName();
+		std::string sname;
+		const char* fname = (*it).second->dataFileName(sname);
 		uint32_t fsize = ibis::util::getFileSize(fname);
-		delete [] fname;
 		sz = fsize / elm;
 		if (sz != nEvents) {
 		    ++ nerr;
@@ -7410,13 +7408,13 @@ long ibis::part::doCount(const ibis::qRange& cmp) const {
 	return -1;
     }
 
-    char* filename = (*it).second->dataFileName();
+    std::string sname;
+    const char* filename = (*it).second->dataFileName(sname);
     if (filename == 0)
 	return -2;
 
     array_t<T> vals;
     long ierr = ibis::fileManager::instance().getFile(filename, vals);
-    delete [] filename;
     if (ierr != 0) {
 	return -3;
     }
@@ -8196,6 +8194,27 @@ ibis::part::getDistribution
     return mbc;
 } // ibis::part::getDistribution
 
+/// Count the number of records falling in the bins defined by the
+/// @code begin:end:stride @code triplet.  The triplets defines
+/// @code 1+std::floor((end-begin)/stride) @endcode bins:
+/// @code [begin, begin+stride) [begin+stride, begin+stride*2)
+/// ... [begin+stride*std::floor((end-begin)/stride), end] @endcode.
+///
+/// When this function completes successfully, it the array @c counts
+/// should @code 1+std::floor((end-begin)/stride) @endcode values, one for
+/// each bin.  The return value should be the number of bins, otherwise, it
+/// indicates an error.  If array @c counts has the same size as the number
+/// of bins on input, the count values will be added to the array.  This is
+/// intended to be used to accumulate counts from different data
+/// partitions.  If the array @c counts does not have the correct size, it
+/// will be resized to the correct size and initialized to zero before
+/// counting the the current data partition.
+///
+/// This function proceeds by first evaluate the constraints, then retrieve
+/// the selected values, and finally count the number of records in each
+/// bin.
+///
+/// @sa ibis::table::getHistogram
 long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 				   double begin, double end, double stride,
 				   std::vector<uint32_t>& counts) const {
@@ -8367,6 +8386,8 @@ long ibis::part::count3DBins(const array_t<T1>& vals1,
     return counts.size();
 } // ibis::part::count3DBins
 
+/// @sa ibis::part::get1DDistribution
+/// @sa ibis::table::getHistogram2D
 long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 				   double begin1, double end1, double stride1,
 				   const char *cname2,
@@ -8804,6 +8825,8 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     return ierr;
 } // ibis::part::get2DDistribution
 
+/// @sa ibis::part::get1DDistribution
+/// @sa ibis::table::getHistogram2D
 long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 				   double begin1, double end1, double stride1,
 				   const char *cname2,
@@ -11101,6 +11124,1060 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     return ierr;
 } // ibis::part::get3DDistribution
 
+/**
+   The user only specify the name of the variables/columns and the number
+   of bins for each variable.  This function is free to decide where to
+   place the bin boundaries to count the bins as fast as possible.  If the
+   indexes are available and are smaller than the raw data files, then the
+   indexes are used to compute the histogram, otherwise, it reads the raw
+   data files into memory and count the number of records in each bin.
+
+   The return value is the number of bins, i.e., the size of array counts.
+   Normally, the number of bins should be @code nb1 * nb2 @endcode.  For
+   example, if the indexes are used, but there are less bins in the indexes
+   than nb1 or nb2, then the number of bins in the indexes will be used.
+
+   The last three arguments bounds1, bounds2, and counts are for output
+   only.  Their input values will be ignored.
+ */
+long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
+				   const uint32_t nb1, const uint32_t nb2,
+				   std::vector<double>& bounds1,
+				   std::vector<double>& bounds2,
+				   std::vector<uint32_t>& counts) const {
+    if (cname1 == 0 || *cname1 == 0 || cname2 == 0 || *cname2 == 0)
+	return -1L;
+
+    const ibis::column* col1 = getColumn(cname1);
+    const ibis::column* col2 = getColumn(cname2);
+    if (col1 == 0 || col2 == 0)
+	return -2L;
+
+    const long idx1 = col1->indexSize();
+    const long idx2 = col2->indexSize();
+    const int elem1 = col1->elementSize();
+    const int elem2 = col2->elementSize();
+    if ((elem1 <= 0 && idx1 <= 0) || (elem2 <= 0 && idx2 <= 0))
+	// string values must be indexed
+	return -3L;
+
+    if ((elem1 <= 0 || elem2 <= 0) ||
+	(idx1 > 0 && idx2 > 0 && (idx1+idx2)*2 < (elem1+elem2)*nEvents)) {
+#ifdef DEBUG
+	(void) get2DDistributionD(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+#endif
+	// use indexes
+	return get2DDistributionI(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+    }
+    else {
+#ifdef DEBUG
+	(void) get2DDistributionI(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+#endif
+	// use base data
+	return get2DDistributionD(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+    }
+} // ibis::part::get2DDistribution
+
+/// Read the base data, then count how many values fall in each bin.  The
+/// binns are defined with regular spacing.
+long ibis::part::get2DDistributionD(const ibis::column& col1,
+				    const ibis::column& col2,
+				    const uint32_t nb1, const uint32_t nb2,
+				    std::vector<double>& bounds1,
+				    std::vector<double>& bounds2,
+				    std::vector<uint32_t>& counts) const {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionD attempting to compute a histogram of "
+	    << col1.name() << " and " << col2.name() << " using base data";
+	timer.start();
+    }
+    uint32_t nb1a = nb1;
+    uint32_t nb2a = nb2;
+    uint32_t nbmax = static_cast<uint32_t>(0.5*sqrt((double)nEvents));
+    if (nbmax < 1000) nbmax = 1000;
+    if (nb1 <= 1) nb1a = 100;
+    else if (nb1 > nbmax) nb1a = nbmax;
+    if (nb2 <= 1) nb2a = 100;
+    else if (nb2 > nbmax) nb2a = nbmax;
+    const double begin1 = col1.getActualMin();
+    const double begin2 = col2.getActualMin();
+    const double end1 = col1.getActualMax();
+    const double end2 = col2.getActualMax();
+    if (end1 <= begin1) { // a single bin
+	bounds1.resize(2);
+	bounds1[0] = begin1;
+	bounds1[1] = end1;
+	if (end2 <= begin2) {
+	    bounds2.resize(2);
+	    bounds2[0] = begin2;
+	    bounds2[1] = end2;
+	    counts.resize(1);
+	    counts[0] = nEvents;
+	    return 1L;
+	}
+	else { // col1 has 1 distinct value
+	    double stride2 = (ibis::util::incrDouble(end2) - begin2) / nb2a;
+	    bounds2.resize(nb2a+1);
+	    for (uint32_t i = 0; i <= nb2a; ++ i)
+		bounds2[i] = begin2 + i * stride2;
+	    return get1DDistribution(0, col2.name(), begin2, end2, stride2,
+				     counts);
+	}
+    }
+    else if (end2 <= begin2) { // col2 has 1 distinct value
+	bounds2.resize(2);
+	bounds2[0] = begin2;
+	bounds2[1] = end2;
+	double stride1 = (ibis::util::incrDouble(end1) - begin1) / nb1a;
+	bounds1.resize(nb1a+1);
+	for (uint32_t i = 0; i < nb1a; ++ i)
+	    bounds1[i] = begin1 + i * stride1;
+	return get1DDistribution(0, col1.name(), begin1, end1, stride1,
+				 counts);
+    }
+
+    // normal case -- both columns have more than one distinct value
+    const double stride1 = (ibis::util::incrDouble(end1) - begin1) / nb1a;
+    const double stride2 = (ibis::util::incrDouble(end2) - begin2) / nb2a;
+    const size_t nbins =
+	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
+    if (nbins != nb1a * nb2a) {
+	LOGGER(0) << "Warning -- ibis::part[" << m_name
+		  << "]::get2DDistributionD - nbins (" << nbins
+		  << ") is expected to be the product of nb1a (" << nb1a
+		  << ") and nb2a (" << nb2a << "), but is now";
+	return -4L;
+    }
+
+    ibis::bitvector mask;
+    col1.getNullMask(mask);
+    if (mask.size() == nEvents) {
+	ibis::bitvector tmp;
+	col2.getNullMask(tmp);
+	mask &= tmp;
+    }
+    else {
+	LOGGER(0) << "Warning -- ibis::part[" << m_name
+		  << "]::get2DDistributionD - null mask of " << col1.name()
+		  << " has " << mask.size() << " bits, but " << nEvents
+		  << " are expected";
+	return -5L;
+    }
+    if (mask.cnt() == 0) {
+	LOGGER(2) << "ibis::part[" << m_name
+		  << "]::get2DDistributionD - null mask contains only 0 ";
+	bounds1.resize(0);
+	bounds2.resize(0);
+	counts.resize(0);
+	return 0L;
+    }
+
+    long ierr;
+    counts.resize(nbins);
+    for (size_t i = 0; i < nbins; ++i)
+	counts[i] = 0;
+    bounds1.resize(nb1a+1);
+    for (uint32_t i = 0; i <= nb1a; ++ i)
+	bounds1[i] = begin1 + i * stride1;
+    bounds2.resize(nb2a+1);
+    for (uint32_t i = 0; i <= nb2a; ++ i)
+	bounds2[i] = begin2 + i * stride2;
+
+    switch (col1.type()) {
+    case ibis::BYTE:
+    case ibis::SHORT:
+    case ibis::INT: {
+	array_t<int32_t>* vals1 = col1.selectInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(4)
+		<< "ibis::part::get2DDistributionD -- unable to "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
+
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
+    case ibis::UBYTE:
+    case ibis::USHORT:
+    case ibis::UINT: {
+	array_t<uint32_t>* vals1 = col1.selectUInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(4)
+		<< "ibis::part::get2DDistributionD -- unable to "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
+
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
+    case ibis::ULONG:
+    case ibis::LONG: {
+	array_t<int64_t>* vals1 = col1.selectLongs(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(4)
+		<< "ibis::part::get2DDistributionD -- unable to "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
+
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
+    case ibis::FLOAT: {
+	array_t<float>* vals1 = col1.selectFloats(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(4)
+		<< "ibis::part::get2DDistributionD -- unable to "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
+
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double>* vals1 = col1.selectDoubles(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(4)
+		<< "ibis::part::get2DDistributionD -- unable to "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
+
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
+    default: {
+	LOGGER(4)
+	    << "ibis::part::get2DDistributionD -- unable to "
+	    "handle column (" << col1.name() << ") type "
+	    << ibis::TYPESTRING[(int)col1.type()];
+
+	ierr = -3;
+	break;}
+    }
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger(0).buffer()
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionD completed filling the histogram on "
+	    << col1.name() << " and " << col2.name() << " with "
+	    << counts.size() << " cell" << (counts.size() > 1 ? "s" : "")
+	    << " using " << timer.CPUTime() << " sec (CPU) and "
+	    << timer.realTime() << " sec (elapsed)";
+    }
+    return ierr;
+} // ibis::part::get2DDistributionD
+
+long ibis::part::get2DDistributionI(const ibis::column& col1,
+				    const ibis::column& col2,
+				    const uint32_t nb1, const uint32_t nb2,
+				    std::vector<double>& bounds1,
+				    std::vector<double>& bounds2,
+				    std::vector<uint32_t>& counts) const {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI attempting to compute the histogram of "
+	    << col1.name() << " and " << col2.name() << " using indexes";
+	timer.start();
+    }
+
+    uint32_t nbmax = static_cast<uint32_t>(0.5*sqrt((double)nEvents));
+    if (nbmax < 1000) nbmax = 1000;
+    uint32_t nb1a = nb1;
+    uint32_t nb2a = nb2;
+    if (nb1 <= 1) nb1a = 100;
+    else if (nb1 > nbmax) nb1a = nbmax;
+    if (nb2 <= 1) nb2a = 100;
+    else if (nb2 > nbmax) nb2a = nbmax;
+    const double begin1 = col1.getActualMin();
+    const double begin2 = col2.getActualMin();
+    const double end1 = col1.getActualMax();
+    const double end2 = col2.getActualMax();
+    if (end1 <= begin1) { // col1 has one distinct value
+	bounds1.resize(2);
+	bounds1[0] = begin1;
+	bounds1[1] = end1;
+	if (end2 <= begin2) { // col2 has one distinct value
+	    bounds2.resize(2);
+	    bounds2[0] = begin2;
+	    bounds2[1] = end2;
+	    counts.resize(1);
+	    counts[0] = nEvents;
+	    return 1L;
+	}
+	else { // col1 has 1 distinct value, but not col2
+	    return get1DDistribution(col2, nb2a, bounds2, counts);
+	}
+    }
+    else if (end2 <= begin2) { // col2 has 1 distinct value
+	bounds2.resize(2);
+	bounds2[0] = begin2;
+	bounds2[1] = end2;
+	return get1DDistribution(col1, nb1a, bounds2, counts);
+    }
+
+    // normal case -- both columns have more than one distinct value
+    ibis::column::indexLock idxlock1(&col1, "get2DDistributionI");
+    const ibis::index* idx1 = idxlock1.getIndex();
+    if (idx1 == 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI can not proceed with index for "
+	    << col1.name();
+	return -1L;
+    }
+
+    array_t<uint32_t> w1bnds(nb1a);
+    std::vector<double> idx1bin;
+    idx1->binBoundaries(idx1bin);
+    while (idx1bin.size() > 1 && idx1bin.back() >= end1)
+	idx1bin.pop_back();
+    if (idx1bin.empty()) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI can not proceed because column "
+	    << col1.name() << " contains no valid values or only one value";
+	return -2L;
+    }
+    else if (idx1bin.size() > nb1a*3/2) {
+	std::vector<uint32_t> idx1wgt;
+	idx1->binWeights(idx1wgt);
+	if (idx1bin.size() > idx1wgt.size()) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::get2DDistributionI can not count the number of values "
+		"in column " << col1.name();
+	    return -3L;
+	}
+
+	array_t<uint32_t> wgt2(idx1wgt.size());
+	std::copy(idx1wgt.begin(), idx1wgt.end(), wgt2.begin());
+	
+	ibis::index::divideCounts(w1bnds, wgt2);
+	while (w1bnds.size() > 1 && w1bnds[w1bnds.size()-2] >= idx1bin.size())
+	    w1bnds.pop_back();
+	if (w1bnds.size() < 2) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::get2DDistributionI can not divide " << idx1bin.size()
+		<< "bins into " << nb1a << " coarser bins";
+	    return -4L;
+	}
+    }
+    else {
+	w1bnds.resize(idx1bin.size());
+	for (unsigned i = 0; i < idx1bin.size(); ++ i)
+	    w1bnds[i] = i+1;
+    }
+
+    bounds1.resize(w1bnds.size()+1);
+    bounds1[0] = begin1;
+    for (unsigned i = 1; i < w1bnds.size(); ++ i)
+	bounds1[i] = idx1bin[w1bnds[i-1]];
+    bounds1.back() = end1;
+
+    std::vector<ibis::bitvector*> bins2;
+    long ierr = coarsenBins(col2, nb2a, bounds2, bins2);
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI can not coarsen bins of " << col2.name()
+	    << ", ierr=" << ierr;
+	return -7L;
+    }
+    else {
+	bounds2.resize(bins2.size()+1);
+	double prev = begin2;
+	for (unsigned i = 0; i < bins2.size(); ++ i) {
+	    double tmp = bounds2[i];
+	    bounds2[i] = prev;
+	    prev = tmp;
+	}
+	bounds2.back() = end2;
+    }
+
+    counts.resize((bounds1.size()-1) * bins2.size());
+    ibis::qContinuousRange rng1(col1.name(), ibis::qExpr::OP_LT, bounds1[1]);
+    ibis::query q1(ibis::util::userName(), this, name());
+    ierr = q1.setWhereClause(&rng1);
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI failed to set query condition " << rng1
+	    << " for query " << q1.id() << ", ierr=" << ierr;
+	return -5L;
+    }
+    ierr = q1.evaluate();
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI failed to evaluate query "
+	    << rng1 << ", ierr=" << ierr;
+	return -6L;
+    }
+
+    const ibis::bitvector* hits1 = q1.getHitVector();
+    if (hits1 != 0) {
+	for (unsigned i = 0; i < bins2.size(); ++ i) {
+	    ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
+	    if (tmp != 0) {
+		counts[i] = tmp->cnt();
+		delete tmp;
+	    }
+	    else {
+		counts[i] = 0;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < bins2.size(); ++ i)
+	    counts[i] = 0;
+    }
+
+    rng1.leftOperator() = ibis::qExpr::OP_LE;
+    rng1.rightOperator() = ibis::qExpr::OP_LT;
+    for (unsigned j = 1; j < bounds1.size()-2; ++ j) {
+	size_t jc = j * bins2.size();
+	rng1.leftBound() = bounds1[j];
+	rng1.rightBound() = bounds1[j+1];
+	ierr = q1.setWhereClause(&rng1);
+	if (ierr < 0) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::get2DDistributionI failed to set query condition "
+		<< rng1 << " for query " << q1.id() << ", ierr=" << ierr;
+	    return -5L;
+	}
+	ierr = q1.evaluate();
+	if (ierr < 0) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::get2DDistributionI failed to evaluate query "
+		<< rng1 << ", ierr=" << ierr;
+	    return -6L;
+	}
+	hits1 = q1.getHitVector();
+	if (hits1 != 0) {
+	    for (unsigned i = 0; i < bins2.size(); ++ i) {
+		ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
+		if (tmp != 0) {
+		    counts[jc + i] = tmp->cnt();
+		    delete tmp;
+		}
+		else {
+		    counts[jc + i] = 0;
+		}
+	    }
+	}
+	else {
+	    for (unsigned i = 0; i < bins2.size(); ++ i)
+		counts[jc + i] = 0;
+	}
+    }
+
+    rng1.rightOperator() = ibis::qExpr::OP_UNDEFINED;
+    rng1.leftBound() = bounds1[bounds1.size()-2];
+    ierr = q1.setWhereClause(&rng1);
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI failed to set query condition " << rng1
+	    << " for query " << q1.id() << ", ierr=" << ierr;
+	return -5L;
+    }
+    ierr = q1.evaluate();
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI failed to evaluate query "
+	    << rng1 << ", ierr=" << ierr;
+	return -6L;
+    }
+    hits1 = q1.getHitVector();
+    if (hits1 != 0) {
+	const size_t jc = (bounds1.size()-2) * bins2.size();
+	for (unsigned i = 0; i < bins2.size(); ++ i) {
+	    ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
+	    if (tmp != 0) {
+		counts[jc + i] = tmp->cnt();
+		delete tmp;
+	    }
+	    else {
+		counts[jc + i] = 0;
+	    }
+	}
+    }
+    else {
+	const size_t jc = (bounds1.size()-2) * bins2.size();
+	for (unsigned i = 0; i < bins2.size(); ++ i)
+	    counts[jc + i] = 0;
+    }
+
+    // clean up bins2
+    for (unsigned i = 0; i < bins2.size(); ++ i) {
+	delete bins2[i];
+	bins2[i] = 0;
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger(0).buffer()
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistributionI completed filling the histogram on "
+	    << col1.name() << " and " << col2.name() << " with "
+	    << counts.size() << " cell" << (counts.size() > 1 ? "s" : "")
+	    << " using " << timer.CPUTime() << " sec (CPU) and "
+	    << timer.realTime() << " sec (elapsed)";
+    }
+    return counts.size();
+} // ibis::part::get2DDistributionI
+
+/// This function makes use of an existing index to produce bitmaps
+/// representing a set of bins defined by bnds.  Following typical
+/// convention used in FastBit, there are two open bins at the two ends.
+int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
+			    std::vector<double>& bnds,
+			    std::vector<ibis::bitvector*>& btmp) const {
+    ibis::column::indexLock lock(&col, "ibis::part::coarsenBins");
+    const ibis::index* idx = lock.getIndex();
+    if (idx == 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins can not proceed with index for "
+	    << col.name();
+	return -1;
+    }
+
+    array_t<uint32_t> wbnds(nbin);
+    // retrieve bins used by idx
+    std::vector<double> idxbin;
+    idx->binBoundaries(idxbin);
+    const double maxval = col.getActualMax();
+    while (idxbin.size() > 1 && idxbin.back() >= maxval)
+	idxbin.pop_back();
+    if (idxbin.empty()) { // too few bins to be interesting
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins can not proceed because column "
+	    << col.name() << " has either no valid values or a single value";
+	return -2;
+    }
+    if (idxbin.size() > nbin*3/2) { // coarsen the bins
+	std::vector<uint32_t> idxwgt;
+	idx->binWeights(idxwgt);
+	if (idxwgt.size() < idxbin.size()) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::coarsenBins failed to count the values of "
+		<< col.name();
+	    return -3;
+	}
+
+	array_t<uint32_t> wgt2(idxwgt.size());
+	std::copy(idxwgt.begin(), idxwgt.end(), wgt2.begin());
+
+	ibis::index::divideCounts(wbnds, wgt2);
+	while (wbnds.size() > 1 && wbnds[wbnds.size()-2] >= idxbin.size())
+	    wbnds.pop_back();
+	if (wbnds.size() < 2) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::coarsenBins failed to divide the values into "
+		<< nbin << " bins";
+	    return -4;
+	}
+    }
+    else { // no need to coarsen anything
+	wbnds.resize(idxbin.size());
+	for (unsigned i = 0; i < idxbin.size(); ++ i)
+	    wbnds[i] = i+1;
+    }
+
+    bnds.resize(wbnds.size());
+    btmp.resize(wbnds.size());
+    // first bin: open to the left
+    bnds[0] = idxbin[wbnds[0]];
+    ibis::qContinuousRange rng(col.name(), ibis::qExpr::OP_LT, bnds[0]);
+    ibis::query que(ibis::util::userName(), this, name());
+    int ierr = que.setWhereClause(&rng);
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins failed to set conditions (" << rng
+	    << ") on query " << que.id() << ", ierr=" << ierr;
+	return -5;
+    }
+    ierr = que.evaluate();
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins failed to evaluate query " << rng
+	    << ", ierr=" << ierr;
+	return -6;
+    }
+    const ibis::bitvector* hits = que.getHitVector();
+    if (hits != 0) {
+	btmp[0] = new ibis::bitvector(*hits);
+    }
+    else {
+	btmp[0] = new ibis::bitvector();
+	btmp[0]->set(0, nEvents);
+    }
+    // middle bins: two-sided, inclusive left, exclusive right
+    rng.leftOperator() = ibis::qExpr::OP_LE;
+    rng.rightOperator() = ibis::qExpr::OP_LT;
+    for (unsigned i = 1; i < wbnds.size()-1; ++ i) {
+	rng.leftBound() = idxbin[wbnds[i-1]];
+	rng.rightBound() = idxbin[wbnds[i]];
+	bnds[i] = idxbin[wbnds[i]];
+
+	ierr = que.setWhereClause(&rng);
+	if (ierr < 0) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::coarsenBins failed to set conditions (" << rng
+		<< ") on query " << que.id() << ", ierr=" << ierr;
+	    return -5;
+	}
+
+	ierr = que.evaluate();
+	if (ierr < 0) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::coarsenBins failed to evaluate query " << rng
+		<< ", ierr=" << ierr;
+	    return -6;
+	}
+
+	hits = que.getHitVector();
+	if (hits != 0) {
+	    btmp[i] = new ibis::bitvector(*hits);
+	}
+	else {
+	    btmp[i] = new ibis::bitvector();
+	    btmp[i]->set(0, nEvents);
+	}
+    }
+    bnds.resize(wbnds.size()-1); // remove the last element
+
+    // last bin: open to the right
+    rng.rightOperator() = ibis::qExpr::OP_UNDEFINED;
+    rng.leftBound() = idxbin[wbnds[wbnds.size()-2]];
+    ierr = que.setWhereClause(&rng);
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins failed to set conditions (" << rng
+	    << ") on query " << que.id() << ", ierr=" << ierr;
+	return -5;
+    }
+
+    ierr = que.evaluate();
+    if (ierr < 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::coarsenBins failed to evaluate query " << rng
+	    << ", ierr=" << ierr;
+	return -6;
+    }
+
+    hits = que.getHitVector();
+    if (hits != 0) {
+	btmp.back() = new ibis::bitvector(*hits);
+    }
+    else {
+	btmp.back() = new ibis::bitvector();
+	btmp.back()->set(0, nEvents);
+    }
+    return btmp.size();
+} // ibis::part::coarsenBins
+
+/// This function mainly performs error checking before calling the
+/// function with the same name to do the actual work.
+long ibis::part::get1DDistribution(const char* cname, const uint32_t nbin,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts) const {
+    if (cname == 0 || *cname == 0 || nEvents == 0) {
+	return -1;
+    }
+
+    const ibis::column* col = getColumn(cname);
+    if (col == 0) {
+	return -2;
+    }
+
+    return get1DDistribution(*col, nbin, bounds, counts);
+} // ibis::part::get1DDistribution
+
+/// Calls function ibis::column::getDistribution to create the internal
+/// histogram first, then pack them into a smaller number of bins if
+/// necessary.
+long ibis::part::get1DDistribution(const ibis::column& col, const uint32_t nbin,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts) const {
+    const double begin = col.getActualMin();
+    const double end = col.getActualMax();
+    long ierr = col.getDistribution(bounds, counts);
+    if (ierr < 0) return ierr;
+
+    if (static_cast<unsigned>(ierr) > nbin*3/2) {
+	ibis::util::buffer<double> bbs(nbin+1);
+	ibis::util::buffer<uint32_t> cts(nbin+1);
+	double* pbbs = bbs.address();
+	uint32_t* pcts = cts.address();
+	if (pbbs != 0 && pcts != 0) {
+	    ierr = packDistribution(bounds, counts, nbin, pbbs, pcts);
+	    if (ierr > 1) { // use the packed bins
+		bounds.resize(ierr+1);
+		bounds[0] = begin;
+		for (int i = 0; i < ierr; ++ i)
+		    bounds[i+1] = pbbs[i];
+		bounds[ierr] = ibis::util::incrDouble(end);
+		counts.resize(ierr);
+		for (int i = 0; i < ierr; ++ i)
+		    counts[i] = pcts[i];
+		return ierr;
+	    }
+	}
+    }
+
+    // use the content of bounds and counts directly, need to add two
+    // values to array bounds
+    bounds.resize(counts.size()+1);
+    double prev = bounds[0];
+    bounds[0] = begin;
+    for (unsigned i = 1; i < counts.size(); ++ i) {
+	double tmp = bounds[i];
+	bounds[i] = prev;
+	prev = tmp;
+    }
+    bounds.back() = ibis::util::incrDouble(end);
+    return counts.size();
+} // ibis::part::get1DDistribution
+
 /// Compute the distribution of the named variable under the specified
 /// constraints.  If the input array @c bounds contains distinct values in
 /// ascending order, the array will be used as bin boundaries.  Otherwise,
@@ -11617,10 +12694,10 @@ ibis::part::getJointDistribution(const char *constraints,
     columnList::const_iterator it2 = columns.find(name2);
     if (it1 == columns.end() || it2 == columns.end()) {
 	if (it1 == columns.end())
-	    logWarning("getJointDistribution", "%s is not known column name",
+	    logWarning("getJointDistribution", "%s is not a known column name",
 		       name1);
 	if (it2 == columns.end())
-	    logWarning("getJointDistribution", "%s is not known column name",
+	    logWarning("getJointDistribution", "%s is not a known column name",
 		       name2);
 	return ierr;
     }
@@ -11628,10 +12705,10 @@ ibis::part::getJointDistribution(const char *constraints,
     const ibis::column *col1 = (*it1).second;
     const ibis::column *col2 = (*it2).second;
     ibis::horometer timer;
-    if (ibis::gVerbose > 2)
+    if (ibis::gVerbose > 1)
 	timer.start();
     ibis::bitvector mask;
-    if (constraints != 0 || *constraints != 0) {
+    if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
 	q.setWhereClause(constraints);
 	ierr = q.evaluate();
@@ -12131,7 +13208,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	ierr = counts.size();
     else
 	ierr = -2;
-    if (ierr > 0 && ibis::gVerbose > 2) {
+    if (ierr > 0 && ibis::gVerbose > 1) {
 	timer.stop();
 	logMessage("getJointDistribution",
 		   "computing the joint distribution of "

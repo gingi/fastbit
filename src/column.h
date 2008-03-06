@@ -31,14 +31,15 @@ namespace ibis { // additional names to the namespace ibis
     class colDoubles;
 } // namespace
 
-/// The class to represent a column of a data table.
-/// IBIS represents user data as tables where each table consists of a
-/// number of columns.  Internally, the data values for each column is
-/// stored separated from others.  In relational algebra terms, this is
-/// equivalent to projecting out each attribute of a relation separately.
-/// It increases the efficiency of searching on relatively small number of
-/// attributes compared to the horizontal data organization used in typical
-/// relational database systems.
+/// The class to represent a column of a data partition.  FastBit
+/// represents user data as tables (each table may be divided into multiple
+/// partitions) where each table consists of a number of columns.
+/// Internally, the data values for each column is stored separated from
+/// others.  In relational algebra terms, this is equivalent to projecting
+/// out each attribute of a relation separately.  It increases the
+/// efficiency of searching on relatively small number of attributes
+/// compared to the horizontal data organization used in typical relational
+/// database systems.
 class FASTBIT_DLLSPEC ibis::column {
 public:
 
@@ -90,6 +91,8 @@ public:
     virtual void loadIndex(const char* opt=0) const throw ();
     /// Unload the index associated with the column.
     void unloadIndex() const;
+    /// Compute the index size (in bytes).
+    virtual long indexSize() const;
     /// Perform a set of built-in tests to determine the speed of common
     /// operations.
     void indexSpeedTest() const;
@@ -98,9 +101,10 @@ public:
 
     /// Name of the data file in the given data directory.  If the
     /// directory name is not given, the directory is assumed to be the
-    /// current data directory of the table.
-    char* dataFileName(const char *dir=0) const;
-    char* nullMaskName() const; ///< Name of the NULL mask file.
+    /// current data directory of the data partition.
+    const char* dataFileName(std::string& fname, const char *dir=0) const;
+    /// Name of the NULL mask file.
+    const char* nullMaskName(std::string& fname) const;
     void  getNullMask(bitvector& mask) const;
 
     /// Return the string value for the <code>i</code>th row.  Only valid
@@ -235,7 +239,9 @@ public:
 				   std::vector<uint32_t>& counts) const;
     /// Count the number of records in each bin.  The array @c bins
     /// contains bin boundaries that defines the following bins:
+    /// @pre
     ///    (..., bins[0]) [bins[0], bins[1]) ... [bins.back(), ...).
+    /// @endpre
     /// Because of the two open bins at the end, N bin boundaries defines
     /// N+1 bins.  The array @c counts has one more element than @c bins.
     /// This function returns the number of bins.  If this function was
@@ -259,21 +265,23 @@ protected:
     std::string m_bins;
     double lower;
     double upper;
-    // the index for this column, it is not consider as a must-have member
+    /// The index for this column.  It is not consider as a must-have member.
     mutable ibis::index* idx;
 
-    // protected functions
+    /// Print messages started with "Error" and throw a string exception.
     void logError(const char* event, const char* fmt, ...) const;
-    // convert strings in the opened file to a list of integers with the
-    // aid of a dictionary
+    /// Convert strings in the opened file to a list of integers with the
+    /// aid of a dictionary.
     long string2int(int fptr, dictionary& dic, uint32_t nbuf, char* buf,
 		    array_t<uint32_t>& out) const;
-    // read the data values and actually compute the minimum value
+    /// Read the data values and compute the minimum value.
     double computeMin() const;
+    /// Read the base data to compute the maximum value.
     double computeMax() const;
+    /// Read the base data to compute the total sum.
     double computeSum() const;
-    // Given the name of the data file, compute the actual minimum and the
-    // maximum value.
+    /// Given the name of the data file, compute the actual minimum and the
+    /// maximum value.
     void actualMinMax(const char *fname, const ibis::bitvector& mask,
 		      double &min, double &max) const;
     template <typename T>

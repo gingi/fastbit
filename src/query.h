@@ -79,13 +79,13 @@ public:
     /// Specifies a list of Row IDs for the query object to retrieve the
     /// records. 
     int setRIDs(const RIDSet& set);
-    /// Specify the where clause for the query.
+    /// Specify the where clause in string form.
     int setWhereClause(const char *str);
-    /// Specify the where clause for the query.
+    /// Specify the where clause as a set of conjunctive ranges.
     int setWhereClause(const std::vector<const char*>& names,
 		       const std::vector<double>& lbounds,
 		       const std::vector<double>& rbounds);
-    /// Specify the where clause for the query.
+    /// Specify the where clause through a qExpr object.
     int setWhereClause(const ibis::qExpr* qexp);
     /// Specifies the select clause for the query.  The select clause is a
     /// string of attribute names (plus the four predefined functions, @c

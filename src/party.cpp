@@ -855,7 +855,8 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 		   "must be 4-byte or 8-byte", elm1);
 	return cnt;
     }
-    char *dfn1 = col1->dataFileName();
+    std::string sfn1;
+    const char *dfn1 = col1->dataFileName(sfn1);
     long unsigned tlast = time(0);
 
     if (col1 == col2) { // the same column
@@ -1086,7 +1087,8 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 	bv1 &= mask;
 	bv2 &= mask;
 	ibis::bitvector::indexSet ix1, ix2;
-	char *dfn2 = col2->dataFileName();
+	std::string sfn2;
+	const char *dfn2 = col2->dataFileName(sfn2);
 	if (elm1 == 4) {
 	    array_t<uint32_t> arr1, arr2;
 	    ierr = fileManager::instance().getFile(dfn1, arr1);
@@ -1109,8 +1111,8 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 					 j < ind2[1]; ++ j) {
 #ifdef DEBUG
 					logMessage("equiJoinLoop1",
-						   "val1[%lu]=%lu, val2[%lu]=%lu,"
-						   " %s",
+						   "val1[%lu]=%lu, "
+						   "val2[%lu]=%lu, %s",
 						   static_cast<long unsigned>(i),
 						   static_cast<long unsigned>(val1),
 						   static_cast<long unsigned>(j),
@@ -1332,7 +1334,6 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 		ierr = -14;
 	    }
 	}
-	delete [] dfn2;
     }
     else {
 	logWarning("equiJoinLoop1", "Not implemented equi-join of different "
@@ -1343,7 +1344,6 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 
     pairs.adjustSize(0, static_cast<ibis::bitvector64::word_t>(nEvents)*
 		     static_cast<ibis::bitvector64::word_t>(nEvents));
-    delete [] dfn1;
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	std::ostringstream ostr;
@@ -1372,7 +1372,8 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 		   "must be 4-byte or 8-byte", elm1);
 	return cnt;
     }
-    char *dfn1 = col1->dataFileName();
+    std::string sfn1;
+    const char *dfn1 = col1->dataFileName(sfn1);
     long unsigned tlast = time(0);
 
     if (col1 == col2) { // the same column
@@ -1576,7 +1577,8 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 	bv1 &= mask;
 	bv2 &= mask;
 	ibis::bitvector::indexSet ix1, ix2;
-	char *dfn2 = col2->dataFileName();
+	std::string sfn2;
+	const char *dfn2 = col2->dataFileName(sfn2);
 	if (elm1 == 4) {
 	    array_t<uint32_t> arr1, arr2;
 	    ierr = fileManager::instance().getFile(dfn1, arr1);
@@ -1756,7 +1758,6 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 		ierr = -14;
 	    }
 	}
-	delete [] dfn2;
     }
     else {
 	logWarning("equiJoinLoop1", "Not implemented equi-join of different "
@@ -1765,7 +1766,6 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 		   ibis::TYPESTRING[col2->type()]);
     }
 
-    delete [] dfn1;
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	std::ostringstream ostr;
@@ -2421,8 +2421,9 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
     col2->getNullMask(bv2);
     bv1 &= mask;
     bv2 &= mask;
-    char *dfn1 = col1->dataFileName();
-    char *dfn2 = col2->dataFileName();
+    std::string sfn1, sfn2;
+    const char *dfn1 = col1->dataFileName(sfn1);
+    const char *dfn2 = col2->dataFileName(sfn2);
     switch (col1->type()) {
     case ibis::DOUBLE: {
 	array_t<double> arr1;
@@ -2430,8 +2431,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2455,8 +2454,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2470,8 +2467,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2484,16 +2479,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -2;}
 	} // switch (col1->type())
 	break;}
@@ -2503,8 +2494,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2517,8 +2506,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2531,8 +2518,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2546,8 +2531,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2560,16 +2543,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
@@ -2580,8 +2559,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2594,8 +2571,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2608,8 +2583,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2623,8 +2596,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2637,16 +2608,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
@@ -2656,8 +2623,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2670,8 +2635,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2684,8 +2647,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2699,8 +2660,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2713,29 +2672,21 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
     default: {
 	logWarning("rangeJoinLoop", "can not process column %s:%s",
 		   col1->name(), ibis::TYPESTRING[col1->type()]);
-	delete [] dfn2;
-	delete [] dfn1;
 	return -3;}
     } // switch (col1->type())
 
-    delete [] dfn2;
-    delete [] dfn1;
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	std::ostringstream ostr;
@@ -2761,8 +2712,9 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
     col2->getNullMask(bv2);
     bv1 &= mask;
     bv2 &= mask;
-    char *dfn1 = col1->dataFileName();
-    char *dfn2 = col2->dataFileName();
+    std::string sfn1, sfn2;
+    const char *dfn1 = col1->dataFileName(sfn1);
+    const char *dfn2 = col2->dataFileName(sfn2);
     int64_t cnt = 0;
     switch (col1->type()) {
     case ibis::DOUBLE: {
@@ -2771,8 +2723,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2785,8 +2735,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2799,8 +2747,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2814,8 +2760,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2828,16 +2772,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
@@ -2847,8 +2787,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2861,8 +2799,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2875,8 +2811,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2890,8 +2824,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2904,16 +2836,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
@@ -2924,8 +2852,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -2938,8 +2864,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2952,8 +2876,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2967,8 +2889,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -2981,16 +2901,12 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
@@ -3000,8 +2916,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	if (ierr != 0) {
 	    logWarning("rangeJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -1;
 	}
 	switch (col2->type()) {
@@ -3014,8 +2928,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -3028,8 +2940,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -3043,8 +2953,6 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
@@ -3057,29 +2965,21 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    else {
 		logWarning("rangeJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
-		delete [] dfn2;
-		delete [] dfn1;
 		return -2;
 	    }
 	    break;}
 	default: {
 	    logWarning("rangeJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
-	    delete [] dfn2;
-	    delete [] dfn1;
 	    return -3;}
 	} // switch (col1->type())
 	break;}
     default: {
 	logWarning("rangeJoinLoop", "can not process column %s:%s",
 		   col1->name(), ibis::TYPESTRING[col1->type()]);
-	delete [] dfn2;
-	delete [] dfn1;
 	return -3;}
     } // switch (col1->type())
 
-    delete [] dfn2;
-    delete [] dfn1;
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	std::ostringstream ostr;

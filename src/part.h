@@ -282,36 +282,18 @@ public:
     /// Sum of all value in the named column.
     double getColumnSum(const char *name) const;
 
-    /// Count the number of records falling in the bins defined by the
-    /// begin:end:stride triplets.  The triplets defines @code
-    /// 1+std::floor((end-begin)/stride) @endcode bins: @code [begin,
-    /// begin+stride) [begin+stride, begin+stride*2)
-    /// ... [begin+stride*std::floor((end-begin)/stride), end] @endcode.
-    ///
-    /// When this function completes successfully, it the array @c counts
-    /// should @code 1+std::floor((end-begin)/stride) @endcode values, one
-    /// for each bin.  The return value should be the number of bins,
-    /// otherwise, it indicates an error.  If array @c counts has the same
-    /// size as the number of bins on input, the count values will be added
-    /// to the array.  This is intended to be used to accumulate counts
-    /// from different data partitions.  If the array @c counts does not
-    /// have the correct size, it will be resized to the correct size and
-    /// initialized to contain only zero before counting the the current
-    /// data partition.
-    ///
-    /// @sa ibis::table::getHistogram
+    /// @{
+    /// Compute 1D histogram with regularly spaced bins.
     long get1DDistribution(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
 			   std::vector<uint32_t>& counts) const;
-    /// @sa ibis::part::get1DDistribution
-    /// @sa ibis::table::getHistogram2D
+    /// Compute 2D histogram with regularly spaced bins.
     long get2DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
 			   double begin2, double end2, double stride2,
 			   std::vector<uint32_t>& counts) const;
-    /// @sa ibis::part::get1DDistribution
-    /// @sa ibis::table::getHistogram3D
+    /// Compute 3D histogram with regularly spaced bins.
     long get3DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
@@ -319,12 +301,24 @@ public:
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
 			   std::vector<uint32_t>& counts) const;
+    /// Compute 1D histogram with the specified number of bins.
+    long get1DDistribution(const char *cname, const uint32_t nbin,
+			   std::vector<double>& bounds,
+			   std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram with the specified number of bins.
+    long get2DDistribution(const char *cname1, const char *cname2,
+			   const uint32_t nb1, const uint32_t nb2,
+			   std::vector<double>& bounds1,
+			   std::vector<double>& bounds2,
+			   std::vector<uint32_t>& counts) const;
+    /// @}
 
+    /// @{
     /// Compute the binned distribution of the name variable.  The array
     /// @c bounds defines the following bins:
-    ///
+    /// @pre
     /// (..., bounds[0]) [bounds[0], bounds[1]) ... [bounds.back(), ...).
-    ///
+    /// @endpre
     /// In other word, @c bounds[n] defines (n+1) bins, with two open bins
     /// at the two ends.  The array @c counts contains the number of rows
     /// fall into each bin.  On a successful return from this function, the
@@ -352,8 +346,9 @@ public:
     /// Compute the joint distribution of two variables.  It returns three
     /// arrays, @c bounds1, @c bounds2, and @c counts.  The arrays @c
     /// bounds1 and@c bounds2 defines two sets of bins one for each
-    /// variable.  Together they define @code (bounds1.size()+1)
-    /// (bounds2.size()+1) @endcode bins for the 2-D joint distributions.
+    /// variable.  Together they define
+    /// @code (bounds1.size()+1) (bounds2.size()+1) @endcode
+    /// bins for the 2-D joint distributions.
     /// The array @c counts contains a count for each of the bins.  On
     /// successful completion of this function, it return the number of
     /// bins.
@@ -391,6 +386,7 @@ public:
     long getCumulativeDistribution(const char *constraints, const char *name,
 				   uint32_t nbc, double *bounds,
 				   uint32_t *counts) const;
+    /// @}
 
     /******************************************************************/
     /// In many scientific applications, data are defined on meshes.  The
@@ -560,6 +556,30 @@ protected:
     /// Convert the string describing the shape into internal storage format.
     void digestMeshShape(const char* shape);
 
+    /// Write out a message with indication of severe error.
+    void logError(const char* event, const char* fmt, ...) const;
+
+    void makeBackupCopy(); // copy the content of activeDir to backupDir
+    long verifyBackupDir(); // minimal consistency check
+    void deriveBackupDirName();
+    long appendToBackup(const char* dir); // append to the backup directory
+
+    /// Write the named data file with values in the given order.
+    template <typename T>
+    long writeValues(const char *fname, const array_t<uint32_t>& ind);
+    /// Write the named data file in a segmented sorted order.
+    template <typename T>
+    long reorderValues(const char *fname, const array_t<uint32_t>& indin,
+		       array_t<uint32_t>& indout, array_t<uint32_t>& starts);
+    long append1(const char* dir);
+    long append2(const char* dir);
+
+    long deactivate(const ibis::bitvector& rows);
+    long reactivate(const ibis::bitvector& rows);
+    void numbersToBitvector(const std::vector<uint32_t>&,
+			    ibis::bitvector&) const;
+    void stringToBitvector(const char*, ibis::bitvector&) const;
+
     // evaluate the range conditions -- the actual comparison functions
     // comparisons are only conducted on entries with mask == 1
     template <typename T>
@@ -655,29 +675,28 @@ protected:
 		     const double& stride3,
 		     std::vector<uint32_t>& counts) const;
 
-    /// Log functions
-    void logError(const char* event, const char* fmt, ...) const;
-
-    void makeBackupCopy(); // copy the content of activeDir to backupDir
-    long verifyBackupDir(); // minimal consistency check
-    void deriveBackupDirName();
-    long appendToBackup(const char* dir); // append to the backup directory
-
-    /// Write the named data file with values in the given order.
-    template <typename T>
-    long writeValues(const char *fname, const array_t<uint32_t>& ind);
-    /// Write the named data file in a segmented sorted order.
-    template <typename T>
-    long reorderValues(const char *fname, const array_t<uint32_t>& indin,
-		       array_t<uint32_t>& indout, array_t<uint32_t>& starts);
-    long append1(const char* dir);
-    long append2(const char* dir);
-
-    long deactivate(const ibis::bitvector& rows);
-    long reactivate(const ibis::bitvector& rows);
-    void numbersToBitvector(const std::vector<uint32_t>&,
-			    ibis::bitvector&) const;
-    void stringToBitvector(const char*, ibis::bitvector&) const;
+    /// Comptue 1D histogram from index.
+    long get1DDistribution(const ibis::column& col, const uint32_t nbin,
+			   std::vector<double>& bounds,
+			   std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram from base data.
+    long get2DDistributionD(const ibis::column& col1,
+			    const ibis::column& col2,
+			    const uint32_t nb1, const uint32_t nb2,
+			    std::vector<double>& bounds1,
+			    std::vector<double>& bounds2,
+			    std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram from indexes.
+    long get2DDistributionI(const ibis::column& col1,
+			    const ibis::column& col2,
+			    const uint32_t nb1, const uint32_t nb2,
+			    std::vector<double>& bounds1,
+			    std::vector<double>& bounds2,
+			    std::vector<uint32_t>& counts) const;
+    /// Produce a set of bitmaps corresponding to a set of coarse bins.
+    int coarsenBins(const ibis::column& col, uint32_t nbin,
+		    std::vector<double>& bnds,
+		    std::vector<ibis::bitvector*>& btmp) const;
 
 private:
 

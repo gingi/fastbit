@@ -1,4 +1,21 @@
-2008-03-03 John Wu <John.Wu at ACM.org>
+2008-03-06 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add a function (getJointDistribution) to
+	excercise the new get2DDistribition
+	* src/part.cpp: add calls to timing functions and logging
+	functions in ibis::part::get2DDistributionI and get2DDistributionD
+
+2008-03-05 John Wu <John.Wu at ACM.org>
+	* src/column.h, src/column.cpp: change dataFileName and
+	nullMaskName to return the file names in std::string instead of
+	raw char*
+	* src/column.h, src/column.cpp: add function indexSize
+	* src/part.h, src/part.cpp: add function get1DDistribution and
+	get2DDistribution with support functions to compute the histograms
+	with the specified number of bins by using either the indexes or
+	the base data depending on which are smaller (Requested by Probhat
+	and Oliver)
+
+2008-03-04 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: change ibis::column::loadIndex to modify the
 	in-memory version index specification for the column to prevent it
 	from trying to build an index again in the same run.  The

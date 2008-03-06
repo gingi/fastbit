@@ -355,20 +355,24 @@ uint32_t ibis::column::numBins() const {
 // recordeed as lowerBound and the max is recorded as the upperBound
 void ibis::column::computeMinMax() {
     if (thePart == 0 || thePart->currentDataDir() == 0) return;
-    char* name = dataFileName();
-    ibis::bitvector msk;
-    getNullMask(msk);
-    actualMinMax(name, msk, lower, upper);
-    delete [] name;
+    std::string sname;
+    const char* name = dataFileName(sname);
+    if (name != 0) {
+	ibis::bitvector msk;
+	getNullMask(msk);
+	actualMinMax(name, msk, lower, upper);
+    }
 } // ibis::column::computeMinMax
 
 void ibis::column::computeMinMax(const char *dir) {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;
-    char* name = dataFileName(dir);
-    ibis::bitvector msk;
-    getNullMask(msk);
-    actualMinMax(name, msk, lower, upper);
-    delete [] name;
+    std::string sname;
+    const char* name = dataFileName(sname, dir);
+    if (name != 0) {
+	ibis::bitvector msk;
+	getNullMask(msk);
+	actualMinMax(name, msk, lower, upper);
+    }
 } // ibis::column::computeMinMax
 
 // go through the values in data directory @c dir and compute the actual
@@ -376,11 +380,17 @@ void ibis::column::computeMinMax(const char *dir) {
 void ibis::column::computeMinMax(const char *dir, double &min,
 				 double &max) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;
-    char* name = dataFileName(dir);
-    ibis::bitvector msk;
-    getNullMask(msk);
-    actualMinMax(name, msk, min, max);
-    delete [] name;
+    std::string sname;
+    const char* name = dataFileName(sname, dir);
+    if (name != 0) {
+	ibis::bitvector msk;
+	getNullMask(msk);
+	actualMinMax(name, msk, min, max);
+    }
+    else {
+	min = DBL_MAX;
+	max = -DBL_MAX;
+    }
 } // ibis::column::computeMinMax
 
 /// Compute the actual minimum and maximum values.  Given a data file name,
@@ -499,48 +509,38 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
-/// Return the name of the data file.  It generates a new copy with operator
-/// <code>new []</code>.  The caller is responsible for freeing the memory
-/// with operator <code>delete []</code>.
-char* ibis::column::dataFileName(const char *dir) const {
-    char *name = 0;
+/// In normal case, the pointer returned is fname.c_str(), there is no need
+/// for the caller to free this pointer.  In case of error, it returns a
+/// nil pointer.
+const char*
+ibis::column::dataFileName(std::string& fname, const char *dir) const {
+    const char *name = 0;
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
 	return name;
 
     const char *adir = ((dir != 0 && *dir != 0) ? dir :
 			thePart!=0 ? thePart->currentDataDir() : 0);
     if (adir != 0 && *adir != 0) {
-	uint32_t dlen = strlen(adir);
-	name = new char[dlen + strlen(m_name.c_str()) + 4];
-// 	if (name == 0) {
-// 	    throw "ibis::column::dataFileName() failed to allcoate space "
-// 		"to write the name";
-// 	}
-
-	(void) strcpy(name, adir);
-	if (name[dlen-1] != DIRSEP) {
-	    name[dlen] = DIRSEP;
-	    ++ dlen;
-	}
-	(void) strcpy(name+dlen, m_name.c_str());
+	fname = adir;
+	if (fname[fname.size()-1] != DIRSEP)
+	    fname += DIRSEP;
+	fname += m_name;
+	name = fname.c_str();
     }
     return name;
 } // ibis::column::dataFileName
 
-// return the name of the NULL mask
-char* ibis::column::nullMaskName() const {
+/// On successful completion of this function, the return value is the
+/// result of fname.c_str(), otherwise a nil pointer is returned to
+/// indicate error.
+const char* ibis::column::nullMaskName(std::string& fname) const {
     if (thePart == 0 || thePart->currentDataDir() == 0) return 0;
 
-    char * name = new char[strlen(thePart->currentDataDir())+
-			   strlen((const char*)m_name.c_str())+8];
-    if (name == 0) {
-	logError("ERROR", "ibis::column::nullMaskName() failed to "
-		 "allcoate space to write the name");
-    }
-
-    sprintf(name, "%s%c%s.msk", thePart->currentDataDir(), DIRSEP,
-	    m_name.c_str());
-    return name;
+    fname = thePart->currentDataDir();
+    fname += DIRSEP;
+    fname += m_name;
+    fname += ".msk";
+    return fname.c_str();
 } // ibis::column::nullMaskName
 
 // find out the size of the data file first, if the actual content of the
@@ -570,17 +570,17 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 #endif
     }
     else {
-	array_t<ibis::bitvector::word_t> arr;
-	char* fnm = 0;
 	Stat_T st;
-	fnm = dataFileName();
+	std::string sname;
+	const char* fnm = 0;
+	array_t<ibis::bitvector::word_t> arr;
+	fnm = dataFileName(sname);
 	if (fnm != 0 && UnixStat(fnm, &st) == 0) {
 	    const uint32_t elm = elementSize();
 	    uint32_t sz = (elm > 0 ? st.st_size / elm :  thePart->nRows());
 
 	    // get the null mask file name and read the file
-	    delete [] fnm;
-	    fnm = nullMaskName();
+	    fnm = nullMaskName(sname);
 	    int ierr = -1;
 	    try {
 		ierr = ibis::fileManager::instance().getFile(fnm, arr);
@@ -613,8 +613,6 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 	    mask.set(1, thePart->nRows());
 	}
 
-	delete [] fnm;
-
 	ibis::bitvector tmp(mask);
 	const_cast<column*>(this)->mask_.swap(tmp);
     }
@@ -629,7 +627,10 @@ array_t<int32_t>* ibis::column::getIntArray() const {
     array_t<int32_t>* array = 0;
     if (m_type == INT || m_type == UINT) {
 	array = new array_t<int32_t>;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
+	if (fnm == 0) return array;
+
 	//ibis::part::readLock lock(thePart, "column::getIntArray");
 	int ierr = ibis::fileManager::instance().getFile(fnm, *array);
 	if (ierr != 0) {
@@ -637,7 +638,6 @@ array_t<int32_t>* ibis::column::getIntArray() const {
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
 	}
-	delete [] fnm;
     }
     else {
 	logWarning("getIntArray", "incompatible data type");
@@ -649,7 +649,10 @@ array_t<float>* ibis::column::getFloatArray() const {
     array_t<float>* array = 0;
     if (m_type == FLOAT) {
 	array = new array_t<float>;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
+	if (fnm == 0) return array;
+
 	//ibis::part::readLock lock(thePart, "column::getFloatArray");
 	int ierr = ibis::fileManager::instance().getFile(fnm, *array);
 	if (ierr != 0) {
@@ -657,7 +660,6 @@ array_t<float>* ibis::column::getFloatArray() const {
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
 	}
-	delete [] fnm;
     }
     else {
 	logWarning("getFloatArray()", " incompatible data type");
@@ -669,7 +671,10 @@ array_t<double>* ibis::column::getDoubleArray() const {
     array_t<double>* array = 0;
     if (m_type == DOUBLE) {
 	array = new array_t<double>;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
+	if (fnm == 0) return array;
+
 	//ibis::part::readLock lock(thePart, "column::getDoubleArray");
 	int ierr = ibis::fileManager::instance().getFile(fnm, *array);
 	if (ierr != 0) {
@@ -677,7 +682,6 @@ array_t<double>* ibis::column::getDoubleArray() const {
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
 	}
-	delete [] fnm;
     }
     else {
 	logWarning("getDoubleArray", "incompatible data type");
@@ -703,7 +707,10 @@ int ibis::column::getRawData(array_t<T>& vals) const {
 } // ibis::column::getRawData
 
 ibis::fileManager::storage* ibis::column::getRawData() const {
-    char *fnm = dataFileName();
+    std::string sname;
+    const char *fnm = dataFileName(sname);
+    if (fnm == 0) return 0;
+
     ibis::fileManager::storage *res = 0;
     int ierr = ibis::fileManager::instance().getFile(fnm, &res);
     if (ierr != 0) {
@@ -713,7 +720,6 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 	delete res;
 	res = 0;
     }
-    delete [] fnm;
     return res;
 } // ibis::column::getRawData
 
@@ -731,7 +737,8 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -741,10 +748,8 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	    logWarning("selectBytes",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -821,7 +826,8 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -831,10 +837,8 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	    logWarning("selectUBytes",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -914,7 +918,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
 	array_t<int16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(int16_t));
 
@@ -923,10 +928,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -979,7 +982,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -989,10 +993,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1045,7 +1047,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1055,10 +1058,8 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1135,7 +1136,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(uint16_t));
 
@@ -1144,10 +1146,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1200,7 +1200,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1210,10 +1211,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1266,7 +1265,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1276,10 +1276,8 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1357,7 +1355,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     if (m_type == ibis::INT || m_type == ibis::UINT ||
 	m_type == ibis::CATEGORY || m_type == ibis::TEXT) {
 	array_t<int32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1367,10 +1366,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1456,7 +1453,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::SHORT) {
 	array_t<int16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(int16_t));
 
@@ -1465,10 +1463,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1521,7 +1517,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1531,10 +1528,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1587,7 +1582,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1597,10 +1593,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1653,7 +1647,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1663,10 +1658,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1746,7 +1739,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
     if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	m_type == ibis::TEXT) {
 	array_t<uint32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1756,10 +1750,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1813,7 +1805,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
     }
     else if (m_type == USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1823,10 +1816,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1880,7 +1871,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1890,10 +1882,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -1975,7 +1965,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	timer.start();
     if (m_type == ibis::LONG || m_type == ibis::ULONG) {
 	array_t<int64_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int64_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1985,10 +1976,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2075,7 +2064,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
 	array_t<uint32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2085,10 +2075,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2174,7 +2162,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     }
     else if (m_type == ibis::INT) {
 	array_t<int32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2184,10 +2173,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2273,7 +2260,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2283,10 +2271,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2339,7 +2325,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     }
     else if (m_type == SHORT) {
 	array_t<int16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2349,10 +2336,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2405,7 +2390,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2415,10 +2401,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2471,7 +2455,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     }
     else if (m_type == BYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2481,10 +2466,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2562,7 +2545,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	timer.start();
     if (m_type == ibis::ULONG) {
 	array_t<uint64_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint64_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2572,10 +2556,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2662,7 +2644,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
 	array_t<uint32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2672,10 +2655,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2761,7 +2742,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2771,10 +2753,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2827,7 +2807,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2837,10 +2818,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2918,7 +2897,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 
     if (m_type == FLOAT) {
 	array_t<float> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(float))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2928,10 +2908,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -2985,7 +2963,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2995,10 +2974,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3051,7 +3028,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
     }
     else if (m_type == SHORT) {
 	array_t<int16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3061,10 +3039,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3117,7 +3093,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3127,10 +3104,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3183,7 +3158,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
     }
     else if (m_type == BYTE) {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3193,10 +3169,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3279,7 +3253,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
     case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3289,10 +3264,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3354,7 +3327,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::INT: {
 	array_t<int32_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3364,10 +3338,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3429,7 +3401,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3439,10 +3412,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3504,7 +3475,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3514,10 +3486,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3579,7 +3549,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3589,10 +3560,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3654,7 +3623,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::BYTE: {
 	array_t<char> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3664,10 +3634,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3729,7 +3697,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::FLOAT: {
 	array_t<float> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(float))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3739,10 +3708,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3804,7 +3771,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> prop;
-	char* fnm = dataFileName();
+	std::string sname;
+	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(double))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3814,10 +3782,8 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    delete [] fnm;
 	    return array;
 	}
-	delete [] fnm;
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -3907,7 +3873,9 @@ long ibis::column::selectValues(const bitvector& mask,
 
     vals.reserve(tot);
     inds.reserve(tot);
-    char *dfn = dataFileName();
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+    if (dfn == 0) return -2;
 #ifdef DEBUG
     logMessage("selectValues", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
@@ -3957,7 +3925,6 @@ long ibis::column::selectValues(const bitvector& mask,
 	if (fdes < 0) {
 	    logWarning("selectValues", "failed to open file %s, ierr=%d",
 		       dfn, fdes);
-	    delete [] dfn;
 	    return fdes;
 	}
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
@@ -4038,7 +4005,6 @@ long ibis::column::selectValues(const bitvector& mask,
 		   typeid(T).name());
     vals.resize(ierr);
     inds.resize(ierr);
-    delete [] dfn;
     return ierr;
 } // ibis::column::selectValues
 
@@ -4304,6 +4270,16 @@ void ibis::column::binWeights(std::vector<uint32_t>& tmp) const {
 	tmp.clear();
     }
 } // ibis::column::binWeights
+
+/// Return a negative value if the index file does not exist.
+long ibis::column::indexSize() const {
+    std::string sname;
+    if (dataFileName(sname) == 0) return -1;
+
+    sname += ".idx";
+    readLock lock(this, "indexSize");
+    return ibis::util::getFileSize(sname.c_str());
+} // ibis::column::indexSize
 
 void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
@@ -6448,7 +6424,10 @@ double ibis::column::computeMin() const {
     getNullMask(mask);
     if (mask.cnt() == 0) return ret;
 
-    char* name = dataFileName();
+    std::string sname;
+    const char* name = dataFileName(sname);
+    if (name == 0) return ret;
+
     switch (m_type) {
     case ibis::UBYTE: {
 	array_t<unsigned char> val;
@@ -6554,7 +6533,6 @@ double ibis::column::computeMin() const {
 	logMessage("computeMin", "not able to compute min");
     } // switch(m_type)
 
-    delete [] name;
     return ret;
 } // ibis::column::computeMin
 
@@ -6568,7 +6546,10 @@ double ibis::column::computeMax() const {
     getNullMask(mask);
     if (mask.cnt() == 0) return res;
 
-    char* name = dataFileName();
+    std::string sname;
+    const char* name = dataFileName(sname);
+    if (name == 0) return res;
+
     switch (m_type) {
     case ibis::UBYTE: {
 	array_t<unsigned char> val;
@@ -6674,7 +6655,6 @@ double ibis::column::computeMax() const {
 	logMessage("computeMax", "not able to compute max");
     } // switch(m_type)
 
-    delete [] name;
     return res;
 } // ibis::column::computeMax
 
@@ -6686,7 +6666,10 @@ double ibis::column::computeSum() const {
     getNullMask(mask);
     if (mask.cnt() == 0) return ret;
 
-    char* name = dataFileName();
+    std::string sname;
+    const char* name = dataFileName(sname);
+    if (name == 0) return ret;
+
     switch (m_type) {
     case ibis::UBYTE: {
 	array_t<unsigned char> val;
@@ -6802,7 +6785,6 @@ double ibis::column::computeSum() const {
 	logMessage("computeSum", "not able to compute sum");
     } // switch(m_type)
 
-    delete [] name;
     return ret;
 } // ibis::column::computeSum
 

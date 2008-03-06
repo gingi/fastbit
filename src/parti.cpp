@@ -91,7 +91,8 @@ long ibis::part::reorder() {
     { // use a block to limit the scope of starts and ind0
 	array_t<uint32_t> starts, ind0;
 	for (uint32_t i = 0; i < keys.size(); ++ i) {
-	    char *fname = keys[i]->dataFileName();
+	    std::string sname;
+	    const char *fname = keys[i]->dataFileName(sname);
 	    switch (keys[i]->type()) {
 	    case ibis::CATEGORY:
 		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
@@ -131,7 +132,6 @@ long ibis::part::reorder() {
 			   keys[i]->name(), static_cast<int>(keys[i]->type()));
 		break;
 	    }
-	    delete [] fname;
 
 	    if (ierr == static_cast<long>(nRows())) {
 		ind1.swap(ind0);
@@ -165,7 +165,8 @@ long ibis::part::reorder() {
 #endif
 
     for (uint32_t i = 0; i < load.size(); ++ i) {
-	char *fname = load[i]->dataFileName();
+	std::string sname;
+	const char *fname = load[i]->dataFileName(sname);
 	switch (load[i]->type()) {
 	case ibis::CATEGORY:
 	    ierr = writeValues<uint32_t>(fname, ind1);
@@ -205,7 +206,6 @@ long ibis::part::reorder() {
 		       keys[i]->name(), static_cast<int>(keys[i]->type()));
 	    break;
 	}
-	delete [] fname;
     }
     return ierr;
 } // ibis::part::reorder
@@ -287,7 +287,8 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     {
 	array_t<uint32_t> starts, ind0;
 	for (uint32_t i = 0; i < keys.size(); ++ i) {
-	    char *fname = keys[i]->dataFileName();
+	    std::string sname;
+	    const char *fname = keys[i]->dataFileName(sname);
 	    switch (keys[i]->type()) {
 	    case ibis::CATEGORY:
 		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
@@ -327,7 +328,6 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 			   keys[i]->name(), static_cast<int>(keys[i]->type()));
 		break;
 	    }
-	    delete [] fname;
 
 	    if (ierr == static_cast<long>(nRows())) {
 		ind1.swap(ind0);
@@ -337,7 +337,6 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 			 "data files are no longer consistent!",
 			 keys[i]->name(), ierr);
 	    }
-	    delete [] fname;
 	}
     }
 
@@ -363,7 +362,8 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 #endif
 
     for (uint32_t i = 0; i < load.size(); ++ i) {
-	char *fname = load[i]->dataFileName();
+	std::string sname;
+	const char *fname = load[i]->dataFileName(sname);
 	switch (load[i]->type()) {
 	case ibis::DOUBLE:
 	    ierr = writeValues<double>(fname, ind1);
@@ -401,7 +401,6 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 		       ibis::TYPESTRING[static_cast<int>(keys[i]->type())]);
 	    break;
 	}
-	delete [] fname;
     }
     return ierr;
 } // ibis::part::reorder
