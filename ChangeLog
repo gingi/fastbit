@@ -1,3 +1,9 @@
+2008-03-07 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: change get2DDistributionI and coarsenBins to
+	bypass the ibis::query layer to directly use the index object for
+	query evaluations, add a try-catch block in get2DDistribution to
+	clean up after the array of pointers to bitvectors
+
 2008-03-06 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add a function (getJointDistribution) to
 	excercise the new get2DDistribition

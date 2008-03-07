@@ -1,3 +1,8 @@
+Version b0.8.5
+-- add ibis::part::get1DDistribution and ibis::part::get2DDistribution
+   that accept user specified number of bins (Requested by Oliver Rubel
+   and Probhat)
+
 Tue Mar  4 08:43:42 PST 2008
 Version b0.8.5
 -- update doxygen documents to work around __declspec directives

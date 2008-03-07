@@ -11162,7 +11162,7 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 	return -3L;
 
     if ((elem1 <= 0 || elem2 <= 0) ||
-	(idx1 > 0 && idx2 > 0 && (idx1+idx2)*2 < (elem1+elem2)*nEvents)) {
+	(idx1 > 0 && idx2 > 0 && (idx1+idx2) < (elem1+elem2)*nEvents/4)) {
 #ifdef DEBUG
 	(void) get2DDistributionD(*col1, *col2, nb1, nb2,
 				  bounds1, bounds2, counts);
@@ -11800,89 +11800,102 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
     bounds1.back() = end1;
 
     std::vector<ibis::bitvector*> bins2;
-    long ierr = coarsenBins(col2, nb2a, bounds2, bins2);
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI can not coarsen bins of " << col2.name()
-	    << ", ierr=" << ierr;
-	return -7L;
-    }
-    else {
-	bounds2.resize(bins2.size()+1);
-	double prev = begin2;
-	for (unsigned i = 0; i < bins2.size(); ++ i) {
-	    double tmp = bounds2[i];
-	    bounds2[i] = prev;
-	    prev = tmp;
-	}
-	bounds2.back() = end2;
-    }
-
-    counts.resize((bounds1.size()-1) * bins2.size());
-    ibis::qContinuousRange rng1(col1.name(), ibis::qExpr::OP_LT, bounds1[1]);
-    ibis::query q1(ibis::util::userName(), this, name());
-    ierr = q1.setWhereClause(&rng1);
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI failed to set query condition " << rng1
-	    << " for query " << q1.id() << ", ierr=" << ierr;
-	return -5L;
-    }
-    ierr = q1.evaluate();
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI failed to evaluate query "
-	    << rng1 << ", ierr=" << ierr;
-	return -6L;
-    }
-
-    const ibis::bitvector* hits1 = q1.getHitVector();
-    if (hits1 != 0) {
-	for (unsigned i = 0; i < bins2.size(); ++ i) {
-	    ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
-	    if (tmp != 0) {
-		counts[i] = tmp->cnt();
-		delete tmp;
-	    }
-	    else {
-		counts[i] = 0;
-	    }
-	}
-    }
-    else {
-	for (unsigned i = 0; i < bins2.size(); ++ i)
-	    counts[i] = 0;
-    }
-
-    rng1.leftOperator() = ibis::qExpr::OP_LE;
-    rng1.rightOperator() = ibis::qExpr::OP_LT;
-    for (unsigned j = 1; j < bounds1.size()-2; ++ j) {
-	size_t jc = j * bins2.size();
-	rng1.leftBound() = bounds1[j];
-	rng1.rightBound() = bounds1[j+1];
-	ierr = q1.setWhereClause(&rng1);
+    try {
+	long ierr = coarsenBins(col2, nb2a, bounds2, bins2);
 	if (ierr < 0) {
 	    LOGGER(3)
 		<< "ibis::part[" << (m_name ? m_name : "")
-		<< "]::get2DDistributionI failed to set query condition "
-		<< rng1 << " for query " << q1.id() << ", ierr=" << ierr;
+		<< "]::get2DDistributionI can not coarsen bins of "
+		<< col2.name() << ", ierr=" << ierr;
 	    return -5L;
 	}
-	ierr = q1.evaluate();
+	else {
+	    bounds2.resize(bins2.size()+1);
+	    double prev = begin2;
+	    for (unsigned i = 0; i < bins2.size(); ++ i) {
+		double tmp = bounds2[i];
+		bounds2[i] = prev;
+		prev = tmp;
+	    }
+	    bounds2.back() = end2;
+	}
+
+	counts.resize((bounds1.size()-1) * bins2.size());
+	ibis::qContinuousRange rng1(col1.name(), ibis::qExpr::OP_LT,
+				    bounds1[1]);
+	ibis::bitvector bv;
+	ierr = idx1->evaluate(rng1, bv);
 	if (ierr < 0) {
 	    LOGGER(3)
 		<< "ibis::part[" << (m_name ? m_name : "")
-		<< "]::get2DDistributionI failed to evaluate query "
-		<< rng1 << ", ierr=" << ierr;
+		<< "]::get2DDistributionI failed to evaluate range condition \""
+		<< rng1 << "\", ierr=" << ierr;
 	    return -6L;
 	}
-	hits1 = q1.getHitVector();
-	if (hits1 != 0) {
+
+	if (ierr > 0) {
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
-		ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
+		ibis::bitvector *tmp = bv & (*bins2[i]);
+		if (tmp != 0) {
+		    counts[i] = tmp->cnt();
+		    delete tmp;
+		}
+		else {
+		    counts[i] = 0;
+		}
+	    }
+	}
+	else { // no records
+	    for (unsigned i = 0; i < bins2.size(); ++ i)
+		counts[i] = 0;
+	}
+
+	rng1.leftOperator() = ibis::qExpr::OP_LE;
+	rng1.rightOperator() = ibis::qExpr::OP_LT;
+	for (unsigned j = 1; j < bounds1.size()-2; ++ j) {
+	    size_t jc = j * bins2.size();
+	    rng1.leftBound() = bounds1[j];
+	    rng1.rightBound() = bounds1[j+1];
+	    ierr = idx1->evaluate(rng1, bv);
+	    if (ierr < 0) {
+		LOGGER(3)
+		    << "ibis::part[" << (m_name ? m_name : "")
+		    << "]::get2DDistributionI failed to evaluate \""
+		    << rng1 << "\", ierr=" << ierr;
+		return -6L;
+	    }
+	    if (ierr > 0) {
+		for (unsigned i = 0; i < bins2.size(); ++ i) {
+		    ibis::bitvector *tmp = bv & (*bins2[i]);
+		    if (tmp != 0) {
+			counts[jc + i] = tmp->cnt();
+			delete tmp;
+		    }
+		    else {
+			counts[jc + i] = 0;
+		    }
+		}
+	    }
+	    else {
+		for (unsigned i = 0; i < bins2.size(); ++ i)
+		    counts[jc + i] = 0;
+	    }
+	}
+
+	rng1.rightOperator() = ibis::qExpr::OP_UNDEFINED;
+	rng1.leftBound() = bounds1[bounds1.size()-2];
+	ierr = idx1->evaluate(rng1, bv);
+	if (ierr < 0) {
+	    LOGGER(3)
+		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "]::get2DDistributionI failed to evaluate range condition \""
+		<< rng1 << "\", ierr=" << ierr;
+	    return -6L;
+	}
+	if (ierr > 0) {
+	    const size_t jc = (bounds1.size()-2) * bins2.size();
+	    for (unsigned i = 0; i < bins2.size(); ++ i) {
+		ibis::bitvector *tmp = bv & (*bins2[i]);
 		if (tmp != 0) {
 		    counts[jc + i] = tmp->cnt();
 		    delete tmp;
@@ -11893,53 +11906,27 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    }
 	}
 	else {
+	    const size_t jc = (bounds1.size()-2) * bins2.size();
 	    for (unsigned i = 0; i < bins2.size(); ++ i)
 		counts[jc + i] = 0;
 	}
-    }
 
-    rng1.rightOperator() = ibis::qExpr::OP_UNDEFINED;
-    rng1.leftBound() = bounds1[bounds1.size()-2];
-    ierr = q1.setWhereClause(&rng1);
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI failed to set query condition " << rng1
-	    << " for query " << q1.id() << ", ierr=" << ierr;
-	return -5L;
-    }
-    ierr = q1.evaluate();
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI failed to evaluate query "
-	    << rng1 << ", ierr=" << ierr;
-	return -6L;
-    }
-    hits1 = q1.getHitVector();
-    if (hits1 != 0) {
-	const size_t jc = (bounds1.size()-2) * bins2.size();
+	// clean up bins2
 	for (unsigned i = 0; i < bins2.size(); ++ i) {
-	    ibis::bitvector *tmp = (*hits1) & (*bins2[i]);
-	    if (tmp != 0) {
-		counts[jc + i] = tmp->cnt();
-		delete tmp;
-	    }
-	    else {
-		counts[jc + i] = 0;
-	    }
+	    delete bins2[i];
+	    bins2[i] = 0;
 	}
     }
-    else {
-	const size_t jc = (bounds1.size()-2) * bins2.size();
-	for (unsigned i = 0; i < bins2.size(); ++ i)
-	    counts[jc + i] = 0;
-    }
+    catch (...) {
+	// clean up bins2
+	for (unsigned i = 0; i < bins2.size(); ++ i) {
+	    delete bins2[i];
+	    bins2[i] = 0;
+	}
 
-    // clean up bins2
-    for (unsigned i = 0; i < bins2.size(); ++ i) {
-	delete bins2[i];
-	bins2[i] = 0;
+	LOGGER(0) << "Warning -- ibis::part[" << (m_name ? m_name : "")
+		  << "]::get2DDistributionI received an exception, stopping";
+	return -7L;
     }
 
     if (ibis::gVerbose > 1) {
@@ -12017,20 +12004,12 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
     }
 
     bnds.resize(wbnds.size());
-    btmp.resize(wbnds.size());
+    btmp.reserve(wbnds.size());
     // first bin: open to the left
     bnds[0] = idxbin[wbnds[0]];
     ibis::qContinuousRange rng(col.name(), ibis::qExpr::OP_LT, bnds[0]);
-    ibis::query que(ibis::util::userName(), this, name());
-    int ierr = que.setWhereClause(&rng);
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::coarsenBins failed to set conditions (" << rng
-	    << ") on query " << que.id() << ", ierr=" << ierr;
-	return -5;
-    }
-    ierr = que.evaluate();
+    ibis::bitvector bv;
+    long ierr = idx->evaluate(rng, bv);
     if (ierr < 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
@@ -12038,14 +12017,8 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 	    << ", ierr=" << ierr;
 	return -6;
     }
-    const ibis::bitvector* hits = que.getHitVector();
-    if (hits != 0) {
-	btmp[0] = new ibis::bitvector(*hits);
-    }
-    else {
-	btmp[0] = new ibis::bitvector();
-	btmp[0]->set(0, nEvents);
-    }
+    btmp.push_back(new ibis::bitvector(bv));
+
     // middle bins: two-sided, inclusive left, exclusive right
     rng.leftOperator() = ibis::qExpr::OP_LE;
     rng.rightOperator() = ibis::qExpr::OP_LT;
@@ -12054,16 +12027,7 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 	rng.rightBound() = idxbin[wbnds[i]];
 	bnds[i] = idxbin[wbnds[i]];
 
-	ierr = que.setWhereClause(&rng);
-	if (ierr < 0) {
-	    LOGGER(3)
-		<< "ibis::part[" << (m_name ? m_name : "")
-		<< "]::coarsenBins failed to set conditions (" << rng
-		<< ") on query " << que.id() << ", ierr=" << ierr;
-	    return -5;
-	}
-
-	ierr = que.evaluate();
+	ierr = idx->evaluate(rng, bv);
 	if (ierr < 0) {
 	    LOGGER(3)
 		<< "ibis::part[" << (m_name ? m_name : "")
@@ -12072,30 +12036,14 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 	    return -6;
 	}
 
-	hits = que.getHitVector();
-	if (hits != 0) {
-	    btmp[i] = new ibis::bitvector(*hits);
-	}
-	else {
-	    btmp[i] = new ibis::bitvector();
-	    btmp[i]->set(0, nEvents);
-	}
+	btmp.push_back(new ibis::bitvector(bv));
     }
     bnds.resize(wbnds.size()-1); // remove the last element
 
     // last bin: open to the right
     rng.rightOperator() = ibis::qExpr::OP_UNDEFINED;
     rng.leftBound() = idxbin[wbnds[wbnds.size()-2]];
-    ierr = que.setWhereClause(&rng);
-    if (ierr < 0) {
-	LOGGER(3)
-	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::coarsenBins failed to set conditions (" << rng
-	    << ") on query " << que.id() << ", ierr=" << ierr;
-	return -5;
-    }
-
-    ierr = que.evaluate();
+    ierr = idx->evaluate(rng, bv);
     if (ierr < 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
@@ -12104,14 +12052,7 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 	return -6;
     }
 
-    hits = que.getHitVector();
-    if (hits != 0) {
-	btmp.back() = new ibis::bitvector(*hits);
-    }
-    else {
-	btmp.back() = new ibis::bitvector();
-	btmp.back()->set(0, nEvents);
-    }
+    btmp.push_back(new ibis::bitvector(bv));
     return btmp.size();
 } // ibis::part::coarsenBins
 
