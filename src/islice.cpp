@@ -32,6 +32,8 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -64,6 +66,8 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -103,7 +107,7 @@ void ibis::slice::write(const char* dt) const {
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows));
     }
-} // ibis::slice::write()
+} // ibis::slice::write
 
 // write the content to a file already opened
 void ibis::slice::write(int fdes) const {
@@ -144,7 +148,7 @@ void ibis::slice::write(int fdes) const {
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
-} // ibis::slice::write()
+} // ibis::slice::write
 
 /// Read the index contained in the file f.  This function always reads all
 /// bitvectors.
@@ -336,7 +340,7 @@ void ibis::slice::setBit(const uint32_t i, const double val) {
 	    ++ jj;
 	}
     }
-} // setBit
+} // ibis::slice::setBit
 
 // take one pass through the data to produce a list of values and their
 // corresponding locations (as bitvectors), then transform the bitvectors

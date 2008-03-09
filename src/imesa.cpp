@@ -23,13 +23,14 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	throw "ibis::mesa -- binning produced two or less bins, need more";
     }
 
+    // b2 is the temporary storage for the bitvectors of ibis::bin object
+    std::vector<ibis::bitvector*> b2(nobs);
+    for (uint32_t i=0; i<nobs; ++i) {// copy the pointers
+	b2[i] = bits[i];
+	bits[i] = 0;
+    }
     try {
 	uint32_t n2 = (nobs + 1) / 2;
-	std::vector<ibis::bitvector*> b2(nobs);
-	for (uint32_t i=0; i<nobs; ++i) {// copy the pointers
-	    b2[i] = bits[i];
-	    bits[i] = 0;
-	}
 	bits[0] = new ibis::bitvector;
 	sumBins(b2, 0, n2, *(bits[0]));
 	for (uint32_t i=1; i + n2 <= nobs; ++i) {
@@ -38,8 +39,10 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	    *(bits[i]) -= *(b2[i-1]);
 	    *(bits[i]) |= *(b2[i+n2-1]);
 	}
-	for (uint32_t i=0; i < nobs; ++i)
+	for (uint32_t i = 0; i < nobs; ++ i) { // done with b2
 	    delete b2[i];
+	    b2[i] = 0; // change it to nil to avoid being deleted again
+	}
 
 	for (uint32_t i = 0; i+n2 <= nobs; ++i)
 	    bits[i]->decompress();
@@ -51,6 +54,11 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::mesa::ctor encountered an exception, cleaning up ...";
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    delete b2[i];
+	}
 	clear();
 	throw;
     }
@@ -95,6 +103,8 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::mesa::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }

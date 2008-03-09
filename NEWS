@@ -1,7 +1,13 @@
-Version b0.8.5
+Version b0.8.7
+-- add try-catch blocks to various interval encoded indexes to free
+   memory in case of exception
+
+Sun Mar  9 07:52:50 PDT 2008
+Version b0.8.6
 -- add ibis::part::get1DDistribution and ibis::part::get2DDistribution
    that accept user specified number of bins (Requested by Oliver Rubel
-   and Probhat)
+   and Prabhat)
+-- fix bugs in two-level indexes that cause dead-locks and wrong answers
 
 Tue Mar  4 08:43:42 PST 2008
 Version b0.8.5

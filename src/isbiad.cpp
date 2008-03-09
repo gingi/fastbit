@@ -39,6 +39,8 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::sbiad::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -221,32 +223,46 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 #endif
     // sum up the bitvectors according to the interval-encoding
     std::vector<ibis::bitvector*> beq(bits);
-    uint32_t ke = 0;
-    bits.clear();
-    for (i = 0; i < nb; ++i) {
-	if (bases[i] > 2) {
-	    nobs = (bases[i] - 1) / 2;
-	    bits.push_back(new ibis::bitvector);
-	    bits.back()->copy(*(beq[ke]));
-	    if (nobs > 64)
-		bits.back()->decompress();
-	    for (uint32_t j = ke+1; j <= ke+nobs; ++j)
-		*(bits.back()) |= *(beq[j]);
-	    bits.back()->compress();
-	    for (uint32_t j = 1; j < bases[i]-nobs; ++j) {
-		bits.push_back(*(bits.back()) - *(beq[ke+j-1]));
-		*(bits.back()) |= *(beq[ke+j+nobs]);
+    try { // use a try block to ensure the bitvectors in beq are freed
+	uint32_t ke = 0;
+	bits.clear();
+	for (i = 0; i < nb; ++i) {
+	    if (bases[i] > 2) {
+		nobs = (bases[i] - 1) / 2;
+		bits.push_back(new ibis::bitvector);
+		bits.back()->copy(*(beq[ke]));
+		if (nobs > 64)
+		    bits.back()->decompress();
+		for (uint32_t j = ke+1; j <= ke+nobs; ++j)
+		    *(bits.back()) |= *(beq[j]);
 		bits.back()->compress();
+		for (uint32_t j = 1; j < bases[i]-nobs; ++j) {
+		    bits.push_back(*(bits.back()) - *(beq[ke+j-1]));
+		    *(bits.back()) |= *(beq[ke+j+nobs]);
+		    bits.back()->compress();
+		}
+		for (uint32_t j = ke; j < ke+bases[i]; ++j) {
+		    delete beq[j];
+		    beq[j] = 0;
+		}
 	    }
-	    for (uint32_t j = ke; j < ke+bases[i]; ++j)
-		delete beq[j];
+	    else {
+		bits.push_back(beq[ke]);
+		if (bases[i] > 1) {
+		    delete beq[ke+1];
+		    beq[ke+1] = 0;
+		}
+	    }
+	    ke += bases[i];
 	}
-	else {
-	    bits.push_back(beq[ke]);
-	    if (bases[i] > 1)
-		delete beq[ke+1];
-	}
-	ke += bases[i];
+    }
+    catch (...) {
+	LOGGER(2) << "Warning -- ibis::column::[" << col->name()
+		  << "]::construct1 encountered an exception while converting "
+	    "to inverval encoding, cleaning up ...";
+	for (uint32_t i = 0; i < beq.size(); ++ i)
+	    delete beq[i];
+	throw;
     }
     beq.clear();
 #if defined(DEBUG)
@@ -263,7 +279,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
  	ibis::util::logger lg(4);
  	print(lg.buffer());
     }
-} // construct1
+} // ibis::sbiad::construct1
 
 // assume that the array vals is initialized properly, this function
 // converts the value val into a set of bits to be stored in the bitvectors
@@ -310,7 +326,7 @@ void ibis::sbiad::setBit(const uint32_t i, const double val) {
 	kk /= bases[ii];
 	offset += bases[ii];
     }
-} // setBit
+} // ibis::sbiad::setBit
 
 // generate a new sbiad index by passing through the data twice
 // (1) scan the data to generate a list of distinct values and their count
@@ -559,37 +575,49 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
     // make sure all bit vectors are the same size
     for (uint32_t i = 0; i < nobs; ++i) {
 	bits[i]->adjustSize(0, nrows);
-	bits[i]->compress();
     }
     // sum up the bitvectors according to interval-encoding
     std::vector<ibis::bitvector*> beq(bits);
-    uint32_t ke = 0;
-    bits.clear();
-    for (uint32_t i = 0; i < nb; ++i) {
-	if (bases[i] > 2) {
-	    nobs = (bases[i] - 1) / 2;
-	    bits.push_back(new ibis::bitvector);
-	    bits.back()->copy(*(beq[ke]));
-	    if (nobs > 64)
-		bits.back()->decompress();
-	    for (uint32_t j = ke+1; j <= ke+nobs; ++j)
-		*(bits.back()) |= *(beq[j]);
-	    bits.back()->compress();
-	    for (uint32_t j = 1; j < bases[i]-nobs; ++j) {
-		bits.push_back(*(bits.back()) - *(beq[ke+j-1]));
-		*(bits.back()) |= *(beq[ke+j+nobs]);
+    try {    
+	uint32_t ke = 0;
+	bits.clear();
+	for (uint32_t i = 0; i < nb; ++i) {
+	    if (bases[i] > 2) {
+		nobs = (bases[i] - 1) / 2;
+		bits.push_back(new ibis::bitvector);
+		bits.back()->copy(*(beq[ke]));
+		if (nobs > 64)
+		    bits.back()->decompress();
+		for (uint32_t j = ke+1; j <= ke+nobs; ++j)
+		    *(bits.back()) |= *(beq[j]);
 		bits.back()->compress();
+		for (uint32_t j = 1; j < bases[i]-nobs; ++j) {
+		    bits.push_back(*(bits.back()) - *(beq[ke+j-1]));
+		    *(bits.back()) |= *(beq[ke+j+nobs]);
+		    bits.back()->compress();
+		}
+		for (uint32_t j = ke; j < ke+bases[i]; ++j) {
+		    delete beq[j];
+		    beq[j] = 0;
+		}
 	    }
-	    for (uint32_t j = ke; j < ke+bases[i]; ++j)
-		delete beq[j];
-	}
-	else {
-	    bits.push_back(beq[ke]);
-	    if (bases[i] > 1) {
-		delete beq[ke+1];
+	    else {
+		bits.push_back(beq[ke]);
+		if (bases[i] > 1) {
+		    delete beq[ke+1];
+		    beq[ke+1] = 0;
+		}
 	    }
+	    ke += bases[i];
 	}
-	ke += bases[i];
+    }
+    catch (...) {
+	LOGGER(2) << "Warning -- ibis::column::[" << col->name()
+		  << "]::construct2 encountered an exception while converting "
+	    "to inverval encoding, cleaning up ...";
+	for (uint32_t i = 0; i < beq.size(); ++ i)
+	    delete beq[i];
+	throw;
     }
     beq.clear();
     optionalUnpack(bits, col->indexSpec());

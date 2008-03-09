@@ -50,6 +50,8 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::sapid::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }

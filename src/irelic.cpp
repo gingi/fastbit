@@ -42,6 +42,8 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -67,6 +69,8 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -106,6 +110,8 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -204,6 +210,8 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     catch (...) {
+	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+		  << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
