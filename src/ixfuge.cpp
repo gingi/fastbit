@@ -66,9 +66,9 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
    following the last bitvector in ibis::bin is as follows, @sa
    ibis::fuge::writeCoarse.
 
-   nc      (uint32_t)         -- number of coarse bins.
-   cbounds (unsigned[nc+1]) -- boundaries of the coarse bins.
-   coffsets(int32_t[nc-ceil(nc/2)+2])     -- starting positions.
+   nc      (uint32_t)                   -- number of coarse bins.
+   cbounds (unsigned[nc+1])             -- boundaries of the coarse bins.
+   coffsets(int32_t[nc-ceil(nc/2)+2])   -- starting positions.
    cbits   (bitvector[nc-ceil(nc/2)+1]) -- bitvectors.
  */
 ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
@@ -79,7 +79,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     start = offsets.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
-	st->size() <= start + (sizeof(int32_t)+sizeof(unsigned))*(nc+1))
+	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
 	return;
 
     const uint32_t ncb = nc - (nc+1)/2 + 1;
@@ -92,7 +92,19 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     if (start+sizeof(int32_t)*(ncb+1) < st->size()) {
 	array_t<int32_t> tmp(st, start, ncb+1);
 	coffsets.swap(tmp);
+	if (coffsets.back() > static_cast<int32_t>(st->size())) {
+	    coffsets.swap(tmp);
+	    array_t<uint32_t> tmp2;
+	    cbounds.swap(tmp2);
+	    return;
+	}
     }
+    else {
+	array_t<uint32_t> tmp2;
+	cbounds.swap(tmp2);
+	return;
+    }
+
     cbits.resize(ncb);
     for (unsigned i = 0; i < ncb; ++ i)
 	cbits[i] = 0;
@@ -288,7 +300,7 @@ void ibis::fuge::read(const char* f) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	begin = offsets.back() + sizeof(nc);
-	end = begin + sizeof(unsigned)*(nc+1);
+	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
 	    cbounds.swap(tmp);
@@ -327,7 +339,7 @@ void ibis::fuge::read(ibis::fileManager::storage* st) {
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(nc+1);
+		start += sizeof(uint32_t)*(nc+1);
 		array_t<int32_t> otmp(str, start, nc+1);
 
 		cbits.resize(nc);
@@ -340,13 +352,13 @@ void ibis::fuge::read(ibis::fileManager::storage* st) {
 		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
 	    const uint32_t ncb = nc + 1 - (nc+1) / 2;
 	    if (nc > 0 && str->size() > offsets.back() +
-		(sizeof(int32_t)+sizeof(unsigned))*(nc+1)) {
+		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
 		start = offsets.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(ncb+1);
+		start += sizeof(uint32_t)*(ncb+1);
 		array_t<int32_t> otmp(str, start, ncb+1);
 
 		cbits.resize(ncb);
@@ -503,7 +515,7 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	    upper.clear();
     }
 
-    const unsigned ncoarse = (cbounds.empty() ? 0U : cbounds.size()-1);
+    const uint32_t ncoarse = (cbounds.empty() ? 0U : cbounds.size()-1);
     if (hit0+3 >= hit1 || ncoarse == 0 || (cbits.size()+1) != coffsets.size()
 	|| cbits.size() != (ncoarse-(ncoarse+1)/2+1)
 	|| offsets[cand1]-offsets[cand0] < 262144) {
@@ -689,7 +701,7 @@ void ibis::fuge::coarsen() {
     if (nobs < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    unsigned ncoarse = 16; // default number of coarse bins
+    uint32_t ncoarse = 16; // default number of coarse bins
     { // limit the scope of variables
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
@@ -700,8 +712,8 @@ void ibis::fuge::coarsen() {
 		ncoarse = j;
 	}
     }
-    const unsigned nc2 = (ncoarse + 1) / 2;
-    const unsigned ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps
+    const uint32_t nc2 = (ncoarse + 1) / 2;
+    const uint32_t ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps
 
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes
@@ -761,11 +773,11 @@ void ibis::fuge::writeCoarse(int fdes) const {
 	return;
 
     int32_t ierr;
-    const unsigned nc = cbounds.size()-1;
-    const unsigned nb = cbits.size();
+    const uint32_t nc = cbounds.size()-1;
+    const uint32_t nb = cbits.size();
     array_t<int32_t> offs(nb+1);
     ierr = UnixWrite(fdes, &nc, sizeof(nc));
-    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(unsigned)*(nc+1));
+    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nb+1), SEEK_CUR);
     for (unsigned i = 0; i < nb; ++ i) {
 	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -850,6 +862,11 @@ void ibis::fuge::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::fuge::activateCoarse(all) "
+		  << "retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
@@ -871,6 +888,10 @@ void ibis::fuge::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::fuge::activateCoarse(all) "
+		      << "retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -915,7 +936,7 @@ void ibis::fuge::activateCoarse() const {
 	    UnixClose(fdes);
 	}
 	else {
-	    col->logWarning("activateCoarse", "failed to open file \"%s\""
+	    col->logWarning("fuge::activateCoarse", "failed to open file \"%s\""
 			    " ... %s", fname, strerror(errno));
 	}
     }
@@ -928,6 +949,7 @@ void ibis::fuge::activateCoarse() const {
 
 void ibis::fuge::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
+    if (cbits[i] != 0) return;	// already active
     ibis::column::mutexLock lock(col, "fuge::activateCoarse");
     if (cbits[i] != 0) return;	// already active
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
@@ -939,6 +961,11 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::fuge::activateCoarse(" << i
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	array_t<ibis::bitvector::word_t>
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
@@ -955,6 +982,10 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::fuge::activateCoarse(" << i
+		      << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -972,7 +1003,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 #endif
 	}
 	else {
-	    col->logWarning("activateCoarse",
+	    col->logWarning("fuge::activateCoarse",
 			    "failed to open file \"%s\" ... %s",
 			    fname, strerror(errno));
 	}
@@ -987,14 +1018,12 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
     if (j > cbits.size())
 	j = cbits.size();
-    if (i >= j || i >= cbits.size()) // empty range
+    if (i >= j) // empty range
 	return;
     ibis::column::mutexLock lock(col, "fuge::activateCoarse");
 
-    bool incore = (cbits[i] != 0);
-    for (uint32_t k = i+1; k < j && incore; ++ k)
-	incore = (cbits[k] != 0);
-    if (incore) return; // all bitvectors active
+    while (i < j && cbits[i] != 0) ++ i;
+    if (i >= j) return; // all bitvectors active
 
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
 	col->logWarning("fuge::activateCoarse", "no records of offsets, "
@@ -1003,8 +1032,13 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::fuge::activateCoarse(" << i << ", " << j
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	while (i < j) {
-	    if (bits[i] == 0 && coffsets[i+1] > coffsets[i]) {
+	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 		array_t<ibis::bitvector::word_t>
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
@@ -1026,6 +1060,10 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
+		LOGGER(9) << "ibis::column[" << col->name()
+			  << "]::fuge::activateCoarse(" << i << ", " << j
+			  << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1068,7 +1106,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		UnixClose(fdes);
 	    }
 	    else {
-		col->logWarning("activateCoarse",
+		col->logWarning("fuge::activateCoarse",
 				"failed to open file \"%s\" ... %s",
 				fname, strerror(errno));
 	    }

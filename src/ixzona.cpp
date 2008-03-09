@@ -40,9 +40,9 @@ ibis::zona::zona(const ibis::column *c, const char *f)
    following the last bitvector in ibis::relic is as follows, @sa
    ibis::zona::writeCoarse.
 
-   nc      (uint32_t)         -- number of coarse bins.
+   nc      (uint32_t)       -- number of coarse bins.
    cbounds (unsigned[nc+1]) -- boundaries of the coarse bins.
-   coffsets(int32_t[nc+1])    -- starting position of the coarse level bitmaps.
+   coffsets(int32_t[nc+1])  -- starting position of the coarse level bitmaps.
    cbits   (bitvector[nc])  -- bitvector laid out one after another.
  */
 ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
@@ -53,19 +53,31 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
     start = offsets.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
-	st->size() <= start + (sizeof(int32_t)+sizeof(unsigned))*(nc+1))
+	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
 	return;
 
     start += sizeof(uint32_t);
-    if (start+sizeof(unsigned)*(nc+1) < st->size()) {
+    if (start+sizeof(uint32_t)*(nc+1) < st->size()) {
 	array_t<uint32_t> tmp(st, start, nc+1);
 	cbounds.swap(tmp);
     }
-    start += sizeof(unsigned) * (nc+1);
+    start += sizeof(uint32_t) * (nc+1);
     if (start+sizeof(int32_t)*(nc+1) < st->size()) {
 	array_t<int32_t> tmp(st, start, nc+1);
 	coffsets.swap(tmp);
+	if (coffsets.back() > static_cast<int32_t>(st->size())) {
+	    coffsets.swap(tmp);
+	    array_t<uint32_t> tmp2;
+	    cbounds.swap(tmp2);
+	    return;
+	}
     }
+    else {
+	array_t<uint32_t> tmp;
+	cbounds.swap(tmp);
+	return;
+    }
+
     cbits.resize(nc);
     for (unsigned i = 0; i < nc; ++ i)
 	cbits[i] = 0;
@@ -107,7 +119,7 @@ long ibis::zona::append(const char* dt, const char* df, uint32_t nnew) {
 }
 
 void ibis::zona::coarsen() {
-    const unsigned ncoarse = 11; // default number of coarse bins (w=64, 16)
+    const uint32_t ncoarse = 11; // default number of coarse bins (w=64, 16)
     const uint32_t nbits = bits.size();
 
     if (offsets.size() != nbits+1) {
@@ -173,12 +185,17 @@ void ibis::zona::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::zona::activateCoarse(all) "
+		  << "retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
 		LOGGER(0)
 		    << "zona::activateCoarse -- activating bitvector "
-		    << i << " from a raw storage ("
+		    << i << " from a raw storage (0x"
 		    << static_cast<const void*>(str->begin())
 		    << "), coffsets[" << i << "]= " << coffsets[i]
 		    << ", coffsets[" << i+1 << "]= " << coffsets[i+1];
@@ -194,6 +211,10 @@ void ibis::zona::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::zona::activateCoarse(all) "
+		      << "retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -238,7 +259,7 @@ void ibis::zona::activateCoarse() const {
 	    UnixClose(fdes);
 	}
 	else {
-	    col->logWarning("activateCoarse", "failed to open file \"%s\""
+	    col->logWarning("zona::activateCoarse", "failed to open file \"%s\""
 			    " ... %s", fname, strerror(errno));
 	}
     }
@@ -251,6 +272,7 @@ void ibis::zona::activateCoarse() const {
 
 void ibis::zona::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
+    if (cbits[i] != 0) return;	// already active
     ibis::column::mutexLock lock(col, "zona::activateCoarse");
     if (cbits[i] != 0) return;	// already active
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
@@ -262,6 +284,11 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::zona::activateCoarse(" << i
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	array_t<ibis::bitvector::word_t>
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
@@ -278,6 +305,10 @@ void ibis::zona::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::zona::activateCoarse(" << i
+		      << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -295,7 +326,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 #endif
 	}
 	else {
-	    col->logWarning("activateCoarse",
+	    col->logWarning("zona::activateCoarse",
 			    "failed to open file \"%s\" ... %s",
 			    fname, strerror(errno));
 	}
@@ -310,14 +341,12 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
     if (j > cbits.size())
 	j = cbits.size();
-    if (i >= j || i >= cbits.size()) // empty range
+    if (i >= j) // empty range
 	return;
     ibis::column::mutexLock lock(col, "zona::activateCoarse");
 
-    bool incore = (cbits[i] != 0);
-    for (uint32_t k = i+1; k < j && incore; ++ k)
-	incore = (cbits[k] != 0);
-    if (incore) return; // all bitvectors active
+    while (i < j && cbits[i] != 0) ++ i;
+    if (i >= j) return; // all bitvectors active
 
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
 	col->logWarning("zona::activateCoarse", "no records of offsets, "
@@ -326,8 +355,13 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::zona::activateCoarse(" << i << ", " << j
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	while (i < j) {
-	    if (bits[i] == 0 && coffsets[i+1] > coffsets[i]) {
+	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 		array_t<ibis::bitvector::word_t>
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
@@ -335,7 +369,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 		cbits[i]->setSize(nrows);
 #if defined(DEBUG)
 		LOGGER(0)
-		    << "zona::activateCoarse(" << i
+		    << "zona::activateCoarse(" << i << ", " << j
 		    << ") constructed a bitvector from range ["
 		    << coffsets[i] << ", " << coffsets[i+1]
 		    << ") of a storage at "
@@ -349,6 +383,10 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
+		LOGGER(9) << "ibis::column[" << col->name()
+			  << "]::zona::activateCoarse(" << i << ", " << j
+			  << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -390,7 +428,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 		UnixClose(fdes);
 	    }
 	    else {
-		col->logWarning("activateCoarse",
+		col->logWarning("zona::activateCoarse",
 				"failed to open file \"%s\" ... %s",
 				fname, strerror(errno));
 	    }
@@ -419,7 +457,7 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
     uint32_t hit0, hit1;
     locate(expr, hit0, hit1);
 
-    const unsigned ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
+    const uint32_t ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
     const long fine = offsets[hit1] - offsets[hit0] <=
@@ -533,7 +571,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	    lower.set(0, nrows);
 	return lower.cnt();
     }
-    const unsigned ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
+    const uint32_t ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
     if (hit0+3 >= hit1 || offsets.size() < bits.size() || ncoarse == 0) {
@@ -808,7 +846,7 @@ void ibis::zona::writeCoarse(int fdes) const {
 	return;
 
     int32_t ierr;
-    const unsigned nc = (cbounds.size()-1 <= cbits.size() ?
+    const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
 			 cbounds.size()-1 : cbits.size());
     array_t<int32_t> offs(nc+1);
     ierr = UnixWrite(fdes, &nc, sizeof(nc));
@@ -817,7 +855,7 @@ void ibis::zona::writeCoarse(int fdes) const {
 		  << "an integer";
 	return;
     }
-    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(unsigned)*(nc+1));
+    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
 	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -936,7 +974,7 @@ void ibis::zona::read(const char* f) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	begin = offsets.back() + sizeof(nc);
-	end = begin + sizeof(unsigned)*(nc+1);
+	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
 	    cbounds.swap(tmp);
@@ -983,7 +1021,7 @@ void ibis::zona::readCoarse(const char* fn) {
 	}
 
 	begin = offsets.back() + sizeof(nc);
-	end = begin + sizeof(unsigned)*(nc+1);
+	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
 	    cbounds.swap(tmp);
@@ -1055,13 +1093,13 @@ void ibis::zona::read(ibis::fileManager::storage* st) {
 	    uint32_t nc =
 		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
 	    if (nc > 0 && str->size() > static_cast<uint32_t>(offsets.back()) +
-		(sizeof(int32_t)+sizeof(unsigned))*(nc+1)) {
+		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
 		start = offsets.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(nc+1);
+		start += sizeof(uint32_t)*(nc+1);
 		array_t<int32_t> otmp(str, start, nc+1);
 
 		cbits.resize(nc);
@@ -1095,13 +1133,13 @@ void ibis::zona::read(ibis::fileManager::storage* st) {
 	    uint32_t nc =
 		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
 	    if (nc > 0 && str->size() > offsets.back() +
-		(sizeof(int32_t)+sizeof(unsigned))*(nc+1)) {
+		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
 		start = offsets.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(nc+1);
+		start += sizeof(uint32_t)*(nc+1);
 		array_t<int32_t> otmp(str, start, nc+1);
 
 		cbits.resize(nc);
@@ -1124,7 +1162,7 @@ void ibis::zona::read(ibis::fileManager::storage* st) {
 } // ibis::zona::read
 
 void ibis::zona::clear() {
-    const unsigned nc = cbits.size();
+    const uint32_t nc = cbits.size();
     for (unsigned i = 0; i < nc; ++ i)
 	delete cbits[i];
 

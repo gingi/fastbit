@@ -3931,6 +3931,10 @@ void ibis::index::activate() const {
 			"not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::index::activate(all) from "
+	    "ibis::fileManager::storage(0x" << str << ")";
+
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (bits[i] == 0 && offsets[i+1] > offsets[i]) {
 #if defined(DEBUG)
@@ -3954,6 +3958,10 @@ void ibis::index::activate() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::index::activate(all) from file \""
+		      << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4025,6 +4033,9 @@ void ibis::index::activate(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name() << "]::index::activate("
+		  << i << ") from ibis::fileManager::storage(0x" << str << ")";
+
 	array_t<ibis::bitvector::word_t>
 	    a(str, offsets[i], (offsets[i+1]-offsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
@@ -4043,6 +4054,9 @@ void ibis::index::activate(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name() << "]::index::activate("
+		      << i << ") from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4093,6 +4107,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name() << "]::index::activate("
+		  << i << ", " << j << ") from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	while (i < j) {
 	    if (bits[i] == 0 && offsets[i+1] > offsets[i]) {
 		array_t<ibis::bitvector::word_t>
@@ -4118,6 +4136,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	if (offsets[j] > offsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
+		LOGGER(9) << "ibis::column[" << col->name()
+			  << "]::index::activate(" << i << ", " << j
+			  << ") from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4181,14 +4203,9 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 /// is similar to the function @c addBins.
 void ibis::index::addBits(uint32_t ib, uint32_t ie,
 			  ibis::bitvector& res) const {
-#if defined(DEBUG)
-    ibis::util::logMessage("DEBUG", "calling addBits(%lu, %lu, "
-			   "res(%lu out of %lu))...",
-			   static_cast<long unsigned>(ib),
-			   static_cast<long unsigned>(ie),
-			   static_cast<long unsigned>(res.cnt()),
-			   static_cast<long unsigned>(res.size()));
-#endif
+    LOGGER(10) << "ibis::index[" << col->name() << "]::addBits(" << ib
+	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	       << ")) ...";
     const uint32_t nobs = bits.size();
     if (res.cnt() >= nrows) return; // useless to add more bits
     if (res.size() != nrows)
@@ -4374,16 +4391,9 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie,
 /// subtraction from @c tot.
 void ibis::index::addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  const ibis::bitvector& tot) const {
-#if defined(DEBUG)
-    ibis::util::logMessage("DEBUG", "calling addBits(%lu, %lu, "
-			   "res(%lu out of %lu), tot(%lu out of %lu))...",
-			   static_cast<long unsigned>(ib),
-			   static_cast<long unsigned>(ie),
-			   static_cast<long unsigned>(res.cnt()),
-			   static_cast<long unsigned>(res.size()),
-			   static_cast<long unsigned>(tot.cnt()),
-			   static_cast<long unsigned>(tot.size()));
-#endif
+    LOGGER(10) << "ibis::index[" << col->name() << "]::addBits(" << ib
+	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	       << "), tot(" << tot.cnt() << ", " << tot.size() << ")) ...";
     if (res.size() != tot.size())
 	res.adjustSize(0U, tot.size());
     if (ib >= ie) { // no bitmap in the range
@@ -4868,12 +4878,11 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 ///   operator to complete the operations.
 void ibis::index::sumBits(uint32_t ib, uint32_t ie,
 			  ibis::bitvector& res) const {
+    LOGGER(10) << "ibis::index[" << col->name() << "]::sumBits(" << ib
+	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	       << ")) ...";
     const uint32_t nobs = bits.size();
     if (ie > nobs) ie = nobs;
-#if defined(DEBUG)
-    LOGGER(0)
-	<< "DEBUG -- calling sumBits(" << ib << ", " << ie << ")...";
-#endif
     if (ib >= ie) {
 	res.set(0, nrows); // no bitmap in the range
 	return;
@@ -5397,15 +5406,11 @@ void ibis::index::sumBits(uint32_t ib, uint32_t ie,
 /// - On exit, res = sum_{i=ib}^{ie} bits[i].
 void ibis::index::sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  uint32_t ib0, uint32_t ie0) const {
+    LOGGER(10) << "ibis::index[" << col->name() << "]::sumBits(" << ib
+	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	       << "), " << ib0 << ", " << ie0 << ") ...";
     if (ie > bits.size())
 	ie = bits.size();
-#if defined(DEBUG)
-    LOGGER(0)
-	<< "DEBUG -- calling sumBits(" << ib << ", " << ie
-	<< ") with old res(" << res.cnt() << " out of "
-	<< res.size() << ") from (" << ib0 << ", " << ie0
-	<< ")...";
-#endif
     if (ib0 > ie || ie0 < ib || ib0 >= ie0 ||
 	res.size() != nrows) {	// no overlap
 	sumBits(ib, ie, res);
@@ -5474,6 +5479,9 @@ void ibis::index::sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 /// a null pointer before using the bit vector.
 void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
+    LOGGER(10) << "ibis::index::addBins(" << bts.size()
+	       << "-bitvector set, " << ib << ", " << ie << ", res("
+	       << res.cnt() << ", " << res.size() << ")) ...";
     const uint32_t nobs = bts.size();
     if (res.cnt() >= res.size()) return; // useless to add more bit
     while (ib < nobs && bts[ib] == 0) // skip the leading nulls
@@ -5607,8 +5615,8 @@ void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "addBins(%lu, %lu) took %g sec(CPU) and "
-			       "%g sec(elapsed).",
+	ibis::util::logMessage("index", "addBins(%lu, %lu) took %g sec(CPU) "
+			       "and %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());
@@ -5629,6 +5637,9 @@ void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
 /// Tests show that using the function @c setBit is always slower.
 void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
+    LOGGER(10) << "ibis::index::sumBins(" << bts.size()
+	       << "-bitvector set, " << ib << ", " << ie << ", res("
+	       << res.cnt() << ", " << res.size() << ")) ...";
     typedef std::pair<ibis::bitvector*, bool> _elem;
     const uint32_t nobs = bts.size();
     if (ie > nobs) ie = nobs;
@@ -6816,6 +6827,10 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 			  const ibis::bitvector& tot, uint32_t ib,
 			  uint32_t ie, ibis::bitvector& res) {
+    LOGGER(10) << "ibis::index::sumBins(" << bts.size()
+	       << "-bitvector set, tot(" << tot.cnt() << ", " << tot.size()
+	       << "), " << ib << ", " << ie << "res(" << res.cnt() << ", "
+	       << res.size() << ")) ...";
     const uint32_t uncomp = (ibis::bitvector::bitsPerLiteral() == 8 ?
 			     tot.size() * 2 / 15 : tot.size() * 4 / 31);
     const uint32_t nobs = bts.size();
@@ -6899,8 +6914,8 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "sumBins(%lu, %lu) took %g sec(CPU) and "
-			       "%g sec(elapsed).",
+	ibis::util::logMessage("index", "sumBins(%lu, %lu) took %g sec(CPU) "
+			       "and %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());

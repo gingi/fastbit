@@ -41,7 +41,7 @@ public:
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const {
-	evaluate(expr, lower);
+	(void) evaluate(expr, lower);
 	upper.clear();
     }
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;

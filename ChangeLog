@@ -1,8 +1,32 @@
+2008-03-08 John Wu <John.Wu at ACM.org>
+	* src/index.cpp, src/ixbylt.cpp, src/ixfuzz.cpp, src/ixzona.cpp,
+	src/ixfuge.cpp: add logging function calls to print out the
+	progress information to help debugging
+	* src/ixbylt.cpp, src/ixfuzz.cpp, src/ixzona.cpp, src/ixfuge.cpp:
+	the two argument version of activateCoarse contain if-test on
+	bits[i] == 0, but they should have been cbits[i] == 0.  This
+	causes the two-level bitmap indexes to compute wrong answers in
+	some cases, especially in large selt tests where bits[i] is more
+	likely to have been used before.  In which case, cbits[i] will not
+	be activated.  On the other hand, if bits[i] was never used
+	(remaining 0), then it is possible for cbits[i] to be activated
+	multiple times.  Each time during the activation, it also acquires
+	a read lock on the file, however, it is only destroyed once which
+	release the lock on the file once.  Therefore, it is possible for
+	read locks on the index file to be left intact after the program
+	completes.  This causes the clean up function in the file manager
+	to fail to acquire a write lock and hung forever.
+
 2008-03-07 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: change get2DDistributionI and coarsenBins to
 	bypass the ibis::query layer to directly use the index object for
 	query evaluations, add a try-catch block in get2DDistribution to
 	clean up after the array of pointers to bitvectors
+	* src/index.cpp: add more functions to print progress messages (to
+	help with debugging the deadlock at the clean up stage, bug 8)
+	* src/ixbylt.cpp, src/ixfuzz.cpp, src/ixzona.cpp, src/ixfuge.cpp:
+	change remaining unsigned types to uint32_t in variables written
+	to or read from files
 
 2008-03-06 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add a function (getJointDistribution) to

@@ -40,9 +40,9 @@ ibis::bylt::bylt(const ibis::column *c, const char *f)
    following the last bitvector in ibis::relic is as follows, @sa
    ibis::bylt::writeCoarse.
 
-   nc      (uint32_t)         -- number of coarse bins.
+   nc      (uint32_t)       -- number of coarse bins.
    cbounds (unsigned[nc+1]) -- boundaries of the coarse bins.
-   coffsets(int32_t[nc+1])    -- starting position of the coarse level bitmaps.
+   coffsets(int32_t[nc+1])  -- starting position of the coarse level bitmaps.
    cbits   (bitvector[nc])  -- bitvector laid out one after another.
  */
 ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
@@ -53,19 +53,31 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     start = offsets.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
-	st->size() <= start + (sizeof(int32_t)+sizeof(unsigned))*(nc+1))
+	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
 	return;
 
     start += sizeof(uint32_t);
-    if (start+sizeof(unsigned)*(nc+1) < st->size()) {
+    if (start+sizeof(uint32_t)*(nc+1) < st->size()) {
 	array_t<uint32_t> tmp(st, start, nc+1);
 	cbounds.swap(tmp);
     }
-    start += sizeof(unsigned) * (nc+1);
+    start += sizeof(uint32_t) * (nc+1);
     if (start+sizeof(int32_t)*(nc+1) < st->size()) {
 	array_t<int32_t> tmp(st, start, nc+1);
 	coffsets.swap(tmp);
+	if (coffsets.back() > static_cast<int32_t>(st->size())) {
+	    coffsets.swap(tmp);
+	    array_t<uint32_t> tmp2;
+	    cbounds.swap(tmp2);
+	    return;
+	}
     }
+    else {
+	array_t<uint32_t> tmp2;
+	cbounds.swap(tmp2);
+	return;
+    }
+
     cbits.resize(nc);
     for (unsigned i = 0; i < nc; ++ i)
 	cbits[i] = 0;
@@ -181,6 +193,11 @@ void ibis::bylt::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::bylt::activateCoarse(all) "
+		  << "retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
@@ -202,6 +219,10 @@ void ibis::bylt::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::bylt::activateCoarse(all) "
+		      << "retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -246,7 +267,7 @@ void ibis::bylt::activateCoarse() const {
 	    UnixClose(fdes);
 	}
 	else {
-	    col->logWarning("activateCoarse", "failed to open file \"%s\""
+	    col->logWarning("bylt::activateCoarse", "failed to open file \"%s\""
 			    " ... %s", fname, strerror(errno));
 	}
     }
@@ -259,6 +280,7 @@ void ibis::bylt::activateCoarse() const {
 
 void ibis::bylt::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
+    if (cbits[i] != 0) return;	// already active
     ibis::column::mutexLock lock(col, "bylt::activateCoarse");
     if (cbits[i] != 0) return;	// already active
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
@@ -270,6 +292,11 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::bylt::activateCoarse(" << i
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	array_t<ibis::bitvector::word_t>
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
@@ -287,6 +314,10 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
+	    LOGGER(9) << "ibis::column[" << col->name()
+		      << "]::bylt::activateCoarse(" << i
+		      << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -304,7 +335,7 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 #endif
 	}
 	else {
-	    col->logWarning("activateCoarse",
+	    col->logWarning("bylt::activateCoarse",
 			    "failed to open file \"%s\" ... %s",
 			    fname, strerror(errno));
 	}
@@ -319,14 +350,12 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
     if (j > cbits.size())
 	j = cbits.size();
-    if (i >= j || i >= cbits.size()) // empty range
+    if (i >= j) // empty range
 	return;
     ibis::column::mutexLock lock(col, "bylt::activateCoarse");
 
-    bool incore = (cbits[i] != 0);
-    for (uint32_t k = i+1; k < j && incore; ++ k)
-	incore = (cbits[k] != 0);
-    if (incore) return; // all bitvectors active
+    while (i < j && cbits[i] != 0) ++ i;
+    if (i >= j) return; // all bitvectors active
 
     if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
 	col->logWarning("bylt::activateCoarse", "no records of offsets, "
@@ -335,8 +364,13 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
+	LOGGER(9) << "ibis::column[" << col->name()
+		  << "]::bylt::activateCoarse(" << i << ", " << j
+		  << ") retrieving data from ibis::fileManager::storage(0x"
+		  << str << ")";
+
 	while (i < j) {
-	    if (bits[i] == 0 && coffsets[i+1] > coffsets[i]) {
+	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 		array_t<ibis::bitvector::word_t>
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
@@ -358,6 +392,10 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
+		LOGGER(9) << "ibis::column[" << col->name()
+			  << "]::bylt::activateCoarse(" << i << ", " << j
+			  << ") retrieving data from file \"" << fname << "\"";
+
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -400,7 +438,7 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 		UnixClose(fdes);
 	    }
 	    else {
-		col->logWarning("activateCoarse",
+		col->logWarning("bylt::activateCoarse",
 				"failed to open file \"%s\" ... %s",
 				fname, strerror(errno));
 	    }
@@ -1270,11 +1308,11 @@ void ibis::bylt::writeCoarse(int fdes) const {
 	return;
 
     int32_t ierr;
-    const unsigned nc = (cbounds.size()-1 <= cbits.size() ?
+    const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
 			 cbounds.size()-1 : cbits.size());
     array_t<int32_t> offs(nc+1);
     ierr = UnixWrite(fdes, &nc, sizeof(nc));
-    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(unsigned)*(nc+1));
+    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
 	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -1393,7 +1431,7 @@ void ibis::bylt::read(const char* f) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	begin = offsets.back() + sizeof(nc);
-	end = begin + sizeof(unsigned)*(nc+1);
+	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
 	    cbounds.swap(tmp);
@@ -1440,7 +1478,7 @@ void ibis::bylt::readCoarse(const char* fn) {
 	}
 
 	begin = offsets.back() + sizeof(nc);
-	end = begin + sizeof(unsigned)*(nc+1);
+	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
 	    cbounds.swap(tmp);
@@ -1512,13 +1550,13 @@ void ibis::bylt::read(ibis::fileManager::storage* st) {
 	    uint32_t nc =
 		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
 	    if (nc > 0 && str->size() > static_cast<uint32_t>(offsets.back()) +
-		(sizeof(int32_t)+sizeof(unsigned))*(nc+1)) {
+		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
 		start = offsets.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(nc+1);
+		start += sizeof(uint32_t)*(nc+1);
 		array_t<int32_t> otmp(str, start, nc+1);
 
 		cbits.resize(nc);
@@ -1552,13 +1590,13 @@ void ibis::bylt::read(ibis::fileManager::storage* st) {
 	    uint32_t nc =
 		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
 	    if (nc > 0 && str->size() > offsets.back() +
-		(sizeof(int32_t)+sizeof(unsigned))*(nc+1)) {
+		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
 		start = offsets.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
-		start += sizeof(unsigned)*(nc+1);
+		start += sizeof(uint32_t)*(nc+1);
 		array_t<int32_t> otmp(str, start, nc+1);
 
 		cbits.resize(nc);

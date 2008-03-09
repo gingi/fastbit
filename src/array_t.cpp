@@ -68,7 +68,7 @@ array_t<T>::array_t(uint32_t n, const T& val)
 template<class T>
 array_t<T>::array_t(const array_t<T>& rhs)
     : actual(rhs.actual), m_begin(rhs.m_begin), m_end(rhs.m_end) {
-    if (actual)
+    if (actual != 0)
 	actual->beginUse();
     //timer.start();
 }
