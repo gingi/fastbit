@@ -212,17 +212,16 @@ namespace ibis {
 
     class bitvector64; // the 64-bit version of bitvector class
 
-    ///@brief Compute the outer product of @c a and @c b, add the result to
-    ///@c c.
+    /// Compute the outer product of @c a and @c b, add the result to @c c.
     const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
 					  const ibis::bitvector& b,
 					  ibis::bitvector64& c);
-    ///@brief Add the strict upper triangular portion of the outer production
+    /// Add the strict upper triangular portion of the outer production
     /// between @c a and @c b to @c c.
     const ibis::bitvector64& outerProductUpper(const ibis::bitvector& a,
 					       const ibis::bitvector& b,
 					       ibis::bitvector64& c);
-    /// @brief The reference to the global configuration parameters.
+    /// The reference to the global configuration parameters.
     FASTBIT_DLLSPEC ibis::resource& gParameters();
 
     /// A data structure to store a small set of names.  The names are
@@ -365,9 +364,9 @@ namespace ibis {
 	inline char* strnewdup(const char* s, const uint32_t n);
 	/// Remove trailing character 'tail' from str
 	inline void removeTail(char* str, char tail);
-	///@brief Treat all bytes in buf as the string.
+	/// Treat all bytes in buf as the string.
 	FASTBIT_DLLSPEC char* getString(const char* buf);
-	///@brief Extract the next quoted string or the blank delimited string.
+	/// Extract the next quoted string or the blank delimited string.
 	FASTBIT_DLLSPEC void
 	getString(std::string& str, const char*& buf, const char *delim=0);
 	const char* getToken(char*& str, const char* tok_chrs);

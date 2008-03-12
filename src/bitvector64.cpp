@@ -3504,6 +3504,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 /// performance by directly using member variables of ibit::bitvector
 /// because the unit of compressed data from ibit::vector do not fit neatly
 /// into ibis::bitvector64::word_t.
+///
 /// Return a const reference of @c c.  If the input @c does not have
 /// the correct size, it will be replaced by the outer product.
 const ibis::bitvector64& ibis::outerProduct(const ibis::bitvector& a,

@@ -106,11 +106,17 @@ Known Issues
 
     make TESTDIR=/tmp/kwu/tests check
 
-    I don't know of any way to speed up the test under cygwin.  Guess,
-    you basically have to use the native file system on MS windows.  If
-    you do anything serious with FastBit, a reasonable option is to
-    compile the executables using setup in directory win.  If you have a
-    better way than provided there, I would like to hear about it.
+    The target 'quick-test' will take a few seconds, and 'full-check'
+    take about five (5) hours on my desktop PC running linux.
+
+    Running tests under cygwin seems to take much longer than on a linux
+    machine.  I don't know of any way to speed up the test under cygwin.
+    Guess, you basically have to use the native file system on MS
+    windows.  If you do anything serious with FastBit, a reasonable
+    option is to compile the executables using setup in directory win.
+    There is a Makefile file named win/MinGW.mak for compiling under
+    MinGW/MinSYS.  If you have a better way than provided there, I would
+    like to hear about it.
 
 (2) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
     choke up on a SGI Altix system.  It seems to work fine with a newer

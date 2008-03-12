@@ -311,17 +311,24 @@ static void printDistribution(const ibis::partList& tlist) {
 
 // print the joint distribution without any conditions -- exercise the new
 // get2DDistribution
-static void printJointDistribution(const ibis::part& tbl, const char *col1,
-				   const char *col2) {
+static void print2DDistribution(const ibis::part& tbl, const char *col1,
+				const char *col2, const char *cond) {
     std::vector<double> bds1, bds2;
     std::vector<uint32_t> cnts;
     ibis::util::logger lg(0);
-    long ierr = tbl.get2DDistribution(col1, col2, 25, 25, bds1, bds2, cnts);
+    long ierr;
+    if (cond == 0 || *cond == 0)
+	ierr = tbl.get2DDistribution(col1, col2, 25, 25, bds1, bds2, cnts);
+    else
+	ierr = tbl.get2DDistribution(cond, col1, col2, 25, 25, bds1, bds2,
+				     cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	const uint32_t nbin2 = bds2.size() - 1;
-	lg.buffer() << "\nJoint distribution of " << col1 << " and " << col2
-		    << " from table " << tbl.name()
-		    << ", # bins " << cnts.size() << " on " << bds1.size()-1
+	lg.buffer() << "\n2D-Joint distribution of " << col1 << " and " << col2
+		    << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()-1
 		    << " x " << bds2.size()-1 << " cells\n";
 
 	uint32_t cnt = 0, tot=0;
@@ -330,10 +337,8 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 		uint32_t i1 = i / nbin2;
 		uint32_t i2 = i % nbin2;
 		lg.buffer() << i << "\t[" << bds1[i1] << ", " << bds1[i1+1]
-			    << (i1+2 < bds1.size() ? ")" : "]")
-			    << " [" << bds2[i2] << ", " << bds2[i2+1]
-			    << (i2+2 < bds2.size() ? ")" : "]")
-			    << "\t" << cnts[i] << "\n";
+			    << ") [" << bds2[i2] << ", " << bds2[i2+1]
+			    << ")\t" << cnts[i] << "\n";
 		tot += cnts[i];
 		++ cnt;
 	    }
@@ -342,7 +347,7 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 		    << ", total count = " << tot << ", number of rows in "
 		    << tbl.name() << " = " << tbl.nRows() << "\n";
     }
-} // printJointDistribution
+} // print2DDistribution
 
 // the joint distribution may subject to some conditions -- exercises the
 // old getJointDistribution
@@ -428,10 +433,11 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	    warn = false;
 	    for (ibis::partList::const_iterator tit = tlist.begin();
 		 tit != tlist.end(); ++ tit) {
-		printJointDistribution(*((*tit).second), name1.c_str(),
-				       name2.c_str(), cond);
-		printJointDistribution(*((*tit).second), name1.c_str(),
-				       name2.c_str());
+		if (ibis::gVerbose > 5)
+		    printJointDistribution(*((*tit).second), name1.c_str(),
+					   name2.c_str(), cond);
+		print2DDistribution(*((*tit).second), name1.c_str(),
+				    name2.c_str(), cond);
 	    }
 	}
     }

@@ -56,13 +56,13 @@ public:
     /// column.
     void computeMinMax();
 
-    /// @brief Load and immediately unload indexes.
+    /// Load and immediately unload indexes.
     void buildIndex(int nthr=1, const char* opt=0);
     /// Load indexes of all columns.
     void loadIndex(const char* opt=0) const;
     /// Unload indexes of all columns.
     void unloadIndex() const;
-    /// @brief Remove existing index files!
+    /// Remove existing index files!
     void purgeIndexFiles() const;
 
     /// Return the name of the partition.
@@ -301,13 +301,17 @@ public:
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 1D histogram with the specified number of bins.
-    long get1DDistribution(const char *cname, const uint32_t nbin,
+    long get1DDistribution(const char *cname, uint32_t nbin,
 			   std::vector<double>& bounds,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 2D histogram with the specified number of bins.
     long get2DDistribution(const char *cname1, const char *cname2,
-			   const uint32_t nb1, const uint32_t nb2,
+			   uint32_t nb1, uint32_t nb2,
+			   std::vector<double>& bounds1,
+			   std::vector<double>& bounds2,
+			   std::vector<uint32_t>& counts) const;
+    long get2DDistribution(const char *constraints,
+			   const char *name1, const char *name2,
+			   uint32_t nb1, uint32_t nb2,
 			   std::vector<double>& bounds1,
 			   std::vector<double>& bounds2,
 			   std::vector<uint32_t>& counts) const;
@@ -318,7 +322,7 @@ public:
     /// @c bounds defines the following bins:
     /// @pre
     /// (..., bounds[0]) [bounds[0], bounds[1]) ... [bounds.back(), ...).
-    /// @endpre
+    ///
     /// In other word, @c bounds[n] defines (n+1) bins, with two open bins
     /// at the two ends.  The array @c counts contains the number of rows
     /// fall into each bin.  On a successful return from this function, the
@@ -676,20 +680,20 @@ protected:
 		     std::vector<uint32_t>& counts) const;
 
     /// Comptue 1D histogram from index.
-    long get1DDistribution(const ibis::column& col, const uint32_t nbin,
+    long get1DDistribution(const ibis::column& col, uint32_t nbin,
 			   std::vector<double>& bounds,
 			   std::vector<uint32_t>& counts) const;
     /// Compute 2D histogram from base data.
     long get2DDistributionD(const ibis::column& col1,
 			    const ibis::column& col2,
-			    const uint32_t nb1, const uint32_t nb2,
+			    uint32_t nb1, uint32_t nb2,
 			    std::vector<double>& bounds1,
 			    std::vector<double>& bounds2,
 			    std::vector<uint32_t>& counts) const;
     /// Compute 2D histogram from indexes.
     long get2DDistributionI(const ibis::column& col1,
 			    const ibis::column& col2,
-			    const uint32_t nb1, const uint32_t nb2,
+			    uint32_t nb1, uint32_t nb2,
 			    std::vector<double>& bounds1,
 			    std::vector<double>& bounds2,
 			    std::vector<uint32_t>& counts) const;
@@ -697,6 +701,20 @@ protected:
     int coarsenBins(const ibis::column& col, uint32_t nbin,
 		    std::vector<double>& bnds,
 		    std::vector<ibis::bitvector*>& btmp) const;
+
+    template <typename E1, typename E2>
+	static void mapValues(const array_t<E1>& val1, const array_t<E2>& val2,
+			      uint32_t nb1, uint32_t nb2,
+			      array_t<E1>& bnd1, array_t<E2>& bnd2,
+			      std::vector<uint32_t>& cnts);
+
+    template <typename T>
+	static void mapValues(const array_t<T>& vals,
+			      std::map<T, uint32_t>& hist);
+
+    template <typename T>
+	static void equalWeightBins(const array_t<T>& vals,
+				    uint32_t nbins, array_t<T>& bounds);
 
 private:
 
@@ -787,13 +805,10 @@ namespace ibis {
     // deal with the reconstruction of partitions.
     namespace util {
 	/// Look for data directories in the given pair of directories.
-	/// Will descend into the subdirectories when run on unix systems
-	/// to look for matching subdirectories.
 	void FASTBIT_DLLSPEC
 	tablesFromDir(ibis::partList& tables,
 		      const char *adir, const char *bdir);
-	/// Look into the given directory for table.tdc files.  Can descend
-	/// into subdirectories through opendir family of functions.
+	/// Look into the given directory for table.tdc files
 	void FASTBIT_DLLSPEC
 	tablesFromDir(ibis::partList& tables, const char *adir);
 	/// Reconstruct partitions using data directories specified in the
@@ -823,7 +838,7 @@ private:
     info();	// private default constructor, not implemented!
 }; // ibis::part::info
 
-///@brief A cleaner to be used by the fileManager::unload function.
+/// A cleaner to be used by the fileManager::unload function.
 class ibis::part::cleaner : public ibis::fileManager::cleaner {
 public:
     inline virtual void operator()() const;

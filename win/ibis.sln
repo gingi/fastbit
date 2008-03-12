@@ -9,6 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thula", "thula.vcproj", "{3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ardea", "ardea.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0D}"
 	ProjectSection(ProjectDependencies) = postProject
+		{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F} = {360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcapi", "tcapi.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0C}"
@@ -17,6 +18,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcapi", "tcapi.vcproj", "{3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "java", "java.vcproj", "{C5EE61F0-0EF6-431A-90C1-3F6FF3F5B614}"
 	ProjectSection(ProjectDependencies) = postProject
+		{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13} = {1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dll", "dll.vcproj", "{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}"

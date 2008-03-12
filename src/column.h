@@ -58,9 +58,10 @@ public:
     const char* description() const {return m_desc.c_str();}
     const double& lowerBound() const {return lower;}
     const double& upperBound() const {return upper;}
-    inline int elementSize() const;
-    inline bool isInteger() const;
-    inline bool isNumeric() const;
+    inline int elementSize() const; //< Size of a data element in bytes.
+    inline bool isFloat() const; //< Is it floating-point values?
+    inline bool isInteger() const; //< Is it an integer values?
+    inline bool isNumeric() const; //< Is it a numberical value?
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
@@ -241,7 +242,7 @@ public:
     /// contains bin boundaries that defines the following bins:
     /// @pre
     ///    (..., bins[0]) [bins[0], bins[1]) ... [bins.back(), ...).
-    /// @endpre
+    ///
     /// Because of the two open bins at the end, N bin boundaries defines
     /// N+1 bins.  The array @c counts has one more element than @c bins.
     /// This function returns the number of bins.  If this function was
@@ -572,6 +573,10 @@ inline int ibis::column::elementSize() const {
     }
     return sz;
 } // ibis::column::elementSize
+
+inline bool ibis::column::isFloat() const {
+    return(m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
+} // ibis::column::isFloat
 
 inline bool ibis::column::isInteger() const {
     return(m_type == ibis::BYTE || m_type == ibis::UBYTE ||

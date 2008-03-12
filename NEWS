@@ -1,6 +1,10 @@
+Wed Mar 12 10:20:16 PDT 2008
 Version b0.8.7
 -- add try-catch blocks to various interval encoded indexes to free
    memory in case of exception
+-- add a new variant of get2DDistribution requested by Oliver and Prabhat
+-- add a new count function to remove the need to invoke the bitwise
+   logical AND operations while computing histograms using indexes
 
 Sun Mar  9 07:52:50 PDT 2008
 Version b0.8.6

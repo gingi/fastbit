@@ -168,8 +168,8 @@ public:
     /// It stops looking as soon as it finds the first non-empty string.
     /// To override any general index specification, one must provide a
     /// complete index specification string.
-    static ibis::index* create(const ibis::column* c, const char* name=0,
-			       const char* spec=0);
+    static index* create(const column* c, const char* name=0,
+			 const char* spec=0);
     /// Read the header of the named file to determine if it contains an
     /// index of the specified type.  Returns true if the correct header is
     /// found, else return false.

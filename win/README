@@ -20,7 +20,7 @@ NOTE: Visual Studio has to build the DLL project and trydll project
 separately!  Simply telling it to build the whole solution will produce
 two failures because it fails to build DLL project and trydll project.
 The solution is to build them separately.  If you know of a way to do
-this in a nicer way, please let use know.
+this in a nicer way, please let us know.
 
 NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
 with command line such as
@@ -33,7 +33,7 @@ ibis::query interface as well as the C API of Fastbit.
 To use the nmake system directly, one may build the DLL library and the
 test program tcapi.exe with the following commands (on one line)
 
-make -f Win.mak clean && make -f Win.mak dll && make -f win.mak tcapi trydll
+nmake -f Win.mak clean && nmake -f Win.mak dll && nmake -f win.mak tcapi trydll
 
 The test program trydll.cpp is a modified version of
 ..\examples\ibis.cpp with troublesome functions removed.  It maintains

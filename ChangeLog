@@ -1,3 +1,31 @@
+2008-03-12 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: replace the calls to bitwise AND operator with the
+	new count function in get2DDistributionI
+	* src/query.cpp: do not generate the query string from an
+	explicitly set query expression, add code to check for null
+	condition string in printing statements, change SET_PREDICATE
+	condition to base on whether member variable is a valid pointer.
+	This is to accommodate the situation where Prabhat and Oliver sets
+	a range condition with thousands of values of are requested in one
+	query expression.
+
+2008-03-11 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/part.cpp: add a new variation of
+	get2DDistribution that computes equal-weight bins for a 2D
+	histogram with specified number of bins as requested by Prabhat
+	and Oliver
+	* examples/ibis.cpp: modify print function to exercise the new
+	get2DDistribution function
+	* src/bitvector.h, src/bitvector.cpp: add function to count the
+	number of bits that are 1 for two bitvectors.  This function can
+	be used to by-pass the need to first compute a bitwise logical AND
+	operation and reduce the time needed to compute histogram through
+	bitmap indexes
+
+2008-03-10 John Wu <John.Wu at ACM.org>
+	* src/Doxyfile: change EXTRACT_ALL to YES, removed invalid command
+	endpre from column.h, part.h, and query.cpp
+
 2008-03-09 John Wu <John.Wu at ACM.org>
 	* src/imesa.cpp:26 move variable b2 outside of the try-block so it
 	can be used in the catch-block to clean up the bitvectors it held

@@ -225,11 +225,11 @@ void ibis::mesa::binBoundaries(std::vector<double>& ret) const {
     ret.resize(nobs+1);
     for (uint32_t i = 0; i < nobs; ++ i)
 	ret.push_back(bounds[i]);
-} // ibis::mesa::binBoundaries()
+} // ibis::mesa::binBoundaries
 
 void ibis::mesa::binWeights(std::vector<uint32_t>& ret) const {
     uint32_t i = 0, n2 = (nobs+1)/2;
-    activate(0U, nobs-(nobs-1)/2);
+    activate();
     ret.resize(nobs);
     while (i < nobs-n2) {
 	ibis::bitvector *tmp = *(bits[i]) - *(bits[i+1]);

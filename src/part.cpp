@@ -8234,28 +8234,31 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    counts[i] = 0;
     }
 
-    ibis::query qq(ibis::util::userName(), this);
-    qq.setSelectClause(cname);
+    long ierr;
+    ibis::bitvector mask;
     {
+	ibis::query qq(ibis::util::userName(), this);
+	qq.setSelectClause(cname);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
 	oss << cname << " between " << begin << " and " << end;
 	qq.setWhereClause(oss.str().c_str());
-    }
 
-    long ierr = qq.evaluate();
-    if (ierr < 0)
-	return ierr;
-    ierr = nbins;
-    if (qq.getNumHits() == 0)
-	return ierr;
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = nbins;
+	mask.copy(*(qq.getHitVector()));
+	if (mask.cnt() == 0)
+	    return ierr;
+    }
 
     switch (col->type()) {
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals = col->selectInts(*(qq.getHitVector()));
+	array_t<int32_t>* vals = col->selectInts(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>
@@ -8270,7 +8273,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	array_t<uint32_t>* vals = col->selectUInts(*(qq.getHitVector()));
+	array_t<uint32_t>* vals = col->selectUInts(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>
@@ -8284,7 +8287,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals = col->selectLongs(*(qq.getHitVector()));
+	array_t<int64_t>* vals = col->selectLongs(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>
@@ -8297,7 +8300,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	}
 	break;}
     case ibis::FLOAT: {
-	array_t<float>* vals = col->selectFloats(*(qq.getHitVector()));
+	array_t<float>* vals = col->selectFloats(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>
@@ -8310,7 +8313,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	}
 	break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals = col->selectDoubles(*(qq.getHitVector()));
+	array_t<double>* vals = col->selectDoubles(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>
@@ -8413,14 +8416,16 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    counts[i] = 0;
     }
 
-    ibis::query qq(ibis::util::userName(), this);
+    long ierr;
+    ibis::bitvector hits;
     {
+	ibis::query qq(ibis::util::userName(), this);
 	std::string sel = cname1;
 	sel += ',';
 	sel += cname2;
 	qq.setSelectClause(sel.c_str());
-    }
-    { // add constraints on the two selected variables
+
+	// add constraints on the two selected variables
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -8428,20 +8433,21 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << " AND " << cname2 << " between " << begin2 << " and "
 	    << end2;
 	qq.setWhereClause(oss.str().c_str());
-    }
 
-    long ierr = qq.evaluate();
-    if (ierr < 0)
-	return ierr;
-    ierr = nbins;
-    if (qq.getNumHits() == 0)
-	return ierr;
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = nbins;
+	if (qq.getNumHits() == 0)
+	    return ierr;
+	hits.copy(*(qq.getHitVector()));
+    }
 
     switch (col1->type()) {
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals1 = col1->selectInts(*(qq.getHitVector()));
+	array_t<int32_t>* vals1 = col1->selectInts(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8451,7 +8457,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8463,7 +8469,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8474,7 +8480,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8484,7 +8490,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8494,7 +8500,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8517,7 +8523,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	array_t<uint32_t>* vals1 = col1->selectUInts(*(qq.getHitVector()));
+	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8527,7 +8533,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8539,7 +8545,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8550,7 +8556,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8560,7 +8566,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8570,7 +8576,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8592,7 +8598,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals1 = col1->selectLongs(*(qq.getHitVector()));
+	array_t<int64_t>* vals1 = col1->selectLongs(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8602,7 +8608,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8614,7 +8620,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8625,7 +8631,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8635,7 +8641,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8645,7 +8651,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8666,7 +8672,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	delete vals1;
 	break;}
     case ibis::FLOAT: {
-	array_t<float>* vals1 = col1->selectFloats(*(qq.getHitVector()));
+	array_t<float>* vals1 = col1->selectFloats(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8676,7 +8682,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8688,7 +8694,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8699,7 +8705,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8709,7 +8715,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8719,7 +8725,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8740,7 +8746,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	delete vals1;
 	break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals1 = col1->selectDoubles(*(qq.getHitVector()));
+	array_t<double>* vals1 = col1->selectDoubles(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8750,7 +8756,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8762,7 +8768,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8773,7 +8779,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8783,7 +8789,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8793,7 +8799,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8858,16 +8864,18 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    counts[i] = 0;
     }
 
-    ibis::query qq(ibis::util::userName(), this);
+    long ierr;
+    ibis::bitvector hits;
     {
+	ibis::query qq(ibis::util::userName(), this);
 	std::string sel = cname1;
 	sel += ',';
 	sel += cname2;
 	sel += ',';
 	sel += cname3;
 	qq.setSelectClause(sel.c_str());
-    }
-    { // add constraints on the two selected variables
+
+	// add constraints on the two selected variables
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -8877,20 +8885,20 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << begin3 << " and "
 	    << end3;
 	qq.setWhereClause(oss.str().c_str());
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = nbins;
+	hits.copy(*(qq.getHitVector()));
+	if (hits.cnt() == 0)
+	    return ierr;
     }
-
-    long ierr = qq.evaluate();
-    if (ierr < 0)
-	return ierr;
-    ierr = nbins;
-    if (qq.getNumHits() == 0)
-	return ierr;
 
     switch (col1->type()) {
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals1 = col1->selectInts(*(qq.getHitVector()));
+	array_t<int32_t>* vals1 = col1->selectInts(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -8900,7 +8908,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8911,7 +8919,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -8925,7 +8933,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -8938,7 +8946,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -8950,7 +8958,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -8962,7 +8970,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -8986,7 +8994,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -8997,7 +9005,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9011,7 +9019,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9024,7 +9032,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9036,7 +9044,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9048,7 +9056,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9071,7 +9079,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9082,7 +9090,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9096,7 +9104,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9109,7 +9117,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9121,7 +9129,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9133,7 +9141,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9155,7 +9163,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9166,7 +9174,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9180,7 +9188,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9193,7 +9201,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9205,7 +9213,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9217,7 +9225,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9239,7 +9247,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9250,7 +9258,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9264,7 +9272,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9277,7 +9285,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9289,7 +9297,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9301,7 +9309,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9336,7 +9344,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	array_t<uint32_t>* vals1 = col1->selectUInts(*(qq.getHitVector()));
+	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -9346,7 +9354,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9357,7 +9365,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9371,7 +9379,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9384,7 +9392,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9396,7 +9404,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9408,7 +9416,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9432,7 +9440,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9443,7 +9451,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9457,7 +9465,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9470,7 +9478,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9482,7 +9490,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9494,7 +9502,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9517,7 +9525,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9528,7 +9536,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9542,7 +9550,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9555,7 +9563,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9567,7 +9575,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9579,7 +9587,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9601,7 +9609,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9612,7 +9620,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9626,7 +9634,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9639,7 +9647,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9651,7 +9659,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9663,7 +9671,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9685,7 +9693,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9696,7 +9704,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9710,7 +9718,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9723,7 +9731,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9735,7 +9743,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9747,7 +9755,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9781,7 +9789,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals1 = col1->selectLongs(*(qq.getHitVector()));
+	array_t<int64_t>* vals1 = col1->selectLongs(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -9791,7 +9799,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9802,7 +9810,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9816,7 +9824,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9829,7 +9837,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9841,7 +9849,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9853,7 +9861,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9877,7 +9885,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9888,7 +9896,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9902,7 +9910,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9915,7 +9923,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9927,7 +9935,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9939,7 +9947,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9962,7 +9970,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -9973,7 +9981,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -9987,7 +9995,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10000,7 +10008,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10012,7 +10020,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10024,7 +10032,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10046,7 +10054,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10057,7 +10065,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10071,7 +10079,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10084,7 +10092,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10096,7 +10104,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10108,7 +10116,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10130,7 +10138,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10141,7 +10149,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10155,7 +10163,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10168,7 +10176,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10180,7 +10188,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10192,7 +10200,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10225,7 +10233,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	delete vals1;
 	break;}
     case ibis::FLOAT: {
-	array_t<float>* vals1 = col1->selectFloats(*(qq.getHitVector()));
+	array_t<float>* vals1 = col1->selectFloats(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -10235,7 +10243,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10246,7 +10254,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10260,7 +10268,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10273,7 +10281,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10285,7 +10293,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10297,7 +10305,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10321,7 +10329,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10332,7 +10340,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10346,7 +10354,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10359,7 +10367,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10371,7 +10379,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10383,7 +10391,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10406,7 +10414,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10417,7 +10425,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10431,7 +10439,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10444,7 +10452,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10456,7 +10464,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10468,7 +10476,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10490,7 +10498,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10501,7 +10509,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10515,7 +10523,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10528,7 +10536,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10540,7 +10548,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10552,7 +10560,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10574,7 +10582,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10585,7 +10593,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10599,7 +10607,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10612,7 +10620,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10624,7 +10632,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10636,7 +10644,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10669,7 +10677,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	delete vals1;
 	break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals1 = col1->selectDoubles(*(qq.getHitVector()));
+	array_t<double>* vals1 = col1->selectDoubles(hits);
 	if (vals1 == 0) {
 	    ierr = -4;
 	    break;
@@ -10679,7 +10687,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::BYTE:
 	case ibis::SHORT:
 	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(*(qq.getHitVector()));
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10690,7 +10698,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10704,7 +10712,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10717,7 +10725,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10729,7 +10737,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10741,7 +10749,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10765,7 +10773,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	case ibis::UBYTE:
 	case ibis::USHORT:
 	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(*(qq.getHitVector()));
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10776,7 +10784,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10790,7 +10798,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10803,7 +10811,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10815,7 +10823,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10827,7 +10835,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10850,7 +10858,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(*(qq.getHitVector()));
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10861,7 +10869,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10875,7 +10883,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10888,7 +10896,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10900,7 +10908,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10912,7 +10920,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10934,7 +10942,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(*(qq.getHitVector()));
+	    array_t<float>* vals2 = col2->selectFloats(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -10945,7 +10953,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10959,7 +10967,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10972,7 +10980,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10984,7 +10992,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -10996,7 +11004,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11018,7 +11026,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(*(qq.getHitVector()));
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
 	    if (vals2 == 0) {
 		ierr = -5;
 		break;
@@ -11029,7 +11037,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::SHORT:
 	    case ibis::INT: {
 		array_t<int32_t>* vals3 =
-		    col3->selectInts(*(qq.getHitVector()));
+		    col3->selectInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11043,7 +11051,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::USHORT:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(*(qq.getHitVector()));
+		    col3->selectUInts(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11056,7 +11064,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    case ibis::ULONG:
 	    case ibis::LONG: {
 		array_t<int64_t>* vals3 =
-		    col3->selectLongs(*(qq.getHitVector()));
+		    col3->selectLongs(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11068,7 +11076,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::FLOAT: {
 		array_t<float>* vals3 =
-		    col3->selectFloats(*(qq.getHitVector()));
+		    col3->selectFloats(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11080,7 +11088,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::DOUBLE: {
 		array_t<double>* vals3 =
-		    col3->selectDoubles(*(qq.getHitVector()));
+		    col3->selectDoubles(hits);
 		if (vals3 == 0) {
 		    ierr = -6;
 		    break;
@@ -11124,13 +11132,96 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     return ierr;
 } // ibis::part::get3DDistribution
 
+/// Compute 1D histogram with the specified number of bins.
+/// The bounds array contains one more element than the counts array and
+/// all the bins defined by the bounds are closed ranges.  More
+/// specifically, the number of elements with values between
+/// @code [bounds[i], bounds[i+1]) @encode
+/// is stored in @c counts[i].  Note that the lower bound of a range is
+/// included in the bin, but the upper bound of a bin is excluded from the
+/// bin.
+long ibis::part::get1DDistribution(const char* cname, uint32_t nbin,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts) const {
+    if (cname == 0 || *cname == 0 || nEvents == 0) {
+	return -1;
+    }
+
+    const ibis::column* col = getColumn(cname);
+    if (col == 0) {
+	return -2;
+    }
+
+    return get1DDistribution(*col, nbin, bounds, counts);
+} // ibis::part::get1DDistribution
+
+/// Calls function ibis::column::getDistribution to create the internal
+/// histogram first, then pack them into a smaller number of bins if
+/// necessary.
+long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts) const {
+    const double begin = col.getActualMin();
+    const double end = col.getActualMax();
+    long ierr = col.getDistribution(bounds, counts);
+    if (ierr < 0) return ierr;
+
+    if (static_cast<unsigned>(ierr) > nbin*3/2) {
+	ibis::util::buffer<double> bbs(nbin+1);
+	ibis::util::buffer<uint32_t> cts(nbin+1);
+	double* pbbs = bbs.address();
+	uint32_t* pcts = cts.address();
+	if (pbbs != 0 && pcts != 0) {
+	    ierr = packDistribution(bounds, counts, nbin, pbbs, pcts);
+	    if (ierr > 1) { // use the packed bins
+		bounds.resize(ierr+1);
+		bounds[0] = begin;
+		for (int i = 0; i < ierr; ++ i)
+		    bounds[i+1] = pbbs[i];
+		bounds[ierr] = (col.isFloat() ? ibis::util::incrDouble(end) :
+				std::floor(end)+1.0);
+		counts.resize(ierr);
+		for (int i = 0; i < ierr; ++ i)
+		    counts[i] = pcts[i];
+		return ierr;
+	    }
+	}
+    }
+
+    // use the content of bounds and counts directly, need to add two
+    // values to array bounds
+    bounds.resize(counts.size()+1);
+    double prev = bounds[0];
+    bounds[0] = begin;
+    for (unsigned i = 1; i < counts.size(); ++ i) {
+	double tmp = bounds[i];
+	bounds[i] = prev;
+	prev = tmp;
+    }
+    if (col.isFloat()) {
+	bounds.back() = ibis::util::incrDouble(end);
+    }
+    else {
+	bounds.back() = std::floor(end) + 1.0;
+    }
+    return counts.size();
+} // ibis::part::get1DDistribution
+
 /**
+   Compute 2D histogram with the specified number of bins.
    The user only specify the name of the variables/columns and the number
    of bins for each variable.  This function is free to decide where to
    place the bin boundaries to count the bins as fast as possible.  If the
    indexes are available and are smaller than the raw data files, then the
    indexes are used to compute the histogram, otherwise, it reads the raw
    data files into memory and count the number of records in each bin.
+
+   Bin @c i1 in the first dimension is defined as
+   @code bounds1[i1] <= cname1 < bounds1[i1+1] @endcode
+   and bin @c i2 in the second dimension is defined as
+   @code bounds2[i2] <= cname2 < bounds2[i2+1] @endcode.
+   The 2D bins are linearized in @c counts with the second dimension as the
+   faster varying dimension.
 
    The return value is the number of bins, i.e., the size of array counts.
    Normally, the number of bins should be @code nb1 * nb2 @endcode.  For
@@ -11139,9 +11230,12 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 
    The last three arguments bounds1, bounds2, and counts are for output
    only.  Their input values will be ignored.
+
+   @sa get2DDistributionD.
+   @sa get2DDistributionI.
  */
 long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
-				   const uint32_t nb1, const uint32_t nb2,
+				   uint32_t nb1, uint32_t nb2,
 				   std::vector<double>& bounds1,
 				   std::vector<double>& bounds2,
 				   std::vector<uint32_t>& counts) const {
@@ -11162,7 +11256,8 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 	return -3L;
 
     if ((elem1 <= 0 || elem2 <= 0) ||
-	(idx1 > 0 && idx2 > 0 && (idx1+idx2) < (elem1+elem2)*nEvents/4)) {
+	(idx1 > 0 && idx2 > 0 && ((double)idx1*nb2+(double)idx2*nb1)*0.1 <
+	 static_cast<double>(elem1+elem2)*nEvents)) {
 #ifdef DEBUG
 	(void) get2DDistributionD(*col1, *col2, nb1, nb2,
 				  bounds1, bounds2, counts);
@@ -11186,7 +11281,7 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 /// binns are defined with regular spacing.
 long ibis::part::get2DDistributionD(const ibis::column& col1,
 				    const ibis::column& col2,
-				    const uint32_t nb1, const uint32_t nb2,
+				    uint32_t nb1, uint32_t nb2,
 				    std::vector<double>& bounds1,
 				    std::vector<double>& bounds2,
 				    std::vector<uint32_t>& counts) const {
@@ -11198,14 +11293,12 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	    << col1.name() << " and " << col2.name() << " using base data";
 	timer.start();
     }
-    uint32_t nb1a = nb1;
-    uint32_t nb2a = nb2;
     uint32_t nbmax = static_cast<uint32_t>(0.5*sqrt((double)nEvents));
     if (nbmax < 1000) nbmax = 1000;
-    if (nb1 <= 1) nb1a = 100;
-    else if (nb1 > nbmax) nb1a = nbmax;
-    if (nb2 <= 1) nb2a = 100;
-    else if (nb2 > nbmax) nb2a = nbmax;
+    if (nb1 <= 1) nb1 = 100;
+    else if (nb1 > nbmax) nb1 = nbmax;
+    if (nb2 <= 1) nb2 = 100;
+    else if (nb2 > nbmax) nb2 = nbmax;
     const double begin1 = col1.getActualMin();
     const double begin2 = col2.getActualMin();
     const double end1 = col1.getActualMax();
@@ -11223,9 +11316,10 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	    return 1L;
 	}
 	else { // col1 has 1 distinct value
-	    double stride2 = (ibis::util::incrDouble(end2) - begin2) / nb2a;
-	    bounds2.resize(nb2a+1);
-	    for (uint32_t i = 0; i <= nb2a; ++ i)
+	    double stride2 = ((col2.isFloat() ? ibis::util::incrDouble(end2) :
+			       end2+1) - begin2) / nb2;
+	    bounds2.resize(nb2+1);
+	    for (uint32_t i = 0; i <= nb2; ++ i)
 		bounds2[i] = begin2 + i * stride2;
 	    return get1DDistribution(0, col2.name(), begin2, end2, stride2,
 				     counts);
@@ -11235,25 +11329,40 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	bounds2.resize(2);
 	bounds2[0] = begin2;
 	bounds2[1] = end2;
-	double stride1 = (ibis::util::incrDouble(end1) - begin1) / nb1a;
-	bounds1.resize(nb1a+1);
-	for (uint32_t i = 0; i < nb1a; ++ i)
+	double stride1 = ((col1.isFloat() ? ibis::util::incrDouble(end1) :
+			   end1+1) - begin1) / nb1;
+	bounds1.resize(nb1+1);
+	for (uint32_t i = 0; i < nb1; ++ i)
 	    bounds1[i] = begin1 + i * stride1;
 	return get1DDistribution(0, col1.name(), begin1, end1, stride1,
 				 counts);
     }
 
     // normal case -- both columns have more than one distinct value
-    const double stride1 = (ibis::util::incrDouble(end1) - begin1) / nb1a;
-    const double stride2 = (ibis::util::incrDouble(end2) - begin2) / nb2a;
+    double stride1;
+    double stride2;
+    if (col1.isFloat()) {
+	stride1 = (end1 - begin1) / nb1;
+	stride1 = ibis::util::compactValue(stride1, stride1*(1.0+0.5/nb1));
+    }
+    else {
+	stride1 = (1.0 + end1 - begin1) / nb1;
+    }
+    if (col2.isFloat()) {
+	stride2 = (end2 - begin2) / nb2;
+	stride2 = ibis::util::compactValue(stride2, stride2*(1.0+0.5/nb2));
+    }
+    else {
+	stride2 = (1.0 + end2 - begin2) / nb2;
+    }
     const size_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
-    if (nbins != nb1a * nb2a) {
+    if (nbins != nb1 * nb2) {
 	LOGGER(0) << "Warning -- ibis::part[" << m_name
 		  << "]::get2DDistributionD - nbins (" << nbins
-		  << ") is expected to be the product of nb1a (" << nb1a
-		  << ") and nb2a (" << nb2a << "), but is now";
+		  << ") is expected to be the product of nb1 (" << nb1
+		  << ") and nb2 (" << nb2 << "), but is now";
 	return -4L;
     }
 
@@ -11284,11 +11393,11 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
     counts.resize(nbins);
     for (size_t i = 0; i < nbins; ++i)
 	counts[i] = 0;
-    bounds1.resize(nb1a+1);
-    for (uint32_t i = 0; i <= nb1a; ++ i)
+    bounds1.resize(nb1+1);
+    for (uint32_t i = 0; i <= nb1; ++ i)
 	bounds1[i] = begin1 + i * stride1;
-    bounds2.resize(nb2a+1);
-    for (uint32_t i = 0; i <= nb2a; ++ i)
+    bounds2.resize(nb2+1);
+    for (uint32_t i = 0; i <= nb2; ++ i)
 	bounds2[i] = begin2 + i * stride2;
 
     switch (col1.type()) {
@@ -11691,7 +11800,7 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 
 long ibis::part::get2DDistributionI(const ibis::column& col1,
 				    const ibis::column& col2,
-				    const uint32_t nb1, const uint32_t nb2,
+				    uint32_t nb1, uint32_t nb2,
 				    std::vector<double>& bounds1,
 				    std::vector<double>& bounds2,
 				    std::vector<uint32_t>& counts) const {
@@ -11706,12 +11815,10 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 
     uint32_t nbmax = static_cast<uint32_t>(0.5*sqrt((double)nEvents));
     if (nbmax < 1000) nbmax = 1000;
-    uint32_t nb1a = nb1;
-    uint32_t nb2a = nb2;
-    if (nb1 <= 1) nb1a = 100;
-    else if (nb1 > nbmax) nb1a = nbmax;
-    if (nb2 <= 1) nb2a = 100;
-    else if (nb2 > nbmax) nb2a = nbmax;
+    if (nb1 <= 1) nb1 = 100;
+    else if (nb1 > nbmax) nb1 = nbmax;
+    if (nb2 <= 1) nb2 = 100;
+    else if (nb2 > nbmax) nb2 = nbmax;
     const double begin1 = col1.getActualMin();
     const double begin2 = col2.getActualMin();
     const double end1 = col1.getActualMax();
@@ -11729,14 +11836,14 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    return 1L;
 	}
 	else { // col1 has 1 distinct value, but not col2
-	    return get1DDistribution(col2, nb2a, bounds2, counts);
+	    return get1DDistribution(col2, nb2, bounds2, counts);
 	}
     }
     else if (end2 <= begin2) { // col2 has 1 distinct value
 	bounds2.resize(2);
 	bounds2[0] = begin2;
 	bounds2[1] = end2;
-	return get1DDistribution(col1, nb1a, bounds2, counts);
+	return get1DDistribution(col1, nb1, bounds2, counts);
     }
 
     // normal case -- both columns have more than one distinct value
@@ -11750,7 +11857,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	return -1L;
     }
 
-    array_t<uint32_t> w1bnds(nb1a);
+    array_t<uint32_t> w1bnds(nb1);
     std::vector<double> idx1bin;
     idx1->binBoundaries(idx1bin);
     while (idx1bin.size() > 1 && idx1bin.back() >= end1)
@@ -11762,7 +11869,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    << col1.name() << " contains no valid values or only one value";
 	return -2L;
     }
-    else if (idx1bin.size() > nb1a*3/2) {
+    else if (idx1bin.size() > nb1*3/2) {
 	std::vector<uint32_t> idx1wgt;
 	idx1->binWeights(idx1wgt);
 	if (idx1bin.size() > idx1wgt.size()) {
@@ -11783,7 +11890,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    LOGGER(3)
 		<< "ibis::part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI can not divide " << idx1bin.size()
-		<< "bins into " << nb1a << " coarser bins";
+		<< "bins into " << nb1 << " coarser bins";
 	    return -4L;
 	}
     }
@@ -11797,11 +11904,11 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
     bounds1[0] = begin1;
     for (unsigned i = 1; i < w1bnds.size(); ++ i)
 	bounds1[i] = idx1bin[w1bnds[i-1]];
-    bounds1.back() = end1;
+    bounds1.back() = (col1.isFloat() ? ibis::util::incrDouble(end1) : end1+1);
 
     std::vector<ibis::bitvector*> bins2;
     try {
-	long ierr = coarsenBins(col2, nb2a, bounds2, bins2);
+	long ierr = coarsenBins(col2, nb2, bounds2, bins2);
 	if (ierr < 0) {
 	    LOGGER(3)
 		<< "ibis::part[" << (m_name ? m_name : "")
@@ -11817,13 +11924,17 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 		bounds2[i] = prev;
 		prev = tmp;
 	    }
-	    bounds2.back() = end2;
+	    bounds2.back() = (col2.isFloat() ? ibis::util::incrDouble(end2) :
+			      end2+1);
 	}
 
 	counts.resize((bounds1.size()-1) * bins2.size());
 	ibis::qContinuousRange rng1(col1.name(), ibis::qExpr::OP_LT,
 				    bounds1[1]);
 	ibis::bitvector bv;
+	LOGGER(5) << "ibis::part[" << (m_name ? m_name : "")
+		  << "]::get2DDistributionI evaluating " << rng1
+		  << " for bin 0 in " << col1.name();
 	ierr = idx1->evaluate(rng1, bv);
 	if (ierr < 0) {
 	    LOGGER(3)
@@ -11835,14 +11946,20 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 
 	if (ierr > 0) {
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
+		counts[i] = bv.count(*bins2[i]);
+#if defined(DEBUG)
 		ibis::bitvector *tmp = bv & (*bins2[i]);
 		if (tmp != 0) {
-		    counts[i] = tmp->cnt();
+		    if (tmp->cnt() != counts[i]) {
+			LOGGER(0) << "Warning -- function ibis::bitvector::count did not produce correct answer";
+			(void) bv.count(*bins2[i]);
+		    }
 		    delete tmp;
 		}
 		else {
-		    counts[i] = 0;
+		    LOGGER(0) << "Warning -- bitwise AND didnot produce a valid bitvector";
 		}
+#endif
 	    }
 	}
 	else { // no records
@@ -11856,6 +11973,9 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    size_t jc = j * bins2.size();
 	    rng1.leftBound() = bounds1[j];
 	    rng1.rightBound() = bounds1[j+1];
+	    LOGGER(5) << "ibis::part[" << (m_name ? m_name : "")
+		      << "]::get2DDistributionI evaluating " << rng1
+		      << " for bin " << j << " in " << col1.name();
 	    ierr = idx1->evaluate(rng1, bv);
 	    if (ierr < 0) {
 		LOGGER(3)
@@ -11866,14 +11986,20 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    }
 	    if (ierr > 0) {
 		for (unsigned i = 0; i < bins2.size(); ++ i) {
+		    counts[jc + i] = bv.count(*bins2[i]);
+#if defined(DEBUG)
 		    ibis::bitvector *tmp = bv & (*bins2[i]);
 		    if (tmp != 0) {
-			counts[jc + i] = tmp->cnt();
+			if (tmp->cnt() != counts[jc+i]) {
+			    LOGGER(0) << "Warning -- function ibis::bitvector::count did not produce correct answer";
+			    (void) bv.count(*bins2[i]);
+			}
 			delete tmp;
 		    }
 		    else {
-			counts[jc + i] = 0;
+			LOGGER(0) << "Warning -- bitwise AND didnot produce a valid bitvector";
 		    }
+#endif
 		}
 	    }
 	    else {
@@ -11884,6 +12010,9 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 
 	rng1.rightOperator() = ibis::qExpr::OP_UNDEFINED;
 	rng1.leftBound() = bounds1[bounds1.size()-2];
+	LOGGER(5) << "ibis::part[" << (m_name ? m_name : "")
+		  << "]::get2DDistributionI evaluating " << rng1
+		  << " for bin " << bounds1.size()-1 << " in " << col1.name();
 	ierr = idx1->evaluate(rng1, bv);
 	if (ierr < 0) {
 	    LOGGER(3)
@@ -11895,14 +12024,20 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	if (ierr > 0) {
 	    const size_t jc = (bounds1.size()-2) * bins2.size();
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
+		counts[jc + i] = bv.count(*bins2[i]);
+#if defined(DEBUG)
 		ibis::bitvector *tmp = bv & (*bins2[i]);
 		if (tmp != 0) {
-		    counts[jc + i] = tmp->cnt();
+		    if (tmp->cnt() != counts[jc+i]) {
+			LOGGER(0) << "Warning -- function ibis::bitvector::count did not produce correct answer, entering it for debugging purpose ...";
+			(void) bv.count(*bins2[i]);
+		    }
 		    delete tmp;
 		}
 		else {
-		    counts[jc + i] = 0;
+		    LOGGER(0) << "Warning -- bitwise AND didnot produce a valid bitvector";
 		}
+#endif
 	    }
 	}
 	else {
@@ -12009,6 +12144,9 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
     bnds[0] = idxbin[wbnds[0]];
     ibis::qContinuousRange rng(col.name(), ibis::qExpr::OP_LT, bnds[0]);
     ibis::bitvector bv;
+    LOGGER(6) << "ibis::part[" << (m_name ? m_name : "")
+	      << "]::coarsenBins evaluating " << rng << " for bin 0 in "
+	      << col.name();
     long ierr = idx->evaluate(rng, bv);
     if (ierr < 0) {
 	LOGGER(3)
@@ -12026,6 +12164,9 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 	rng.leftBound() = idxbin[wbnds[i-1]];
 	rng.rightBound() = idxbin[wbnds[i]];
 	bnds[i] = idxbin[wbnds[i]];
+	LOGGER(6) << "ibis::part[" << (m_name ? m_name : "")
+		  << "]::coarsenBins evaluating " << rng << " for bin "
+		  << i << " in " << col.name();
 
 	ierr = idx->evaluate(rng, bv);
 	if (ierr < 0) {
@@ -12043,6 +12184,9 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
     // last bin: open to the right
     rng.rightOperator() = ibis::qExpr::OP_UNDEFINED;
     rng.leftBound() = idxbin[wbnds[wbnds.size()-2]];
+    LOGGER(6) << "ibis::part[" << (m_name ? m_name : "")
+	      << "]::coarsenBins evaluating " << rng << " for bin "
+	      << wbnds.size()-1 << " in " << col.name();
     ierr = idx->evaluate(rng, bv);
     if (ierr < 0) {
 	LOGGER(3)
@@ -12056,68 +12200,535 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
     return btmp.size();
 } // ibis::part::coarsenBins
 
-/// This function mainly performs error checking before calling the
-/// function with the same name to do the actual work.
-long ibis::part::get1DDistribution(const char* cname, const uint32_t nbin,
-				   std::vector<double>& bounds,
+/**
+   Computes a conditional 2D histogram to have the specified number of
+   bins.  This function goes through the data twice to make sure the 1D
+   bins for each dimension are equal-weight bins.  This does not guarantee
+   that the 2D bins are equal-weight.
+
+   @sa get2DDistribution.
+ */
+long ibis::part::get2DDistribution(const char *constraints,
+				   const char *name1, const char *name2,
+				   uint32_t nb1, uint32_t nb2,
+				   std::vector<double>& bounds1,
+				   std::vector<double>& bounds2,
 				   std::vector<uint32_t>& counts) const {
-    if (cname == 0 || *cname == 0 || nEvents == 0) {
-	return -1;
+    long ierr = -1;
+    columnList::const_iterator it1 = columns.find(name1);
+    columnList::const_iterator it2 = columns.find(name2);
+    if (it1 == columns.end() || it2 == columns.end()) {
+	if (it1 == columns.end())
+	    logWarning("get2DDistribution", "%s is not a known column name",
+		       name1);
+	if (it2 == columns.end())
+	    logWarning("get2DDistribution", "%s is not a known column name",
+		       name2);
+	return ierr;
     }
 
-    const ibis::column* col = getColumn(cname);
-    if (col == 0) {
-	return -2;
+    const ibis::column *col1 = (*it1).second;
+    const ibis::column *col2 = (*it2).second;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    ibis::bitvector mask;
+    if (constraints != 0 && *constraints != 0) {
+	ibis::query q(ibis::util::userName(), this);
+	q.setWhereClause(constraints);
+	ierr = q.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	const ibis::bitvector *hits = q.getHitVector();
+	if (hits->cnt() == 0) // nothing to do any more
+	    return 0;
+	mask.copy(*hits);
+    }
+    else {
+	col1->getNullMask(mask);
+	ibis::bitvector tmp;
+	col2->getNullMask(tmp);
+	mask &= tmp;
     }
 
-    return get1DDistribution(*col, nbin, bounds, counts);
-} // ibis::part::get1DDistribution
-
-/// Calls function ibis::column::getDistribution to create the internal
-/// histogram first, then pack them into a smaller number of bins if
-/// necessary.
-long ibis::part::get1DDistribution(const ibis::column& col, const uint32_t nbin,
-				   std::vector<double>& bounds,
-				   std::vector<uint32_t>& counts) const {
-    const double begin = col.getActualMin();
-    const double end = col.getActualMax();
-    long ierr = col.getDistribution(bounds, counts);
-    if (ierr < 0) return ierr;
-
-    if (static_cast<unsigned>(ierr) > nbin*3/2) {
-	ibis::util::buffer<double> bbs(nbin+1);
-	ibis::util::buffer<uint32_t> cts(nbin+1);
-	double* pbbs = bbs.address();
-	uint32_t* pcts = cts.address();
-	if (pbbs != 0 && pcts != 0) {
-	    ierr = packDistribution(bounds, counts, nbin, pbbs, pcts);
-	    if (ierr > 1) { // use the packed bins
-		bounds.resize(ierr+1);
-		bounds[0] = begin;
-		for (int i = 0; i < ierr; ++ i)
-		    bounds[i+1] = pbbs[i];
-		bounds[ierr] = ibis::util::incrDouble(end);
-		counts.resize(ierr);
-		for (int i = 0; i < ierr; ++ i)
-		    counts[i] = pcts[i];
-		return ierr;
-	    }
+    counts.clear();
+    switch (col1->type()) {
+    case ibis::SHORT:
+    case ibis::BYTE:
+    case ibis::INT: {
+	array_t<int32_t> *val1 = col1->selectInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
 	}
+	array_t<int32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution",
+		       "unable to handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
+    case ibis::USHORT:
+    case ibis::UBYTE:
+    case ibis::UINT:
+    case ibis::CATEGORY: {
+	array_t<uint32_t> *val1 = col1->selectUInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	array_t<uint32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution",
+		       "unable to handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> *val1 = col1->selectFloats(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	array_t<float> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution",
+		       "unable to handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> *val1 = col1->selectDoubles(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+
+	array_t<double> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
+
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution",
+		       "unable to handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
+    default: {
+	ierr = -3;
+	logWarning("get2DDistribution",
+		   "unable to handle column type %d",
+		   static_cast<int>(col1->type()));
+	break;}
     }
 
-    // use the content of bounds and counts directly, need to add two
-    // values to array bounds
-    bounds.resize(counts.size()+1);
-    double prev = bounds[0];
-    bounds[0] = begin;
-    for (unsigned i = 1; i < counts.size(); ++ i) {
-	double tmp = bounds[i];
-	bounds[i] = prev;
-	prev = tmp;
+    if ((bounds1.size()-1) * (bounds2.size()-1) == counts.size())
+	ierr = counts.size();
+    else
+	ierr = -2;
+    if (ierr > 0 && ibis::gVerbose > 1) {
+	timer.stop();
+	logMessage("get2DDistribution",
+		   "computing the joint distribution of "
+		   "column %s and %s%s%s took %g "
+		   "sec(CPU) and %g sec(elapsed)",
+		   (*it1).first, (*it2).first,
+		   (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
     }
-    bounds.back() = ibis::util::incrDouble(end);
-    return counts.size();
-} // ibis::part::get1DDistribution
+    return ierr;
+} // ibis::part::get2DDistribution
+
+/**
+   The templated function to decide the bin boundaries and count the number
+   of values fall in each bin.  This function differs from the one used by
+   getJointDistribution in that the bounds are defined with only closed
+   bins.
+
+   @note It goes through each data value twice, once to count each
+   individial values and once to put them into the specified bins.
+
+   @note The results of first counting may take up more memory than the
+   input data!
+ */
+template <typename E1, typename E2>
+void ibis::part::mapValues(const array_t<E1>& val1, const array_t<E2>& val2,
+			   uint32_t nb1, uint32_t nb2,
+			   array_t<E1>& bnd1, array_t<E2>& bnd2,
+			   std::vector<uint32_t>& cnts) {
+    if (val1.size() == 0 || val2.size() == 0 || val1.size() != val2.size())
+	return;
+    equalWeightBins(val1, nb1, bnd1);
+    equalWeightBins(val2, nb2, bnd2);
+
+    const uint32_t nbnd1 = bnd1.size() - 1;
+    const uint32_t nbnd2 = bnd2.size() - 1;
+    cnts.resize(nbnd2 * nbnd1);
+    for (uint32_t i = 0; i < nbnd2 * nbnd1; ++ i)
+	cnts[i] = 0;
+
+    for (uint32_t i = 0; i < val1.size(); ++ i) {
+	const uint32_t j1 = bnd1.find(val1[i]);
+	const uint32_t j2 = bnd2.find(val2[i]);
+	++ cnts[(j1 - (bnd1[j1]>val1[i]))*nbnd2 + j2 - (bnd2[j2]>val2[i])];
+    }
+} // ibis::part::mapValues
+
+template <typename T>
+void ibis::part::equalWeightBins(const array_t<T>& vals, uint32_t nbins,
+				 array_t<T>& bounds) {
+    typename std::map<T, uint32_t> hist;
+    ibis::part::mapValues(vals, hist);
+    const size_t ncard = hist.size();
+    array_t<uint32_t> ctmp;
+    array_t<T> vtmp;
+    ctmp.reserve(ncard);
+    vtmp.reserve(ncard);
+    for (typename std::map<T, uint32_t>::const_iterator it = hist.begin();
+	 it != hist.end(); ++ it) {
+	vtmp.push_back((*it).first);
+	ctmp.push_back((*it).second);
+    }
+    hist.clear();
+
+    array_t<uint32_t> hbnd(nbins);
+    ibis::index::divideCounts(hbnd, ctmp);
+    bounds.clear();
+    bounds.reserve(hbnd.size()+1);
+    bounds.push_back(vtmp[0]);
+    for (size_t i = 0; i < hbnd.size() && hbnd[i] < ncard; ++ i)
+	bounds.push_back(vtmp[hbnd[i]]);
+
+    if (bounds.size() > 1) {
+	T end1 = bounds.back() - bounds[bounds.size()-2];
+	T end2 = vtmp.back() + end1;
+	end1 += bounds.back();
+	bounds.push_back(end1 > vtmp.back() ? end1 : end2);
+    }
+    else {
+	bounds.push_back(vtmp.back()+1);
+    }
+} // ibis::part::equalWeightBins
+
+template <typename T>
+void ibis::part::mapValues(const array_t<T>& vals,
+				  std::map<T, uint32_t>& hist) {
+    for (size_t i = 0; i < vals.size(); ++ i) {
+	typename std::map<T, uint32_t>::iterator it = hist.find(vals[i]);
+	if (it != hist.end())
+	    ++ (*it).second;
+	else
+	    hist.insert(std::make_pair(vals[i], 1));
+    }
+} // ibis::part::mapValues
 
 /// Compute the distribution of the named variable under the specified
 /// constraints.  If the input array @c bounds contains distinct values in
@@ -12140,17 +12751,17 @@ ibis::part::getDistribution(const char *constraints,
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
-//     if (constraints == 0 || *constraints == 0) {
-// 	ierr = (*it).second->getDistribution(bounds, counts);
-// 	if (ierr > 0 && ibis::gVerbose > 2) {
-// 	    timer.stop();
-// 	    logMessage("getDistribution",
-// 		       "computing the distribution of column %s took %g "
-// 		       "sec(CPU) and %g sec(elapsed)",
-// 		       (*it).first, timer.CPUTime(), timer.realTime());
-// 	}
-// 	return ierr;
-//     }
+    if (constraints == 0 || *constraints == 0) {
+	ierr = (*it).second->getDistribution(bounds, counts);
+	if (ierr > 0 && ibis::gVerbose > 2) {
+	    timer.stop();
+	    logMessage("getDistribution",
+		       "computing the distribution of column %s took %g "
+		       "sec(CPU) and %g sec(elapsed)",
+		       (*it).first, timer.CPUTime(), timer.realTime());
+	}
+	return ierr;
+    }
 
     ibis::bitvector mask;
     mask.set(1, nEvents);
@@ -12459,145 +13070,152 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 				      std::vector<uint32_t>& counts) const {
     long ierr = -1;
     columnList::const_iterator it = columns.find(name);
-    if (it != columns.end()) {
-	ibis::horometer timer;
-	if (ibis::gVerbose > 2)
-	    timer.start();
-	if (constraints == 0 || *constraints == 0) {
-	    ierr = (*it).second->getCumulativeDistribution(bounds, counts);
-	    if (ierr > 0 && ibis::gVerbose > 2) {
-		timer.stop();
-		logMessage("getCumulativeDistribution",
-			   "computing the distribution of column %s took %g "
-			   "sec(CPU) and %g sec(elapsed)",
-			   (*it).first, timer.CPUTime(), timer.realTime());
-	    }
+    if (it == columns.end())
+	return ierr;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 2)
+	timer.start();
+    if (constraints == 0 || *constraints == 0) {
+	ierr = (*it).second->getCumulativeDistribution(bounds, counts);
+	if (ierr > 0 && ibis::gVerbose > 2) {
+	    timer.stop();
+	    logMessage("getCumulativeDistribution",
+		       "computing the distribution of column %s took %g "
+		       "sec(CPU) and %g sec(elapsed)",
+		       (*it).first, timer.CPUTime(), timer.realTime());
 	}
-	else {
-	    const ibis::column *col = (*it).second;
+    }
+    else {
+	ibis::bitvector hits;
+	const ibis::column *col = (*it).second;
+	{
 	    ibis::query q(ibis::util::userName(), this);
 	    q.setWhereClause(constraints);
 	    ierr = q.evaluate();
 	    if (ierr < 0)
 		return ierr;
-	    const ibis::bitvector *hits = q.getHitVector();
-	    ibis::index::histogram hist;
-	    bounds.clear();
-	    counts.clear();
-	    if (hits != 0 && hits->cnt() > 0) {
-		switch ((*it).second->type()) {
-		case ibis::SHORT:
-		case ibis::BYTE:
-		case ibis::INT: {
-		    array_t<int32_t> *vals = col->selectInts(*hits);
-		    if (vals == 0) {
-			ierr = -4;
-			break;
-		    }
-		    ibis::index::mapValues<int32_t>(*vals, hist);
-		    delete vals;
-		    break;}
-		case ibis::USHORT:
-		case ibis::UBYTE:
-		case ibis::UINT:
-		case ibis::CATEGORY: {
-		    array_t<uint32_t> *vals = col->selectUInts(*hits);
-		    if (vals == 0) {
-			ierr = -4;
-			break;
-		    }
-		    ibis::index::mapValues<uint32_t>(*vals, hist);
-		    delete vals;
-		    break;}
-		case ibis::FLOAT: {
-		    array_t<float> *vals = col->selectFloats(*hits);
-		    if (vals == 0) {
-			ierr = -4;
-			break;
-		    }
-		    ibis::index::mapValues<float>(*vals, hist);
-		    delete vals;
-		    break;}
-		case ibis::DOUBLE: {
-		    array_t<double> *vals = col->selectDoubles(*hits);
-		    if (vals == 0) {
-			ierr = -4;
-			break;
-		    }
-		    ibis::index::mapValues<double>(*vals, hist);
-		    delete vals;
-		    break;}
-		default: {
-		    ierr = -3;
-		    logWarning("getCumulativeDistribution",
-			       "unable to handle column type %d",
-			       static_cast<int>((*it).second->type()));
-		    break;}
+	    hits.copy(*(q.getHitVector()));
+	    if (hits.cnt() == 0)
+		return 0;
+	}
+	ibis::index::histogram hist;
+	bounds.clear();
+	counts.clear();
+	if (hits.cnt() > 0) {
+	    switch ((*it).second->type()) {
+	    case ibis::SHORT:
+	    case ibis::BYTE:
+	    case ibis::INT: {
+		array_t<int32_t> *vals = col->selectInts(hits);
+		if (vals == 0) {
+		    ierr = -4;
+		    break;
 		}
-
-		if (hist.empty()) {
-		    if (ierr >= 0)
-			ierr = -7;
+		ibis::index::mapValues<int32_t>(*vals, hist);
+		delete vals;
+		break;}
+	    case ibis::USHORT:
+	    case ibis::UBYTE:
+	    case ibis::UINT:
+	    case ibis::CATEGORY: {
+		array_t<uint32_t> *vals = col->selectUInts(hits);
+		if (vals == 0) {
+		    ierr = -4;
+		    break;
 		}
-		else if (hist.size() < 10000) {
-		    // convert the histogram into cumulative distribution
-		    bounds.reserve(hits->cnt()+1);
-		    counts.reserve(hits->cnt()+1);
-		    counts.push_back(0);
-		    for (ibis::index::histogram::const_iterator hit =
-			     hist.begin();
-			 hit != hist.end(); ++ hit) {
-			bounds.push_back((*hit).first);
-			counts.push_back((*hit).second + counts.back());
-		    }
-		    bounds.push_back(ibis::util::compactValue
-				     (bounds.back(), DBL_MAX));
+		ibis::index::mapValues<uint32_t>(*vals, hist);
+		delete vals;
+		break;}
+	    case ibis::FLOAT: {
+		array_t<float> *vals = col->selectFloats(hits);
+		if (vals == 0) {
+		    ierr = -4;
+		    break;
 		}
-		else { // too many values, reduce to 1000 bins
-		    array_t<double> vals(hist.size());
-		    array_t<uint32_t> cnts(hist.size());
-		    vals.clear();
-		    cnts.clear();
-		    for (ibis::index::histogram::const_iterator hit =
-			     hist.begin();
-			 hit != hist.end(); ++ hit) {
-			vals.push_back((*hit).first);
-			cnts.push_back((*hit).second);
-		    }
-		    array_t<uint32_t> dvd(1000);
-		    ibis::index::divideCounts(dvd, cnts);
-		    bounds.push_back(vals[0]);
-		    counts.push_back(0);
-		    for (uint32_t i = 0; i < dvd.size(); ++ i) {
-			uint32_t cnt = counts.back();
-			for (uint32_t j = (i>0?dvd[i-1]:0); j < dvd[i]; ++ j)
-			    cnt += cnts[j];
-			counts.push_back(cnt);
-			double bd;
-			if (dvd[i] < vals.size())
-			    bd = ibis::util::compactValue(vals[dvd[i]-1],
-							  vals[dvd[i]]);
-			else
-			    bd = ibis::util::compactValue
-				(vals.back(), DBL_MAX);
-			bounds.push_back(bd);
-		    }
+		ibis::index::mapValues<float>(*vals, hist);
+		delete vals;
+		break;}
+	    case ibis::DOUBLE: {
+		array_t<double> *vals = col->selectDoubles(hits);
+		if (vals == 0) {
+		    ierr = -4;
+		    break;
 		}
+		ibis::index::mapValues<double>(*vals, hist);
+		delete vals;
+		break;}
+	    default: {
+		ierr = -3;
+		logWarning("getCumulativeDistribution",
+			   "unable to handle column type %d",
+			   static_cast<int>((*it).second->type()));
+		break;}
 	    }
-	    if (ierr >= 0)
-		ierr = counts.size();
-	    if (ierr > 0 && ibis::gVerbose > 2) {
-		timer.stop();
-		logMessage("getCumulativeDistribution",
-			   "computing the distribution of "
-			   "column %s with restriction \"%s\" took %g "
-			   "sec(CPU) and %g sec(elapsed)", (*it).first,
-			   constraints, timer.CPUTime(), timer.realTime());
+
+	    if (hist.empty()) {
+		if (ierr >= 0)
+		    ierr = -7;
+	    }
+	    else if (hist.size() < 10000) {
+		// convert the histogram into cumulative distribution
+		bounds.reserve(hits.cnt()+1);
+		counts.reserve(hits.cnt()+1);
+		counts.push_back(0);
+		for (ibis::index::histogram::const_iterator hit =
+			 hist.begin();
+		     hit != hist.end(); ++ hit) {
+		    bounds.push_back((*hit).first);
+		    counts.push_back((*hit).second + counts.back());
+		}
+		bounds.push_back(ibis::util::compactValue
+				 (bounds.back(), DBL_MAX));
+	    }
+	    else { // too many values, reduce to 1000 bins
+		array_t<double> vals(hist.size());
+		array_t<uint32_t> cnts(hist.size());
+		vals.clear();
+		cnts.clear();
+		for (ibis::index::histogram::const_iterator hit =
+			 hist.begin();
+		     hit != hist.end(); ++ hit) {
+		    vals.push_back((*hit).first);
+		    cnts.push_back((*hit).second);
+		}
+		array_t<uint32_t> dvd(1000);
+		ibis::index::divideCounts(dvd, cnts);
+		bounds.push_back(vals[0]);
+		counts.push_back(0);
+		for (uint32_t i = 0; i < dvd.size(); ++ i) {
+		    uint32_t cnt = counts.back();
+		    for (uint32_t j = (i>0?dvd[i-1]:0); j < dvd[i]; ++ j)
+			cnt += cnts[j];
+		    counts.push_back(cnt);
+		    double bd;
+		    if (dvd[i] < vals.size())
+			bd = ibis::util::compactValue(vals[dvd[i]-1],
+						      vals[dvd[i]]);
+		    else
+			bd = ibis::util::compactValue
+			    (vals.back(), DBL_MAX);
+		    bounds.push_back(bd);
+		}
 	    }
 	}
-	if (ierr < 0)
-	    ierr -= 10;
+	if (ierr >= 0)
+	    ierr = counts.size();
+	if (ierr > 0 && ibis::gVerbose > 2) {
+	    timer.stop();
+	    logMessage("getCumulativeDistribution",
+		       "computing the distribution of "
+		       "column %s with restriction \"%s\" took %g "
+		       "sec(CPU) and %g sec(elapsed)", (*it).first,
+		       constraints, timer.CPUTime(), timer.realTime());
+	}
     }
+    if (ierr < 0)
+	ierr -= 10;
+
     return ierr;
 } // ibis::part::getCumulativeDistribution
 
@@ -14053,7 +14671,8 @@ uint32_t ibis::part::vault::tellReal() const {
 } // ibis::part::vault::tellReal
 
 /// Examining the given director to look for the metadata files and
-/// constructs ibis::part.
+/// constructs ibis::part.  Can descend into subdirectories through opendir
+/// family of functions.
 void ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
     if (dir1 == 0) return;
     try {
@@ -14128,8 +14747,9 @@ void ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
 #endif
 } // ibis::util::tablesFromDir
 
-// read the activeDir and backupDir -- if there are matching subdirs,
-// construct an ibis::part from them
+/// Read the two directories, if there are matching subdirs, construct an
+/// ibis::part from them.  Will descend into the subdirectories when run on
+/// unix systems to look for matching subdirectories.
 void ibis::util::tablesFromDir(ibis::partList &tables,
 			       const char* adir, const char* bdir) {
     if (adir == 0 || *adir == 0) return;

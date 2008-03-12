@@ -124,7 +124,8 @@ public:
     /// bitvector.
     bitvector* operator-(const bitvector&) const;
 
-    void subset(const ibis::bitvector& mask, ibis::bitvector& res) const;
+    void subset(const bitvector& mask, bitvector& res) const;
+    word_t count(const bitvector& mask) const;
 
     // I/O functions.
     /// Read a bit vector from the file.  Purge current contents before
@@ -290,6 +291,8 @@ private:
     array_t<word_t> m_vec;	///< Store whole words.
 
     // private functions of bitvector class
+    word_t count_c1(const bitvector& mask) const;
+    word_t count_c2(const bitvector& mask) const;
     // The following three functions all performs or operation, _c2 and _c1
     // generate compressed solutions, but _c0, _d1, and _d2 generate
     // uncompressed solutions.

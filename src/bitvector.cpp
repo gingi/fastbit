@@ -785,6 +785,49 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
     swap(res);
 } // ibis::bitvector::erase
 
+/// Count the number of bits that are 1 that also marked 1.  A
+/// straightforward implement of this is to perform a bitwise AND and then
+/// count the number of bits that are 1.  However, such an approach will
+/// generate a bitvector that is only used for counting.  This is an
+/// attempt to do better.
+ibis::bitvector::word_t
+ibis::bitvector::count(const ibis::bitvector& mask) const {
+    word_t cnt = 0;
+    const bool ca = (m_vec.size()*MAXBITS == nbits);
+    const bool cb = (mask.m_vec.size()*MAXBITS == mask.nbits);
+    if (ca && cb) {
+	array_t<word_t>::const_iterator j = m_vec.begin();
+	array_t<word_t>::const_iterator k = mask.m_vec.begin();
+	while (j < m_vec.end()) {
+	    cnt += cnt_ones(*j & *k); ++j; ++k;
+	}
+	cnt += cnt_ones(active.val & mask.active.val);
+    }
+    else if (ca) {
+	cnt = mask.count_c1(*this);
+    }
+    else if (cb) {
+	cnt = count_c1(mask);
+    }
+    else if (all0s() || mask.all0s()) { // no 1s
+	cnt = cnt_ones(active.val & mask.active.val);
+    }
+    else if (all1s()) { // m_vec contain only a sinle 1-fill
+	if (mask.nset == 0 && ! mask.m_vec.empty())
+	    mask.nbits = mask.do_cnt();
+	cnt = mask.nset + cnt_ones(active.val & mask.active.val);
+    }
+    else if (mask.all1s()) {
+	if (nbits == 0 && ! m_vec.empty())
+	    nbits = do_cnt();
+	cnt = nset + cnt_ones(active.val & mask.active.val);
+    }
+    else {
+	cnt = count_c2(mask);
+    }
+    return cnt;
+} // ibis::bitvector::count
+
 // toggle every bit of the bit sequence
 void ibis::bitvector::flip() {
     m_vec.nosharing(); // make sure *this is not shared!
@@ -1715,6 +1758,109 @@ void ibis::bitvector::write(array_t<ibis::bitvector::word_t>& arr) const {
     arr.push_back(active.nbits);
 #endif
 } // ibis::bitvector::write
+
+/// Count the number of bits that are 1 in both this bitvector and mask.
+/// This function assumes that both of them are compressed.
+ibis::bitvector::word_t
+ibis::bitvector::count_c2(const ibis::bitvector& mask) const {
+    word_t cnt = cnt_ones(active.val & mask.active.val);
+    run x, y;
+    x.it = m_vec.begin();
+    y.it = mask.m_vec.begin();
+    while (x.it < m_vec.end() && y.it < mask.m_vec.end()) {
+	if (x.nWords == 0)
+	    x.decode();
+	if (y.nWords == 0)
+	    y.decode();
+
+	if (x.isFill != 0) { // x is a fill
+	    if (y.isFill != 0) { // y is a fill too
+		if (x.fillBit != 0 && y.fillBit != 0) {
+		    if (x.nWords <= y.nWords) {
+			cnt += MAXBITS * x.nWords;
+			y.nWords -= x.nWords;
+			x.nWords = 0;
+			++ x.it;
+			y.it += (y.nWords == 0);
+		    }
+		    else {
+			cnt += MAXBITS * y.nWords;
+			x.nWords -= y.nWords;
+			y.nWords = 0;
+			++ y.it;
+		    }
+		}
+		else if (x.nWords <= y.nWords) {
+		    y.nWords -= x.nWords;
+		    y.it += (y.nWords == 0);
+		    x.nWords = 0;
+		    ++ x.it;
+		}
+		else {
+		    x.nWords -= y.nWords;
+		    y.nWords = 0;
+		    ++ y.it;
+		}
+	    }
+	    else { // y is a literal word
+		if (x.fillBit != 0)
+		    cnt += cnt_ones(*y.it);
+		++ y.it;
+		-- x.nWords;
+		y.nWords = 0;
+		x.it += (x.nWords == 0);
+	    }
+	}
+	else if (y.isFill != 0) { // x is a literal word, but y is a fill
+	    if (y.fillBit != 0)
+		cnt += cnt_ones(*x.it);
+	    x.nWords = 0;
+	    -- y.nWords;
+	    ++ x.it;
+	    y.it += (y.nWords == 0);
+	}
+	else { // both are literal words
+	    cnt += cnt_ones(*x.it & *y.it);
+	    x.nWords = 0;
+	    y.nWords = 0;
+	    ++ x.it;
+	    ++ y.it;
+	}
+    }
+    return cnt;
+} // ibis::bitvector::count_c2
+
+/// Count the number of bits that are 1 in both this bitvector and mask.
+/// This function assumes mask is uncompressed and does not check this
+/// fact.  The caller is responsible for ensuring this precondition is met.
+ibis::bitvector::word_t
+ibis::bitvector::count_c1(const ibis::bitvector& mask) const {
+    run x;
+    word_t cnt = cnt_ones(active.val & mask.active.val);
+    x.it = m_vec.begin();
+    array_t<word_t>::const_iterator it = mask.m_vec.begin();
+    while (x.it < m_vec.end() && it < mask.m_vec.end()) {
+	x.decode();
+	if (x.isFill != 0) { // is a fill
+	    if (x.fillBit != 0) {
+		while (x.nWords > 0) {
+		    cnt += cnt_ones(*it);
+		    ++ it;
+		    -- x.nWords;
+		}
+	    }
+	    else {
+		it += x.nWords;
+	    }
+	}
+	else {
+	    cnt += cnt_ones(*it & *x.it);
+	    ++ it;
+	}
+	++ x.it;
+    }
+    return cnt;
+} // ibis::bitvector::count_c1
 
 // bitwise and (&) operation -- both operands may contain compressed words
 void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
