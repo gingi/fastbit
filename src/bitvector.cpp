@@ -839,7 +839,7 @@ void ibis::bitvector::flip() {
 #endif
     // toggle those words in m_vec
     if (nbits > 0) {
-	for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end(); i++) {
+	for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end(); ++i) {
 	    if (*i > ALLONES) {
 		*i ^= FILLBIT;
 	    }
@@ -848,16 +848,16 @@ void ibis::bitvector::flip() {
 	    }
 	}
     }
-    else {
+    else { /// If nbits is not set, set it while flipping the bits.
 	nbits = 0;
-	for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end(); i++) {
+	for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end(); ++i) {
 	    if (*i > ALLONES) {
 		*i ^= FILLBIT;
-		nbits += MAXBITS;
+		nbits += MAXBITS * (*i & MAXCNT);
 	    }
 	    else {
 		*i ^= ALLONES;
-		nbits += MAXBITS * (*i & MAXCNT);
+		nbits += MAXBITS;
 	    }
 	}
     }

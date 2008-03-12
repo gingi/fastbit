@@ -8,6 +8,11 @@
 	This is to accommodate the situation where Prabhat and Oliver sets
 	a range condition with thousands of values of are requested in one
 	query expression.
+	* src/bitvector.cpp: lines 856 and 860 swapped, similarly, lines
+	660 and 664 in src/bitvector64.cpp are also swapped.  This errors
+	causes the variable nbits to be computed incorrectly, which can in
+	turn cause other problems later.  This was the cause of a problem
+	noticed by Prabhat.
 
 2008-03-11 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: add a new variation of

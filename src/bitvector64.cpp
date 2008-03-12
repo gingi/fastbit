@@ -657,11 +657,11 @@ void ibis::bitvector64::flip() {
 	for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end(); i++) {
 	    if (*i > ALLONES) {
 		*i ^= FILLBIT;
-		nbits += MAXBITS;
+		nbits += MAXBITS * (*i & MAXCNT);
 	    }
 	    else {
 		*i ^= ALLONES;
-		nbits += MAXBITS * (*i & MAXCNT);
+		nbits += MAXBITS;
 	    }
 	}
     }
