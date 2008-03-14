@@ -297,8 +297,7 @@ public:
     qDiscreteRange(const char *col, const std::vector<uint32_t>& val);
     /// Construct a discrete range expression from a list of floating-point
     /// values.
-    qDiscreteRange(const char *col, const std::vector<double>& val)
-	: name(col), values(val) {};
+    qDiscreteRange(const char *col, const std::vector<double>& val);
 
     /// Copy constructor.
     qDiscreteRange(const qDiscreteRange& dr)

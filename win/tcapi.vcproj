@@ -47,11 +47,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="dll\Debug\fastbit.lib pthreadVCE2.lib psapi.lib"
 				OutputFile="Debug/tcapi.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
+				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Debug"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="Debug/tcapi.pdb"
 				SubSystem="1"
@@ -116,11 +116,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="dll\Release\fastbit.lib pthreadVCE2.lib psapi.lib"
 				OutputFile="Release\tcapi.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
+				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Release"
 				ProgramDatabaseFile="Release/tcapi.pdb"
 				SubSystem="1"
 				ImportLibrary="pthreadVCE.lib"
@@ -152,157 +152,16 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}"
+			Name="dll"/>
 	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\src\array_t.cpp">
-			</File>
-			<File
-				RelativePath="..\src\bitvector.cpp">
-			</File>
-			<File
-				RelativePath="..\src\bitvector64.cpp">
-			</File>
-			<File
-				RelativePath="..\src\bord.cpp">
-			</File>
-			<File
-				RelativePath="..\src\bundle.cpp">
-			</File>
-			<File
-				RelativePath="..\src\capi.cpp">
-			</File>
-			<File
-				RelativePath="..\src\category.cpp">
-			</File>
-			<File
-				RelativePath="..\src\column.cpp">
-			</File>
-			<File
-				RelativePath="..\src\colValues.cpp">
-			</File>
-			<File
-				RelativePath="..\src\fileManager.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ibin.cpp">
-			</File>
-			<File
-				RelativePath="..\src\icegale.cpp">
-			</File>
-			<File
-				RelativePath="..\src\icentre.cpp">
-			</File>
-			<File
-				RelativePath="..\src\icmoins.cpp">
-			</File>
-			<File
-				RelativePath="..\src\idbak.cpp">
-			</File>
-			<File
-				RelativePath="..\src\idbak2.cpp">
-			</File>
-			<File
-				RelativePath="..\src\idirekte.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ifade.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ikeywords.cpp">
-			</File>
-			<File
-				RelativePath="..\src\imesa.cpp">
-			</File>
-			<File
-				RelativePath="..\src\index.cpp">
-			</File>
-			<File
-				RelativePath="..\src\irange.cpp">
-			</File>
-			<File
-				RelativePath="..\src\irelic.cpp">
-			</File>
-			<File
-				RelativePath="..\src\iroster.cpp">
-			</File>
-			<File
-				RelativePath="..\src\isapid.cpp">
-			</File>
-			<File
-				RelativePath="..\src\isbiad.cpp">
-			</File>
-			<File
-				RelativePath="..\src\islice.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixambit.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixbylt.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixfuge.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixfuzz.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixpack.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixpale.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixzona.cpp">
-			</File>
-			<File
-				RelativePath="..\src\ixzone.cpp">
-			</File>
-			<File
-				RelativePath="..\src\mensa.cpp">
-			</File>
-			<File
-				RelativePath="..\src\meshQuery.cpp">
-			</File>
-			<File
-				RelativePath="..\src\part.cpp">
-			</File>
-			<File
-				RelativePath="..\src\parti.cpp">
-			</File>
-			<File
-				RelativePath="..\src\party.cpp">
-			</File>
-			<File
-				RelativePath="..\src\predicate.tab.cpp">
-			</File>
-			<File
-				RelativePath="..\src\predicate.yy.cpp">
-			</File>
-			<File
-				RelativePath="..\src\qExpr.cpp">
-			</File>
-			<File
-				RelativePath="..\src\query.cpp">
-			</File>
-			<File
-				RelativePath="..\src\resource.cpp">
-			</File>
-			<File
-				RelativePath="..\src\rids.cpp">
-			</File>
-			<File
-				RelativePath="..\src\tafel.cpp">
-			</File>
-			<File
 				RelativePath="..\examples\tcapi.c">
-			</File>
-			<File
-				RelativePath="..\src\util.cpp">
 			</File>
 		</Filter>
 		<Filter

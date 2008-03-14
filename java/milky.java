@@ -30,6 +30,7 @@ public class milky {
 	    else if (args[iarg].charAt(1) == 'h' ||
 		     args[iarg].charAt(1) == 'H') {
 		usage();
+		++ iarg;
 	    }
 	    else if (args[iarg].charAt(1) == 'm' ||
 		     args[iarg].charAt(1) == 'M' ||
@@ -145,7 +146,7 @@ public class milky {
 
     private static void usage() {
 	System.out.println
-	    ("A simple tester for the J API of FastBit\n\nusage\n" +
+	    ("A simple tester for the Java API of FastBit\n\nusage\n" +
 	     "java milky [-c conffile] [-v [message-level]] " +
 	     "datadir [conditions] [<column-name type> ...]\n" +
 	     "In SQL this is equivalent to\n\tFROM datadir " +

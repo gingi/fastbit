@@ -1,4 +1,4 @@
-Column c in Partition tmp:
+Column c
 c:  (SHORT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
 cumulative distribution [20] under the condition of "c>80"
 (bound,	# records < bound)

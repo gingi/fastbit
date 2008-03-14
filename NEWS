@@ -1,3 +1,10 @@
+Version b0.8.8
+-- fix bug in ibis::bitvector::flip and ibis::bitvector64::flip, a
+   problem encountered by Prabhat
+-- correct tests 7 and 8 of check-ibis in tests/Makefile.am 
+-- add test cases involving arithmetic expressions in
+   tests/scripts/query-count.list and src/part.cpp (ibis::part::quickTest)
+
 Wed Mar 12 10:20:16 PDT 2008
 Version b0.8.7
 -- add try-catch blocks to various interval encoded indexes to free

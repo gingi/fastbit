@@ -27,10 +27,7 @@
 #include <sstream>	// std::ostringstream
 
 // delimiters that can be used to separate names in a name list
-const char* ibis::nameList::delimiters = ";, \b\f\r\t\n'\"";
-const char* ibis::selected::delimiters = ";, \b\f\r\t\n'\"";
-// by default remove all files created for a query
-bool ibis::query::purgeFiles = true;
+const char* ibis::util::delimiters = ";, \b\f\r\t\n'\"";
 
 namespace ibis {
 #if defined(TEST_SCAN_OPTIONS)
@@ -47,9 +44,9 @@ void ibis::nameList::select(const char* str) {
     const char* s = str;
     const char* t = 0;
     do {
-	s += strspn(s, delimiters); // remove leading space
+	s += strspn(s, ibis::util::delimiters); // remove leading space
 	if (*s) {
-	    t = strpbrk(s, delimiters);
+	    t = strpbrk(s, ibis::util::delimiters);
 	    if (t) { // found a delimitor
 		std::string tmp;
 		while (s < t) {
@@ -464,17 +461,17 @@ int ibis::query::setWhereClause(const char* str) {
 /// This function accepts a set of range conditions expressed by the three
 /// vectors.  The arrays are expected to be of the same size, and each
 /// triplet <names[i], lbounds[i], rbounds[i]> are interpreted as
-/// @pre
+/// @code
 /// names[i] between lbounds[i] and rbounds[i]
-///
+/// @endcode
 /// The range conditions are joined together with the AND operator.
 /// If vectors lbounds and rbounds are not the same size, then the missing
 /// one is consider to represent an open boundary.  For example, if
 /// lbounds[4] exists but not rbounds[4], they the range condition is
 /// interpreted as
-/// @pre
+/// @code
 /// lbounds[4] <= names[4]
-///
+/// @endcode
 int ibis::query::setWhereClause(const std::vector<const char*>& names,
 				const std::vector<double>& lbounds,
 				const std::vector<double>& rbounds) {
@@ -2877,8 +2874,6 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	ierr = doScan(expr, table0->getMask(), res);
 	if (ierr < 0)
 	    return ierr - 20;
-	else
-	    ierr = res.size();
     }
     catch (const ibis::bad_alloc& e) {
 	ierr = -1;
@@ -4017,7 +4012,10 @@ void ibis::query::clear() {
 
     if (myDir) {
 	ibis::fileManager::instance().flushDir(myDir);
-	if (purgeFiles) {
+	std::string pnm = "query.";
+	pnm += myID;
+	pnm += ".purgeTempFiles";
+	if (ibis::gParameters().isTrue(pnm.c_str())) {
 	    ibis::util::removeDir(myDir);
 	    if (ibis::gVerbose > 6)
 		logMessage("clear", "removed %s", myDir);
@@ -7158,12 +7156,14 @@ void ibis::selected::select(const char *str, bool sort) {
     uint32_t terms = 0;
     const char *s = str;
     while (s != 0 && *s != 0) {
-	s += strspn(s, delimiters); // remove leading space and delimiters
+	// remove leading space and delimiters
+	s += strspn(s, ibis::util::delimiters);
 	if (*s == 0) break;
 
 	functions.push_back(ibis::selected::NIL);
 	std::string tmp;
-	while (isprint(*s) && *s != '(' && strchr(delimiters, *s) == 0) {
+	while (isprint(*s) && *s != '(' &&
+	       strchr(ibis::util::delimiters, *s) == 0) {
 	    tmp += *s; // append the character;
 	    ++ s;
 	}
@@ -7213,7 +7213,8 @@ void ibis::selected::select(const char *str, bool sort) {
 	}
 
 	if (*s) {
-	    while (isprint(*s) && *s != ')' && strchr(delimiters, *s) == 0) {
+	    while (isprint(*s) && *s != ')' &&
+		   strchr(ibis::util::delimiters, *s) == 0) {
 		tmp += *s;
 		++ s;
 	    }

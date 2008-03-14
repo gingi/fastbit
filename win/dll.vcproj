@@ -24,8 +24,10 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
+				BrowseInformation="1"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -38,7 +40,9 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="TRUE"
+				AssemblyDebug="1"
 				ProgramDatabaseFile="dll/Debug/fastbit.pdb"
+				GenerateMapFile="TRUE"
 				SubSystem="1"
 				ImportLibrary="dll/Debug/fastbit.lib"
 				TargetMachine="1"/>

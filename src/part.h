@@ -320,9 +320,9 @@ public:
     /// @{
     /// Compute the binned distribution of the name variable.  The array
     /// @c bounds defines the following bins:
-    /// @pre
+    /// @code
     /// (..., bounds[0]) [bounds[0], bounds[1]) ... [bounds.back(), ...).
-    ///
+    /// @endcode
     /// In other word, @c bounds[n] defines (n+1) bins, with two open bins
     /// at the two ends.  The array @c counts contains the number of rows
     /// fall into each bin.  On a successful return from this function, the

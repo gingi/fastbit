@@ -240,9 +240,9 @@ public:
 				   std::vector<uint32_t>& counts) const;
     /// Count the number of records in each bin.  The array @c bins
     /// contains bin boundaries that defines the following bins:
-    /// @pre
+    /// @code
     ///    (..., bins[0]) [bins[0], bins[1]) ... [bins.back(), ...).
-    ///
+    /// @endcode
     /// Because of the two open bins at the end, N bin boundaries defines
     /// N+1 bins.  The array @c counts has one more element than @c bins.
     /// This function returns the number of bins.  If this function was

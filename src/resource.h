@@ -159,10 +159,12 @@ inline std::string ibis::resource::getPrefix() const {
 } // ibis::resource::getPrefix
 
 /// Returns @c true is the string value should be interpreted as logical
-/// truth.
+/// truth.  The string values of "true", "yes", "on", "t", and "1" are
+/// interpreted as true.
 inline bool ibis::resource::isStringTrue(const char *val) {
     return(val != 0 && *val != 0 &&
 	   ((stricmp(val, "true") == 0) || (stricmp(val, "yes") == 0) ||
-	    (stricmp(val, "on") == 0) || (stricmp(val, "1") == 0)));
+	    (stricmp(val, "on") == 0) || (stricmp(val, "1") == 0) ||
+	    (stricmp(val, "t") == 0)));
 } // ibis::resource::isStringTrue
 #endif // IBIS_RESOURCE_H

@@ -1,4 +1,4 @@
-Column a in Partition tmp:
+Column a
 a:  (INT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
 cumulative distribution [50] under the condition of "c>50"
 (bound,	# records < bound)
@@ -53,7 +53,7 @@ cumulative distribution [50] under the condition of "c>50"
 48,	96
 100,	98
 
-Column b in Partition tmp:
+Column b
 b:  (FLOAT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
 cumulative distribution [50] under the condition of "c>50"
 (bound,	# records < bound)

@@ -1,3 +1,33 @@
+2008-03-14 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: update the definition of test case 7 and 8
+	for check-ibis to correct failure of these test cases, remove
+	match-counts from large-tests (unnecessary because it is already
+	run under the normal check)
+	* win/ibis.sln: enable assembly debugging of DLL project in Debug
+	mode
+
+2008-03-13 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h:302 change the construct of qDiscreteRange that
+	takes an array of doubles to sort the incoming values and remove
+	duplicates
+	* win/ibis.sln: change visual studio solutioni file to build dll
+	and trydll by default in both Debug and Release mode
+	* win/java.vcproj: failed to compile because of missing
+	DLL_EXPORTS macro (problem reported by Mark Sordo)
+	* src/query.h:286 remove static private member variable purgeFiles
+	* src/util.h: remove static private memeber variable delimiters
+	from ibis::selected and ibis::nameList, replace it with
+	ibis::util::delimiters
+	* src/query.cpp: change ibis::nameList and ibis::selected to use
+	ibis::util::delimiters
+	* src/part.cpp: adjust the printing statements in various
+	histograming functions to make them produce timing information
+	when ibis::gVerbose is larger than 0
+	* src/part.cpp: add a query involving arithmetic expression in
+	ibis::part::quickTest
+	* tests/scripts/query-count.list: changed four expressions to use
+	some arithmatic functions
+
 2008-03-12 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: replace the calls to bitwise AND operator with the
 	new count function in get2DDistributionI
@@ -13,6 +43,10 @@
 	causes the variable nbits to be computed incorrectly, which can in
 	turn cause other problems later.  This was the cause of a problem
 	noticed by Prabhat.
+	* src/query.cpp, src/column.h, src/part.h: replace @pre with @code
+	and @endcode pairs
+	* src/query.cpp:2878 remove the statement, it assumes the wrong
+	return value
 
 2008-03-11 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: add a new variation of
@@ -384,7 +418,7 @@
 	* tests/scripts/matchCounts.pl: add additional check for error messages
 
 2007-10-14 John Wu <John.Wu at ACM.org>
-	* java/milky.java: add a test program that mirros examples/tcapi.c
+	* java/milky.java: add a test program that mirrors examples/tcapi.c
 
 2007-10-13 John Wu <John.Wu at ACM.org>
 	* capi.h, capi.cpp: update the C API in preparation for java

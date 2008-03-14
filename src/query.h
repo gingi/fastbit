@@ -100,7 +100,7 @@ public:
     /// specified in the argument.
     int setTable(const ibis::part* tbl);
     /// Return the where clause string.
-    const char* getWhereClause() const {return condition;}
+    virtual const char* getWhereClause() const {return condition;}
     /// Return the select clause string.
     virtual const char* getSelectClause() const {return *comps;}
 
@@ -274,9 +274,11 @@ public:
     static unsigned tokenLength() {return 16;}
 
     /// Tell the destructor to remove all stored information about queries.
-    static void removeQueryRecords() {purgeFiles = true;}
+    static void removeQueryRecords()
+    {ibis::gParameters().add("query.purgeTempFiles", "true");}
     /// Tell the destructor to leave stored information on disk.
-    static void keepQueryRecords() {purgeFiles = false;}
+    static void keepQueryRecords()
+    {ibis::gParameters().add("query.purgeTempFiles", "false");}
 
     class result; // Forward declaration only
 
@@ -446,8 +448,6 @@ protected:
     };
 
 private:
-    static bool purgeFiles; // if true, remove all files created
-
     char* myID; 	// The unique ID of this query object
     char* myDir;	// Name of the directory containing the query record
     RIDSet* rids_in;	// Rid list specified in an RID query

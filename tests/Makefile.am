@@ -27,7 +27,7 @@ small-tests: append-test sanity-check match-counts
 # obselete index options
 # the tests run on the same set of data files and can not be run in parallel
 large-tests: large-append-test
-	${MAKE} large-sanity-check && ${MAKE} match-counts && ${MAKE} multilevel
+	 ${MAKE} multilevel && ${MAKE} large-sanity-check
 #
 check-thula: $(TESTDIR)/-part.txt $(THULAEXE)
 	@$(THULAEXE) -d $(TESTDIR) -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
@@ -44,8 +44,8 @@ check-ibis: $(IBISEXE) $(TESTDIR)/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR) -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 4; else $(ECHO) $@ failed test 4; fi
 	@$(IBISEXE) -d $(TESTDIR) -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 5; else $(ECHO) $@ failed test 5; fi
 	@$(IBISEXE) -d $(TESTDIR) -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 6; else $(ECHO) $@ failed test 6; fi
-	@$(IBISEXE) -d $(TESTDIR) -p "c : c>80" > $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 7; else $(ECHO) $@ failed test 7; fi
-	@$(IBISEXE) -d $(TESTDIR) -p "a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ failed test 8; fi
+	@$(IBISEXE) -d $(TESTDIR) -p "c : c>80" > $(TESTDIR)/hist0 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 7; else $(ECHO) $@ failed test 7; fi
+	@$(IBISEXE) -d $(TESTDIR) -p "a b : c>50" > $(TESTDIR)/hist1 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ failed test 8; fi
 	@$(ECHO)
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0

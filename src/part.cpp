@@ -3605,8 +3605,13 @@ long ibis::part::doScan(const ibis::compRange& cmp,
     if (columns.empty() || nEvents == 0)
 	return 0;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 1) {
+	LOGGER(3) << "ibis::part[" << m_name
+		  << "]::doScan - starting scaning data for \"" << cmp
+		  << "\" with mask (" << mask.cnt() << " out of "
+		  << mask.size() << ")";
 	timer.start();
+    }
 
     ibis::compRange::barrel* vlist = bar;
     ibis::compRange::barrel* barr = 0;
@@ -5199,6 +5204,27 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 		       static_cast<long unsigned>(mask.cnt()),
 		       static_cast<long unsigned>(total));
 	}
+    }
+
+    // a small identity expression to test the evaluation of arithmetic
+    // expressions
+    sprintf(clause, "%g <= tan(atan(0.5*(%s+%s))) < %g",
+	    lower, att->name(), att->name(), b2);
+    qtmp.setWhereClause(clause);
+    ierr = qtmp.evaluate();
+    if (ierr < 0) { // unload all indexes, try once more
+	mutexLock lock(this, "quickTest");
+	unloadIndex();
+	ierr = qtmp.evaluate();
+    }
+    if (ierr < 0)
+	++ (*nerrors);
+    str = qtmp.getLastError();
+    if (str != 0 && *str != static_cast<char>(0)) {
+	logWarning("quickTest",  "last error on query \"%s\" "
+		   "is \n%s", clause, str);
+	qtmp.clearErrorMessage();
+	++(*nerrors);
     }
 
     { // use sequential scan to verify the hit list
@@ -8226,6 +8252,17 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     if (col == 0)
 	return -2L;
 
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << cname << " with regular binning "
+	    << (constraints && *constraints ? " subject to " :
+		" without constraints")
+	    << (constraints ? constraints : "");
+	timer.start();
+    }
     const size_t nbins = 1 + 
 	static_cast<uint32_t>(std::floor((end - begin) / stride));
     if (counts.size() != nbins) {
@@ -8334,6 +8371,14 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	ierr = -3;
 	break;}
     }
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get1DDistribution", "computing the distribution of column "
+		   "%s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   cname, (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
     return ierr;
 } // ibis::part::get1DDistribution
 
@@ -8407,6 +8452,17 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     if (col1 == 0 || col2 == 0)
 	return -2L;
 
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << cname1 << " and " << cname2 << " with regular binning "
+	    << (constraints && *constraints ? " subject to " :
+		" without constraints")
+	    << (constraints ? constraints : "");
+	timer.start();
+    }
     const size_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
@@ -8828,6 +8884,14 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	ierr = -3;
 	break;}
     }
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get2DDistribution", "computing the joint distribution of "
+		   "column %s and %s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   cname1, cname2, (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
     return ierr;
 } // ibis::part::get2DDistribution
 
@@ -8854,6 +8918,18 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     if (col1 == 0 || col2 == 0 || col3 == 0)
 	return -2L;
 
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get3DDistribution attempting to compute a histogram of "
+	    << cname1 << ", " << cname2 << ", and " << cname3
+	    << " with regular binning "
+	    << (constraints && *constraints ? " subject to " :
+		" without constraints")
+	    << (constraints ? constraints : "");
+	timer.start();
+    }
     const size_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2))) *
@@ -11129,6 +11205,15 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	ierr = -3;
 	break;}
     }
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get3DDistribution", "computing the joint distribution of "
+		   "columns %s, %s, and %s%s%s took %g sec(CPU) and %g "
+		   "sec(elapsed)", cname1, cname2, cname2,
+		   (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
     return ierr;
 } // ibis::part::get3DDistribution
 
@@ -11286,7 +11371,7 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 				    std::vector<double>& bounds2,
 				    std::vector<uint32_t>& counts) const {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionD attempting to compute a histogram of "
@@ -11785,7 +11870,7 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	ierr = -3;
 	break;}
     }
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger(0).buffer()
 	    << "ibis::part[" << (m_name ? m_name : "")
@@ -11805,7 +11890,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 				    std::vector<double>& bounds2,
 				    std::vector<uint32_t>& counts) const {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI attempting to compute the histogram of "
@@ -12064,7 +12149,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	return -7L;
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger(0).buffer()
 	    << "ibis::part[" << (m_name ? m_name : "")
@@ -12214,6 +12299,10 @@ long ibis::part::get2DDistribution(const char *constraints,
 				   std::vector<double>& bounds1,
 				   std::vector<double>& bounds2,
 				   std::vector<uint32_t>& counts) const {
+    if (constraints == 0 && *constraints == 0)
+	return get2DDistribution(name1, name2, nb1, nb2,
+				 bounds1, bounds2, counts);
+
     long ierr = -1;
     columnList::const_iterator it1 = columns.find(name1);
     columnList::const_iterator it2 = columns.find(name2);
@@ -12230,8 +12319,15 @@ long ibis::part::get2DDistribution(const char *constraints,
     const ibis::column *col1 = (*it1).second;
     const ibis::column *col2 = (*it2).second;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << name1 << " and " << name2 << " subject to \""
+	    << (constraints ? constraints : "") << "\"";
 	timer.start();
+    }
+
     ibis::bitvector mask;
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
@@ -12633,12 +12729,11 @@ long ibis::part::get2DDistribution(const char *constraints,
 	ierr = counts.size();
     else
 	ierr = -2;
-    if (ierr > 0 && ibis::gVerbose > 1) {
+    if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get2DDistribution",
-		   "computing the joint distribution of "
-		   "column %s and %s%s%s took %g "
-		   "sec(CPU) and %g sec(elapsed)",
+		   "computing the joint distribution of column %s and "
+		   "%s%s%s took %g sec(CPU) and %g sec(elapsed)",
 		   (*it1).first, (*it2).first,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
@@ -12749,11 +12844,18 @@ ibis::part::getDistribution(const char *constraints,
 	return ierr;
 
     ibis::horometer timer;
-    if (ibis::gVerbose > 2)
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::getDistribution attempting to compute a histogram of "
+	    << name << (constraints && *constraints ? " subject to " :
+			" without constraints")
+	    << (constraints ? constraints : "");
 	timer.start();
+    }
     if (constraints == 0 || *constraints == 0) {
 	ierr = (*it).second->getDistribution(bounds, counts);
-	if (ierr > 0 && ibis::gVerbose > 2) {
+	if (ierr > 0 && ibis::gVerbose > 0) {
 	    timer.stop();
 	    logMessage("getDistribution",
 		       "computing the distribution of column %s took %g "
@@ -12960,7 +13062,7 @@ ibis::part::getDistribution(const char *constraints,
     }
     if (ierr >= 0)
 	ierr = counts.size();
-    if (ierr > 0 && ibis::gVerbose > 2) {
+    if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("getDistribution",
 		   "computing the distribution of "
@@ -13074,11 +13176,19 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	return ierr;
 
     ibis::horometer timer;
-    if (ibis::gVerbose > 2)
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::getCumulativeDistribution attempting to compute the "
+	    "cummulative distribution of "
+	    << name << (constraints && *constraints ? " subject to " :
+			" without constraints")
+	    << (constraints ? constraints : "");
 	timer.start();
+    }
     if (constraints == 0 || *constraints == 0) {
 	ierr = (*it).second->getCumulativeDistribution(bounds, counts);
-	if (ierr > 0 && ibis::gVerbose > 2) {
+	if (ierr > 0 && ibis::gVerbose > 0) {
 	    timer.stop();
 	    logMessage("getCumulativeDistribution",
 		       "computing the distribution of column %s took %g "
@@ -13204,7 +13314,7 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	}
 	if (ierr >= 0)
 	    ierr = counts.size();
-	if (ierr > 0 && ibis::gVerbose > 2) {
+	if (ierr > 0 && ibis::gVerbose > 0) {
 	    timer.stop();
 	    logMessage("getCumulativeDistribution",
 		       "computing the distribution of "
@@ -13264,8 +13374,16 @@ ibis::part::getJointDistribution(const char *constraints,
     const ibis::column *col1 = (*it1).second;
     const ibis::column *col2 = (*it2).second;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 0) {
+	LOGGER(3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::getJointDistribution attempting to compute a histogram of "
+	    << name1 << " and " << name2
+	    << (constraints && *constraints ? " subject to " :
+		" without constraints")
+	    << (constraints ? constraints : "");
 	timer.start();
+    }
     ibis::bitvector mask;
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
@@ -13767,7 +13885,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	ierr = counts.size();
     else
 	ierr = -2;
-    if (ierr > 0 && ibis::gVerbose > 1) {
+    if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("getJointDistribution",
 		   "computing the joint distribution of "

@@ -359,7 +359,8 @@ public:
     std::string getString(uint32_t selind) const {
 	return bdl_->getString(bid_-1, selind);
     }
-    uint32_t colPosition(const char *cname) const {return sel.find(cname);}
+    inline uint32_t colPosition(const char *cname) const
+    {return sel.find(cname);}
 
 private:
     ibis::query &que_;

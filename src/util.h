@@ -252,7 +252,6 @@ namespace ibis {
 	{cvec.clear(); delete [] cstr; delete [] buff; buff=0; cstr=0;}
 
     private:
-	static const char* delimiters;
 	typedef std::vector< const char * > compStore;
 	char* cstr;	// copy of the component string
 	char* buff;	// same as cstr, but delimiter is \0
@@ -313,8 +312,6 @@ namespace ibis {
 	FUNCTION getFunction(size_t i) const {return functions[i];}
 
     private:
-	static const char* delimiters;
-
 	std::vector<std::string> names;
 	std::vector<FUNCTION> functions;
 	std::string mystr_;
@@ -346,9 +343,11 @@ namespace ibis {
     // Organize the miscellaneous functions under the name util.
     namespace util {
 	/// charTable lists the 64 printable characters to be used for names
-	/// charIndex maps the characters (ASCII) back to integer [0-64]
 	extern const char* charTable;
+	/// charIndex maps the characters (ASCII) back to integer [0-64]
 	extern const short unsigned charIndex[];
+	/// Delimiters used to separate a string of names. @sa ibis::nameList
+	extern const char* delimiters;
 	/// A mutex intended to be used for ensuring there is only one
 	/// function that modifies the environment and other conditions.
 	/// Currently used by the functions that generating user name,

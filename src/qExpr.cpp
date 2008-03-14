@@ -23,7 +23,7 @@
 
 #include <set>		// std::set
 #include <iterator>	// std::ostream_iterator
-#include <algorithm>	// std::copy
+#include <algorithm>	// std::copy, std::sort
 
 // the names of the operators used in ibis::compRange
 char* ibis::compRange::operator_name[] =
@@ -1378,6 +1378,12 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (col == 0 || *col == 0) return;
     name = col;
     if (val.empty()) return;
+    if (val.size() == 1) {
+	values.resize(1);
+	values[0] = val[0];
+	return;
+    }
+
     // use a std::set to temporarily hold the values and eliminate
     // duplicates
     std::set<uint32_t> dset;
@@ -1391,7 +1397,36 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	     it != dset.end(); ++ it)
 	    values.push_back(*it);
     }
+    if (values.size() < val.size()) {
+	unsigned j = val.size() - values.size();
+	LOGGER(1) << "ibis::qDiscreteRange::ctor accepted incoming int "
+	    "array with "
+		  << val.size() << " elements, removed " << j
+		  << " duplicate value" << (j > 1 ? "s" : "");
+    }
 } // qDiscreteRange ctor
+
+ibis::qDiscreteRange::qDiscreteRange(const char *col,
+				     const std::vector<double>& val)
+	: name(col), values(val) {
+    if (val.size() <= 1U) return;
+
+    /// Sort the incoming values and remove duplicates.
+    std::sort(values.begin(), values.end());
+    size_t j = 0;
+    for (size_t i = 1; i < val.size(); ++ i) {
+	j += (values[i] > values[j]);
+    }
+    ++ j;
+    values.resize(j);
+    if (j < val.size()) {
+	j = val.size() - j;
+	LOGGER(1) << "ibis::qDiscreteRange::ctor accepted incoming double "
+	    "array with "
+		  << val.size() << " elements, removed " << j
+		  << " duplicate value" << (j > 1 ? "s" : "");
+    }
+} // ibis::qDiscreteRange::qDiscreteRange
 
 void ibis::qDiscreteRange::print(std::ostream& out) const {
     out << name << " IN (";
