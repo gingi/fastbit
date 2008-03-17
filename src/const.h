@@ -271,7 +271,7 @@
 #endif
 #endif
 */
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(PTHREAD_RWLOCK_INITIALIZER)
 #define PTHREAD_RWLOCK_INITIALIZER
 #endif
 // still don't have correct RWLOCK, then use mutex lock instead

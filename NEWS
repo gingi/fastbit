@@ -1,9 +1,12 @@
+Sun Mar 16 23:21:42 PDT 2008
 Version b0.8.8
--- fix bug in ibis::bitvector::flip and ibis::bitvector64::flip, a
+-- fix bugs in ibis::bitvector::flip and ibis::bitvector64::flip, a
    problem encountered by Prabhat
 -- correct tests 7 and 8 of check-ibis in tests/Makefile.am 
 -- add test cases involving arithmetic expressions in
    tests/scripts/query-count.list and src/part.cpp (ibis::part::quickTest)
+-- fix bugs reported by Mark Sordo (about JNI) and Matthias VAllentin
+   (about stdlib.h and PTHREAD_RWLOCK_INITIALIZER macro)
 
 Wed Mar 12 10:20:16 PDT 2008
 Version b0.8.7

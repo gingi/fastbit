@@ -16,11 +16,12 @@ which are harmless as far as we know.  However, if you do notice
 something of consequence, please report them to
 <fastbit-users@hpcrdm.lbl.gov>.
 
-NOTE: Visual Studio has to build the DLL project and trydll project
-separately!  Simply telling it to build the whole solution will produce
-two failures because it fails to build DLL project and trydll project.
-The solution is to build them separately.  If you know of a way to do
-this in a nicer way, please let us know.
+NOTE: Visual Studio project places fastbit.dll in dll\Debug\ or
+dll\Release\ depending how it is built.  To run trydll.exe and tcapi.exe
+from within the Visual Studio you need to add the directory containing
+the dll to environment variable PATH.  If you run the executables from a
+console window, most of the exe files are located in Debug or Release,
+but trydll.exe is in dll\Debug or dll\Release.
 
 NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
 with command line such as

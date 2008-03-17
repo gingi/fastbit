@@ -11,6 +11,10 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#elif defined(HAVE_STDLIB_H)
+#include <stdlib.h>
+#elif defined(unix) || defined(linux) || defined(__APPLE__) || defined(__FreeBSD) || defined(__CYGWIN__)
+#include <stdlib.h>
 #endif
 #include "const.h"
 

@@ -137,7 +137,7 @@ void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
     }
     std::copy(in, in+(en-be), out.begin()+be);
     mask |= inmsk;
-#if defined(_DEBUG)
+#if defined(DEBUG)
     LOGGER(0) << "ibis::tafel::append(" << typeid(T).name()
 			   << ", " << be << ", " << en << ")\ninmask: "
 			   << inmsk << "totmask: " << mask;
@@ -164,7 +164,7 @@ void ibis::tafel::appendString(const std::vector<std::string>* in,
     }
     std::copy(in->begin(), in->begin()+(en-be), out.begin()+be);
     mask |= inmsk;
-#if defined(_DEBUG)
+#if defined(DEBUG)
     LOGGER(0) << "ibis::tafel::appendString(" << be
 			   << ", " << en << ")\ninmask: "
 			   << inmsk << "totmask: " << mask;

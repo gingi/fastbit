@@ -3615,7 +3615,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 
     ibis::compRange::barrel* vlist = bar;
     ibis::compRange::barrel* barr = 0;
-    long ierr;
+    long ierr = 0;
     if (bar == 0) { // need to collect the names of all variables
 	barr = new ibis::compRange::barrel;
 	if (cmp.getLeft())

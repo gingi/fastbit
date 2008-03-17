@@ -21,9 +21,9 @@ gcc -O -shared -o libfastbitjni.so -Wl,-soname,libfastbitjni.so \
 
 On a windows machine, use ..\win\java.vcproj to build a DLL library for
 the JNI interface.  The DLL file (named fastbitjni.dll) will end up in
-either ..\win\Debug or ..\win\Release depending how you build it.  The
-directory containg the DLL file needs to be in environment variable PATH
-in order for the java run-time system to find it.
+either ..\win\dll\Debug or ..\win\dll\Release depending how you build
+it.  The directory containg the DLL file needs to be in environment
+variable PATH in order for the java run-time system to find it.
 
 
 

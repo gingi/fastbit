@@ -41,7 +41,7 @@ void usage(const char *name) {
     respectively.   The columns a and b have values 0, ..., 99 and column c
     has values 100, 99, ..., 1.
  */
-static void buildin(const char *nm) {
+static void buildin(const char *nm, FILE* output) {
     int nerrors = 0;
     int i, mult;
     int32_t ivals[100];
@@ -65,7 +65,7 @@ static void buildin(const char *nm) {
     // test the queries
     mult = fastbit_rows_in_partition(dir);
     if (mult % 100 != 0) { /* no an exact multiple */
-	fprintf(stdout, "Directory %s contains %d rows, but expected 100, "
+	fprintf(output, "Directory %s contains %d rows, but expected 100, "
 		"remove the directory and try again\n", dir, mult);
 	return;
     }
@@ -76,13 +76,13 @@ static void buildin(const char *nm) {
 	int nhits = fastbit_get_result_rows(h);
 	if (nhits != mult * counts[i]) {
 	    ++ nerrors;
-	    fprintf(stdout, "%s: query \"%s\" on %d build-in records found "
+	    fprintf(output, "%s: query \"%s\" on %d build-in records found "
 		    "%d hits, but %d were expected\n", nm, conditions[i],
 		    (int)(mult*100), nhits, (int)(mult*counts[i]));
 	}
 	fastbit_destroy_query(h);
     }
-    fprintf(stdout, "%s: build-in tests finished with nerrors = %d\n",
+    fprintf(output, "%s: build-in tests finished with nerrors = %d\n",
 	    nm, nerrors);
 }
 
@@ -98,6 +98,17 @@ int main(int argc, char **argv) {
     vselect = 1;
     logfile = 0;
     conffile = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+    ierr = INT_MAX;
+#elif DEBUG + 0 > 0
+    ierr += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+    ierr += 5 * _DEBUG;
+#else
+    ierr += 3;
+#endif
+#endif
     while (vselect < argc && argv[vselect][0] == '-') {
 	if (argv[vselect][1] == 'c' || argv[vselect][1] == 'C') {
 	    if (vselect+1 < argc) {
@@ -146,7 +157,7 @@ int main(int argc, char **argv) {
     fastbit_set_logfile(logfile);
     output = fastbit_get_logfilepointer();
     if (argc <= vselect) {
-	buildin(*argv);
+	buildin(*argv, output);
 	return -1;
     }
 
@@ -183,7 +194,7 @@ int main(int argc, char **argv) {
 	}
 	fastbit_destroy_result_set(rh);
     }
-    fflush(stdout);
+    fflush(output);
 
     vselect += 2;
     /* print attributes explicitly specified on command line */

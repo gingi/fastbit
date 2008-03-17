@@ -1,3 +1,12 @@
+2008-03-16 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:3618 initialize ierr to 0 (fix a run-time error
+	reported by VisualStudio)
+	* src/const.h:274 make sure PTHREAD_RWLOCK_INITIALIZER is not
+	defined before defining it on Mac (problem reported by Matthias
+	Vallentin)
+	* src/util.h:14 check for the inclusion of stdlib.h for all known
+	unix type of systems (problem reported by Matthias Vallentin)
+
 2008-03-14 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: update the definition of test case 7 and 8
 	for check-ibis to correct failure of these test cases, remove
@@ -24,7 +33,8 @@
 	histograming functions to make them produce timing information
 	when ibis::gVerbose is larger than 0
 	* src/part.cpp: add a query involving arithmetic expression in
-	ibis::part::quickTest
+	ibis::part::quickTest, to check for a problem encountered while
+	running the JNI test program
 	* tests/scripts/query-count.list: changed four expressions to use
 	some arithmatic functions
 
