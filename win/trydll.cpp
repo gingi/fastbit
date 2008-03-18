@@ -2050,7 +2050,7 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 	for (ibis::partList::const_iterator tit = tlist.begin();
 	     tit != tlist.end(); ++ tit)
 	    tmp.push_back((*tit).second);
-	tlist.clear();
+	//tlist.clear();
 	for (unsigned i = 0; i < tmp.size(); ++ i) {
 	    LOGGER(3) << "Cleaning up data partition "
 		      << (tmp[i]->name() ? tmp[i]->name() : "?");

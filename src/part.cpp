@@ -5783,10 +5783,11 @@ long ibis::part::doCompare(const array_t<T>& array,
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
-		    << " element" << (mask.cnt() > 1 ? "s" : "") << " from a "
-		    << array.size() << "-element array took "
-		    << timer.realTime() << " sec elapsed time and produced "
+		    << cmp << " on " << mask.cnt() << " element"
+		    << (mask.cnt() > 1 ? "s" : "") << " of a "
+		    << typeid(T).name() << "-array[" << array.size()
+		    << "] took " << timer.realTime()
+		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
@@ -6031,8 +6032,9 @@ long ibis::part::doCompare(const char* file,
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
-		    << "s from file \"" << file << "\" took "
+		    << cmp << " on " << mask.cnt() << " element"
+		    << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
+		    << " from file \"" << file << "\" took "
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -6109,10 +6111,11 @@ long ibis::part::negativeCompare(const array_t<T>& array,
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
-		    << "s from an array of "
-		    << array.size() << " elements took "
-		    << timer.realTime() << " sec elapsed time and produced "
+		    << cmp << " on " << mask.cnt()<< " element"
+		    << (mask.cnt() > 1 ? "s" : "") << " of a "
+		    << typeid(T).name() << "-array[" << array.size()
+		    << "] took " << timer.realTime()
+		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
@@ -7068,7 +7071,7 @@ long ibis::part::doScan(const array_t<T>& vals,
     return ierr;
 } // ibis::part::doScan
 
-/// Accepts an externally passed comparison operator. It chooses whether
+/// Accepts an externally passed comparison operator.  It chooses whether
 /// the bitvector @c hits will be compressed internally based on the number
 /// of set bits in the @c mask.
 template <typename T, typename F>
@@ -7360,7 +7363,7 @@ long ibis::part::doCompare0(const array_t<T>& vals, F1 cmp1, F2 cmp2,
     hits.compress();
     ierr = hits.cnt();
     return ierr;
-} // ibis::part::doCompare
+} // ibis::part::doCompare0
 
 long ibis::part::countHits(const ibis::qRange& cmp) const {
     columnList::const_iterator it = columns.find(cmp.colName());
@@ -8256,7 +8259,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << "]::get1DDistribution attempting to compute a histogram of "
 	    << cname << " with regular binning "
 	    << (constraints && *constraints ? " subject to " :
 		" without constraints")
@@ -8383,10 +8386,10 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 } // ibis::part::get1DDistribution
 
 template <typename T1, typename T2>
-long ibis::part::count2DBins(const array_t<T1>& vals1,
+long ibis::part::count2DBins(array_t<T1>& vals1,
 			     const double& begin1, const double& end1,
 			     const double& stride1,
-			     const array_t<T2>& vals2,
+			     array_t<T2>& vals2,
 			     const double& begin2, const double& end2,
 			     const double& stride2,
 			     std::vector<uint32_t>& counts) const {
@@ -8394,6 +8397,12 @@ long ibis::part::count2DBins(const array_t<T1>& vals1,
 	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
     const size_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
+#if defined(SORT_VALUES_BEFORE_COUNT)
+    ibis::util::sort(vals1, vals2);
+#else
+    if (counts.size() > 4096)
+	ibis::util::sort(vals1, vals2);
+#endif
     for (size_t ir = 0; ir < nr; ++ ir) {
 	++ counts[dim2 * static_cast<uint32_t>
 		  (std::floor((vals1[ir]-begin1)/stride1)) +
@@ -11374,8 +11383,9 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
     if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionD attempting to compute a histogram of "
-	    << col1.name() << " and " << col2.name() << " using base data";
+	    << "]::get2DDistributionD attempting to compute a " << nb1 << " x "
+	    << nb2 << " histogram of " << col1.name() << " and "
+	    << col2.name() << " using base data";
 	timer.start();
     }
     uint32_t nbmax = static_cast<uint32_t>(0.5*sqrt((double)nEvents));
@@ -11874,11 +11884,11 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	timer.stop();
 	ibis::util::logger(0).buffer()
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionD completed filling the histogram on "
-	    << col1.name() << " and " << col2.name() << " with "
-	    << counts.size() << " cell" << (counts.size() > 1 ? "s" : "")
-	    << " using " << timer.CPUTime() << " sec (CPU) and "
-	    << timer.realTime() << " sec (elapsed)";
+	    << "]::get2DDistributionD completed filling a " << nb1 << " x "
+	    << nb2 << " histogram on " << col1.name() << " and "
+	    << col2.name() << " with " << counts.size() << " cell"
+	    << (counts.size() > 1 ? "s" : "") << " using " << timer.CPUTime()
+	    << " sec (CPU) and " << timer.realTime() << " sec (elapsed)";
     }
     return ierr;
 } // ibis::part::get2DDistributionD
@@ -11893,8 +11903,9 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
     if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI attempting to compute the histogram of "
-	    << col1.name() << " and " << col2.name() << " using indexes";
+	    << "]::get2DDistributionI attempting to compute a " << nb1 << " x "
+	    << nb2 << " histogram of " << col1.name() << " and "
+	    << col2.name() << " using indexes";
 	timer.start();
     }
 
@@ -12153,11 +12164,11 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	timer.stop();
 	ibis::util::logger(0).buffer()
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistributionI completed filling the histogram on "
-	    << col1.name() << " and " << col2.name() << " with "
-	    << counts.size() << " cell" << (counts.size() > 1 ? "s" : "")
-	    << " using " << timer.CPUTime() << " sec (CPU) and "
-	    << timer.realTime() << " sec (elapsed)";
+	    << "]::get2DDistributionI completed filling a " << nb1 << " x "
+	    << nb2 << " histogram on " << col1.name() << " and "
+	    << col2.name() << " with " << counts.size() << " cell"
+	    << (counts.size() > 1 ? "s" : "") << " using " << timer.CPUTime()
+	    << " sec (CPU) and " << timer.realTime() << " sec (elapsed)";
     }
     return counts.size();
 } // ibis::part::get2DDistributionI
@@ -12322,7 +12333,8 @@ long ibis::part::get2DDistribution(const char *constraints,
     if (ibis::gVerbose > 0) {
 	LOGGER(3)
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << "]::get2DDistribution attempting to compute a " << nb1 << " x "
+	    << nb2 << " histogram of "
 	    << name1 << " and " << name2 << " subject to \""
 	    << (constraints ? constraints : "") << "\"";
 	timer.start();
@@ -12755,14 +12767,40 @@ long ibis::part::get2DDistribution(const char *constraints,
    input data!
  */
 template <typename E1, typename E2>
-void ibis::part::mapValues(const array_t<E1>& val1, const array_t<E2>& val2,
+void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
 			   uint32_t nb1, uint32_t nb2,
 			   array_t<E1>& bnd1, array_t<E2>& bnd2,
 			   std::vector<uint32_t>& cnts) {
     if (val1.size() == 0 || val2.size() == 0 || val1.size() != val2.size())
 	return;
+    const size_t nr = (val1.size() <= val2.size() ?
+		       val1.size() : val2.size());
+    ibis::horometer timer;
+    if (ibis::gVerbose > 3) {
+	LOGGER(5) << "ibis::part::mapValues(" << typeid(E1).name() << "["
+		  << val1.size() << "], " << typeid(E2).name() << "["
+		  << val2.size() << "], " << nb1 << ", " << nb2
+		  << ") starting ...";
+	timer.start();
+    }
+#if defined(SORT_VALUES_BEFORE_COUNT)
+    ibis::util::sort(val1, val2);
+#else
+    if (nb1*nb2 > 4096)
+	ibis::util::sort(val1, val2);
+#endif
     equalWeightBins(val1, nb1, bnd1);
     equalWeightBins(val2, nb2, bnd2);
+    if (ibis::gVerbose > 3) {
+	timer.stop();
+	LOGGER(0) << "ibis::part::mapValues(" << typeid(E1).name() << "["
+		  << val1.size() << "], " << typeid(E2).name() << "["
+		  << val2.size() << "], " << nb1 << ", " << nb2
+		  << ") spent " << timer.CPUTime() << " sec(CPU) and "
+		  << timer.realTime() << " sec(elapsed) to determine bin "
+	    "boundaries";
+	timer.start();
+    }
 
     const uint32_t nbnd1 = bnd1.size() - 1;
     const uint32_t nbnd2 = bnd2.size() - 1;
@@ -12770,10 +12808,19 @@ void ibis::part::mapValues(const array_t<E1>& val1, const array_t<E2>& val2,
     for (uint32_t i = 0; i < nbnd2 * nbnd1; ++ i)
 	cnts[i] = 0;
 
-    for (uint32_t i = 0; i < val1.size(); ++ i) {
+    for (uint32_t i = 0; i < nr; ++ i) {
 	const uint32_t j1 = bnd1.find(val1[i]);
 	const uint32_t j2 = bnd2.find(val2[i]);
 	++ cnts[(j1 - (bnd1[j1]>val1[i]))*nbnd2 + j2 - (bnd2[j2]>val2[i])];
+    }
+    if (ibis::gVerbose > 3) {
+	timer.stop();
+	LOGGER(0) << "ibis::part::mapValues(" << typeid(E1).name() << "["
+		  << val1.size() << "], " << typeid(E2).name() << "["
+		  << val2.size() << "], " << nb1 << ", " << nb2
+		  << ") spent " << timer.CPUTime() << " sec(CPU) and "
+		  << timer.realTime() << " sec(elapsed) to count the number "
+	    "of values in each bin";
     }
 } // ibis::part::mapValues
 
@@ -12815,7 +12862,7 @@ void ibis::part::equalWeightBins(const array_t<T>& vals, uint32_t nbins,
 
 template <typename T>
 void ibis::part::mapValues(const array_t<T>& vals,
-				  std::map<T, uint32_t>& hist) {
+			   std::map<T, uint32_t>& hist) {
     for (size_t i = 0; i < vals.size(); ++ i) {
 	typename std::map<T, uint32_t>::iterator it = hist.find(vals[i]);
 	if (it != hist.end())
@@ -12824,6 +12871,72 @@ void ibis::part::mapValues(const array_t<T>& vals,
 	    hist.insert(std::make_pair(vals[i], 1));
     }
 } // ibis::part::mapValues
+
+template <>
+void ibis::part::equalWeightBins(const array_t<float>& vals,
+				 uint32_t nbins, array_t<float>& bounds) {
+    float amax = vals[0];
+    float amin = vals[0];
+    // first compute the actual min and max
+    for (unsigned i = 1; i < vals.size(); ++ i) {
+	if (amax < vals[i]) amax = vals[i];
+	if (amin > vals[i]) amin = vals[i];
+    }
+    if (amin >= amax) {  // a single value
+	bounds.resize(2);
+	bounds[0] = amin;
+	bounds[1] = ibis::util::compactValue(amin, DBL_MAX);
+	return;
+    }
+    if (nbins <= 1) nbins = 16;
+    uint32_t nb2 = nbins * 10;
+    const float stride = ibis::util::incrDouble((amax - amin) / nb2);
+    array_t<uint32_t> cnts(nb2, 0U);
+    for (unsigned i = 0; i < vals.size(); ++ i)
+	++ cnts[(unsigned) ((vals[i]-amin)/stride)];
+
+    array_t<uint32_t> hbnd(nbins);
+    ibis::index::divideCounts(hbnd, cnts);
+    bounds.clear();
+    bounds.reserve(hbnd.size()+1);
+    bounds.push_back(amin);
+    for (size_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
+	bounds.push_back(amin + stride *hbnd[i]);
+    bounds.push_back(amin+stride*nb2);
+} // ibis::part::equalWeightBins
+
+template <>
+void ibis::part::equalWeightBins(const array_t<double>& vals,
+				 uint32_t nbins, array_t<double>& bounds) {
+    double amax = vals[0];
+    double amin = vals[0];
+    // first compute the actual min and max
+    for (unsigned i = 1; i < vals.size(); ++ i) {
+	if (amax < vals[i]) amax = vals[i];
+	if (amin > vals[i]) amin = vals[i];
+    }
+    if (amin >= amax) {  // a single value
+	bounds.resize(2);
+	bounds[0] = amin;
+	bounds[1] = ibis::util::compactValue(amin, DBL_MAX);
+	return;
+    }
+    if (nbins <= 1) nbins = 16;
+    uint32_t nb2 = nbins * 10;
+    const double stride = ibis::util::incrDouble((amax - amin) / nb2);
+    array_t<uint32_t> cnts(nb2, 0U);
+    for (unsigned i = 0; i < vals.size(); ++ i)
+	++ cnts[(unsigned) ((vals[i]-amin)/stride)];
+
+    array_t<uint32_t> hbnd(nbins);
+    ibis::index::divideCounts(hbnd, cnts);
+    bounds.clear();
+    bounds.reserve(hbnd.size()+1);
+    bounds.push_back(amin);
+    for (size_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
+	bounds.push_back(amin + stride *hbnd[i]);
+    bounds.push_back(amin+stride*nb2);
+} // ibis::part::equalWeightBins
 
 /// Compute the distribution of the named variable under the specified
 /// constraints.  If the input array @c bounds contains distinct values in

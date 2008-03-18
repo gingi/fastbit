@@ -9,7 +9,7 @@
 /// A set of utility classes for storing the selected values.
 
 /// A pure virtual base class.
-class FASTBIT_DLLSPEC ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colValues {
 public:
     virtual ~colValues() {}
 
@@ -97,7 +97,7 @@ private:
 }; // ibis::colValues
 
 /// A class to store integer values.
-class FASTBIT_DLLSPEC ibis::colInts : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colInts : public ibis::colValues {
 public:
     colInts() : colValues(), array(0) {};
     colInts(const ibis::column* c, const ibis::bitvector& hits)
@@ -182,7 +182,7 @@ private:
 }; // ibis::colInts
 
 /// A class to store unsigned integer values.
-class FASTBIT_DLLSPEC ibis::colUInts : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colUInts : public ibis::colValues {
 public:
     colUInts() : colValues(), array(0) {};
     colUInts(const ibis::column* c, const ibis::bitvector& hits)
@@ -281,7 +281,7 @@ private:
 }; // ibis::colUInts
 
 /// A class to store integer values.
-class FASTBIT_DLLSPEC ibis::colLongs : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colLongs : public ibis::colValues {
 public:
     colLongs() : colValues(), array(0) {};
     colLongs(const ibis::column* c, const ibis::bitvector& hits)
@@ -368,7 +368,7 @@ private:
 }; // ibis::colLongs
 
 /// A class to store unsigned integer values.
-class FASTBIT_DLLSPEC ibis::colULongs : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colULongs : public ibis::colValues {
 public:
     colULongs() : colValues(), array(0) {};
     colULongs(const ibis::column* c, const ibis::bitvector& hits)
@@ -467,7 +467,7 @@ private:
 }; // ibis::colULongs
 
 /// A class to store single precision float-point values.
-class FASTBIT_DLLSPEC ibis::colFloats : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colFloats : public ibis::colValues {
 public:
     colFloats() : colValues(), array(0) {};
     colFloats(const ibis::column* c, const ibis::bitvector& hits)
@@ -554,7 +554,7 @@ private:
 }; // ibis::colFloats
 
 /// A class to store double precision floating-point values.
-class FASTBIT_DLLSPEC ibis::colDoubles : public ibis::colValues {
+class FASTBIT_CXX_DLLSPEC ibis::colDoubles : public ibis::colValues {
 public:
     colDoubles() : colValues(), array(0) {};
     colDoubles(const ibis::column* c, const ibis::bitvector& hits)

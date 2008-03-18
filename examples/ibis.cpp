@@ -318,7 +318,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
     ibis::util::logger lg(0);
     long ierr;
     if (cond == 0 || *cond == 0)
-	ierr = tbl.get2DDistribution(col1, col2, 25, 25, bds1, bds2, cnts);
+	ierr = tbl.get2DDistribution(col1, col2, 1025, 1025, bds1, bds2, cnts);
     else
 	ierr = tbl.get2DDistribution(cond, col1, col2, 25, 25, bds1, bds2,
 				     cnts);

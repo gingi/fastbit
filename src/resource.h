@@ -33,7 +33,7 @@
 /// and '*'.  When writing out the parameters, the top level name is not
 /// written.
 ///
-class FASTBIT_DLLSPEC ibis::resource {
+class FASTBIT_CXX_DLLSPEC ibis::resource {
 public:
     /// The name-value pairs are categorized into two types, names that map
     /// to simple values (vList) and names that map to groups of name-value

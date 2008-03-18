@@ -7,7 +7,7 @@ LINK=$(VC)\BIN\link
 OPT=/MD /GX /GR /O2 /W1 /arch:SSE2
 #OPT=/MD /GX /GR /Ox
 INC=-I ..\src -I "C:\Tools\pthread\include"
-DEF=/D WIN32 /D _CONSOLE /D FILEMANAGER_UNLOAD_TIME=30
+DEF=/D WIN32 /D _CONSOLE /D FILEMANAGER_UNLOAD_TIME=3
 #/INCREMENTAL:NO /NOLOGO
 LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"$(VC)\PlatformSDK\Lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVCE2.lib psapi.lib Advapi32.lib
 
@@ -64,7 +64,7 @@ OBJ =  array_t.obj \
 
 #
 ibis: ibis.exe
-all: ibis.exe ardea.exe thula.exe
+all: ibis.exe ardea.exe thula.exe tcapi.exe
 
 lib: fastbit.lib
 fastbit.lib: $(OBJ)
@@ -86,6 +86,7 @@ tcapi.exe: tcapi.obj fastbit.lib
 	$(LINK) /NOLOGO $(LIB) /out:$@ tcapi.obj fastbit.lib
 
 #	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORTS" $(OBJ)
+# To compile C++ Interface of FastBit, replace _USRDLL with CXX_USE_DLL
 dll: fastbit.dll
 fastbit.dll: $(FRC)
 	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORTS" $(OBJ)
@@ -296,4 +297,4 @@ trydll.obj: trydll.cpp ../src/ibis.h ../src/meshQuery.h ../src/query.h \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/bundle.h ../src/colValues.h ../src/rids.h
-	$(CXX) $(CCFLAGS) /D _USRDLL -c -o trydll.obj trydll.cpp
+	$(CXX) $(CCFLAGS) /D CXX_USE_DLL -c -o trydll.obj trydll.cpp

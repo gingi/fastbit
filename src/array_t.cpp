@@ -1252,25 +1252,46 @@ void ibis::util::reorder(array_t<T*> &arr, const array_t<uint32_t>& ind) {
 	for (uint32_t i = 0; i < ind.size(); ++ i)
 	    tmp[i] = arr[ind[i]];
     }
-} // array_t<T>::reorder
+} // ibis::util::reorder
+
+template <typename T1, typename T2>
+void ibis::util::sort(array_t<T1>& arr1, array_t<T2>& arr2) {
+    const uint32_t nvals = (arr1.size() <= arr2.size() ?
+			    arr1.size() : arr2.size());
+    /// Mostly sequential accesses to the two arrays.
+    for (uint32_t stride = nvals/2; stride > 0; stride >>= 1) {
+	for (uint32_t j = 0; j < nvals-stride; ++ j) {
+	    const uint32_t j2 = j+stride;
+	    if (arr1[j] > arr1[j2] ||
+		(arr1[j] == arr1[j2] && arr2[j] > arr2[j2])) {
+		const T1 tmp1 = arr1[j];
+		arr1[j] = arr1[j2];
+		arr1[j2] = tmp1;
+		const T2 tmp2 = arr2[j];
+		arr2[j] = arr2[j2];
+		arr2[j2] = tmp2;
+	    }
+	} // for j
+    } // for stride
+} // ibis::util::sort
 
 // explicit instantiation required and have to appear after the definitions
 #if !defined(__CYGWIN__) && !defined(__MINGW32__) && !((defined(__ia64__) || defined(__x86_64__)) && defined(__GNUC__))
-template class FASTBIT_DLLSPEC array_t<long>;
+template class FASTBIT_CXX_DLLSPEC array_t<long>;
 #endif
-template class FASTBIT_DLLSPEC array_t<char>;
-template class FASTBIT_DLLSPEC array_t<signed char>;
-template class FASTBIT_DLLSPEC array_t<unsigned char>;
-template class FASTBIT_DLLSPEC array_t<float>;
-template class FASTBIT_DLLSPEC array_t<double>;
-template class FASTBIT_DLLSPEC array_t<int16_t>;
-template class FASTBIT_DLLSPEC array_t<int32_t>;
-template class FASTBIT_DLLSPEC array_t<int64_t>;
-template class FASTBIT_DLLSPEC array_t<uint16_t>;
-template class FASTBIT_DLLSPEC array_t<uint32_t>;
-template class FASTBIT_DLLSPEC array_t<uint64_t>;
-template class FASTBIT_DLLSPEC array_t<ibis::rid_t>;
-template class FASTBIT_DLLSPEC array_t<array_t<ibis::rid_t>*>;
+template class FASTBIT_CXX_DLLSPEC array_t<char>;
+template class FASTBIT_CXX_DLLSPEC array_t<signed char>;
+template class FASTBIT_CXX_DLLSPEC array_t<unsigned char>;
+template class FASTBIT_CXX_DLLSPEC array_t<float>;
+template class FASTBIT_CXX_DLLSPEC array_t<double>;
+template class FASTBIT_CXX_DLLSPEC array_t<int16_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<int32_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<int64_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<uint16_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<uint64_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<ibis::rid_t>;
+template class FASTBIT_CXX_DLLSPEC array_t<array_t<ibis::rid_t>*>;
 namespace ibis {
     namespace util {
 	template void
@@ -1300,5 +1321,78 @@ namespace ibis {
 	template void
 	reorder<array_t<ibis::rid_t> >(array_t<array_t<ibis::rid_t>*>&,
 				       const array_t<uint32_t>&);
+
+	template void
+	sort<int32_t, int32_t>(array_t<int32_t>&, array_t<int32_t>&);
+	template void
+	sort<uint32_t, int32_t>(array_t<uint32_t>&, array_t<int32_t>&);
+	template void
+	sort<int64_t, int32_t>(array_t<int64_t>&, array_t<int32_t>&);
+	template void
+	sort<uint64_t, int32_t>(array_t<uint64_t>&, array_t<int32_t>&);
+	template void
+	sort<float, int32_t>(array_t<float>&, array_t<int32_t>&);
+	template void
+	sort<double, int32_t>(array_t<double>&, array_t<int32_t>&);
+	template void
+	sort<int32_t, uint32_t>(array_t<int32_t>&, array_t<uint32_t>&);
+	template void
+	sort<uint32_t, uint32_t>(array_t<uint32_t>&, array_t<uint32_t>&);
+	template void
+	sort<int64_t, uint32_t>(array_t<int64_t>&, array_t<uint32_t>&);
+	template void
+	sort<uint64_t, uint32_t>(array_t<uint64_t>&, array_t<uint32_t>&);
+	template void
+	sort<float, uint32_t>(array_t<float>&, array_t<uint32_t>&);
+	template void
+	sort<double, uint32_t>(array_t<double>&, array_t<uint32_t>&);
+	template void
+	sort<int32_t, int64_t>(array_t<int32_t>&, array_t<int64_t>&);
+	template void
+	sort<uint32_t, int64_t>(array_t<uint32_t>&, array_t<int64_t>&);
+	template void
+	sort<int64_t, int64_t>(array_t<int64_t>&, array_t<int64_t>&);
+	template void
+	sort<uint64_t, int64_t>(array_t<uint64_t>&, array_t<int64_t>&);
+	template void
+	sort<float, int64_t>(array_t<float>&, array_t<int64_t>&);
+	template void
+	sort<double, int64_t>(array_t<double>&, array_t<int64_t>&);
+	template void
+	sort<int32_t, uint64_t>(array_t<int32_t>&, array_t<uint64_t>&);
+	template void
+	sort<uint32_t, uint64_t>(array_t<uint32_t>&, array_t<uint64_t>&);
+	template void
+	sort<int64_t, uint64_t>(array_t<int64_t>&, array_t<uint64_t>&);
+	template void
+	sort<uint64_t, uint64_t>(array_t<uint64_t>&, array_t<uint64_t>&);
+	template void
+	sort<float, uint64_t>(array_t<float>&, array_t<uint64_t>&);
+	template void
+	sort<double, uint64_t>(array_t<double>&, array_t<uint64_t>&);
+	template void
+	sort<int32_t, float>(array_t<int32_t>&, array_t<float>&);
+	template void
+	sort<uint32_t, float>(array_t<uint32_t>&, array_t<float>&);
+	template void
+	sort<int64_t, float>(array_t<int64_t>&, array_t<float>&);
+	template void
+	sort<uint64_t, float>(array_t<uint64_t>&, array_t<float>&);
+	template void
+	sort<float, float>(array_t<float>&, array_t<float>&);
+	template void
+	sort<double, float>(array_t<double>&, array_t<float>&);
+	template void
+	sort<int32_t, double>(array_t<int32_t>&, array_t<double>&);
+	template void
+	sort<uint32_t, double>(array_t<uint32_t>&, array_t<double>&);
+	template void
+	sort<int64_t, double>(array_t<int64_t>&, array_t<double>&);
+	template void
+	sort<uint64_t, double>(array_t<uint64_t>&, array_t<double>&);
+	template void
+	sort<float, double>(array_t<float>&, array_t<double>&);
+	template void
+	sort<double, double>(array_t<double>&, array_t<double>&);
     }
 }

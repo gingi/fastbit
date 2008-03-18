@@ -41,9 +41,9 @@ namespace ibis {
 		 TEXT	///< Arbitrary null-terminated strings.
     };
     /// Human readable version of the enumeration types.
-    FASTBIT_DLLSPEC extern const char** TYPESTRING;
+    FASTBIT_CXX_DLLSPEC extern const char** TYPESTRING;
     /// One-character code for the enumeration types.
-    FASTBIT_DLLSPEC extern const char* TYPECODE;
+    FASTBIT_CXX_DLLSPEC extern const char* TYPECODE;
 
     // forward declarations
     class table;
@@ -58,7 +58,7 @@ namespace ibis {
 /// the table.  In many database systems this is known as a view on a
 /// table.  All data tables and views are logically treated as
 /// specialization of this ibis::table class.
-class FASTBIT_DLLSPEC ibis::table {
+class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
     /// Create a table object from the specified data directory.
     static ibis::table* create(const char* dir);
@@ -290,7 +290,7 @@ private:
 /// @note Each function that returns an integer returns 0 in case of
 /// success, a negative value in case error and a positive number as
 /// advisory information.
-class FASTBIT_DLLSPEC ibis::tablex {
+class FASTBIT_CXX_DLLSPEC ibis::tablex {
 public:
     /// Create a minimalistic table exclusively for entering new records.
     static ibis::tablex* create();
@@ -387,7 +387,7 @@ private:
 /// A list of tables.  It supports simple lookup through operator[] and
 /// manages the table objects passed to it.  Most functions are simply
 /// wrappers on std::map.
-class FASTBIT_DLLSPEC ibis::tableList {
+class FASTBIT_CXX_DLLSPEC ibis::tableList {
 public:
     typedef std::map< const char*, ibis::table*, ibis::lessi > tableSet;
     typedef tableSet::const_iterator iterator;
@@ -471,7 +471,7 @@ private:
 /// only iterate overall rows of a table.  To iterate an arbitrary
 /// selection of rows, use the selection to create a new table and then
 /// iterate over the new table.
-class FASTBIT_DLLSPEC ibis::table::cursor {
+class FASTBIT_CXX_DLLSPEC ibis::table::cursor {
 public:
     virtual ~cursor() {};
     virtual uint64_t nRows() const=0;

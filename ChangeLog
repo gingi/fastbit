@@ -1,3 +1,23 @@
+2008-03-18 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/part.cpp: add explicit template instantiation
+	of ibis::part::equalWeightBins for float and double, attempting to
+	reduce the time and memory needed to generate equal-weight bins
+	* src/array_t.h, src/array_t.cpp: add a new sorting function
+	ibis::util::sort to sort two arrays together
+	* src/part.cpp: add calls to ibis::util::sort to sort values
+	before counting 2D bins (attempting to improve efficiency for
+	get2DDistribution)
+
+2008-03-18 Matthias Vallentin <vallentin at icsi.berkeley.edu>
+	* src/column.cpp:15 include <typeinfo>
+
+2008-03-17 John Wu <John.Wu at ACM.org>
+	* src/query.cpp:4168 limit the number of values to be printed
+	* win/tcapi.vcproj: add macro _USRDLL, make sure all Debug versions
+	of the projects compile code with full buffer check
+	* const.h: redefine FASTBIT_DLLSPEC to FASTBIT_CXX_DLLSPEC, change
+	DLL library to only export C API -- did not fix the problem with tcapi
+
 2008-03-16 John Wu <John.Wu at ACM.org>
 	* src/part.cpp:3618 initialize ierr to 0 (fix a run-time error
 	reported by VisualStudio)

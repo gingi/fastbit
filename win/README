@@ -16,25 +16,26 @@ which are harmless as far as we know.  However, if you do notice
 something of consequence, please report them to
 <fastbit-users@hpcrdm.lbl.gov>.
 
-NOTE: Visual Studio project places fastbit.dll in dll\Debug\ or
-dll\Release\ depending how it is built.  To run trydll.exe and tcapi.exe
-from within the Visual Studio you need to add the directory containing
-the dll to environment variable PATH.  If you run the executables from a
-console window, most of the exe files are located in Debug or Release,
-but trydll.exe is in dll\Debug or dll\Release.
-
 NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
 with command line such as
 
 nmake -f Win.mak all
 
+Due to extensive use of std::map and other STL classes that are hard to
+export in DLL, only the C API can be safely used in a DLL client.
+In December of 2007, we were able to get a test program running
+correctly for a short while, but that situation did not last very long.
+The DLL clients start to malfunction pretty quickly.  If you have any
+recommendataion on how to fix them, please email john dot wu at ACM dot org.
+
+---- The following is no longer correct as of March, 2008 ----
 
 It is possible to build a DLL library that exports ibis::part and
 ibis::query interface as well as the C API of Fastbit.
 To use the nmake system directly, one may build the DLL library and the
 test program tcapi.exe with the following commands (on one line)
 
-nmake -f Win.mak clean && nmake -f Win.mak dll && nmake -f win.mak tcapi trydll
+nmake -f Win.mak clean && nmake -f Win.mak dll && nmake -f win.mak trydll
 
 The test program trydll.cpp is a modified version of
 ..\examples\ibis.cpp with troublesome functions removed.  It maintains

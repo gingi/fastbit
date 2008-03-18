@@ -226,11 +226,11 @@ namespace ibis {
 					       const ibis::bitvector& b,
 					       ibis::bitvector64& c);
     /// The reference to the global configuration parameters.
-    FASTBIT_DLLSPEC ibis::resource& gParameters();
+    FASTBIT_CXX_DLLSPEC ibis::resource& gParameters();
 
     /// A data structure to store a small set of names.  The names are
     /// sorted in case-insensitive order.
-    class FASTBIT_DLLSPEC nameList {
+    class FASTBIT_CXX_DLLSPEC nameList {
     public:
 	nameList() : cstr(0), buff(0) {};
 	nameList(const char* str) : cstr(0), buff(0) {select(str);}
@@ -358,7 +358,7 @@ namespace ibis {
 	/// asking for password, backing up active tables, cleaning up the
 	/// list of tables and optionally used to lock the variable
 	/// ibis::fileManager::totalBytes.
-	extern FASTBIT_DLLSPEC pthread_mutex_t envLock;
+	extern FASTBIT_CXX_DLLSPEC pthread_mutex_t envLock;
 
 	/// Remove leading and trailing blank space
 	inline char* trim(char* str);
@@ -368,9 +368,9 @@ namespace ibis {
 	/// Remove trailing character 'tail' from str
 	inline void removeTail(char* str, char tail);
 	/// Treat all bytes in buf as the string.
-	FASTBIT_DLLSPEC char* getString(const char* buf);
+	FASTBIT_CXX_DLLSPEC char* getString(const char* buf);
 	/// Extract the next quoted string or the blank delimited string.
-	FASTBIT_DLLSPEC void
+	FASTBIT_CXX_DLLSPEC void
 	getString(std::string& str, const char*& buf, const char *delim=0);
 	const char* getToken(char*& str, const char* tok_chrs);
 	int readInt(int64_t& val, const char *&str, const char* del);
@@ -383,13 +383,13 @@ namespace ibis {
 	int makeDir(const char*dir);
 	/// Return size of the file in bytes.  The value 0 is returned if
 	/// file does not exist.
-	FASTBIT_DLLSPEC off_t getFileSize(const char* name);
+	FASTBIT_CXX_DLLSPEC off_t getFileSize(const char* name);
 	/// Copy "from" to "to".  Return zero (0) on success, a negative
 	/// number otherwise.
 	int copy(const char* to, const char* from);
 
 	/// Return the name of the user who is running the program.
-	FASTBIT_DLLSPEC const char* userName();
+	FASTBIT_CXX_DLLSPEC const char* userName();
 	/// Return an integer that is always increasing.
 	unsigned long uniqueNumber();
 	/// Compute a denominator and numerator pair to compute a uniform
@@ -401,7 +401,7 @@ namespace ibis {
 
 	///@{
 	/// Fletcher's arithmetic checksum with 32-bit result.
-	FASTBIT_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
+	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
 	inline uint32_t checksum(uint32_t a, uint32_t b);
 	inline std::string shortName(const std::string& longname);
 	///@}
@@ -465,7 +465,7 @@ namespace ibis {
 	/// Print a message to standard output.  The format string is same
 	/// as printf.  A global mutex lock is used to ensure printed
 	/// messages are ordered.
-	FASTBIT_DLLSPEC void
+	FASTBIT_CXX_DLLSPEC void
 	logMessage(const char* event, const char* fmt, ...);
 	/// Retrieve the pointer to the log file.  The value of stdout will
 	/// be returned if no log file was specified.  A log file name be
@@ -473,17 +473,17 @@ namespace ibis {
 	/// -- setLogFile
 	/// -- environment variable FASTBITLOGFILE
 	/// -- configuration parameter logfile
-	FASTBIT_DLLSPEC FILE* getLogFile();
+	FASTBIT_CXX_DLLSPEC FILE* getLogFile();
 	/// Close the log file.
-	FASTBIT_DLLSPEC int closeLogFile();
+	FASTBIT_CXX_DLLSPEC int closeLogFile();
 	/// Change the current log file to the named file.  Log files are
 	/// opened in append mode, so the existing content will be
 	/// preserved.  The log file will be changed only if the named file
 	/// can be opened correctly.
-	FASTBIT_DLLSPEC int setLogFileName(const char* filename);
+	FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
 	/// Return name the of the current log file.  Blank string or null
 	/// string indicate standard output.
-	FASTBIT_DLLSPEC const char* getLogFileName();
+	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 
 	/// Match the string @c str against a simple pattern @c pat.
 	bool strMatch(const char* str, const char* pat);
@@ -629,7 +629,7 @@ namespace ibis {
 	/// A simple global counter.  Each time the operator() is called,
 	/// it is incremented by 1.  Calls from different threads are
 	/// serialized through a mutual exclusion lock.
-	class FASTBIT_DLLSPEC counter {
+	class FASTBIT_CXX_DLLSPEC counter {
 	public:
 	    ~counter() {pthread_mutex_destroy(&lock_);}
 	    counter(const char *m="ibis::util::counter");
@@ -688,7 +688,7 @@ namespace ibis {
 	/// Use function ibis::util::setLogFile to explicit name of the
 	/// log file or use RC file entry logfile to specify a file name.
 	/// By default all messages are dump to stdout.
-	class FASTBIT_DLLSPEC logger {
+	class FASTBIT_CXX_DLLSPEC logger {
 	public:
 	    /// Constructor.  The argument to this constructor is taken to
 	    /// be the number of spaces before the message.  Note, if a

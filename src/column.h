@@ -40,7 +40,7 @@ namespace ibis { // additional names to the namespace ibis
 /// efficiency of searching on relatively small number of attributes
 /// compared to the horizontal data organization used in typical relational
 /// database systems.
-class FASTBIT_DLLSPEC ibis::column {
+class FASTBIT_CXX_DLLSPEC ibis::column {
 public:
 
     virtual ~column();
@@ -319,7 +319,7 @@ private:
 
 /// Some basic information about a column.  Can only be used if the
 /// original column used to generate the info object exists in memory.
-class FASTBIT_DLLSPEC ibis::column::info {
+class FASTBIT_CXX_DLLSPEC ibis::column::info {
 public:
     const char* name;		///< Column name.
     const char* description;	///< A description about the column.

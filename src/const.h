@@ -246,22 +246,22 @@
 
 // things for MS Windows only
 // DIRSEP  == the directory name separator
-// FASTBIT_DLLSPEC == export/import symbols to/from DLL library under windows system
+// FASTBIT_CXX_DLLSPEC == export/import symbols to/from DLL library under windows system
 #if defined(_WIN32) && defined(_MSC_VER)
 #  define DIRSEP '\\'
 #else
 #  define DIRSEP '/'
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
-#  if defined(_USRDLL) && defined(DLL_EXPORTS)
-#    define FASTBIT_DLLSPEC __declspec(dllexport)
-#  elif defined(_USRDLL)
-#    define FASTBIT_DLLSPEC __declspec(dllimport)
+#  if defined(CXX_USE_DLL) && defined(DLL_EXPORTS)
+#    define FASTBIT_CXX_DLLSPEC __declspec(dllexport)
+#  elif defined(CXX_USE_DLL)
+#    define FASTBIT_CXX_DLLSPEC __declspec(dllimport)
 #  else
-#    define FASTBIT_DLLSPEC
+#    define FASTBIT_CXX_DLLSPEC
 #  endif
 #else
-#  define FASTBIT_DLLSPEC
+#  define FASTBIT_CXX_DLLSPEC
 #endif
 
 /* causes problems on solaris 2.8
@@ -318,7 +318,7 @@ namespace ibis { // forward definition of all the classes in IBIS
     class resource;	///< To store configuration parameters.
 
     /// The object identifiers used to distinguish records.
-    union FASTBIT_DLLSPEC rid_t {
+    union FASTBIT_CXX_DLLSPEC rid_t {
 	uint64_t value;	///< As a single 64-bit value.
 	/// As two 32-bit values.
 	struct name {
@@ -353,7 +353,7 @@ namespace ibis { // forward definition of all the classes in IBIS
 
     /// Verbosity level.  The larger the value, the more is printed.
     /// Default value is 0.  A negative value will disable all printing.
-    extern FASTBIT_DLLSPEC int gVerbose;
+    extern FASTBIT_CXX_DLLSPEC int gVerbose;
 } // namespace ibis
 
 // it appears that tmplate can not be in a namespace under gcc 2.95.2

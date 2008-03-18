@@ -43,7 +43,7 @@
 /// Additionally, one may call either @c printSelected or @c
 /// printSelectedWithRID to print the selected values to the specified I/O
 /// stream.
-class FASTBIT_DLLSPEC ibis::query {
+class FASTBIT_CXX_DLLSPEC ibis::query {
 public:
     enum QUERY_STATE {
 	UNINITIALIZED,	//< The query object is currently empty.

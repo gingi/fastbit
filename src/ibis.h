@@ -104,11 +104,11 @@ AND, OR, XOR, and NOT.  Assuming that  temperature and  pressure are
 names of two columns, the following are valid where clauses (one on each
 line),
 
-<pre>
+\code
 temperature > 10000
 pressure between 10 and 100
-temperature > 10000 and 50 <= pressure and sin(pressure/8000) < sqrt(abs(temperature)
-</pre>
+temperature > 10000 and 50 <= pressure and sin(pressure/8000) < sqrt(abs(temperature))
+\endcode
 
 The class  ibis::table also defines a set of functions for computing
 histograms of various dimensions, namely,  ibis::table::getHistogram, 

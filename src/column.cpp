@@ -12,6 +12,7 @@
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// tolower
 #include <limits>	// std::numeric_limits
+#include <typeinfo>	// typeid
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -375,8 +376,8 @@ void ibis::column::computeMinMax(const char *dir) {
     }
 } // ibis::column::computeMinMax
 
-// go through the values in data directory @c dir and compute the actual
-// min and max.
+/// Go through the values in data directory @c dir and compute the actual
+/// min and max.
 void ibis::column::computeMinMax(const char *dir, double &min,
 				 double &max) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;

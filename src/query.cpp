@@ -4165,7 +4165,8 @@ uint32_t ibis::query::countPages(unsigned wordsize) const {
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::query[" << myID << "]::countPages(" << wordsize
 		    << ") page numbers: ";
-	while (ix.nIndices() > 0) {
+	for (size_t i = 0; ix.nIndices() > 0 && (i >> ibis::gVerbose) == 0;
+	     ++ i) {
 	    const ibis::bitvector::word_t *ind = ix.indices();
 	    const uint32_t p0 = *ind / wpp;
 	    if (last < p0*wpp) { // last not on the current page
@@ -4192,6 +4193,8 @@ uint32_t ibis::query::countPages(unsigned wordsize) const {
 	    }
 	    ++ ix;
 	}
+	if (ix.nIndices() > 0)
+	    lg.buffer() << " ...";
     }
     return res;
 } // ibis::query::countPages

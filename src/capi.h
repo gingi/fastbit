@@ -51,10 +51,12 @@
 #error Donot know how to find the exact width data types!
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
-#  if defined(_USRDLL) && defined(DLL_EXPORTS)
-#    define FASTBIT_DLLSPEC __declspec(dllexport)
-#  elif defined(_USRDLL)
-#    define FASTBIT_DLLSPEC __declspec(dllimport)
+#  if defined(_USRDLL) || defined(CXX_USE_DLL)
+#    if defined(DLL_EXPORTS)
+#      define FASTBIT_DLLSPEC __declspec(dllexport)
+#    else
+#      define FASTBIT_DLLSPEC __declspec(dllimport)
+#    endif
 #  else
 #    define FASTBIT_DLLSPEC
 #  endif

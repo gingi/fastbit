@@ -42,7 +42,7 @@ namespace ibis {
 }
 
 /// The public interface of bundles.
-class FASTBIT_DLLSPEC ibis::bundle {
+class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:
     /// Create a new bundle from previously stored information.
     static bundle* create(const ibis::query& q);
@@ -167,7 +167,7 @@ private:
 }; // class ibis::bundle
 
 /// The null bundle.  It contains only a list of RIDs.
-class FASTBIT_DLLSPEC ibis::bundle0 : public ibis::bundle {
+class FASTBIT_CXX_DLLSPEC ibis::bundle0 : public ibis::bundle {
 public:
     explicit bundle0(const ibis::query& q) : bundle(q) {q.writeRIDs(rids);};
     bundle0(const ibis::query& q, const ibis::bitvector& hits)
@@ -202,7 +202,7 @@ public:
 }; // ibis::bundle0
 
 /// The bundle with only one component.
-class FASTBIT_DLLSPEC ibis::bundle1 : public ibis::bundle {
+class FASTBIT_CXX_DLLSPEC ibis::bundle1 : public ibis::bundle {
 public:
     explicit bundle1(const ibis::query& q);
     bundle1(const ibis::query& q, const ibis::bitvector& hits);
@@ -257,7 +257,7 @@ private:
 }; // ibis::bundle1
 
 /// The bundle with multiple components.
-class FASTBIT_DLLSPEC ibis::bundles : public ibis::bundle {
+class FASTBIT_CXX_DLLSPEC ibis::bundles : public ibis::bundle {
 public:
     explicit bundles(const ibis::query& q);
     bundles(const ibis::query& q, const ibis::bitvector& hits);
@@ -308,7 +308,7 @@ private:
 /// can be used.
 /// @note This implementation stores the results in memory.  Therefore, it
 /// is not suitable for handling large result sets.
-class FASTBIT_DLLSPEC ibis::query::result {
+class FASTBIT_CXX_DLLSPEC ibis::query::result {
 public:
     result(ibis::query& q);
     ~result();

@@ -13,12 +13,12 @@
 #include <limits.h>	// INT_MAX
 #include <iomanip>	// setw()
 
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) && defined(_USRDLL) && !defined(DLL_EXPORTS)
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) && defined(CXX_USE_DLL) && !defined(DLL_EXPORTS)
 #if defined(_MSC_VER)
 //disable warnings on extern before template instantiation
 #pragma warning (disable : 4231)
 #endif
-extern template class FASTBIT_DLLSPEC array_t<uint32_t>;
+extern template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
 #endif
 
 
@@ -60,7 +60,7 @@ Encoding format
     to be modified in unpredictable ways.
 </ul>
 */
-class FASTBIT_DLLSPEC ibis::bitvector {
+class FASTBIT_CXX_DLLSPEC ibis::bitvector {
 public:
     typedef uint32_t word_t;///< The basic unit of data storage.
 

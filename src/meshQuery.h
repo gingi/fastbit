@@ -16,7 +16,7 @@ namespace ibis { // extend ibis name space
 /// The class adds more functionality to ibis::query to handle data from
 /// meshes.  The new functions treats cells of meshes as connected regions
 /// in space.
-class FASTBIT_DLLSPEC ibis::meshQuery : public ibis::query {
+class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
 public:
     virtual ~meshQuery();
     /// Constructor for building a new query.

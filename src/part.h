@@ -19,7 +19,7 @@
 /// current implementation is designed to work with vertically partitioned
 /// data files.  This class contains common information and operations on a
 /// partition.
-class FASTBIT_DLLSPEC ibis::part {
+class FASTBIT_CXX_DLLSPEC ibis::part {
 public:
     enum TABLE_STATE {
 	UNKNOWN_STATE=0, STABLE_STATE, RECEIVING_STATE,
@@ -657,16 +657,16 @@ protected:
 			  const std::vector<uint32_t>& counts,
 			  uint32_t nbc, double *bptr, uint32_t *cptr) const;
 
-    /// Count the number of values falling in 2D bins.
+    /// Count the number of values in 2D bins.
     template <typename T1, typename T2>
-    long count2DBins(const array_t<T1>& vals1,
+    long count2DBins(array_t<T1>& vals1,
 		     const double& begin1, const double& end1,
 		     const double& stride1,
-		     const array_t<T2>& vals2,
+		     array_t<T2>& vals2,
 		     const double& begin2, const double& end2,
 		     const double& stride2,
 		     std::vector<uint32_t>& counts) const;
-    /// Count the number of values falling in 3D bins.
+    /// Count the number of values in 3D bins.
     template <typename T1, typename T2, typename T3>
     long count3DBins(const array_t<T1>& vals1,
 		     const double& begin1, const double& end1,
@@ -703,7 +703,7 @@ protected:
 		    std::vector<ibis::bitvector*>& btmp) const;
 
     template <typename E1, typename E2>
-	static void mapValues(const array_t<E1>& val1, const array_t<E2>& val2,
+	static void mapValues(array_t<E1>& val1, array_t<E2>& val2,
 			      uint32_t nb1, uint32_t nb2,
 			      array_t<E1>& bnd1, array_t<E2>& bnd2,
 			      std::vector<uint32_t>& cnts);
@@ -805,15 +805,15 @@ namespace ibis {
     // deal with the reconstruction of partitions.
     namespace util {
 	/// Look for data directories in the given pair of directories.
-	void FASTBIT_DLLSPEC
+	void FASTBIT_CXX_DLLSPEC
 	tablesFromDir(ibis::partList& tables,
 		      const char *adir, const char *bdir);
 	/// Look into the given directory for table.tdc files
-	void FASTBIT_DLLSPEC
+	void FASTBIT_CXX_DLLSPEC
 	tablesFromDir(ibis::partList& tables, const char *adir);
 	/// Reconstruct partitions using data directories specified in the
 	/// resources.
-	void FASTBIT_DLLSPEC
+	void FASTBIT_CXX_DLLSPEC
 	tablesFromResources(ibis::partList& tables, const ibis::resource& res);
     } // namespace util
 } // namespace ibis
@@ -821,7 +821,7 @@ namespace ibis {
 /// A simple class to describe an ibis::part object.  All members are
 /// public and read-only.  An info object can not last longer than the
 /// ibis::part object used to create it.
-struct FASTBIT_DLLSPEC ibis::part::info {
+struct FASTBIT_CXX_DLLSPEC ibis::part::info {
     const char* name;		///< Partition name.
     const char* description;	///< A free-form description of the partition.
     const char* metaTags;	///< A string of name-value pairs.
@@ -1048,6 +1048,17 @@ admit light to a vault below.
 
 Source: Webster's Revised Unabridged Dictionary, (c) 1996, 1998 MICRA, Inc.
  */
+
+namespace ibis {
+    // Explicit template specialization for member function
+    // ibis::part::equalWeightBins
+    template <> void
+    part::equalWeightBins(const array_t<float>& vals,
+			  uint32_t nbins, array_t<float>& bounds);
+    template <> void
+    part::equalWeightBins(const array_t<double>& vals,
+			  uint32_t nbins, array_t<double>& bounds);
+}
 
 /// Return an ibis::part::info object that describes the current partition.
 inline ibis::part::info* ibis::part::getInfo() const {
