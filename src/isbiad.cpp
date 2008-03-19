@@ -39,7 +39,7 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::sbiad::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -128,7 +128,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	mapValues(f, bmap);
     }
     catch (...) { // need to clean up bmap
-	LOGGER(0) << "ibis::sbiad::construct reclaiming storage "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::sbiad::construct reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
@@ -145,7 +145,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	bmap.clear();
 	ibis::fileManager::instance().signalMemoryAvailable();
 
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::sbiad::construct1 the bitvectors "
 	    "do not have the expected size(" << col->partition()->nRows()
 	    << "). stopping..";
@@ -214,7 +214,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     }
 #if defined(DEBUG)
     if (ibis::gVerbose > 11) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::sbiad::construct1 converted"
 	    << bmap.size() << " bitmaps for each distinct value into "
 	    << bits.size() << bases.size()
@@ -257,7 +257,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column::[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column::[" << col->name()
 		  << "]::construct1 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";
 	for (uint32_t i = 0; i < beq.size(); ++ i)
@@ -267,7 +267,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     beq.clear();
 #if defined(DEBUG)
     if (ibis::gVerbose > 11) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::sbiad::construct1 completed "
 	    << "converting equality encoding to interval encoding";
     }
@@ -612,7 +612,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column::[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column::[" << col->name()
 		  << "]::construct2 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";
 	for (uint32_t i = 0; i < beq.size(); ++ i)
@@ -700,7 +700,7 @@ long ibis::sbiad::append(const char* dt, const char* df, uint32_t nnew) {
 // compute the bitvector that represents the answer for x = b
 void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0) << "DEBUG -- ibis::sbiad::evalEQ(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalEQ(" << b << ")...";
 #endif
     if (b >= vals.size()) {
 	res.set(0, nrows);
@@ -785,7 +785,7 @@ void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that is the answer for the query x <= b
 void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0) << "DEBUG -- ibis::sbiad::evalLE(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalLE(" << b << ")...";
 #endif
     if (b+1 >= vals.size()) {
 	res.set(1, nrows);
@@ -937,7 +937,7 @@ void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
 void ibis::sbiad::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
 #ifdef DEBUG
-    LOGGER(0) << "DEBUG -- ibis::sbiad::evalLL(" << b0 << ", "
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalLL(" << b0 << ", "
 			   << b1 << ")...";
 #endif
     if (b0 >= b1) { // no hit
@@ -995,7 +995,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::sbiad::evalLL: low "
 			    "(component[" << i << "] <= " << k0 << ") "
 			    << low;
@@ -1027,7 +1027,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::sbiad::evalLL: high "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;
@@ -1156,7 +1156,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::sbiad::evalLL: low "
 			    "(component[" << i << "] <= " << k0 << ") "
 			    << low;
@@ -1233,7 +1233,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::sbiad::evalLL: high "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;
@@ -1346,7 +1346,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::sbiad::evalLL: res "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;

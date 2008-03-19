@@ -118,7 +118,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear(); // need to call clear before rethrow the exception
 	throw;
@@ -150,7 +150,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -181,7 +181,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -214,7 +214,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -4940,7 +4940,7 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
 	tot = tmp[nbms-2];
 	while (i < nparts-2 && nparts-i < nbms-parts[i-1]) {
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "divideBitmaps -- i=" << i << ", parts["
 		<< i-1 << "]=" << parts[i-1] << ", nparts-i-1="
 		<< nparts - i - 1 << ", tot-tmp[" << parts[i-1]-1
@@ -5856,7 +5856,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
 	ierr0 = lower.cnt();
     }
 #if DEBUG+0 > 0
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG: ibis::bin::evaluate(" << expr << ")\nlower = \n" << lower;
 #endif
     return ierr0;
@@ -5920,7 +5920,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 	sumBits(cand0, cand1, upper);
     }
 #if DEBUG+0 > 0
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG: ibis::bin::estimate("<< expr << ")\nlower = \n"
 	<< lower << "upper = \n" << upper;
 #endif

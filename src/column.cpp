@@ -4242,7 +4242,7 @@ void ibis::column::unloadIndex() const {
 		    logMessage("unloadIndex", "successfully removed the index");
 	    }
 	    else {
-		LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
+		LOGGER(ibis::gVerbose >= 1) << "Warning -- ibis::column[" << thePart->name()
 			  << "." << name() << "]::unloadIndex failed because "
 		    "idxcnt (" << idxcnt << ") is not zero";
 	    }
@@ -4380,7 +4380,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = 0;
 	}
 
-	LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
+	LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
 		  << "]::evaluateRange(" << cmp
 		  << ") completed with low.size() = " << low.size()
 		  << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
@@ -4407,7 +4407,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(2) << "ibis::column[" << thePart->name() << "." << name()
+	    LOGGER(ibis::gVerbose >= 2) << "ibis::column[" << thePart->name() << "." << name()
 		      << "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
 		"giving up...";
@@ -4419,7 +4419,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = -3;
     }
 
-    LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
+    LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
 	      << "]::evaluateRange(" << cmp
 	      << ") completed the fallback option with low.size() = "
 	      << low.size() << ", low.cnt() = " << low.cnt()
@@ -4453,7 +4453,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else {
-		LOGGER(1) << "Warning -- ibis::column[" << thePart->name()
+		LOGGER(ibis::gVerbose >= 1) << "Warning -- ibis::column[" << thePart->name()
 			  << "." << name() << "]::evaluateRange(" << cmp
 			  << ") -- idx(" << idx->name()
 			  << ")->evaluate returned " << ierr
@@ -4493,7 +4493,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
+	LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
 		  << "]::evaluateRange(" << cmp
 		  << ") completed with low.size() = " << low.size()
 		  << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
@@ -4520,7 +4520,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(2) << "ibis::column[" << thePart->name() << "." << name()
+	    LOGGER(ibis::gVerbose >= 2) << "ibis::column[" << thePart->name() << "." << name()
 		      << "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
 		"giving up...";
@@ -4532,7 +4532,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	ierr = -3;
     }
 
-    LOGGER(4) << "ibis::column[" << thePart->name() << "." << name()
+    LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
 	      << "]::evaluateRange(" << cmp
 	      << ") completed the fallback option with low.size() = "
 	      << low.size() << ", low.cnt() = " << low.cnt()
@@ -4568,7 +4568,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(5) << "ibis::column[" << thePart->name() << "." << name()
+	LOGGER(ibis::gVerbose >= 5) << "ibis::column[" << thePart->name() << "." << name()
 		  << "]::estimateRange(" << cmp
 		  << ") completed with low.size() = " << low.size()
 		  << ", low.cnt() = " << low.cnt() << ", high.size() = "
@@ -4984,7 +4984,7 @@ long ibis::column::append(const char* dt, const char* df,
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
 #if defined(DEBUG)
-	    LOGGER(0) << mtot;
+	    LOGGER(ibis::gVerbose >= 0) << mtot;
 #endif
 	}
     }
@@ -6306,7 +6306,7 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
-    LOGGER(6) << "ibis::column::actualMinMax -- vals.size() = "
+    LOGGER(ibis::gVerbose >= 6) << "ibis::column::actualMinMax -- vals.size() = "
 	      << vals.size() << ", mask.cnt() = " << mask.cnt()
 	      << ", min = " << min << ", max = " << max;
 } // ibis::column::actualMinMax
@@ -6409,7 +6409,7 @@ double ibis::column::computeSum(const array_t<T>& vals,
 	}
     }
 
-    LOGGER(6) << "ibis::column::computeSum -- vals.size() = "
+    LOGGER(ibis::gVerbose >= 6) << "ibis::column::computeSum -- vals.size() = "
 	      << vals.size() << ", mask.cnt() = " << mask.cnt()
 	      << ", sum = " << res;
     return res;

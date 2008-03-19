@@ -453,7 +453,7 @@ int ibis::query::setWhereClause(const char* str) {
     }
     if (ibis::gVerbose > 0) {
 	logMessage("setWhereClause", "WHERE \"%s\"", str);
-	LOGGER(4) << "  Translated the WHERE clause into: " << *expr;
+	LOGGER(ibis::gVerbose >= 4) << "  Translated the WHERE clause into: " << *expr;
     }
     return 0;
 } // ibis::query::setWhereClause
@@ -593,7 +593,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(2) << "query[" << myID
+    LOGGER(ibis::gVerbose >= 2) << "query[" << myID
 	      << "]::setWhereClause converted three arrays to \""
 	      << *expr << "\"";
     return 0;
@@ -686,7 +686,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(2) << "query[" << myID
+    LOGGER(ibis::gVerbose >= 2) << "query[" << myID
 	      << "]::setWhereClause accepted new query conditions \""
 	      << *expr << "\"";
     return 0;
@@ -791,7 +791,7 @@ int ibis::query::estimate() {
 		    dslock = 0;
 		}
 
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
 		    << (condition ? condition : expr ? "<long expression>":
 			"<RID query>")
@@ -805,7 +805,7 @@ int ibis::query::estimate() {
 		    dslock = 0;
 		}
 
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
 		    << (condition ? condition : expr ? "<long expressioin>" :
 			"<RID query>")
@@ -818,7 +818,7 @@ int ibis::query::estimate() {
 		    dslock = 0;
 		}
 
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
 		    << (condition ? condition : expr ? "<long expression>" :
 			"<RID query>")
@@ -831,7 +831,7 @@ int ibis::query::estimate() {
 		    dslock = 0;
 		}
 
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
 		    << (condition ? condition : expr ? "<long expression>" :
 			"<RID query>")
@@ -893,13 +893,13 @@ int ibis::query::estimate() {
 	      (sup?sup->bytes():0)))) {
 
 	    if (hits == sup) {
-		LOGGER(0) << "The hit vector" << *hits;
+		LOGGER(ibis::gVerbose >= 0) << "The hit vector" << *hits;
 	    }
 	    else {
 		if (hits)
-		    LOGGER(0) << "The sure hits" << *hits;
+		    LOGGER(ibis::gVerbose >= 0) << "The sure hits" << *hits;
 		if (sup)
-		    LOGGER(0) << "The possible hit" << *sup;
+		    LOGGER(ibis::gVerbose >= 0) << "The possible hit" << *sup;
 	    }
 	}
     }
@@ -1006,7 +1006,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		delete dslock;
 		dslock = 0;
 	    }
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
 		<< (condition ? condition : expr ? "<long expression>" :
 		    "<RID query>") << ") failed "
@@ -1019,7 +1019,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		dslock = 0;
 	    }
 
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
 		<< (condition ? condition : expr ? "<long expression>" :
 		    "<RID query>") << ") failed "
@@ -1032,7 +1032,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		dslock = 0;
 	    }
 
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
 		<< (condition ? condition : expr ? "<long expression>" :
 		    "<RID query>") << ") failed "
@@ -1044,7 +1044,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		delete dslock;
 		dslock = 0;
 	    }
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
 		<< (condition ? condition : expr ? "<long expression>" :
 		    "<RID query>") << ") failed "
@@ -1143,7 +1143,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    (ibis::gVerbose >= 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= hits->bytes()))) {
-	    LOGGER(9) << "The hit vector" << *hits;
+	    LOGGER(ibis::gVerbose >= 9) << "The hit vector" << *hits;
 	}
     }
     return 0;
@@ -1585,7 +1585,7 @@ std::string ibis::query::removeComplexConditions() {
 	std::ostringstream oss0, oss1;
 	simple->print(oss0);
 	tail->print(oss1);
-	LOGGER(3) << "ibis::query::removeComplexConditions split \""
+	LOGGER(ibis::gVerbose >= 3) << "ibis::query::removeComplexConditions split \""
 		  << (condition ? condition : "<long expression>")
 		  << "\" into \"" << *simple << "\" ("
 		  << oss0.str() << ") AND \"" << *tail << "\" ("
@@ -1654,7 +1654,7 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
     if (pthread_rwlock_init(&lock, 0) != 0) {
 	strcpy(lastError, "pthread_rwlock_init() failed in "
 	       "ibis::query::query()");
-	LOGGER(0) << "Warning -- " << lastError;
+	LOGGER(ibis::gVerbose >= 0) << "Warning -- " << lastError;
 	throw ibis::util::strnewdup(lastError);
     }
 
@@ -2083,7 +2083,7 @@ void ibis::query::setMyDir(const char *pref) {
 	    sprintf(myDir, "%s%c%s", cacheDir, DIRSEP, myID);
 	}
 	else {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- CacheDirectory(\"" << cacheDir
 		<< "\") too long";
 	    throw "path for CacheDirectory is too long";
@@ -2471,7 +2471,7 @@ void ibis::query::reorderExpr() {
 
     // call qExpr::reorder to do the actual work
     double ret = expr->reorder(wt);
-    LOGGER(6) << "query[" << myID << "]:reorderExpr returns " << ret
+    LOGGER(ibis::gVerbose >= 6) << "query[" << myID << "]:reorderExpr returns " << ret
 	      << ".  The new query expression is \n" << *expr;
 } // ibis::query::reorderExpr
 
@@ -2489,7 +2489,7 @@ void ibis::query::getBounds() {
 	    table0->getColumn(it->c_str())->getNullMask(tmp);
 	    mask &= tmp;
 #if defined(DEBUG)
-	    LOGGER(0) << *it << " null mask:\n" << tmp
+	    LOGGER(ibis::gVerbose >= 0) << *it << " null mask:\n" << tmp
 				   << "\nquery mask:\n" << mask;
 #endif
 	    ++ it;
@@ -2549,7 +2549,7 @@ void ibis::query::getBounds() {
 void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 			     ibis::bitvector& high) const {
     if (term == 0) return;
-    LOGGER(8) << "query[" << myID
+    LOGGER(ibis::gVerbose >= 8) << "query[" << myID
 	      << "]::doEstimate -- starting to estimate " << *term;
 
     switch (term->getType()) {
@@ -2739,21 +2739,21 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	low.set(1, table0->nRows());
     }
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "ibis::query[" << myID << "]::doEstimate(" << *term
 	<< ") --> [" << low.cnt() << ", " << high.cnt() << "]";
 #if DEBUG + 0 > 1
-    LOGGER(0) << "low \n" << low
+    LOGGER(ibis::gVerbose >= 0) << "low \n" << low
 			   << "\nhigh \n" << high;
 #else
     if (ibis::gVerbose >= 30 ||
 	((low.bytes()+high.bytes()) < (2U << ibis::gVerbose))) {
-	LOGGER(0) << "low \n" << low
+	LOGGER(ibis::gVerbose >= 0) << "low \n" << low
 			       << "\nhigh \n" << high;
     }
 #endif
 #else
-    LOGGER(5) << "ibis::query[" << myID << "]::doEstimate(" << *term
+    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doEstimate(" << *term
 	      << ") --> [" << low.cnt() << ", "
 	      << (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
 #endif
@@ -2878,7 +2878,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     catch (const ibis::bad_alloc& e) {
 	ierr = -1;
 	res.clear();
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
 	    << *expr << ") failed due to a memory allocation problem, "
 	    << e.what();
@@ -2886,21 +2886,21 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     catch (const std::exception& e) {
 	ierr = -2;
 	res.clear();
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
 	    << *expr << ") failed due to a std::exception, " << e.what();
     }
     catch (const char *e) {
 	ierr = -3;
 	res.clear();
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
 	    << *expr << ") failed due to a string exception, " << e;
     }
     catch (...) {
 	ierr = -4;
 	res.clear();
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
 	    << *expr << ") failed due to an unexpected exception";
     }
@@ -2981,7 +2981,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ht.set(0, table0->nRows());
 	return ierr;
     }
-    LOGGER(8) << "query::[" << myID
+    LOGGER(ibis::gVerbose >= 8) << "query::[" << myID
 	      << "]::doScan -- reading data entries to resolve " << *term;
 
     switch (term->getType()) {
@@ -3076,7 +3076,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(8) << "query::[" << myID
+    LOGGER(ibis::gVerbose >= 8) << "query::[" << myID
 	      << "]::doScan -- reading data entries to resolve " << *term
 	      << " with mask.size() = " << mask.size() << " and mask.cnt() = "
 	      << mask.cnt();
@@ -3418,7 +3418,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(5) << "ibis::query[" << myID << "]::doScan(" << *term
+    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doScan(" << *term
 	      << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
@@ -3431,7 +3431,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, table0->nRows());
 	return 0;
     }
-    LOGGER(6) << "query[" << myID
+    LOGGER(ibis::gVerbose >= 6) << "query[" << myID
 	      << "]::doEvaluate -- starting to evaluate " << *term;
 
     int ierr = 0;
@@ -3573,7 +3573,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(5) << "ibis::query[" << myID << "]::doEvaluate(" << *term
+    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doEvaluate(" << *term
 	      << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
@@ -3592,7 +3592,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(8) << "query[" << myID << "]::doEvaluate -- starting to evaluate "
+    LOGGER(ibis::gVerbose >= 8) << "query[" << myID << "]::doEvaluate -- starting to evaluate "
 	      << *term;
 
     switch (term->getType()) {
@@ -3758,7 +3758,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(4) << "ibis::query[" << myID << "]::doEvaluate(" << *term
+    LOGGER(ibis::gVerbose >= 4) << "ibis::query[" << myID << "]::doEvaluate(" << *term
 	      << ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 	      << ", ierr = " << ierr;
 #endif
@@ -4260,7 +4260,7 @@ void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
     if (terms.empty()) // no join terms to use
 	return;
 
-    LOGGER(7) << "ibis::query[" << myID
+    LOGGER(ibis::gVerbose >= 7) << "ibis::query[" << myID
 	      << "]::addJoinConstraints -- current query expression\n"
 	      << *exp0;
 
@@ -4341,7 +4341,7 @@ void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
 	    }
 	}
     }
-    LOGGER(7) << "ibis::query[" << myID << "]::addJoinConstraints -- "
+    LOGGER(ibis::gVerbose >= 7) << "ibis::query[" << myID << "]::addJoinConstraints -- "
 	"query expression with additional constraints\n"
 	      << *exp0;
 } // ibis::query::addJoinConstraints
@@ -4463,7 +4463,7 @@ int64_t ibis::query::processJoin() {
 	//logMessage("processJoin", "OPTION 0 -- loop join computes %lld "
 	//	   "hits in %g seconds", cnt, watch.realTime());
 	if (cnt >= 0) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "processJoin with OPTION 0 -- loop join computed "
 		<< cnt << " hits, took " << watch.realTime() << " sec";
 	}
@@ -4473,7 +4473,7 @@ int64_t ibis::query::processJoin() {
 	watch.start();
 	cnt = sortJoin(terms, mask);
 	watch.stop();
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "processJoin with OPTION 1 -- sort-merge join computed "
 	    << cnt << " hits, took " << watch.realTime() << " sec";
     }
@@ -5050,7 +5050,7 @@ int64_t ibis::query::processJoin() {
     // 	       "hits in %g seconds", ret, timer.realTime());
     //     logMessage("processJoin", "OPTION 4 -- indexed join computes %lld "
     // 	       "hits in %g seconds", ret, timer.realTime());
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "processJoin with OPTION 4 -- index scan (estimated <= "
 	<< estimated << ") followed by pair-masked loop join computed "
 	<< ret << (ret > 1 ? " hits" : " hit") << ", took "
@@ -5190,7 +5190,7 @@ int64_t ibis::query::countEqualPairs(const array_t<T1>& val1,
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
@@ -5269,7 +5269,7 @@ int64_t ibis::query::countEqualPairs(const array_t<uint32_t>& val1,
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
@@ -5437,7 +5437,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 			UnixWrite(fdes, idbuf, idsize);
 	    }
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: query::recordEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2

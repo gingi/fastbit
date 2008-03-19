@@ -68,7 +68,7 @@ ibis::qContinuousRange::qContinuousRange
     else
 	upper = DBL_MAX;
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "column: " << name << "\n"
 	<< "left string: \"" << (lstr?lstr:"<NULL>")
 	<< "\", right string: \"" << (rstr?rstr:"<NULL>") << "\"\n"
@@ -191,7 +191,7 @@ void ibis::qExpr::print(std::ostream& out) const {
 	break;
     }
     default:
-	LOGGER(0) << "UNKNOWN LOGICAL OPERATOR";
+	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
     } // end of outer-mode switch statement
 } // qExpr::print()
 
@@ -611,7 +611,7 @@ ibis::compRange::stdFunction1::stdFunction1(const char* name) {
     else if (0 == stricmp(name, "TANH"))
 	ftype = ibis::compRange::TANH;
     else {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::compRange::stdFunction1::stdFunction1(" << name
 	    << ") UNKNOWN (one-argument) function name";
 	throw "unknown function name";
@@ -628,7 +628,7 @@ ibis::compRange::stdFunction2::stdFunction2(const char* name) {
     else if (0 == stricmp(name, "POW") || 0 == stricmp(name, "POWER"))
 	ftype = ibis::compRange::POW;
     else {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::compRange::stdFunction2::stdFunction2(" << name
 	    << ") UNKNOWN (two-argument) function name";
 	throw "unknown function name";
@@ -1295,7 +1295,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 
 	if (cr->isSimpleRange()) {
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "replace a compRange with a qRange " << *expr;
 #endif
 	    expr = cr->simpleRange();
@@ -1399,7 +1399,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
     if (values.size() < val.size()) {
 	unsigned j = val.size() - values.size();
-	LOGGER(1) << "ibis::qDiscreteRange::ctor accepted incoming int "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::qDiscreteRange::ctor accepted incoming int "
 	    "array with "
 		  << val.size() << " elements, removed " << j
 		  << " duplicate value" << (j > 1 ? "s" : "");
@@ -1421,7 +1421,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     values.resize(j);
     if (j < val.size()) {
 	j = val.size() - j;
-	LOGGER(1) << "ibis::qDiscreteRange::ctor accepted incoming double "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::qDiscreteRange::ctor accepted incoming double "
 	    "array with "
 		  << val.size() << " elements, removed " << j
 		  << " duplicate value" << (j > 1 ? "s" : "");

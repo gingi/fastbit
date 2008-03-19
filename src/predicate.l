@@ -50,7 +50,7 @@
 [A-Za-z_]((->)?[0-9A-Za-z_.:\[\]]+)*   { /* name string */
     /* a name */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a name: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a name: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -62,7 +62,7 @@
 \([\t\n ]*[-+]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([eE][-+]?[0-9]+)?([\n\t, ]+[-+]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([eE][-+]?[0-9]+)?)*[\t\n ]*\) {
     /* a series of numbers in parentheses */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a series of numbers: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a series of numbers: " << yytext;
 #endif
     unsigned len = strlen(yytext);
     char* str = new char[len];
@@ -76,7 +76,7 @@
 [-+]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([eE][-+]?[0-9]+)? {
     /* a number in string format */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a number string: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a number string: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -88,7 +88,7 @@
 0x[0-9a-fA-F]+ {
     /* a hexadecimal number */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a hex numnber: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a hex numnber: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -100,7 +100,7 @@
 \((\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\')([\n\t, ]+(\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\'))*\) {
     /* a list of quoted strings in parentheses */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a list of quoted strings: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a list of quoted strings: " << yytext;
 #endif
     unsigned len = strlen(yytext);
     char* str = new char[len];
@@ -114,7 +114,7 @@
 \"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\' {
     /* a quoted string -- LITSTR is a shorthand for literal string */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a quoted string: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a quoted string: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);

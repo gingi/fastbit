@@ -208,7 +208,7 @@ void ibis::egale::write(int fdes) const {
     array_t<int32_t> offs(nbits+1);
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 0) {
-	LOGGER(1) << "ibis::egale::write(" << fdes << ") failed to compute "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::write(" << fdes << ") failed to compute "
 	    "the current file pointer position, must be an invalid file";
 	return;
     }
@@ -218,7 +218,7 @@ void ibis::egale::write(int fdes) const {
     offs[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(1) << "ibis::egale::write(" << fdes << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::write(" << fdes << ") failed to seek to "
 		  << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
 	return;
@@ -357,7 +357,7 @@ void ibis::egale::read(const char* f) {
     if (ierr != end) {
 	clear();
 	UnixClose(fdes);
-	LOGGER(1) << "ibis::egale::read(" << fnm << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::read(" << fnm << ") failed to seek to "
 		  << end;
 	return;
     }
@@ -548,7 +548,7 @@ void ibis::egale::convert() {
 	    }
 #if defined(DEBUG)
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG: ibis::egale::convert " << i << " ...";
 	    }
 #endif
@@ -573,7 +573,7 @@ void ibis::egale::convert() {
     simple.clear();
 #if defined(DEBUG)
     if (ibis::gVerbose > 11) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG: ibis::egale::convert " << nobs << " DONE";
     }
 #endif
@@ -1060,7 +1060,7 @@ void ibis::egale::addBins_(uint32_t ib, uint32_t ie,
 // compute the bitvector that is the answer for the query x = b
 void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalEQ(" << b << ")...";
 #endif
     if (b >= nobs) {
@@ -1073,7 +1073,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 	    uint32_t k = b % bases[i];
 	    const uint32_t j = offset + k;
 #ifdef DEBUG
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- ibis::egale::evalEQ(" << b << ")... component "
 		<< i << " = " << k << ", bits[" << j << "]";
 #endif
@@ -1090,7 +1090,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that is the answer for the query x <= b
 void ibis::egale::evalLE(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalLE(" << b << ")...";
 #endif
     if (b+1 >= nobs) {
@@ -1156,7 +1156,7 @@ void ibis::egale::evalLE(ibis::bitvector& res, uint32_t b) const {
 void ibis::egale::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
     if (b0 >= b1) { // no hit

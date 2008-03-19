@@ -209,14 +209,14 @@ void ibis::fuzz::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuzz::activateCoarse(all) retrieving data from "
 	    "ibis::fileManager::storage(0x" << str << ")";
 
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "fuzz::activateCoarse -- activating bitvector "
 		    << i << " from a raw storage ("
 		    << static_cast<const void*>(str->begin())
@@ -234,7 +234,7 @@ void ibis::fuzz::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::fuzz::activateCoarse(all) retrieving data from "
 		"file \"" << fname << "\"";
 
@@ -265,7 +265,7 @@ void ibis::fuzz::activateCoarse() const {
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->setSize(nrows);
 #if defined(DEBUG)
-			    LOGGER(0)
+			    LOGGER(ibis::gVerbose >= 0)
 				<< "fuzz::activateCoarse -- "
 				"activating bitvector " << i
 				<< "by reading file " << fname
@@ -306,7 +306,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuzz::activateCoarse(" << i
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -317,7 +317,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "fuzz::activateCoarse(" << i
 	    << ") constructed a bitvector from range ["
 	    << coffsets[i] << ", " << coffsets[i+1] << ") of a storage at "
@@ -327,7 +327,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::fuzz::activateCoarse(" << i
 		      << ") retrieving data from file \""
 		      << fname << "\"";
@@ -341,7 +341,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	    cbits[i]->setSize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "fuzz::activateCoarse(" << i
 		<< ") constructed a bitvector from range ["
 		<< coffsets[i] << ", " << coffsets[i+1] << ") of file "
@@ -378,14 +378,14 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuzz::activateCoarse(" << i << ", " << j
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
 
 	while (i < j) {
 #if defined(DEBUG)
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- fuzz::activateCoarse "
 		    << "constructing bitvector " << i << " from range ["
 		    << coffsets[i] << ", " << coffsets[i+1]
@@ -406,7 +406,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(9) << "ibis::column[" << col->name()
+		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 			  << "]::fuzz::activateCoarse(" << i << ", " << j
 			  << ") retrieving data from file \""
 			  << fname << "\"";
@@ -437,7 +437,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-				LOGGER(0)
+				LOGGER(ibis::gVerbose >= 0)
 				    << "fuzz::activateCoarse(" << i
 				    << ") constructed a bitvector from range ["
 				    << coffsets[i] << ", " << coffsets[i+1]
@@ -797,13 +797,13 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    LOGGER(9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
 		      << ") using only fine level bit vectors [" << hit0
 		      << ", " << hit1 << ")";
 	    sumBits(hit0, hit1, lower);
 	    break;
 	case 2: // direct | - | direct
-	    LOGGER(9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
 		      << ") using coarse bit vectors [" << c0 << ", " << c1-1
 		      << ") plus fine bit vectors [" << hit0 << ", "
 		      << cbounds[c0] << ") plus [" << cbounds[c1-1] << ", "
@@ -815,7 +815,7 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
 		addBits(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 3: // complement | - | direct
-	    LOGGER(9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
 		      << ") using coarse bit vectors [" << c0-1 << ", " << c1-1
 		      << ") minus fine bit vectors [" << cbounds[c0-1] << ", "
 		      << hit0 << ") plus [" << cbounds[c1-1] << ", "
@@ -830,7 +830,7 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
 		addBits(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 4: // direct | - | complement
-	    LOGGER(9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
 		      << ") using coarse bit vectors [" << c0 << ", " << c1
 		      << ") plus fine bit vectors [" << hit0 << ", "
 		      << cbounds[c0] << ") minus [" << hit1 << ", "
@@ -845,7 +845,7 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    break;
 	case 5: // complement | - | complement
-	    LOGGER(9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::fuzz[" << col->name() << "]::evaluate(" << expr
 		      << ") using coarse bit vectors [" << c0-1 << ", " << c1
 		      << ") minus fine bit vectors [" << cbounds[c0-1] << ", "
 		      << hit0 << ") minus [" << hit1 << ", "

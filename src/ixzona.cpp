@@ -185,7 +185,7 @@ void ibis::zona::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::zona::activateCoarse(all) "
 		  << "retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -193,7 +193,7 @@ void ibis::zona::activateCoarse() const {
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "zona::activateCoarse -- activating bitvector "
 		    << i << " from a raw storage (0x"
 		    << static_cast<const void*>(str->begin())
@@ -211,7 +211,7 @@ void ibis::zona::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::zona::activateCoarse(all) "
 		      << "retrieving data from file \"" << fname << "\"";
 
@@ -242,7 +242,7 @@ void ibis::zona::activateCoarse() const {
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->setSize(nrows);
 #if defined(DEBUG)
-			    LOGGER(0)
+			    LOGGER(ibis::gVerbose >= 0)
 				<< "zona::activateCoarse -- "
 				"activating bitvector " << i
 				<< "by reading file " << fname
@@ -284,7 +284,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::zona::activateCoarse(" << i
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -295,7 +295,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "zona::activateCoarse(" << i
 	    << ") constructed a bitvector from range ["
 	    << coffsets[i] << ", " << coffsets[i+1] << ") of a storage at "
@@ -305,7 +305,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::zona::activateCoarse(" << i
 		      << ") retrieving data from file \"" << fname << "\"";
 
@@ -318,7 +318,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	    cbits[i]->setSize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "zona::activateCoarse(" << i
 		<< ") constructed a bitvector from range ["
 		<< coffsets[i] << ", " << coffsets[i+1]
@@ -355,7 +355,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::zona::activateCoarse(" << i << ", " << j
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -368,7 +368,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "zona::activateCoarse(" << i << ", " << j
 		    << ") constructed a bitvector from range ["
 		    << coffsets[i] << ", " << coffsets[i+1]
@@ -383,7 +383,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(9) << "ibis::column[" << col->name()
+		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 			  << "]::zona::activateCoarse(" << i << ", " << j
 			  << ") retrieving data from file \"" << fname << "\"";
 
@@ -413,7 +413,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-				LOGGER(0)
+				LOGGER(ibis::gVerbose >= 0)
 				    << "zona::activateCoarse(" << i
 				    << ") constructed a bitvector from range ["
 				    << coffsets[i] << ", " << coffsets[i+1]
@@ -851,7 +851,7 @@ void ibis::zona::writeCoarse(int fdes) const {
     array_t<int32_t> offs(nc+1);
     ierr = UnixWrite(fdes, &nc, sizeof(nc));
     if (ierr < 0) {
-	LOGGER(1) << "ibis::zona::writeCoarse(" << fdes << ") failed to write "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::zona::writeCoarse(" << fdes << ") failed to write "
 		  << "an integer";
 	return;
     }

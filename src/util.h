@@ -167,7 +167,7 @@ int truncate(const char*, uint32_t);
 #endif
 
 #define LOGGER(v) \
-if ((v) > ibis::gVerbose) ; else ibis::util::logger(v).buffer() 
+if (false == (v)) ; else ibis::util::logger(2).buffer() 
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*

@@ -1,3 +1,8 @@
+2008-03-19 John Wu <John.Wu at ACM.org>
+	* util.h:170 change LOGGER macro to take a logical expression
+	instead of an integer, this make the dependency on ibis::gVerbose
+	explicit
+
 2008-03-18 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: add explicit template instantiation
 	of ibis::part::equalWeightBins for float and double, attempting to

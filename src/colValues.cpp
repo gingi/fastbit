@@ -36,7 +36,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     case ibis::DOUBLE:
 	return new colDoubles(c, hits);
     default:
-	LOGGER(0) << "ibis::colValues does not support type "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colValues does not support type "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " yet";
 	return 0;
@@ -67,7 +67,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     case ibis::DOUBLE:
 	return new colDoubles(c, store, start, nelm);
     default:
-	LOGGER(0) << "ibis::colValues does not yet support type "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colValues does not yet support type "
 		  << ibis::TYPESTRING[(int)(c->type())];
 	return 0;
     }
@@ -94,7 +94,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     case ibis::DOUBLE:
 	return new colDoubles(c, vals);
     default:
-	LOGGER(0) << "ibis::colValues does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colValues does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
 	return 0;
@@ -168,7 +168,7 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colInts does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colInts does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
     }
@@ -241,7 +241,7 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colUInts does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colUInts does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
     }
@@ -314,7 +314,7 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colLongs does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colLongs does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
     }
@@ -387,7 +387,7 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colULongs does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colULongs does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
     }
@@ -460,7 +460,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colFloats does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colFloats does not support "
 		  << ibis::TYPESTRING[(int)(c->type())]
 		  << " type yet";
     }
@@ -533,7 +533,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
-	LOGGER(0) << "ibis::colDoubles does not support "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::colDoubles does not support "
 		  << ibis::TYPESTRING[(int)(c->type())] << " type yet";
     }
 } // ibis::colDoubles::colDoubles

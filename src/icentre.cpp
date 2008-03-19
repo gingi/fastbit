@@ -299,7 +299,7 @@ long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
 // compute the bitvector that is the answer for the query x = b
 void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0) << "DEBUG -- ibis::entre::evalEQ(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::entre::evalEQ(" << b << ")...";
 #endif
     if (b >= nobs) {
 	res.set(0, nrows);
@@ -386,7 +386,7 @@ void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that is the answer for the query x <= b
 void ibis::entre::evalLE(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(0) << "DEBUG -- ibis::entre::evalLE(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::entre::evalLE(" << b << ")...";
 #endif
     if (b+1 >= nobs) { // everything covered
 	res.set(1, nrows);
@@ -546,7 +546,7 @@ void ibis::entre::evalLE(ibis::bitvector& res, uint32_t b) const {
 void ibis::entre::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
 #ifdef DEBUG
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::entre::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
     if (b0 >= b1) { // no hit
@@ -607,7 +607,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::entre::evalLL: low "
 			    "(component[" << i << "] <= " << k0 << ") "
 			    << low;
@@ -641,7 +641,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::entre::evalLL: high "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;
@@ -769,7 +769,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::entre::evalLL: low "
 			    "(component[" << i << "] <= " << k0 << ") "
 			    << low;
@@ -848,7 +848,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::entre::evalLL: high "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;
@@ -937,7 +937,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 #if defined(DEBUG)
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- ibis::entre::evalLL: res "
 			    "(component[" << i << "] <= " << k1 << ") "
 			    << res;

@@ -26,7 +26,7 @@ array_t<T>::array_t()
 	actual->beginUse();
     }
     else {
-	LOGGER(0) << "array_t<T> failed to allocate memory for an empty array";
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for an empty array";
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -40,7 +40,7 @@ array_t<T>::array_t(uint32_t n)
 	actual->beginUse();
     }
     else {
-	LOGGER(0) << "array_t<T> failed to allocate memory for an array with "
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for an array with "
 		  << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
@@ -58,7 +58,7 @@ array_t<T>::array_t(uint32_t n, const T& val)
 	}
     }
     else {
-	LOGGER(0) << "array_t<T> failed to allocate memory for copying " << n
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for copying " << n
 		  << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
@@ -903,7 +903,7 @@ void array_t<T>::resize(uint32_t n) {
 	    }
 	    else {
 		m_end = m_begin;
-		LOGGER(0) << "array_t: unable to allocate " << n
+		LOGGER(ibis::gVerbose >= 0) << "array_t: unable to allocate " << n
 			  << " bytes, previous content lost!";
 		throw ibis::bad_alloc("failed to resize array");
 	    }
@@ -959,7 +959,7 @@ void array_t<T>::reserve(uint32_t n) {
 template<class T> typename array_t<T>::iterator
 array_t<T>::insert(typename array_t<T>::iterator p, const T& val) {
     if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- array_t(" << actual << ") -- should not insert to "
 	    "a shared or read-only array, making a modifiable copy";
 	nosharing();
@@ -1013,7 +1013,7 @@ array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
 
     if (n <= 0) { // nothing to do
 #if defined(DEBUG) && DEBUG > 2
-	LOGGER(0) << "array_t::insert() trying to insert " << n
+	LOGGER(ibis::gVerbose >= 0) << "array_t::insert() trying to insert " << n
 			       << " copies of " << val;
 #endif
     }
@@ -1055,7 +1055,7 @@ array_t<T>::insert(typename array_t<T>::iterator p,
     long n = back - front;
     if (n <= 0) { // nothing to do
 #if defined(DEBUG) && DEBUG > 2
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "array_t::insert() trying to insert " << n
 	    << " an empty range [" << front << ", " << back << ')';
 #endif
@@ -1174,7 +1174,7 @@ void array_t<T>::write(const char* file) const {
     off_t n, i;
     FILE *out = fopen(file, "wb");
     if (out == 0) {
-	LOGGER(0) << "array_t<T>::write() is unable open file \""
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() is unable open file \""
 		  << file << "\" ... "
 		  << (errno ? strerror(errno) : "no free stdio stream");
 	return;
@@ -1184,7 +1184,7 @@ void array_t<T>::write(const char* file) const {
     i = fwrite(reinterpret_cast<void*>(m_begin), sizeof(T), n, out);
     fclose(out); // close the file
     if (i != n) {
-	LOGGER(0) << "array_t<T>::write() expects to write " << n << ' '
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() expects to write " << n << ' '
 		  << sizeof(T) << "-byte element" << (n>1?"s":"")
 		  << " to \"" << file << "\", but actually wrote "
 		  << i;
@@ -1200,7 +1200,7 @@ void array_t<T>::write(FILE* fptr) const {
     n = m_end - m_begin;
     i = fwrite(reinterpret_cast<void*>(m_begin), sizeof(T), n, fptr);
     if (i != n) {
-	LOGGER(0) << "array_t<T>::write() expects to write " << n << ' '
+	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() expects to write " << n << ' '
 		  << sizeof(T) << "-byte element" << (n>1?"s":"")
 		  << ", but actually wrote " << i;
     }

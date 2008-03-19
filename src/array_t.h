@@ -174,7 +174,7 @@ inline void array_t<T>::push_back(const T& elm) {
 	uint32_t offset = (char*)(m_begin) - actual->begin();
 	uint32_t n = (actual->empty() || m_end<=m_begin ? 0 : m_end - m_begin);
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: ibis::array_t<" << typeid(T).name()
 		<< ">::push_back(0x" << std::hex << elm
 		<< ") actual address before calling enlarge 0x"
@@ -186,7 +186,7 @@ inline void array_t<T>::push_back(const T& elm) {
 	actual->enlarge(); // increase the storage
 	m_begin = (T*)(actual->begin() + offset);
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: ibis::array_t<" << typeid(T).name()
 		<< ">::push_back(0x" << std::hex << elm
 		<< ") actual address after calling enlarge 0x"

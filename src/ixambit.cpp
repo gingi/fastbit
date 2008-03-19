@@ -265,7 +265,7 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	else {
 	    sub.clear();
 	}
-	LOGGER(3) << "ibis::ambit::ctor starting to convert " << rhs.nobs
+	LOGGER(ibis::gVerbose >= 3) << "ibis::ambit::ctor starting to convert " << rhs.nobs
 		  << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has subranges.
@@ -987,7 +987,7 @@ void ibis::ambit::write(int fdes) const {
     offs[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(1) << "ibis::ambit::write(" << fdes << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::ambit::write(" << fdes << ") failed to seek to "
 		  << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
 	return;
@@ -2879,7 +2879,7 @@ void ibis::ambit::estimate(const ibis::qContinuousRange& expr,
 	} // switch (expr.rightOperator())
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
-    LOGGER(6) << "ibis::ambit::estimate(" << expr << ") bin number ["
+    LOGGER(ibis::gVerbose >= 6) << "ibis::ambit::estimate(" << expr << ") bin number ["
 	      << cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	      << ") boundaries ["
 	      << (minval[cand0]<bounds[cand0] ? minval[cand0] :

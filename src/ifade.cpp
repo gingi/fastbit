@@ -45,7 +45,7 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::fade::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -169,7 +169,7 @@ void ibis::fade::write(int fdes) const {
     offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(1) << "ibis::fade::write(" << fdes << ") failed to seek to"
+	LOGGER(ibis::gVerbose >= 1) << "ibis::fade::write(" << fdes << ") failed to seek to"
 		  << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
 	return;
@@ -254,7 +254,7 @@ void ibis::fade::read(const char* f) {
     uint32_t nb;
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != end) {
-	LOGGER(1) << "ibis::fade::read(" << fnm << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::fade::read(" << fnm << ") failed to seek to "
 		  << end;
 	UnixClose(fdes);
 	clear();
@@ -427,7 +427,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	mapValues(f, bmap);
     }
     catch (...) { // need to clean up bmap
-	LOGGER(0) << "ibis::fade::construct1 reclaiming storage "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::fade::construct1 reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
@@ -444,7 +444,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	bmap.clear();
 	ibis::fileManager::instance().signalMemoryAvailable();
 
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::fade::construct1 the bitvectors "
 	    "do not have the expected size(" << col->partition()->nRows()
 	    << "). stopping..";
@@ -511,7 +511,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	delete (*it).second; // no longer need the bitmap
 #if defined(DEBUG) || defined(_DEBUG)
 	if (ibis::gVerbose > 5 && (i & 255) == 255) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG: fade::constructor " << i << " ... ";
 	}
 #endif
@@ -526,7 +526,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	}
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(6) << "DEBUG: fade::constructor " << vals.size()
+    LOGGER(ibis::gVerbose >= 6) << "DEBUG: fade::constructor " << vals.size()
 	      << "... convert to range encoding ...";
 #endif
     // sum up the bitvectors according range-encoding
@@ -539,7 +539,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	nobs += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(6) << "DEBUG: fade::constructor DONE";
+    LOGGER(ibis::gVerbose >= 6) << "DEBUG: fade::constructor DONE";
 #endif
 
     optionalUnpack(bits, col->indexSpec());

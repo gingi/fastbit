@@ -289,7 +289,7 @@ public:
 #endif
 	++ nref;
 #if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(0)	
+	LOGGER(ibis::gVerbose >= 0)	
 	    << "fileManager::storage(" << (void*)m_begin
 	    << ")::beginUse: nref = " << nref << ", nacc = " << nacc;
 #endif
@@ -300,7 +300,7 @@ public:
 #endif
 	-- nref; ++ nacc;
 #if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "fileManager::storage(" << (void*)m_begin
 	    << ")::endUse: nref = " << nref << ", nacc = " << nacc;
 #endif

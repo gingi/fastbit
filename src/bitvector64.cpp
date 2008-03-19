@@ -371,7 +371,7 @@ ibis::bitvector64::word_t ibis::bitvector64::do_cnt() const {
 // unspecified bits in the range of [size(), ind) are assumed to be 0.
 void ibis::bitvector64::setBit(const word_t ind, int val) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "ibis::bitvector64::setBit(" << ind << ", " << val << ") "
 	<< "-- " << nbits << " bit(s) in m_vec and " << active.nbits
 	<< " bit(s) in the active word";
@@ -1256,20 +1256,20 @@ void ibis::bitvector64::read(const char * fn) {
     nbits = do_cnt();
     // some integrity check here
     if (nbits % MAXBITS) {
-	LOGGER(0) << " Error *** ibis::bitvector64::nbits(" << nbits
+	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::nbits(" << nbits
 		  << ") is expected to be multiples of "
 		  << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
-	LOGGER(0) << " Error *** ibis::bitvector64::nset (" << nset
+	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::nset (" << nset
 		  << ") is expected to be not greater than "
 		  << nbits+active.nbits
 		  << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
-	LOGGER(0) << " Error *** ibis::bitvector64::active::nbits ("
+	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::active::nbits ("
 		  << active.nbits << ") is expected to be less than "
 		  << MAXBITS << ", but it is not.";
 	ierr ++;
@@ -1281,7 +1281,7 @@ void ibis::bitvector64::read(const char * fn) {
 	(void)print(lg.buffer());
     }
     else {
-	LOGGER(0) << "empty file";
+	LOGGER(ibis::gVerbose >= 0) << "empty file";
     }
 #endif
     if (ierr) {
@@ -1357,7 +1357,7 @@ void ibis::bitvector64::write(FILE* out) const {
     if (nbits == 0)
 	nbits = nb;
     if (nb != nbits) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Error ibis::bitvector64::write() the value returned by "
 	    << "do_cnt() (" << nb << ") is different from nbits ("
 	    << nbits << ")\n" << "Reset nbits to " << nb;
@@ -1508,7 +1508,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
 	res.active.nbits = active.nbits;
     }
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "result of AND " << res;
+    LOGGER(ibis::gVerbose >= 0) << "result of AND " << res;
 #endif
 } // bitvector64& ibis::bitvector64::and_c2
 
@@ -1576,7 +1576,7 @@ void ibis::bitvector64::and_c1(const ibis::bitvector64& rhs,
     res.active.val = active.val & rhs.active.val;
     res.active.nbits = active.nbits;
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "result of AND " << res;
+    LOGGER(ibis::gVerbose >= 0) << "result of AND " << res;
 #endif
 } // ibis::bitvector64::and_c1
 
@@ -1764,7 +1764,7 @@ void ibis::bitvector64::and_d1(const ibis::bitvector64& rhs) {
     // the last thing -- work with the two active_words
     active.val &= rhs.active.val;
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "result of AND" << *this;
+    LOGGER(ibis::gVerbose >= 0) << "result of AND" << *this;
 #endif
 } // ibis::bitvector64::and_d1
 
@@ -1782,7 +1782,7 @@ void ibis::bitvector64::and_c0(const ibis::bitvector64& rhs) {
     // the last thing -- work with the two active_words
     active.val &= rhs.active.val;
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "result of AND " << *this;
+    LOGGER(ibis::gVerbose >= 0) << "result of AND " << *this;
 #endif
 } // ibis::bitvector64::and_c0
 
@@ -1834,7 +1834,7 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
 	    if (y.nWords == 0)
 		y.decode();
 	    if (x.nWords == 0 || y.nWords == 0) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ERROR bitvector64::or_c2 -- serious problem here ...";
 	    }
 	    if (x.isFill) { // x points to a fill
@@ -3397,7 +3397,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 	double ds = 0.0;
 	f = f0;
 #if defined(DEBUG)
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::bitvector64:clusteringFactor(" << nb << ", " << nc
 	    << ", " << sz << "): sz=" << sz/sizeof(word_t) << ", den = "
 	    << den << ", nw = " << nw;
@@ -3430,7 +3430,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 		((1.0-den) * pow(1.0-den/((1.0-den)*f2), tw3) +
 		 den * pow(1.0-1.0/f2, tw3));
 #if defined(DEBUG)
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::bitvector64:clusteringFactor(" << nb
 		<< ", " << nc << ", " << sz << "): computed size="
 		<< (ds + sz/sizeof(word_t)) << ", ds = "
@@ -3465,7 +3465,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 			    b = c;
 			}
 #if defined(DEBUG)
-			LOGGER(0)
+			LOGGER(ibis::gVerbose >= 0)
 			    << "a = " << a << ", b = " << b
 			    << ", linear extrapolation = "
 			    << f - (f - f2) * ds / (ds - ds2);

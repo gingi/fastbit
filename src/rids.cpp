@@ -41,7 +41,7 @@ int ibis::ridHandler::write(const ibis::RIDSet& rids,
     ibis::util::mutexLock lock(&mutex, "ridHandler::write");
     std::ofstream to(fname);
     if (!to) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler cannot open output file " << fname;
         return false;
     }
@@ -75,17 +75,17 @@ int ibis::ridHandler::append(const ibis::RIDSet& rids,
     ibis::util::mutexLock lock(&mutex, "ridHandler::append");
     std::fstream to(fname, std::ios::in | std::ios::out);
     if (! to) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler cannot open input/output file " << fname;
         return -2;
     }
     if (0 != readVersion(to)) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << fname << " is not a recognized RidFile";
 	return -3;
     }
     if (0 != matchDBName(to)) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "The name in file " << fname << " must be \""
 	    << _dbName << "\" in order to append a new rid set";
 	return -4;
@@ -110,19 +110,19 @@ int ibis::ridHandler::read(ibis::RIDSet& rids, const char* fname) {
     ibis::util::mutexLock lock(&mutex, "ridHandler::read");
     std::ifstream from(fname);
     if (!from) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler cannot open input file " << fname;
         return -2;
     }
 
     if (0 != readVersion(from)) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << fname << " is not a recognized RidFile";
 	return -3;
     }
 
     if (0 != readDBName(from)) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler cannot determine the name of the RID set in "
 	    << fname;
 	return -4;
@@ -132,20 +132,20 @@ int ibis::ridHandler::read(ibis::RIDSet& rids, const char* fname) {
     while (0 == readRidCount(from, nr)) {
 	if (nr <= 0)
 	    break;
-	LOGGER(2) << "ridHandler to read " << nr
+	LOGGER(ibis::gVerbose >= 2) << "ridHandler to read " << nr
 		  << (nr>1 ? " rids" : " rid") << " from " << fname;
 	rids.reserve(rids.size()+nr);
 	for (int i = 0; i < nr && !from.fail(); ++i) {
 	    ibis::rid_t tmp;
 	    from >> tmp;
 	    rids.push_back(tmp);
-	    LOGGER(3) << rids.size()-1 << ":\t" << rids.back();
+	    LOGGER(ibis::gVerbose >= 3) << rids.size()-1 << ":\t" << rids.back();
 	}
     }
     from.close();
 
     nr = rids.size();
-    LOGGER(1) << "ridHandler read " << nr
+    LOGGER(ibis::gVerbose >= 1) << "ridHandler read " << nr
 	      << (nr > 1 ? " rids" : " rid") << " from " << _dbName
 	      << " in file " << fname;
     return nr;
@@ -211,13 +211,13 @@ int ibis::ridHandler::matchDBName(std::istream& from) const {
     }
     else {
 	text[str-text] = 0;
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler::matchDBName prefix expected to be "
 	    << _prefix << ", but is actually " << text;
 	return -1;
     }
     if (*str != 'R' && *str != 'O' && 0 != stricmp(str+1, "idsetname")) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ridHandler::matchDBName: unknown identifier " << text;
 	return -2;
     }

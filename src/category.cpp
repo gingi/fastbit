@@ -353,7 +353,7 @@ void ibis::category::fillIndex(const char *dir) {
 		for (unsigned i = 0; i < nints; ++ i)
 		    cnt += (ints[i] == 0);
 		if (cnt + thePart->nRows() == nints) {
-		    LOGGER(2) << "ibis::category["
+		    LOGGER(ibis::gVerbose >= 2) << "ibis::category["
 			      << (thePart != 0 ? thePart->name() : "")
 			      << "." << name() << "]::fillIndex -- found "
 			      << nints << " strings while expecting "
@@ -836,7 +836,7 @@ long ibis::category::append(const char* dt, const char* df,
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
 #if defined(DEBUG)
-	    LOGGER(0) << mtot;
+	    LOGGER(ibis::gVerbose >= 0) << mtot;
 #endif
 	}
     }
@@ -1150,7 +1150,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     (void) fclose(fdata);
     (void) fclose(fsp);
 
-    LOGGER(3)
+    LOGGER(ibis::gVerbose >= 3)
 	<< "ibis::text::startPositions located the starting "
 	"positions of " << nnew << " new string" << (nnew > 1 ? "s" : "")
 	<< ", file " << spfile << " now has " << (nnew+nold+1)
@@ -1164,7 +1164,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	ierr = fclose(fsp);
 	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(long));
 	truncate(dfile.c_str(), pos);
-	LOGGER(0) << "ibis::text::startPositions truncated files "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::text::startPositions truncated files "
 		  << dfile << " and " << spfile << " to contain only "
 		  << thePart->nRows() << " record"
 		  << (thePart->nRows() > 1 ? "s" : "");
@@ -1800,7 +1800,7 @@ const char* ibis::text::findString(const char *str) const {
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) {
-	LOGGER(0) << "Warning -- ibis::text["
+	LOGGER(ibis::gVerbose >= 0) << "Warning -- ibis::text["
 		  << (thePart != 0 ? thePart->name() : "") << "." << name()
 		  << "]::findString(" << str << ") unable to allocate "
 	    "enough work space";

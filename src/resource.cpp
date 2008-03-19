@@ -40,7 +40,7 @@ void ibis::resource::read(const char* fn) {
 	conf = fopen(name, "r");
 
 	if (conf == 0){
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- ibis::resource::read failed to open user "
 		"specified file \"" << name << "\" ... "
 		<< (errno ? strerror(errno) : "no free stdio stream");
@@ -106,13 +106,13 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (0 == conf) {
-	LOGGER(4) << "ibis::resource::read -- can not find any of the "
+	LOGGER(ibis::gVerbose >= 4) << "ibis::resource::read -- can not find any of the "
 	    "following configuration files:\n" << tried.c_str();
 	return;
     }
 
     char *value;
-    LOGGER(1) << "ibis::resource::read -- Reading configuration file \""
+    LOGGER(ibis::gVerbose >= 1) << "ibis::resource::read -- Reading configuration file \""
 	      << (name?name:"") << "\""; 
     while ( !feof(conf) ) {
 	if (fgets(line, MAX_LINE, conf) == 0) continue; // skip empty line
@@ -138,7 +138,7 @@ void ibis::resource::read(const char* fn) {
 	    add(name, ibis::util::trim(value));
 	}
 	else {
-	    LOGGER(7) << "ibis::resource::read -- skipping line \""
+	    LOGGER(ibis::gVerbose >= 7) << "ibis::resource::read -- skipping line \""
 		      << line << "\" because it contains no '='";
 	}
     }

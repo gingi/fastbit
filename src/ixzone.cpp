@@ -69,7 +69,7 @@ ibis::zone::zone(const ibis::bin& rhs) {
 	else {
 	    sub.clear();
 	}
-	LOGGER(3) << "ibis::zone::ctor starting to convert " << rhs.nobs
+	LOGGER(ibis::gVerbose >= 3) << "ibis::zone::ctor starting to convert " << rhs.nobs
 		  << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has subranges.
@@ -263,7 +263,7 @@ void ibis::zone::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
 	UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(1) << "ibis::zone::write(" << fdes << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::zone::write(" << fdes << ") failed to seek to "
 		  << offs[0];
 	return;
     }
@@ -866,7 +866,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     lower.clear();
 #if defined(DEBUG)
     if (ibis::gVerbose > 0 && nobs > 10 && bits[10] != 0) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG: ibis::zone::estimate(" << expr
 	    << ") -- content of bits[10] upon entering this function"
 	    << *(bits[10]);
@@ -1621,7 +1621,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 	} // switch (expr.rightOperator())
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
-    LOGGER(6)
+    LOGGER(ibis::gVerbose >= 6)
 	<< "ibis::zone::estimate(" << expr << ") bin number ["
 	<< cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	<< ") boundaries ["
@@ -1668,7 +1668,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		if (bin1 >= sub[j]->nobs)
 		    bin1 = sub[j]->nobs-1;
 #if defined(DEBUG) && DEBUG+0 > 1
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG: sub[" << j << "]: lbound=" << lbound
 		    << ", rbound="
 		    << rbound << ", bin0=" << bin0 << ", bin1=" << bin1
@@ -1970,7 +1970,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     }
 #if defined(DEBUG)
     if (ibis::gVerbose > 0 && nobs > 10 && bits[10] != 0) {
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG: ibis::zone::estimate(" << expr
 	    << ") -- content of bits[10] before exiting this function"
 	    << *(bits[10]);

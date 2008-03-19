@@ -74,7 +74,7 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	else {
 	    sub.clear();
 	}
-	LOGGER(3) << "ibis::pack::ctor starting to convert " << rhs.nobs
+	LOGGER(ibis::gVerbose >= 3) << "ibis::pack::ctor starting to convert " << rhs.nobs
 		  << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has a subrange.
@@ -262,7 +262,7 @@ void ibis::pack::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
 	UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(1) << "ibis::pack::write(" << fdes << ") failed to seek to "
+	LOGGER(ibis::gVerbose >= 1) << "ibis::pack::write(" << fdes << ") failed to seek to "
 		  << offs[0];
 	return;
     }
@@ -1920,7 +1920,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	} // switch (expr.rightOperator())
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
-    LOGGER(6) << "ibis::pack::estimate(" << expr << ") bin number ["
+    LOGGER(ibis::gVerbose >= 6) << "ibis::pack::estimate(" << expr << ") bin number ["
 	      << cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	      << ") boundaries ["
 	      << (cand0 < bits.size() ?

@@ -873,7 +873,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
     m_desc = ibis::util::strnewdup(td);
     nEvents = static_cast<size_t>(nr);
     if (nEvents != nr) {
-	LOGGER(0) << "ibis::bord::part::part can not handle " << nr
+	LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::part can not handle " << nr
 		   << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
@@ -887,7 +887,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 	    colorder.push_back(tmp);
 	}
     }
-    LOGGER(0) << "ibis::bord::part::part("
+    LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::part("
 	      << (m_name != 0 ? m_name : "<unnamed>") << ", "
 	      << (m_desc != 0 ? m_desc : "")
 	      << ") completed allocating memory for "
@@ -1058,7 +1058,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     // create bundle
     ibis::bundle *bdl = ibis::bundle::create(*this, sel, buf);
     if (bdl == 0) {
-	LOGGER(0) << "ibis::bord::part::groupby -- failed to create "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::groupby -- failed to create "
 	    "bundle for \"" << *sel << "\" from in-memory data";
 
 	return 0;

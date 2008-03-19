@@ -470,7 +470,7 @@ inline void ibis::bitvector::setSize(word_t n) const {
     word_t nb = do_cnt();
     if (nb != nbits) {
 	const_cast<ibis::bitvector*>(this)->adjustSize(0, nbits);
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::bitvector::setSize -- adjust the number of bits to"
 	    << n;
     }
@@ -710,7 +710,7 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
 // active is empty
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::bitvector::copy_runs(0x"
 	    << std::hex << std::setw(8) << std::setfill('0')
 	    << *(it.it) << ", " << std::dec << nw
@@ -744,7 +744,7 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 // active is empty
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::bitvector::copy_runsn(0x"
 	    << std::hex << std::setw(8) << std::setfill('0')
 	    << *(it.it) << ", " << std::dec << nw
@@ -1151,7 +1151,7 @@ inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
 #if defined(DEBUG)
 	if (ind >= nbits + active.nbits ||
 	    active.val >= (1U << active.nbits)) {
-	    LOGGER(0) << "Bad active word";
+	    LOGGER(ibis::gVerbose >= 0) << "Bad active word";
 	}
 #endif
     }

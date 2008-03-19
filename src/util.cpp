@@ -1613,23 +1613,25 @@ int truncate(const char* name, uint32_t bytes) {
     int ierr = 0;
     int fh = _open(name, _O_RDWR | _O_CREAT, _S_IREAD | _S_IWRITE );
     if (fh >= 0) { // open successful
-	LOGGER(4) << "file \"" << name
-		  << "\" length before truncation is " << _filelength(fh);
+	LOGGER(ibis::gVerbose >= 4)
+	    << "file \"" << name
+	    << "\" length before truncation is " << _filelength(fh);
 	ierr = _chsize(fh, bytes);
 	if (ierr < 0) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ERROR *** _chsize(" << name << ", " << bytes
 		<< ") returned " << ierr;
 	}
 	else {
-	    LOGGER(4) << "file \"" << name
-		      << "\" length after truncation is " << _filelength(fh);
+	    LOGGER(ibis::gVerbose >= 4)
+		<< "file \"" << name
+		<< "\" length after truncation is " << _filelength(fh);
 	}
 	_close(fh);
     }
     else {
 	ierr = INT_MIN;
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- function truncate failed to open file \""
 	    << name << "\"";
     }

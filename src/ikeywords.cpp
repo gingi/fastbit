@@ -21,7 +21,7 @@ ibis::keywords::keywords(const ibis::column* c,
     if (c == 0) return; // does nothing
     if (c->type() != ibis::CATEGORY &&
 	c->type() != ibis::TEXT) {
-	LOGGER(0) << "ibis::keywords::keywords -- can only index categorical "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- can only index categorical "
 	    "values or string values";
 	throw ibis::bad_alloc("wrong column type for ibis::keywords");
     }
@@ -47,7 +47,7 @@ ibis::keywords::keywords(const ibis::column* c,
     if (idcol != 0 &&
 	(idcol->type() == ibis::FLOAT ||
 	 idcol->type() == ibis::DOUBLE)) {
-	LOGGER(0) << "ibis::keywords::keywords -- the id column of "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- the id column of "
 	    "ibis::keywords can only be integers";
 	throw ibis::bad_alloc("ibis::keywords can only use "
 			      "integers as ids");
@@ -65,7 +65,7 @@ ibis::keywords::keywords(const ibis::column* c,
 	}
     }
     else {
-	LOGGER(0) << "ibis::keywords::keywords -- readTermDocFile failed "
+	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- readTermDocFile failed "
 	    "with error code " << ierr;
 	throw ibis::bad_alloc("ibis::keywords failed to read tdlist file");
     }
@@ -81,7 +81,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 
     std::ifstream tdf(f);
     if (! tdf) {
-	LOGGER(3) << "ibis::keywords::readTermDocFile -- failed to open \""
+	LOGGER(ibis::gVerbose >= 3) << "ibis::keywords::readTermDocFile -- failed to open \""
 		  << f << "\" for reading";
 	return -1;
     }
@@ -90,7 +90,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     uint32_t nbuf = mybuf.size();
     char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {
-	LOGGER(2) << "ibis::keywords::readTermDocFile(" << f
+	LOGGER(ibis::gVerbose >= 2) << "ibis::keywords::readTermDocFile(" << f
 		  << ") -- failed to acquire a buffer to reading";
 	return -2;
     }
@@ -189,7 +189,7 @@ int ibis::keywords::readLine(std::istream &in,
     str1 = linebuf;
     char c = readKeyword(const_cast<const char*&>(str1), key);
     if (c != ':') { // failed to find the required delimiter after keyword
-	LOGGER(4)
+	LOGGER(ibis::gVerbose >= 4)
 	    << "ibis::keywords::readLine -- failed to find the "
 	    "required delimiter ':' after the keyword \"" << key
 	    << "\".  Skip the line";
@@ -212,7 +212,7 @@ int ibis::keywords::readLine(std::istream &in,
 	    if (eol == '\n') {
 		idlist.push_back(id);
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::keywords::readLine -- keyword:" << key
 		    << ", count:" << idlist.size() << " ("
 		    << idlist[0] << (idlist.size()>1 ? ", ...)" : ")");

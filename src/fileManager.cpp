@@ -664,7 +664,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 	fileList::const_iterator it = mapped.find(st->filename());
 	if (it == mapped.end()) {
 	    if (incore.find(st->filename()) != incore.end()) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::recordFile "
 		    "trying to register a memory mapped storage object ("
 		    << st->filename()
@@ -677,7 +677,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 	    mapped[st->filename()] = st;
 	}
 	else if (st != (*it).second) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- ibis::fileManager::recordFile trying "
 		<< "to register a memory mapped storage object ("
 		<< st->filename()
@@ -691,7 +691,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 	fileList::const_iterator it = incore.find(st->filename());
 	if (it == incore.end()) {
 	    if (mapped.find(st->filename()) != mapped.end()) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::recordFile "
 		    "trying to register an incore storage object ("
 		    << st->filename()
@@ -704,7 +704,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 	    incore[st->filename()] = st;
 	}
 	else if (st != (*it).second) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- ibis::fileManager::recordFile trying "
 		"to register an incore storage object ("
 		<< st->filename()
@@ -753,7 +753,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	if (0 == UnixStat(name, &tmp)) {
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::getFile(" << name
 		    << ") file is empty.";
 		return ierr;
@@ -761,7 +761,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	}
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::getFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
@@ -966,7 +966,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	if (0 == UnixStat(name, &tmp)) {
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::tryGetFile(" << name
 		    << ") file is empty.";
 		return ierr;
@@ -974,7 +974,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	}
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- ibis::fileManager::tryGetFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
@@ -2063,7 +2063,7 @@ void ibis::fileManager::roFile::beginUse() {
     if (name != 0) {
 	ibis::fileManager::instance().gainReadAccess(name);
 #if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(0) << "fileManager::roFile " << this
+	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
 			       << " got a read lock on " << name;
 #endif
     }
@@ -2088,7 +2088,7 @@ void ibis::fileManager::roFile::endUse() {
     if (name != 0) {
 	ibis::fileManager::instance().releaseAccess(name);
 #if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(0) << "fileManager::roFile " << this
+	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
 			       << " released the lock on " << name;
 #endif
 	// signal to ibis::fileManager that this file is ready for deletion

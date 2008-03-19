@@ -477,7 +477,7 @@ int ibis::meshQuery::toBlocks
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(4)
+	LOGGER(ibis::gVerbose >= 4)
 	    << "query[" << id() << "]::toBlocks -- converting the bitmap ("
 	    << bv.size() << ", " << bv.cnt() << ") to " << reg.size()
 	    << " block" << (reg.size()>1?"s":"") << " in " << dim.size()
@@ -4996,7 +4996,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
     for (uint32_t i = 0; i < dim.size(); ++ i)
 	npoints *= dim[i];
     if (npoints != bv.size()) {
-	LOGGER(0) << "Warning -- query::bitvectorToCoordinates -- "
+	LOGGER(ibis::gVerbose >= 0) << "Warning -- query::bitvectorToCoordinates -- "
 		  << "the mesh dimensions (" << npoints
 		  << ") do not match the bitvector size (" << bv.size() << ")";
 	return -1;
@@ -5004,7 +5004,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 
     switch (ndim) {
     case 0: {
-	LOGGER(2) << "query::bitvectorToCoordinates -- "
+	LOGGER(ibis::gVerbose >= 2) << "query::bitvectorToCoordinates -- "
 	    "nothing to do for a 0-dimensional mesh";
 	break;}
     case 1: {

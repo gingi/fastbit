@@ -105,7 +105,7 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
 } // constructor with two directories as arguments
 
 void ibis::mensa::clear() {
-    LOGGER(3) << "ibis::mensa::clear -- clearing the existing content of "
+    LOGGER(ibis::gVerbose >= 3) << "ibis::mensa::clear -- clearing the existing content of "
 	      << parts.size() << " partition"
 	      << (parts.size()>1 ? "s" : "") << " with "
 	      << naty.size() << " column"
@@ -199,7 +199,7 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 		delete ind;
 	    }
 	    else {
-		LOGGER(2) << "ibis::mensa::buildIndex(" << colname << ", "
+		LOGGER(ibis::gVerbose >= 2) << "ibis::mensa::buildIndex(" << colname << ", "
 			  << (option != 0 ? option : col->indexSpec())
 			  << ") failed";
 	    }
@@ -386,7 +386,7 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 			addStrings(buff[i], *tmp, nh);
 		    break;}
 		default: {
-		    LOGGER(2) << "ibis::mensa::select is not able to "
+		    LOGGER(ibis::gVerbose >= 2) << "ibis::mensa::select is not able to "
 			"process column " << nms[i] << " (type "
 			      << ibis::TYPESTRING[(int)tls[i]] << ")";
 		    break;}
@@ -469,7 +469,7 @@ void ibis::mensa::orderby(const ibis::table::stringList& names) {
 	 it != parts.end(); ++ it) {
 	long ierr = (*it).second->reorder(names);
 	if (ierr < 0) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::orderby -- reordering partition "
 		<< (*it).first << " encountered error " << ierr;
 	}
@@ -492,7 +492,7 @@ int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals) const {
 	 it != parts.end(); ++ it) {
 	const ibis::part& dp = *((*it).second);
 	if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::getColumnAsBytes encounters an "
 		"integer overflow problem (number of elements assigned "
 		"so far is " << ierr << ")";
@@ -524,7 +524,7 @@ int64_t ibis::mensa::getColumnAsUBytes(const char* cn,
 	 it != parts.end(); ++ it) {
 	const ibis::part& dp = *((*it).second);
 	if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::getColumnAsUBytes encounters an "
 		"integer overflow problem (number of elements assigned "
 		"so far is " << ierr << ")";
@@ -553,7 +553,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsShorts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -575,7 +575,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsShorts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -608,7 +608,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUShorts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -630,7 +630,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUShorts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -662,7 +662,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -683,7 +683,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -704,7 +704,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -725,7 +725,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -747,7 +747,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -780,7 +780,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -802,7 +802,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -824,7 +824,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUInts encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -859,7 +859,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -880,7 +880,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -901,7 +901,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -922,7 +922,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -943,7 +943,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -964,7 +964,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -986,7 +986,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1021,7 +1021,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1043,7 +1043,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1065,7 +1065,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1087,7 +1087,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1121,7 +1121,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1142,7 +1142,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1163,7 +1163,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1184,7 +1184,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1205,7 +1205,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1239,7 +1239,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1260,7 +1260,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1281,7 +1281,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1302,7 +1302,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1323,7 +1323,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1344,7 +1344,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1365,7 +1365,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1386,7 +1386,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1421,7 +1421,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1445,7 +1445,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1469,7 +1469,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1493,7 +1493,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1517,7 +1517,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1541,7 +1541,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1565,7 +1565,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1589,7 +1589,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1613,7 +1613,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1637,7 +1637,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";
@@ -1662,7 +1662,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = *((*it).second);
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
 		    "integer overflow problem (number of elements assigned "
 		    "so far is " << ierr << ")";

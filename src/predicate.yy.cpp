@@ -932,7 +932,7 @@ YY_RULE_SETUP
 { /* name string */
     /* a name */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a name: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a name: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -947,7 +947,7 @@ YY_RULE_SETUP
 {
     /* a series of numbers in parentheses */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a series of numbers: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a series of numbers: " << yytext;
 #endif
     unsigned len = strlen(yytext);
     char* str = new char[len];
@@ -964,7 +964,7 @@ YY_RULE_SETUP
 {
     /* a number in string format */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a number string: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a number string: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -979,7 +979,7 @@ YY_RULE_SETUP
 {
     /* a hexadecimal number */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a hex numnber: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a hex numnber: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);
@@ -994,7 +994,7 @@ YY_RULE_SETUP
 {
     /* a list of quoted strings in parentheses */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a list of quoted strings: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a list of quoted strings: " << yytext;
 #endif
     unsigned len = strlen(yytext);
     char* str = new char[len];
@@ -1011,7 +1011,7 @@ YY_RULE_SETUP
 {
     /* a quoted string -- LITSTR is a shorthand for literal string */
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "got a quoted string: " << yytext;
+    LOGGER(ibis::gVerbose >= 0) << "got a quoted string: " << yytext;
 #endif
     char* str = new char[strlen(yytext)+1];
     parse_str_vec.push_back(str);

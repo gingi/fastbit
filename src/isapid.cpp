@@ -50,7 +50,7 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(2) << "Warning -- ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
 		  << "]::sapid::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -140,7 +140,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
     }
     catch (...) { // need to clean up bmap
 	if (ibis::gVerbose > 0) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::sapid::construct reclaiming storage "
 		"allocated to bitvectors (" << bmap.size() << ")";
 	}
@@ -159,7 +159,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 	ibis::fileManager::instance().signalMemoryAvailable();
 
 	if (ibis::gVerbose > -1) {
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- ibis::sapid::construct1 the bitvectors "
 		"do not have the expected size(" << col->partition()->nRows()
 		<< "). stopping..";
@@ -223,7 +223,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 	    delete (*it).second; // no longer need the bitmap
 #if defined(DEBUG)
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
-		LOGGER(0) << i << " ... ";
+		LOGGER(ibis::gVerbose >= 0) << i << " ... ";
 	    }
 #endif
 	}
@@ -245,7 +245,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
     bmap.clear();
 #if defined(DEBUG)
     if (ibis::gVerbose > 11) {
-	LOGGER(0) << vals.size() << " DONE";
+	LOGGER(ibis::gVerbose >= 0) << vals.size() << " DONE";
     }
 #endif
     optionalUnpack(bits, col->indexSpec());

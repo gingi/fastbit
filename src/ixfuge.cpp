@@ -862,7 +862,7 @@ void ibis::fuge::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuge::activateCoarse(all) "
 		  << "retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -870,7 +870,7 @@ void ibis::fuge::activateCoarse() const {
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "fuge::activateCoarse -- activating bitvector "
 		    << i << " from a raw storage ("
 		    << static_cast<const void*>(str->begin())
@@ -888,7 +888,7 @@ void ibis::fuge::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::fuge::activateCoarse(all) "
 		      << "retrieving data from file \"" << fname << "\"";
 
@@ -919,7 +919,7 @@ void ibis::fuge::activateCoarse() const {
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->setSize(nrows);
 #if defined(DEBUG)
-			    LOGGER(0)
+			    LOGGER(ibis::gVerbose >= 0)
 				<< "fuge::activateCoarse -- "
 				"activating bitvector " << i
 				<< "by reading file " << fname
@@ -961,7 +961,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuge::activateCoarse(" << i
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -972,7 +972,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "fuge::activateCoarse(" << i
 	    << ") constructed a bitvector from range ["
 	    << coffsets[i] << ", " << coffsets[i+1] << ") of a storage at "
@@ -982,7 +982,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(9) << "ibis::column[" << col->name()
+	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		      << "]::fuge::activateCoarse(" << i
 		      << ") retrieving data from file \"" << fname << "\"";
 
@@ -995,7 +995,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	    cbits[i]->setSize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
-	    LOGGER(0)
+	    LOGGER(ibis::gVerbose >= 0)
 		<< "fuge::activateCoarse(" << i
 		<< ") constructed a bitvector from range ["
 		<< coffsets[i] << ", " << coffsets[i+1] << ") of file "
@@ -1032,7 +1032,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(9) << "ibis::column[" << col->name()
+	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 		  << "]::fuge::activateCoarse(" << i << ", " << j
 		  << ") retrieving data from ibis::fileManager::storage(0x"
 		  << str << ")";
@@ -1045,7 +1045,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-		LOGGER(0)
+		LOGGER(ibis::gVerbose >= 0)
 		    << "fuge::activateCoarse(" << i
 		    << ") constructed a bitvector from range ["
 		    << coffsets[i] << ", " << coffsets[i+1]
@@ -1060,7 +1060,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(9) << "ibis::column[" << col->name()
+		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
 			  << "]::fuge::activateCoarse(" << i << ", " << j
 			  << ") retrieving data from file \"" << fname << "\"";
 
@@ -1090,7 +1090,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->setSize(nrows);
 #if defined(DEBUG)
-				LOGGER(0)
+				LOGGER(ibis::gVerbose >= 0)
 				    << "fuge::activateCoarse(" << i
 				    << ") constructed a bitvector "
 				    "from range ["

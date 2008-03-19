@@ -1045,7 +1045,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 140 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got qString: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval) << " == " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval);
 #endif
     pn1 = new ibis::qString((((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval));
@@ -1057,7 +1057,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 150 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got qString: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval) << " == " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval);
 #endif
     pn1 = new ibis::qString((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval));
@@ -1069,7 +1069,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 160 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval) << " IN (" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval) << ")";
 #endif
     pn1 = new ibis::qDiscreteRange((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval));
@@ -1081,7 +1081,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 170 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval) << " IN (" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval) << ")";
 #endif
     pn1 = new ibis::qMultiString((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (3))].yystate.yysemantics.yysval.sval));
@@ -1093,7 +1093,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 180 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval) << " NOT IN (" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((4) - (4))].yystate.yysemantics.yysval.sval) << ")";
 #endif
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -1106,7 +1106,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 191 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval) << " NOT IN (" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((4) - (4))].yystate.yysemantics.yysval.sval) << ")";
 #endif
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -1119,7 +1119,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 202 "predicate.y"
     {   // equal join of to variables
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "join(" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval) << ", " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (6))].yystate.yysemantics.yysval.sval) << ")";
 #endif
     pn1 = new ibis::rangeJoin((((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (6))].yystate.yysemantics.yysval.sval));
@@ -1133,7 +1133,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     ibis::compRange::term *ex = static_cast<ibis::compRange::term*>
 	(qexpr_stack.top());
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "join(" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (8))].yystate.yysemantics.yysval.sval) << ", " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (8))].yystate.yysemantics.yysval.sval)
 	<< ", " << *ex << ")";
 #endif
@@ -1147,7 +1147,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 226 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "any(" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval) << ") = " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((6) - (6))].yystate.yysemantics.yysval.sval);
 #endif
     pn1 = new ibis::qAnyAny((((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((6) - (6))].yystate.yysemantics.yysval.sval));
@@ -1159,7 +1159,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 236 "predicate.y"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "any(" << (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval) << ") in " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((6) - (6))].yystate.yysemantics.yysval.sval);
 #endif
     pn1 = new ibis::qAnyAny((((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (6))].yystate.yysemantics.yysval.sval), (((yyGLRStackItem const *)yyvsp)[YYFILL ((6) - (6))].yystate.yysemantics.yysval.sval));
@@ -1419,7 +1419,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 676 "predicate.y"
     {   // addition
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator +";
 #endif
     ibis::compRange::bediener *opr =
@@ -1436,7 +1436,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 690 "predicate.y"
     {   // subtraction
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Operator -";
 #endif
     ibis::compRange::bediener *opr =
@@ -1453,7 +1453,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 704 "predicate.y"
     {   // bitwise AND
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise AND operation ";
 #endif
     ibis::compRange::bediener *opr =
@@ -1470,7 +1470,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 718 "predicate.y"
     {   // bitwise OR
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise OR Operation ";
 #endif
     ibis::compRange::bediener *opr =
@@ -1487,7 +1487,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 732 "predicate.y"
     {   // a new unary function
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Function: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::stdFunction1 *fnc =
@@ -1502,7 +1502,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 744 "predicate.y"
     {   // a new binary function
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Function: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (6))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::stdFunction2 *fnc =
@@ -1519,7 +1519,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 758 "predicate.y"
     {   // a new unary operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Operator -";
 #endif
     ibis::compRange::bediener *opr =
@@ -1534,7 +1534,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 775 "predicate.y"
     {   // a new MULTIPLY operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator *";
 #endif
     ibis::compRange::bediener *opr =
@@ -1551,7 +1551,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 789 "predicate.y"
     {   // a new DIVIDE operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator /";
 #endif
     ibis::compRange::bediener *opr =
@@ -1568,7 +1568,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 803 "predicate.y"
     {   // a new remainder (%) operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator %";
 #endif
     ibis::compRange::bediener *opr =
@@ -1585,7 +1585,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 821 "predicate.y"
     {   // a new POWER operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator ^";
 #endif
     ibis::compRange::bediener *opr =
@@ -1602,7 +1602,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 854 "predicate.y"
     {   // a new variable name
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::variable *var = new ibis::compRange::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
@@ -1615,7 +1615,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     {
     // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
@@ -1628,7 +1628,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     {
     // a new number constant in hexadecimal
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval);
 #endif
     unsigned int val;
@@ -1636,9 +1636,9 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     long ierr = sscanf(buf+2, "%x", &val);
     if (ierr <= 0) {
 	val = 0;
-	ibis::util::logMessage("parseQuery", "failed to extact a hexadecimal "
-			       "integer from string \"%s\", assume zero (0)",
-			       buf);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "parseQuery -- failed to extact a hexadecimal "
+	    "integer from string \"" << buf << "\", assume zero (0)";
     }
     ibis::compRange::number *var = new ibis::compRange::number(val);
     qexpr_stack.push(var);
@@ -1649,7 +1649,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 892 "predicate.y"
     {   // a new variable
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: - " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::variable *var = new ibis::compRange::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
@@ -1664,7 +1664,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 904 "predicate.y"
     {   // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: - " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
@@ -1677,7 +1677,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 #line 914 "predicate.y"
     {   // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: + " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
     ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
@@ -3360,7 +3360,7 @@ void yyerror(const char *s) {
     char theError[1024];
     sprintf(theError,  "While parsing \"%s\": %s at \"%s\" (%d of %d)",
 	    parse_string, s, yytext, parse_offset, parse_length);
-    LOGGER(0) << theError;
+    LOGGER(ibis::gVerbose >= 0) << theError;
     if (strcmp(s, "syntax error")==0)
 	throw theError;
 }
@@ -3398,37 +3398,36 @@ ibis::qExpr* ibis::parseQuery(const char* str) {
 	    yy_scan_bytes(parse_string, parse_length);
 	pn1 = 0;
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG - parser starts parsing \"" << str << "\"";
 #endif
 	try {
 	    yyparse(); // yacc parse function
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0) << "DEBUG - parser produced " << *pn1;
+	    LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser produced " << *pn1;
 #endif
 	    root = pn1;
 	}
 	catch (const char* s) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a string exception -- %s", s);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a string exception -- " << s;
 	    delete pn1;
 	}
 	catch (const std::exception& e) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a std::exception -- %s",
-				   e.what());
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a std::exception -- " << e.what();
 	    delete pn1;
 	}
 	catch (...) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a unexepcted exception");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a unexepcted exception";
 	    delete pn1;
 	}
 	yy_delete_buffer(yyst);
 	yyparse_cleanup();
     }
     else {
-	LOGGER(0) << "parseQuery: incoming string is nil";
+	LOGGER(ibis::gVerbose >= 0) << "parseQuery: incoming string is nil";
     }
     return root;
 } // parseQuery()
@@ -3448,25 +3447,25 @@ ibis::qExpr* ibis::parseQuery(const char* str) {
 	parse_offset = 0;
 	pn1 = 0;
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG - parser starts parsing \"" << parse_string << "\"";
 #endif
 	try {
 	    yyparse(); // yacc parse function
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0) << "DEBUG - parser produced " << *pn1;
+	    LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser produced " << *pn1;
 #endif
 	    yyparse_cleanup();
 	    root = pn1;
 	}
 	catch (const char* s) {
-	    LOGGER(0) << "parseQuery received exception\n" << s;
+	    LOGGER(ibis::gVerbose >= 0) << "parseQuery received exception\n" << s;
 	    yyparse_cleanup();
 	    delete pn1;
 	}
     }
     else {
-	LOGGER(0) << "parseQuery: incoming string is nil";
+	LOGGER(ibis::gVerbose >= 0) << "parseQuery: incoming string is nil";
     }
     return root;
 } // ibis::parseQuery

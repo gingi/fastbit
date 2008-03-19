@@ -614,7 +614,7 @@ inline void ibis::bitvector64::appendFill(int val,
 // active is empty
 inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "ibis::bitvector64::copy_runs(0x"
 	<< std::hex << std::setw(8) << std::setfill('0')
 	<< *(it.it) << ", " << std::dec << nw
@@ -648,7 +648,7 @@ inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
 // active is empty
 inline void ibis::bitvector64::copy_runsn(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "ibis::bitvector64::copy_runsn(0x"
 	<< std::hex << std::setw(8) << std::setfill('0')
 	<< *(it.it) << ", " << std::dec << nw

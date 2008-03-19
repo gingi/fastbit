@@ -139,7 +139,7 @@ simpleRange1:
 LITSTR EQOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got qString: " << $3 << " == " << $1;
 #endif
     pn1 = new ibis::qString($3, $1);
@@ -149,7 +149,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR EQOP LITSTR %prec STRING_EXPRESSION
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got qString: " << $1 << " == " << $3;
 #endif
     pn1 = new ibis::qString($1, $3);
@@ -159,7 +159,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR INOP NUMSEQ
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << $1 << " IN (" << $3 << ")";
 #endif
     pn1 = new ibis::qDiscreteRange($1, $3);
@@ -169,7 +169,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR INOP STRSEQ
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << $1 << " IN (" << $3 << ")";
 #endif
     pn1 = new ibis::qMultiString($1, $3);
@@ -179,7 +179,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR NOTOP INOP NUMSEQ
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << $1 << " NOT IN (" << $4 << ")";
 #endif
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -190,7 +190,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR NOTOP INOP STRSEQ
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << $1 << " NOT IN (" << $4 << ")";
 #endif
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -201,7 +201,7 @@ LITSTR EQOP NOUNSTR
 | JOINOP '(' NOUNSTR ',' NOUNSTR ')'
 {   // equal join of to variables
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "join(" << $3 << ", " << $5 << ")";
 #endif
     pn1 = new ibis::rangeJoin($3, $5);
@@ -213,7 +213,7 @@ LITSTR EQOP NOUNSTR
     ibis::compRange::term *ex = static_cast<ibis::compRange::term*>
 	(qexpr_stack.top());
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "join(" << $3 << ", " << $5
 	<< ", " << *ex << ")";
 #endif
@@ -225,7 +225,7 @@ LITSTR EQOP NOUNSTR
 | ANYOP '(' NOUNSTR ')' EQOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "any(" << $3 << ") = " << $6;
 #endif
     pn1 = new ibis::qAnyAny($3, $6);
@@ -235,7 +235,7 @@ LITSTR EQOP NOUNSTR
 | ANYOP '(' NOUNSTR ')' INOP NUMSEQ
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "any(" << $3 << ") in " << $6;
 #endif
     pn1 = new ibis::qAnyAny($3, $6);
@@ -246,7 +246,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR GTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " > " << $1;
 #endif
     pn1 = new ibis::qRange($3, ibis::qExpr::OP_LT, $1,
@@ -256,7 +256,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR GEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " >= " << $1;
 #endif
     pn1 = new ibis::qRange($3, ibis::qExpr::OP_LE, $1,
@@ -266,7 +266,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR LTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " < " << $1;
 #endif
     pn1 = new ibis::qRange((const char*)0, ibis::qExpr::OP_UNDEFINED, $1,
@@ -276,7 +276,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR LEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " <= " << $1;
 #endif
     pn1 = new ibis::qRange((const char*)0, ibis::qExpr::OP_UNDEFINED, $1,
@@ -286,7 +286,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR EQOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " == " << $1;
 #endif
     pn1 = new ibis::qRange($3, ibis::qExpr::OP_EQ, $1,
@@ -296,7 +296,7 @@ LITSTR EQOP NOUNSTR
 | NOUNSTR NEQOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " != " << $1;
 #endif
     ibis::qExpr *pn2 = new ibis::qRange($3, ibis::qExpr::OP_EQ, $1,
@@ -309,7 +309,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR GTOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " < " << $1;
 #endif
     pn1 = new ibis::qRange((const char*)0, ibis::qExpr::OP_UNDEFINED, $3,
@@ -319,7 +319,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR GEOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " <= " << $1;
 #endif
     pn1 = new ibis::qRange((const char*)0, ibis::qExpr::OP_UNDEFINED, $3,
@@ -329,7 +329,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR LTOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " > " << $1;
 #endif
     pn1 = new ibis::qRange($1, ibis::qExpr::OP_LT, $3,
@@ -339,7 +339,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR LEOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " >= " << $1;
 #endif
     pn1 = new ibis::qRange($1, ibis::qExpr::OP_LE, $3,
@@ -349,7 +349,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR EQOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " == " << $1;
 #endif
     pn1 = new ibis::qRange($1, ibis::qExpr::OP_EQ, $3,
@@ -359,7 +359,7 @@ LITSTR EQOP NOUNSTR
 | NUMSTR NEQOP NOUNSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $3 << " != " << $1;
 #endif
     ibis::qExpr *pn2 = new ibis::qRange($1, ibis::qExpr::OP_EQ, $3,
@@ -375,7 +375,7 @@ simpleRange2:
 NUMSTR LTOP NOUNSTR LTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $1 << " < " << $3
 	<< " < " << $5;
 #endif
@@ -386,7 +386,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR LEOP NOUNSTR LEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $1 << " <= " << $3
 	<< " <= " << $5;
 #endif
@@ -397,7 +397,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR LEOP NOUNSTR LTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $1 << " <= " << $3
 	<< " < " << $5;
 #endif
@@ -408,7 +408,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR LTOP NOUNSTR LEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $1 << " < " << $3
 	<< " <= " << $5;
 #endif
@@ -419,7 +419,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR GTOP NOUNSTR GTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $5 << " < " << $3
 	<< " < " << $1;
 #endif
@@ -430,7 +430,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR GEOP NOUNSTR GEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $5 << " <= " << $3
 	<< " <= " << $1;
 #endif
@@ -441,7 +441,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR GEOP NOUNSTR GTOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $5 << " <= "
 	<< $3 << " < " << $1;
 #endif
@@ -452,7 +452,7 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 | NUMSTR GTOP NOUNSTR GEOP NUMSTR
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << "RANGE: " << $5 << " < " << $3
 	<< " <= " << $1;
 #endif
@@ -675,7 +675,7 @@ mathexpr:
 mathexpr ADDOP mathexpr
 {   // addition
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator +";
 #endif
     ibis::compRange::bediener *opr =
@@ -689,7 +689,7 @@ mathexpr ADDOP mathexpr
 | mathexpr MINUSOP mathexpr
 {   // subtraction
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Operator -";
 #endif
     ibis::compRange::bediener *opr =
@@ -703,7 +703,7 @@ mathexpr ADDOP mathexpr
 | mathexpr BITANDOP mathexpr
 {   // bitwise AND
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise AND operation ";
 #endif
     ibis::compRange::bediener *opr =
@@ -717,7 +717,7 @@ mathexpr ADDOP mathexpr
 | mathexpr BITOROP mathexpr
 {   // bitwise OR
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise OR Operation ";
 #endif
     ibis::compRange::bediener *opr =
@@ -731,7 +731,7 @@ mathexpr ADDOP mathexpr
 | NOUNSTR '(' mathexpr ')'
 {   // a new unary function
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Function: " << $1;
 #endif
     ibis::compRange::stdFunction1 *fnc =
@@ -743,7 +743,7 @@ mathexpr ADDOP mathexpr
 | NOUNSTR '(' mathexpr ',' mathexpr ')'
 {   // a new binary function
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Function: " << $1;
 #endif
     ibis::compRange::stdFunction2 *fnc =
@@ -757,7 +757,7 @@ mathexpr ADDOP mathexpr
 | MINUSOP '(' mathexpr ')'  %prec UNOT
 {   // a new unary operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Operator -";
 #endif
     ibis::compRange::bediener *opr =
@@ -774,7 +774,7 @@ mathTerm1:
 mathexpr MULTOP mathexpr
 {   // a new MULTIPLY operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator *";
 #endif
     ibis::compRange::bediener *opr =
@@ -788,7 +788,7 @@ mathexpr MULTOP mathexpr
 | mathexpr DIVOP mathexpr
 {   // a new DIVIDE operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator /";
 #endif
     ibis::compRange::bediener *opr =
@@ -802,7 +802,7 @@ mathexpr MULTOP mathexpr
 | mathexpr REMOP mathexpr
 {   // a new remainder (%) operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator %";
 #endif
     ibis::compRange::bediener *opr =
@@ -820,7 +820,7 @@ mathTerm2:
 mathexpr EXPOP mathTerm3
 {   // a new POWER operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator ^";
 #endif
     ibis::compRange::bediener *opr =
@@ -835,7 +835,7 @@ mathexpr EXPOP mathTerm3
 | mathexpr XOROP mathTerm3 %prec EXPOP
 {   // a new POWER operator
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0) << "DEBUG - parser got " << " Operator ^";
+    LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser got " << " Operator ^";
 #endif
     ibis::compRange::bediener *opr =
 	new ibis::compRange::bediener(ibis::compRange::POWER);
@@ -853,7 +853,7 @@ mathTerm3:
 NOUNSTR
 {   // a new variable name
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: " << $1;
 #endif
     ibis::compRange::variable *var = new ibis::compRange::variable($1);
@@ -863,7 +863,7 @@ NOUNSTR
 {
     // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << $1;
 #endif
     ibis::compRange::number *var = new ibis::compRange::number($1);
@@ -873,7 +873,7 @@ NOUNSTR
 {
     // a new number constant in hexadecimal
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << $1;
 #endif
     unsigned int val;
@@ -881,9 +881,9 @@ NOUNSTR
     long ierr = sscanf(buf+2, "%x", &val);
     if (ierr <= 0) {
 	val = 0;
-	ibis::util::logMessage("parseQuery", "failed to extact a hexadecimal "
-			       "integer from string \"%s\", assume zero (0)",
-			       buf);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "parseQuery -- failed to extact a hexadecimal "
+	    "integer from string \"" << buf << "\", assume zero (0)";
     }
     ibis::compRange::number *var = new ibis::compRange::number(val);
     qexpr_stack.push(var);
@@ -891,7 +891,7 @@ NOUNSTR
 | MINUSOP NOUNSTR  %prec UNOT
 {   // a new variable
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: - " << $2;
 #endif
     ibis::compRange::variable *var = new ibis::compRange::variable($2);
@@ -903,7 +903,7 @@ NOUNSTR
 | MINUSOP NUMSTR  %prec UNOT
 {   // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: - " << $2;
 #endif
     ibis::compRange::number *var = new ibis::compRange::number($2);
@@ -913,7 +913,7 @@ NOUNSTR
 | ADDOP NUMSTR  %prec UNOT
 {   // a new number constant
 #if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: + " << $2;
 #endif
     ibis::compRange::number *var = new ibis::compRange::number($2);
@@ -935,7 +935,7 @@ void yyerror(const char *s) {
     char theError[1024];
     sprintf(theError,  "While parsing \"%s\": %s at \"%s\" (%d of %d)",
 	    parse_string, s, yytext, parse_offset, parse_length);
-    LOGGER(0) << theError;
+    LOGGER(ibis::gVerbose >= 0) << theError;
     if (strcmp(s, "syntax error")==0)
 	throw theError;
 }
@@ -973,37 +973,36 @@ ibis::qExpr* ibis::parseQuery(const char* str) {
 	    yy_scan_bytes(parse_string, parse_length);
 	pn1 = 0;
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG - parser starts parsing \"" << str << "\"";
 #endif
 	try {
 	    yyparse(); // yacc parse function
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0) << "DEBUG - parser produced " << *pn1;
+	    LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser produced " << *pn1;
 #endif
 	    root = pn1;
 	}
 	catch (const char* s) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a string exception -- %s", s);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a string exception -- " << s;
 	    delete pn1;
 	}
 	catch (const std::exception& e) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a std::exception -- %s",
-				   e.what());
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a std::exception -- " << e.what();
 	    delete pn1;
 	}
 	catch (...) {
-	    ibis::util::logMessage("parseQuery",
-				   "received a unexepcted exception");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "parseQuery -- received a unexepcted exception";
 	    delete pn1;
 	}
 	yy_delete_buffer(yyst);
 	yyparse_cleanup();
     }
     else {
-	LOGGER(0) << "parseQuery: incoming string is nil";
+	LOGGER(ibis::gVerbose >= 0) << "parseQuery: incoming string is nil";
     }
     return root;
 } // parseQuery()
@@ -1023,25 +1022,25 @@ ibis::qExpr* ibis::parseQuery(const char* str) {
 	parse_offset = 0;
 	pn1 = 0;
 #if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG - parser starts parsing \"" << parse_string << "\"";
 #endif
 	try {
 	    yyparse(); // yacc parse function
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(0) << "DEBUG - parser produced " << *pn1;
+	    LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser produced " << *pn1;
 #endif
 	    yyparse_cleanup();
 	    root = pn1;
 	}
 	catch (const char* s) {
-	    LOGGER(0) << "parseQuery received exception\n" << s;
+	    LOGGER(ibis::gVerbose >= 0) << "parseQuery received exception\n" << s;
 	    yyparse_cleanup();
 	    delete pn1;
 	}
     }
     else {
-	LOGGER(0) << "parseQuery: incoming string is nil";
+	LOGGER(ibis::gVerbose >= 0) << "parseQuery: incoming string is nil";
     }
     return root;
 } // ibis::parseQuery
