@@ -142,6 +142,8 @@ public:
 	selectStrings(const bitvector& mask) const {return 0;}
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     template <typename T>
+    long selectValues(const bitvector& mask, array_t<T>& vals) const;
+    template <typename T>
     long selectValues(const bitvector& mask,
 		      array_t<T>& vals, array_t<uint32_t>& inds) const;
 

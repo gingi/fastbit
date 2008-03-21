@@ -394,7 +394,7 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 		 sizeof(double)*(nobs*3+2), nobs+1);
 #ifdef DEBUG
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: from ibis::ambit::ambit("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ")" << "\n";
@@ -551,7 +551,7 @@ void ibis::ambit::read(const char* f) {
     }
 #if defined(DEBUG)
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::ambit::read(";
 	if (fname)
 	    lg.buffer() << fname;
@@ -759,7 +759,7 @@ void ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
     }
 #if defined(DEBUG)
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::ambit::read(";
 	if (fname)
 	    lg.buffer() << fname;

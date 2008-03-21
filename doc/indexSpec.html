@@ -368,9 +368,10 @@ ibis::direkte and is invoked through ibis::index::create.
 <H3>Some Suggestions</H3>
 <ol>
 <li>Before you try to specify any explicit indexing options, just leave
-this option blank or not specified at all.  The invokes the default
+it blank or not specified any indexing options.  The invokes the default
 options in FastBit, which has been tuned to some extend and can work
 reasonably well.</li>
+<br>
 
 <p>The key parameter to consider when deciding what indexing option to
 use is the column cardinality, which we will simply call cardinality in
@@ -379,8 +380,8 @@ the following.</p>
 option should be <code>none</code>.  The following two might be
 reasonable choices.
 <pre>
-<binning none/><encoding interval/>
-<binning none/><encoding equality/>
+&lt;binning none/&gt;&lt;encoding interval/&gt;
+&lt;binning none/&gt;&lt;encoding equality/&gt;
 </pre>
 The main trade-off between them is that the interval encoding is better
 suited for range conditions, while the equality encoding is better
@@ -391,7 +392,7 @@ reasonable choice.  On the other hand, if you are always going to deal
 with one-sided range conditions, such as "A < 5" or "A >= 10", then it
 is best to use the range encoding
 <pre>
-<binning none/><encoding range/>
+&lt;binning none/&gt;&lt;encoding range/&gt;
 </pre>
 In short, if you have a situation where the cardinality is very low,
 you can choose an encoding based on your query workload.
@@ -400,14 +401,14 @@ you can choose an encoding based on your query workload.
 <li>If the cardinality is less than say 1 million (more precisely, N/10,
 where N is the number of rows), our recommendation is
 <pre>
-<binning none/><encoding interval-equality/>
+&lt;binning none/&gt;&lt;encoding interval-equality/&gt;
 </pre>
 This option has been proven to be quite effective in tests and analyses.
 </li>
 
 <li>If the cardinality is higher than 1 million, we recommend
 <pre>
-<binning none><encoding binary/>
+&lt;binning none&gt;&lt;encoding binary/&gt;
 </pre>
 This produces what is known as the bit-sliced index.  Alternatively, you
 may bin the values, a situation we will considered next.
@@ -418,13 +419,13 @@ what is the column cardinality.  In this case, it is natural to assume
 the cardinality is very high, and bin the values.  Next, we discuss two
 reasonable approaches to binning, one is to specify the number of bins,
 and the other to specify the precision of the bins.  Of course it is
-possible to tell FastBit exactly where to put the bin boundaries if you
-wish.
+also possible to tell FastBit exactly where to put the bin boundaries as
+indicated above.
 
 <p>
 If you specify the number of bins, e.g.,
 <pre>
-<binning nbins=2000/><encoding interval-equality/>
+&lt;binning nbins=2000/&gt;&lt;encoding interval-equality/&gt;
 </pre>
 then FastBit builds a set of approximate equal-weight bins, i.e., each
 bin will contain approximate the same number of rows.  This minimize the
@@ -442,7 +443,7 @@ conditions use constants with 2 significant digits, "A > 1.5e6" or "A <
 guarantee all such query conditions be answered using index only
 (therefore fast).
 <pre>
-<binning precision=2/><encoding interval-equality/>
+&lt;binning precision=2/&gt;&lt;encoding interval-equality/&gt;
 </pre>
 </p>
 </li>

@@ -737,6 +737,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -800,6 +801,17 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else {
 	logWarning("selectBytes", "incompatible data type");
@@ -826,6 +838,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<unsigned char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -889,6 +902,17 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else {
 	logWarning("selectUBytes", "incompatible data type");
@@ -918,6 +942,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int16_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -980,6 +1005,17 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::BYTE) {
 	array_t<char> prop;
@@ -1136,6 +1172,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint16_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -1198,6 +1235,17 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::BYTE) {
 	array_t<char> prop;
@@ -1355,6 +1403,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::INT || m_type == ibis::UINT ||
 	m_type == ibis::CATEGORY || m_type == ibis::TEXT) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int32_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -1451,6 +1500,17 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::SHORT) {
 	array_t<int16_t> prop;
@@ -1739,6 +1799,7 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 
     if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	m_type == ibis::TEXT) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint32_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -1803,6 +1864,17 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == USHORT) {
 	array_t<uint16_t> prop;
@@ -1965,6 +2037,7 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::LONG || m_type == ibis::ULONG) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int64_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -2061,6 +2134,17 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
@@ -2545,6 +2629,7 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
     if (ibis::gVerbose > 4)
 	timer.start();
     if (m_type == ibis::ULONG) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint64_t> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -2641,6 +2726,17 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
@@ -2897,6 +2993,7 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	timer.start();
 
     if (m_type == FLOAT) {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<float> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -2961,6 +3058,17 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
@@ -3771,6 +3879,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	}
 	break;}
     case ibis::DOUBLE: {
+#if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<double> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
@@ -3843,6 +3952,17 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
+#else
+	long ierr = selectValues(mask, *array);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column["
+		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+		<< "]::selectValues failed with error code " << ierr;
+	    delete array;
+	    array = 0;
+	}
+#endif
 	break;}
     default: {
 	logWarning("selectDoubles", "incompatible data type");
@@ -3850,6 +3970,178 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
     }
     return array;
 } // ibis::column::selectDoubles
+
+/// Select the values marked in the bitvector @c mask.  Select all values
+/// marked 1 in the @c mask and pack them into the output array @c vals and
+/// fill the array @c inds with the positions of the values selected.  On a
+/// successful executation, it returns the number of values selected.  If
+/// it returns zero (0), the contents of @c vals is not modified.  If it
+/// returns a negative number, the contents of arrays @c vals is not
+/// guaranteed to be in particular state.
+template <typename T>
+long ibis::column::selectValues(const bitvector& mask,
+				array_t<T>& vals) const {
+    if (thePart == 0) return -2;
+    long ierr = 0;
+    const long unsigned tot = mask.cnt();
+    if (mask.cnt() == 0) return ierr;
+    if (elementSize() != sizeof(T)) {
+	logWarning("selectValues", "incompatible types");
+	return -1;
+    }
+
+    try {
+	vals.reserve(tot);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::column["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectValues failed to allocate space for vals[" << tot
+	    << "]";
+	return -2;
+    }
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+    if (dfn == 0) return -3;
+#ifdef DEBUG
+    logMessage("selectValues", "selecting %lu out of %lu values from %s",
+	       tot, static_cast<long unsigned>
+	       (thePart != 0 ? thePart->nRows() : 0), dfn);
+#endif
+    ibis::fileManager::storage *raw = 0;
+    // mask.size()*sizeof(T)/pagesize() -- number of pages
+    // mask.bytes()/sizeof(uint32_t) -- number of words (i.e. possible
+    // seeks to perform a read)
+    if (mask.size() >= 1048576 && tot+tot <= mask.size() && mask.bytes()/4 <
+	mask.size()*sizeof(T)/ibis::fileManager::pageSize()/8) {
+	// if the file is in memory, use it
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+	ierr = ibis::fileManager::instance().tryGetFile(dfn, &raw, apref);
+    }
+    else {
+	// attempt to read the whole file into memory
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+	ierr = ibis::fileManager::instance().getFile(dfn, &raw, apref);
+    }
+    if (ierr == 0) { // the file is in memory
+	// the content of raw is automatically deallocated through the
+	// destructor of incore
+	array_t<T> incore(*raw); // make the raw storage more friendly
+	const uint32_t nr = (incore.size() <= mask.size() ?
+			     incore.size() : mask.size());
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *ixval = ix.indices();
+	    if (ix.isRange()) {
+		const uint32_t stop = (ixval[1] <= nr ? ixval[1] : nr);
+		for (uint32_t i = *ixval; i < stop; ++ i) {
+		    vals.push_back(incore[i]);
+		}
+	    }
+	    else {
+		for (uint32_t j = 0; j < ix.nIndices(); ++ j) {
+		    if (ixval[j] < nr) {
+			vals.push_back(incore[ixval[j]]);
+		    }
+		    else {
+			break;
+		    }
+		}
+	    }
+	}
+	if (ibis::gVerbose > 4)
+	    logMessage("selectValues", "got %lu values (%lu wanted) from an "
+		       "in-memory version of file %s as %s",
+		       static_cast<long unsigned>(vals.size()), tot, dfn,
+		       typeid(T).name());
+    }
+    else { // has to use UnixRead family of functions
+	int fdes = UnixOpen(dfn, OPEN_READONLY);
+	if (fdes < 0) {
+	    logWarning("selectValues", "failed to open file %s, ierr=%d",
+		       dfn, fdes);
+	    return fdes;
+	}
+	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
+	const uint32_t nr = (pos <= static_cast<int32_t>(thePart->nRows()) ?
+			     pos : thePart->nRows());
+
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *ixval = ix.indices();
+	    if (ix.isRange()) {
+		// read the whole group in one-shot
+		pos = UnixSeek(fdes, *ixval * sizeof(T), SEEK_SET);
+		const uint32_t nelm = (ixval[1]-ixval[0] <= nr-vals.size() ?
+				       ixval[1]-ixval[0] : nr-vals.size());
+		ierr = UnixRead(fdes, vals.begin()+vals.size(),
+				nelm*sizeof(T));
+		if (ierr > 0) {
+		    ierr /=  sizeof(T);
+		    vals.resize(vals.size() + ierr);
+		    ibis::fileManager::instance().recordPages(pos, pos+ierr);
+		    if (static_cast<uint32_t>(ierr) != nelm)
+			logWarning("selectValues", "expected to read %lu "
+				   "consecutive elements (of %lu bytes each) "
+				   "from %s, but actually read %ld",
+				   static_cast<long unsigned>(nelm),
+				   static_cast<long unsigned>(sizeof(T)),
+				   dfn, ierr);
+		}
+		else {
+		    logWarning("selectValues", "failed to read at %ld in "
+			       "file %s", UnixSeek(fdes, 0L, SEEK_CUR),
+			       dfn);
+		}
+	    }
+	    else {
+		// read each value separately
+		for (uint32_t j = 0; j < ix.nIndices(); ++j) {
+		    const int32_t target = ixval[j] * sizeof(T);
+		    pos = UnixSeek(fdes, target, SEEK_SET);
+		    if (pos == target) {
+			T tmp;
+			ierr = UnixRead(fdes, &tmp, sizeof(tmp));
+			if (ierr == sizeof(tmp)) {
+			    vals.push_back(tmp);
+			}
+			else {
+			    logWarning("selectValues", "failed to read "
+				       "%lu-byte data from offset %ld in "
+				       "file \"%s\"",
+				       static_cast<long unsigned>(sizeof(tmp)),
+				       static_cast<long>(target), dfn);
+			}
+		    }
+		    else {
+			logWarning("selectValues", "failed to seek to the "
+				   "expected location in file \"%s\" (actual "
+				   "%ld, expected %ld)", dfn,
+				   static_cast<long>(pos),
+				   static_cast<long>(target));
+		    }
+		}
+	    }
+	} // for (ibis::bitvector::indexSet...
+	if (ibis::gVerbose > 4)
+	    logMessage("selectValues", "got %lu values (%lu wanted) from "
+		       "reading file %s",
+		       static_cast<long unsigned>(vals.size()),
+		       static_cast<long unsigned>(tot), dfn);
+    }
+
+    ierr = vals.size();
+    if (vals.size() != tot)
+	logWarning("selectValues", "got %li out of %lu values from %s as %s",
+		   ierr, static_cast<long unsigned>(tot), dfn,
+		   typeid(T).name());
+    return ierr;
+} // ibis::column::selectValues
 
 /// Select the values marked in the bitvector @c mask.
 /// Select all values marked 1 in the @c mask and pack them into the
@@ -3872,21 +4164,45 @@ long ibis::column::selectValues(const bitvector& mask,
 	return -1;
     }
 
-    vals.reserve(tot);
-    inds.reserve(tot);
+    try {
+	vals.reserve(tot);
+	inds.reserve(tot);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::column["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectValues failed to allocate space for vals[" << tot
+	    << "] and inds[" << tot << "]";
+	return -2;
+    }
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0) return -2;
+    if (dfn == 0) return -3;
 #ifdef DEBUG
     logMessage("selectValues", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
     ibis::fileManager::storage *raw = 0;
-    ibis::fileManager::ACCESS_PREFERENCE apref =
-	thePart != 0 ? thePart->accessHint(mask, sizeof(T))
-	: ibis::fileManager::MMAP_LARGE_FILES;
-    ierr = ibis::fileManager::instance().tryGetFile(dfn, &raw, apref);
+    // mask.size()*sizeof(T)/pagesize() -- number of pages
+    // mask.bytes()/sizeof(uint32_t) -- number of words (i.e. possible
+    // seeks to perform a read)
+    if (mask.size() >= 1048576 && tot+tot <= mask.size() && mask.bytes()/4 <
+	mask.size()*sizeof(T)/ibis::fileManager::pageSize()/8) {
+	// if the file is in memory, use it
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+	ierr = ibis::fileManager::instance().tryGetFile(dfn, &raw, apref);
+    }
+    else {
+	// attempt to read the whole file into memory
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+	ierr = ibis::fileManager::instance().getFile(dfn, &raw, apref);
+    }
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
@@ -4242,8 +4558,9 @@ void ibis::column::unloadIndex() const {
 		    logMessage("unloadIndex", "successfully removed the index");
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 1) << "Warning -- ibis::column[" << thePart->name()
-			  << "." << name() << "]::unloadIndex failed because "
+		LOGGER(ibis::gVerbose >= 1)
+		    << "Warning -- ibis::column[" << thePart->name()
+		    << "." << name() << "]::unloadIndex failed because "
 		    "idxcnt (" << idxcnt << ") is not zero";
 	    }
 	}
@@ -4285,7 +4602,7 @@ long ibis::column::indexSize() const {
 void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
     if (idx != 0) {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	idx->speedTest(lg.buffer());
     }
 } // ibis::column::indexSpeedTest
@@ -4380,10 +4697,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = 0;
 	}
 
-	LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
-		  << "]::evaluateRange(" << cmp
-		  << ") completed with low.size() = " << low.size()
-		  << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "]::evaluateRange(" << cmp
+	    << ") completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -4407,8 +4725,9 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(ibis::gVerbose >= 2) << "ibis::column[" << thePart->name() << "." << name()
-		      << "]::evaluateRange(" << cmp << ") receied an "
+	    LOGGER(ibis::gVerbose >= 2)
+		<< "ibis::column[" << thePart->name() << "." << name()
+		<< "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
 		"giving up...";
 	    low.clear();
@@ -4419,11 +4738,12 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = -3;
     }
 
-    LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
-	      << "]::evaluateRange(" << cmp
-	      << ") completed the fallback option with low.size() = "
-	      << low.size() << ", low.cnt() = " << low.cnt()
-	      << ", and ierr = " << ierr;
+    LOGGER(ibis::gVerbose >= 4)
+	<< "ibis::column[" << thePart->name() << "." << name()
+	<< "]::evaluateRange(" << cmp
+	<< ") completed the fallback option with low.size() = "
+	<< low.size() << ", low.cnt() = " << low.cnt()
+	<< ", and ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 
@@ -4453,11 +4773,12 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 1) << "Warning -- ibis::column[" << thePart->name()
-			  << "." << name() << "]::evaluateRange(" << cmp
-			  << ") -- idx(" << idx->name()
-			  << ")->evaluate returned " << ierr
-			  << ", attempt to use idx->estimate";
+		LOGGER(ibis::gVerbose >= 1)
+		    << "Warning -- ibis::column[" << thePart->name()
+		    << "." << name() << "]::evaluateRange(" << cmp
+		    << ") -- idx(" << idx->name()
+		    << ")->evaluate returned " << ierr
+		    << ", attempt to use idx->estimate";
 
 		ibis::bitvector high;
 		idx->estimate(cmp, low, high);
@@ -4493,10 +4814,11 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
-		  << "]::evaluateRange(" << cmp
-		  << ") completed with low.size() = " << low.size()
-		  << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "]::evaluateRange(" << cmp
+	    << ") completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -4520,8 +4842,9 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(ibis::gVerbose >= 2) << "ibis::column[" << thePart->name() << "." << name()
-		      << "]::evaluateRange(" << cmp << ") receied an "
+	    LOGGER(ibis::gVerbose >= 2)
+		<< "ibis::column[" << thePart->name() << "." << name()
+		<< "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
 		"giving up...";
 	    low.clear();
@@ -4532,11 +4855,12 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	ierr = -3;
     }
 
-    LOGGER(ibis::gVerbose >= 4) << "ibis::column[" << thePart->name() << "." << name()
-	      << "]::evaluateRange(" << cmp
-	      << ") completed the fallback option with low.size() = "
-	      << low.size() << ", low.cnt() = " << low.cnt()
-	      << ", and ierr = " << ierr;
+    LOGGER(ibis::gVerbose >= 4)
+	<< "ibis::column[" << thePart->name() << "." << name()
+	<< "]::evaluateRange(" << cmp
+	<< ") completed the fallback option with low.size() = "
+	<< low.size() << ", low.cnt() = " << low.cnt()
+	<< ", and ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 
@@ -4568,12 +4892,13 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(ibis::gVerbose >= 5) << "ibis::column[" << thePart->name() << "." << name()
-		  << "]::estimateRange(" << cmp
-		  << ") completed with low.size() = " << low.size()
-		  << ", low.cnt() = " << low.cnt() << ", high.size() = "
-		  << high.size() << ", high.cnt() = " << high.cnt()
-		  << ", and ierr = " << ierr;
+	LOGGER(ibis::gVerbose >= 5)
+	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "]::estimateRange(" << cmp
+	    << ") completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", high.size() = "
+	    << high.size() << ", high.cnt() = " << high.cnt()
+	    << ", and ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -6306,9 +6631,10 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
-    LOGGER(ibis::gVerbose >= 6) << "ibis::column::actualMinMax -- vals.size() = "
-	      << vals.size() << ", mask.cnt() = " << mask.cnt()
-	      << ", min = " << min << ", max = " << max;
+    LOGGER(ibis::gVerbose >= 6)
+	<< "ibis::column::actualMinMax -- vals.size() = "
+	<< vals.size() << ", mask.cnt() = " << mask.cnt()
+	<< ", min = " << min << ", max = " << max;
 } // ibis::column::actualMinMax
 
 template <typename T>
@@ -6409,9 +6735,9 @@ double ibis::column::computeSum(const array_t<T>& vals,
 	}
     }
 
-    LOGGER(ibis::gVerbose >= 6) << "ibis::column::computeSum -- vals.size() = "
-	      << vals.size() << ", mask.cnt() = " << mask.cnt()
-	      << ", sum = " << res;
+    LOGGER(ibis::gVerbose >= 6)
+	<< "ibis::column::computeSum -- vals.size() = "
+	<< vals.size() << ", mask.cnt() = " << mask.cnt() << ", sum = " << res;
     return res;
 } // ibis::column::computeSum
 

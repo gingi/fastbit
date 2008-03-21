@@ -470,7 +470,7 @@ void ibis::pale::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << " Error *** ibis::pale::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -532,7 +532,7 @@ void ibis::pale::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << " Error *** ibis::pale::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());
@@ -559,7 +559,7 @@ void ibis::pale::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << " Error *** ibis::pale::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();

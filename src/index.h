@@ -374,9 +374,8 @@ protected:
     uint32_t nrows;
 
     /// Protect the constructor so that ibis::index can not be instantiated
-    /// directly.  It already can not be instantiated because some
-    /// functions are pure virtual, but this also reduces the size of
-    /// public interface.
+    /// directly.  It can not be instantiated because some functions are
+    /// pure virtual, but this also reduces the size of public interface.
     index(const ibis::column* c=0, ibis::fileManager::storage* s=0)
 	: col(c), str(s), fname(0), offsets(), nrows(0) {}
 

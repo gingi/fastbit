@@ -443,7 +443,7 @@ void ibis::roster::icSort(const char* fin) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    unsigned tmp;
 	    uint32_t i = 0, j = 0;
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
@@ -467,7 +467,7 @@ void ibis::roster::icSort(const char* fin) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    int tmp;
 	    uint32_t i = 0, j = 0;
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
@@ -491,7 +491,7 @@ void ibis::roster::icSort(const char* fin) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    float tmp;
 	    uint32_t i = 0, j = 0;
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
@@ -515,7 +515,7 @@ void ibis::roster::icSort(const char* fin) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    double tmp;
 	    uint32_t i = 0, j = 0;
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
@@ -534,7 +534,7 @@ void ibis::roster::icSort(const char* fin) {
 	col->logWarning("roster", "no need for a separate index");
 	break;}
     default: {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "roster -- unable to create an index for ";
 	col->print(lg.buffer());
 	break;}
@@ -1666,7 +1666,7 @@ uint32_t ibis::roster::locate(const double& v) const {
 	break;
     }
     default: {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "roster -- no ibis::roster index for ";
 	col->print(lg.buffer());
 	break;}

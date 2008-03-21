@@ -184,7 +184,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 		 sizeof(double)*(nobs*3+2), nobs+1);
 #ifdef DEBUG
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG  from ibis::pack::pack("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ") -- offsets of subranges\n";
@@ -306,7 +306,7 @@ void ibis::pack::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
 #ifdef DEBUG
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG  from ibis::pack::write(" << col->name() << ", "
 		    << start << ") -- offsets to the subranges\n";
 	for (i=0; i<=nobs; ++i)
@@ -444,7 +444,7 @@ void ibis::pack::read(const char* f) {
     }
 #if defined(DEBUG)
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::pack::read(";
 	if (fname)
 	    lg.buffer() << fname;
@@ -489,7 +489,7 @@ void ibis::pack::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << " Error *** ibis::pack::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -519,7 +519,7 @@ void ibis::pack::read(const char* f) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << " Error *** ibis::pack::read(";
 		if (fname)
 		    lg.buffer() << fname;
@@ -553,7 +553,7 @@ void ibis::pack::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << " Error *** ibis::pack::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());

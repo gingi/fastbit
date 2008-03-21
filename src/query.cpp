@@ -2104,7 +2104,7 @@ void ibis::query::printRIDs(const ibis::RIDSet& ridset) const {
     if (ibis::gVerbose < 0) return;
 
     int len = ridset.size();
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     ibis::RIDSet::const_iterator it = ridset.begin();
     lg.buffer() << "RID set length = " << len << std::endl;
     for (int i=0; i<len; ++i, ++it) {
@@ -3563,7 +3563,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = -1;
     }
 #ifdef DEBUG
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doEvaluate(" << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
@@ -5662,7 +5662,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
     } // for ..
     UnixClose(fdes);
 #ifdef DEBUG
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "DEBUG: recordDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
 	lg.buffer() << val1[ii] << ' ';

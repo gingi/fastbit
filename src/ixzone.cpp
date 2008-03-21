@@ -539,7 +539,7 @@ void ibis::zone::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << " Error *** ibis::zone::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());
@@ -567,7 +567,7 @@ void ibis::zone::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << " Error *** ibis::zone::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();

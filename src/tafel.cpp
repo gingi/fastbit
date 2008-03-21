@@ -997,7 +997,7 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew+nold);
 #if DEBUG+0>0
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "ibis::tafel::writeString wrote " << pos
 		<< " strings (" << nnew << " expected)\nvals.size()="
 		<< vals.size() << ", content\n";

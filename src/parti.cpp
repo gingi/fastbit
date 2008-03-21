@@ -145,7 +145,7 @@ long ibis::part::reorder() {
     }
 #if defined(DEBUG)
     {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
@@ -342,7 +342,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 
 #if defined(DEBUG)
     {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {

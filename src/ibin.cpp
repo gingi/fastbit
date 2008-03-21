@@ -118,8 +118,9 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::bin::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear(); // need to call clear before rethrow the exception
 	throw;
     }
@@ -150,8 +151,9 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::bin::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -181,8 +183,9 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::bin::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -214,8 +217,9 @@ ibis::bin::bin(const ibis::bin& rhs)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::bin::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -849,6 +853,7 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
 	    bounds.push_back(DBL_MAX);
 	nobs = bounds.size();
     }
+    nrows = col->partition()->nRows();
     //binning(f); // binning without writing reordered values
     switch (col->type()) { // binning with reordering
     case ibis::DOUBLE:
@@ -899,6 +904,7 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
 	    bounds.push_back(DBL_MAX);
 	nobs = bounds.size();
     }
+    nrows = col->partition()->nRows();
     // binning(f); // binning without reordering
     switch (col->type()) { // binning with reordering
     case ibis::DOUBLE:
@@ -2445,7 +2451,7 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 
 #if defined(DBUG) && DEBUG+0 > 2
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "expected bounds  size(" << bounds.size() << ")\n";
 	    for (array_t<uint32_t>::const_iterator itt = bnds.begin();
 		 itt != bnds.end(); ++ itt)
@@ -2532,7 +2538,7 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
     }
 #if defined(DEBUG) && DEBUG+0 > 2
     {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
 		    << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
@@ -2565,6 +2571,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
 	granuleMap gmap;
 	mapGranules(varr, gmap);
 	convertGranules(gmap);
+	nrows = varr.size();
     }
     else { // other types of binning
 	setBoundaries(varr);
@@ -2850,7 +2857,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 	const uint32_t nb1 = bounds.size();
 #ifdef DEBUG
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
 		lg.buffer() << bounds[i] << " ";
@@ -2913,7 +2920,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 	}
 #ifdef DEBUG
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
 		lg.buffer() << bounds[i] << " ";
@@ -3950,7 +3957,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 
 #if defined(DBUG) && DEBUG+0 > 2
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "expected bounds  size(" << bounds.size() << ")\n";
 	    for (array_t<uint32_t>::const_iterator itt = bnds.begin();
 		 itt != bnds.end(); ++ itt)
@@ -3972,7 +3979,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    col->type() == ibis::DOUBLE) {
 #ifdef DEBUG
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "scanAndPartition: raw bin boundaries\n"
 			  << bounds.back();
 		for (array_t<uint32_t>::const_iterator ii = bnds.begin();
@@ -4005,7 +4012,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    }
 #ifdef DEBUG
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "scanAndPartition: actual bin boundaries\n"
 			  << bounds[0];
 		for (uint32_t ii = 1; ii < bounds.size(); ++ ii)
@@ -4090,7 +4097,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
     }
 #if defined(DEBUG) && DEBUG+0 > 2
     {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
 		    << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
@@ -4386,7 +4393,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	const uint32_t nb1 = bounds.size();
 #ifdef DEBUG
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
 		lg.buffer() << bounds[i] << " ";
@@ -4449,7 +4456,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	}
 #ifdef DEBUG
 	{
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
 		lg.buffer() << bounds[i] << " ";
@@ -7613,7 +7620,7 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 			    static_cast<long unsigned>(cts.size()));
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
 		    lg.buffer() << bds[i] << " ";
@@ -7658,7 +7665,7 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 			    static_cast<long unsigned>(cts.size()));
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
 		    lg.buffer() << bds[i] << " ";

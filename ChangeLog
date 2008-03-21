@@ -1,3 +1,21 @@
+2008-03-20 John Wu <John.Wu at ACM.org>
+	* src/column.cpp:3899 modify the decision on when to use unix read
+	operationis to invoke them if only a few seeks are needed.  This
+	should reduce the time needed for operations that only require a
+	small number of values from a large dataset.  Previous decision
+	relies more in the file mapping mechanism.
+	* src/irelic.cpp:556 move the assignment of nrows to the beginning
+	of the function to ensure all subsequence function can access the
+	the correct value
+	* src/ibin.cpp:852,903,2574 add assignment of nrows, without them
+	the function ibis::index::optionalUnpack will make the wrong
+	decision in some cases (a buf encountered by Prabhat)
+	* doc/indexSpec.html: change < and > to &lt; and &gt; in sample
+	index specifications
+	* src/part.cpp: introduce more rnadomness to the test queries by
+	using ibis::util::compactValues in generating intermediate query
+	boundaries
+
 2008-03-19 John Wu <John.Wu at ACM.org>
 	* util.h:170 change LOGGER macro to take a logical expression
 	instead of an integer, this make the dependency on ibis::gVerbose

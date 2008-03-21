@@ -42,8 +42,9 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::relic::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -69,8 +70,9 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::relic::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -110,8 +112,9 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::relic::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -155,7 +158,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : nobs);
 	if (nprt > nobs)
 	    nprt = nobs;
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::relic::relic("
 		    << (st->filename()?st->filename():"unnamed")
 		    << ") got nobs = " << nobs << ", card = " << card
@@ -210,8 +213,9 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::relic::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::relic::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -290,8 +294,9 @@ void ibis::relic::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
 	UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose >= 1) << "ibis::relic::write(" << fdes << ") failed to seek to "
-		  << offs[0];
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::relic::write(" << fdes << ") failed to seek to "
+	    << offs[0];
 	return;
     }
 
@@ -315,11 +320,11 @@ void ibis::relic::write(int fdes) const {
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
 #if defined(DEBUG)
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "DEBUG -- ibis::relic::write wrote " << nobs
-	      << " bitvectors, with the following file offsets (written to "
-	      << 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(double)*nobs
-	      << ")\n";
+		<< " bitvectors, with the following file offsets (written to "
+		<< 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(double)*nobs
+		<< ")\n";
     for (unsigned i = 0; i <= nobs; ++ i)
 	lg.buffer() << offs[i] << " ";
 #endif
@@ -399,7 +404,7 @@ void ibis::relic::read(const char* f) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
 	    nprt = dim[1];
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::relic::read(" << f
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		  << ", the offsets of the bit vectors are\n";
@@ -553,6 +558,7 @@ void ibis::relic::construct(const char* f) {
 template <typename E>
 void ibis::relic::construct(const array_t<E>& arr) {
     VMap bmap;
+    nrows = arr.size();
     try {
 	mapValues(arr, bmap);
     }
@@ -569,15 +575,12 @@ void ibis::relic::construct(const array_t<E>& arr) {
     }
     if (bmap.empty()) return; // bmap is empty
 
-    uint32_t i;
     // copy the pointer in VMap into two linear structures
     const uint32_t nobs = bmap.size();
     bits.resize(nobs);
     vals.resize(nobs);
+    uint32_t i;
     VMap::const_iterator it;
-    for (it = bmap.begin(); nrows == 0 && it != bmap.end(); ++ it)
-	if ((*it).second)
-	    nrows = (*it).second->size();
     for (i = 0, it = bmap.begin(); i < nobs; ++it, ++i) {
 	vals[i] = (*it).first;
 	bits[i] = (*it).second;
@@ -1625,7 +1628,7 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 			    static_cast<long unsigned>(cts.size()));
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
 		    lg.buffer() << bds[i] << " ";
@@ -1672,7 +1675,7 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 			    static_cast<long unsigned>(cts.size()));
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    {
-		ibis::util::logger lg(ibis::gVerbose);
+		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
 		    lg.buffer() << bds[i] << " ";
@@ -1950,10 +1953,10 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name() << ") using " << name()
+	    << " indices";
     }
 
     activate(); // need all bitvectors in memory
@@ -1991,11 +1994,11 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	uint64_t cnt = hits.cnt();
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
 } // ibis::relic::equiJoin
@@ -2013,10 +2016,10 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name() << ") using " << name()
+	    << " indices";
     }
 
     activate(); // need all bitvectors in memory
@@ -2051,11 +2054,11 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
 } // ibis::relic::equiJoin
@@ -2072,10 +2075,10 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name() << ") using " << name()
+	    << " indices";
     }
 
     // use the range restrictions to figure out what bitvectors to activate
@@ -2149,11 +2152,11 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	uint64_t cnt = hits.cnt();
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
 } // ibis::relic::equiJoin
@@ -2169,10 +2172,10 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name() << ") using " << name()
+	    << " indices";
     }
 
     // use the range restrictions to figure out what bitvectors to activate
@@ -2243,11 +2246,11 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::equiJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::equiJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
 } // ibis::relic::equiJoin
@@ -2271,10 +2274,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
 
     activate(); // need all bitvectors in memory
@@ -2309,11 +2312,12 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	uint64_t cnt = hits.cnt();
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
 } // ibis::relic::rangeJoin
@@ -2335,10 +2339,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
 
     activate(); // need all bitvectors in memory
@@ -2370,11 +2374,12 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
 } // ibis::relic::rangeJoin
@@ -2402,10 +2407,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
 
     uint32_t nb1s = 0;
@@ -2477,11 +2482,12 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	uint64_t cnt = hits.cnt();
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
 } // ibis::relic::rangeJoin
@@ -2506,10 +2512,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
 
     uint32_t nb1s = 0;
@@ -2578,11 +2584,12 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::rangeJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
 } // ibis::relic::rangeJoin
@@ -2611,10 +2618,10 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::compJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::compJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
     const uint32_t nb1 = vals.size();
     activate(); // need all bitvectors in memory
@@ -2644,11 +2651,12 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	uint64_t cnt = hits.cnt();
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::compJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::compJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
 } // ibis::relic::compJoin
@@ -2674,10 +2682,10 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	timer.start();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::compJoin starting to evaluate join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") using " << name()
-		  << " indices";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::compJoin starting to evaluate join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") using " << name() << " indices";
     }
     const uint32_t nb1 = vals.size();
     activate(); // need all bitvectors in memory
@@ -2704,11 +2712,12 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 4) << "ibis::relic::compJoin completed evaluating join("
-		  << col->name() << ", " << idx2.col->name()
-		  << ", " << delta << ") produced " << cnt
-		  << (cnt>1 ? " hits" : " hit") << " in "
-		  << timer.realTime() << " sec elapsed time";
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::relic::compJoin completed evaluating join("
+	    << col->name() << ", " << idx2.col->name()
+	    << ", " << delta << ") produced " << cnt
+	    << (cnt>1 ? " hits" : " hit") << " in "
+	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
 } // ibis::relic::compJoin

@@ -515,7 +515,7 @@ void array_t<T>::sort(array_t<uint32_t>& ind) const {
     // call qsort to do the actual work
     qsort(ind, 0, n);
 #if defined(DEBUG) && DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "sort(" << n << ")";
     for (uint32_t i = 0; i < n; ++i)
 	lg.buffer() << "\n" << i << "\t" << ind[i] << "\t" << m_begin[ind[i]];
@@ -574,7 +574,7 @@ void array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 	ind.resize(back); // return only the sorted values
     }
 #if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "topk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
@@ -625,7 +625,7 @@ void array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 	 ++ back);
     ind.resize(back); // drop the indices of partially sorted indices
 #if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "bottomk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
@@ -683,7 +683,7 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     // use insertion sort to clean up the few left over elements
     isort(ind, front, back);
 #if defined(DEBUG) && DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "qsort(" << front << ", " << back << ")\n";
     for (uint32_t i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
@@ -720,7 +720,7 @@ void array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
 	}
     }
 #if defined(DEBUG) && DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "isort(" << front << ", " << back << ")\n";
     for (i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
@@ -874,7 +874,7 @@ uint32_t array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
     else
 	pivot = i;
 #if defined(DEBUG) && DEBUG > 2
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << "partition(" << front << ", " << back << ") = "
 	      << pivot << ", target = " << target << "\nfirst half: ";
     for (i = front; i < pivot; ++i)

@@ -922,7 +922,7 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     fprintf(fptr, "\n");
     fflush(fptr);
 #else
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     lg.buffer() << event << " -- " << fmt << " ...";
 #endif
 } // ibis::util::logMessage
@@ -1152,7 +1152,7 @@ void ibis::util::sortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
     }
 #ifdef DEBUG
     int cnt = 0;
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     ibis::RIDSet::const_iterator it;
     lg.buffer() << "sortRIDs(..., " << i << ", " << j << "):\n";
     for (it = rids.begin(); it != rids.end(); ++ it, ++ cnt)

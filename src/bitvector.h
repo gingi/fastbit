@@ -1108,7 +1108,7 @@ inline ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 #if defined(_DEBUG)
 		{ // print the array out
 		    word_t nb = 0;
-		    ibis::util::logger lg(ibis::gVerbose);
+		    ibis::util::logger lg(4);
 		    lg.buffer() << "bitvector constructor received an array["
 				<< arr.size()
 				<< "] with the following values:";

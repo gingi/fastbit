@@ -118,10 +118,21 @@ Known Issues
     MinGW/MinSYS.  If you have a better way than provided there, I would
     like to hear about it.
 
-(2) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
+(4) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
     choke up on a SGI Altix system.  It seems to work fine with a newer
-    version of gcc or another compilers such Intel's icpc on the same
+    version of gcc or other compilers such Intel's icpc on the same
     system.
+
+(5) Valgrind will conplain about FastBit access 4 bytes beyond the end
+    of allocated space in some functions of ibis::bitvector.  The
+    content of this read operatioin does no alter the logical of the
+    programs (there is a delayed decision to reduce the number of
+    if-tests), and the program executes correctly.  If this read
+    operation does cause trouble, it would probably cause the OS to
+    raise an access violation error.  We have never seen this one
+    actually happen and therefore do not know whether it could actually
+    happen.  If you do encounter it, please send a stack trace to
+    <fastbit-users@hpcrdm.lbl.gov> to help use diagnose the problem.
 
 ----------
 Trouble Shooting

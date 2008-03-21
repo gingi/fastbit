@@ -1144,15 +1144,17 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 
     if (ind == 0) {
 	if (c->type() == ibis::TEXT) {
-	    LOGGER(ibis::gVerbose >= 2) << "index::create -- can not create an index for "
-		      << c->partition()->name() << "." << c->name()
-		      << ", this is of data value (string) require an "
+	    LOGGER(ibis::gVerbose >= 2)
+		<< "index::create -- can not create an index for "
+		<< c->partition()->name() << "." << c->name()
+		<< ", this is of data value (string) require an "
 		"additional term-document matrix file";
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 0) << "Warning -- failed to create an index for "
-		      << c->partition()->name() << "." << c->name()
-		      << ", can still process queries if the raw data "
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- failed to create an index for "
+		<< c->partition()->name() << "." << c->name()
+		<< ", can still process queries if the raw data "
 		"is available";
 	}
     }
@@ -2296,7 +2298,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 			static_cast<long unsigned>(bmap.size()),
 			static_cast<long unsigned>(nev), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>bmap.size())) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second->cnt()
@@ -2360,7 +2362,7 @@ void ibis::index::mapValues(const array_t<E>& val, VMap& bmap) {
 	     static_cast<long unsigned>(bmap.size()),
 	     static_cast<long unsigned>(nev), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>bmap.size())) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second->cnt()
@@ -3091,7 +3093,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			static_cast<long unsigned>(hist.size()),
 			(hist.size()>1?"s":""), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>hist.size())) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "value, count\n";
 	    for (it = hist.begin(); it != hist.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second << "\n";
@@ -3162,7 +3164,7 @@ void ibis::index::mapValues(const array_t<E>& val, histogram& hist,
 	     static_cast<long unsigned>(hist.size()), (hist.size()>1?"s":""),
 	     timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>hist.size())) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "value, count\n";
 	    for (it = hist.begin(); it != hist.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second << "\n";
@@ -3931,9 +3933,10 @@ void ibis::index::activate() const {
 			"not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::index::activate(all) from "
-	    "ibis::fileManager::storage(0x" << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name()
+	    << "]::index::activate(all) from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (bits[i] == 0 && offsets[i+1] > offsets[i]) {
@@ -3958,9 +3961,9 @@ void ibis::index::activate() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		      << "]::index::activate(all) from file \""
-		      << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name()
+		<< "]::index::activate(all) from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -4033,8 +4036,9 @@ void ibis::index::activate(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name() << "]::index::activate("
-		  << i << ") from ibis::fileManager::storage(0x" << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name() << "]::index::activate("
+	    << i << ") from ibis::fileManager::storage(0x" << str << ")";
 
 	array_t<ibis::bitvector::word_t>
 	    a(str, offsets[i], (offsets[i+1]-offsets[i]) /
@@ -4054,8 +4058,9 @@ void ibis::index::activate(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name() << "]::index::activate("
-		      << i << ") from file \"" << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name() << "]::index::activate("
+		<< i << ") from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -4107,9 +4112,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name() << "]::index::activate("
-		  << i << ", " << j << ") from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name() << "]::index::activate("
+	    << i << ", " << j << ") from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	while (i < j) {
 	    if (bits[i] == 0 && offsets[i+1] > offsets[i]) {
@@ -4136,9 +4142,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	if (offsets[j] > offsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-			  << "]::index::activate(" << i << ", " << j
-			  << ") from file \"" << fname << "\"";
+		LOGGER(ibis::gVerbose >= 9)
+		    << "ibis::column[" << col->name()
+		    << "]::index::activate(" << i << ", " << j
+		    << ") from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
@@ -4203,9 +4210,9 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 /// is similar to the function @c addBins.
 void ibis::index::addBits(uint32_t ib, uint32_t ie,
 			  ibis::bitvector& res) const {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index[" << col->name() << "]::addBits(" << ib
-	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
-	       << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index[" << col->name() << "]::addBits(" << ib << ", "
+	<< ie << ", res(" << res.cnt() << ", " << res.size() << ")) ...";
     const uint32_t nobs = bits.size();
     if (res.cnt() >= nrows) return; // useless to add more bits
     if (res.size() != nrows)
@@ -4391,9 +4398,10 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie,
 /// subtraction from @c tot.
 void ibis::index::addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  const ibis::bitvector& tot) const {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index[" << col->name() << "]::addBits(" << ib
-	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
-	       << "), tot(" << tot.cnt() << ", " << tot.size() << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index[" << col->name() << "]::addBits(" << ib
+	<< ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	<< "), tot(" << tot.cnt() << ", " << tot.size() << ")) ...";
     if (res.size() != tot.size())
 	res.adjustSize(0U, tot.size());
     if (ib >= ie) { // no bitmap in the range
@@ -4878,9 +4886,9 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 ///   operator to complete the operations.
 void ibis::index::sumBits(uint32_t ib, uint32_t ie,
 			  ibis::bitvector& res) const {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index[" << col->name() << "]::sumBits(" << ib
-	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
-	       << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index[" << col->name() << "]::sumBits(" << ib << ", "
+	<< ie << ", res(" << res.cnt() << ", " << res.size() << ")) ...";
     const uint32_t nobs = bits.size();
     if (ie > nobs) ie = nobs;
     if (ib >= ie) {
@@ -5406,9 +5414,10 @@ void ibis::index::sumBits(uint32_t ib, uint32_t ie,
 /// - On exit, res = sum_{i=ib}^{ie} bits[i].
 void ibis::index::sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  uint32_t ib0, uint32_t ie0) const {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index[" << col->name() << "]::sumBits(" << ib
-	       << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
-	       << "), " << ib0 << ", " << ie0 << ") ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index[" << col->name() << "]::sumBits(" << ib
+	<< ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	<< "), " << ib0 << ", " << ie0 << ") ...";
     if (ie > bits.size())
 	ie = bits.size();
     if (ib0 > ie || ie0 < ib || ib0 >= ie0 ||
@@ -5479,9 +5488,10 @@ void ibis::index::sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 /// a null pointer before using the bit vector.
 void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index::addBins(" << bts.size()
-	       << "-bitvector set, " << ib << ", " << ie << ", res("
-	       << res.cnt() << ", " << res.size() << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index::addBins(" << bts.size()
+	<< "-bitvector set, " << ib << ", " << ie << ", res("
+	<< res.cnt() << ", " << res.size() << ")) ...";
     const uint32_t nobs = bts.size();
     if (res.cnt() >= res.size()) return; // useless to add more bit
     while (ib < nobs && bts[ib] == 0) // skip the leading nulls
@@ -5637,9 +5647,10 @@ void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
 /// Tests show that using the function @c setBit is always slower.
 void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index::sumBins(" << bts.size()
-	       << "-bitvector set, " << ib << ", " << ie << ", res("
-	       << res.cnt() << ", " << res.size() << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index::sumBins(" << bts.size()
+	<< "-bitvector set, " << ib << ", " << ie << ", res("
+	<< res.cnt() << ", " << res.size() << ")) ...";
     typedef std::pair<ibis::bitvector*, bool> _elem;
     const uint32_t nobs = bts.size();
     if (ie > nobs) ie = nobs;
@@ -6827,10 +6838,11 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 			  const ibis::bitvector& tot, uint32_t ib,
 			  uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose >= 10) << "ibis::index::sumBins(" << bts.size()
-	       << "-bitvector set, tot(" << tot.cnt() << ", " << tot.size()
-	       << "), " << ib << ", " << ie << "res(" << res.cnt() << ", "
-	       << res.size() << ")) ...";
+    LOGGER(ibis::gVerbose >= 10)
+	<< "ibis::index::sumBins(" << bts.size()
+	<< "-bitvector set, tot(" << tot.cnt() << ", " << tot.size()
+	<< "), " << ib << ", " << ie << "res(" << res.cnt() << ", "
+	<< res.size() << ")) ...";
     const uint32_t uncomp = (ibis::bitvector::bitsPerLiteral() == 8 ?
 			     tot.size() * 2 / 15 : tot.size() * 4 / 31);
     const uint32_t nobs = bts.size();
@@ -7108,15 +7120,15 @@ void ibis::index::optionalUnpack(std::vector<ibis::bitvector*>& bts,
 	    }
 	}
     }
-} // ibis::index::optionalUnpack()
+} // ibis::index::optionalUnpack
 
 /// A trivial implementation to indicate the index can not determine any row.
 void ibis::index::estimate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& lower,
 			   ibis::bitvector& upper) const {
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- using a dummy version of "
-	"ibis::index::estimate to evaluate a "
-	"qDiscreteRange on column " << expr.colName();
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- using a dummy version of ibis::index::estimate to "
+	"evaluate a qDiscreteRange on column " << expr.colName();
     if (col && col->partition()) {
 	lower.set(0, col->partition()->nRows());
 	upper.set(1, col->partition()->nRows());
@@ -7124,17 +7136,17 @@ void ibis::index::estimate(const ibis::qDiscreteRange& expr,
 } // ibis::index::estimate
 
 uint32_t ibis::index::estimate(const ibis::qDiscreteRange& expr) const {
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- using a dummy version of "
-	"ibis::index::estimate to evaluate a "
-	"qDiscreteRange on column " << expr.colName();
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- using a dummy version of ibis::index::estimate to "
+	"evaluate a qDiscreteRange on column " << expr.colName();
     return (col && col->partition() ? col->partition()->nRows() : 0U);
 } // ibis::index::estimate
 
 float ibis::index::undecidable(const ibis::qDiscreteRange& expr,
 			       ibis::bitvector& iffy) const {
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- using a dummy version of "
-	"ibis::index::undecidable to evaluate a "
-	"qDiscreteRange on column " << expr.colName();
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- using a dummy version of ibis::index::undecidable to "
+	"evaluate a qDiscreteRange on column " << expr.colName();
     if (col && col->partition())
 	iffy.set(1, col->partition()->nRows());
     return 0.5;
@@ -7149,7 +7161,8 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
 
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
 
     ibis::bitvector64::word_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7166,7 +7179,8 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
 
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
 
     ibis::bitvector64::word_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7185,7 +7199,8 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
 
     ibis::bitvector64::word_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7203,7 +7218,8 @@ void ibis::index::estimate(const ibis::rangeJoin& expr,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
 
     ibis::bitvector64::word_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7217,7 +7233,8 @@ void ibis::index::estimate(const ibis::rangeJoin& expr,
 int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::rangeJoin& expr) const {
     if (col == 0) return -1;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
 
     int64_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7230,7 +7247,8 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::rangeJoin& expr,
 			      const ibis::bitvector& mask) const {
     if (col == 0) return -1;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
 
     int64_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7247,7 +7265,8 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
     if (col == 0) return -1;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
 
     int64_t nb = static_cast<ibis::bitvector64::word_t>
@@ -7263,7 +7282,8 @@ int64_t ibis::index::estimate(const ibis::rangeJoin& expr,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
     if (col == 0) return -1;
-    LOGGER(ibis::gVerbose >= 2) << "Warning -- index::estimate is using a dummy estimate "
+    LOGGER(ibis::gVerbose >= 2)
+	<< "Warning -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
 
     int64_t nb = static_cast<ibis::bitvector64::word_t>

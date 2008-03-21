@@ -506,7 +506,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 
 #ifdef DEBUG
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: qExpr::reorder(" << *this
 			<< ") -- (expression:weight,...)\n";
 	    for (i = 0; i < terms.size(); ++ i)
@@ -1710,7 +1710,7 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 
 #ifdef DEBUG
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(ibis::gVerbose);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "qExpr::separateSimple -- terms joined with AND\n";
 	    for (i=0; i<terms.size(); ++i)
 		lg.buffer() << *(terms[i]) << "\n";

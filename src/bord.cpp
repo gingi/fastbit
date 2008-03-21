@@ -1334,7 +1334,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
     }
 #if defined(DEBUG)
     {
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (i != ind1[i])

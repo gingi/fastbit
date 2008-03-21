@@ -144,7 +144,7 @@ void ibis::resource::read(const char* fn) {
     }
     fclose(conf);
 #ifdef DEBUG
-    ibis::util::logger lg(ibis::gVerbose);
+    ibis::util::logger lg(4);
     write(lg.buffer());
 #endif
 } // ibis::resource::read

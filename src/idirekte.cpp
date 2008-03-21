@@ -409,7 +409,7 @@ void ibis::direkte::read(const char* f) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
 	    nprt = dim[1];
-	ibis::util::logger lg(ibis::gVerbose);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::direkte::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
