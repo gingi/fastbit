@@ -285,11 +285,11 @@ void ibis::direkte::print(std::ostream& out) const {
 } // ibis::direkte::print
 
 /// Write the direct bitmap index to a file.
-void ibis::direkte::write(const char* dt) const {
+int ibis::direkte::write(const char* dt) const {
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate();
 
@@ -297,13 +297,13 @@ void ibis::direkte::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("direkte::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int32_t ierr = 0;
+    int ierr = 0;
     const uint32_t nobs = bits.size();
 
     array_t<int32_t> offs(nobs+1);
@@ -311,6 +311,13 @@ void ibis::direkte::write(const char* dt) const {
     header[5] = (char)ibis::index::DIREKTE;
     header[6] = (char)sizeof(int32_t);
     ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::direkte::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
@@ -344,19 +351,20 @@ void ibis::direkte::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("direkte::write", "wrote %lu bitmap%s to %s",
 			static_cast<long unsigned>(nobs),
 			(nobs>1?"s":""), fnm.c_str());
+    return 0;
 } // ibis::direkte::write
 
-void ibis::direkte::read(const char* f) {
+int ibis::direkte::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -364,7 +372,7 @@ void ibis::direkte::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -374,7 +382,7 @@ void ibis::direkte::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t dim[2];
@@ -385,7 +393,7 @@ void ibis::direkte::read(const char* f) {
     int ierr = UnixRead(fdes, static_cast<void*>(dim), 2*sizeof(uint32_t));
     if (ierr < static_cast<int>(2*sizeof(uint32_t))) {
 	UnixClose(fdes);
-	return;
+	return -4;
     }
     nrows = dim[0];
     bool trymmap = false;
@@ -449,16 +457,17 @@ void ibis::direkte::read(const char* f) {
 	bits[0]->set(0, nrows);
     }
 #endif
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     str = 0;
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::direkte::read
 
 // attempt to reconstruct an index from a piece of consecutive memory
-void ibis::direkte::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::direkte::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     if (str != st && str != 0)
 	delete str;
     if (fname) { // previously connected to a file, clean it up
@@ -528,13 +537,14 @@ void ibis::direkte::read(ibis::fileManager::storage* st) {
 	}
 	str = 0;
     }
+    return 0;
 } // ibis::direkte::read
 
 // Convert to a range [ib, ie) such that bits[ib:ie-1] contains the solution
 void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 			   uint32_t& ib, uint32_t& ie) const {
-    ib = static_cast<uint32_t>(expr.leftBound() > 0.0 ? expr.leftBound() : 0.0);
-    ie = static_cast<uint32_t>(expr.rightBound() > 0.0 ? expr.rightBound() : 0.0);
+    ib = static_cast<uint32_t>(expr.leftBound()>0.0 ? expr.leftBound() : 0.0);
+    ie = static_cast<uint32_t>(expr.rightBound()>0.0 ? expr.rightBound() : 0.0);
 
     switch (expr.leftOperator()) {
     case ibis::qExpr::OP_LT: {
@@ -777,7 +787,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	}
 	break;}
     }
-}
+} // ibis::direkte::locate
 
 long ibis::direkte::evaluate(const ibis::qContinuousRange& expr,
 			     ibis::bitvector& lower) const {

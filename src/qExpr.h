@@ -410,6 +410,7 @@ public:
 
     class term;
     class variable;
+    class bediener;
     /// A barrel to hold a list of variables.
     class barrel {
     public:
@@ -461,7 +462,7 @@ public:
 	std::vector< const char* > namelist; ///< List of variable names.
     }; // class barrel
 
-    // all types of terms allowed in a compRange
+    /// All types of terms allowed in a compRange.
     class term : public ibis::qExpr { // abstract term class
     public:
 	virtual ~term() {};
@@ -483,7 +484,8 @@ public:
 	term() : qExpr(MATHTERM) {}; // to be used by concrete derived classes
     }; // abstract term
 
-    class variable : public term { // a variable
+    /// A variable.
+    class variable : public term {
     public:
 	// The constructor inserts the variable name to a list in expr and
 	// record the position in private member variable (that is used
@@ -514,7 +516,8 @@ public:
 	const variable& operator=(const variable&);
     }; // the variable term
 
-    class number : public term { // a number
+    /// A number.
+    class number : public term {
     public:
 	number(const char* num) : val(atof(num)) {};
 	number(double v) : val(v) {};
@@ -532,9 +535,12 @@ public:
 
     private:
 	double val;
+	friend class bediener;
+	friend void ibis::qExpr::simplify(ibis::qExpr*&);
     }; // number
 
-    class literal : public term { // a string literal
+    /// A string literal.
+    class literal : public term {
     public:
 	literal(const char* s) : str(ibis::util::strnewdup(s)) {};
 	virtual ~literal() {delete [] str;}
@@ -551,7 +557,8 @@ public:
 	const literal& operator=(const literal&);
     }; // literal
 
-    class bediener : public term { // bediener is German for operator
+    // An operator.  Bediener is German for operator.
+    class bediener : public term {
     public:
 	bediener(ibis::compRange::OPERADOR op) : operador(op) {};
 	virtual ~bediener() {};
@@ -578,9 +585,10 @@ public:
 	// If the right operand is a constant, change operator from - to +
 	// or from / to *.
 	void convertConstants();
+	friend void ibis::qExpr::simplify(ibis::qExpr*&);
     }; // bediener
 
-    // one-argument standard functions
+    /// One-argument standard functions.
     class stdFunction1 : public term {
     public:
 	stdFunction1(const char* name);
@@ -601,7 +609,7 @@ public:
 	STDFUN1 ftype;
     }; // stdFunction1
 
-    // two-argument standard functions
+    /// Two-argument standard functions.
     class stdFunction2 : public term {
     public:
 	stdFunction2(const char* name);
@@ -1077,52 +1085,6 @@ inline double ibis::compRange::stdFunction1::eval() const {
     }
     return arg;
 } // ibis::compRange::stdfunction1::eval
-
-inline ibis::compRange::term* ibis::compRange::stdFunction1::reduce() {
-    ibis::compRange::term *lhs =
-	static_cast<ibis::compRange::term*>(getLeft());
-    if (lhs->termType() == ibis::compRange::OPERATOR ||
-	lhs->termType() == ibis::compRange::STDFUNCTION1 ||
-	lhs->termType() == ibis::compRange::STDFUNCTION2) {
-	ibis::compRange::term *tmp = lhs->reduce();
-	if (tmp != lhs) { // replace LHS with the new term
-	    setLeft(tmp);
-	    lhs = tmp;
-	}
-    }
-
-    ibis::compRange::term *ret=0;
-    if (lhs->termType() == ibis::compRange::NUMBER) {
-	double arg = lhs->eval();
-	switch (ftype) {
-	case ACOS: ret = new ibis::compRange::number(acos(arg)); break;
-	case ASIN: ret = new ibis::compRange::number(asin(arg)); break;
-	case ATAN: ret = new ibis::compRange::number(atan(arg)); break;
-	case CEIL: ret = new ibis::compRange::number(ceil(arg)); break;
-	case COS: ret = new ibis::compRange::number(cos(arg)); break;
-	case COSH: ret = new ibis::compRange::number(cosh(arg)); break;
-	case EXP: ret = new ibis::compRange::number(exp(arg)); break;
-	case FABS: ret = new ibis::compRange::number(fabs(arg)); break;
-	case FLOOR: ret = new ibis::compRange::number(floor(arg)); break;
-	case FREXP: {int expptr;
-	ret = new ibis::compRange::number(frexp(arg, &expptr)); break;}
-	case LOG10: ret = new ibis::compRange::number(log10(arg)); break;
-	case LOG: ret = new ibis::compRange::number(log(arg)); break;
-	case MODF: {double intptr;
-	ret = new ibis::compRange::number(modf(arg, &intptr)); break;}
-	case SIN: ret = new ibis::compRange::number(sin(arg)); break;
-	case SINH: ret = new ibis::compRange::number(sinh(arg)); break;
-	case SQRT: ret = new ibis::compRange::number(sqrt(arg)); break;
-	case TAN: ret = new ibis::compRange::number(tan(arg)); break;
-	case TANH: ret = new ibis::compRange::number(tanh(arg)); break;
-	default: break;
-	}
-    }
-    else {
-	ret = this;
-    }
-    return ret;
-} // ibis::compRange::stdfunction1::reduce
 
 inline double ibis::compRange::stdFunction2::eval() const {
     double lhs =

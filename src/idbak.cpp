@@ -42,18 +42,20 @@ ibis::bak::bak(const ibis::column* c, const char* f) : ibis::bin() {
 } // constructor
 
 // read from a file
-void ibis::bak::read(const char* f) {
+int ibis::bak::read(const char* f) {
+    int ierr = -1;
     try {
 	std::string fnm;
 	indexFileName(f, fnm);
 	if (ibis::index::isIndex(fnm.c_str(), ibis::index::BAK)) {
-	    ibis::bin::read(f);
+	    ierr = ibis::bin::read(f);
 	}
     }
     catch (...) {
 	clear();
 	throw;
     }
+    return ierr;
 } // ibis::bak::read
 
 // locates the first bin that is just to the right of val or covers val
@@ -454,14 +456,14 @@ void ibis::bak::printMap(std::ostream& out,
 } //ibis::bak::printMap
 
 // write the index to the named directory or file
-void ibis::bak::write(const char* dt) const {
-    if (nobs <= 0) return;
+int ibis::bak::write(const char* dt) const {
+    if (nobs <= 0) return -1;
 
     array_t<int32_t> offs(nobs+1);
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate();
 
@@ -469,7 +471,7 @@ void ibis::bak::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("bak::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -478,7 +480,14 @@ void ibis::bak::write(const char* dt) const {
     char header[] = "#IBIS\0\0\0";
     header[5] = (char)ibis::index::BAK;
     header[6] = (char) sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::bak::write(" << fnm << ") failed to write "
+	    << "the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
     ierr = UnixSeek(fdes,
@@ -497,13 +506,14 @@ void ibis::bak::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("bak::write", "wrote to file %s (%lu bitmap(s) "
 			"for %lu object(s)", fnm.c_str(),
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows));
+    return 0;
 } // ibis::bak::write
 
 // covert the hash structure in bakMap into the array structure in ibis::bin

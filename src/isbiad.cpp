@@ -39,8 +39,9 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::sbiad::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::sbiad::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -68,13 +69,13 @@ ibis::sbiad::sbiad(const ibis::column* c, ibis::fileManager::storage* st,
 } // reconstruct data from content of a file
 
 // the argument is the name of the directory or the file name
-void ibis::sbiad::write(const char* dt) const {
-    if (vals.empty()) return;
+int ibis::sbiad::write(const char* dt) const {
+    if (vals.empty()) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate(); // need all bitvectors
 
@@ -82,7 +83,7 @@ void ibis::sbiad::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("sbiad::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -95,7 +96,14 @@ void ibis::sbiad::write(const char* dt) const {
     char header[] = "#IBIS\13\0\0";
     header[5] = (char)ibis::index::SBIAD;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::sbiad::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &card, sizeof(uint32_t));
@@ -116,7 +124,8 @@ void ibis::sbiad::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
+    return 0;
 } // ibis::sbiad::write
 
 // this version of the constructor take one pass throught the data by
@@ -128,7 +137,8 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	mapValues(f, bmap);
     }
     catch (...) { // need to clean up bmap
-	LOGGER(ibis::gVerbose >= 0) << "ibis::sbiad::construct reclaiming storage "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::sbiad::construct reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
@@ -257,8 +267,9 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column::[" << col->name()
-		  << "]::construct1 encountered an exception while converting "
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column::[" << col->name()
+	    << "]::construct1 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";
 	for (uint32_t i = 0; i < beq.size(); ++ i)
 	    delete beq[i];
@@ -612,8 +623,9 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column::[" << col->name()
-		  << "]::construct2 encountered an exception while converting "
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column::[" << col->name()
+	    << "]::construct2 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";
 	for (uint32_t i = 0; i < beq.size(); ++ i)
 	    delete beq[i];
@@ -700,7 +712,8 @@ long ibis::sbiad::append(const char* dt, const char* df, uint32_t nnew) {
 // compute the bitvector that represents the answer for x = b
 void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalEQ(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "DEBUG -- ibis::sbiad::evalEQ(" << b << ")...";
 #endif
     if (b >= vals.size()) {
 	res.set(0, nrows);
@@ -785,7 +798,8 @@ void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that is the answer for the query x <= b
 void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalLE(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "DEBUG -- ibis::sbiad::evalLE(" << b << ")...";
 #endif
     if (b+1 >= vals.size()) {
 	res.set(1, nrows);
@@ -937,8 +951,8 @@ void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
 void ibis::sbiad::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::sbiad::evalLL(" << b0 << ", "
-			   << b1 << ")...";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "DEBUG -- ibis::sbiad::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
     if (b0 >= b1) { // no hit
 	res.set(0, nrows);

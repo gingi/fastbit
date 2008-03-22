@@ -21,7 +21,8 @@ ibis::keywords::keywords(const ibis::column* c,
     if (c == 0) return; // does nothing
     if (c->type() != ibis::CATEGORY &&
 	c->type() != ibis::TEXT) {
-	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- can only index categorical "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::keywords::keywords -- can only index categorical "
 	    "values or string values";
 	throw ibis::bad_alloc("wrong column type for ibis::keywords");
     }
@@ -47,7 +48,8 @@ ibis::keywords::keywords(const ibis::column* c,
     if (idcol != 0 &&
 	(idcol->type() == ibis::FLOAT ||
 	 idcol->type() == ibis::DOUBLE)) {
-	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- the id column of "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::keywords::keywords -- the id column of "
 	    "ibis::keywords can only be integers";
 	throw ibis::bad_alloc("ibis::keywords can only use "
 			      "integers as ids");
@@ -65,7 +67,8 @@ ibis::keywords::keywords(const ibis::column* c,
 	}
     }
     else {
-	LOGGER(ibis::gVerbose >= 0) << "ibis::keywords::keywords -- readTermDocFile failed "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::keywords::keywords -- readTermDocFile failed "
 	    "with error code " << ierr;
 	throw ibis::bad_alloc("ibis::keywords failed to read tdlist file");
     }
@@ -81,8 +84,9 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 
     std::ifstream tdf(f);
     if (! tdf) {
-	LOGGER(ibis::gVerbose >= 3) << "ibis::keywords::readTermDocFile -- failed to open \""
-		  << f << "\" for reading";
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::keywords::readTermDocFile -- failed to open \""
+	    << f << "\" for reading";
 	return -1;
     }
 
@@ -90,8 +94,9 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     uint32_t nbuf = mybuf.size();
     char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {
-	LOGGER(ibis::gVerbose >= 2) << "ibis::keywords::readTermDocFile(" << f
-		  << ") -- failed to acquire a buffer to reading";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "ibis::keywords::readTermDocFile(" << f
+	    << ") -- failed to acquire a buffer to reading";
 	return -2;
     }
     nrows = col->partition()->nRows();
@@ -295,7 +300,7 @@ void ibis::keywords::print(std::ostream& out) const {
 
 /// Write the boolean term-document matrix as two files, xxx.terms
 /// for the terms and xxx.idx for the bitmaps that marks the positions.
-void ibis::keywords::write(const char* dt) const {
+int ibis::keywords::write(const char* dt) const {
     std::string fnm;
     dataFileName(dt, fnm);
     fnm += ".terms";
@@ -309,7 +314,7 @@ void ibis::keywords::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("keywords::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -323,6 +328,13 @@ void ibis::keywords::write(const char* dt) const {
     header[5] = (char)ibis::index::KEYWORDS;
     header[6] = (char)sizeof(int32_t);
     ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::keywords::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
@@ -355,15 +367,16 @@ void ibis::keywords::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("keywords::write", "wrote %lu bitmap%s to %s",
 			static_cast<long unsigned>(nobs),
 			(nobs>1?"s":""), fnm.c_str());
+    return 0;
 } // ibis::keywords::write
 
-void ibis::keywords::read(const char* f) {
+int ibis::keywords::read(const char* f) {
     std::string fnm;
     dataFileName(f, fnm);
     fnm += ".terms";
@@ -372,7 +385,7 @@ void ibis::keywords::read(const char* f) {
     fnm.erase(fnm.size()-5);
     fnm += "idx";
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -380,7 +393,7 @@ void ibis::keywords::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -390,7 +403,7 @@ void ibis::keywords::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t dim[2];
@@ -401,7 +414,7 @@ void ibis::keywords::read(const char* f) {
     int ierr = UnixRead(fdes, static_cast<void*>(dim), 2*sizeof(uint32_t));
     if (ierr < static_cast<int>(2*sizeof(uint32_t))) {
 	UnixClose(fdes);
-	return;
+	return -4;
     }
     nrows = dim[0];
     bool trymmap = false;
@@ -464,16 +477,17 @@ void ibis::keywords::read(const char* f) {
 	bits[0]->set(0, nrows);
     }
 #endif
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     str = 0;
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::keywords::read
 
 // attempt to reconstruct an index from a piece of consecutive memory
-void ibis::keywords::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::keywords::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     if (str != st && str != 0)
 	delete str;
     if (fname) { // previously connected to a file, clean it up
@@ -549,6 +563,7 @@ void ibis::keywords::read(ibis::fileManager::storage* st) {
 	fnm += ".terms";
 	terms.read(fnm.c_str());
     }
+    return 0;
 } // ibis::keywords::read
 
 void ibis::keywords::clear() {

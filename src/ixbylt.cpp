@@ -193,10 +193,10 @@ void ibis::bylt::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::bylt::activateCoarse(all) "
-		  << "retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name()
+	    << "]::bylt::activateCoarse(all) retrieving data from "
+	    << "ibis::fileManager::storage(0x" << str << ")";
 
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
@@ -219,9 +219,10 @@ void ibis::bylt::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		      << "]::bylt::activateCoarse(all) "
-		      << "retrieving data from file \"" << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name()
+		<< "]::bylt::activateCoarse(all) retrieving data from "
+		<< "file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -292,10 +293,10 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::bylt::activateCoarse(" << i
-		  << ") retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name() << "]::bylt::activateCoarse(" << i
+	    << ") retrieving data from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	array_t<ibis::bitvector::word_t>
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
@@ -314,9 +315,9 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		      << "]::bylt::activateCoarse(" << i
-		      << ") retrieving data from file \"" << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name() << "]::bylt::activateCoarse("
+		<< i << ") retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -364,10 +365,11 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::bylt::activateCoarse(" << i << ", " << j
-		  << ") retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name() << "]::bylt::activateCoarse("
+	    << i << ", " << j
+	    << ") retrieving data from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	while (i < j) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
@@ -392,9 +394,10 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-			  << "]::bylt::activateCoarse(" << i << ", " << j
-			  << ") retrieving data from file \"" << fname << "\"";
+		LOGGER(ibis::gVerbose >= 9)
+		    << "ibis::column[" << col->name()
+		    << "]::bylt::activateCoarse(" << i << ", " << j
+		    << ") retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
@@ -1260,13 +1263,13 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 
 // the argument is the name of the directory, the file name is
 // column::name() + ".idx"
-void ibis::bylt::write(const char* dt) const {
-    if (vals.empty()) return;
+int ibis::bylt::write(const char* dt) const {
+    if (vals.empty()) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate(); // activate all bitvectors
 
@@ -1274,7 +1277,7 @@ void ibis::bylt::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("bylt::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -1288,26 +1291,39 @@ void ibis::bylt::write(const char* dt) const {
     header[5] = (char)ibis::index::BYLT;
     header[6] = (char)sizeof(int32_t);
     ierr = UnixWrite(fdes, header, 8);
-    ibis::relic::write(fdes); // write the bulk of the index file
-    writeCoarse(fdes); // write the coarse level bins
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::bylt::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = ibis::relic::write(fdes); // write the bulk of the index file
+    if (ierr < 0) {
+	(void)UnixClose(fdes);
+	remove(fnm.c_str());
+	return ierr;
+    }
+    ierr = writeCoarse(fdes); // write the coarse level bins
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("bylt::write", "wrote %lu bitmap%s to %s",
 			static_cast<long unsigned>(nobs),
 			(nobs>1?"s":""), fnm.c_str());
+    return ierr;
 } // ibis::bylt::write
 
 // This function intended to be called after calling ibis::relic::write,
 // however, it does not check for this fact!
-void ibis::bylt::writeCoarse(int fdes) const {
+int ibis::bylt::writeCoarse(int fdes) const {
     if (cbounds.empty() || cbits.empty() || nrows == 0)
-	return;
+	return -4;
 
-    int32_t ierr;
+    int ierr;
     const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
 			 cbounds.size()-1 : cbits.size());
     array_t<int32_t> offs(nc+1);
@@ -1324,15 +1340,16 @@ void ibis::bylt::writeCoarse(int fdes) const {
     ierr = UnixSeek(fdes, ierr, SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nc+1));
     ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
+    return 0;
 } // ibis::bylt::writeCoarse
 
 // read the index contained in the file f
-void ibis::bylt::read(const char* f) {
+int ibis::bylt::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -1340,7 +1357,7 @@ void ibis::bylt::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -1350,7 +1367,7 @@ void ibis::bylt::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t dim[3];
@@ -1361,7 +1378,7 @@ void ibis::bylt::read(const char* f) {
     long ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
     if (ierr < static_cast<int>(3*sizeof(uint32_t))) {
 	UnixClose(fdes);
-	return;
+	return -4;
     }
     nrows = dim[0];
     bool trymmap = false;
@@ -1449,21 +1466,22 @@ void ibis::bylt::read(const char* f) {
 	for (unsigned i = 0; i < nc; ++ i)
 	    cbits[i] = 0;
     }
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     str = 0;
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::bylt::read
 
 // Reading information about the coarse bins.  To be used after calling
 // ibis::relic::read, which happens in the constructor.
-void ibis::bylt::readCoarse(const char* fn) {
+int ibis::bylt::readCoarse(const char* fn) {
     std::string fnm;
     indexFileName(fn, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -4;
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1474,7 +1492,7 @@ void ibis::bylt::readCoarse(const char* fn) {
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
 	    UnixClose(fdes);
-	    return;
+	    return -5;
 	}
 
 	begin = offsets.back() + sizeof(nc);
@@ -1496,16 +1514,17 @@ void ibis::bylt::readCoarse(const char* fn) {
 	for (unsigned i = 0; i < nc; ++ i)
 	    cbits[i] = 0;
     }
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' coarse bin info "
 			"from %s", name(), fnm.c_str());
+    return 0;
 } // ibis::bylt::readCoarse
 
 // attempt to reconstruct an index from a piece of consecutive memory
-void ibis::bylt::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::bylt::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     if (str != st && str != 0)
 	delete str;
     if (fname) { // previously connected to a file, clean it up
@@ -1616,6 +1635,7 @@ void ibis::bylt::read(ibis::fileManager::storage* st) {
 	}
 	str = 0;
     }
+    return 0;
 } // ibis::bylt::read
 
 void ibis::bylt::clear() {

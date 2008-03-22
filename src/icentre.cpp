@@ -92,13 +92,13 @@ ibis::entre::entre(const ibis::column* c, ibis::fileManager::storage* st,
 } // reconstruct data from content of a file
 
 // the argument is the name of the directory or the file name
-void ibis::entre::write(const char* dt) const {
-    if (nobs == 0) return;
+int ibis::entre::write(const char* dt) const {
+    if (nobs == 0) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return; // same file name
+	return 0; // same file name
     if (fname != 0 || str != 0)
 	activate();
 
@@ -106,7 +106,7 @@ void ibis::entre::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("entre::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -115,12 +115,13 @@ void ibis::entre::write(const char* dt) const {
     char header[] = "#IBIS\17\0\0";
     header[5] = (char)ibis::index::ENTRE;
     header[6] = (char) sizeof(int32_t);
-    long ierr = UnixWrite(fdes, header, 8);
-    ibis::egale::write(fdes); // use the function ibis::egale
+    int ierr = UnixWrite(fdes, header, 8);
+    ierr = ibis::egale::write(fdes); // use the function ibis::egale
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    UnixClose(fdes);
+    return ierr;
 } // ibis::entre::write
 
 // convert from the multicomponent equality code to a multicomponent
@@ -223,7 +224,7 @@ void ibis::entre::speedTest(std::ostream& out) const {
 		<< timer.realTime() / nloops << std::endl;
 	}
     }
-} // ibis::entre::speedTest()
+} // ibis::entre::speedTest
 
 // the printing function
 void ibis::entre::print(std::ostream& out) const {
@@ -251,7 +252,7 @@ void ibis::entre::print(std::ostream& out) const {
 	}
     }
     out << std::endl;
-} // ibis::entre::print()
+} // ibis::entre::print
 
 // create index based data in dt -- have to start from data directly
 long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
@@ -292,14 +293,15 @@ long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	}
     }
-    write(dt);		// write out the new content
+    (void) write(dt);		// write out the new content
     return nnew;
-} // ibis::entre::append()
+} // ibis::entre::append
 
 // compute the bitvector that is the answer for the query x = b
 void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::entre::evalEQ(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "DEBUG -- ibis::entre::evalEQ(" << b << ")...";
 #endif
     if (b >= nobs) {
 	res.set(0, nrows);
@@ -386,7 +388,8 @@ void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that is the answer for the query x <= b
 void ibis::entre::evalLE(ibis::bitvector& res, uint32_t b) const {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0) << "DEBUG -- ibis::entre::evalLE(" << b << ")...";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "DEBUG -- ibis::entre::evalLE(" << b << ")...";
 #endif
     if (b+1 >= nobs) { // everything covered
 	res.set(1, nrows);

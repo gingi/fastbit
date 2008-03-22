@@ -142,13 +142,13 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 } // reconstruct data from content of a file
 
 // the argument can be the name of the directory or the name of the file
-void ibis::egale::write(const char* dt) const {
-    if (nobs == 0) return;
+int ibis::egale::write(const char* dt) const {
+    if (nobs == 0) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
 
     if (str != 0 || fname != 0)
 	activate();
@@ -157,7 +157,7 @@ void ibis::egale::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("egale::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -167,7 +167,7 @@ void ibis::egale::write(const char* dt) const {
     char header[] = "#IBIS\15\0\0";
     header[5] = (char)ibis::index::EGALE;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    int ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nbits, sizeof(uint32_t));
@@ -176,7 +176,7 @@ void ibis::egale::write(const char* dt) const {
     if (ierr != offs[0]) {
 	UnixClose(fdes);
 	remove(fnm.c_str());
-	return;
+	return -3;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -200,17 +200,19 @@ void ibis::egale::write(const char* dt) const {
     (void) fsync(fdes); // write to disk
 #endif
     ierr = UnixClose(fdes);
+    return 0;
 } // ibis::egale::write
 
 // write directly to a file that is already opened by the caller
-void ibis::egale::write(int fdes) const {
-    int32_t ierr;
+int ibis::egale::write(int fdes) const {
+    int ierr;
     array_t<int32_t> offs(nbits+1);
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 0) {
-	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::write(" << fdes << ") failed to compute "
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::egale::write(" << fdes << ") failed to compute "
 	    "the current file pointer position, must be an invalid file";
-	return;
+	return -1;
     }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
@@ -218,10 +220,11 @@ void ibis::egale::write(int fdes) const {
     offs[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::write(" << fdes << ") failed to seek to "
-		  << offs[0];
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::egale::write(" << fdes << ") failed to seek to "
+	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
-	return;
+	return -2;
     }
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
@@ -240,15 +243,16 @@ void ibis::egale::write(int fdes) const {
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nbits+1));
     ierr = UnixSeek(fdes, offs[nbits], SEEK_SET);
+    return 0;
 } // ibis::egale::write
 
 // read from a file
-void ibis::egale::read(const char* f) {
+int ibis::egale::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -256,7 +260,7 @@ void ibis::egale::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (!(header[0] == '#' && header[1] == 'I' &&
@@ -265,7 +269,7 @@ void ibis::egale::read(const char* f) {
 	  header[6] == static_cast<char>(sizeof(int32_t)) &&
 	  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     uint32_t begin, end;
@@ -276,19 +280,19 @@ void ibis::egale::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(nobs));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -5;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nbits), sizeof(nbits));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -6;
     }
 
     bool trymmap = false;
@@ -357,15 +361,15 @@ void ibis::egale::read(const char* f) {
     if (ierr != end) {
 	clear();
 	UnixClose(fdes);
-	LOGGER(ibis::gVerbose >= 1) << "ibis::egale::read(" << fnm << ") failed to seek to "
-		  << end;
-	return;
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::egale::read(" << fnm << ") failed to seek to " << end;
+	return -7;
     }
     ierr = UnixRead(fdes, &nbases, sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -8;
     }
     begin = end + sizeof(uint32_t);
     end += sizeof(uint32_t) * (nbases + 1);
@@ -407,11 +411,12 @@ void ibis::egale::read(const char* f) {
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::egale::read
 
 // read from a ibis::fileManager::storage
-void ibis::egale::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::egale::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     clear(); // wipe out the existing content
     str = st;
 
@@ -486,6 +491,7 @@ void ibis::egale::read(ibis::fileManager::storage* st) {
 	}
 	str = 0;
     }
+    return 0;
 } // ibis::egale::read
 
 // convert from the one component equality code to a multicomponent
@@ -911,7 +917,7 @@ void ibis::egale::print(std::ostream& out) const {
 	}
     }
     out << std::endl;
-} // ibis::egale::print()
+} // ibis::egale::print
 
 // create index based data in dt -- have to start from data directly
 long ibis::egale::append(const char* dt, const char* df, uint32_t nnew) {

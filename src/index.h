@@ -28,6 +28,7 @@
 #include "bitvector.h"
 
 #include <string>
+#include <limits>	// std::numeric_limits
 
 namespace ibis { // the concrete classes of index hierarchy
     class bin;	 // equal size bins (equality encoded bitmap index)
@@ -78,40 +79,40 @@ namespace ibis { // the concrete classes of index hierarchy
 /// defined in this class.
 class ibis::index {
 public:
-    // the integer value of this enum type are used in the index files to
-    // differentiate the indices
-    // **** reordering the list will make some index files invalid ****
+    /// The integer values of this enum type are used in the index files to
+    /// differentiate the indexes.
+    /// **** Reordering the list will make some index files invalid ****
     enum INDEX_TYPE {
-	BINNING=0,	// bin
-	RANGE,	// range
-	MESA,	// interval
-	AMBIT,	// range/range (coarse / fine)
-	PALE,	// bin/range
-	PACK,	// range/bin
-	ZONE,	// bin/bin
-	RELIC,	// basic bitmap index
-	ROSTER,	// RID list
-	SLICE,	// bit-sliced index (O'Neal)
-	FADE,	// multicomponent range encoding
-	SBIAD,	// multicomponent interval encoding
-	SAPID,	// multicomponent equality encoding
-	EGALE,	// multicomponent equality encoding on bins
-	MOINS,	// multicomponent range encoding on bins
-	ENTRE,	// multicomponent interval encoding on bins
-	BAK,	// reduced precision mapping, equality code
-	BAK2,	// splits each BAK bin in two, one less than
-		// the mapped value, one greater and equal
-		// to the mapped value
-	KEYWORDS,	// boolean term-document matrix.
-	MESH,	// an index on two attributes, bins form
-		// regular mesh
-	BAND,	// composite index of two attribute
-	DIREKTE,// directly use the integer values as bin number
-	GENERIC,// a generic index class template
-	BYLT,	// unbinned range-equality encoding
-	FUZZ,	// unbinned interval-equality encoding
-	ZONA,	// unbinned equality-equality encoding
-	FUGE	// binned interval-equality encoding
+	BINNING=0,	///< ibis::bin.
+	RANGE,	///< ibis::range.
+	MESA,	///< ibis::interval.
+	AMBIT,	///< ibis::ambit, range-range two level encoding on bins.
+	PALE,	///< ibis::pale, equality-range encoding on bins.
+	PACK,	///< ibis::pack, range-equality encoding on bins.
+	ZONE,	///< ibis::zone, equality-equality encoding on bins.
+	RELIC,	///< ibis::relic, the basic bitmap index.
+	ROSTER,	///< ibis::roster, RID list.
+	SLICE,	///< ibis::slice, bit-sliced index.
+	FADE,	///< ibis::fade, multicomponent range encoding (unbinned).
+	SBIAD,	///< ibis::sbiad, multicomponent interval encoding (unbinned).
+	SAPID,	///< ibis::sapid, multicomponent equality encoding (unbinned).
+	EGALE,	///< ibis::egale, multicomponent equality encoding on bins.
+	MOINS,	///< ibis::moins, multicomponent range encoding on bins.
+	ENTRE,	///< ibis::entre, multicomponent interval encoding on bins.
+	BAK,	///< ibis::bak, reduced precision mapping, equality code.
+	BAK2,	///< ibis::bak2, splits each BAK bin in two, one less than
+		/// the mapped value, one greater and equal
+		/// to the mapped value.
+	KEYWORDS,	///< ibis::keywords, boolean term-document matrix.
+	MESH,	///< not used.
+	BAND,	///< not used.
+	DIREKTE,///< ibis::direkte, hash value to bitmaps.
+	GENERIC,///< not used.
+	BYLT,	///< ibis::bylt, unbinned range-equality encoding.
+	FUZZ,	///< ibis::fuzz, unbinned interval-equality encoding.
+	ZONA,	///< ibis::zona, unbinned equality-equality encoding.
+	FUGE,	///< ibis::fuge, binned interval-equality encoding.
+	EXTERN	///< externally defined index
     };
 
     /// @brief Index factory.
@@ -204,9 +205,11 @@ public:
     /// contain the exact answer.
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
-			  ibis::bitvector& upper) const = 0;
+			  ibis::bitvector& upper) const {
+	lower.set(0, nrows); upper.set(1, nrows);}
     /// Returns an upper bound on the number of hits.
-    virtual uint32_t estimate(const ibis::qContinuousRange& expr) const = 0;
+    virtual uint32_t estimate(const ibis::qContinuousRange& expr) const {
+	return nrows;}
     /// Mark the position of the rows that can not be decided with this
     /// index.
     /// @param expr the range conditions to be evaluated.
@@ -215,7 +218,7 @@ public:
     /// Return value is the expected fraction of undecided rows that might
     /// satisfy the range conditions.
     virtual float undecidable(const ibis::qContinuousRange& expr,
-			      ibis::bitvector& iffy) const = 0;
+			      ibis::bitvector& iffy) const {return 0.5;}
 
     /// Estimate the hits for discrete ranges, i.e., those translated from
     /// 'a IN (x, y, ..)'.
@@ -272,8 +275,10 @@ public:
 			     const ibis::qRange* const range2) const;
 
     /// Estimate the code of evaluate a range condition.
-    virtual double estimateCost(const ibis::qContinuousRange& expr) const = 0;
-    virtual double estimateCost(const ibis::qDiscreteRange& expr) const = 0;
+    virtual double estimateCost(const ibis::qContinuousRange& expr) const {
+	return (offsets.empty() ? nrows : offsets.back());}
+    virtual double estimateCost(const ibis::qDiscreteRange& expr) const {
+	return (offsets.empty() ? nrows : offsets.back());}
 
     /// Prints human readable information.  Outputs information about the
     /// index as text to the specified output stream.
@@ -281,17 +286,18 @@ public:
     /// Save index to a file.  Outputs the index in a compact binary format
     /// to the named file or directory.  The index file contains a header
     /// that can be identified by the function isIndex.
-    virtual void write(const char* name) const = 0;
+    virtual int write(const char* name) const = 0;
     /// Reconstructs an index from the named file.  The name can be the
     /// directory containing an index file.  In this case, the name of the
     /// index file must be the name of the column followed by ".idx" suffix.
-    virtual void read(const char* name) = 0;
+    virtual int read(const char* name) = 0;
     /// Reconstructs an index from an array of bytes.  Intended for internal
     /// use only!
-    virtual void read(ibis::fileManager::storage* st) = 0;
+    virtual int read(ibis::fileManager::storage* st) = 0;
 
     /// Extend the index.
-    virtual long append(const char* dt, const char* df, uint32_t nnew) = 0;
+    virtual long append(const char* dt, const char* df, uint32_t nnew) {
+	return -1;}
 
     /// Time some logical operations and print out their speed.
     virtual void speedTest(std::ostream& out) const {};
@@ -311,8 +317,8 @@ public:
 
     /// The function binBoundaries and binWeights return bin boundaries and
     /// counts of each bin respectively.
-    virtual void binBoundaries(std::vector<double>&) const = 0;
-    virtual void binWeights(std::vector<uint32_t>&) const = 0;
+    virtual void binBoundaries(std::vector<double>&) const {return;}
+    virtual void binWeights(std::vector<uint32_t>&) const {return;}
 
     /// Cumulative distribution of the data.
     virtual long getCumulativeDistribution
@@ -321,13 +327,16 @@ public:
     virtual long getDistribution
     (std::vector<double>& bbs, std::vector<uint32_t>& cts) const;
     /// The minimum value recorded in the index.
-    virtual double getMin() const = 0;
+    virtual double getMin() const {
+	return std::numeric_limits<double>::quiet_NaN();}
     /// The maximum value recorded in the index.
-    virtual double getMax() const = 0;
+    virtual double getMax() const {
+	return std::numeric_limits<double>::quiet_NaN();}
     /// Compute the approximate sum of all the values indexed.  If it
     /// decides that computing the sum directly from the vertical partition
     /// is more efficient, it will return NaN immediately.
-    virtual double getSum() const = 0;
+    virtual double getSum() const {
+	return std::numeric_limits<double>::quiet_NaN();}
     virtual uint32_t getNRows() const {return nrows;}
 
     /// The functions expandRange and contractRange expands or contracts the

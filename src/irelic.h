@@ -28,9 +28,9 @@ public:
 	  uint32_t offset = 8);
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -116,7 +116,7 @@ protected:
     // protected member variables
     array_t<double> vals;
 
-    void write(int fdes) const;
+    int write(int fdes) const;
     // protected member functions
     uint32_t locate(const double& val) const;
     void   locate(const ibis::qContinuousRange& expr,
@@ -199,10 +199,10 @@ public:
     slice(const ibis::column* c, ibis::fileManager::storage* st,
 	  uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -251,7 +251,7 @@ private:
     void construct2(const char* f = 0); // passes through data twice
     void setBit(const uint32_t i, const double val);
 
-    void write(int fdes) const;
+    int write(int fdes) const;
     void evalGE(ibis::bitvector& res, uint32_t b) const;
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
 
@@ -269,10 +269,10 @@ public:
     fade(const ibis::column* c, ibis::fileManager::storage* st,
 	 uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -298,7 +298,7 @@ protected:
     array_t<uint32_t> bases;// the values of the bases used
 
     // protected member functions to be used by derived classes
-    void write(int fdes) const;
+    int write(int fdes) const;
     virtual void clear();
 
 private:
@@ -325,7 +325,7 @@ public:
     sbiad(const ibis::column* c, ibis::fileManager::storage* st,
 	  uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -364,7 +364,7 @@ public:
     sapid(const ibis::column* c, ibis::fileManager::storage* st,
 	  uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -406,10 +406,10 @@ public:
     fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 	 uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -437,8 +437,8 @@ private:
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    void writeCoarse(int fdes) const;
-    void readCoarse(const char *fn);
+    int writeCoarse(int fdes) const;
+    int readCoarse(const char *fn);
     void clearCoarse();
 
     /// Estimate the cost of answer a range query [lo, hi).
@@ -461,10 +461,10 @@ public:
     bylt(const ibis::column* c, ibis::fileManager::storage* st,
 	 uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -492,8 +492,8 @@ private:
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    void writeCoarse(int fdes) const;
-    void readCoarse(const char *fn);
+    int writeCoarse(int fdes) const;
+    int readCoarse(const char *fn);
 
     bylt(const bylt&);
     const bylt& operator=(const bylt&);
@@ -509,10 +509,10 @@ public:
     zona(const ibis::column* c, ibis::fileManager::storage* st,
 	 uint32_t offset = 8);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -540,8 +540,8 @@ private:
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    void writeCoarse(int fdes) const;
-    void readCoarse(const char *fn);
+    int writeCoarse(int fdes) const;
+    int readCoarse(const char *fn);
 
     zona(const zona&);
     const zona& operator=(const zona&);

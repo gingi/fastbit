@@ -52,8 +52,9 @@ ibis::range::range(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning - ibis::column[" << col->name()
-		  << "]::range::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning - ibis::column[" << col->name()
+	    << "]::range::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -102,8 +103,9 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning - ibis::column[" << col->name()
-		  << "]::range::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning - ibis::column[" << col->name()
+	    << "]::range::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -125,12 +127,12 @@ ibis::range::range(const ibis::column* c, ibis::fileManager::storage* st,
     }
 }
 
-void ibis::range::read(const char* f) {
+int ibis::range::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -138,7 +140,7 @@ void ibis::range::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -147,7 +149,7 @@ void ibis::range::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t begin, end;
@@ -159,14 +161,14 @@ void ibis::range::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -5;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -222,22 +224,22 @@ void ibis::range::read(const char* f) {
     if (ierr != end) {
 	UnixClose(fdes);
 	remove(fnm.c_str());
-	LOGGER(ibis::gVerbose >= 1) << "ibis::range::read(" << fnm << ") failed to seek to "
-		  << end;
-	return;
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::range::read(" << fnm << ") failed to seek to " << end;
+	return -6;
     }
 
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -7;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&min1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -8;
     }
     end += sizeof(double) * 2;
     ibis::fileManager::instance().recordPages(0, end);
@@ -270,17 +272,18 @@ void ibis::range::read(const char* f) {
 	bits[0]->set(0, nrows);
     }
 #endif
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::range::read
 
 // read from a file starting at an arbitrary position offset
-void ibis::range::read(int fdes, uint32_t start, const char *fn) {
-    if (fdes < 0) return;
+int ibis::range::read(int fdes, uint32_t start, const char *fn) {
+    if (fdes < 0) return -1;
     if (start != static_cast<uint32_t>(UnixSeek(fdes, start, SEEK_SET)))
-	return;
+	return -2;
 
     uint32_t begin, end;
     clear(); // wipe out the existing content
@@ -294,14 +297,14 @@ void ibis::range::read(int fdes, uint32_t start, const char *fn) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -3;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -4;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -358,19 +361,19 @@ void ibis::range::read(int fdes, uint32_t start, const char *fn) {
     if (ierr != end) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -5;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&min1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -6;
     }
     end += sizeof(double) * 2;
     ibis::fileManager::instance().recordPages(0, end);
@@ -426,22 +429,24 @@ void ibis::range::read(int fdes, uint32_t start, const char *fn) {
 	bits[0]->set(0, nrows);
     }
 #endif
+    return 0;
 } // ibis::range::read
 
-void ibis::range::read(ibis::fileManager::storage* st) {
-    ibis::bin::read(st);
+int ibis::range::read(ibis::fileManager::storage* st) {
+    int ierr = ibis::bin::read(st);
     max1 = *(minval.end());
     min1 = *(1+minval.end());
+    return ierr;
 } // ibis::range::read
 
-void ibis::range::write(const char* dt) const {
-    if (nobs <= 0) return;
+int ibis::range::write(const char* dt) const {
+    if (nobs <= 0) return -1;
 
     array_t<int32_t> offs(nobs+1);
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 && str != 0)
 	activate();
 
@@ -449,7 +454,7 @@ void ibis::range::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("range::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -458,7 +463,14 @@ void ibis::range::write(const char* dt) const {
     char header[] = "#IBIS\1\0\0";
     header[5] = (char)ibis::index::RANGE;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::range::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixSeek(fdes,
@@ -479,7 +491,7 @@ void ibis::range::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("range::write", "wrote to file %s (%lu bitmap(s) "
@@ -487,11 +499,12 @@ void ibis::range::write(const char* dt) const {
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows),
 			static_cast<long unsigned>(offs.back()));
+    return 0;
 } // ibis::range::write
 
 // write to the file already opened by the caller
-void ibis::range::write(int fdes) const {
-    if (nobs <= 0) return;
+int ibis::range::write(int fdes) const {
+    if (nobs <= 0) return -1;
     if (fname != 0 || str != 0)
 	activate();
 
@@ -500,7 +513,7 @@ void ibis::range::write(int fdes) const {
 	ibis::util::logMessage("Warning", "ibis::range::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s", fdes,
 			       strerror(errno));
-	return;
+	return -2;
     }
 
     array_t<int32_t> offs(nobs+1);
@@ -524,7 +537,8 @@ void ibis::range::write(int fdes) const {
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     // place the file pointer at the end
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET);
-} // ibis::range::write()
+    return 0;
+} // ibis::range::write
 
 // generate a new range index -- the caller may specify an array of doubles
 // as the boundaries of the bins

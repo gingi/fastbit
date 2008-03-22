@@ -223,21 +223,21 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 
 // the argument is the name of the directory, the file name is
 // column::name() + ".idx"
-void ibis::relic::write(const char* dt) const {
-    if (vals.empty() || bits.empty() || nrows == 0) return;
+int ibis::relic::write(const char* dt) const {
+    if (vals.empty() || bits.empty() || nrows == 0) return -1;
     if (vals.size() != bits.size()) {
 	if (ibis::gVerbose > 0)
 	    col->logMessage("relic::write", "vals.size(%lu) and bits.size"
 			    "(%lu) are expected to be the same, but are not",
 			    static_cast<long unsigned>(vals.size()),
 			    static_cast<long unsigned>(bits.size()));
-	return;
+	return -1;
     }
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate(); // activate all bitvectors
 
@@ -245,7 +245,7 @@ void ibis::relic::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("relic::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -259,22 +259,30 @@ void ibis::relic::write(const char* dt) const {
     header[5] = (char)ibis::index::RELIC;
     header[6] = (char)sizeof(int32_t);
     ierr = UnixWrite(fdes, header, 8);
-    write(fdes); // write the bulk of the index file
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::relic::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = write(fdes); // write the bulk of the index file
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("relic::write", "wrote %lu bitmap%s to %s",
 			static_cast<long unsigned>(nobs),
 			(nobs>1?"s":""), fnm.c_str());
+    return ierr;
 } // ibis::relic::write
 
 // write the content to a file already opened
-void ibis::relic::write(int fdes) const {
+int ibis::relic::write(int fdes) const {
     if (vals.empty() || bits.empty() || nrows == 0)
-	return;
+	return -4;
 
     const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
@@ -282,7 +290,7 @@ void ibis::relic::write(int fdes) const {
 	ibis::util::logMessage("Warning", "ibis::relic::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... ", fdes,
 			       strerror(errno));
-	return;
+	return -5;
     }
 
     int32_t ierr;
@@ -297,7 +305,7 @@ void ibis::relic::write(int fdes) const {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "ibis::relic::write(" << fdes << ") failed to seek to "
 	    << offs[0];
-	return;
+	return -6;
     }
 
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*nobs);
@@ -328,15 +336,16 @@ void ibis::relic::write(int fdes) const {
     for (unsigned i = 0; i <= nobs; ++ i)
 	lg.buffer() << offs[i] << " ";
 #endif
+    return 0;
 } // ibis::relic::write
 
 // read the index contained in the file f
-void ibis::relic::read(const char* f) {
+int ibis::relic::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -344,7 +353,7 @@ void ibis::relic::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -353,7 +362,7 @@ void ibis::relic::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t dim[3];
@@ -367,7 +376,7 @@ void ibis::relic::read(const char* f) {
 	    col->logWarning("relic::read", "file %s has a correct header, "
 			    "but does not hold an index", fnm.c_str());
 	UnixClose(fdes);
-	return;
+	return -4;
     }
 
     nrows = dim[0];
@@ -431,16 +440,17 @@ void ibis::relic::read(const char* f) {
 	bits[0]->set(0, nrows);
     }
 #endif
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     str = 0;
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::relic::read
 
 // attempt to reconstruct an index from a piece of consecutive memory
-void ibis::relic::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::relic::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     if (str != st && str != 0)
 	delete str;
     if (fname) { // previously connected to a file, clean it up
@@ -503,6 +513,7 @@ void ibis::relic::read(ibis::fileManager::storage* st) {
 	}
 	str = 0;
     }
+    return 0;
 } // ibis::relic::read
 
 void ibis::relic::clear() {

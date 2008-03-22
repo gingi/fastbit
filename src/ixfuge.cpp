@@ -136,19 +136,19 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     }
 } // ibis::fuge::fuge
 
-void ibis::fuge::write(const char* dt) const {
-    if (nobs <= 1) return;
+int ibis::fuge::write(const char* dt) const {
+    if (nobs <= 1) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
 	col->logWarning("fuge::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -157,23 +157,32 @@ void ibis::fuge::write(const char* dt) const {
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)ibis::index::FUGE;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
-    ibis::bin::write(fdes); // write the basic binned index
-    writeCoarse(fdes); // write the coarse level bins
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::fuge::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = ibis::bin::write(fdes); // write the basic binned index
+    if (ierr >= 0)
+	ierr = writeCoarse(fdes); // write the coarse level bins
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
+    return ierr;
 } // ibis::fuge::write
 
 // read the content of a file
-void ibis::fuge::read(const char* f) {
+int ibis::fuge::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -181,7 +190,7 @@ void ibis::fuge::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -191,7 +200,7 @@ void ibis::fuge::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     clear(); // clear the existing content
@@ -203,14 +212,14 @@ void ibis::fuge::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -5;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -319,14 +328,16 @@ void ibis::fuge::read(const char* f) {
 	    cbits[i] = 0;
     }
 
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fname);
+    return 0;
 } // ibis::fuge::read
 
-void ibis::fuge::read(ibis::fileManager::storage* st) {
-    ibis::bin::read(st);
+int ibis::fuge::read(ibis::fileManager::storage* st) {
+    int ierr = ibis::bin::read(st);
+    if (ierr < 0) return ierr;
 
     if (str->size() > static_cast<uint32_t>(offsets.back())) {
 	if (st->isFileMap()) {
@@ -377,6 +388,7 @@ void ibis::fuge::read(ibis::fileManager::storage* st) {
 	    }
 	}
     }
+    return 0;
 } // ibis::fuge::read
 
 // fill with zero bits or truncate
@@ -768,9 +780,9 @@ void ibis::fuge::coarsen() {
 
 // This function is intended to be called after calling ibis::bin::write,
 // however, it does not check for this fact!
-void ibis::fuge::writeCoarse(int fdes) const {
+int ibis::fuge::writeCoarse(int fdes) const {
     if (cbounds.empty() || cbits.empty() || nrows == 0)
-	return;
+	return -4;
 
     int32_t ierr;
     const uint32_t nc = cbounds.size()-1;
@@ -789,16 +801,17 @@ void ibis::fuge::writeCoarse(int fdes) const {
     UnixSeek(fdes, ierr, SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nb+1));
     ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
+    return 0;
 } // ibis::fuge::writeCoarse
 
 // Reading information about the coarse bins.  To be used after calling
 // ibis::relic::read, which happens in the constructor.
-void ibis::fuge::readCoarse(const char* fn) {
+int ibis::fuge::readCoarse(const char* fn) {
     std::string fnm;
     indexFileName(fn, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return;
+    if (fdes < 0) return -1;
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -809,7 +822,7 @@ void ibis::fuge::readCoarse(const char* fn) {
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
 	    UnixClose(fdes);
-	    return;
+	    return -2;
 	}
 
 	begin = offsets.back() + sizeof(nc);
@@ -832,11 +845,12 @@ void ibis::fuge::readCoarse(const char* fn) {
 	for (unsigned i = 0; i < ncb; ++ i)
 	    cbits[i] = 0;
     }
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' coarse bin info "
 			"from %s", name(), fnm.c_str());
+    return 0;
 } // ibis::fuge::readCoarse
 
 void ibis::fuge::clearCoarse() {
@@ -862,10 +876,11 @@ void ibis::fuge::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::fuge::activateCoarse(all) "
-		  << "retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name()
+	    << "]::fuge::activateCoarse(all) "
+	    << "retrieving data from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
@@ -888,9 +903,10 @@ void ibis::fuge::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		      << "]::fuge::activateCoarse(all) "
-		      << "retrieving data from file \"" << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name()
+		<< "]::fuge::activateCoarse(all) "
+		<< "retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -961,10 +977,11 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::fuge::activateCoarse(" << i
-		  << ") retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name()
+	    << "]::fuge::activateCoarse(" << i
+	    << ") retrieving data from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	array_t<ibis::bitvector::word_t>
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
@@ -982,9 +999,10 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		      << "]::fuge::activateCoarse(" << i
-		      << ") retrieving data from file \"" << fname << "\"";
+	    LOGGER(ibis::gVerbose >= 9)
+		<< "ibis::column[" << col->name()
+		<< "]::fuge::activateCoarse(" << i
+		<< ") retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -1032,10 +1050,11 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-		  << "]::fuge::activateCoarse(" << i << ", " << j
-		  << ") retrieving data from ibis::fileManager::storage(0x"
-		  << str << ")";
+	LOGGER(ibis::gVerbose >= 9)
+	    << "ibis::column[" << col->name()
+	    << "]::fuge::activateCoarse(" << i << ", " << j
+	    << ") retrieving data from ibis::fileManager::storage(0x"
+	    << str << ")";
 
 	while (i < j) {
 	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
@@ -1060,9 +1079,10 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose >= 9) << "ibis::column[" << col->name()
-			  << "]::fuge::activateCoarse(" << i << ", " << j
-			  << ") retrieving data from file \"" << fname << "\"";
+		LOGGER(ibis::gVerbose >= 9)
+		    << "ibis::column[" << col->name()
+		    << "]::fuge::activateCoarse(" << i << ", " << j
+		    << ") retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);

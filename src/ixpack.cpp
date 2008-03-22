@@ -74,8 +74,9 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	else {
 	    sub.clear();
 	}
-	LOGGER(ibis::gVerbose >= 3) << "ibis::pack::ctor starting to convert " << rhs.nobs
-		  << " bitvectors into " << nobs << " coarse bins";
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::pack::ctor starting to convert " << rhs.nobs
+	    << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has a subrange.
 	bounds[0] = rhs.bounds[0];
@@ -215,19 +216,19 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
     }
 }
 
-void ibis::pack::write(const char* dt) const {
-    if (nobs <= 1) return;
+int ibis::pack::write(const char* dt) const {
+    if (nobs <= 1) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
 	col->logWarning("pack::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -236,21 +237,29 @@ void ibis::pack::write(const char* dt) const {
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)ibis::index::PACK;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
-    write(fdes); // wrtie recursively
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::pack::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = write(fdes); // wrtie recursively
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
+    return ierr;
 } // ibis::pack::write
 
-void ibis::pack::write(int fdes) const {
+int ibis::pack::write(int fdes) const {
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	ibis::util::logMessage("Warning", "ibis::pack::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s",
 			       fdes, strerror(errno));
-	return;
+	return -4;
     }
 
     uint32_t i;
@@ -262,9 +271,10 @@ void ibis::pack::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
 	UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose >= 1) << "ibis::pack::write(" << fdes << ") failed to seek to "
-		  << offs[0];
-	return;
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::pack::write(" << fdes << ") failed to seek to "
+	    << offs[0];
+	return -5;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -313,16 +323,17 @@ void ibis::pack::write(int fdes) const {
 	    lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
     }
 #endif
+    return 0;
 } // ibis::pack::write
 
 // read the content of a file
-void ibis::pack::read(const char* f) {
+int ibis::pack::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -330,7 +341,7 @@ void ibis::pack::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
@@ -340,7 +351,7 @@ void ibis::pack::read(const char* f) {
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     clear(); // clear the existing content
@@ -352,14 +363,14 @@ void ibis::pack::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -5;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -415,20 +426,20 @@ void ibis::pack::read(const char* f) {
     if (ierr != end) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -6;
     }
 
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -7;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&min1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
 	UnixClose(fdes);
 	clear();
-	return;
+	return -8;
     }
 
     begin = end + 2*sizeof(double);
@@ -534,14 +545,16 @@ void ibis::pack::read(const char* f) {
 	    throw "ibis::zone::read bad offsets(nextlevel)";
 	}
     }
-    UnixClose(fdes);
+    (void) UnixClose(fdes);
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fname);
+    return 0;
 } // ibis::pack::read
 
-void ibis::pack::read(ibis::fileManager::storage* st) {
-    ibis::bin::read(st);
+int ibis::pack::read(ibis::fileManager::storage* st) {
+    int ierr = ibis::bin::read(st);
+    if (ierr < 0) return ierr;
     max1 = *(minval.end());
     min1 = *(1+minval.end());
 
@@ -591,9 +604,10 @@ void ibis::pack::read(ibis::fileManager::storage* st) {
 			    << i+1 << "] (" << offs[i+1]
 			    << "), but it is not! Can not use the index file.";
 	    }
-	    throw "ibis::pack::read bad offsets(nextlevel)";
+	    return -9;
 	}
     }
+    return 0;
 } // ibis::pack::read
 
 void ibis::pack::clear() {
@@ -1920,29 +1934,24 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	} // switch (expr.rightOperator())
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
-    LOGGER(ibis::gVerbose >= 6) << "ibis::pack::estimate(" << expr << ") bin number ["
-	      << cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
-	      << ") boundaries ["
-	      << (cand0 < bits.size() ?
-		  (minval[cand0]<bounds[cand0] ? minval[cand0] :
-		   bounds[cand0]) : min1)
-	      << ":"
-	      << (hit0 < bits.size() ?
-		  (minval[hit0]<bounds[hit0] ? minval[hit0] :
-		   bounds[hit0]) : max1)
-	      << ", "
-	      << (hit1 < bits.size() ?
-		  (hit1>hit0 ? (maxval[hit1-1] < bounds[hit1-1] ?
-				maxval[hit1-1] : bounds[hit1-1]) :
-		   (minval[hit0]<bounds[hit0] ? minval[hit0] :
-		    bounds[hit0])) : min1)
-	      << ":"
-	      << (cand1 >= bits.size() ? max1 :
-		  (cand1>cand0 ? (maxval[cand1-1] < bounds[cand1-1] ?
-				  maxval[cand1-1] : bounds[cand1-1]) :
-		   (minval[cand0] < bounds[0] ? minval[cand0] :
-		    bounds[0])))
-	      << ")";
+    LOGGER(ibis::gVerbose >= 6)
+	<< "ibis::pack::estimate(" << expr << ") bin number ["
+	<< cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
+	<< ") boundaries ["
+	<< (cand0 < bits.size() ?
+	    (minval[cand0]<bounds[cand0] ? minval[cand0] :
+	     bounds[cand0]) : min1) << ":"
+	<< (hit0 < bits.size() ? (minval[hit0]<bounds[hit0] ? minval[hit0] :
+				  bounds[hit0]) : max1) << ", "
+	<< (hit1 < bits.size() ?
+	    (hit1>hit0 ? (maxval[hit1-1] < bounds[hit1-1] ?
+			  maxval[hit1-1] : bounds[hit1-1]) :
+	     (minval[hit0]<bounds[hit0] ? minval[hit0] :
+	      bounds[hit0])) : min1) << ":"
+	<< (cand1 >= bits.size() ? max1 :
+	    (cand1>cand0 ? (maxval[cand1-1] < bounds[cand1-1] ?
+			    maxval[cand1-1] : bounds[cand1-1]) :
+	     (minval[cand0] < bounds[0] ? minval[cand0] : bounds[0]))) << ")";
 
     uint32_t i, j;
     bool same = false; // are upper and lower the same ?

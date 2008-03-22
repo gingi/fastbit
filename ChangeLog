@@ -1,9 +1,27 @@
+2008-03-21 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: update the use of LOGGER macro to match the
+	new definition -- fix error in test cases check-ibis 7 and 8
+	* tests/Makefile.am: change check-text to redirect normal output
+	from ibis to /dev/null so as to not cluter the output
+	* src/index.h: change most of the pure virtual functions in
+	ibis::index to have a default implementation so as to minimize the
+	required functions to be implemented by a derived class
+	* src/part.h:312 add an optional argument to get2DDistribution to
+	let the caller choose whether to use the indexes or base data,
+	requested by Prabhat
+	* src/index.h: change functions read and write to return int
+	instead of void
+	* src/qExpr.h: rewrite the function reduce to absorb consecutive
+	pairs of cos and acos, sin and asin, tan and atan.
+
 2008-03-20 John Wu <John.Wu at ACM.org>
 	* src/column.cpp:3899 modify the decision on when to use unix read
 	operationis to invoke them if only a few seeks are needed.  This
 	should reduce the time needed for operations that only require a
 	small number of values from a large dataset.  Previous decision
 	relies more in the file mapping mechanism.
+	* src/column.cpp: update functions selectTypes to use the new
+	selectValues function
 	* src/irelic.cpp:556 move the assignment of nrows to the beginning
 	of the function to ensure all subsequence function can access the
 	the correct value

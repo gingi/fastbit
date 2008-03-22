@@ -48,9 +48,9 @@ check-ibis: $(IBISEXE) $(TESTDIR)/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR) -p "a b : c>50" > $(TESTDIR)/hist1 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ failed test 8; fi
 	@$(ECHO)
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
-	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0 > /dev/null
 	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-0 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c between 10 and 20" -o $(TESTDIR)/t0-1
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c between 10 and 20" -o $(TESTDIR)/t0-1 > /dev/null
 	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
 	@$(ECHO)
 $(TESTDIR)/-part.txt: $(ARDEAEXE) test0.csv

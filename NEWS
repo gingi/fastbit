@@ -1,3 +1,14 @@
+Version b0.8.9
+-- update column.cpp to include <typeinfo> (from Matthias of ICSI)
+-- attempt to improve the speed of computing histograms by sorting input
+   data
+-- add assignment of nrows in ibis::bin::construct that takes an array
+   as input, a problem found by Prabhat
+-- correct html errors in indexSpec.html
+-- update decisions in column::selectValues to use the function read
+   when it anticipate that a small number of seeks will be needed.  This
+   should improve the speed of reading a small number of records.
+
 Sun Mar 16 23:21:42 PDT 2008
 Version b0.8.8
 -- fix bugs in ibis::bitvector::flip and ibis::bitvector64::flip, a

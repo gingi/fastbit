@@ -308,7 +308,8 @@ public:
 			   uint32_t nb1, uint32_t nb2,
 			   std::vector<double>& bounds1,
 			   std::vector<double>& bounds2,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<uint32_t>& counts,
+			   const char* const option=0) const;
     long get2DDistribution(const char *constraints,
 			   const char *name1, const char *name2,
 			   uint32_t nb1, uint32_t nb2,

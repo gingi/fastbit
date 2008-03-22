@@ -50,9 +50,9 @@ public:
     long search(const char* kw) const;
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const;
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,

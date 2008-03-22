@@ -216,19 +216,19 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
     }
 }
 
-void ibis::zone::write(const char* dt) const {
-    if (nobs <= 0) return;
+int ibis::zone::write(const char* dt) const {
+    if (nobs <= 0) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
 	col->logWarning("zone::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -238,20 +238,28 @@ void ibis::zone::write(const char* dt) const {
     header[5] = (char)ibis::index::ZONE;
     header[6] = (char)sizeof(int32_t);
     int32_t ierr = UnixWrite(fdes, header, 8);
-    write(fdes); // wrtie recursively
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::zone::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = write(fdes); // wrtie recursively
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
+    return ierr;
 } // ibis::zone::write
 
-void ibis::zone::write(int fdes) const {
+int ibis::zone::write(int fdes) const {
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	ibis::util::logMessage("Warning", "ibis::zone::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s",
 			       fdes, strerror(start));
-	return;
+	return -4;
     }
 
     uint32_t i;
@@ -263,9 +271,10 @@ void ibis::zone::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
 	UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose >= 1) << "ibis::zone::write(" << fdes << ") failed to seek to "
-		  << offs[0];
-	return;
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::zone::write(" << fdes << ") failed to seek to "
+	    << offs[0];
+	return -5;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -314,16 +323,17 @@ void ibis::zone::write(int fdes) const {
 	    lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
     }
 #endif
+    return 0;
 } // ibis::zone::write
 
 // read the content of a file
-void ibis::zone::read(const char* f) {
+int ibis::zone::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -331,7 +341,7 @@ void ibis::zone::read(const char* f) {
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (header[0] != '#' || header[1] != 'I' ||
@@ -340,7 +350,7 @@ void ibis::zone::read(const char* f) {
 	header[6] != static_cast<char>(sizeof(int32_t)) ||
 	header[7] != static_cast<char>(0)) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     clear();
@@ -352,14 +362,14 @@ void ibis::zone::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -5;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -519,17 +529,19 @@ void ibis::zone::read(const char* f) {
 			  << "\n";
 	    }
 	    UnixClose(fdes);
-	    throw "ibis::zone::read bad offsets(nextlevel)";
+	    return -9;
 	}
     }
     UnixClose(fdes);
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading '%s' header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::zone::read
 
-void ibis::zone::read(ibis::fileManager::storage* st) {
-    ibis::bin::read(st);
+int ibis::zone::read(ibis::fileManager::storage* st) {
+    int ierr = ibis::bin::read(st);
+    if (ierr < 0) return ierr;
 
     array_t<int32_t> offs(st, 8*((sizeof(int32_t)*(nobs+1)+
 				  2*sizeof(uint32_t)+15)/8)+
@@ -579,9 +591,10 @@ void ibis::zone::read(ibis::fileManager::storage* st) {
 			  << "), but it is not!  Can not use the index file."
 			  << "\n";
 	    }
-	    throw "ibis::zone::read bad offsets(nextlevel)";
+	    return -9;
 	}
     }
+    return 0;
 } // ibis::zone::read
 
 void ibis::zone::clear() {

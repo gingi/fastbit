@@ -32,8 +32,9 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::slice::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -66,16 +67,17 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::slice::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
 }
 
 // the argument is the name of the directory or the file name
-void ibis::slice::write(const char* dt) const {
-    if (vals.empty()) return;
+int ibis::slice::write(const char* dt) const {
+    if (vals.empty()) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
@@ -84,7 +86,7 @@ void ibis::slice::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("slice::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -93,12 +95,19 @@ void ibis::slice::write(const char* dt) const {
     char header[] = "#IBIS\11\0\0";
     header[5] = (char)ibis::index::SLICE;
     header[6] = (char)sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
-    write(fdes);
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::slice::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    ierr = write(fdes);
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5) {
 	const uint32_t nobs = bits.size();
@@ -107,17 +116,18 @@ void ibis::slice::write(const char* dt) const {
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows));
     }
+    return ierr;
 } // ibis::slice::write
 
 // write the content to a file already opened
-void ibis::slice::write(int fdes) const {
-    if (vals.empty()) return;
+int ibis::slice::write(int fdes) const {
+    if (vals.empty()) return -4;
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	ibis::util::logMessage("Warning", "ibis::slice::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s", fdes,
 			       strerror(errno));
-	return;
+	return -5;
     }
 
     const uint32_t card = vals.size();
@@ -129,10 +139,11 @@ void ibis::slice::write(int fdes) const {
     offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1) << "ibis::slice::write(" << fdes << ") failed to seek to "
-		  << offs[0];
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::slice::write(" << fdes << ") failed to seek to "
+	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
-	return;
+	return -6;
     }
 
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
@@ -148,11 +159,12 @@ void ibis::slice::write(int fdes) const {
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
+    return 0;
 } // ibis::slice::write
 
 /// Read the index contained in the file f.  This function always reads all
 /// bitvectors.
-void ibis::slice::read(const char* f) {
+int ibis::slice::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
 
@@ -161,20 +173,20 @@ void ibis::slice::read(const char* f) {
 	if (ibis::gVerbose > 2)
 	    ibis::util::logMessage("slice::read", "unable to open %s",
 				   fnm.c_str());
-	return; // can not do anything else
+	return -1; // can not do anything else
     }
 
     char header[8];
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
-    int32_t ierr = UnixRead(fdes, static_cast<void*>(header), 8);
+    int ierr = UnixRead(fdes, static_cast<void*>(header), 8);
     if (ierr != 8) {
 	if (ibis::gVerbose > 2)
 	    ibis::util::logMessage("slice::read", "file %s does not contain "
 				   "an index header", fnm.c_str());
 	ierr = UnixClose(fdes);
-	return;
+	return -2;
     }
     if (!(header[0] == '#' && header[1] == 'I' &&
 	  header[2] == 'B' && header[3] == 'I' &&
@@ -187,7 +199,7 @@ void ibis::slice::read(const char* f) {
 				   "the expected index header",
 				   fnm.c_str());
 	ierr = UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t dim[3]; // nrows, nobs, card
@@ -255,13 +267,14 @@ void ibis::slice::read(const char* f) {
 	}
     }
     ibis::fileManager::instance().recordPages(0, offsets[dim[1]]);
+    return 0;
 } // ibis::slice::read
 
 /// Reconstruct an index from a piece of consecutive memory.  Unlike the
 /// implementations for other type indices, this function always reads all
 /// bit vectors.
-void ibis::slice::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::slice::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     clear(); // clear the current conent
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
@@ -296,6 +309,7 @@ void ibis::slice::read(ibis::fileManager::storage* st) {
 	    bits[i]->setSize(nrows);
 	}
     }
+    return 0;
 } // ibis::slice::read
 
 void ibis::slice::clear() {

@@ -399,19 +399,19 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 } // ibis::bin::bin
 
 // read from a file
-void ibis::bin::read(const char* f) {
+int ibis::bin::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
-	return;
+	return -1;
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     char header[8];
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
 	UnixClose(fdes);
-	return;
+	return -2;
     }
 
     if (!(header[0] == '#' && header[1] == 'I' &&
@@ -420,7 +420,7 @@ void ibis::bin::read(const char* f) {
 	  header[6] == static_cast<char>(sizeof(int32_t)) &&
 	  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
-	return;
+	return -3;
     }
 
     uint32_t begin, end;
@@ -432,14 +432,14 @@ void ibis::bin::read(const char* f) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -5;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -526,14 +526,15 @@ void ibis::bin::read(const char* f) {
     if (ibis::gVerbose > 7)
 	col->logMessage("readIndex", "finished reading %s header from %s",
 			name(), fnm.c_str());
+    return 0;
 } // ibis::bin::read
 
 /// Read from a file starting from an arbitrary @c offset.  This is
 /// intended to be used by multi-level indices.
-void ibis::bin::read(int fdes, uint32_t start, const char *fn) {
-    if (fdes < 0) return;
+int ibis::bin::read(int fdes, uint32_t start, const char *fn) {
+    if (fdes < 0) return -1;
     if (start != static_cast<uint32_t>(UnixSeek(fdes, start, SEEK_SET)))
-	return;
+	return -2;
 
     uint32_t begin, end;
     clear(); // clear the existing content
@@ -549,14 +550,14 @@ void ibis::bin::read(int fdes, uint32_t start, const char *fn) {
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
-	return;
+	return -3;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
 	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
-	return;
+	return -4;
     }
     bool trymmap = false;
 #if defined(HAS_FILE_MAP)
@@ -658,11 +659,12 @@ void ibis::bin::read(int fdes, uint32_t start, const char *fn) {
 	bits[0]->set(0, nrows);
     }
 #endif
+    return 0;
 } // ibis::bin::read
 
 // read from a reference counted piece of memory
-void ibis::bin::read(ibis::fileManager::storage* st) {
-    if (st == 0) return;
+int ibis::bin::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
     clear(); // clear the existing content
     str = st;
 
@@ -743,6 +745,7 @@ void ibis::bin::read(ibis::fileManager::storage* st) {
 
     delete [] fname;
     fname = 0;
+    return 0;
 } // ibis::bin::read
 
 // fill the bitvectors with zeros so that they all contain nrows bits
@@ -4986,12 +4989,12 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
 } // ibis::bin::divideBitmaps
 
 // write the index to the named directory or file
-void ibis::bin::write(const char* dt) const {
-    if (nobs <= 0 || nrows <= 0) return;
+int ibis::bin::write(const char* dt) const {
+    if (nobs <= 0 || nrows <= 0) return -1;
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0) // same file name
-	return;
+	return 0;
 
     try {
 	if (str != 0 || fname != 0)
@@ -5000,15 +5003,15 @@ void ibis::bin::write(const char* dt) const {
     catch (const std::exception& e) {
 	col->logWarning("bin::write", "received a std::exception - %s",
 			e.what());
-	return;
+	return -2;
     }
     catch (const char* s) {
 	col->logWarning("bin::write", "received a string exception - %s", s);
-	return;
+	return -3;
     }
     catch (...) {
 	col->logWarning("bin::write", "received a unknown exception");
-	return;
+	return -4;
     }
 
     array_t<int32_t> offs(nobs+1);
@@ -5021,7 +5024,7 @@ void ibis::bin::write(const char* dt) const {
 	    mesg = "no free stdio stream";
 	col->logWarning("bin::write", "unable to open \"%s\" for "
 			"write ... %s", fnm.c_str(), mesg);
-	return;
+	return -5;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -5038,7 +5041,7 @@ void ibis::bin::write(const char* dt) const {
     if (ierr != offs[0]) { // failed the seek operation
 	UnixClose(fdes);
 	remove(fnm.c_str());
-	return;
+	return -6;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -5062,11 +5065,12 @@ void ibis::bin::write(const char* dt) const {
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows),
 			static_cast<long unsigned>(offs.back()));
+    return 0;
 } // ibis::bin::write
 
 // write the content to a file already opened
-void ibis::bin::write(int fdes) const {
-    if (nobs <= 0) return;
+int ibis::bin::write(int fdes) const {
+    if (nobs <= 0) return -1;
     try {
 	if (str != 0 || fname != 0)
 	    activate();
@@ -5074,15 +5078,15 @@ void ibis::bin::write(int fdes) const {
     catch (const std::exception& e) {
 	col->logWarning("bin::write", "received a std::exception - %s",
 			e.what());
-	return;
+	return -2;
     }
     catch (const char* s) {
 	col->logWarning("bin::write", "received a string exception - %s", s);
-	return;
+	return -3;
     }
     catch (...) {
 	col->logWarning("bin::write", "received a unknown exception");
-	return;
+	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
@@ -5090,7 +5094,7 @@ void ibis::bin::write(int fdes) const {
 	ibis::util::logMessage("Warning", "ibis::bin::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s", fdes,
 			       strerror(errno));
-	return;
+	return -5;
     }
 
     array_t<int32_t> offs(nobs+1);
@@ -5111,6 +5115,7 @@ void ibis::bin::write(int fdes) const {
     (void) UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
+    return 0;
 } // ibis::bin::write
 
 void ibis::bin::clear() {

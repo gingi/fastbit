@@ -91,13 +91,13 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 } // reconstruct data from content of a file
 
 // the argument is the name of the directory or the file name
-void ibis::moins::write(const char* dt) const {
-    if (nobs == 0) return;
+int ibis::moins::write(const char* dt) const {
+    if (nobs == 0) return -1;
 
     std::string name;
     indexFileName(dt, name);
     if (fname != 0 && name.compare(fname) == 0)
-	return;
+	return 0;
 
     if (fname != 0 || str != 0)
 	activate();
@@ -106,7 +106,7 @@ void ibis::moins::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("moins::write", "unable to open \"%s\" for write",
 			name.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -115,12 +115,13 @@ void ibis::moins::write(const char* dt) const {
     char header[] = "#IBIS\16\0\0";
     header[5] = (char)ibis::index::MOINS;
     header[6] = (char) sizeof(int32_t);
-    int32_t ierr = UnixWrite(fdes, header, 8);
-    ibis::egale::write(fdes); // use the function ibis::egale
+    int ierr = UnixWrite(fdes, header, 8);
+    ierr = ibis::egale::write(fdes); // use the function ibis::egale
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    UnixClose(fdes);
+    return ierr;
 } // ibis::moins::write
 
 // convert from the multicomponent equality code to a multicomponent range
@@ -198,7 +199,7 @@ void ibis::moins::convert() {
 	}
     }
     optionalUnpack(bits, col->indexSpec());
-} // convert
+} // ibis::moins::convert
 
 // a simple function to test the speed of the bitvector operations
 void ibis::moins::speedTest(std::ostream& out) const {
@@ -229,7 +230,7 @@ void ibis::moins::speedTest(std::ostream& out) const {
 		<< timer.realTime() / nloops << std::endl;
 	}
     }
-} // ibis::moins::speedTest()
+} // ibis::moins::speedTest
 
 // the printing function
 void ibis::moins::print(std::ostream& out) const {
@@ -257,7 +258,7 @@ void ibis::moins::print(std::ostream& out) const {
 	}
     }
     out << std::endl;
-} // ibis::moins::print()
+} // ibis::moins::print
 
 // create index based data in dt -- have to start from data directly
 long ibis::moins::append(const char* dt, const char* df, uint32_t nnew) {
@@ -300,7 +301,7 @@ long ibis::moins::append(const char* dt, const char* df, uint32_t nnew) {
     }
     write(dt);		// write out the new content
     return nnew;
-} // ibis::moins::append()
+} // ibis::moins::append
 
 // compute the bitvector that is the answer for the query x = b
 void ibis::moins::evalEQ(ibis::bitvector& res, uint32_t b) const {

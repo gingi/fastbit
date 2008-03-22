@@ -50,8 +50,9 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::sapid::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::sapid::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -79,13 +80,13 @@ ibis::sapid::sapid(const ibis::column* c, ibis::fileManager::storage* st,
 } // reconstruct data from content of a file
 
 // the argument is the name of the directory or the file name
-void ibis::sapid::write(const char* dt) const {
-    if (vals.empty()) return;
+int ibis::sapid::write(const char* dt) const {
+    if (vals.empty()) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate();
 
@@ -93,7 +94,7 @@ void ibis::sapid::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("sapid::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -107,6 +108,13 @@ void ibis::sapid::write(const char* dt) const {
     header[5] = (char)ibis::index::SAPID;
     header[6] = (char)sizeof(int32_t);
     int32_t ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::sapid::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &card, sizeof(uint32_t));
@@ -127,8 +135,9 @@ void ibis::sapid::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
-} // ibis::sapid::write()
+    (void) UnixClose(fdes);
+    return 0;
+} // ibis::sapid::write
 
 // this version of the constructor take one pass throught the data by
 // constructing a ibis::index::VMap first than construct the sapid from the

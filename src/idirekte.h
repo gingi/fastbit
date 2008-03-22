@@ -45,9 +45,9 @@ public:
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* name) const;
-    virtual void read(const char* name);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int write(const char* name) const;
+    virtual int read(const char* name);
+    virtual int read(ibis::fileManager::storage* st);
 
     /// Extend the index.
     virtual long append(const char* dt, const char* df, uint32_t nnew);

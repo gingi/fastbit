@@ -8463,9 +8463,9 @@ long ibis::part::count2DBins(array_t<T1>& vals1,
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
     ibis::util::sort(vals1, vals2);
-#else
-    if (counts.size() > 4096)
-	ibis::util::sort(vals1, vals2);
+// #else
+//     if (counts.size() > 4096)
+// 	ibis::util::sort(vals1, vals2);
 #endif
     for (size_t ir = 0; ir < nr; ++ ir) {
 	++ counts[dim2 * static_cast<uint32_t>
@@ -11389,6 +11389,11 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
    The last three arguments bounds1, bounds2, and counts are for output
    only.  Their input values will be ignored.
 
+   The argument option can be either "data" or "index", which indicates
+   that the caller prefer to use the raw data or the indexes to compute the
+   histogram.  If it is neither one of the two valid choices, this function
+   will choose one based on their relative sizes.
+
    @sa get2DDistributionD.
    @sa get2DDistributionI.
  */
@@ -11396,7 +11401,8 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 				   uint32_t nb1, uint32_t nb2,
 				   std::vector<double>& bounds1,
 				   std::vector<double>& bounds2,
-				   std::vector<uint32_t>& counts) const {
+				   std::vector<uint32_t>& counts,
+				   const char* const option) const {
     if (cname1 == 0 || *cname1 == 0 || cname2 == 0 || *cname2 == 0)
 	return -1L;
 
@@ -11413,22 +11419,26 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 	// string values must be indexed
 	return -3L;
 
-    if ((elem1 <= 0 || elem2 <= 0) ||
+    if (option != 0 && (*option == 'd' || *option == 'D') &&
+	elem1 > 0 && elem2 > 0) {
+	// use base data
+	return get2DDistributionD(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+    }
+    else if (option != 0 && (*option == 'i' || *option == 'I') &&
+	     idx1 > 0 && idx2 > 0) {
+	// use indexes
+	return get2DDistributionI(*col1, *col2, nb1, nb2,
+				  bounds1, bounds2, counts);
+    }
+    else if ((elem1 <= 0 || elem2 <= 0) ||
 	(idx1 > 0 && idx2 > 0 && ((double)idx1*nb2+(double)idx2*nb1)*0.1 <
 	 static_cast<double>(elem1+elem2)*nEvents)) {
-#ifdef DEBUG
-	(void) get2DDistributionD(*col1, *col2, nb1, nb2,
-				  bounds1, bounds2, counts);
-#endif
 	// use indexes
 	return get2DDistributionI(*col1, *col2, nb1, nb2,
 				  bounds1, bounds2, counts);
     }
     else {
-#ifdef DEBUG
-	(void) get2DDistributionI(*col1, *col2, nb1, nb2,
-				  bounds1, bounds2, counts);
-#endif
 	// use base data
 	return get2DDistributionD(*col1, *col2, nb1, nb2,
 				  bounds1, bounds2, counts);
@@ -12871,9 +12881,9 @@ void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
     }
 #if defined(SORT_VALUES_BEFORE_COUNT)
     ibis::util::sort(val1, val2);
-#else
-    if (nb1*nb2 > 4096)
-	ibis::util::sort(val1, val2);
+// #else
+//     if (nb1*nb2 > 4096)
+// 	ibis::util::sort(val1, val2);
 #endif
     equalWeightBins(val1, nb1, bnd1);
     equalWeightBins(val2, nb2, bnd2);

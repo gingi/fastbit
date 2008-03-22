@@ -36,9 +36,9 @@ public:
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const; // write to the named file
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const; // write to the named file
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -122,7 +122,7 @@ public:
     virtual double getSum() const;
 
     /// Read an ibis::bin embedded inside a file.
-    void read(int fdes, uint32_t offset, const char *fname);
+    int read(int fdes, uint32_t offset, const char *fname);
     /// Append the @c tail to this index.
     long append(const ibis::bin& tail);
     /// Append a list of integers representing bin numbers.
@@ -269,7 +269,7 @@ protected:
 
     // free current resources, re-initialize all member variables
     virtual void clear();
-    void write(int fptr) const; // write to an open file
+    int write(int fptr) const; // write to an open file
 
 private:
     // private member functions
@@ -415,9 +415,9 @@ public:
 	  uint32_t offset = 8);
     explicit range(const ibis::bin& rhs); // convert a bin to a range
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const; // write to the named file
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const; // write to the named file
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -444,7 +444,7 @@ public:
     virtual double getSum() const;
 
     /// Read an ibis::ragne embedded with multiple data structures.
-    void read(int fdes, uint32_t offset, const char *fname);
+    int read(int fdes, uint32_t offset, const char *fname);
     long append(const ibis::range& tail);
     virtual void speedTest(std::ostream& out) const;
 
@@ -467,7 +467,7 @@ protected:
 private:
     // private member functions
     void construct(const char* f, const array_t<double>& bd);
-    void write(int fptr) const; // write to the given stream
+    int write(int fptr) const; // write to the given stream
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
 	       const double& rbound) const;
 
@@ -485,7 +485,7 @@ public:
     explicit mesa(const ibis::bin& rhs); // convert a bin to a mesa
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const; // write to the named file
+    virtual int write(const char* dt) const; // write to the named file
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -514,7 +514,7 @@ protected:
 
 private:
     // private member functions
-    void write(int fptr) const; // write to the given stream
+    int write(int fptr) const; // write to the given stream
     //void print(std::ostream& out, const uint32_t tot, const double& lbound,
     //       const double& rbound) const;
 
@@ -532,9 +532,9 @@ public:
 	  uint32_t offset = 8);
     explicit ambit(const ibis::bin& rhs); // convert from a ibis::bin
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -569,10 +569,10 @@ private:
     std::vector<ibis::ambit*> sub;
 
     // private member functions
-    void write(int fptr) const;
-    void read(int fdes, uint32_t offset, const char *fn);
+    int write(int fptr) const;
+    int read(int fdes, uint32_t offset, const char *fn);
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
-	       const double& rbound) const;
+	      const double& rbound) const;
     void construct(const char* f, const array_t<double>& bd);
 
     ambit(const ambit&);
@@ -588,9 +588,9 @@ public:
 	 uint32_t offset = 8);
     explicit pale(const ibis::bin& rhs); // convert from a ibis::bin
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -622,7 +622,7 @@ private:
     std::vector<ibis::range*> sub;
 
     // private member functions
-    void write(int fptr) const;
+    int write(int fptr) const;
 
     pale(const pale&);
     const pale& operator=(const pale&);
@@ -637,9 +637,9 @@ public:
 	  uint32_t offset = 8);
     explicit pack(const ibis::bin& rhs); // convert from a ibis::bin
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -675,7 +675,7 @@ private:
     std::vector<ibis::bin*> sub;
 
     // private member functions
-    void write(int fptr) const;
+    int write(int fptr) const;
 
     pack(const pack&);
     const pack& operator=(const pack&);
@@ -690,9 +690,9 @@ public:
 	 uint32_t offset = 8);
     explicit zone(const ibis::bin& rhs); // convert from a ibis::bin
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -724,7 +724,7 @@ private:
     std::vector<ibis::bin*> sub;
 
     // private member functions
-    void write(int fptr) const;
+    int write(int fptr) const;
 
     zone(const zone&);
     const zone& operator=(const zone&);
@@ -743,10 +743,10 @@ public:
     fuge(const ibis::column*, const char*);
     explicit fuge(const ibis::bin& rhs); // convert from a ibis::bin
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -776,8 +776,8 @@ private:
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    void writeCoarse(int fdes) const;
-    void readCoarse(const char *fn);
+    int writeCoarse(int fdes) const;
+    int readCoarse(const char *fn);
     void clearCoarse();
 
     /// Estimate the cost of answer a range query [lo, hi).
@@ -801,9 +801,9 @@ public:
 	  uint32_t offset = 8);
     egale(const ibis::bin& rhs, const uint32_t nbase = 2);
 
-    virtual void read(const char* idxfile);
-    virtual void read(ibis::fileManager::storage* st);
-    virtual void write(const char* dt) const;
+    virtual int read(const char* idxfile);
+    virtual int read(ibis::fileManager::storage* st);
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -845,7 +845,7 @@ protected:
 	ibis::bin::clear();
     }
 
-    void write(int fdes) const;
+    int write(int fdes) const;
     void construct(const char* f);
 
 private:
@@ -866,7 +866,7 @@ private:
 /// Moins is a French word for 'less'.
 class ibis::moins : public ibis::egale {
 public:
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -922,7 +922,7 @@ public:
 	  uint32_t offset = 8);
     entre(const ibis::bin& rhs, const uint32_t nbase = 2);
 
-    virtual void write(const char* dt) const;
+    virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -973,8 +973,8 @@ public:
 	uint32_t offset = 8) : ibis::bin(c, st, offset) {};
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const; // write to the named file
-    virtual void read(const char* idxfile);
+    virtual int write(const char* dt) const; // write to the named file
+    virtual int read(const char* idxfile);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
     virtual INDEX_TYPE type() const {return BAK;}
     virtual const char* name() const
@@ -1041,8 +1041,8 @@ public:
 	 uint32_t offset = 8) : ibis::bin(c, st, offset) {};
 
     virtual void print(std::ostream& out) const;
-    virtual void write(const char* dt) const; // write to the named file
-    virtual void read(const char* idxfile);
+    virtual int write(const char* dt) const; // write to the named file
+    virtual int read(const char* idxfile);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
     virtual INDEX_TYPE type() const {return BAK;}
     virtual const char* name() const

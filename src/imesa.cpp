@@ -54,8 +54,9 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::mesa::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    delete b2[i];
 	}
@@ -103,8 +104,9 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2) << "Warning -- ibis::column[" << col->name()
-		  << "]::mesa::ctor encountered an exception, cleaning up ...";
+	LOGGER(ibis::gVerbose >= 2)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -120,13 +122,13 @@ ibis::mesa::mesa(const ibis::column* c, ibis::fileManager::storage* st,
     }
 }
 
-void ibis::mesa::write(const char* dt) const {
-    if (nobs <= 0) return;
+int ibis::mesa::write(const char* dt) const {
+    if (nobs <= 0) return -1;
 
     std::string fnm;
     indexFileName(dt, fnm);
     if (fname != 0 && fnm.compare(fname) == 0)
-	return;
+	return 0;
     if (fname != 0 || str != 0)
 	activate(0U, nobs-(nobs-1)/2);
 
@@ -134,7 +136,7 @@ void ibis::mesa::write(const char* dt) const {
     if (fdes < 0) {
 	col->logWarning("mesa::write", "unable to open \"%s\" for write",
 			fnm.c_str());
-	return;
+	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -145,16 +147,23 @@ void ibis::mesa::write(const char* dt) const {
     header[5] = (char)ibis::index::MESA;
     header[6] = (char)sizeof(int32_t);
     int32_t ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::column[" << col->partition()->name() << "."
+	    << col->name() << "]::mesa::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
     ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
     offs[0] = ((sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+15)/8)*8;
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1) << "ibis::mesa::write(" << fnm << ") failed to seek to "
-		  << offs[0];
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::mesa::write(" << fnm << ") failed to seek to " << offs[0];
 	UnixClose(fdes);
 	remove(fnm.c_str());
-	return;
+	return -4;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -171,7 +180,7 @@ void ibis::mesa::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) fsync(fdes); // write to disk
 #endif
-    ierr = UnixClose(fdes);
+    (void) UnixClose(fdes);
 
     if (ibis::gVerbose > 5)
 	col->logMessage("mesa::write", "wrote to file %s (%lu bitmap(s) "
@@ -179,11 +188,12 @@ void ibis::mesa::write(const char* dt) const {
 			static_cast<long unsigned>(nobs),
 			static_cast<long unsigned>(nrows),
 			static_cast<long unsigned>(offs.back()));
+    return 0;
 } // ibis::mesa::write
 
 // write to a file already opened by the caller
-void ibis::mesa::write(int fdes) const {
-    if (nobs <= 0) return;
+int ibis::mesa::write(int fdes) const {
+    if (nobs <= 0) return -1;
     if (fname != 0 || str != 0)
 	activate(0U, nobs-(nobs-1)/2);
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
@@ -191,7 +201,7 @@ void ibis::mesa::write(int fdes) const {
 	ibis::util::logMessage("Warning", "ibis::mesa::write call to UnixSeek"
 			       "(%d, 0, SEEK_CUR) failed ... %s",
 			       fdes, strerror(start));
-	return;
+	return -1;
     }
 
     array_t<int32_t> offs(nobs+1);
@@ -200,10 +210,11 @@ void ibis::mesa::write(int fdes) const {
     offs[0] = ((start+sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+7)/8) * 8;
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1) << "ibis::mesa::write(" << fdes << ") failed to seek to "
-		  << offs[0];
+	LOGGER(ibis::gVerbose >= 1)
+	    << "ibis::mesa::write(" << fdes << ") failed to seek to "
+	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
-	return;
+	return -2;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
@@ -219,6 +230,7 @@ void ibis::mesa::write(int fdes) const {
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
     // place the file pointer at the end
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET);
+    return 0;
 } // ibis::mesa::write
 
 void ibis::mesa::binBoundaries(std::vector<double>& ret) const {
