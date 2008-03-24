@@ -245,8 +245,8 @@ uint32_t array_t<T>::find(const array_t<uint32_t>& ind,
 /// it returns the smallest i such that @c operator[](i) >= @c val.
 template<class T>
 uint32_t array_t<T>::find(const T& val) const {
-    if (m_begin[0] >= val)
-	return 0;
+    if (m_end <= m_begin) return 0; // empty array
+    else if (! (*m_begin < val)) return 0; // 1st value is larger than val
 
     uint32_t i = 0, j = size();
     if (j < QSORT_MIN) { // linear search
@@ -271,10 +271,13 @@ uint32_t array_t<T>::find(const T& val) const {
 /// only used as temporary storage.
 template<class T>
 void array_t<T>::stableSort(array_t<T>& tmp) {
-    uint32_t stride = 1;
     const uint32_t n = size();
+    if (n < 2) return;
+
     if (tmp.size() != n)
 	tmp.resize(n);
+
+    uint32_t stride = 1;
     while (stride < n) {
 	uint32_t i;
 	for (i = 0; i+stride < n; i += stride+stride) {

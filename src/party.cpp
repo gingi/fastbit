@@ -1,12 +1,12 @@
 // $Id$
 // Author: John Wu <John.Wu@ACM.org>
 // Copyright 2004-2008 the Regents of the University of California
-/// @File
-/// This file implements a number of self join functions of the ibis::part
-/// class.  These functions are separated from the regular query evaluation
-/// functions becase they do not following the general pattern of the other
-/// query conditions.  Need to redesign the query class to provide a more
-/// uniform processing of queries.
+//
+// This file implements a number of self join functions of the ibis::part
+// class.  These functions are separated from the regular query evaluation
+// functions becase they do not following the general pattern of the other
+// query conditions.  Need to redesign the query class to provide a more
+// uniform processing of queries.
 #include "part.h"
 #include "qExpr.h"
 #include "iroster.h"

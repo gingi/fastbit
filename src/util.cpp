@@ -1084,6 +1084,25 @@ ibis::util::logger::~logger() {
     }
 } // ibis::util::logger::~logger
 
+ibis::util::timer::timer(const char* msg, int lvl) :
+    chrono_(ibis::gVerbose >= lvl ? new ibis::horometer : 0), mesg_(msg) {
+    if (chrono_ != 0) {
+	chrono_->start();
+	ibis::util::logger(2).buffer()
+	    << mesg_ << " -- start timer ...";
+    }
+} // ibis::util::timer::timer
+
+ibis::util::timer::~timer() {
+    if (chrono_ != 0) {
+	chrono_->stop();
+	ibis::util::logger(2).buffer()
+	    << mesg_ << " -- stop timer: " << chrono_->CPUTime()
+	    << " sec CPU time, " << chrono_->realTime() << " sec elapsed time";
+	delete chrono_;
+    }
+} // ibis::util::timer::~timer
+
 void ibis::util::sortRIDs(ibis::RIDSet& rids) {
     if (rids.size() > 20)
 	ibis::util::sortRIDs(rids, 0, rids.size());

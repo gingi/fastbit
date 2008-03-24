@@ -69,8 +69,9 @@ ibis::zone::zone(const ibis::bin& rhs) {
 	else {
 	    sub.clear();
 	}
-	LOGGER(ibis::gVerbose >= 3) << "ibis::zone::ctor starting to convert " << rhs.nobs
-		  << " bitvectors into " << nobs << " coarse bins";
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::zone::ctor starting to convert " << rhs.nobs
+	    << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has subranges.
 	bounds[0] = rhs.bounds[0];

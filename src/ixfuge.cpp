@@ -2,16 +2,15 @@
 // Author: John Wu <John.Wu@ACM.org>
 // Copyright 2006-2008 the Regents of the University of California
 
-///@file
-/// This file contains the implementation of the class ibis::fuge.  It
-/// defines a two-level index where the coarse level the interval encoding,
-/// but the lower level contains only the simple bins.
-///
-/// The word interstice (a synonym of interval) when translated to german,
-/// the answers.com web site gives two words: Zwischenraum and Fuge.  Since
-/// the word Fuge is only four letter long, it is similar to many
-/// variantions of the index class names -- very tangentially related to the
-/// index it represents.
+// This file contains the implementation of the class ibis::fuge.  It
+// defines a two-level index where the coarse level the interval encoding,
+// but the lower level contains only the simple bins.
+//
+// The word interstice (a synonym of interval) when translated to german,
+// the answers.com web site gives two words: Zwischenraum and Fuge.  Since
+// the word Fuge is only four letter long, it is similar to many
+// variantions of the index class names -- very tangentially related to the
+// index it represents.
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters

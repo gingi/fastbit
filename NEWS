@@ -1,3 +1,4 @@
+Mon Mar 24 11:15:41 PDT 2008
 Version b0.8.9
 -- update column.cpp to include <typeinfo> (from Matthias of ICSI)
 -- attempt to improve the speed of computing histograms by sorting input
@@ -8,6 +9,11 @@ Version b0.8.9
 -- update decisions in column::selectValues to use the function read
    when it anticipate that a small number of seeks will be needed.  This
    should improve the speed of reading a small number of records.
+-- add an optional argument to unconditional version of
+   get2DDistribution to allow the caller to choose whether to use
+   indexes or data (requested by Prabhat)
+-- update test cases 7 and 8 of check-ibis to make them more robust
+-- add ibis::util::timer class
 
 Sun Mar 16 23:21:42 PDT 2008
 Version b0.8.8

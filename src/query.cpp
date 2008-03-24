@@ -4256,6 +4256,8 @@ int ibis::query::doContract(ibis::qExpr* exp0) const {
 void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
     std::vector<const ibis::rangeJoin*> terms;
     ibis::qExpr::simplify(exp0);
+    if (exp0 == 0) // may become nil pointer after simplify
+	return;
     exp0->extractJoins(terms);
     if (terms.empty()) // no join terms to use
 	return;

@@ -2,12 +2,10 @@
 // Author: John Wu <John.Wu@ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 the Regents of the University of California
 //
-///@File
-///
-/// Implementation of the ibis::part functions except a few that modify the
-/// content of the partition (which are in parti.cpp) or perform self
-/// join (in party.cpp).
-///
+// Implementation of the ibis::part functions except a few that modify the
+// content of the partition (which are in parti.cpp) or perform self
+// join (in party.cpp).
+//
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
@@ -2982,10 +2980,10 @@ long ibis::part::doScan(const ibis::qRange& cmp,
 	break;
 
     case ibis::CATEGORY: {
-	//*** NOTE that there should not be any qRange query on columns of
-	//*** type KEY or STRING.  However, they are implemented here to
-	//*** make the selfTest code a little simpler!  This should be
-	//*** corrected in the future.
+	// NOTE that there should not be any qRange query on columns of
+	// type KEY or STRING.  However, they are implemented here to
+	// make the selfTest code a little simpler!  This should be
+	// corrected in the future.
 	ibis::bitvector tmp;
 	if (cmp.getType() == ibis::qExpr::RANGE)
 	    (*it).second->estimateRange
@@ -8288,7 +8286,7 @@ ibis::part::getDistribution
 } // ibis::part::getDistribution
 
 /// Count the number of records falling in the bins defined by the
-/// @code begin:end:stride @code triplet.  The triplets defines
+/// @code begin:end:stride @endcode triplet.  The triplets defines
 /// @code 1+std::floor((end-begin)/stride) @endcode bins:
 /// @code [begin, begin+stride) [begin+stride, begin+stride*2)
 /// ... [begin+stride*std::floor((end-begin)/stride), end] @endcode.
@@ -8365,8 +8363,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<int32_t>* vals = col->selectInts(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>
-			  (std::floor(((*vals)[i] - begin) / stride))];
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
 	    delete vals;
 	}
@@ -8380,8 +8377,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<uint32_t>* vals = col->selectUInts(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>
-			  (std::floor(((*vals)[i] - begin) / stride))];
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
 	    delete vals;
 	}
@@ -8394,8 +8390,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<int64_t>* vals = col->selectLongs(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>
-			  (std::floor(((*vals)[i] - begin) / stride))];
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
 	    delete vals;
 	}
@@ -8407,8 +8402,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<float>* vals = col->selectFloats(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>
-			  (std::floor(((*vals)[i] - begin) / stride))];
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
 	    delete vals;
 	}
@@ -8420,8 +8414,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	array_t<double>* vals = col->selectDoubles(mask);
 	if (vals != 0) {
 	    for (size_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>
-			  (std::floor(((*vals)[i] - begin) / stride))];
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
 	    delete vals;
 	}
@@ -8468,10 +8461,8 @@ long ibis::part::count2DBins(array_t<T1>& vals1,
 // 	ibis::util::sort(vals1, vals2);
 #endif
     for (size_t ir = 0; ir < nr; ++ ir) {
-	++ counts[dim2 * static_cast<uint32_t>
-		  (std::floor((vals1[ir]-begin1)/stride1)) +
-		  static_cast<uint32_t>
-		  (std::floor((vals2[ir]-begin2)/stride2))];
+	++ counts[dim2 * static_cast<uint32_t>((vals1[ir]-begin1)/stride1) +
+		  static_cast<uint32_t>((vals2[ir]-begin2)/stride2)];
     }
     return counts.size();
 } // ibis::part::count2DBins
@@ -8497,12 +8488,9 @@ long ibis::part::count3DBins(const array_t<T1>& vals1,
 		       (vals2.size() <= vals3.size() ?
 			vals2.size() : vals3.size()));
     for (size_t ir = 0; ir < nr; ++ ir) {
-	++ counts[(static_cast<uint32_t>
-		   (std::floor((vals1[ir]-begin1)/stride1)) * dim2 +
-		   static_cast<uint32_t>
-		   (std::floor((vals2[ir]-begin2)/stride2))) * dim3 +
-		  static_cast<uint32_t>
-		  (std::floor((vals3[ir]-begin3)/stride3))];
+	++ counts[(static_cast<uint32_t>((vals1[ir]-begin1)/stride1) * dim2 +
+		   static_cast<uint32_t>((vals2[ir]-begin2)/stride2)) * dim3 +
+		  static_cast<uint32_t>((vals3[ir]-begin3)/stride3)];
     }
     return counts.size();
 } // ibis::part::count3DBins
@@ -11365,38 +11353,36 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
     return counts.size();
 } // ibis::part::get1DDistribution
 
-/**
-   Compute 2D histogram with the specified number of bins.
-   The user only specify the name of the variables/columns and the number
-   of bins for each variable.  This function is free to decide where to
-   place the bin boundaries to count the bins as fast as possible.  If the
-   indexes are available and are smaller than the raw data files, then the
-   indexes are used to compute the histogram, otherwise, it reads the raw
-   data files into memory and count the number of records in each bin.
+/// Compute 2D histogram with the specified number of bins.
+/// The user only specify the name of the variables/columns and the number
+/// of bins for each variable.  This function is free to decide where to
+/// place the bin boundaries to count the bins as fast as possible.  If the
+/// indexes are available and are smaller than the raw data files, then the
+/// indexes are used to compute the histogram, otherwise, it reads the raw
+/// data files into memory and count the number of records in each bin.
+///
+/// Bin @c i1 in the first dimension is defined as
+/// @code bounds1[i1] <= cname1 < bounds1[i1+1] @endcode
+/// and bin @c i2 in the second dimension is defined as
+/// @code bounds2[i2] <= cname2 < bounds2[i2+1] @endcode.
+/// The 2D bins are linearized in @c counts with the second dimension as the
+/// faster varying dimension.
+///
+/// The return value is the number of bins, i.e., the size of array counts.
+/// Normally, the number of bins should be @code nb1 * nb2 @endcode.  For
+/// example, if the indexes are used, but there are less bins in the indexes
+/// than nb1 or nb2, then the number of bins in the indexes will be used.
+///
+/// The last three arguments bounds1, bounds2, and counts are for output
+/// only.  Their input values will be ignored.
+///
+/// The argument option can be either "data" or "index", which indicates
+/// that the caller prefer to use the raw data or the indexes to compute the
+/// histogram.  If it is neither one of the two valid choices, this function
+/// will choose one based on their relative sizes.
 
-   Bin @c i1 in the first dimension is defined as
-   @code bounds1[i1] <= cname1 < bounds1[i1+1] @endcode
-   and bin @c i2 in the second dimension is defined as
-   @code bounds2[i2] <= cname2 < bounds2[i2+1] @endcode.
-   The 2D bins are linearized in @c counts with the second dimension as the
-   faster varying dimension.
-
-   The return value is the number of bins, i.e., the size of array counts.
-   Normally, the number of bins should be @code nb1 * nb2 @endcode.  For
-   example, if the indexes are used, but there are less bins in the indexes
-   than nb1 or nb2, then the number of bins in the indexes will be used.
-
-   The last three arguments bounds1, bounds2, and counts are for output
-   only.  Their input values will be ignored.
-
-   The argument option can be either "data" or "index", which indicates
-   that the caller prefer to use the raw data or the indexes to compute the
-   histogram.  If it is neither one of the two valid choices, this function
-   will choose one based on their relative sizes.
-
-   @sa get2DDistributionD.
-   @sa get2DDistributionI.
- */
+/// @sa get2DDistributionD.
+/// @sa get2DDistributionI.
 long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
 				   uint32_t nb1, uint32_t nb2,
 				   std::vector<double>& bounds1,
@@ -12392,14 +12378,12 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
     return btmp.size();
 } // ibis::part::coarsenBins
 
-/**
-   Computes a conditional 2D histogram to have the specified number of
-   bins.  This function goes through the data twice to make sure the 1D
-   bins for each dimension are equal-weight bins.  This does not guarantee
-   that the 2D bins are equal-weight.
-
-   @sa get2DDistribution.
- */
+/// Computes a conditional 2D histogram to have the specified number of
+/// bins.  This function goes through the data twice to make sure the 1D
+/// bins for each dimension are equal-weight bins.  This does not guarantee
+/// that the 2D bins are equal-weight.
+///
+/// @sa get2DDistribution.
 long ibis::part::get2DDistribution(const char *constraints,
 				   const char *name1, const char *name2,
 				   uint32_t nb1, uint32_t nb2,
@@ -12850,18 +12834,16 @@ long ibis::part::get2DDistribution(const char *constraints,
     return ierr;
 } // ibis::part::get2DDistribution
 
-/**
-   The templated function to decide the bin boundaries and count the number
-   of values fall in each bin.  This function differs from the one used by
-   getJointDistribution in that the bounds are defined with only closed
-   bins.
-
-   @note It goes through each data value twice, once to count each
-   individial values and once to put them into the specified bins.
-
-   @note The results of first counting may take up more memory than the
-   input data!
- */
+/// The templated function to decide the bin boundaries and count the number
+/// of values fall in each bin.  This function differs from the one used by
+/// getJointDistribution in that the bounds are defined with only closed
+/// bins.
+///
+/// @note It goes through each data value twice, once to count each
+/// individial values and once to put them into the specified bins.
+///
+/// @note The results of first counting may take up more memory than the
+/// input data!
 template <typename E1, typename E2>
 void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
 			   uint32_t nb1, uint32_t nb2,
@@ -12911,7 +12893,7 @@ void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
     }
     if (ibis::gVerbose > 3) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(true)
 	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2

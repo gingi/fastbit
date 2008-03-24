@@ -713,6 +713,32 @@ namespace ibis {
 	    logger(const logger&);
 	    logger& operator=(const logger&);
 	}; // logger
+
+	/// Print simply timing information.  It starts the clock in the
+	/// constructor, stops the clock in the destructor, and reports the
+	/// CPU time and elapsed time in between.
+	class timer {
+	public:
+	    /// Constructor.  The caller must provide a message string.
+	    /// The message will only be printed if ibis::gVerbose is no
+	    /// less than lvl.
+	    /// @note The mesage stored in msg is copied to a string held
+	    /// by this object.
+	    /// @sa ibis::horometer
+	    explicit timer(const char* msg, int lvl=1);
+	    /// Destructor.  It reports the time used since the constructor
+	    /// was called.  Use ibis::horometer directly if more control
+	    /// if the timing information is desired.
+	    ~timer();
+
+	private:
+	    ibis::horometer *chrono_;
+	    std::string mesg_; // has to hold a private copy of the message
+
+	    timer(); // no default constructor
+	    timer(const timer&); // no copying
+	    timer& operator=(const timer&); // no assignment
+	}; // timer
     } // namespace util
 } // namespace ibis
 

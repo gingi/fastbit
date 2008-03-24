@@ -1,3 +1,20 @@
+2008-03-24 John Wu <John.Wu at ACM.org>
+	* src/util.h: add ibis::util::timer class to print out timing
+	information in a fixed format, try the first case in
+	ibis::bin::binOrderT
+	* src/Doxyfile:1008 add FASTBIT_CXX_DLLSPEC to PREDEFINED, change
+	EXTRACT_ALL back to NO
+
+2008-03-23 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: remove the call to function std::floor before
+	calling static_cast<uint32>
+	* src/array_t.cpp:248 check for empty array before continuing
+	* src/array_t.cpp:275 add check for empty array and array of
+	size 1
+
+2008-03-22 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp: add more cases to ibis::qExpr::simplify
+
 2008-03-21 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: update the use of LOGGER macro to match the
 	new definition -- fix error in test cases check-ibis 7 and 8

@@ -2,11 +2,10 @@
 // Author: John Wu <John.Wu@ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 the Regents of the University of California
 //
-/// @file
-/// The implementation of class bitvector as defined in bitvector.h.
-/// The major goal of this implementation is to avoid accessing anything
-/// smaller than a word (uint32_t).
-///
+// The implementation of class bitvector as defined in bitvector.h.
+// The major goal of this implementation is to avoid accessing anything
+// smaller than a word (uint32_t).
+//
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif

@@ -282,6 +282,7 @@ private:
     COMPARE left_op, right_op;
 
     const qContinuousRange& operator=(const qContinuousRange&);
+    friend void ibis::qExpr::simplify(ibis::qExpr*&);
 }; // ibis::qContinuousRange
 
 /// A discrete range expression.  It is used to capture expression of the

@@ -773,8 +773,10 @@ uint32_t ibis::bin::locate(const double& val) const {
 #endif
     // check the extreme cases -- use negative tests to capture abnormal
     // numbers
-    if (bounds.empty()) return 0;
-    if (! (val >= bounds[0])) {
+    if (bounds.empty()) {
+	return 0;
+    }
+    else if (! (val >= bounds[0])) {
 	return 0;
     }
     else if (! (val < bounds[nobs-1])) {
@@ -2046,6 +2048,10 @@ long ibis::bin::binOrderT(const char* basename) const {
 	ierr = -2;
 	return ierr;
     }
+    std::ostringstream mesg;
+    mesg << "ibis::column[" << col->partition()->name() << "." << col->name()
+	 << "]::bin::binOrder<" << typeid(E).name() << ">(" << fnm << ")";
+    ibis::util::timer timer(mesg.str().c_str(), 3);
 
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -2086,9 +2092,6 @@ long ibis::bin::binOrderT(const char* basename) const {
     ierr = UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
     ierr = UnixClose(fdes);
-    if (ibis::gVerbose > 3)
-	col->logMessage("bin::binOrder", "wrote bin-ordered values to %s",
-			fnm.c_str());
     return ierr;
 } // ibis::bin::binOrderT
 

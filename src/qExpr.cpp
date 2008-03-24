@@ -1364,6 +1364,301 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    delete expr;
 	    expr = tmp;
 	}
+	if (expr->left->type == ibis::qExpr::RANGE &&
+	    expr->right->type == ibis::qExpr::RANGE &&
+	    stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
+		    static_cast<ibis::qRange*>(expr->right)->colName()) == 0) {
+	    ibis::qContinuousRange* tm1 =
+		static_cast<ibis::qContinuousRange*>(expr->left);
+	    ibis::qContinuousRange* tm2 =
+		static_cast<ibis::qContinuousRange*>(expr->right);
+	    if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		 tm1->left_op == ibis::qExpr::OP_LT) &&
+		(tm2->left_op == ibis::qExpr::OP_LE ||
+		 tm2->left_op == ibis::qExpr::OP_LT) &&
+		(tm1->right_op == ibis::qExpr::OP_LE ||
+		 tm1->right_op == ibis::qExpr::OP_LT) &&
+		(tm2->right_op == ibis::qExpr::OP_LE ||
+		 tm2->right_op == ibis::qExpr::OP_LT)) { // two two-sided ranges
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		if (tm1->upper > tm2->upper) {
+		    tm1->right_op = tm2->right_op;
+		    tm1->upper = tm2->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LE &&
+			 tm2->right_op == ibis::qExpr::OP_LT) {
+		    tm1->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 two-sided range, tm2 one-sided
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 one-sided range, tm2 two-sided
+		if (tm2->lower < tm1->lower) {
+		    tm2->left_op = tm1->left_op;
+		    tm2->lower = tm1->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm2->left_op == ibis::qExpr::OP_LE &&
+			 tm1->left_op == ibis::qExpr::OP_LT) {
+		    tm2->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 two-sided range, tm2 one-sided
+		if (tm1->upper > tm2->upper) {
+		    tm1->right_op = tm2->right_op;
+		    tm1->upper = tm2->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LE &&
+			 tm2->right_op == ibis::qExpr::OP_LT) {
+		    tm1->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 one-sided range, tm2 two-sided
+		if (tm2->upper > tm1->upper) {
+		    tm2->right_op = tm1->right_op;
+		    tm2->upper = tm1->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm2->right_op == ibis::qExpr::OP_LE &&
+			 tm1->right_op == ibis::qExpr::OP_LT) {
+		    tm2->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		if (tm2->upper > tm1->upper) {
+		    tm2->right_op = tm1->right_op;
+		    tm2->upper = tm1->upper;
+		}
+		else if (tm2->upper == tm1->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LT &&
+			 tm2->right_op == ibis::qExpr::OP_LE) {
+		    tm2->right_op = tm1->right_op;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		tm1->right_op = tm2->right_op;
+		tm1->upper = tm2->upper;
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		tm1->left_op = tm2->left_op;
+		tm1->lower = tm2->lower;
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT)) {
+		if (tm2->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->lower)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->upper)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT)) {
+		if (tm1->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->lower)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->upper)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		if (tm2->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->lower)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->upper)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT)) {
+		if (tm1->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->lower)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->upper)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	}
 	break;}
     case ibis::qExpr::LOGICAL_OR:
     case ibis::qExpr::LOGICAL_XOR: {
@@ -1472,6 +1767,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			     cr->rightOperator(), tm2->eval()-cnst);
 			delete expr;
 			expr = tmp;
+			cr = 0;
 			break;}
 		    case ibis::compRange::MINUS: {
 			ibis::qContinuousRange *tmp = new
@@ -1482,6 +1778,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			     cr->rightOperator(), tm2->eval()+cnst);
 			delete expr;
 			expr = tmp;
+			cr = 0;
 			break;}
 		    case ibis::compRange::MULTIPLY: {
 			if (cnst > 0.0) {
@@ -1493,6 +1790,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 				 cr->rightOperator(), tm2->eval()/cnst);
 			    delete expr;
 			    expr = tmp;
+			    cr = 0;
 			}
 			break;}
 		    }
@@ -1522,6 +1820,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = tm22;
 			op2->getRight() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    case ibis::compRange::MINUS: {
@@ -1530,15 +1829,17 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = nm1;
 			op2->getRight() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    case ibis::compRange::MULTIPLY: {
 			const double cnst = tm21->eval();
 			if (cnst > 0.0) {
 			    nm1->val /= cnst;
+			    cr->getRight() = tm22;
 			    op2->getRight() = 0;
 			    delete op2;
-			    cr->getRight() = tm22;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			else {
@@ -1547,6 +1848,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			    delete op2;
 			    cr->getRight() = nm1;
 			    cr->getLeft() = tm22;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			break;}
@@ -1556,6 +1858,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = nm1;
 			op2->getRight() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    }
@@ -1568,6 +1871,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = tm22;
 			op2->getLeft() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    case ibis::compRange::MINUS: {
@@ -1575,15 +1879,17 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = tm21;
 			op2->getLeft() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    case ibis::compRange::MULTIPLY: {
 			const double cnst = tm22->eval();
 			if (cnst > 0.0) {
+			    cr->getRight() = tm21;
 			    nm1->val /= cnst;
 			    op2->getLeft() = 0;
 			    delete op2;
-			    cr->getRight() = tm21;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			else {
@@ -1592,6 +1898,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			    delete op2;
 			    cr->getRight() = nm1;
 			    cr->getLeft() = tm21;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			break;}
@@ -1600,6 +1907,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getRight() = tm21;
 			op2->getLeft() = 0;
 			delete op2;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    }
@@ -1623,6 +1931,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			cr->getLeft() = tm12;
 			op1->getRight() = 0;
 			delete op1;
+			cr = 0;
 			ibis::qExpr::simplify(expr);
 			break;}
 		    case ibis::compRange::MINUS: {
@@ -1630,6 +1939,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			nm2->val = tm11->eval() - nm2->val;
 			cr->getLeft() = nm2;
 			op1->getRight() = 0;
+			cr = 0;
 			delete op1;
 			ibis::qExpr::simplify(expr);
 			break;}
@@ -1640,6 +1950,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			    nm2->val /= cnst;
 			    op1->getRight() = 0;
 			    delete op1;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			else {
@@ -1648,6 +1959,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			    delete op1;
 			    cr->getLeft() = nm2;
 			    cr->getRight() = tm12;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			break;}
@@ -1658,6 +1970,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			    cr->getRight() = tm12;
 			    op1->getRight() = 0;
 			    delete op1;
+			    cr = 0;
 			    ibis::qExpr::simplify(expr);
 			}
 			break;}
@@ -1666,8 +1979,16 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    }
 	}
 
-	if (expr->getType() == ibis::qExpr::COMPRANGE &&
-	    static_cast<ibis::compRange*>(expr)->isSimpleRange()) {
+	if (cr != 0 && cr != expr) {
+#ifdef DEBUG
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "replace a compRange with a qRange " << *expr;
+#endif
+	    expr = cr->simpleRange();
+	    delete cr;
+	}
+	else if (expr->getType() == ibis::qExpr::COMPRANGE &&
+		 static_cast<ibis::compRange*>(expr)->isSimpleRange()) {
 #ifdef DEBUG
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "replace a compRange with a qRange " << *expr;
