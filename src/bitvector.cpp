@@ -258,9 +258,10 @@ void ibis::bitvector::decompress() {
     array_t<word_t> tmp;
     tmp.resize(nbits/MAXBITS);
     if (nbits != tmp.size()*MAXBITS) {
-	LOGGER(ibis::gVerbose >= 1) << "Warning -- bitvector::decompress(nbits=" << nbits
-		  << ") failed to allocate a temp array of "
-		  << nbits/MAXBITS << "-word";
+	LOGGER(ibis::gVerbose >= 1)
+	    << "Warning -- bitvector::decompress(nbits=" << nbits
+	    << ") failed to allocate a temp array of "
+	    << nbits/MAXBITS << "-word";
 	throw ibis::bad_alloc("ibis::bitvector::decompress failed to "
 			      "allocate array to uncompressed bits");
     }
@@ -1451,9 +1452,10 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
 	else if (nset == 0) {
 	    word_t nb = do_cnt();
 	    if (nbits != nb && nbits > 0)
-		LOGGER(ibis::gVerbose >= 0) << "FastBit::bitvector::print detected nbits ("
-			  << nbits << ") mismatching return value of do_cnt ("
-			  << nb << "), use the return value of do_cnt";
+		LOGGER(ibis::gVerbose >= 0)
+		    << "FastBit::bitvector::print detected nbits ("
+		    << nbits << ") mismatching return value of do_cnt ("
+		    << nb << "), use the return value of do_cnt";
 	}
     }
     if (nbits == 0 && ! m_vec.empty())
@@ -2319,8 +2321,8 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 	    if (y.nWords == 0)
 		y.decode();
 	    if (x.nWords == 0 || y.nWords == 0) {
-		LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector::or_c2 serious "
-		    "problem here ...";
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error -- ibis::bitvector::or_c2 serious problem here ...";
 	    }
 	    if (x.isFill != 0) { // x points to a fill
 		// if both x and y point to fills, use the longer one
@@ -2585,9 +2587,9 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
-	    LOGGER(ibis::gVerbose >= 0) << "Operand 1 or or_d2 " << *this
-		      << "\nOperand 2 or or_d2 " << rhs
-		      << "\nResult of or_d2 " << res;
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
+		<< rhs << "\nResult of or_d2 " << res;
 	    throw "or_d2 internal error";
 	}
 
@@ -2596,9 +2598,9 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    LOGGER(ibis::gVerbose >= 0) << "Operand 1 or or_d2 " << *this
-		      << "\nOperand 2 or or_d2 " << rhs
-		      << "\nResult of or_d2 " << res;
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
+		<< rhs << "\nResult of or_d2 " << res;
 	    throw "or_d2 internal error";
 	}
 
@@ -2607,9 +2609,9 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
-	    LOGGER(ibis::gVerbose >= 0) << "Operand 1 or or_d2 " << *this
-		      << "\nOperand 2 or or_d2 " << rhs
-		      << "\nResult of or_d2 " << res;
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
+		<< rhs << "\nResult of or_d2 " << res;
 	    throw "or_d2 internal error";
 	}
     }
@@ -3666,7 +3668,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 			    b = c;
 			}
 #if defined(DEBUG)
-			lg.buffer() << "a = " << a << ", b = " << b
+			LOGGER(1) << "a = " << a << ", b = " << b
 				  << ", linear extrapolation = "
 				  << f - (f - f2) * ds / (ds - ds2)
 				  << std::endl;

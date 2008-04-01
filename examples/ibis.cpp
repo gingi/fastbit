@@ -399,6 +399,7 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 // print some helpful information
 static void print(const char* cmd, const ibis::partList& tlist) {
     if (cmd == 0 || *cmd == 0) return;
+    LOGGER(ibis::gVerbose >= 4) << "\nprint(" << cmd << ") -- ...";
 
     const char* names = cmd;
     if (strnicmp(cmd, "print ", 6) == 0)
@@ -550,7 +551,7 @@ static void parse_args(int argc, char** argv,
     std::vector<const char*> confs; // name of the configuration files
     std::vector<const char*> dirs;  // directories specified on command line
     std::vector<const char*> rdirs; // directories to be reordered
-    std::string printcmd; // collect all print options into one string
+    std::vector<const char*> printcmds; // printing commands
     const char* mesgfile = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
@@ -724,21 +725,15 @@ static void parse_args(int argc, char** argv,
 	    case 'P': // collect the print options
 		if (i+1 < argc) {
 		    if (argv[i+1][0] != '-') {
-			if (! printcmd.empty()) {
-			    printcmd += ", ";
-			    printcmd += argv[i+1];
-			}
-			else {
-			    printcmd = argv[i+1];
-			}
+			printcmds.push_back(argv[i+1]);
 			++ i;
 		    }
-		    else if (printcmd.empty()) {
-			printcmd = "parts";
+		    else if (printcmds.empty()) {
+			printcmds.push_back("parts");
 		    }
 		}
-		else  if (printcmd.empty()) { // at least print partition names
-		    printcmd = "parts";
+		else  if (printcmds.empty()) { // at least print partition names
+		    printcmds.push_back("parts");
 		}
 		break;
 	    case 'q':
@@ -857,7 +852,7 @@ static void parse_args(int argc, char** argv,
     }
     if (mode < 0) {
 	mode = (qlist.empty() && testing <= 0 && build_index <= 0 &&
-		alist.empty() && printcmd.empty() &&
+		alist.empty() && printcmds.empty() &&
 		rdirs.empty() && junkstring == 0 && keepstring == 0);
     }
     if (qlist.size() > 1U) {
@@ -962,7 +957,7 @@ static void parse_args(int argc, char** argv,
     }
 
     if (ibis::gVerbose > 1 &&
-	(testing > 1 || build_index > 0 || ! printcmd.empty())) {
+	(testing > 1 || build_index > 0 || ! printcmds.empty())) {
 	for (ibis::partList::const_iterator it = tlist.begin();
 	     it != tlist.end(); ++it) {
 	    bool recompute = (testing>5 && ibis::gVerbose>7);
@@ -982,9 +977,9 @@ static void parse_args(int argc, char** argv,
 	    }
 	}
     }
-    if (! printcmd.empty()) {
-	LOGGER(ibis::gVerbose >= 4) << "printcmd ='" << printcmd << "' --";
-	print(printcmd.c_str(), tlist);
+    for (std::vector<const char*>::const_iterator it = printcmds.begin();
+	 it != printcmds.end(); ++ it) {
+	print(*it, tlist);
     }
 } // parse_args
 

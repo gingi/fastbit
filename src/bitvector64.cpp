@@ -1256,22 +1256,24 @@ void ibis::bitvector64::read(const char * fn) {
     nbits = do_cnt();
     // some integrity check here
     if (nbits % MAXBITS) {
-	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::nbits(" << nbits
-		  << ") is expected to be multiples of "
-		  << MAXBITS << ", but it is not.";
+	LOGGER(ibis::gVerbose >= 0)
+	    << " Error *** ibis::bitvector64::nbits(" << nbits
+	    << ") is expected to be multiples of "
+	    << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
-	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::nset (" << nset
-		  << ") is expected to be not greater than "
-		  << nbits+active.nbits
-		  << ", but it is.";
+	LOGGER(ibis::gVerbose >= 0)
+	    << " Error *** ibis::bitvector64::nset (" << nset
+	    << ") is expected to be not greater than "
+	    << nbits+active.nbits << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
-	LOGGER(ibis::gVerbose >= 0) << " Error *** ibis::bitvector64::active::nbits ("
-		  << active.nbits << ") is expected to be less than "
-		  << MAXBITS << ", but it is not.";
+	LOGGER(ibis::gVerbose >= 0)
+	    << " Error *** ibis::bitvector64::active::nbits ("
+	    << active.nbits << ") is expected to be less than "
+	    << MAXBITS << ", but it is not.";
 	ierr ++;
     }
 #if defined(DEBUG) && DEBUG + 0 > 1

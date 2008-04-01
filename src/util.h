@@ -714,9 +714,9 @@ namespace ibis {
 	    logger& operator=(const logger&);
 	}; // logger
 
-	/// Print simply timing information.  It starts the clock in the
-	/// constructor, stops the clock in the destructor, and reports the
-	/// CPU time and elapsed time in between.
+	/// Print simply-formated timing information.  It starts the clock
+	/// in the constructor, stops the clock in the destructor, and
+	/// reports the CPU time and elapsed time in between.
 	class timer {
 	public:
 	    /// Constructor.  The caller must provide a message string.
@@ -728,7 +728,7 @@ namespace ibis {
 	    explicit timer(const char* msg, int lvl=1);
 	    /// Destructor.  It reports the time used since the constructor
 	    /// was called.  Use ibis::horometer directly if more control
-	    /// if the timing information is desired.
+	    /// on the timing information is desired.
 	    ~timer();
 
 	private:

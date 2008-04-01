@@ -226,12 +226,12 @@ public:
 
     /// Compute the actual minimum value by reading the data or examining
     /// the index.  It returns DBL_MAX in case of error.
-    double getActualMin() const;
+    virtual double getActualMin() const;
     /// Compute the actual maximum value by reading the data or examining
     /// the index.  It returns -DBL_MAX in case of error.
-    double getActualMax() const;
+    virtual double getActualMax() const;
     /// Compute the sum of all values by reading the data.
-    double getSum() const;
+    virtual double getSum() const;
     /// Compute the actual data distribution.  It will generate an index
     /// for the column if one is not already available.  The value in @c
     /// cts[i] is the number of values less than @c bds[i].  If there is no

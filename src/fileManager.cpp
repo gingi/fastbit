@@ -910,8 +910,10 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 			<< (tmp->isFileMap()?"mmap":"read") << tmp->size()
 			<< " bytes at a speed of " << rt2
 			<< " MB/s [" << rt1 << "]";
-	    if (ibis::gVerbose > 11)
+	    if (ibis::gVerbose > 11) {
+		lg.buffer() << "\n";
 		(void) tmp->printStatus(lg.buffer());
+	    }
 	}
 
 	*st = tmp; // pass tmp to the caller
@@ -1066,8 +1068,10 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 			<< (tmp->isFileMap()?"mmap":"read") << tmp->size()
 			<< " bytes at a speed of " << rt2
 			<< " MB/s [" << rt1 << "]";
-	    if (ibis::gVerbose > 11)
+	    if (ibis::gVerbose > 11) {
+		lg.buffer() << "\n";
 		(void) tmp->printStatus(lg.buffer());
+	    }
 	}
 
 	*st = tmp; // pass tmp to the caller
@@ -1219,8 +1223,10 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 			<< (st->isFileMap()?"mmap":"read") << st->size()
 			<< " bytes at a speed of " << rt2 << " MB/s ["
 			<< rt1 << "]";
-	    if (ibis::gVerbose > 11)
+	    if (ibis::gVerbose > 11) {
+		lg.buffer() << "\n";
 		(void) st->printStatus(lg.buffer());
+	    }
 	}
     }
     else if (ibis::gVerbose > -1) {
@@ -1374,8 +1380,10 @@ int ibis::fileManager::unload(size_t size) {
 		    ibis::util::logger lg(4);
 		    lg.buffer() << "ibis::fileManager::unload -- "
 			"unloading file \"" << (*it).first << "\"";
-		    if (ibis::gVerbose > 7)
+		    if (ibis::gVerbose > 7) {
+			lg.buffer() << "\n";
 			(*it).second->printStatus(lg.buffer());
+		    }
 		}
 
 		sum += tmp->size();
@@ -1413,9 +1421,11 @@ int ibis::fileManager::unload(size_t size) {
 	    lg.buffer() << "ibis::fileManager::unload unable to find " << size
 			<< " bytes of free space (totalBytes="
 			<< totalBytes << ", maxBytes=" << maxBytes
-			<< "), will wait...\n";
-	    if (ibis::gVerbose > 6)
+			<< "), will wait...";
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
 		printStatus(lg.buffer());
+	    }
 	}
 	int ierr = 0;
 	// has to wait for condition change
@@ -1483,9 +1493,11 @@ void ibis::fileManager::invokeCleaners() const {
 	ibis::util::logger lg(5);
 	lg.buffer() << "ibis::fileManager -- external cleaners "
 		    << "did not reduce the total bytes ("
-		    << ibis::fileManager::totalBytes << ")\n";
-	if (ibis::gVerbose > 10)
+		    << ibis::fileManager::totalBytes << ")";
+	if (ibis::gVerbose > 10) {
+	    lg.buffer() << "\n";
 	    printStatus(lg.buffer());
+	}
     }
 } // ibis::fileManager::invokeCleaners
 
@@ -1533,12 +1545,14 @@ ibis::fileManager::storage::storage(size_t n)
 				   m_begin);
     }
     else {
-	if (ibis::gVerbose > -1) {
+	if (ibis::gVerbose >= 0) {
 	    ibis::util::logger lg(0);
 	    lg.buffer() << "Warning -- storage: unable to malloc(" << n
-			<< ") bytes of storage\n";
-	    if (ibis::gVerbose > 1)
+			<< ") bytes of storage";
+	    if (ibis::gVerbose > 1) {
+		lg.buffer() << "\n";
 		printStatus(lg.buffer()); // dump the current list of files
+	    }
 	}
 	throw ibis::bad_alloc("unable to allocate new storage object");
     }
@@ -1604,7 +1618,7 @@ ibis::fileManager::storage::storage(const int fdes,
 	ibis::fileManager::instance().recordPages(begin, end);
     }
     else {
-	if (ibis::gVerbose > -1) {
+	if (ibis::gVerbose >= 0) {
 	    ibis::util::logger lg(0);
 	    lg.buffer() << "Warning -- ibis::fileManager::storage (fdes="
 			<< fdes << ") is unable to allocate " << nbytes
@@ -1643,10 +1657,12 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 				   nbytes, m_begin, begin);
     }
     else {
-	ibis::util::logger lg(0);
-	lg.buffer() << "Warning -- ibis::fileManager copy "
-	    "constructor is unable to allocate " << nbytes << "bytes\n";
-	printStatus(lg.buffer()); // dump the current list of files
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg(0);
+	    lg.buffer() << "Warning -- ibis::fileManager copy "
+		"constructor is unable to allocate " << nbytes << "bytes\n";
+	    printStatus(lg.buffer()); // dump the current list of files
+	}
 	throw ibis::bad_alloc("unable to copy of in-memory object");
     }
 } // ibis::fileManager::storage::storage
@@ -1681,10 +1697,12 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 	}
     }
     else {
-	ibis::util::logger lg(0);
-	lg.buffer() << "Warning -- ibis::fileManager copy constructor "
-	    "is unable to allocate " << nbytes << " bytes\n";
-	printStatus(lg.buffer()); // dump the current list of files
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg(0);
+	    lg.buffer() << "Warning -- ibis::fileManager copy constructor "
+		"is unable to allocate " << nbytes << " bytes\n";
+	    printStatus(lg.buffer()); // dump the current list of files
+	}
 	throw ibis::bad_alloc("unable to copy a storage object");
     }
 } // ibis::fileManager::storage::storage
@@ -1729,10 +1747,12 @@ void ibis::fileManager::storage::copy
 				   rhs.m_begin);
     }
     else {
-	ibis::util::logger lg(0);
-	lg.buffer() << "Warning -- ibis::fileManager::storage::copy() "
-	    "unable to allocate " << nbytes << " bytes\n";
-	printStatus(lg.buffer()); // dump the current list of files
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg(0);
+	    lg.buffer() << "Warning -- ibis::fileManager::storage::copy() "
+		"unable to allocate " << nbytes << " bytes\n";
+	    printStatus(lg.buffer()); // dump the current list of files
+	}
 	throw ibis::bad_alloc("unable to allocate memory in copy");
     }
 } // ibis::fileManager::storage::copy
@@ -1791,12 +1811,14 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    }
 	    else {
 		m_begin = 0; m_end = 0;
-		ibis::util::logger lg(0);
-		lg.buffer()
-		    << "Warning -- ibis::fileManager::"
-		    "storage::enlarge unable to allocate " << nelm
-		    << " bytes\n";
-		printStatus(lg.buffer()); // dump the current list of files
+		if (ibis::gVerbose >= 0) {
+		    ibis::util::logger lg(0);
+		    lg.buffer()
+			<< "Warning -- ibis::fileManager::"
+			"storage::enlarge unable to allocate " << nelm
+			<< " bytes\n";
+		    printStatus(lg.buffer()); // dump the current list of files
+		}
 		throw ibis::bad_alloc("failed allocation in enlarge");
 	    }
 	}
@@ -1862,11 +1884,14 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    else {
 		m_end = 0;
 		m_begin = 0;
-		ibis::util::logger lg(0);
-		lg.buffer()
-		    << "Warning -- ibis::fileManager::storage::enlarge "
-		    "unable to allocate " << n << " bytes\n";
-		printStatus(lg.buffer()); // dump the current list of files
+		if (ibis::gVerbose >= 0) {
+		    ibis::util::logger lg(0);
+		    lg.buffer()
+			<< "Warning -- ibis::fileManager::storage::enlarge "
+			"unable to allocate " << n << " bytes\n";
+		    printStatus(lg.buffer()); // dump the current list of
+					      // files
+		}
 		throw ibis::bad_alloc("failed allocation in enlarge");
 	    }
 	}
@@ -1874,10 +1899,12 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    m_end = 0;
 	    m_begin = 0;
 	    ibis::fileManager::decreaseUse(oldsize, "storage::enlarge");
-	    ibis::util::logger lg(0);
-	    lg.buffer() << "Warning -- ibis::fileManager::storage::enlarge "
-		"unable to allocate " << n << " bytes\n";
-	    printStatus(lg.buffer()); // dump the current list of files
+	    if (ibis::gVerbose >= 0) {
+		ibis::util::logger lg(0);
+		lg.buffer() << "Warning -- ibis::fileManager::storage::enlarge "
+		    "unable to allocate " << n << " bytes\n";
+		printStatus(lg.buffer()); // dump the current list of files
+	    }
 	    throw ibis::bad_alloc("failed realloc in enlarge");
 	}
     }
@@ -1886,7 +1913,7 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 // actually freeing the storage allocated
 void ibis::fileManager::storage::clear() {
     if (ibis::gVerbose > 16) {
-	ibis::util::logger lg(16);
+	ibis::util::logger lg(1);
 	if (name)
 	    lg.buffer() << "fileManager::storage::clear(" << name
 			<< ", " << static_cast<void*>(m_begin) << "):\t";
@@ -1955,11 +1982,13 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	m_begin = static_cast<char*>(malloc(nbytes));
 	if (m_begin == 0){
 	    m_end = m_begin;
-	    ibis::util::logger lg(0);
-	    lg.buffer() << "Warning -- ibis::fileManager::storage (fdes="
-			<< fdes << ") is unable to allocate " << nbytes
-			<< " bytes\n";
-	    printStatus(lg.buffer()); // dump the current list of files
+	    {
+		ibis::util::logger lg(0);
+		lg.buffer() << "Warning -- ibis::fileManager::storage (fdes="
+			    << fdes << ") is unable to allocate " << nbytes
+			    << " bytes\n";
+		printStatus(lg.buffer()); // dump the current list of files
+	    }
 	    throw ibis::bad_alloc("failed to allocate space for reading");
 	}
 	else if (ibis::gVerbose > 16) {
@@ -2100,7 +2129,7 @@ void ibis::fileManager::roFile::endUse() {
 // actually freeing the storage allocated
 void ibis::fileManager::roFile::clear() {
     if (ibis::gVerbose > 16) {
-	ibis::util::logger lg(16);
+	ibis::util::logger lg(0);
 	if (name)
 	    lg.buffer() << "fileManager::roFile::clear(" << name
 			<< ", " << static_cast<void*>(m_begin) << "):\t";

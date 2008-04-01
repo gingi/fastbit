@@ -4500,9 +4500,10 @@ void ibis::part::computeMinMax() {
 
     writeTDC(nEvents, columns, activeDir);
     Stat_T tmp;
-    if (backupDir != 0 && *backupDir != 0 && UnixStat(backupDir, &tmp) == 0) {
-	if ((tmp.st_mode&S_IFDIR) == S_IFDIR) {
-	    writeTDC(nEvents, columns, backupDir);
+    if (backupDir != 0 && *backupDir != 0) {
+	if (UnixStat(backupDir, &tmp) == 0) {
+	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
+		writeTDC(nEvents, columns, backupDir);
 	}
     }
 } // ibis::part::computeMinMax
@@ -8344,7 +8345,8 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
-	oss << cname << " between " << begin << " and " << end;
+	oss << cname << " between " << std::setprecision(18) << begin
+	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
 	ierr = qq.evaluate();
@@ -8546,9 +8548,10 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
-	oss << cname1 << " between " << begin1 << " and " << end1
-	    << " AND " << cname2 << " between " << begin2 << " and "
-	    << end2;
+	oss << cname1 << " between " << std::setprecision(18) << begin1
+	    << " and " << std::setprecision(18) << end1 << " AND " << cname2
+	    << std::setprecision(18) << " between " << std::setprecision(18)
+	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
 	ierr = qq.evaluate();
@@ -9016,11 +9019,12 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
-	oss << cname1 << " between " << begin1 << " and " << end1
-	    << " AND " << cname2 << " between " << begin2 << " and "
-	    << end2
-	    << " AND " << cname3 << " between " << begin3 << " and "
-	    << end3;
+	oss << cname1 << " between " << std::setprecision(18) << begin1
+	    << " and " << std::setprecision(18) << end1
+	    << " AND " << cname2 << " between " << std::setprecision(18)
+	    << begin2 << " and " << std::setprecision(18) << end2
+	    << " AND " << cname3 << " between " << std::setprecision(18)
+	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
 	ierr = qq.evaluate();
 	if (ierr < 0)
@@ -11500,15 +11504,23 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	stride1 = (end1 - begin1) / nb1;
 	stride1 = ibis::util::compactValue(stride1, stride1*(1.0+0.5/nb1));
     }
-    else {
+    else if (end1 > begin1 + nb1*1.25) {
 	stride1 = (1.0 + end1 - begin1) / nb1;
+    }
+    else {
+	nb1 = static_cast<uint32_t>(1 + end1 - begin1);
+	stride1 = 1.0;
     }
     if (col2.isFloat()) {
 	stride2 = (end2 - begin2) / nb2;
 	stride2 = ibis::util::compactValue(stride2, stride2*(1.0+0.5/nb2));
     }
-    else {
+    else if (end2 > begin2 + nb2*1.25) {
 	stride2 = (1.0 + end2 - begin2) / nb2;
+    }
+    else {
+	nb2 = static_cast<uint32_t>(1.0 + end2 - begin2);
+	stride2 = 1.0;
     }
     const size_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
@@ -11518,7 +11530,7 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	    << "Warning -- ibis::part[" << m_name
 	    << "]::get2DDistributionD - nbins (" << nbins
 	    << ") is expected to be the product of nb1 (" << nb1
-	    << ") and nb2 (" << nb2 << "), but is now";
+	    << ") and nb2 (" << nb2 << "), but is now " << nbins;
 	return -4L;
     }
 

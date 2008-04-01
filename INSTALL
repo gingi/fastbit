@@ -134,6 +134,18 @@ Known Issues
     happen.  If you do encounter it, please send a stack trace to
     <fastbit-users@hpcrdm.lbl.gov> to help use diagnose the problem.
 
+(6) Certain machines with large memory actually limits the amount of
+    memory each process may use. In such cases, the default cache size
+    of half of the physical memory size may be over the limit of the
+    memory allowed by the OS.  It is important to coordinate these two
+    limits.  More specifically, the memory used by FastBit memory cache
+    should be less than the OS limit, otherwise, FastBit program may
+    crash for due to memory allocation problem.  For example, on
+    jacquard.nersc.gov, the maximum virtual memory allowed per process
+    is 2GB, but there are about 6GB of physical memory.  In this case,
+    add an RC file with "fileManager.maxBytes=2GB" is needed to reduce
+    the memory allowed to FastBit.
+
 ----------
 Trouble Shooting
 

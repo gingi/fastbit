@@ -20,7 +20,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../src;C:\Tools\pthread\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_USRDLL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;CXX_USE_DLL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../src;C:\Tools\pthread\include"
-				PreprocessorDefinitions="WIN32;_CONSOLE;_USRDLL"
+				PreprocessorDefinitions="WIN32;_CONSOLE;CXX_USE_DLL"
 				RuntimeLibrary="4"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"

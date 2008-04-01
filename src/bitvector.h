@@ -1151,7 +1151,9 @@ inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
 #if defined(DEBUG)
 	if (ind >= nbits + active.nbits ||
 	    active.val >= (1U << active.nbits)) {
-	    LOGGER(ibis::gVerbose >= 0) << "Bad active word";
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "FastBit::bitvector::turnOnRawBit(" << ind
+		<< ") found a bad active word";
 	}
 #endif
     }

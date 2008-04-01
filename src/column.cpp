@@ -3989,6 +3989,18 @@ long ibis::column::selectValues(const bitvector& mask,
 	logWarning("selectValues", "incompatible types");
 	return -1;
     }
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+    if (dfn == 0) return -3;
+#ifdef DEBUG
+    logMessage("selectValues", "selecting %lu out of %lu values from %s",
+	       tot, static_cast<long unsigned>
+	       (thePart != 0 ? thePart->nRows() : 0), dfn);
+#endif
+    if (tot == mask.size()) { // read all values
+	ierr = ibis::fileManager::instance().getFile(dfn, vals);
+	return ierr;
+    }
 
     try {
 	vals.reserve(tot);
@@ -4001,14 +4013,6 @@ long ibis::column::selectValues(const bitvector& mask,
 	    << "]";
 	return -2;
     }
-    std::string sname;
-    const char *dfn = dataFileName(sname);
-    if (dfn == 0) return -3;
-#ifdef DEBUG
-    logMessage("selectValues", "selecting %lu out of %lu values from %s",
-	       tot, static_cast<long unsigned>
-	       (thePart != 0 ? thePart->nRows() : 0), dfn);
-#endif
     ibis::fileManager::storage *raw = 0;
     // mask.size()*sizeof(T)/pagesize() -- number of pages
     // mask.bytes()/sizeof(uint32_t) -- number of words (i.e. possible
@@ -6632,7 +6636,9 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
     LOGGER(ibis::gVerbose >= 6)
-	<< "ibis::column::actualMinMax -- vals.size() = "
+	<< "ibis::column["
+	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+	<< "]::actualMinMax -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt()
 	<< ", min = " << min << ", max = " << max;
 } // ibis::column::actualMinMax
@@ -6663,7 +6669,9 @@ T ibis::column::computeMin(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(5);
-	lg.buffer() << "ibis::column::computeMin -- vals.size() = "
+	lg.buffer() << "ibis::column["
+		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+		    << "]::computeMin -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", min = ";
 	if (strstr(typeid(T).name(), "char") != 0)
@@ -6700,7 +6708,9 @@ T ibis::column::computeMax(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(5);
-	lg.buffer() << "ibis::column::computeMax -- vals.size() = "
+	lg.buffer() << "ibis::column["
+		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+		    << "]::computeMax -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", max = ";
 	if (strstr(typeid(T).name(), "char") != 0)
@@ -6736,7 +6746,9 @@ double ibis::column::computeSum(const array_t<T>& vals,
     }
 
     LOGGER(ibis::gVerbose >= 6)
-	<< "ibis::column::computeSum -- vals.size() = "
+	<< "ibis::column["
+	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+	<< "]::computeSum -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt() << ", sum = " << res;
     return res;
 } // ibis::column::computeSum

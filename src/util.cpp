@@ -48,7 +48,7 @@ const short unsigned ibis::util::charIndex[] = {
 };
 
 // file scope variables
-static std::string ibis_util_logfilename;
+static std::string ibis_util_logfilename("");
 static FILE* ibis_util_logfilepointer = 0;
 
 #if defined(_MSC_VER) && defined(_WIN32)
@@ -940,7 +940,7 @@ FILE* ibis::util::getLogFile() {
     const char* fname = (ibis_util_logfilename.empty() ? 0 :
 			 ibis_util_logfilename.c_str());
     int ierr = 0;
-    if (fname != 0) {
+    if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
 	    ierr = fprintf(fptr,
@@ -955,7 +955,7 @@ FILE* ibis::util::getLogFile() {
     }
 
     fname = getenv("FASTBITLOGFILE");
-    if (fname != 0) {
+    if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
 	    ierr = fprintf(fptr,
@@ -970,9 +970,9 @@ FILE* ibis::util::getLogFile() {
     }
 
     fname = ibis::gParameters()["logfile"];
-    if (fname == 0)
+    if (fname == 0 || *fname == 0)
 	fname = ibis::gParameters()["mesgfile"];
-    if (fname != 0) {
+    if (fname != 0 && *fname == 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
 	    ierr = fprintf(fptr,
@@ -1004,7 +1004,7 @@ int ibis::util::setLogFileName(const char* filename) {
 	if (ibis_util_logfilename.empty())
 	    return 0;
 
-	if (ibis_util_logfilepointer != 0)
+	if (ibis_util_logfilepointer != 0 && ! ibis_util_logfilename.empty())
 	    fclose(ibis_util_logfilepointer);
 	ibis_util_logfilepointer = stdout;
 	ibis_util_logfilename.erase();

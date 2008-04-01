@@ -328,12 +328,12 @@ public:
     void write(const char* file) const;
 
     inline void swap(storage& rhs) throw ();
-    //      // compares storage objects according to starting addresses
-    //      struct less : std::binary_function< storage*, storage*, bool > {
-    //  	bool operator()(const storage* x, const storage* y) const {
-    //  	    return (x->begin() < y->begin());
-    //  	}
-    //      };
+//      // compares storage objects according to starting addresses
+//      struct less : std::binary_function< storage*, storage*, bool > {
+//  	bool operator()(const storage* x, const storage* y) const {
+//  	    return (x->begin() < y->begin());
+//  	}
+//      };
 
 protected:
     char* name;		// name of the file, 0 if no file is involved
@@ -393,12 +393,12 @@ public:
 	return sc;
     }
 
-    //      // compares storage objects according to file names
-    //      struct less : std::binary_function< roFile*, roFile*, bool > {
-    //  	bool operator()(const roFile* x, const roFile* y) const {
-    //  	    return strcmp(x->filename(), y->filename()) < 0;
-    //  	}
-    //      };
+//      // compares storage objects according to file names
+//      struct less : std::binary_function< roFile*, roFile*, bool > {
+//  	bool operator()(const roFile* x, const roFile* y) const {
+//  	    return strcmp(x->filename(), y->filename()) < 0;
+//  	}
+//      };
 protected:
 
     // Read the whole file into memory.

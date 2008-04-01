@@ -29,6 +29,7 @@ void usage(const char *name) {
 	    "%s will print the number of hits.\n"
 	    "If any variable is to be printed, it must be specified as "
             "a <name type> pair, where only i, u, f, and d are recognized.\n\n"
+	    "NOTE: option -l is only available of this program is compiled with TCAPI_USE_LOGFILE\n"
 	    "Example:\n"
 	    "%s dir 'c1 = 15 and c2 > 23' c1 i c3 u\n\n",
             name, name, name, name);
@@ -123,6 +124,7 @@ int main(int argc, char **argv) {
 	    usage(*argv);
 	    vselect += 1;
 	}
+#if defined(TCAPI_USE_LOGFILE)
 	else if (argv[vselect][1] == 'l' || argv[vselect][1] == 'L') {
 	    if (vselect+1 < argc) {
 		logfile = argv[vselect+1];
@@ -132,6 +134,7 @@ int main(int argc, char **argv) {
 		vselect += 1;
 	    }
 	}
+#endif
 	else if (argv[vselect][1] == 'm' || argv[vselect][1] == 'M' ||
 		 argv[vselect][1] == 'v' || argv[vselect][1] == 'V') {
 	    if (vselect+1 < argc &&
@@ -155,7 +158,12 @@ int main(int argc, char **argv) {
     fastbit_init((const char*)conffile);
     fastbit_set_verbose_level(ierr);
     fastbit_set_logfile(logfile);
+#if defined(TCAPI_USE_LOGFILE)
     output = fastbit_get_logfilepointer();
+    printf("%s: output=0x%8.8x, stdout=0x%8.8x\n", *argv, output, stdout);
+#else
+    output = stdout;
+#endif
     if (argc <= vselect) {
 	buildin(*argv, output);
 	return -1;

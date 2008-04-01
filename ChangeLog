@@ -1,3 +1,27 @@
+2008-03-31 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: add new lines between some consecutive
+	printing statements
+	* examples/ibis.cpp: treat multiple printing options specified on
+	command line independently, previously they are combined into one
+	operation
+	* src/part.cpp: in get2DDistributionD, refine the computation of
+	stride1 and stride2 for integer values
+
+2008-03-30 John Wu <John.Wu at ACM.org>
+	* src/index.cpp:3700 add test to ensure avg is not assigned 0
+	becasuse it is used in divisions later
+	* src/util.cpp:973 change && to || in the conditions
+
+2008-03-26 John Wu <John.Wu at ACM.org>
+	* src/column.h: add keyword virtual to ibis::column::getActual???
+	to allow FastQuery to override them
+	* src/part.cpp: add setprecision(18) to the queries conditions
+	genereated by various getxDDistribution functions.  A problem
+	first observed by Prabhat.
+	* src/index.cpp: change decisions to use the priority queue to
+	put the number of bitmaps through the function square instead of
+	log.  This improves the performance in a project with Prabhat.
+
 2008-03-24 John Wu <John.Wu at ACM.org>
 	* src/util.h: add ibis::util::timer class to print out timing
 	information in a fixed format, try the first case in
@@ -13,7 +37,8 @@
 	size 1
 
 2008-03-22 John Wu <John.Wu at ACM.org>
-	* src/qExpr.cpp: add more cases to ibis::qExpr::simplify
+	* src/qExpr.cpp: add more cases to ibis::qExpr::simplify, to
+	enable merging of simple range conditions right next to each other
 
 2008-03-21 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: update the use of LOGGER macro to match the
