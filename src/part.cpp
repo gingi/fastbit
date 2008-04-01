@@ -11530,7 +11530,7 @@ long ibis::part::get2DDistributionD(const ibis::column& col1,
 	    << "Warning -- ibis::part[" << m_name
 	    << "]::get2DDistributionD - nbins (" << nbins
 	    << ") is expected to be the product of nb1 (" << nb1
-	    << ") and nb2 (" << nb2 << "), but is now " << nbins;
+	    << ") and nb2 (" << nb2 << "), but is actually " << nbins;
 	return -4L;
     }
 

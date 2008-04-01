@@ -1,3 +1,4 @@
+Tue Apr  1 08:11:09 PDT 2008
 Version b0.9.0
 -- fix bugs involving start and end values of getxDDistribution, first
    observed by Prabhat
@@ -7,6 +8,7 @@ Version b0.9.0
 -- fix bug identified while computing histogram with very small number
    of distinct values
 -- clean up the printing statements in fileManager.cpp
+-- allow multiple print statements to examples/ibis.cpp
 
 Mon Mar 24 11:15:41 PDT 2008
 Version b0.8.9
