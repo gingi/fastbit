@@ -135,7 +135,7 @@ Known Issues
     <fastbit-users@hpcrdm.lbl.gov> to help use diagnose the problem.
 
 (6) Certain machines with large memory actually limits the amount of
-    memory each process may use. In such cases, the default cache size
+    memory each process may use.  In such cases, the default cache size
     of half of the physical memory size may be over the limit of the
     memory allowed by the OS.  It is important to coordinate these two
     limits.  More specifically, the memory used by FastBit memory cache
@@ -145,6 +145,14 @@ Known Issues
     is 2GB, but there are about 6GB of physical memory.  In this case,
     add an RC file with "fileManager.maxBytes=2GB" is needed to reduce
     the memory allowed to FastBit.
+
+(7) Certain linux clusters do not support shared libraries on compute
+    nodes, even though shared libraries are supported on the front end.
+    In such a case, the configure script will detect shared libraries as
+    supported.  Use option --disable-shared to prevent it from trying to
+    build the shared library.  (For NERSC users, franklin does not
+    support shared libraries on the compute nodes.)
+
 
 ----------
 Trouble Shooting

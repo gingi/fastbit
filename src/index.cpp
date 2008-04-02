@@ -3354,9 +3354,9 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
     const uint32_t ncnt = cnt.size();
     uint32_t i, j, avg=0, top=0;
     if (nb*3/2 >= ncnt) {
+	bdry.resize(ncnt);
 	for (i=0; i<ncnt; ++i)
 	    bdry[i] = i + 1;
-	bdry.resize(ncnt);
 	return;
     }
 

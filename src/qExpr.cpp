@@ -1364,7 +1364,8 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    delete expr;
 	    expr = tmp;
 	}
-	if (expr->left->type == ibis::qExpr::RANGE &&
+	if (expr->left != 0 && expr->right != 0 &&
+	    expr->left->type == ibis::qExpr::RANGE &&
 	    expr->right->type == ibis::qExpr::RANGE &&
 	    stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
 		    static_cast<ibis::qRange*>(expr->right)->colName()) == 0) {
