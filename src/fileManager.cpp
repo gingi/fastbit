@@ -331,25 +331,26 @@ void ibis::fileManager::printStatus(std::ostream& out) const {
     ibis::util::getLocalTime(tstr);
 
     //readLock lck("printStatus"); // acquiring lock here may cause dead lock
-    out << "\n--- " << tstr << "\nThe file manager currently has "
-	<< mapped.size() << " files mapped. (max = " << maxOpenFiles
+    out << "\n--- " << tstr << "\nThe number of memory mapped files is "
+	<< mapped.size() << ". (max = " << maxOpenFiles
 	<< ")\n";
     for (fileList::const_iterator it0 = mapped.begin();
 	 it0 != mapped.end(); ++it0) {
 	mtot += (*it0).second->printStatus(out);
     }
-    out << "\nThe total size of the mapped files is " << mtot << std::endl;
-    out << "\n\nThe file manager currently has " << incore.size()
-	<< " files in memory.\n";
+    out << "\nThe total bytes of all mapped files is " << mtot << std::endl;
+    out << "\n\nThe number of files read into memory is " << incore.size()
+	<< ".\n";
     for (fileList::const_iterator it1 = incore.begin();
 	 it1 != incore.end(); ++it1) {
 	itot += (*it1).second->printStatus(out);
     }
-    out << "\nThe total size of the incore files is " << itot << std::endl;
-    out << "\nThe total size of the named storages is " << itot + mtot
+    out << "\nThe total bytes of all files read into memory is " << itot
+	<< std::endl;
+    out << "\nThe total size of all named storages is " << itot + mtot
 	<< "\nThe total size of all named and unnamed storages is "
 	<< totalBytes
-	<< "\nThe stated maximum size allowed is " << maxBytes
+	<< "\nThe prescribed maximum size is " << maxBytes
 	<< "\nNumber of pages accessed (recorded so far) is "
 	<< page_count << " (page size = " << pagesize << ")\n"
 	<< std::endl;

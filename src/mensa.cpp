@@ -105,12 +105,13 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
 } // constructor with two directories as arguments
 
 void ibis::mensa::clear() {
-    LOGGER(ibis::gVerbose >= 3) << "ibis::mensa::clear -- clearing the existing content of "
-	      << parts.size() << " partition"
-	      << (parts.size()>1 ? "s" : "") << " with "
-	      << naty.size() << " column"
-	      << (naty.size()>1 ? "s" : "") << " and "
-	      << nrows << " row" << (nrows>1 ? "s" : "");
+    LOGGER(ibis::gVerbose >= 3)
+	<< "ibis::mensa::clear -- clearing the existing content of "
+	<< parts.size() << " partition"
+	<< (parts.size()>1 ? "s" : "") << " with "
+	<< naty.size() << " column"
+	<< (naty.size()>1 ? "s" : "") << " and "
+	<< nrows << " row" << (nrows>1 ? "s" : "");
 
     nrows = 0;
     naty.clear();
@@ -199,9 +200,9 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 		delete ind;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 2) << "ibis::mensa::buildIndex(" << colname << ", "
-			  << (option != 0 ? option : col->indexSpec())
-			  << ") failed";
+		LOGGER(ibis::gVerbose >= 2)
+		    << "ibis::mensa::buildIndex(" << colname << ", "
+		    << (option != 0 ? option : col->indexSpec()) << ") failed";
 	    }
 	}
     }
@@ -386,9 +387,10 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 			addStrings(buff[i], *tmp, nh);
 		    break;}
 		default: {
-		    LOGGER(ibis::gVerbose >= 2) << "ibis::mensa::select is not able to "
+		    LOGGER(ibis::gVerbose >= 2)
+			<< "ibis::mensa::select is not able to "
 			"process column " << nms[i] << " (type "
-			      << ibis::TYPESTRING[(int)tls[i]] << ")";
+			<< ibis::TYPESTRING[(int)tls[i]] << ")";
 		    break;}
 		}
 	    }

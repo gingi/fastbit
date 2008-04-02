@@ -874,13 +874,14 @@ const char* ibis::util::userName() {
     ibis::util::mutexLock lock(&ibis::util::envLock, "(::()::)");
 
     if (uid.empty()) {
-#if defined(L_cuserid) && defined(__USE_XOPEN)
-	char buf[L_cuserid+1];
-	(void) cuserid(buf);
-	if (*buf)
+#if defined(_XOPEN_REALTIME)
+	char buf[64];
+	if (getlogin_r(buf, 64) == 0) {
 	    uid = buf;
-	else
-	    uid = "(::()::)"; // a robot emoticon
+	}
+	else {
+	    uid = getlogin();
+	}
 #elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__)
 	uid = getlogin();
 #elif defined(_WIN32)
@@ -888,11 +889,14 @@ const char* ibis::util::userName() {
 	char buf[64];
 	if (GetUserName(buf, &len))
 	    uid = buf;
-	else
-	    uid = "(::()::)";
-#else
-	uid = "(::()::)";
+#elif defined(L_cuserid) && defined(__USE_XOPEN)
+	char buf[L_cuserid+1];
+	(void) cuserid(buf);
+	if (*buf)
+	    uid = buf;
 #endif
+	if (uid.empty())
+	    uid = "(::()::)";
     }
     return uid.c_str();
 } // ibis::util::userName

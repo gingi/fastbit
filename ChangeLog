@@ -1,3 +1,11 @@
+2008-04-01 John Wu <John.Wu at ACM.org>
+	* src/util.cpp: change userName to use getlogin_r as the primary
+	method
+	* src/category.cpp: change the starting positions of strings from
+	type long to type int64_t, make it possible to remove explicit
+	instantiation of array_t<long>, which may conflict with other
+	explicit instantiations
+
 2008-03-31 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: add new lines between some consecutive
 	printing statements

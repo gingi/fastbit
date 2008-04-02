@@ -26,7 +26,8 @@ array_t<T>::array_t()
 	actual->beginUse();
     }
     else {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for an empty array";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T> failed to allocate memory for an empty array";
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -40,8 +41,9 @@ array_t<T>::array_t(uint32_t n)
 	actual->beginUse();
     }
     else {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for an array with "
-		  << n << " element" << (n > 1 ? "s" : "");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T> failed to allocate memory for an array with "
+	    << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -58,8 +60,9 @@ array_t<T>::array_t(uint32_t n, const T& val)
 	}
     }
     else {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T> failed to allocate memory for copying " << n
-		  << " element" << (n > 1 ? "s" : "");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T> failed to allocate memory for copying " << n
+	    << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -1016,8 +1019,9 @@ array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
 
     if (n <= 0) { // nothing to do
 #if defined(DEBUG) && DEBUG > 2
-	LOGGER(ibis::gVerbose >= 0) << "array_t::insert() trying to insert " << n
-			       << " copies of " << val;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t::insert() trying to insert " << n << " copies of "
+	    << val;
 #endif
     }
     else if (m_end+n <= (T*)actual->end()) { // there is space to grow
@@ -1177,9 +1181,9 @@ void array_t<T>::write(const char* file) const {
     off_t n, i;
     FILE *out = fopen(file, "wb");
     if (out == 0) {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() is unable open file \""
-		  << file << "\" ... "
-		  << (errno ? strerror(errno) : "no free stdio stream");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T>::write() is unable open file \"" << file << "\" ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
 
@@ -1187,10 +1191,10 @@ void array_t<T>::write(const char* file) const {
     i = fwrite(reinterpret_cast<void*>(m_begin), sizeof(T), n, out);
     fclose(out); // close the file
     if (i != n) {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() expects to write " << n << ' '
-		  << sizeof(T) << "-byte element" << (n>1?"s":"")
-		  << " to \"" << file << "\", but actually wrote "
-		  << i;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T>::write() expects to write " << n << ' '
+	    << sizeof(T) << "-byte element" << (n>1?"s":"")
+	    << " to \"" << file << "\", but actually wrote " << i;
     }
 } // void array_t<T>::write
 
@@ -1203,9 +1207,10 @@ void array_t<T>::write(FILE* fptr) const {
     n = m_end - m_begin;
     i = fwrite(reinterpret_cast<void*>(m_begin), sizeof(T), n, fptr);
     if (i != n) {
-	LOGGER(ibis::gVerbose >= 0) << "array_t<T>::write() expects to write " << n << ' '
-		  << sizeof(T) << "-byte element" << (n>1?"s":"")
-		  << ", but actually wrote " << i;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "array_t<T>::write() expects to write " << n << ' '
+	    << sizeof(T) << "-byte element" << (n>1?"s":"")
+	    << ", but actually wrote " << i;
     }
 } // array_t<T>::write
 
@@ -1279,9 +1284,6 @@ void ibis::util::sort(array_t<T1>& arr1, array_t<T2>& arr2) {
 } // ibis::util::sort
 
 // explicit instantiation required and have to appear after the definitions
-#if !defined(__CYGWIN__) && !defined(__MINGW32__) && !((defined(__ia64__) || defined(__x86_64__)) && defined(__GNUC__))
-template class FASTBIT_CXX_DLLSPEC array_t<long>;
-#endif
 template class FASTBIT_CXX_DLLSPEC array_t<char>;
 template class FASTBIT_CXX_DLLSPEC array_t<signed char>;
 template class FASTBIT_CXX_DLLSPEC array_t<unsigned char>;

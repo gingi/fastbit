@@ -353,12 +353,13 @@ void ibis::category::fillIndex(const char *dir) {
 		for (unsigned i = 0; i < nints; ++ i)
 		    cnt += (ints[i] == 0);
 		if (cnt + thePart->nRows() == nints) {
-		    LOGGER(ibis::gVerbose >= 2) << "ibis::category["
-			      << (thePart != 0 ? thePart->name() : "")
-			      << "." << name() << "]::fillIndex -- found "
-			      << nints << " strings while expecting "
-			      << thePart->nRows() << "; remove "
-			      << cnt << " null strings";
+		    LOGGER(ibis::gVerbose >= 2)
+			<< "ibis::category["
+			<< (thePart != 0 ? thePart->name() : "")
+			<< "." << name() << "]::fillIndex -- found "
+			<< nints << " strings while expecting "
+			<< thePart->nRows() << "; remove "
+			<< cnt << " null strings";
 
 		    cnt = 0;
 		    for (unsigned i = 0; i < nints; ++ i) {
@@ -1036,7 +1037,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     }
 
     long ierr = fseek(fdata, 0, SEEK_END);
-    long dfbytes = ftell(fdata);
+    int64_t dfbytes = ftell(fdata);
     if (dfbytes <= 0) { // empty data file
 	fclose(fsp);
 	fclose(fdata);
@@ -1050,16 +1051,16 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	buf = mybuf.address();
     }
 
-    long pos = 0;
+    int64_t pos = 0;
     uint32_t nold = 0;
     ierr = fseek(fsp, 0, SEEK_END);
     ierr = ftell(fsp);
-    if (ierr > (long)sizeof(long)) // .sp file contains at least two integers
-	ierr = fseek(fsp, -static_cast<long>(sizeof(long)), SEEK_END);
+    if (ierr > (long)sizeof(uint64_t)) // .sp file contains at least two integers
+	ierr = fseek(fsp, -static_cast<long>(sizeof(int64_t)), SEEK_END);
     else
 	ierr = -1;
     if (ierr == 0) { // try to read the last word in .sp file
-	if (fread(&pos, sizeof(long), 1, fsp) != 1) {
+	if (fread(&pos, sizeof(int64_t), 1, fsp) != 1) {
 	    if (ibis::gVerbose > -1)
 		logWarning("startPositions", "unable to read the last "
 			   "integer in file \"%s\"", spfile.c_str());
@@ -1068,7 +1069,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    return;
 	}
 	if (pos > 0 && pos <= dfbytes) {// within the valid range
-	    nold = ftell(fsp) / sizeof(long) - 1;
+	    nold = ftell(fsp) / sizeof(int64_t) - 1;
 	    if (nold > thePart->nRows()) { // start from beginning
 		pos = 0;
 		nold = 0;
@@ -1083,15 +1084,15 @@ void ibis::text::startPositions(const char *dir, char *buf,
     }
 
     if (nold > 0) { // ready to overwrite the last integer
-	ierr = fseek(fsp, nold*sizeof(long), SEEK_SET);
+	ierr = fseek(fsp, nold*sizeof(int64_t), SEEK_SET);
     }
     else {
 	rewind(fsp);
 	pos = 0;
     }
 
-    long last = pos;
-    long offset = 0;
+    int64_t last = pos;
+    int64_t offset = 0;
     uint32_t nnew = 0;
     ierr = fflush(fsp); // get ready for writing
     ierr = fseek(fdata, pos, SEEK_SET);
@@ -1114,7 +1115,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    }
 	}
 	offset = pos - last;
-	if (static_cast<uint32_t>(offset) < nbuf) {
+	if (static_cast<uint64_t>(offset) < nbuf) {
 	    // copy the string without a terminator
 	    const int tmp = nbuf - offset;
 	    for (int i = 0; i < offset; ++ i)
@@ -1133,13 +1134,13 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	pos = ftell(fdata);
 	ierr = fflush(fdata);
 	ierr = fwrite(&zero, 1, 1, fdata);
-	long *tmp = (long*) buf;
-	long ntmp = nbuf / sizeof(long);
-	for (long i = 0; i < ntmp; ++ i)
+	int64_t *tmp = (int64_t*) buf;
+	uint32_t ntmp = nbuf / sizeof(int64_t);
+	for (uint32_t i = 0; i < ntmp; ++ i)
 	    tmp[i] = pos;
 	const long missed = thePart->nRows() - nold - nnew + pos;
 	for (long i = 0; i < missed; i += ntmp) {
-	    ierr = fwrite(tmp, sizeof(long),
+	    ierr = fwrite(tmp, sizeof(int64_t),
 			  (i+ntmp<=missed?ntmp:missed-i), fsp);
 	}
     }
@@ -1151,23 +1152,24 @@ void ibis::text::startPositions(const char *dir, char *buf,
     (void) fclose(fsp);
 
     LOGGER(ibis::gVerbose >= 3)
-	<< "ibis::text::startPositions located the starting "
-	"positions of " << nnew << " new string" << (nnew > 1 ? "s" : "")
-	<< ", file " << spfile << " now has " << (nnew+nold+1)
-	<< " long-ints (total " << sizeof(long)*(nnew+nold+1) << " bytes)";
+	<< "ibis::text::startPositions located the starting positions of "
+	<< nnew << " new string" << (nnew > 1 ? "s" : "") << ", file " << spfile
+	<< " now has " << (nnew+nold+1) << " 64-bit integers (total "
+	<< sizeof(int64_t)*(nnew+nold+1) << " bytes)";
 
     if (strcmp(dir, thePart->currentDataDir()) == 0 &&
 	nold + nnew > thePart->nRows()) {
 	fsp = fopen(spfile.c_str(), "rb");
-	ierr = fseek(fsp, thePart->nRows()*sizeof(long), SEEK_SET);
-	ierr = fread(&pos, sizeof(long), 1, fsp);
+	ierr = fseek(fsp, thePart->nRows()*sizeof(int64_t), SEEK_SET);
+	ierr = fread(&pos, sizeof(int64_t), 1, fsp);
 	ierr = fclose(fsp);
-	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(long));
+	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(int64_t));
 	truncate(dfile.c_str(), pos);
-	LOGGER(ibis::gVerbose >= 0) << "ibis::text::startPositions truncated files "
-		  << dfile << " and " << spfile << " to contain only "
-		  << thePart->nRows() << " record"
-		  << (thePart->nRows() > 1 ? "s" : "");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::text::startPositions truncated files "
+	    << dfile << " and " << spfile << " to contain only "
+	    << thePart->nRows() << " record"
+	    << (thePart->nRows() > 1 ? "s" : "");
     }
 } // ibis::text::startPositions
 
@@ -1289,10 +1291,10 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     }
 
     uint32_t irow = 0; // row index
-    long begin = 0; // beginning position (file offset) of the bytes in buf
     long jbuf = 0; // number of bytes in buffer
-    long next = 0;
-    long curr;
+    int64_t begin = 0; // beginning position (file offset) of the bytes in buf
+    int64_t next = 0;
+    int64_t curr;
     if (1 > fread(&curr, sizeof(curr), 1, fsp)) {
 	// odd to be sure, but try again anyway
 	fclose(fsp);
@@ -1443,10 +1445,10 @@ long ibis::text::search(const std::vector<std::string>& strs,
     }
 
     unsigned irow = 0; // row index
-    long begin = 0; // beginning position (file offset) of the bytes in buf
     long jbuf = 0; // number of bytes in buffer
-    long curr = 0;
-    long next = 0;
+    int64_t begin = 0; // beginning position (file offset) of the bytes in buf
+    int64_t curr = 0;
+    int64_t next = 0;
     if (1 > fread(&curr, sizeof(curr), 1, fsp)) {
 	// odd to be sure, but try again anyway
 	fclose(fsp);
@@ -1568,12 +1570,12 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     fname += m_name;
     fname += ".sp";
     off_t spsize = ibis::util::getFileSize(fname.c_str());
-    if (spsize < 0 || (size_t)spsize != (mask.size()+1)*sizeof(long))
+    if (spsize < 0 || (size_t)spsize != (mask.size()+1)*sizeof(int64_t))
 	startPositions(thePart->currentDataDir(), (char*)0, 0U);
 
-    const array_t<long>
+    const array_t<int64_t>
 	sp(fname.c_str(), static_cast<const off_t>(0),
-	   static_cast<const off_t>((mask.size()+1)*sizeof(long)));
+	   static_cast<const off_t>((mask.size()+1)*sizeof(int64_t)));
     fname.erase(fname.size()-3); // remove .sp
     int fdata = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (fdata < 0) {
@@ -1747,7 +1749,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     fnm += ".sp"; // starting position file
 
     long ierr = 0;
-    long positions[2];
+    int64_t positions[2];
     // open the file explicitly to read two number
     int des = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (des < 0) {
@@ -1755,11 +1757,11 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 		   fnm.c_str());
 	return;
     }
-    ierr = UnixSeek(des, i*sizeof(long), SEEK_SET);
+    ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
     ierr = UnixRead(des, &positions, sizeof(positions));
     ierr = UnixClose(des);
     ibis::fileManager::instance().recordPages
-	(i*sizeof(long), i*sizeof(long)+sizeof(positions));
+	(i*sizeof(int64_t), i*sizeof(int64_t)+sizeof(positions));
 
     fnm.erase(fnm.size()-3); // remove ".sp"
     int datafile = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -1800,9 +1802,10 @@ const char* ibis::text::findString(const char *str) const {
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) {
-	LOGGER(ibis::gVerbose >= 0) << "Warning -- ibis::text["
-		  << (thePart != 0 ? thePart->name() : "") << "." << name()
-		  << "]::findString(" << str << ") unable to allocate "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::text["
+	    << (thePart != 0 ? thePart->name() : "") << "." << name()
+	    << "]::findString(" << str << ") unable to allocate "
 	    "enough work space";
 	return 0;
     }
