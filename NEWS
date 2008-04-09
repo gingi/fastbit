@@ -1,3 +1,13 @@
+Wed Apr  9 07:28:24 PDT 2008
+Version b0.9.1
+-- fix bugs found under PathScale and PGI compilers (mostly from working
+   with Prabhat)
+-- change starting positions file (.sp) to use int64_t explicitly
+   instead of long, this eliminates the annoying problem of duplicate
+   template instantiation of array_t
+-- add ibis::tablex::clearData to remove the current data of a tablex
+   object (in response to a request by Matthias)
+
 Tue Apr  1 08:11:09 PDT 2008
 Version b0.9.0
 -- fix bugs involving start and end values of getxDDistribution, first

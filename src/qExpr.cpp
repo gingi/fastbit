@@ -2108,8 +2108,13 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	: name(col), values(val) {
     if (val.size() <= 1U) return;
 
-    /// Sort the incoming values and remove duplicates.
-    std::sort(values.begin(), values.end());
+    bool sorted = (values[0] <= values[1]);
+    for (size_t i = 1; sorted && i < val.size()-1; ++ i)
+	sorted = (values[i] <= values[i+1]);
+    if (sorted == false) {
+	/// Sort the incoming values and remove duplicates.
+	std::sort(values.begin(), values.end());
+    }
     size_t j = 0;
     for (size_t i = 1; i < val.size(); ++ i) {
 	j += (values[i] > values[j]);

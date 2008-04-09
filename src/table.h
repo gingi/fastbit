@@ -258,7 +258,9 @@ public:
 	std::vector<std::string>   textsnames; ///< For ibis::TEXT.
 	std::vector<std::string>   textsvalues;
 
+	/// Clear all names and values.
 	void clear();
+	/// Clear the content of arrays of values.  Leave the names alone.
 	void clearValues();
     }; // struct row
 
@@ -309,9 +311,16 @@ public:
     /// The array @c values must contain values of the correct type
     /// corresponding to the type specified before.
     ///
+    /// The expected types of values are "const std::vector<std::string>*"
+    /// for string valued columns, and "const T*" for a fix-sized column of
+    /// type T.  More specifically, if the column type is float, the type
+    /// of values is "const float*"; if the column type is category, the
+    /// type of values is "const std::vector<std::string>*".
+    ///
     /// @note Since each column may have different number of rows filled,
     /// the number of rows in the table is considered to be the maximum
     /// number of rows filled of all columns.
+    ///
     /// @note This function can not be used to introduce new columns in a
     /// table.  A new column must be added with @c addColumn.
     ///
@@ -375,6 +384,10 @@ public:
     /// the existing data type information.
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc) const =0;
+
+    /// Remove all data recorded.  Keeps the metadata.  It is intended to
+    /// be used after a call to function write to store new rows.
+    virtual void clearData() =0;
 
 protected:
     tablex() {}; // Derived classes need this.
@@ -469,7 +482,7 @@ private:
 /// Cursor class for row-wise data accesses.
 /// @note Note that this cursor is associated with a table object and can
 /// only iterate overall rows of a table.  To iterate an arbitrary
-/// selection of rows, use the selection to create a new table and then
+/// selection of rows, use the select function to create a new table and then
 /// iterate over the new table.
 class FASTBIT_CXX_DLLSPEC ibis::table::cursor {
 public:

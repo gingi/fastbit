@@ -1,3 +1,8 @@
+2008-04-04 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tafel.h, src/tafel.cpp: add function clearData
+	* src/qExpr.cpp:2111 add check to see if the array is sorted
+	before calling the sorting function
+
 2008-04-02 John Wu <John.Wu at ACM.org>
 	* src/index.cpp:3358 need to resize bdry before assignments
 	* src/qExpr.cpp:1367 check expr->left and expr->right

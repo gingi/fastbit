@@ -195,9 +195,9 @@ under Contract No. DE-AC02-05CH11231 and DE-AC03-76SF00098.
 
 \section additional Additional Information
 
-Additional information available on the web at <http://sdm.lbl.gov/fastbit/>
-or <http://lbl.gov/~kwu/fastbit/>.
-
+Additional information available on the web at
+<http://sdm.lbl.gov/fastbit/> or <http://lbl.gov/~kwu/fastbit/>.  Send any
+comments, bug reports and patches to <fastbit-users@hpcrdm.lbl.gov>.
 */
 
 

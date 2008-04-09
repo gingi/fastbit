@@ -35,13 +35,19 @@ public:
     virtual int readCSV(const char* filename, const char* delimiters);
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc) const;
+    virtual void clearData();
 
 protected:
+    /// In-memory version of a column.
     struct column {
 	std::string name;
 	std::string desc;
 	ibis::TYPE_T type;
+	/// For fix-sized elements, this is a pointer to an array_t
+	/// object.  For string-valued elements, this is a pointer to
+	/// std::vector<std::string>.
 	void* values;
+	/// Valid values correspond to 1, null values correspond to 0.
 	ibis::bitvector mask;
 
 	column() : type(ibis::UNKNOWN_TYPE), values(0) {}
@@ -55,7 +61,7 @@ protected:
     /// Number of rows of this table.
     ibis::bitvector::word_t nrows;
 
-    /// Clear the content of the buffers.
+    /// Clear all content.  Removes both data and metadata.
     void clear();
 
     /// Make all short columns catch up with the longest one.

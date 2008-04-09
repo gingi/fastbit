@@ -44,9 +44,9 @@ namespace ibis {
 
  This is intented to be a simple timer.  It must be explicitly started by
  calling function start.  The same function start may be called to restart
- the timer which will discard previously marked starting point.  The
- function stop must be called before functions realTime and CPUTime can
- report the correct time.  After a horometer is stopped, it may restart by
+ the timer which will discard the previous starting point.  The function
+ stop must be called before functions realTime and CPUTime can report the
+ correct time values.  After a horometer is stopped, it may continue by
  calling start, or it may resume timing by calling resume.
 
  Timing accuracy depends on the underlying implementation.  On most unix
@@ -58,7 +58,7 @@ class ibis::horometer {
 public:
     horometer() : startRealTime(0), totalRealTime(0),
 		  startCPUTime(0), totalCPUTime(0) {
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_MSC_VER)
 	// the frequency of the high-resolution performance counter
 	LARGE_INTEGER lFrequency;
 	BOOL ret = QueryPerformanceFrequency(&lFrequency);
@@ -68,17 +68,20 @@ public:
 	    countPeriod = 0.0;
 #endif
     };
-    void start() {///< Start the timer.  Clear the internal counters.
+    /// Start the timer.  Clear the internal counters.
+    void start() {
 	startRealTime = readWallClock();
 	startCPUTime = readCPUClock();
-	totalRealTime = 0;
-	totalCPUTime = 0;
+	totalRealTime = 0.0;
+	totalCPUTime = 0.0;
     };
-    void stop() { ///< Stop the timer.  May resume later.
+    /// Stop the timer.  May resume later.
+    void stop() {
 	totalRealTime += readWallClock() - startRealTime;
 	totalCPUTime += readCPUClock() - startCPUTime;
     };
-    void resume() {///< Continue after being stopped.
+    /// Continue after being stopped.
+    void resume() {
 	startRealTime = readWallClock();
 	startCPUTime = readCPUClock();
     }
@@ -92,15 +95,17 @@ private:
     double totalRealTime;   // total real time
     double startCPUTime;    // cpu start time
     double totalCPUTime;    // total cpu time
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_MSC_VER)
     double countPeriod;     // time of one high-resolution count
 #endif
 
-    // The following two functions are the guts of this horometer.  They
-    // read the system clock to report the current wall clock time and the
-    // CPU clock time -- only these two functions are machine dependend.
-    inline double readWallClock(); ///< Read the system's wallclock time.
-    inline double readCPUClock();  ///< Read the CPU time.
+    /// Read the system's wallclock timer.  It tries to use clock_gettime
+    /// if it is available, otherwise it falls back to gettimeofday and
+    /// clock.
+    inline double readWallClock();
+    /// Read the CPU timer.  It tries to use getrusage first, if not
+    /// available, it falls back to times and clock.
+    inline double readCPUClock();
 };
 
 // read the system's wall clock time
@@ -108,18 +113,18 @@ inline double ibis::horometer::readWallClock() {
 #if defined(CLOCK_REALTIME) && !defined(__CYGWIN__)
     struct timespec tb;
     if (0 == clock_gettime(CLOCK_REALTIME, &tb)) {
-	return (double) tb.tv_sec + tb.tv_nsec * 1e-9;
+	return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
     }
     else {
 	struct timeval cpt;
 	gettimeofday(&cpt, 0);
-	return static_cast<double>(cpt.tv_sec) + 1e-6*cpt.tv_usec;
+	return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
     }
-#elif defined(unix) || defined(CRAY) || defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
+#elif defined(HAVE_GETTIMEOFDAY) || defined(unix) || defined(CRAY) || defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
     struct timeval cpt;
     gettimeofday(&cpt, 0);
-    return static_cast<double>(cpt.tv_sec) + 1e-6*cpt.tv_usec;
-#elif defined(_WIN32)
+    return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
+#elif defined(_WIN32) && defined(_MSC_VER)
     double ret = 0.0;
     if (countPeriod != 0) {
 	LARGE_INTEGER cnt;
@@ -137,11 +142,11 @@ inline double ibis::horometer::readWallClock() {
     }
     return ret;
 #elif defined(VMS)
-    return(double) clock() * 0.001;
+    return (double) clock() * 0.001;
 #else
-    return(double) clock() / CLOCKS_PER_SEC;
+    return (double) clock() / CLOCKS_PER_SEC;
 #endif
-} //  double horometer::readWallClock()
+} //  ibis::horometer::readWallClock
 
 // read the value of the CPU clock time
 inline double ibis::horometer::readCPUClock() {
@@ -183,5 +188,5 @@ inline double ibis::horometer::readCPUClock() {
 #else
     return (double) clock() / CLOCKS_PER_SEC;
 #endif
-} // double horometer::readCPUClock()
+} // ibis::horometer::readCPUClock
 #endif // IBIS_HOROMETER_H

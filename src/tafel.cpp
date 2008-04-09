@@ -137,12 +137,11 @@ void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
     }
     std::copy(in, in+(en-be), out.begin()+be);
     mask |= inmsk;
-#if defined(DEBUG)
-    LOGGER(ibis::gVerbose >= 0)
+
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::tafel::append(" << typeid(T).name()
 	<< ", " << be << ", " << en << ")\ninmask: "
 	<< inmsk << "totmask: " << mask;
-#endif
 } // ibis::tafel::append
 
 void ibis::tafel::appendString(const std::vector<std::string>* in,
@@ -165,11 +164,10 @@ void ibis::tafel::appendString(const std::vector<std::string>* in,
     }
     std::copy(in->begin(), in->begin()+(en-be), out.begin()+be);
     mask |= inmsk;
-#if defined(DEBUG)
-    LOGGER(ibis::gVerbose >= 0)
+
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::tafel::appendString(" << be << ", " << en << ")\ninmask: "
 	<< inmsk << "totmask: " << mask;
-#endif
 } // ibis::tafel::appendString
 
 int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
@@ -912,10 +910,10 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	if (col.type == ibis::TEXT)
 	    md << "\nindex=none";
 	md << "\nEnd Column\n";
-    } 
+    }
     md.close(); // close the file
     ibis::fileManager::instance().flushDir(dir);
-   if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 0) {
 	timer.stop();
 	LOGGER(ibis::gVerbose >= 1)
 	    << "ibis::tafel::write completed writing partition " 
@@ -964,12 +962,11 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	totmask += newmask;
     }
     totmask.adjustSize(totmask.size(), nnew+nold);
-#if DEBUG+0>0
-    LOGGER(ibis::gVerbose >= 0)
+    LOGGER(ibis::gVerbose > 6)
 	<< "ibis::tafel::writeColumn wrote " << pos << " bytes of "
 	<< typeid(T).name() << " for " << nnew << " elements\n"
 	<< "Overall bit mask: "<< totmask;
-#endif
+
     return (-5 * ((size_t) pos != nnew*elem));
 } // ibis::tafel::writeColumn
 
@@ -998,19 +995,69 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew+nold);
+    if (ibis::gVerbose > 6) {
+	ibis::util::logger lg(4);
+	lg.buffer() << "ibis::tafel::writeString wrote " << pos
+		    << " strings (" << nnew << " expected)\nvals.size()="
+		    << vals.size() << ", content\n";
 #if DEBUG+0>0
-    ibis::util::logger lg(4);
-    lg.buffer() << "ibis::tafel::writeString wrote " << pos
-		<< " strings (" << nnew << " expected)\nvals.size()="
-		<< vals.size() << ", content\n";
-    for (size_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size()); ++ j)
-	lg.buffer() << j << "\t" << vals[j] << "\n";
-    lg.buffer() << "Overall bit mask: " << totmask;
+	for (size_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size()); ++ j)
+	    lg.buffer() << j << "\t" << vals[j] << "\n";
 #endif
+	lg.buffer() << "Overall bit mask: " << totmask;
+    }
     return (-5 * ((size_t) pos != nnew));
 } // ibis::tafel::writeString
 
+void ibis::tafel::clearData() {
+    nrows = 0;
+    for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
+	column& col = *((*it).second);
+	col.mask.clear();
+	switch (col.type) {
+	case ibis::BYTE:
+	    static_cast<array_t<signed char>*>(col.values)->clear();
+	    break;
+	case ibis::UBYTE:
+	    static_cast<array_t<unsigned char>*>(col.values)->clear();
+	    break;
+	case ibis::SHORT:
+	    static_cast<array_t<int16_t>*>(col.values)->clear();
+	    break;
+	case ibis::USHORT:
+	    static_cast<array_t<uint16_t>*>(col.values)->clear();
+	    break;
+	case ibis::INT:
+	    static_cast<array_t<int32_t>*>(col.values)->clear();
+	    break;
+	case ibis::UINT:
+	    static_cast<array_t<uint32_t>*>(col.values)->clear();
+	    break;
+	case ibis::LONG:
+	    static_cast<array_t<int64_t>*>(col.values)->clear();
+	    break;
+	case ibis::ULONG:
+	    static_cast<array_t<uint64_t>*>(col.values)->clear();
+	    break;
+	case ibis::FLOAT:
+	    static_cast<array_t<float>*>(col.values)->clear();
+	    break;
+	case ibis::DOUBLE:
+	    static_cast<array_t<double>*>(col.values)->clear();
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    static_cast<std::vector<std::string>*>(col.values)->clear();
+	    break;
+	default:
+	    break;
+	} // switch
+    } // for
+} // ibis::tafel::clearData
+
 void ibis::tafel::clear() {
+    nrows = 0;
+    colorder.clear();
     while (! cols.empty()) {
 	columnList::iterator it = cols.begin();
 	column* col = (*it).second;
