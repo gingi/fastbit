@@ -1,3 +1,7 @@
+2008-04-16 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add test case 3 to check-text to exercise the
+	operator IN
+
 2008-04-15 John Wu <John.Wu at ACM.org>
 	* src/bitvector.cpp: replace calls to append individual bits with
 	appendFill in function erase

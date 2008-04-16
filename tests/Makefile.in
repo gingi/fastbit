@@ -516,6 +516,8 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-0 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ failed test 1; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c between 10 and 20" -o $(TESTDIR)/t0-1 > /dev/null
 	@if [ `awk '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ failed test 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 > /dev/null
+	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep '88,' - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3; else $(ECHO) $@ failed test 3; fi
 	@$(ECHO)
 $(TESTDIR)/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)
