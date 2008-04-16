@@ -468,13 +468,7 @@ int ibis::direkte::read(const char* f) {
 // attempt to reconstruct an index from a piece of consecutive memory
 int ibis::direkte::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    if (str != st && str != 0)
-	delete str;
-    if (fname) { // previously connected to a file, clean it up
-	delete [] fname;
-	offsets.clear();
-	fname = 0;
-    }
+    clear();
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     uint32_t pos = 8 + sizeof(uint32_t);
@@ -819,10 +813,10 @@ uint32_t ibis::direkte::estimate(const ibis::qContinuousRange& expr) const {
 
 long ibis::direkte::evaluate(const ibis::qDiscreteRange& expr,
 			     ibis::bitvector& lower) const {
-    const std::vector<double>& vals = expr.getValues();
+    const std::vector<double>& varr = expr.getValues();
     lower.set(0, nrows);
-    for (unsigned i = 0; i < vals.size(); ++ i) {
-	unsigned int tmp = static_cast<unsigned int>(vals[i]);
+    for (unsigned i = 0; i < varr.size(); ++ i) {
+	unsigned int tmp = static_cast<unsigned int>(varr[i]);
 	if (tmp < bits.size()) {
 	    if (bits[tmp] == 0)
 		activate(tmp);
@@ -836,11 +830,11 @@ long ibis::direkte::evaluate(const ibis::qDiscreteRange& expr,
 void ibis::direkte::estimate(const ibis::qDiscreteRange& expr,
 			     ibis::bitvector& lower,
 			     ibis::bitvector& upper) const {
-    const std::vector<double>& vals = expr.getValues();
+    const std::vector<double>& varr = expr.getValues();
     upper.clear();
     lower.set(0, nrows);
-    for (unsigned i = 0; i < vals.size(); ++ i) {
-	unsigned int tmp = static_cast<unsigned int>(vals[i]);
+    for (unsigned i = 0; i < varr.size(); ++ i) {
+	unsigned int tmp = static_cast<unsigned int>(varr[i]);
 	if (tmp < bits.size()) {
 	    if (bits[tmp] == 0)
 		activate(tmp);
@@ -852,9 +846,9 @@ void ibis::direkte::estimate(const ibis::qDiscreteRange& expr,
 
 uint32_t ibis::direkte::estimate(const ibis::qDiscreteRange& expr) const {
     uint32_t res = 0;
-    const std::vector<double>& vals = expr.getValues();
-    for (unsigned i = 0; i < vals.size(); ++ i) {
-	unsigned int tmp = static_cast<unsigned int>(vals[i]);
+    const std::vector<double>& varr = expr.getValues();
+    for (unsigned i = 0; i < varr.size(); ++ i) {
+	unsigned int tmp = static_cast<unsigned int>(varr[i]);
 	if (tmp < bits.size()) {
 	    if (bits[tmp] == 0)
 		activate(tmp);
@@ -880,9 +874,9 @@ double ibis::direkte::estimateCost(const ibis::qContinuousRange& expr) const {
 
 double ibis::direkte::estimateCost(const ibis::qDiscreteRange& expr) const {
     double cost = 0;
-    const std::vector<double>& vals = expr.getValues();
-    for (uint32_t j = 0; j < vals.size(); ++ j) {
-	uint32_t ind = static_cast<uint32_t>(vals[j]);
+    const std::vector<double>& varr = expr.getValues();
+    for (uint32_t j = 0; j < varr.size(); ++ j) {
+	uint32_t ind = static_cast<uint32_t>(varr[j]);
 	if (ind+1 < offsets.size() && ind < bits.size())
 	    cost += offsets[ind+1] - offsets[ind];
     }

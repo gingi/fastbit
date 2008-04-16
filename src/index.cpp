@@ -1180,8 +1180,10 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 
 /// Free the objectes pointed to by the pointers.
 void ibis::index::clear() {
-    for (uint32_t i = 0; i < bits.size(); ++ i)
+    for (uint32_t i = 0; i < bits.size(); ++ i) {
 	delete bits[i];
+	bits[i] = 0;
+    }
     bits.clear();
     offsets.clear();
     delete [] fname;
@@ -4051,7 +4053,8 @@ void ibis::index::activate(uint32_t i) const {
 		<< "index::activate(" << i
 		<< ") constructed a bitvector from range ["
 		<< offsets[i] << ", " << offsets[i+1] << ") of a storage at "
-		<< static_cast<const void*>(str->begin());
+		<< static_cast<const void*>(str->begin()) << "\nbits[" << i
+		<< "]=" << *(bits[i]);
 	}
 #endif
     }
@@ -4075,7 +4078,8 @@ void ibis::index::activate(uint32_t i) const {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "index::activate(" << i
 		    << ") constructed a bitvector from range ["
-		    << offsets[i] << ", " << offsets[i+1] << ") of file ";
+		    << offsets[i] << ", " << offsets[i+1] << ") of file "
+		    << fname << "\nbits[" << i << "]=" << *(bits[i]);
 	    }
 #endif
 	}

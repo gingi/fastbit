@@ -1,3 +1,25 @@
+2008-04-15 John Wu <John.Wu at ACM.org>
+	* src/bitvector.cpp: replace calls to append individual bits with
+	appendFill in function erase
+	* src/util.cpp: change conditional compilation instruction for
+	using getlogin_r in userName
+	* src/bitvector.cpp:2129 remove extra conditions in the if statement
+	* src/bitvector.h: in copy_runs and copy_runsn, change the code to
+	not use it.nWords in cases where it.isFill is not true
+	* src/bitvector64.h: change copy_runs and copy_runsn to no use
+	it.nWords when it.isFill is 0
+	* src/ifade.cpp, src/irelic.cpp, src/isapid.cpp, src/isbiad.cpp,
+	src/islice.cpp: locate(vals[i]) in functions handling
+	ibis::qDiscreteRange incorrectly should be locate(varr[i])
+
+2008-04-11 John Wu <John.Wu at ACM.org>
+	* src/bitvector.h: add function empty
+
+2008-04-10 John Wu <John.Wu at ACM.org>
+	* src/irelic.cpp: update a number of implementation if
+	read(ibis::fileManager::storage*) to remove the statements that deletes
+	str -- this should not have been done
+
 2008-04-04 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.h, src/tafel.cpp: add function clearData
 	* src/qExpr.cpp:2111 add check to see if the array is sorted

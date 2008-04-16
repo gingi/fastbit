@@ -590,7 +590,7 @@ void ibis::bitvector64::erase(word_t i, word_t j) {
 
     ibis::bitvector64 res;
     if (i > 0) { // copy the leading part to res
-	iterator ip = begin();
+	const_iterator ip = const_cast<const ibis::bitvector64*>(this)->begin();
 	ip += i;
 	array_t<word_t>::const_iterator cit = m_vec.begin();
 	while (cit < ip.it) {
@@ -608,7 +608,7 @@ void ibis::bitvector64::erase(word_t i, word_t j) {
     }
 
     if (j < nbits) { // need to copy something from m_vec
-	iterator iq = begin();
+	const_iterator iq = const_cast<const ibis::bitvector64*>(this)->begin();
 	iq += j;
 	// copy second half of iq.it
 	if (iq.compressed) {

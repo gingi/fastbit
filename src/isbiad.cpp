@@ -1417,7 +1417,7 @@ long ibis::sbiad::evaluate(const ibis::qDiscreteRange& expr,
     const std::vector<double>& varr = expr.getValues();
     lower.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
-	unsigned int itmp = locate(vals[i]);
+	unsigned int itmp = locate(varr[i]);
 	if (itmp > 0 && vals[itmp-1] == varr[i]) {
 	    -- itmp;
 	    ibis::bitvector tmp;

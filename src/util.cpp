@@ -874,7 +874,12 @@ const char* ibis::util::userName() {
     ibis::util::mutexLock lock(&ibis::util::envLock, "(::()::)");
 
     if (uid.empty()) {
-#if defined(_XOPEN_REALTIME)
+#if defined(_WIN32) && defined(_MSC_VER)
+	long unsigned int len = 63;
+	char buf[64];
+	if (GetUserName(buf, &len))
+	    uid = buf;
+#elif defined(_REENTRANT) || defined(_THREAD_SAFE) || defined(_POSIX_THREAD_SAFE_FUNCTIONS)
 	char buf[64];
 	if (getlogin_r(buf, 64) == 0) {
 	    uid = buf;
@@ -884,11 +889,6 @@ const char* ibis::util::userName() {
 	}
 #elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__)
 	uid = getlogin();
-#elif defined(_WIN32)
-	long unsigned int len = 63;
-	char buf[64];
-	if (GetUserName(buf, &len))
-	    uid = buf;
 #elif defined(L_cuserid) && defined(__USE_XOPEN)
 	char buf[L_cuserid+1];
 	(void) cuserid(buf);

@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\Program Files\Java\jdk1.6.0_04\include;C:\Program Files\Java\jdk1.6.0_04\include\win32"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;&quot;C:\Program Files\Java\jdk1.6.0_05\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_05\include\win32&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DLL_EXPORTS;JAVA_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -70,7 +70,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\Program Files\Java\jdk1.6.0_04\include;C:\Program Files\Java\jdk1.6.0_04\include\win32"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;&quot;C:\Program Files\Java\jdk1.6.0_05\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_05\include\win32&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DLL_EXPORTS;JAVA_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"

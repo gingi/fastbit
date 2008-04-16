@@ -188,6 +188,10 @@ public:
     void adjustSize(word_t nv, word_t nt);
     void reserve(unsigned nb, unsigned nc, double cf=0.0);
 
+    /// Is the bitvector empty?  For efficiency concerns, this funciton
+    /// only works correctly on a properly compressed bitvector.
+    bool empty() const {return all0s() && active.val == 0;}
+
     std::ostream& print(std::ostream &) const; ///< The print function
 
     /// Iterator that supports modification of individual bit.
@@ -410,6 +414,7 @@ private:
     void decodeWord();
 
     // give three functions of bitvector access to private variables
+    friend void ibis::bitvector::erase(word_t i, word_t j);
     friend const_iterator ibis::bitvector::begin() const;
     friend const_iterator ibis::bitvector::end() const;
     friend class ibis::bitvector::iterator;
@@ -459,7 +464,6 @@ private:
 
     void decodeWord();
 
-    friend void ibis::bitvector::erase(word_t i, word_t j);
     friend iterator ibis::bitvector::begin();
     friend iterator ibis::bitvector::end();
 }; // end class ibis::bitvector::iterator
@@ -842,12 +846,13 @@ inline void ibis::bitvector::copy_runs
 		    ++ jt;
 		}
 	    }
+	    nw -= it.nWords;
 	}
 	else { // copy a single word
 	    *jt = *(it.it);
 	    ++ jt;
+	    -- nw;
 	}
-	nw -= it.nWords;
 	++ it.it; // advance to the next word
 	it.decode();
     }
@@ -872,12 +877,13 @@ inline void ibis::bitvector::copy_runsn
 		    ++ jt;
 		}
 	    }
+	    nw -= it.nWords;
 	}
 	else { // a literal word
 	    *jt = *(it.it) ^ ALLONES;
 	    ++ jt;
+	    -- nw;
 	}
-	nw -= it.nWords;
 	++ it.it; // advance to the next word
 	it.decode();
     }

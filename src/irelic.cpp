@@ -451,13 +451,7 @@ int ibis::relic::read(const char* f) {
 // attempt to reconstruct an index from a piece of consecutive memory
 int ibis::relic::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    if (str != st && str != 0)
-	delete str;
-    if (fname) { // previously connected to a file, clean it up
-	delete [] fname;
-	offsets.clear();
-	fname = 0;
-    }
+    ibis::index::clear();
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     uint32_t pos = 8 + sizeof(uint32_t);
@@ -465,10 +459,12 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t);
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
-    array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
-    array_t<double> dbl(st, 8*(pos/8), card);
-    offsets.copy(offs);
-    vals.swap(dbl);
+    {
+	array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
+	offsets.swap(offs);
+	array_t<double> dbl(st, 8*(pos/8), card);
+	vals.swap(dbl);
+    }
 
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	delete bits[i];
@@ -477,9 +473,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 	bits[i] = 0;
     if (st->isFileMap()) { // only restore the first bitvector
 #if defined(ALWAY_READ_BITVECTOR0)
-	if (offs[1] > offs[0]) {
+	if (offsets[1] > offsets[0]) {
 	    array_t<ibis::bitvector::word_t>
-		a0(st, offs[0], (offs[1]-offs[0])/
+		a0(st, offsets[0], (offsets[1]-offsets[0])/
 		   sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
 	    bits[0]->setSize(nrows);
@@ -493,9 +489,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     }
     else { // regenerate all the bitvectors
 	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offs[i+1] > offs[i]) {
+	    if (offsets[i+1] > offsets[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(st, offs[i], (offs[i+1]-offs[i])/
+		    a(st, offsets[i], (offsets[i+1]-offsets[i])/
 		      sizeof(ibis::bitvector::word_t));
 		ibis::bitvector* btmp = new ibis::bitvector(a);
 		btmp->setSize(nrows);
@@ -506,9 +502,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 				"(offsets[%lu]=%lu, offsets[%lu]=%lu)",
 				static_cast<long unsigned>(i),
 				static_cast<long unsigned>(i),
-				static_cast<long unsigned>(offs[i]),
+				static_cast<long unsigned>(offsets[i]),
 				static_cast<long unsigned>(i+1),
-				static_cast<long unsigned>(offs[i+1]));
+				static_cast<long unsigned>(offsets[i+1]));
 	    }
 	}
 	str = 0;
@@ -1524,9 +1520,9 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
 double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
     if (offsets.size() > bits.size()) {
-	const std::vector<double>& vals = expr.getValues();
-	for (unsigned j = 0; j < vals.size(); ++ j) {
-	    uint32_t itmp = locate(vals[j]);
+	const std::vector<double>& varr = expr.getValues();
+	for (unsigned j = 0; j < varr.size(); ++ j) {
+	    uint32_t itmp = locate(varr[j]);
 	    if (itmp < bits.size())
 		ret += offsets[itmp+1] - offsets[itmp];
 	}
@@ -1539,7 +1535,7 @@ long ibis::relic::evaluate(const ibis::qDiscreteRange& expr,
     const std::vector<double>& varr = expr.getValues();
     lower.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
-	unsigned int itmp = locate(vals[i]);
+	unsigned int itmp = locate(varr[i]);
 	if (itmp > 0 && vals[itmp-1] == varr[i]) {
 	    -- itmp;
 	    if (bits[itmp] == 0)
@@ -1555,7 +1551,7 @@ uint32_t ibis::relic::estimate(const ibis::qDiscreteRange& expr) const {
     const std::vector<double>& varr = expr.getValues();
     uint32_t cnt = 0;
     for (unsigned i = 0; i < varr.size(); ++ i) {
-	unsigned int itmp = locate(vals[i]);
+	unsigned int itmp = locate(varr[i]);
 	if (itmp > 0 && vals[itmp-1] == varr[i]) {
 	    -- itmp;
 	    if (bits[itmp] == 0)

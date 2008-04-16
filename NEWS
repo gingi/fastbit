@@ -1,3 +1,13 @@
+Wed Apr 16 08:28:46 PDT 2008
+Version b0.9.2
+-- remove the statements that deletes index::str in the function clear
+   of various derived classes, logical error, the file manager should call
+   the actual delete
+-- remove the use of variable ibis::bitvector::run::nWords when it is
+   not a fill
+-- correct typos in functions that perform computation on
+   qDiscreteRanges, an error first reported by Ross Bates
+
 Wed Apr  9 07:28:24 PDT 2008
 Version b0.9.1
 -- fix bugs found under PathScale and PGI compilers (mostly from working

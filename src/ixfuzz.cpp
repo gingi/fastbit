@@ -1139,13 +1139,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
 // attempt to reconstruct an index from a piece of consecutive memory
 int ibis::fuzz::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    if (str != st && str != 0)
-	delete str;
-    if (fname) { // previously connected to a file, clean it up
-	delete [] fname;
-	offsets.clear();
-	fname = 0;
-    }
+    clear();
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     uint32_t pos = 8 + sizeof(uint32_t);

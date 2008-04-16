@@ -733,9 +733,10 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	return;
     }
 
+    // use copy-and-swap approach, the result bitvector is res
     ibis::bitvector res;
     if (i > 0) { // copy the leading part to res
-	iterator ip = begin();
+	const_iterator ip = const_cast<const ibis::bitvector*>(this)->begin();
 	ip += i;
 	array_t<word_t>::const_iterator cit = m_vec.begin();
 	while (cit < ip.it) {
@@ -744,7 +745,7 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	}
 	res.nbits = i - ip.ind;
 	if (ip.compressed) {
-	    for (word_t ii=0; ii<ip.ind; ++ii) res += ip.fillbit;
+	    res.appendFill(ip.fillbit, ip.ind);
 	}
 	else {
 	    res.active.val = (ip.literalvalue >> (MAXBITS-ip.ind));
@@ -752,14 +753,15 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	}
     }
 
-    if (j < nbits) { // need to copy something from m_vec
-	iterator iq = begin();
+    if (j < nbits) { // copy the back half of m_vec
+	const_iterator iq = const_cast<const ibis::bitvector*>(this)->begin();
 	iq += j;
 	// copy second half of iq.it
 	if (iq.compressed) {
-	    for (word_t ii=iq.ind; ii<iq.nbits; ++ii) {
-		res += iq.fillbit;
-	    }
+	    res.appendFill(iq.fillbit, iq.nbits-iq.ind);
+	    //for (word_t ii=iq.ind; ii<iq.nbits; ++ii) {
+	    //res += iq.fillbit;
+	    //}
 	}
 	else {
 	    for (long ii=(iq.nbits-iq.ind-1); ii>=0; --ii) {
@@ -773,15 +775,26 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	    ++ (iq.it);
 	}
 	// copy the active word
-	for (long ii=(active.nbits-1); ii>=0; --ii) {
+	for (long ii = (long)(active.nbits-1); ii >= 0; -- ii) {
 	    res += (int) ((active.val >> ii) & 1);
 	}
     }
     else if (j < nbits+active.nbits) { // only something from active word
-	for (long ii=(active.nbits-j+nbits-1); ii>=0; --ii) {
+	for (long ii = (long)(active.nbits-j+nbits-1); ii >= 0; -- ii) {
 	    res += (int) ((active.val >> ii) & 1);
 	}
     }
+    if (size() != res.size()+(j-i)) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::bitvector::erase(" << i << ", " << j
+	    << ") res.size(" << res.size() << ") is expected to be "
+	    << size()-(j-i) << ", but is not";
+    }
+#if defined(DEBUG)
+    LOGGER(ibis::gVerbose > 2)
+	<< "DEBUG -- ibis::bitvector::erase(" << i << ", " << j
+	<< ") ...\nInput\n" << *this << "\nOutput\n" << res;
+#endif
     swap(res);
 } // ibis::bitvector::erase
 
@@ -1453,7 +1466,7 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
 	    word_t nb = do_cnt();
 	    if (nbits != nb && nbits > 0)
 		LOGGER(ibis::gVerbose >= 0)
-		    << "FastBit::bitvector::print detected nbits ("
+		    << "Warning -- FastBit::bitvector::print detected nbits ("
 		    << nbits << ") mismatching return value of do_cnt ("
 		    << nb << "), use the return value of do_cnt";
 	}
@@ -1912,16 +1925,22 @@ void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
 		y.decode();
 	    if (x.isFill != 0) {	    // x points to a fill
 		// if both x and y point to fills, use the long one
-		if (y.isFill != 0 && y.nWords >= x.nWords) {
+		if (y.isFill != 0) {
 		    if (y.fillBit == 0) {
 			res.append_counter(0, y.nWords);
 			x -= y.nWords;
 			y.nWords = 0;
 			++ y.it;
 		    }
-		    else {
+		    else if (y.nWords >= x.nWords) {
 			res.copy_runs(x, y.nWords);
 			y.it += (y.nWords == 0);
+		    }
+		    else {
+			res.append_counter(x.fillBit, y.nWords);
+			x.nWords -= y.nWords;
+			y.nWords = 0;
+			++ y.it;
 		    }
 		}
 		else if (x.fillBit == 0) { // generate a 0-fill as the result
@@ -2057,6 +2076,11 @@ void ibis::bitvector::and_c1(const ibis::bitvector& rhs,
 // and operation on two compressed bitvectors, generates uncompressed result
 void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 			     ibis::bitvector& res) const {
+#if defined(DEBUG)
+    LOGGER(ibis::gVerbose > 2)
+	<< "DEBUG -- ibis::bitvector::and_d2 -- starting with \nOperand 1\n"
+	<< *this << "\nOperand 2\n" << rhs;
+#endif
     // establish a uncompressed bitvector with the right size
     res.nbits = ((nbits==0 && m_vec.size()>0) ?
 		 (rhs.nbits == 0 && rhs.m_vec.size()>0) ? 
@@ -2107,9 +2131,14 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 	    if (y.nWords == 0)
 		y.decode();
 	    if (x.isFill != 0) {
-		if (y.isFill != 0 && y.nWords >= x.nWords) {
+		if (y.isFill != 0) {
 		    if (y.fillBit == 0) {
 			x -= y.nWords;
+			res.copy_fill(ir, y);
+		    }
+		    else if (y.nWords < x.nWords) {
+			x.nWords -= y.nWords;
+			y.fillBit = x.fillBit;
 			res.copy_fill(ir, y);
 		    }
 		    else {
@@ -2320,16 +2349,21 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 		x.decode();
 	    if (y.nWords == 0)
 		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << " Error -- ibis::bitvector::or_c2 serious problem here ...";
-	    }
+	    LOGGER((x.nWords == 0 || y.nWords == 0) && ibis::gVerbose >= 0)
+		<< " Error -- ibis::bitvector::or_c2 serious problem here ...";
+
 	    if (x.isFill != 0) { // x points to a fill
 		// if both x and y point to fills, use the longer one
-		if (y.isFill != 0 && y.nWords >= x.nWords) {
-		    if (y.fillBit) {
+		if (y.isFill != 0) {
+		    if (y.fillBit != 0) {
 			res.append_counter(y.fillBit, y.nWords);
 			x -= y.nWords;
+			y.nWords = 0;
+			++ y.it;
+		    }
+		    else if (y.nWords < x.nWords) {
+			res.append_counter(x.fillBit, y.nWords);
+			x.nWords -= y.nWords;
 			y.nWords = 0;
 			++ y.it;
 		    }

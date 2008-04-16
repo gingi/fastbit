@@ -370,6 +370,7 @@ private:
     void decodeWord();
 
     // give three functions of bitvector64 access to private variables
+    friend void ibis::bitvector64::erase(word_t i, word_t j);
     friend const_iterator ibis::bitvector64::begin() const;
     friend const_iterator ibis::bitvector64::end() const;
     friend class ibis::bitvector64::iterator;
@@ -408,7 +409,6 @@ private:
 
     void decodeWord();
 
-    friend void ibis::bitvector64::erase(word_t i, word_t j);
     friend iterator ibis::bitvector64::begin();
     friend iterator ibis::bitvector64::end();
 }; // end class ibis::bitvector64::iterator
@@ -740,12 +740,13 @@ inline void ibis::bitvector64::copy_runs
 		    ++ jt;
 		}
 	    }
+	    nw -= it.nWords;
 	}
 	else {
 	    *jt = *(it.it);
 	    ++ jt;
+	    -- nw;
 	}
-	nw -= it.nWords;
 	++ it.it; // advance to the next word
 	it.decode();
     }
@@ -770,12 +771,13 @@ inline void ibis::bitvector64::copy_runsn
 		    ++ jt;
 		}
 	    }
+	    nw -= it.nWords;
 	}
 	else {
 	    *jt = *(it.it) ^ ALLONES;
 	    ++ jt;
+	    -- nw;
 	}
-	nw -= it.nWords;
 	++ it.it; // advance to the next word
 	it.decode();
     }
