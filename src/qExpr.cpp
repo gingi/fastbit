@@ -1,5 +1,5 @@
 // $Id$
-// Author: John Wu <John.Wu@nersc.gov>
+// Author: John Wu <John.Wu at nersc.gov>
 //      Lawrence Berkeley National Laboratory
 // Copyright 1998-2008 the Regents of the University of California
 //

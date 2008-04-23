@@ -1,5 +1,5 @@
 // $Id$
-// Author: John Wu <John.Wu@ACM.org>
+// Author: John Wu <John.Wu at ACM.org>
 // Copyright 2006-2008 the Regents of the University of California
 //
 // This file implements the ibis::keywords class.

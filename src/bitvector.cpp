@@ -1,5 +1,5 @@
 // $Id$
-// Author: John Wu <John.Wu@ACM.org> Lawrence Berkeley National Laboratory
+// Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 the Regents of the University of California
 //
 // The implementation of class bitvector as defined in bitvector.h.

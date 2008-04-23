@@ -1,9 +1,9 @@
 // File: $Id$
-// Author: John Wu <John.Wu@nersc.gov>
+// Author: John Wu <John.Wu at nersc.gov>
 //      Lawrence Berkeley National Laboratory
 // Copyright 1998-2008 the Regents of the University of California
 //
-// Primary contact: John Wu <John.Wu@nersc.gov>
+// Primary contact: John Wu <John.Wu at nersc.gov>
 #ifndef IBIS_EXPR_H
 #define IBIS_EXPR_H
 ///@file

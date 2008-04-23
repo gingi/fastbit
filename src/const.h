@@ -1,10 +1,10 @@
 // File: $Id$
-// Author: John Wu <John.Wu@nersc.gov>
+// Author: John Wu <John.Wu at nersc.gov>
 //      Lawrence Berkeley National Laboratory
 //Copyright 2000-2008 the Regents of the University of California
 #ifndef IBIS_CONST_H
 #define IBIS_CONST_H
-// Primary contact: John Wu <John.Wu@nersc.gov>
+// Primary contact: John Wu <John.Wu at nersc.gov>
 //
 ///@file
 /// Defines common data types, constants and macros.  Used by all files in

@@ -1,5 +1,5 @@
 // File: $Id$
-// Author: John Wu <John.Wu@ACM.org>
+// Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 the Regents of the University of California
 #ifndef IBIS_MESHQUERY_H

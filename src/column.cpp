@@ -1,5 +1,5 @@
 //File: $Id$
-// Author: John Wu <John.Wu@ACM.org>
+// Author: John Wu <John.Wu at ACM.org>
 // Copyright 2000-2008 the Regents of the University of California
 //
 // This file contains implementatioin of the functions defined in column.h
