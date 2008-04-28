@@ -84,7 +84,7 @@ extern "C" {
 
     ///@brief The opaque object used hold a FastBit query.
     struct FastBitQuery;
-    ///@brief A handle to use used by C client.
+    ///@brief A handle to be used by C clients.
     typedef struct FastBitQuery* FastBitQueryHandle;
 
     /// @brief Build a new FastBit query.
@@ -117,6 +117,9 @@ extern "C" {
     FASTBIT_DLLSPEC const char*
     fastbit_get_where_clause(FastBitQueryHandle query);
 
+    /// @defgroup FastBitRawResult Functions to provide column-wise
+    /// accesses to query results.
+    /// @{
     /// Return a pointer to an array holding the values of attribute @c att
     /// that qualifies the specified selection conditions.
     /// @note The caller can NOT free the memory pointed by the pointer
@@ -153,9 +156,14 @@ extern "C" {
     FASTBIT_DLLSPEC const uint64_t*
     fastbit_get_qualified_ulongs(FastBitQueryHandle query,
 				 const char* cname);
+    ///@}
 
+    /// @defgroup FastBitResultSet Functions to provide row-wise accesses
+    /// to query results.
+    /// @{
     ///@brief The opaque object used to hold a result set.
     struct FastBitResultSet;
+    ///@brief A handle to identify a set of query results.
     typedef struct FastBitResultSet* FastBitResultSetHandle;
 
     ///@brief Build a new result set from a query object.
@@ -213,6 +221,7 @@ extern "C" {
     FASTBIT_DLLSPEC const char*
     fastbit_result_set_getString(FastBitResultSetHandle rset,
 				 unsigned position);
+    /// @}
 
     /// Flush the in-memory data to the named directory.
     FASTBIT_DLLSPEC int fastbit_flush_buffer(const char *dir);

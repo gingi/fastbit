@@ -37,6 +37,7 @@ public:
 
     virtual stringList columnNames() const;
     virtual typeList columnTypes() const;
+    virtual int addPartition(const char* dir);
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;

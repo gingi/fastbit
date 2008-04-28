@@ -62,10 +62,11 @@ class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
     /// Create a table object from the specified data directory.
     static ibis::table* create(const char* dir);
-    /// Create a table object from a pair of data directories.  This table
-    /// maintains two sets of data files so that it can continue to process
-    /// queries using existing data records while accepting new data
-    /// records.
+    /// Create a table object from a pair of data directories.  The
+    /// intention of maintaining two sets of data files is to continue
+    /// processing queries using one set while accepting new data records
+    /// with the other.  However, such functionality is not currently
+    /// implemented!
     static ibis::table* create(const char* dir1, const char* dir2);
 
     /// Destructor.
@@ -107,7 +108,8 @@ public:
     /// new table.  The list of strings passed to this function are
     /// interpreted as a set of names followed by a set of functions.
     /// Currently, only functions COUNT, AVG, MIN, MAX, and SUM are
-    /// supported.
+    /// supported, and the functions can only accept a column name as
+    /// arguments.
     virtual table* groupby(const stringList&) const=0;
     /// Perform group-by operation.  The column names and operations are
     /// separated by comma.
@@ -124,6 +126,14 @@ public:
     virtual void orderby(const char*);
     /// Reverse the order of the rows.
     virtual void reverseRows()=0;
+
+    /// Add data partition defined in the named directory.  It returns 0 to
+    /// indicate success, a negative number to indicate failure, and a
+    /// positive number to indicate some adversary conditions.
+    /// @note On systems that supports readdir and friend (all
+    /// unix-type of systems do), it also recursively traverses all
+    /// subdirectories.
+    virtual int addPartition(const char* dir) {return -1;}
 
     /// @{
 
@@ -153,13 +163,13 @@ public:
     virtual void indexSpec(const char* opt, const char* colname=0) =0;
     /// @}
 
-    /// @{
     /// Retrieve all values of the named column.  The member functions of
     /// this class only support access to whole column at a time.  Use @c
     /// table::cursor class for row-wise accesses.  For fixed-width data
     /// types, the raw pointers are used to point to the values to be
     /// returned.  In these cases, the caller is responsible for allocating
     /// enough storage for the values to be returned.
+    /// @{
     virtual int64_t getColumnAsBytes(const char* cname, char* vals) const=0;
     virtual int64_t getColumnAsUBytes(const char* cname,
 				      unsigned char* vals) const=0;

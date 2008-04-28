@@ -1,3 +1,11 @@
+2008-04-26 John Wu <John.Wu at ACM.org>
+	* src/part.h: change ibis::util::tablesFrom??? to return the
+	number of new partition they create
+	* src/table.h: add function addPartition
+	* src/mensa.cpp: add function addPartiton
+	* src/query.cpp:199 add statements to delete dslock in
+	ibis::query::setTable
+	
 2008-04-16 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add test case 3 to check-text to exercise the
 	operator IN

@@ -196,6 +196,10 @@ int ibis::query::setTable(const part* tbl) {
     if (tbl->nRows() == 0 || tbl->nColumns() == 0) return -1;
 
     writeLock control(this, "setTable");
+    if (dslock != 0) { // release the read lock on the data partition
+	delete dslock;
+	dslock = 0;
+    }
     if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
 	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
 	dstime = 0;
@@ -258,9 +262,11 @@ int ibis::query::setTable(const part* tbl) {
 	    state = SET_COMPONENTS;
 	}
     }
+    else {
+	state = SET_PREDICATE;
+    }
     if (ibis::gVerbose > 0) {
-	logMessage("setTable", "new dataset name %s",
-		   table0->name());
+	logMessage("setTable", "new dataset name %s", table0->name());
     }
     return 0;
 } // ibis::query::setTable
@@ -453,7 +459,8 @@ int ibis::query::setWhereClause(const char* str) {
     }
     if (ibis::gVerbose > 0) {
 	logMessage("setWhereClause", "WHERE \"%s\"", str);
-	LOGGER(ibis::gVerbose >= 4) << "  Translated the WHERE clause into: " << *expr;
+	LOGGER(ibis::gVerbose >= 4)
+	    << "  Translated the WHERE clause into: " << *expr;
     }
     return 0;
 } // ibis::query::setWhereClause
@@ -593,9 +600,9 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(ibis::gVerbose >= 2) << "query[" << myID
-	      << "]::setWhereClause converted three arrays to \""
-	      << *expr << "\"";
+    LOGGER(ibis::gVerbose >= 2)
+	<< "query[" << myID << "]::setWhereClause converted three arrays to \""
+	<< *expr << "\"";
     return 0;
 } // ibis::query::setWhereClause
 
@@ -686,9 +693,10 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(ibis::gVerbose >= 2) << "query[" << myID
-	      << "]::setWhereClause accepted new query conditions \""
-	      << *expr << "\"";
+    LOGGER(ibis::gVerbose >= 2)
+	<< "query[" << myID
+	<< "]::setWhereClause accepted new query conditions \""
+	<< *expr << "\"";
     return 0;
 } // ibis::query::setWhereClause
 
@@ -1585,11 +1593,12 @@ std::string ibis::query::removeComplexConditions() {
 	std::ostringstream oss0, oss1;
 	simple->print(oss0);
 	tail->print(oss1);
-	LOGGER(ibis::gVerbose >= 3) << "ibis::query::removeComplexConditions split \""
-		  << (condition ? condition : "<long expression>")
-		  << "\" into \"" << *simple << "\" ("
-		  << oss0.str() << ") AND \"" << *tail << "\" ("
-		  << oss1.str() << ")";
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::query::removeComplexConditions split \""
+	    << (condition ? condition : "<long expression>")
+	    << "\" into \"" << *simple << "\" ("
+	    << oss0.str() << ") AND \"" << *tail << "\" ("
+	    << oss1.str() << ")";
 
 	delete simple;
 	delete tail;
@@ -2471,8 +2480,9 @@ void ibis::query::reorderExpr() {
 
     // call qExpr::reorder to do the actual work
     double ret = expr->reorder(wt);
-    LOGGER(ibis::gVerbose >= 6) << "query[" << myID << "]:reorderExpr returns " << ret
-	      << ".  The new query expression is \n" << *expr;
+    LOGGER(ibis::gVerbose >= 6)
+	<< "query[" << myID << "]:reorderExpr returns " << ret
+	<< ".  The new query expression is \n" << *expr;
 } // ibis::query::reorderExpr
 
 void ibis::query::getBounds() {
@@ -2549,8 +2559,9 @@ void ibis::query::getBounds() {
 void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 			     ibis::bitvector& high) const {
     if (term == 0) return;
-    LOGGER(ibis::gVerbose >= 8) << "query[" << myID
-	      << "]::doEstimate -- starting to estimate " << *term;
+    LOGGER(ibis::gVerbose >= 8)
+	<< "query[" << myID << "]::doEstimate -- starting to estimate "
+	<< *term;
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
@@ -2748,14 +2759,15 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 #else
     if (ibis::gVerbose >= 30 ||
 	((low.bytes()+high.bytes()) < (2U << ibis::gVerbose))) {
-	LOGGER(ibis::gVerbose >= 0) << "low \n" << low
-			       << "\nhigh \n" << high;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "low \n" << low << "\nhigh \n" << high;
     }
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doEstimate(" << *term
-	      << ") --> [" << low.cnt() << ", "
-	      << (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
+    LOGGER(ibis::gVerbose >= 5)
+	<< "ibis::query[" << myID << "]::doEstimate(" << *term
+	<< ") --> [" << low.cnt() << ", "
+	<< (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
 #endif
 } // ibis::query::doEstimate
 
@@ -2981,8 +2993,9 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ht.set(0, table0->nRows());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8) << "query::[" << myID
-	      << "]::doScan -- reading data entries to resolve " << *term;
+    LOGGER(ibis::gVerbose >= 8)
+	<< "query::[" << myID
+	<< "]::doScan -- reading data entries to resolve " << *term;
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
@@ -3076,10 +3089,10 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8) << "query::[" << myID
-	      << "]::doScan -- reading data entries to resolve " << *term
-	      << " with mask.size() = " << mask.size() << " and mask.cnt() = "
-	      << mask.cnt();
+    LOGGER(ibis::gVerbose >= 8)
+	<< "query::[" << myID << "]::doScan -- reading data to resolve "
+	<< *term << " with mask.size() = " << mask.size()
+	<< " and mask.cnt() = " << mask.cnt();
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
@@ -3418,8 +3431,9 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doScan(" << *term
-	      << ") --> " << ht.cnt() << ", ierr = " << ierr;
+    LOGGER(ibis::gVerbose >= 5)
+	<< "ibis::query[" << myID << "]::doScan(" << *term
+	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doScan
@@ -3431,8 +3445,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, table0->nRows());
 	return 0;
     }
-    LOGGER(ibis::gVerbose >= 6) << "query[" << myID
-	      << "]::doEvaluate -- starting to evaluate " << *term;
+    LOGGER(ibis::gVerbose >= 6)
+	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
+	<< *term;
 
     int ierr = 0;
     switch (term->getType()) {
@@ -3573,8 +3588,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5) << "ibis::query[" << myID << "]::doEvaluate(" << *term
-	      << ") --> " << ht.cnt() << ", ierr = " << ierr;
+    LOGGER(ibis::gVerbose >= 5)
+	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
+	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doEvaluate
@@ -3592,8 +3608,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8) << "query[" << myID << "]::doEvaluate -- starting to evaluate "
-	      << *term;
+    LOGGER(ibis::gVerbose >= 8)
+	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
+	<< *term;
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
@@ -3758,9 +3775,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 4) << "ibis::query[" << myID << "]::doEvaluate(" << *term
-	      << ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
-	      << ", ierr = " << ierr;
+    LOGGER(ibis::gVerbose >= 4)
+	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
+	<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
+	<< ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doEvaluate
@@ -4262,9 +4280,9 @@ void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
     if (terms.empty()) // no join terms to use
 	return;
 
-    LOGGER(ibis::gVerbose >= 7) << "ibis::query[" << myID
-	      << "]::addJoinConstraints -- current query expression\n"
-	      << *exp0;
+    LOGGER(ibis::gVerbose >= 7)
+	<< "ibis::query[" << myID
+	<< "]::addJoinConstraints -- current query expression\n" << *exp0;
 
     for (uint32_t i = 0; i < terms.size(); ++ i) {
 	const ibis::rangeJoin* jn = terms[i];
@@ -4343,9 +4361,9 @@ void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
 	    }
 	}
     }
-    LOGGER(ibis::gVerbose >= 7) << "ibis::query[" << myID << "]::addJoinConstraints -- "
-	"query expression with additional constraints\n"
-	      << *exp0;
+    LOGGER(ibis::gVerbose >= 7)
+	<< "ibis::query[" << myID << "]::addJoinConstraints -- "
+	"query expression with additional constraints\n" << *exp0;
 } // ibis::query::addJoinConstraints
 
 /// This function only counts the number of hits; it does produce the

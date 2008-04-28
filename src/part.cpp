@@ -5647,7 +5647,7 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
 	va_end(args);
 
 	{
-	    ibis::util::logger lg(ibis::gVerbose + 2);
+	    ibis::util::logger lg(2);
 	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " -- " << s;
 	    if (errno != 0)
@@ -5658,7 +5658,7 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
     else {
 #endif
 	{
-	    ibis::util::logger lg(ibis::gVerbose + 2);
+	    ibis::util::logger lg(2);
 	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " == " << fmt << " ...";
 	    if (errno != 0)
@@ -14995,14 +14995,17 @@ uint32_t ibis::part::vault::tellReal() const {
 /// Examining the given director to look for the metadata files and
 /// constructs ibis::part.  Can descend into subdirectories through opendir
 /// family of functions.
-void ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
-    if (dir1 == 0) return;
+unsigned ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
+    if (dir1 == 0) return 0;
+    unsigned int cnt = 0;
+    if (ibis::gVerbose > 1)
+	logMessage("tablesFromDir", "examining %s", dir1);
+
     try {
-	if (ibis::gVerbose > 1)
-	    logMessage("tablesFromDir", "examining %s", dir1);
 	ibis::part* tmp = new ibis::part(dir1, 0);
 	if (tmp) {
 	    if (tmp->name() && tmp->nRows()) {
+		++ cnt;
 		ibis::util::mutexLock
 		    lock(&ibis::util::envLock, "tablesFromDir");
 		ibis::partList::iterator it = tlist.find(tmp->name());
@@ -15043,7 +15046,7 @@ void ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
     long len = strlen(dir1);
 
     DIR* dirp = opendir(dir1);
-    if (dirp == 0) return;
+    if (dirp == 0) return cnt;
     struct dirent* ent = 0;
     while ((ent = readdir(dirp)) != 0) {
 	if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
@@ -15061,26 +15064,30 @@ void ibis::util::tablesFromDir(ibis::partList& tlist, const char *dir1) {
 	Stat_T st1;
 	if (UnixStat(nm1, &st1)==0) {
 	    if ((st1.st_mode & S_IFDIR) == S_IFDIR) {
-		tablesFromDir(tlist, nm1);
+		cnt += tablesFromDir(tlist, nm1);
 	    }
 	}
     }
     closedir(dirp);
 #endif
+    return cnt;
 } // ibis::util::tablesFromDir
 
 /// Read the two directories, if there are matching subdirs, construct an
 /// ibis::part from them.  Will descend into the subdirectories when run on
 /// unix systems to look for matching subdirectories.
-void ibis::util::tablesFromDir(ibis::partList &tables,
-			       const char* adir, const char* bdir) {
-    if (adir == 0 || *adir == 0) return;
+unsigned ibis::util::tablesFromDir(ibis::partList &tables,
+				   const char* adir, const char* bdir) {
+    if (adir == 0 || *adir == 0) return 0;
+    unsigned int cnt = 0;
     if (ibis::gVerbose > 1)
 	logMessage("tablesFromDir", "examining %s (%s)", adir,
 		   (bdir ? bdir : "?"));
+
     try {
 	part* tbl = new ibis::part(adir, bdir);
 	if (tbl->name() && tbl->nRows()>0 && tbl->nColumns()>0) {
+	    ++ cnt;
 	    ibis::util::mutexLock
 		lock(&ibis::util::envLock, "tablesFromDir");
 	    ibis::partList::const_iterator it =
@@ -15116,7 +15123,7 @@ void ibis::util::tablesFromDir(ibis::partList &tables,
 	    delete tbl;
 	    tbl = 0;
 	}
-	if (tbl) return; // if a new part.has been created, return now
+	//if (tbl) return cnt; // if a new part.has been created, return now
     }
     catch (const char* s) {
 	logMessage("tablesFromDir", "received a string "
@@ -15131,7 +15138,7 @@ void ibis::util::tablesFromDir(ibis::partList &tables,
 		   "exception");
     }
 #if defined(HAVE_DIRENT_H)
-    if (bdir == 0) return; // must have both adir and bdir
+    if (bdir == 0) return cnt; // must have both adir and bdir
     // on unix machines, the directories adir and bdir may contain
     // subdirectories -- this section of code reads the subdirectories to
     // generate more tables
@@ -15141,7 +15148,7 @@ void ibis::util::tablesFromDir(ibis::partList &tables,
     len = (len<j) ? j : len;
 
     DIR* dirp = opendir(adir);
-    if (dirp == 0) return;
+    if (dirp == 0) return cnt;
     struct dirent* ent = 0;
     while ((ent = readdir(dirp)) != 0) {
 	if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
@@ -15161,17 +15168,19 @@ void ibis::util::tablesFromDir(ibis::partList &tables,
 	if (stat(nm1, &st1)==0 && stat(nm2, &st2)==0) {
 	    if (((st1.st_mode & S_IFDIR) == S_IFDIR) &&
 		((st2.st_mode & S_IFDIR) == S_IFDIR)) {
-		tablesFromDir(tables, nm1, nm2);
+		cnt += tablesFromDir(tables, nm1, nm2);
 	    }
 	}
     }
     closedir(dirp);
 #endif
+    return cnt;
 } // ibis::util::tablesFromDir
 
 // read the parameters dataDir1 and dataDir2 to build tables
-void ibis::util::tablesFromResources(ibis::partList& tables,
-				     const ibis::resource &res) {
+unsigned ibis::util::tablesFromResources(ibis::partList& tables,
+					 const ibis::resource &res) {
+    unsigned int cnt = 0;
     const char* dir1 = res.getValue("activeDir");
     if (dir1 == 0) {
 	dir1 = res.getValue("dataDir1");
@@ -15203,14 +15212,15 @@ void ibis::util::tablesFromResources(ibis::partList& tables,
 	    logMessage("tablesFromResources", "examining %s (%s)", dir1,
 		       (dir2 ? dir2 : "?"));
 	if (dir2 != 0 && *dir2 != 0)
-	    tablesFromDir(tables, dir1, dir2);
+	    cnt = tablesFromDir(tables, dir1, dir2);
 	else
-	    tablesFromDir(tables, dir1);
+	    cnt = tablesFromDir(tables, dir1);
     }
 
     for (ibis::resource::gList::const_iterator it = res.gBegin();
 	 it != res.gEnd(); ++it)
-	tablesFromResources(tables, *((*it).second));
+	cnt += tablesFromResources(tables, *((*it).second));
+    return cnt;
 } // ibis::util::tablesFromResources
 
 // explicit instantiations of the templated functions

@@ -31,7 +31,8 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
     if (name_.empty() && ! parts.empty()) {
 	// take on the name of the first partition
 	ibis::partList::const_iterator it = parts.begin();
-	name_ = (*it).first;
+	name_ = "T-";
+	name_ += (*it).first;
 	if (desc_.empty()) {
 	    if (dir != 0 && *dir != 0)
 		desc_ = dir;
@@ -69,7 +70,8 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     if (name_.empty() && ! parts.empty()) {
 	// take on the name of the first partition
 	ibis::partList::const_iterator it = parts.begin();
-	name_ = (*it).first;
+	name_ = "T-";
+	name_ += (*it).first;
 	if (desc_.empty()) {
 	    if (dir1 != 0 && *dir1 != 0) {
 		desc_ = dir1;
@@ -103,6 +105,51 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
 		    << nrows << "row" << (nrows>1 ? "s" : "");
     }
 } // constructor with two directories as arguments
+
+int ibis::mensa::addPartition(const char* dir) {
+    const size_t npold = parts.size();
+    const size_t ncold = naty.size();
+    const uint64_t nrold = nrows;
+    unsigned int newparts = 0;
+    if (dir != 0 && *dir != 0)
+	newparts = ibis::util::tablesFromDir(parts, dir);
+    if (newparts == 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "ibis::mensa::addPartition(" << dir
+	    << ") did not find any valid data partition";
+	return -2;
+    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "ibis::mensa::addPartition(" << dir << ") found " << newparts
+	<< " new data partition" << (newparts > 1 ? "s" : "");
+
+    nrows = 0;
+    for (ibis::partList::const_iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	(*it).second->combineNames(naty);
+	nrows += (*it).second->nRows();
+    }
+
+    if (name_.empty() && ! parts.empty()) {
+	// take on the name of the first partition
+	ibis::partList::const_iterator it = parts.begin();
+	name_ = "T-";
+	name_ += (*it).first;
+	if (desc_.empty()) {
+	    if (dir != 0 && *dir != 0)
+		desc_ = dir;
+	    else
+		desc_ = "data specified in RC file";
+	}
+    }
+    LOGGER(ibis::gVerbose > 0)
+	<< "ibis::mensa::addPartition(" << dir
+	<< ") increases the number partitions from " << npold << " to "
+	<< parts.size() << ", the number of rows from " << nrold << " to "
+	<< nrows << ", and the number of columns from " << ncold << " to "
+	<< naty.size();
+    return (naty.size() > ncold && ncold > 0);
+} // ibis::mensa::addPartition
 
 void ibis::mensa::clear() {
     LOGGER(ibis::gVerbose >= 3)
@@ -400,7 +447,17 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 	std::string de = "SELECT ";
 	de += sel;
 	de += " FROM ";
-	de += name_;
+	if (name_[0] == 'T' && name_[1] == '-') {
+	    ibis::partList::const_iterator it = parts.begin();
+	    de += (*it).second->name();
+	    for (++ it; it != parts.end(); ++ it) {
+		de += ", ";
+		de += (*it).second->name();
+	    }
+	}
+	else {
+	    de += name_;
+	}
 	de += " WHERE ";
 	de += cond;
 	std::string tn = ibis::util::shortName(de);

@@ -806,15 +806,15 @@ namespace ibis {
     // deal with the reconstruction of partitions.
     namespace util {
 	/// Look for data directories in the given pair of directories.
-	void FASTBIT_CXX_DLLSPEC
+	unsigned int FASTBIT_CXX_DLLSPEC
 	tablesFromDir(ibis::partList& tables,
 		      const char *adir, const char *bdir);
 	/// Look into the given directory for table.tdc files
-	void FASTBIT_CXX_DLLSPEC
+	unsigned int FASTBIT_CXX_DLLSPEC
 	tablesFromDir(ibis::partList& tables, const char *adir);
 	/// Reconstruct partitions using data directories specified in the
 	/// resources.
-	void FASTBIT_CXX_DLLSPEC
+	unsigned int FASTBIT_CXX_DLLSPEC
 	tablesFromResources(ibis::partList& tables, const ibis::resource& res);
     } // namespace util
 } // namespace ibis

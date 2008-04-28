@@ -3,12 +3,13 @@
 // Copyright 2007-2008 the Regents of the University of California
 /** @file thula.cpp
 
-This is a simple test program for the querying functions of
-ibis::table.  It assumes that the data is already on disk.
+This is a simple test program for the querying functions of ibis::table.
+The data must already be on disk and all data directories are treated as
+one ibis::table.
 
 Egretta Thula is the Latin name for Snowy Egret, one of John's favorite
-birds.  They nest near his house in Fremont, CA (see
-http://msnucleus.org/watersheds/elizabeth/duck_island.htm).
+birds, see
+http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -24,7 +25,11 @@ typedef std::set< const char*, ibis::lessi > qList;
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	      << "[-d directory_containing_a_dataset] [-s select-clause] "
-	      << "[-w where-clause] [-v[=| ]verbose_level]" << std::endl;
+	      << "[-w where-clause] [-v[=| ]verbose_level]"
+	      << "\nNote: data in all directories specified by -c and -d "
+	"options are considered in one table!"
+	      << "\nNote: only the last select clause is used."
+	      << "\nNote: multiple where clauses will be processed on after another." << std::endl;
 } // usage
 
 // Adds a table defined in the named directory.
@@ -37,8 +42,10 @@ static void addTables(ibis::tableList& tlist, const char* dir) {
 } // addTables
 
 // function to parse the command line arguments
-static void parse_args(int argc, char** argv, ibis::tableList& tlist,
+static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		       qList& qcnd, const char*& sel) {
+    std::vector<const char*> dirs;
+
     sel = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
@@ -53,16 +60,13 @@ static void parse_args(int argc, char** argv, ibis::tableList& tlist,
 		if (i+1 < argc) {
 		    ++ i;
 		    ibis::gParameters().read(argv[i]);
-		    // try to sift through the configuration files to find
-		    // a data table
-		    addTables(tlist, static_cast<const char*>(0));
 		}
 		break;
 	    case 'd':
 	    case 'D':
 		if (i+1 < argc) {
 		    ++ i;
-		    addTables(tlist, argv[i]);
+		    dirs.push_back(argv[i]);
 		}
 		break;
 	    case 'q':
@@ -109,15 +113,15 @@ static void parse_args(int argc, char** argv, ibis::tableList& tlist,
 	}
     } // for (inti=1; ...)
 
-    if (tlist.empty()) {
-	ibis::table *t = ibis::table::create(0);
-	if (t != 0) {
-	    if (t->nRows() != 0 && t->nColumns() != 0)
-		tlist.add(t);
-	    delete t;
-	}
+    tbl = ibis::table::create(0);
+    for (std::vector<const char*>::const_iterator it = dirs.begin();
+	 it != dirs.end(); ++ it) {
+	if (tbl != 0)
+	    tbl->addPartition(*it);
+	else
+	    tbl = ibis::table::create(*it);
     }
-    if (tlist.empty() || qcnd.empty()) {
+    if (tbl == 0 || qcnd.empty()) {
 	usage(argv[0]);
 	exit(-2);
     }
@@ -133,19 +137,13 @@ static void parse_args(int argc, char** argv, ibis::tableList& tlist,
     ibis::gVerbose += 3;
 #endif
 #endif
+    if (ibis::gVerbose > 0) {
+	tbl->describe(std::cout);
+    }
     std::cout << "" << argv[0] << "\nqueries: ";
     for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
 	std::cout  << " " << *it;
     std::cout << std::endl;
-    if (ibis::gVerbose > 0) {
-	if (tlist.size()) {
-	    std::cout << "Table" << (tlist.size()>1 ? "s:\n" : ":\n");
-	    for (ibis::tableList::iterator it = tlist.begin();
-		 it != tlist.end(); ++it)
-		std::cout << (*it).first << "\n";
-	    std::cout << std::endl;
-	}
-    }
 } // parse_args
 
 static void clearBuffers(const ibis::table::typeList& tps,
@@ -567,7 +565,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
     std::cout << std::endl;
 
     // test the function groupby
-    if (sel->nColumns() > 0) {
+    if (sel->nColumns() > 0 && ibis::gVerbose > 1) {
+	std::cout << "\n-- *** extra test for function groupby *** --\n";
 	ibis::table* gb = 0;
 	ibis::nameList nl(sstr);
 	if (nl.size() > 0) {
@@ -636,12 +635,12 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
 } // doQuery
 
 int main(int argc, char** argv) {
-    ibis::tableList tlist;
-    qList qcnd; // list of properties
-    const char* sel;
+    ibis::table* tbl = 0;
+    const char* sel; // only one select clause
+    qList qcnd; // list of query conditions (where clauses)
 
-    parse_args(argc, argv, tlist, qcnd, sel);
-    if (tlist.empty()) {
+    parse_args(argc, argv, tbl, qcnd, sel);
+    if (tbl == 0) {
 	std::clog << *argv << " must have at least one data table."
 		  << std::endl;
 	exit(-1);
@@ -652,16 +651,9 @@ int main(int argc, char** argv) {
 	exit(-2);
     }
 
-    for (ibis::tableList::iterator it = tlist.begin();
-	 it != tlist.end();
-	 ++it) {
-	if ((*it).second->nRows() == 0 ||
-	    (*it).second->nColumns() == 0) continue;
-
-	for (qList::const_iterator qit = qcnd.begin();
-	     qit != qcnd.end(); ++ qit) {
-	    doQuery(*((*it).second), *qit, sel);
-	}
+    for (qList::const_iterator qit = qcnd.begin();
+	 qit != qcnd.end(); ++ qit) {
+	doQuery(*tbl, *qit, sel);
     }
     return 0;
 } // main
