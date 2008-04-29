@@ -74,6 +74,13 @@ public:
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char* sel, const char* cond) const;
+    /// A variation of the function select defined in ibis::table.  It
+    /// accepts an extra argument for caller to specify a list of names of
+    /// data partitions that will participate in the select operation.  The
+    /// argument pts may contain wild characters accepted by SQL function
+    /// 'LIKE', '_' and '%'.
+    virtual table* select2(const char* sel, const char* cond,
+			   const char* pts) const;
 
     virtual void orderby(const stringList&);
     /// Reversing the ordering of the rows on disk requires too much work
@@ -103,7 +110,10 @@ protected:
     /// Clear the existing content.
     void clear();
     /// Compute the number of hits.
-    int64_t computeHits(const char* cond) const;
+    int64_t computeHits(const char* cond) const {
+	return computeHits(cond, parts);}
+    /// Compute he number of hits from a list of data partitions
+    static int64_t computeHits(const char* cond, const ibis::partList& pts);
     /// Append new data (in @c from) to a larger array (pointed to by @c to).
     template <typename T>
     void addIncoreData(void*& to, const array_t<T>& from,

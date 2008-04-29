@@ -240,8 +240,10 @@ namespace ibis {
 	const char* operator*() const {return cstr;};
 	size_t size() const {return cvec.size();};
 
-	/// Add more names to the list.
+	/// Replace existing content with these names.  Remove existing names.
 	void select(const char* str);
+	/// Add more names to the list.  Keep existing content.
+	void add(const char* str);
 	/// Find the order of the @c key in the list.  If the @c key is in
 	/// the list it returns the position of the @c key, otherwise it
 	/// returns the size of the name list.
@@ -485,7 +487,9 @@ namespace ibis {
 	/// string indicate standard output.
 	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 
-	/// Match the string @c str against a simple pattern @c pat.
+	/// Match the string @c str against a simple pattern @c pat.  The
+	/// pattern may use two wild characters defined for SQL function
+	/// LIKE, '_' and '%'.
 	bool strMatch(const char* str, const char* pat);
 
 	/// Return the current time in string format as @c asctime_r.

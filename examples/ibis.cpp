@@ -2236,8 +2236,21 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		if (ibis::gVerbose > 10 || testing > 0)
 		    xdoQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str());
 	    }
-	    else {
-		LOGGER(ibis::gVerbose >= 0)
+	    else { // is it a pattern ?
+		unsigned int cnt = 0;
+		for (tit == tlist.begin(); tit != tlist.end(); ++ tit) {
+		    if (ibis::util::strMatch((*tit).first, *it)) {
+			if (verify_rid || sequential_scan ||
+			    (*tit).second->getMeshShape().empty())
+			    doQuery(uid, (*tit).second, wstr.c_str(),
+				    sstr.c_str(), ordkeys.c_str(), direction,
+				    limit);
+			else
+			    doMeshQuery(uid, (*tit).second, wstr.c_str(),
+					sstr.c_str());
+		    }
+		}
+		LOGGER(cnt == 0 && ibis::gVerbose >= 0)
 		    << *it << " is not a data partition name.";
 	    }
 	}

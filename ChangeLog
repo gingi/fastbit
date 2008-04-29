@@ -1,3 +1,12 @@
+2008-04-28 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp:2240 add code to match the SQL patterns in
+	data partition names (a feature that was promised in
+	ibisCommandLine.html but was lost somehow)
+	* src/query.cpp: add function ibis::util::nameList::add
+	* src/mensa.h: add function select2
+	* src/util.cpp: change ibis::util::strMatch to be case insensitive
+	* examples/thula.cpp: add option -f requested by Jon Strabala
+
 2008-04-26 John Wu <John.Wu at ACM.org>
 	* src/part.h: change ibis::util::tablesFrom??? to return the
 	number of new partition they create

@@ -95,6 +95,70 @@ void ibis::nameList::select(const char* str) {
     }
 } // ibis::nameList::select
 
+void ibis::nameList::add(const char* str) {
+    if (str == 0) return;
+    if (*str == static_cast<char>(0)) return;
+
+    // first put the incoming string into a list of strings
+    std::set<std::string> strlist;
+    // input existing strings
+    for (unsigned i = 0; i < cvec.size(); ++ i)
+	strlist.insert(cvec[i]);
+
+    const char* s = str;
+    const char* t = 0;
+    do { // part new strings
+	s += strspn(s, ibis::util::delimiters); // remove leading space
+	if (*s) {
+	    t = strpbrk(s, ibis::util::delimiters);
+	    if (t) { // found a delimitor
+		std::string tmp;
+		while (s < t) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	    else { // no more delimitor
+		std::string tmp;
+		while (*s) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	}
+    } while (s != 0 && *s != 0);
+
+    if (! strlist.empty()) {
+	clear(); // clear existing content
+	uint32_t tot = strlist.size();
+	std::set<std::string>::const_iterator it;
+	for (it = strlist.begin(); it != strlist.end(); ++ it)
+	    tot += it->size();
+
+	buff = new char[tot];
+	cstr = new char[tot];
+
+	it = strlist.begin();
+	strcpy(buff, it->c_str());
+	strcpy(cstr, it->c_str());
+	cvec.push_back(buff);
+	char* s1 = buff + it->size();
+	char* t1 = cstr + it->size();
+	for (++ it; it != strlist.end(); ++ it) {
+	    ++ s1;
+	    *t1 = ',';
+	    ++ t1;
+	    strcpy(s1, it->c_str());
+	    strcpy(t1, it->c_str());
+	    cvec.push_back(s1);
+	    s1 += it->size();
+	    t1 += it->size();
+	}
+    }
+} // ibis::nameList::select
+
 // the list of names are sorted
 size_t ibis::nameList::find(const char* key) const {
     const size_t sz = cvec.size();

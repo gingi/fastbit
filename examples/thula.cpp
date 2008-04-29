@@ -16,6 +16,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #endif
 #include "table.h"	// ibis::table
 #include "resource.h"	// ibis::gParameters
+#include "mensa.h"	// ibis::mensa::select2
 #include <set>		// std::set
 
 // local data types
@@ -25,11 +26,19 @@ typedef std::set< const char*, ibis::lessi > qList;
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	      << "[-d directory_containing_a_dataset] [-s select-clause] "
-	      << "[-w where-clause] [-v[=| ]verbose_level]"
+	      << "[-w where-clause] [-f from-clause] [-v[=| ]verbose_level]"
+	      << "\nPerforms a projection of rows satisfying the specified "
+	"conditions, a very limited version of SQL SELECT select-cuase "
+	"FROM from-clause WHERE where-clause.  Each where-clause will "
+	"be used in turn.\n"
 	      << "\nNote: data in all directories specified by -c and -d "
-	"options are considered in one table!"
-	      << "\nNote: only the last select clause is used."
-	      << "\nNote: multiple where clauses will be processed on after another." << std::endl;
+	"options are considered as one table!"
+	      << "\nNote: only the last select clause is used; a select "
+	"clause can only contain a list of column names."
+	      << "\nNote: only the last from clause is used; a from clause "
+	"specifies what data partitions participate in the query.  It may "
+	"contain '_' and '%'."
+	      << std::endl;
 } // usage
 
 // Adds a table defined in the named directory.
@@ -43,10 +52,11 @@ static void addTables(ibis::tableList& tlist, const char* dir) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
-		       qList& qcnd, const char*& sel) {
+		       qList& qcnd, const char*& sel, const char*& frm) {
     std::vector<const char*> dirs;
 
     sel = 0;
+    frm = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
 	    switch (argv[i][1]) {
@@ -67,6 +77,13 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		if (i+1 < argc) {
 		    ++ i;
 		    dirs.push_back(argv[i]);
+		}
+		break;
+	    case 'f':
+	    case 'F':
+		if (i+1 < argc) {
+		    ++ i;
+		    frm = argv[i];
 		}
 		break;
 	    case 'q':
@@ -140,9 +157,10 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     if (ibis::gVerbose > 0) {
 	tbl->describe(std::cout);
     }
-    std::cout << "" << argv[0] << "\nqueries: ";
+    std::cout << argv[0] << "\nSelect " << (sel ? sel : "count(*)")
+	      << "\nFrom " << (frm ? frm : tbl->name()) << "\nWhere -- ";
     for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
-	std::cout  << " " << *it;
+	std::cout  << "\n      " << *it;
     std::cout << std::endl;
 } // parse_args
 
@@ -514,7 +532,8 @@ static void printValues(const ibis::table& tbl) {
 } // printValues
 
 // evaluate a single query, print out the number of hits
-void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
+void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
+	     const char* fstr) {
     if (wstr == 0 || *wstr == 0) return;
     if (sstr != 0 && *sstr != 0 && strchr(sstr, '(') != 0) {
 	std::cerr << "doQuery(" << wstr << ", " << sstr
@@ -524,7 +543,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
     }
 
     uint64_t n0, n1;
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 1 && fstr == 0) {
 	tbl.estimate(wstr, n0, n1);
 	std::cout << "doQuery(" << wstr
 		  << ") -- the estimated number of hits on "
@@ -536,7 +555,22 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
 	if (n1 == 0U) return;
     }
     // function select returns a table containing the selected values
-    ibis::table *sel = tbl.select(sstr, wstr);
+    ibis::table *sel;
+    if (fstr == 0 || *fstr == 0) {
+	sel = tbl.select(sstr, wstr);
+    }
+    else {
+	const ibis::mensa* mns = dynamic_cast<const ibis::mensa*>(&tbl);
+	if (mns != 0) {
+	    sel = mns->select2(sstr, wstr, fstr);
+	}
+	else {
+	    std::cout << "Warning -- doQuery(" << wstr << " can not cast an "
+		"abstract ibis::table to the necessary concrete class.  "
+		"Will ignore the from clause " << fstr << std::endl;
+	    sel = tbl.select(sstr, wstr);
+	}
+    }
     if (sel == 0) {
 	std::cout << "doQuery(" << wstr << ") failed to produce any result"
 		  << std::endl;
@@ -564,8 +598,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
     }
     std::cout << std::endl;
 
-    // test the function groupby
-    if (sel->nColumns() > 0 && ibis::gVerbose > 1) {
+    // test the function groupby on the table sel
+    if (sel->nColumns() > 0 && ibis::gVerbose > 0) {
 	std::cout << "\n-- *** extra test for function groupby *** --\n";
 	ibis::table* gb = 0;
 	ibis::nameList nl(sstr);
@@ -637,9 +671,10 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr) {
 int main(int argc, char** argv) {
     ibis::table* tbl = 0;
     const char* sel; // only one select clause
+    const char* frm; // only one string to select different data partitions
     qList qcnd; // list of query conditions (where clauses)
 
-    parse_args(argc, argv, tbl, qcnd, sel);
+    parse_args(argc, argv, tbl, qcnd, sel, frm);
     if (tbl == 0) {
 	std::clog << *argv << " must have at least one data table."
 		  << std::endl;
@@ -653,7 +688,7 @@ int main(int argc, char** argv) {
 
     for (qList::const_iterator qit = qcnd.begin();
 	 qit != qcnd.end(); ++ qit) {
-	doQuery(*tbl, *qit, sel);
+	doQuery(*tbl, *qit, sel, frm);
     }
     return 0;
 } // main
