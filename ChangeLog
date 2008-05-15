@@ -1,3 +1,11 @@
+2008-05-15 John Wu <John.Wu at ACM.org>
+	* src/ixbylt.cpp: add code to read option ncoarse in index
+	specification, change default ncoarse to 31 based on the
+	heuristics of neutral space-time trade-off
+	* src/ixfuge.cpp:715, src/ixfuzz.cpp:135, change default ncoarse
+	to 44 based on the heuristics of neutral space-time trade-off
+	* src/ixpack.cpp: change the default number of coarse bins to 31
+
 2008-04-28 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:2240 add code to match the SQL patterns in
 	data partition names (a feature that was promised in

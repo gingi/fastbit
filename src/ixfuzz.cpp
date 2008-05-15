@@ -132,7 +132,7 @@ void ibis::fuzz::coarsen() {
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    unsigned ncoarse = 16; // default number of coarse bins
+    unsigned ncoarse = 44; // default for 32-bit ibis::bitvector::word_t
     {
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {

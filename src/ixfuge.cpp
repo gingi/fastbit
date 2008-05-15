@@ -712,7 +712,7 @@ void ibis::fuge::coarsen() {
     if (nobs < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    uint32_t ncoarse = 16; // default number of coarse bins
+    uint32_t ncoarse = 44; // default for 32-bit ibis::bitvector::word_t
     { // limit the scope of variables
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {

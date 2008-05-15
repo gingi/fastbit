@@ -33,17 +33,17 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	    if (i > 1)
 		j = (nbins > i ? (nbins+i-1)/i : nbins);
 	    else
-		j = (nbins > 16 ? 16 : nbins);
+		j = (nbins > 63 ? 31 : nbins);
 	}
 	else if (strstr(spec, "ncoarse=") != 0) { // number of coarse bins
 	    const char* tmp = 8+strstr(spec, "ncoarse=");
 	    j = atoi(tmp);
 	    if (j <= 2)
-		j = (nbins > 16 ? 16 : nbins);
+		j = (nbins > 63 ? 31 : nbins);
 	}
-	else { // default -- 16 coarse bins
-	    if (nbins > 31) {
-		j = 16;
+	else { // default -- 31 coarse bins
+	    if (nbins > 63) {
+		j = 31;
 	    }
 	    else {
 		j = nbins;

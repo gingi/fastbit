@@ -131,7 +131,17 @@ void ibis::bylt::coarsen() {
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    const unsigned ncoarse = 16; // default number of coarse bins
+    unsigned ncoarse = 31; // default for 32-bit ibis::bitvector::word_t
+    {
+	const char* spec = col->indexSpec();
+	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
+	    // number of coarse bins specified explicitly
+	    const char* tmp = 8+strstr(spec, "ncoarse=");
+	    unsigned j = atoi(tmp);
+	    if (j > 4)
+		ncoarse = j;
+	}
+    }
 
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes
