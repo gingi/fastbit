@@ -1,3 +1,10 @@
+Version b0.9.3
+-- update the range-equality encoding (ibis::bylt and ibis::pack) and
+   interval-equality encoding (ibis::fuge and ibis::fuzz) to use the new
+   default values for the numbers of coarse bins based on the neutral
+   space-time trade-off heuristics
+-- add option -f to examples/thula.cpp (requested by Jon Strabala)
+
 Wed Apr 16 08:28:46 PDT 2008
 Version b0.9.2
 -- remove the statements that deletes index::str in the function clear

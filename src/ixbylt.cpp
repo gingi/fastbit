@@ -131,7 +131,15 @@ void ibis::bylt::coarsen() {
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    unsigned ncoarse = 31; // default for 32-bit ibis::bitvector::word_t
+    // default size based on the size of fine level index sf:
+    // (w-1) * sqrt(sf*(sf-N/(w-1))) / (2N)
+    unsigned ncoarse = sizeof(ibis::bitvector::word_t);
+    if (offsets.back() <= offsets[0]+nrows/(8*ncoarse-1)) return;
+    ncoarse = static_cast<unsigned>
+	(0.5+0.5*(ncoarse*8-1)*
+	 sqrt((double)(offsets.back()-offsets[0])*
+	      (double)(offsets.back()-offsets[0]-nrows/(ncoarse*8-1)))
+	 /((double)ncoarse*nrows));
     {
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
@@ -142,6 +150,7 @@ void ibis::bylt::coarsen() {
 		ncoarse = j;
 	}
     }
+    if (ncoarse < 5) return;
 
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes
@@ -161,6 +170,13 @@ void ibis::bylt::coarsen() {
 	cbounds.back() = nbits - 1;
 	for (unsigned i = ncoarse-1; i > 0 && cbounds[i] < cbounds[i-1]; -- i)
 	    cbounds[i-1] = cbounds[i] - 1;
+    }
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg(4);
+	lg.buffer() << "ibis::bylt::coarsen will divide " << bits.size()
+		    << " bitmaps into " << ncoarse << " groups\n";
+	for (unsigned i = 0; i < cbounds.size(); ++ i)
+	    lg.buffer() << cbounds[i] << " ";
     }
 
     // fill cbits

@@ -712,7 +712,11 @@ void ibis::fuge::coarsen() {
     if (nobs < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    uint32_t ncoarse = 44; // default for 32-bit ibis::bitvector::word_t
+    // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
+    unsigned ncoarse = sizeof(ibis::bitvector::word_t);
+    ncoarse = static_cast<unsigned>
+	(0.5+(ncoarse*8.0-1.0)*(offsets.back()-offsets[0])
+	 /(sqrt(2.0)*ncoarse*nrows));
     { // limit the scope of variables
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
@@ -723,9 +727,10 @@ void ibis::fuge::coarsen() {
 		ncoarse = j;
 	}
     }
+    if (ncoarse < 5) return;
+
     const uint32_t nc2 = (ncoarse + 1) / 2;
     const uint32_t ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps
-
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes
     cbounds.resize(ncoarse+1);

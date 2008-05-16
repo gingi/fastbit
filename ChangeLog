@@ -1,4 +1,14 @@
 2008-05-15 John Wu <John.Wu at ACM.org>
+	* src/ixbylt.cpp, src/ixfuge.cpp, src/ixfuzz.cpp: change the
+	default number of coarse bins (ncoarse) to make use of the coarse
+	level index size, previous default values assume uniform random
+	data, the new default values only assume the coarse level will be
+	uncompressible, which is more general
+	* tests/Makefile.am: change quick-chek to make sure the TESTDIR is
+	cleared first, change the word 'failed' to 'did not pass' to make
+	the message longer and stand out more
+
+2008-05-15 John Wu <John.Wu at ACM.org>
 	* src/ixbylt.cpp: add code to read option ncoarse in index
 	specification, change default ncoarse to 31 based on the
 	heuristics of neutral space-time trade-off
@@ -22,7 +32,7 @@
 	* src/mensa.cpp: add function addPartiton
 	* src/query.cpp:199 add statements to delete dslock in
 	ibis::query::setTable
-	
+
 2008-04-16 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add test case 3 to check-text to exercise the
 	operator IN
