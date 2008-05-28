@@ -1,3 +1,18 @@
+2008-05-27 John Wu <John.Wu at ACM.org>
+	* src/util.cpp:882: add the case of using getpwuid back to
+	function ibis::util::userName.  Ross Bates just pointed out that
+	the function getlogin requires an actual login session (as
+	indicated by the presence of a utmp entry or a TTY).  The function
+	getlogin fails with a segfault if it is not able to determine the
+	TTY or utmp entry.
+
+2008-05-22 John Wu <John.Wu at ACM.org>
+	* src/ibbylt.cpp, src/ixfuzz.cpp, src/ixfuge.cpp: change the
+	default value computation for ncoarse to use the one with smaller
+	objective function value (rather than rounding the analytical
+	expression).  This produces a more stable default value especially
+	when the number of coarse bins is small.
+
 2008-05-15 John Wu <John.Wu at ACM.org>
 	* src/ixbylt.cpp, src/ixfuge.cpp, src/ixfuzz.cpp: change the
 	default number of coarse bins (ncoarse) to make use of the coarse

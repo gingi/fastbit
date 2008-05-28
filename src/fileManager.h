@@ -1,5 +1,5 @@
 //File: $Id$
-// Author: K. John Wu <KWu at computer.org>
+// Author: K. John Wu <John.Wu at acm.org>
 //         Lawrence Berkeley National Laboratory
 // Copyright 2000-2008 University of California
 #ifndef IBIS_FILEMANAGER_H

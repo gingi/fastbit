@@ -713,11 +713,8 @@ void ibis::fuge::coarsen() {
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
     // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
-    unsigned ncoarse = sizeof(ibis::bitvector::word_t);
-    ncoarse = static_cast<unsigned>
-	(0.5+(ncoarse*8.0-1.0)*(offsets.back()-offsets[0])
-	 /(sqrt(2.0)*ncoarse*nrows));
-    { // limit the scope of variables
+    unsigned ncoarse = 0;
+    if (col != 0) { // limit the scope of variables
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
 	    // number of coarse bins specified explicitly
@@ -726,6 +723,17 @@ void ibis::fuge::coarsen() {
 	    if (j > 4)
 		ncoarse = j;
 	}
+    }
+    if (ncoarse < 5 && offsets.back() > offsets[0]+nrows/31) {
+	ncoarse = sizeof(ibis::bitvector::word_t);
+	const int wm1 = ncoarse*8 - 1;
+	const long sf = (offsets.back()-offsets[0]) / ncoarse;
+	ncoarse = static_cast<unsigned>(wm1*sf/(sqrt(2.0)*nrows));
+	const double obj1 = (sf+(ncoarse+1-ceil(0.5*ncoarse))*nrows/wm1)
+	    *(sf*0.5/ncoarse+2.0*nrows/wm1);
+	const double obj2 = (sf+(ncoarse+2-ceil(0.5*ncoarse+0.5))*nrows/wm1)
+	    *(sf*0.5/(ncoarse+1.0)+2.0*nrows/wm1);
+	ncoarse += (obj2 < obj1);
     }
     if (ncoarse < 5) return;
 
@@ -748,8 +756,8 @@ void ibis::fuge::coarsen() {
     cbounds[ncoarse] = nbits; // end with the last fine level bitmap
     for (unsigned i = ncoarse-1; i > 0 && cbounds[i+1] < cbounds[i]; -- i)
 	cbounds[i] = cbounds[i+1] - 1;
-    if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg(2);
 	lg.buffer() << "ibis::fuge::coarsen will divide " << bits.size()
 		  << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)

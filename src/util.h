@@ -390,7 +390,7 @@ namespace ibis {
 	/// number otherwise.
 	int copy(const char* to, const char* from);
 
-	/// Return the name of the user who is running the program.
+	/// Return the user name.
 	FASTBIT_CXX_DLLSPEC const char* userName();
 	/// Return an integer that is always increasing.
 	unsigned long uniqueNumber();

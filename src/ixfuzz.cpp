@@ -132,12 +132,8 @@ void ibis::fuzz::coarsen() {
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
 
-    // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
-    unsigned ncoarse = sizeof(ibis::bitvector::word_t);
-    ncoarse = static_cast<unsigned>
-	(0.5+(ncoarse*8.0-1.0)*(offsets.back()-offsets[0])
-	 /(sqrt(2.0)*ncoarse*nrows));
-    {
+    unsigned ncoarse = 0;
+    if (col != 0) { // user specified value
 	const char* spec = col->indexSpec();
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
 	    // number of coarse bins specified explicitly
@@ -146,6 +142,18 @@ void ibis::fuzz::coarsen() {
 	    if (j > 4)
 		ncoarse = j;
 	}
+    }
+    // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
+    if (ncoarse < 5 && offsets.back() > offsets[0]+nrows/31) {
+	ncoarse = sizeof(ibis::bitvector::word_t);
+	const int wm1 = ncoarse*8-1;
+	const long sf = (offsets.back()-offsets[0]) / ncoarse;
+	ncoarse = static_cast<unsigned>(wm1*sf/(sqrt(2.0)*nrows));
+	const double obj1 = (sf+(ncoarse+1-ceil(0.5*ncoarse))*nrows/wm1)
+	    *(sf*0.5/ncoarse+2.0*nrows/wm1);
+	const double obj2 = (sf+(ncoarse+2-ceil(0.5*ncoarse+0.5))*nrows/wm1)
+	    *(sf*0.5/(ncoarse+1.0)+2.0*nrows/wm1);
+	ncoarse += (obj2 < obj1);
     }
     if (ncoarse < 5) return;
 
@@ -168,8 +176,8 @@ void ibis::fuzz::coarsen() {
     cbounds[ncoarse] = nbits; // end with the last fine level bitmap
     for (unsigned i = ncoarse-1; i > 0 && cbounds[i+1] < cbounds[i]; -- i)
 	cbounds[i] = cbounds[i+1] - 1;
-    if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg(2);
 	lg.buffer() << "ibis::fuzz::coarsen will divide " << bits.size()
 		    << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
@@ -1272,12 +1280,13 @@ void ibis::fuzz::print(std::ostream& out) const {
     if (vals.size() != bits.size() || bits.empty())
 	return;
 
-    out << "the interval-equality encoded bitmap index for "
-	<< col->partition()->name() << '.'
-	<< col->name() << " contains " << bits.size()
-	<< " bitvectors for " << nrows << " objects\n";
     const uint32_t nc = (cbounds.empty() ? 0U : cbounds.size()-1);
     const uint32_t ncb = nc+1 - (nc+1)/2;
+    out << "the interval-equality encoded bitmap index for "
+	<< col->partition()->name() << '.'
+	<< col->name() << " contains " << nc << " coarse bin"
+	<< (nc>1 ? "s" : "") << " and " << bits.size()
+	<< " fine bit vectors for " << nrows << " objects\n";
     uint32_t nprt = (ibis::gVerbose < 30 ? 1 << ibis::gVerbose : bits.size());
     uint32_t omitted = 0;
     uint32_t end;

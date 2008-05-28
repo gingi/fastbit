@@ -4,6 +4,8 @@ Version b0.9.3
    default values for the numbers of coarse bins based on the neutral
    space-time trade-off heuristics
 -- add option -f to examples/thula.cpp (requested by Jon Strabala)
+-- change ibis::util::userName to primarily use getpwuid (instead of
+   getlogin) following the suggestion of Ross Bates
 
 Wed Apr 16 08:28:46 PDT 2008
 Version b0.9.2

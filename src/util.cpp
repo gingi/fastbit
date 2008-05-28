@@ -879,7 +879,24 @@ const char* ibis::util::userName() {
 	char buf[64];
 	if (GetUserName(buf, &len))
 	    uid = buf;
+#elif defined(_POSIX_VERSION)
+	// the trusted getpwuid(getuid()) combination
+	struct passwd *pass = getpwuid(getuid());
+	if (pass != 0)
+	    uid = pass->pw_name;
+#elif defined(L_cuserid) && defined(__USE_XOPEN)
+	// in the unlikely case that we are not on a POSIX-compliant system
+	// https://buildsecurityin.us-cert.gov/daisy/bsi-rules/home/g1/731.html
+	char buf[L_cuserid+1];
+	(void) cuserid(buf);
+	if (*buf)
+	    uid = buf;
 #elif defined(_REENTRANT) || defined(_THREAD_SAFE) || defined(_POSIX_THREAD_SAFE_FUNCTIONS)
+	// in case we are not on a posix-compliant system and no cuserid,
+	// try getlogin, however
+	// getlongin and variants need a TTY or utmp entry to function
+	// correctly.  They may cause a core dump if this function is
+	// called without a TTY (or utmp)
 	char buf[64];
 	if (getlogin_r(buf, 64) == 0) {
 	    uid = buf;
@@ -889,12 +906,9 @@ const char* ibis::util::userName() {
 	}
 #elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__)
 	uid = getlogin();
-#elif defined(L_cuserid) && defined(__USE_XOPEN)
-	char buf[L_cuserid+1];
-	(void) cuserid(buf);
-	if (*buf)
-	    uid = buf;
 #endif
+	// final fall back option, assign a fixed string that is commonly
+	// interpreted as robot
 	if (uid.empty())
 	    uid = "(::()::)";
     }
