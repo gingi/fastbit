@@ -1,3 +1,4 @@
+Wed May 28 07:38:11 PDT 2008
 Version b0.9.3
 -- update the range-equality encoding (ibis::bylt and ibis::pack) and
    interval-equality encoding (ibis::fuge and ibis::fuzz) to use the new

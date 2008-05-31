@@ -509,7 +509,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 		print(lg.buffer());
 	}
     }
-}
+} // ibis::bundle1::bundle1
 
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 		       const std::vector<void*>& vals)
@@ -602,6 +602,8 @@ void ibis::bundle1::printAll(std::ostream& out) const {
 // sort the columns, remove the duplicate elements and generate the starts
 void ibis::bundle1::sort() {
     const uint32_t nrow = col->size();
+    col->nosharing();
+
     if (nrow < 2) { // not much to do
 	starts = new array_t<uint32_t>(2);
 	(*starts)[1] = nrow;
@@ -1128,7 +1130,9 @@ void ibis::bundles::sort() {
 	(*starts)[1] = nHits;
 	(*starts)[0] = 0;
     }
-    else if (comps.nPlain() == comps.size()) { // no functions
+    else if (comps.nPlain() == ncol) { // no functions
+	for (uint32_t i = 0; i < ncol; ++ i)
+	    cols[i]->nosharing();
 	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
 	starts = cols[0]->segment();
@@ -1153,25 +1157,33 @@ void ibis::bundles::sort() {
 	}
     }
     else if (comps.nPlain() == 1) { // one column to sort
+	for (uint32_t i = 0; i < ncol; ++ i)
+	    cols[i]->nosharing();
 	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
 	starts = cols[0]->segment();
 	cols[0]->reduce(*starts); // remove duplicate values
 	nGroups = starts->size() - 1;
 	if (nGroups < nHits)
-	    for (uint32_t i = 1; i < ncol; ++ i)
+	    for (uint32_t i = 1; i < ncol; ++ i) {
 		cols[i]->reduce(*starts, comps.getFunction(i));
+	    }
     }
     else if (comps.nPlain() == 0) { // no column to sort
+	for (uint32_t i = 0; i < ncol; ++ i)
+	    cols[i]->nosharing();
 	delete starts;
 	starts = new array_t<uint32_t>(2);
 	(*starts)[0] = 0;
 	(*starts)[1] = nHits;
 	nGroups = 1;
-	for (uint32_t i = 0; i < ncol; ++ i)
+	for (uint32_t i = 0; i < ncol; ++ i) {
 	    cols[i]->reduce(*starts, comps.getFunction(i));
+	}
     }
     else { // more than one column to sort
+	for (uint32_t i = 0; i < ncol; ++ i)
+	    cols[i]->nosharing();
  	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
 	starts = cols[0]->segment();
@@ -1193,8 +1205,9 @@ void ibis::bundles::sort() {
 	if (nGroups < nHits) {// erase the dupliate elements
 	    for (uint32_t i2 = 0; i2 < comps.nPlain(); ++ i2)
 		cols[i2]->reduce(*starts);
-	    for (uint32_t i2 = comps.nPlain(); i2 < ncol; ++ i2)
+	    for (uint32_t i2 = comps.nPlain(); i2 < ncol; ++ i2) {
 		cols[i2]->reduce(*starts, comps.getFunction(i2));
+	    }
 	}
    }
 

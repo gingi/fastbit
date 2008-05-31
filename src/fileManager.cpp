@@ -527,7 +527,32 @@ ibis::fileManager& ibis::fileManager::instance() {
     return theManager;
 } // ibis::fileManager::instance
 
-// the protected constructor of the ibis::fileManager class
+/// The protected constructor of the ibis::fileManager class.  There are
+/// three parameters that can be specified in a configuration file to
+/// control this object, fileManager.maxBytes, fileManager.maxOpenFiles,
+/// and fileManager.minMapSize.  If you are unsure of what to do, then
+/// don't specify anything -- the default values are typically acceptable.
+///
+/// \arg filemanager.maxBytes The maximum number of bytes of all objects
+/// under control of the file manager, e.g.,
+/// \verbatim
+/// fileManager.maxBytes = 500MB
+/// \endverbatim
+/// One may specify a number followed by KB, MB, or GB (without space in
+/// between).  If not specified, this constructor attempts to determine the
+/// size of the physical memory available and will use half of the memory
+/// for caching FastBit objects.
+///
+/// \arg fileManager.maxOpenFiles This file manager will keep the number of
+/// open files below this specified maximum.  Note that FastBit usually
+/// invokes the lower level function open, which typical can use more file
+/// handles than the higher level ones such as fopen.  If not specified, it
+/// will use three quarters of maximum file halder defined by _SC_OPEN_MAX.
+///
+/// \arg fileManager.minMapSize The minimal size of a file before FastBit
+/// will attempt to use memory map on it.  For smaller files, it is more
+/// efficient to read the whole content into memory rather than keeping a
+/// file open.  The default value is defined by the macro MIN_DOMAP_SIZE.
 ibis::fileManager::fileManager()
     : _hbeat(0), page_count(0), minMapSize(MIN_DOMAP_SIZE), nwaiting(0) {
     {

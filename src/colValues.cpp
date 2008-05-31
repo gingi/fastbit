@@ -894,7 +894,8 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     } // end quick sort
 } // colUInts::sort
 
-void ibis::colUInts::sort(uint32_t i, uint32_t j, array_t<uint32_t>& ind) const {
+void ibis::colUInts::sort(uint32_t i, uint32_t j,
+			  array_t<uint32_t>& ind) const {
     if (i < j) {
 	ind.clear();
 	ind.reserve(j-i);

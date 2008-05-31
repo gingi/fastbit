@@ -37,6 +37,8 @@ public:
     virtual ibis::TYPE_T getType() const =0;
     /// Return the pointer to the pointer to underlying array_t<T> object.
     virtual void* getArray() const =0;
+    /// Make sure the content of the underlying storage is not shared.
+    virtual void nosharing() =0;
 
     bool canSort() const
     {return (col ? col->type() != ibis::TEXT : false);}
@@ -114,6 +116,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(int);}
     virtual ibis::TYPE_T getType() const {return ibis::INT;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
@@ -199,6 +202,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(unsigned);}
     virtual ibis::TYPE_T getType() const {return ibis::UINT;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
@@ -298,6 +302,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(int);}
     virtual ibis::TYPE_T getType() const {return ibis::LONG;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
@@ -385,6 +390,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(unsigned);}
     virtual ibis::TYPE_T getType() const {return ibis::ULONG;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
@@ -484,6 +490,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(float);}
     virtual ibis::TYPE_T getType() const {return ibis::FLOAT;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
@@ -571,6 +578,7 @@ public:
     virtual uint32_t elementSize() const {return sizeof(double);}
     virtual ibis::TYPE_T getType() const {return ibis::DOUBLE;}
     virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
 
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}

@@ -1,3 +1,11 @@
+2008-05-29 John Wu <John.Wu at ACM.org>
+	* src/colValues.h: add function nosharing to ibis::colValues.
+	This addresses a problem reported by Ross Bates.  When all records
+	are selected, the previous code attempts to sort an array that was
+	based on a read-only memory map.
+	* src/bundle.cpp: add calls to ibis::colValues::nosharing before
+	sorting the bundles
+
 2008-05-27 John Wu <John.Wu at ACM.org>
 	* src/util.cpp:882: add the case of using getpwuid back to
 	function ibis::util::userName.  Ross Bates just pointed out that
