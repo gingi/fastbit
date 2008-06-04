@@ -1176,7 +1176,9 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	std::ostringstream ostr;
 	if (sstr != 0 && *sstr != 0)
 	    ostr << "SELECT " << sstr;
-	ostr << " FROM " << tbl->name() << " WHERE "<< wstr;
+	ostr << " FROM " << tbl->name();
+	if (wstr != 0 && *wstr != 0)
+	    ostr << " WHERE " << wstr;
 	if (ordkeys && *ordkeys) {
 	    ostr << " ORDER BY " << ordkeys;
 	    if (direction >= 0)
@@ -1192,6 +1194,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	<< "doQuery -- processing \"" << sqlstring << '\"';
 
     long num1, num2;
+    const char* asstr = 0;
     ibis::horometer timer;
     timer.start();
     // the third argument is needed to make sure a private directory is
@@ -1209,7 +1212,12 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	aQuery.setRIDs(rset);
     }
     aQuery.setWhereClause(wstr);
-    if (aQuery.getWhereClause() == 0 && ridfile == 0)
+    if (sstr != 0 && *sstr != 0) {
+	aQuery.setSelectClause(sstr);
+	asstr = aQuery.getSelectClause();
+    }
+    if (aQuery.getWhereClause() == 0 && ridfile == 0
+	&& aQuery.getSelectClause() == 0)
 	return;
     if (zapping && aQuery.getWhereClause()) {
 	std::string old = aQuery.getWhereClause();
@@ -1226,12 +1234,6 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 			    << aQuery.getWhereClause()
 			    << "\" is considered simple";
 	}
-    }
-
-    const char* asstr = 0;
-    if (sstr != 0 && *sstr != 0) {
-	aQuery.setSelectClause(sstr);
-	asstr = aQuery.getSelectClause();
     }
 
     if (sequential_scan) {
@@ -2067,6 +2069,7 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		sstr += *str;
 		++ str;
 	    }
+	    str = end + 1;
 	}
 	else { // no FROM clause, try to locate WHERE
 	    end = strstr(str, " where ");
@@ -2076,20 +2079,21 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    end = strstr(str, " Where ");
 	    }
 	    if (end == 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Unable to locate key word WHERE in " << qstr;
-		return;
+		sstr = str;
+		str = 0;
 	    }
-	    while (str < end) {
-		sstr += *str;
-		++ str;
+	    else {
+		while (str < end) {
+		    sstr += *str;
+		    ++ str;
+		}
+		str = end + 1;
 	    }
 	}
-	str = end + 1;
     }
 
     // look for key word FROM
-    if (0 == strnicmp(str, "from ", 5)) {
+    if (str != 0 && 0 == strnicmp(str, "from ", 5)) {
 	str += 5;
 	while (isspace(*str)) ++str;
 	end = strstr(str, " where "); // look for key word WHERE
@@ -2098,26 +2102,34 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	    if (end == 0)
 		end = strstr(str, " Where ");
 	}
-	if (end == 0) {
+	if (end == 0 && sstr.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "parseString(" << qstr << ") is unable to locate "
 		<< "key word WHERE following FROM clause";
 	    throw "unable to locate key word WHERE in query string";
 	}
-	char* fstr = new char[sizeof(char) * (end - str + 1)];
-	(void) strncpy(fstr, str, end-str);
-	fstr[end-str] = 0;
-	qtables.select(fstr);
-	delete [] fstr;
-	str = end + 1;
+	else if (end != 0) {
+	    char* fstr = new char[sizeof(char) * (end - str + 1)];
+	    (void) strncpy(fstr, str, end-str);
+	    fstr[end-str] = 0;
+	    qtables.select(fstr);
+	    delete [] fstr;
+	    str = end + 1;
+	}
+	else {
+	    qtables.select(str);
+	    str = 0;
+	}
     }
 
-    // the WHERE clause must be present
+    // check for the WHERE clause
     if (str == 0 || *str == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Unable to fund a where clause in the query string \""
-	    << qstr << "\"";
-	return;
+	if (sstr.empty()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Unable to fund a where clause in the query string \""
+		<< qstr << "\"";
+	    return;
+	}
     }
     else if (0 == strnicmp(str, "where ", 6)) {
 	str += 6;
@@ -2130,34 +2142,36 @@ static void parseString(ibis::partList& tlist, const char* uid,
     }
     // the end of the where clause is marked by the key words "order by" or
     // "limit" or the end of the string
-    end = strstr(str, "order by");
-    if (end == 0) {
-	end = strstr(str, "Order by");
-	if (end == 0)
-	    end = strstr(str, "Order By");
-	if (end == 0)
-	    end = strstr(str, "ORDER BY");
-	if (end == 0)
-	    end = strstr(str, "limit");
-	if (end == 0)
-	    end = strstr(str, "Limit");
-	if (end == 0)
-	    end = strstr(str, "LIMIT");
-    }
-    if (end != 0) {
-	while (str < end) {
-	    wstr += *str;
-	    ++ str;
+    if (str != 0) {
+	end = strstr(str, "order by");
+	if (end == 0) {
+	    end = strstr(str, "Order by");
+	    if (end == 0)
+		end = strstr(str, "Order By");
+	    if (end == 0)
+		end = strstr(str, "ORDER BY");
+	    if (end == 0)
+		end = strstr(str, "limit");
+	    if (end == 0)
+		end = strstr(str, "Limit");
+	    if (end == 0)
+		end = strstr(str, "LIMIT");
 	}
-    }
-    else {
-	while (*str != 0) {
-	    wstr += *str;
-	    ++ str;
+	if (end != 0) {
+	    while (str < end) {
+		wstr += *str;
+		++ str;
+	    }
+	}
+	else {
+	    while (*str != 0) {
+		wstr += *str;
+		++ str;
+	    }
 	}
     }
 
-    if (0 == strnicmp(str, "order by ", 9)) { // order by clause
+    if (str != 0 && 0 == strnicmp(str, "order by ", 9)) { // order by clause
 	// the order by clause may be terminated by key words "ASC", "DESC"
 	// or "LIMIT"
 	str += 9;
@@ -2201,9 +2215,9 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	    }
 	}
     }
-    while (*str && isspace(*str)) // skip blank spaces
+    while (str != 0 && *str && isspace(*str)) // skip blank spaces
 	++ str;
-    if (0 == strnicmp(str, "limit ", 6)) {
+    if (str != 0 && 0 == strnicmp(str, "limit ", 6)) {
 	str += 6;
 	double tmp = atof(str);
 	if (tmp > 0.0)

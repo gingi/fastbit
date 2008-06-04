@@ -810,7 +810,7 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
 int ibis::query::estimate() {
     if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
 	return -1;
-    if (rids_in == 0 && expr == 0) { // not ready for this yet
+    if (rids_in == 0 && expr == 0 && comps.empty()) { // not ready for this yet
 	if (ibis::gVerbose > 1)
 	    logMessage("estimate", "must have either a valid query "
 		       "condition (the WHERE clause) or a list of RIDs");
@@ -851,7 +851,7 @@ int ibis::query::estimate() {
 		}
 
 #ifndef DONOT_REORDER_EXPRESSION
-		if (! expr->directEval())
+		if (expr != 0 && false == expr->directEval())
 		    reorderExpr();
 #endif
 		getBounds(); // actual function to perform the estimation
@@ -1003,10 +1003,10 @@ long ibis::query::getMaxNumHits() const {
 int ibis::query::evaluate(const bool evalSelect) {
     if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
 	return -1;
-    if (rids_in == 0 && expr == 0) {
+    if (rids_in == 0 && expr == 0 && comps.empty()) {
 	if (ibis::gVerbose > 1)
-	    logMessage("evaluate", "must have either a WHERE clause "
-		       "or a RID list");
+	    logMessage("evaluate", "must have either a SELECT clause, "
+		       "a WHERE clause, or a RID list");
 	return -8;
     }
     if (ibis::gVerbose > 3) {
@@ -1197,7 +1197,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 			   static_cast<long unsigned>(hits->cnt()),
 			   (hits->cnt()>1?"s":""));
 	}
-	else {
+	else if (rids_in != 0) {
 	    logMessage("evaluate", "user %s RID list of %lu elements ==> "
 		       "%lu hit%s.", user,
 		       static_cast<long unsigned>(rids_in->size()),
@@ -1240,6 +1240,8 @@ long ibis::query::countHits() const {
 	     (expr->getType() == ibis::qExpr::RANGE ||
 	      expr->getType() == ibis::qExpr::DRANGE))
 	ierr = table0->countHits(*static_cast<ibis::qRange*>(expr));
+    else if (expr == 0)
+	ierr = table0->nRows();
     return ierr;
 } // ibis::query::countHits
 
@@ -2864,9 +2866,22 @@ int ibis::query::computeHits() {
 	    hits->compress();
 	    sup = hits;
 	}
+	else if (comps.size() > 0) {
+	    hits = new ibis::bitvector;
+	    if (hits == 0) return -1;
+	    hits->set(1, table0->nRows());
+	    for (size_t i = 0; i < comps.size(); ++ i) {
+		const ibis::column *col = table0->getColumn(comps[i]);
+		if (col != 0) {
+		    ibis::bitvector tmp;
+		    col->getNullMask(tmp);
+		    *hits &= tmp;
+		}
+	    }
+	}
 	else { // should not enter here, caller has checked expr and rids_in
-	    logWarning("computeHits", "either a query condition or a RID "
-		       "set must be specified.");
+	    logWarning("computeHits", "either a SELECT clause, a where clause "
+		       "or a RID set must be specified.");
 	    return -8;
 	}
     }
@@ -3936,7 +3951,10 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	setWhereClause(fn);
     }
     else { // read the remaining part of the file to fill rids_in
-	rids_in->clear();
+	if (rids_in != 0)
+	    rids_in->clear();
+	else
+	    rids_in = new RIDSet();
 	unsigned tmp[2];
 	while (fscanf(fptr, "%u %u", tmp, tmp+1) == 2) {
 	    ibis::rid_t rid;

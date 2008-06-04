@@ -1,3 +1,7 @@
+Version b0.9.4
+-- add ibis::colValues::nosharing to address a seg fault when selecting
+   all values in a partition (a problem reported by Ross Bates)
+
 Wed May 28 07:38:11 PDT 2008
 Version b0.9.3
 -- update the range-equality encoding (ibis::bylt and ibis::pack) and

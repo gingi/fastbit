@@ -1,3 +1,10 @@
+2008-06-04 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: change ibis::query::evaluate and
+	ibis::query::computeHits to accept empty where clause when the
+	select clause is specified
+	* example/ibis.cpp: accept query string without a where clause if
+	it has a select clause (request from Ross Bates)
+
 2008-05-29 John Wu <John.Wu at ACM.org>
 	* src/colValues.h: add function nosharing to ibis::colValues.
 	This addresses a problem reported by Ross Bates.  When all records
