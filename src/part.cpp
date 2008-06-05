@@ -1338,8 +1338,8 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList& plist,
 	    else
 		fprintf(fptr, "%lu",
 			static_cast<long unsigned>(shapeSize[i]));
-	    fprintf(fptr, ")\n");
 	}
+	fprintf(fptr, ")\n");
     }
     if (isActive) {
 	if (backupDir != 0 && *backupDir != 0 && backupDir != activeDir &&

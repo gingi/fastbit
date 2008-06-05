@@ -1,3 +1,7 @@
+2008-06-05 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: lines 1341 and 1342 are swapped (a bug reported by
+	Xufei Qian of SDSC)
+
 2008-06-04 John Wu <John.Wu at ACM.org>
 	* src/query.cpp: change ibis::query::evaluate and
 	ibis::query::computeHits to accept empty where clause when the
