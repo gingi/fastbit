@@ -81,15 +81,9 @@ array_t<T>::array_t(const array_t<T>& rhs)
 template<class T>
 array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
 		    const uint32_t nelm)
-    : actual(rhs.actual), m_begin(rhs.m_begin + offset),
-      m_end(m_begin+nelm) {
-    if (nelm == 0 || actual == 0 || rhs.empty())
+    : actual(rhs.actual), m_begin(rhs.m_begin+offset), m_end(m_begin+nelm) {
+    if (m_end > rhs.m_end)
 	m_end = rhs.m_end;
-    else {
-	m_end = m_begin + nelm;
-	if (m_end > rhs.m_end)
-	    m_end = rhs.m_end;
-    }
     if (actual != 0)
 	actual->beginUse();
     //timer.start();
@@ -1229,60 +1223,6 @@ void array_t<T>::printStatus(std::ostream& out) const {
 #endif
 } // printStatus
 
-template<class T>
-void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
-    if (ind.size() <= arr.size()) {
-	array_t<T> tmp(ind.size());
-	for (uint32_t i = 0; i < ind.size(); ++ i)
-	    tmp[i] = arr[ind[i]];
-	arr.swap(tmp);
-    }
-} // ibis::util::reorder
-
-template<class T>
-void ibis::util::reorder(array_t<T*> &arr, const array_t<uint32_t>& ind) {
-    if (ind.size() < arr.size()) {
-	array_t<T*> tmp(ind.size());
-	for (uint32_t i = 0; i < ind.size(); ++ i)
-	    tmp[i] = arr[ind[i]];
-	arr.swap(tmp);
-
-	// free the pointers that have not been copied
-	array_t<uint32_t> copied(arr.size(), 0);
-	for (uint32_t i = 0; i < ind.size(); ++ i)
-	    copied[ind[i]] = 1;
-	for (uint32_t i = 0; i < arr.size(); ++ i)
-	    if (copied[i] == 0)
-		delete tmp[i];
-    }
-    else if (ind.size() == arr.size()) {
-	array_t<T*> tmp(arr.size());
-	for (uint32_t i = 0; i < ind.size(); ++ i)
-	    tmp[i] = arr[ind[i]];
-    }
-} // ibis::util::reorder
-
-template <typename T1, typename T2>
-void ibis::util::sort(array_t<T1>& arr1, array_t<T2>& arr2) {
-    const uint32_t nvals = (arr1.size() <= arr2.size() ?
-			    arr1.size() : arr2.size());
-    /// Mostly sequential accesses to the two arrays.
-    for (uint32_t stride = nvals/2; stride > 0; stride >>= 1) {
-	for (uint32_t j = 0; j < nvals-stride; ++ j) {
-	    const uint32_t j2 = j+stride;
-	    if (arr1[j] > arr1[j2] ||
-		(arr1[j] == arr1[j2] && arr2[j] > arr2[j2])) {
-		const T1 tmp1 = arr1[j];
-		arr1[j] = arr1[j2];
-		arr1[j2] = tmp1;
-		const T2 tmp2 = arr2[j];
-		arr2[j] = arr2[j2];
-		arr2[j2] = tmp2;
-	    }
-	} // for j
-    } // for stride
-} // ibis::util::sort
-
 // explicit instantiation required and have to appear after the definitions
 template class FASTBIT_CXX_DLLSPEC array_t<char>;
 template class FASTBIT_CXX_DLLSPEC array_t<signed char>;
@@ -1297,107 +1237,3 @@ template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
 template class FASTBIT_CXX_DLLSPEC array_t<uint64_t>;
 template class FASTBIT_CXX_DLLSPEC array_t<ibis::rid_t>;
 template class FASTBIT_CXX_DLLSPEC array_t<array_t<ibis::rid_t>*>;
-namespace ibis {
-    namespace util {
-	template void
-	reorder<signed char>(array_t<signed char>&,
-			     const array_t<uint32_t>&);
-	template void
-	reorder<unsigned char>(array_t<unsigned char>&,
-			       const array_t<uint32_t>&);
-	template void
-	reorder<char>(array_t<char>&, const array_t<uint32_t>&);
-	template void
-	reorder<int16_t>(array_t<int16_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<int32_t>(array_t<int32_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<int64_t>(array_t<int64_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<uint16_t>(array_t<uint16_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<uint32_t>(array_t<uint32_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<uint64_t>(array_t<uint64_t>&, const array_t<uint32_t>&);
-	template void
-	reorder<float>(array_t<float>&, const array_t<uint32_t>&);
-	template void
-	reorder<double>(array_t<double>&, const array_t<uint32_t>&);
-	template void
-	reorder<array_t<ibis::rid_t> >(array_t<array_t<ibis::rid_t>*>&,
-				       const array_t<uint32_t>&);
-
-	template void
-	sort<int32_t, int32_t>(array_t<int32_t>&, array_t<int32_t>&);
-	template void
-	sort<uint32_t, int32_t>(array_t<uint32_t>&, array_t<int32_t>&);
-	template void
-	sort<int64_t, int32_t>(array_t<int64_t>&, array_t<int32_t>&);
-	template void
-	sort<uint64_t, int32_t>(array_t<uint64_t>&, array_t<int32_t>&);
-	template void
-	sort<float, int32_t>(array_t<float>&, array_t<int32_t>&);
-	template void
-	sort<double, int32_t>(array_t<double>&, array_t<int32_t>&);
-	template void
-	sort<int32_t, uint32_t>(array_t<int32_t>&, array_t<uint32_t>&);
-	template void
-	sort<uint32_t, uint32_t>(array_t<uint32_t>&, array_t<uint32_t>&);
-	template void
-	sort<int64_t, uint32_t>(array_t<int64_t>&, array_t<uint32_t>&);
-	template void
-	sort<uint64_t, uint32_t>(array_t<uint64_t>&, array_t<uint32_t>&);
-	template void
-	sort<float, uint32_t>(array_t<float>&, array_t<uint32_t>&);
-	template void
-	sort<double, uint32_t>(array_t<double>&, array_t<uint32_t>&);
-	template void
-	sort<int32_t, int64_t>(array_t<int32_t>&, array_t<int64_t>&);
-	template void
-	sort<uint32_t, int64_t>(array_t<uint32_t>&, array_t<int64_t>&);
-	template void
-	sort<int64_t, int64_t>(array_t<int64_t>&, array_t<int64_t>&);
-	template void
-	sort<uint64_t, int64_t>(array_t<uint64_t>&, array_t<int64_t>&);
-	template void
-	sort<float, int64_t>(array_t<float>&, array_t<int64_t>&);
-	template void
-	sort<double, int64_t>(array_t<double>&, array_t<int64_t>&);
-	template void
-	sort<int32_t, uint64_t>(array_t<int32_t>&, array_t<uint64_t>&);
-	template void
-	sort<uint32_t, uint64_t>(array_t<uint32_t>&, array_t<uint64_t>&);
-	template void
-	sort<int64_t, uint64_t>(array_t<int64_t>&, array_t<uint64_t>&);
-	template void
-	sort<uint64_t, uint64_t>(array_t<uint64_t>&, array_t<uint64_t>&);
-	template void
-	sort<float, uint64_t>(array_t<float>&, array_t<uint64_t>&);
-	template void
-	sort<double, uint64_t>(array_t<double>&, array_t<uint64_t>&);
-	template void
-	sort<int32_t, float>(array_t<int32_t>&, array_t<float>&);
-	template void
-	sort<uint32_t, float>(array_t<uint32_t>&, array_t<float>&);
-	template void
-	sort<int64_t, float>(array_t<int64_t>&, array_t<float>&);
-	template void
-	sort<uint64_t, float>(array_t<uint64_t>&, array_t<float>&);
-	template void
-	sort<float, float>(array_t<float>&, array_t<float>&);
-	template void
-	sort<double, float>(array_t<double>&, array_t<float>&);
-	template void
-	sort<int32_t, double>(array_t<int32_t>&, array_t<double>&);
-	template void
-	sort<uint32_t, double>(array_t<uint32_t>&, array_t<double>&);
-	template void
-	sort<int64_t, double>(array_t<int64_t>&, array_t<double>&);
-	template void
-	sort<uint64_t, double>(array_t<uint64_t>&, array_t<double>&);
-	template void
-	sort<float, double>(array_t<float>&, array_t<double>&);
-	template void
-	sort<double, double>(array_t<double>&, array_t<double>&);
-    }
-}

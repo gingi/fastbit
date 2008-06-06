@@ -4,6 +4,7 @@
 #ifndef IBIS_COLVALUES_H
 #define IBIS_COLVALUES_H
 #include "column.h"
+#include "utilidor.h"	// ibis::util::reorder
 
 ///@file
 /// A set of utility classes for storing the selected values.

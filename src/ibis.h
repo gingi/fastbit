@@ -18,6 +18,7 @@
 #include "bundle.h"		// ibis::bundle
 #include "query.h"		// ibis::query
 #include "part.h"		// ibis::part
+#include "join.h"		// ibis::join
 #include "rids.h"		// ibis::ridHandler
 
 /*! \mainpage Overview of FastBit IBIS Implementation

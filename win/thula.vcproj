@@ -261,6 +261,9 @@
 				RelativePath="..\src\ixzone.cpp">
 			</File>
 			<File
+				RelativePath="..\src\joinin.cpp">
+			</File>
+			<File
 				RelativePath="..\src\mensa.cpp">
 			</File>
 			<File
@@ -304,6 +307,9 @@
 			</File>
 			<File
 				RelativePath="..\src\util.cpp">
+			</File>
+			<File
+				RelativePath="..\src\utilidor.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -358,6 +364,12 @@
 				RelativePath="..\src\iroster.h">
 			</File>
 			<File
+				RelativePath="..\src\join.h">
+			</File>
+			<File
+				RelativePath="..\src\joinin.h">
+			</File>
+			<File
 				RelativePath="..\src\mensa.h">
 			</File>
 			<File
@@ -392,6 +404,9 @@
 			</File>
 			<File
 				RelativePath="..\src\util.h">
+			</File>
+			<File
+				RelativePath="..\src\utilidor.h">
 			</File>
 		</Filter>
 		<Filter

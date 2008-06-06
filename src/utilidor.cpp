@@ -1,0 +1,2595 @@
+// File: $Id$
+// Author: John Wu <John.Wu at ACM.org>
+// Copyright 2008 the Regents of the University of California
+#include "utilidor.h"
+
+template<class T>
+void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
+    if (ind.size() <= arr.size()) {
+	array_t<T> tmp(ind.size());
+	for (uint32_t i = 0; i < ind.size(); ++ i)
+	    tmp[i] = arr[ind[i]];
+	arr.swap(tmp);
+    }
+} // ibis::util::reorder
+
+template<class T>
+void ibis::util::reorder(array_t<T*> &arr, const array_t<uint32_t>& ind) {
+    if (ind.size() < arr.size()) {
+	array_t<T*> tmp(ind.size());
+	for (uint32_t i = 0; i < ind.size(); ++ i)
+	    tmp[i] = arr[ind[i]];
+	arr.swap(tmp);
+
+	// free the pointers that have not been copied
+	array_t<uint32_t> copied(arr.size(), 0);
+	for (uint32_t i = 0; i < ind.size(); ++ i)
+	    copied[ind[i]] = 1;
+	for (uint32_t i = 0; i < arr.size(); ++ i)
+	    if (copied[i] == 0)
+		delete tmp[i];
+    }
+    else if (ind.size() == arr.size()) {
+	array_t<T*> tmp(arr.size());
+	for (uint32_t i = 0; i < ind.size(); ++ i)
+	    tmp[i] = arr[ind[i]];
+    }
+} // ibis::util::reorder
+
+template <typename T1, typename T2>
+void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
+    const uint32_t nvals = (arr1.size() <= arr2.size() ?
+			    arr1.size() : arr2.size());
+    if (nvals < 1024) {
+	sortAll_shell(arr1, arr2);
+	return;
+    }
+
+    // invoke quicksort
+    uint32_t split = sortAll_split(arr1, arr2);
+    if (split < nvals) {
+	if (split > 0) {
+	    array_t<T1> front1(arr1, 0, split);
+	    array_t<T2> front2(arr2, 0, split);
+	    sortAll(front1, front2);
+	}
+	{
+	    array_t<T1> back1(arr1, split, nvals-split);
+	    array_t<T2> back2(arr2, split, nvals-split);
+	    sortAll(back1, back2);
+	}
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = 1; j < nvals; ++ j) {
+	if (arr1[j-1] > arr1[j] ||
+	    (arr1[j-1] == arr1[j] && arr2[j-1] > arr2[j])) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nvals >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nvals);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortAll(arr1[" << arr1.size()
+		<< "], arr2[" << arr2.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\narr1[" << j << "]=" << arr1[j] << ", arr2[" << j
+			<< "]=" << arr2[j];
+	if (iprt < nvals)
+	    lg.buffer() << "\n... " << nvals-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortAll
+
+template <typename T1, typename T2>
+void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
+    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
+    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
+				    4592, 12776, 33936, 86961, 198768,
+				    463792, 1391376};
+    const uint32_t nvals = (arr1.size() <= arr2.size() ?
+			    arr1.size() : arr2.size());
+    uint32_t gap = nvals / 2;
+    while (gap >= smallgaps[15]) {
+	for (uint32_t j = gap; j < nvals; ++j) {
+	    const T1 tmp1 = arr1[j];
+	    const T2 tmp2 = arr2[j];
+	    uint32_t i = j;
+	    while (i >= gap && (arr1[i-gap] > tmp1 ||
+				(arr1[i-gap] == tmp1 && arr2[i-gap] > tmp2))) {
+		arr1[i] = arr1[i-gap];
+		arr2[i] = arr2[i-gap];
+		i -= gap;
+	    }
+	    arr1[i] = tmp1;
+	    arr2[i] = tmp2;
+	}
+	gap = (uint32_t) (gap / 2.2);
+    }
+
+    int ig = 15;
+    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig >= 0) {
+	gap = smallgaps[ig];
+	for (uint32_t j = gap; j < nvals; ++j) {
+	    const T1 tmp1 = arr1[j];
+	    const T2 tmp2 = arr2[j];
+	    uint32_t i = j;
+	    while (i >= gap && (arr1[i-gap] > tmp1 ||
+				(arr1[i-gap] == tmp1 && arr2[i-gap] > tmp2))) {
+		arr1[i] = arr1[i-gap];
+		arr2[i] = arr2[i-gap];
+		i -= gap;
+	    }
+	    arr1[i] = tmp1;
+	    arr2[i] = tmp2;
+	}
+	-- ig;
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = 1; j < nvals; ++ j) {
+	if (arr1[j-1] > arr1[j] ||
+	    (arr1[j-1] == arr1[j] && arr2[j-1] > arr2[j])) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nvals >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nvals);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortAll_shell(arr1[" << arr1.size()
+		<< "], arr2[" << arr2.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\narr1[" << j << "]=" << arr1[j] << ", arr2[" << j
+			<< "]=" << arr2[j];
+	if (iprt < nvals)
+	    lg.buffer() << "\n... " << nvals-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortAll_shell
+
+template <typename T1, typename T2>
+uint32_t ibis::util::sortAll_split(array_t<T1>& arr1, array_t<T2>& arr2) {
+    const uint32_t nvals = (arr1.size() <= arr2.size() ?
+			    arr1.size() : arr2.size());
+    // first sort three values [0], [nvals/2], [nvals-1], with Shell sort
+    if (arr1[0] > arr1[nvals/2] ||
+	(arr1[0] == arr1[nvals/2] && arr2[0] > arr2[nvals/2])) {
+	T1 tmp1 = arr1[0];
+	arr1[0] = arr1[nvals/2];
+	arr1[nvals/2] = tmp1;
+	T2 tmp2 = arr2[0];
+	arr2[0] = arr2[nvals/2];
+	arr2[nvals/2] = tmp2;
+    }
+    if (arr1[nvals/2] > arr1[nvals-1] ||
+	(arr1[nvals/2] == arr1[nvals-1] && arr2[nvals/2] > arr2[nvals-1])) {
+	T1 tmp1 = arr1[nvals/2];
+	arr1[nvals/2] = arr1[nvals-1];
+	arr1[nvals-1] = tmp1;
+	T2 tmp2 = arr2[nvals/2];
+	arr2[nvals/2] = arr2[nvals-1];
+	arr2[nvals-1] = tmp2;
+	if (arr1[0] > arr1[nvals/2] ||
+	    (arr1[0] == arr1[nvals/2] && arr2[0] > arr2[nvals/2])) {
+	    tmp1 = arr1[0];
+	    arr1[0] = arr1[nvals/2];
+	    arr1[nvals/2] = tmp1;
+	    tmp2 = arr2[0];
+	    arr2[0] = arr2[nvals/2];
+	    arr2[nvals/2] = tmp2;
+	}
+    }
+
+    // select the middle entry as the pivot
+    const T1 pivot1 = arr1[nvals/2];
+    const T2 pivot2 = arr2[nvals/2];
+    uint32_t i0 = 0;
+    uint32_t i1 = nvals;
+    while (i0 < i1) {
+	if (arr1[i1-1] > pivot1 ||
+	    (arr1[i1-1] == pivot1 && arr2[i1-1] >= pivot2)) {
+	    -- i1;
+	}
+	else if (arr1[i0] < pivot1 ||
+		 (arr1[i0] == pivot1 && arr2[i0] < pivot2)) {
+	    ++ i0;
+	}
+	else {
+	    -- i1;
+	    T1 tmp1 = arr1[i0];
+	    arr1[i0] = arr1[i1];
+	    arr1[i1] = tmp1;
+	    T2 tmp2 = arr2[i0];
+	    arr2[i0] = arr2[i1];
+	    arr2[i1] = tmp2;
+	    ++ i0;
+	}
+    }
+    if (i0 == 0) { // selected pivot happens to be the minimal value
+	i1 = nvals;
+	while (i0 < i1) {
+	    if (arr1[i1-1] > pivot1 ||
+		(arr1[i1-1] == pivot1 && arr2[i1-1] > pivot2)) {
+		-- i1;
+	    }
+	    else if (arr1[i0] < pivot1 ||
+		     (arr1[i0] == pivot1 && arr2[i0] <= pivot2)) {
+		++ i0;
+	    }
+	    else {
+		-- i1;
+		T1 tmp1 = arr1[i0];
+		arr1[i0] = arr1[i1];
+		arr1[i1] = tmp1;
+		T2 tmp2 = arr2[i0];
+		arr2[i0] = arr2[i1];
+		arr2[i1] = tmp2;
+		++ i0;
+	    }
+	}
+    }
+#if defined(DEBUG)
+    uint32_t iprt = ((nvals >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nvals);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortAll_split(arr1[" << arr1.size()
+		<< "], arr2[" << arr2.size() << "]) completed with i0 = "
+		<< i0 << " and i1 = " << i1 << ", pivot = (" << pivot1 << ", "
+		<< pivot2 << ")";
+    lg.buffer() << "\npartition 1, # elements = " << i0 << ": ";
+    uint32_t j1 = (iprt <= i0 ? iprt : i0);
+    for (uint32_t j0 = 0; j0 < j1; ++ j0)
+	lg.buffer() << " (" << arr1[j0] << ", " << arr2[j0] << ")";
+    if (j1 < i0)
+	lg.buffer() << " ... (" << i0 - j1 << " ommitted)";
+    lg.buffer() << "\npartition 2, # elements = "
+		<< nvals - i0 << ": ";
+    j1 = (i0+iprt < nvals ? i0+iprt : nvals);
+    for (uint32_t j0 = i0; j0 < j1; ++ j0)
+	lg.buffer() << " (" << arr1[j0] << ", " << arr2[j0] << ")";
+    if (nvals > j1)
+	lg.buffer() << " ... (" << nvals - j1 << " ommitted)";
+#endif
+    return i0;
+} // ibis::util::sortAll_split
+
+template <typename T1, typename T2>
+void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    if (nelm < 8191) {
+	sort_quick(keys, vals);
+    }
+    else {
+	try {
+	    sort_radix(keys, vals);
+	}
+	catch (...) {
+	    sort_quick(keys, vals);
+	}
+    }
+} // ibis::util::sortKeys
+
+template <typename T1, typename T2>
+void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    uint32_t pivot = ibis::util::sort_partition(keys, vals);
+    if (pivot < nelm) {
+	if (0 < pivot) {
+	    array_t<T1> kfront(keys, 0, pivot);
+	    array_t<T2> vfront(vals, 0, pivot);
+	    if (pivot >= 32)
+		sort_quick(kfront, vfront);
+	    else
+		sort_shell(kfront, vfront);
+	}
+	{
+	    array_t<T1> kback(keys, pivot, nelm-pivot);
+	    array_t<T2> vback(vals, pivot, nelm-pivot);
+	    if (nelm-pivot >= 32)
+		sort_quick(kback, vback);
+	    else
+		sort_shell(kback, vback);
+	}
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_quick(keys[" << keys.size() << "], vals["
+		<< vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << " successfully";
+    }
+    else {
+	lg.buffer() << " with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_quick
+
+template <typename T1, typename T2>
+void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
+    uint32_t j0, j1;
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    ibis::util::sort_partition3(keys, vals, j0, j1);
+    if (0 < j0 && j0 < nelm) {
+	array_t<T1> kfront(keys, 0, j0);
+	array_t<T2> vfront(vals, 0, j0);
+	if (j0 >= 32)
+	    sort_quick3(kfront, vfront);
+	else
+	    sort_shell(kfront, vfront);
+    }
+    if (j0 < j1 && j1 < nelm) {
+	array_t<T1> kback(keys, j1, nelm-j1);
+	array_t<T2> vback(vals, j1, nelm-j1);
+	if (nelm-j1 >= 32)
+	    sort_quick3(kback, vback);
+	else
+	    sort_shell(kback, vback);
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_quick2(keys[" << keys.size() << "], vals["
+		<< vals.size() << "]) completed";
+    if (sorted) {
+	lg.buffer() << " successfully";
+    }
+    else {
+	lg.buffer() << " with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_quick3
+
+template <typename T1, typename T2>
+uint32_t ibis::util::sort_partition(array_t<T1>& keys, array_t<T2>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    if (nelm < 7) {
+	ibis::util::sort_shell(keys, vals);
+	return nelm;
+    }
+
+    // pick the median of three values
+    T1 pivot[3];
+    pivot[0] = keys[0];
+    pivot[1] = keys[nelm/2];
+    pivot[2] = keys[nelm-1];
+    if (pivot[0] > pivot[1]) {
+	T1 ptmp = pivot[0];
+	pivot[0] = pivot[1];
+	pivot[1] = ptmp;
+    }
+    if (pivot[1] > pivot[2]) {
+	pivot[1] = pivot[2];
+	if (pivot[0] > pivot[1])
+	    pivot[1] = pivot[0];
+    }
+    pivot[0] = pivot[1]; // put the middle one in front for ease of reference
+
+    uint32_t i0 = 0;
+    uint32_t i1 = nelm;
+    while (i0 < i1) {
+	if (keys[i1-1] >= *pivot) {
+	    -- i1;
+	}
+	else if (keys[i0] < *pivot) {
+	    ++ i0;
+	}
+	else {
+	    // exchange i0, i1
+	    -- i1;
+	    T1 ktmp = keys[i0];
+	    keys[i0] = keys[i1];
+	    keys[i1] = ktmp;
+	    T2 vtmp = vals[i0];
+	    vals[i0] = vals[i1];
+	    vals[i1] = vtmp;
+	    ++ i0;
+	}
+    }
+    if (i0 == 0) {
+	// The median of three was the smallest value, switch to have the
+	// left side <= pivot.
+	i1 = nelm;
+	while (i0 < i1) {
+	    if (keys[i1-1] > *pivot) {
+		-- i1;
+	    }
+	    else if (keys[i0] <= *pivot) {
+		++ i0;
+	    }
+	    else {
+		// exchange i0, i1
+		-- i1;
+		T1 ktmp = keys[i0];
+		keys[i0] = keys[i1];
+		keys[i1] = ktmp;
+		T2 vtmp = vals[i0];
+		vals[i0] = vals[i1];
+		vals[i1] = vtmp;
+		++ i0;
+	    }
+	}
+    }
+#if defined(DEBUG)
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_partition(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed with i0 = "
+		<< i0 << " and i1 = " << i1;
+    lg.buffer() << "\npartition 1 (<  " << *pivot << ") # elements = "
+		<< i0 << ": ";
+    uint32_t j1 = (iprt <= i0 ? iprt : i0);
+    for (uint32_t j0 = 0; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (j1 < i0)
+	lg.buffer() << " ... (" << i0 - j1 << " ommitted)";
+    lg.buffer() << "\npartition 2 (>= " << *pivot << ") # elements = "
+		<< nelm - i0 << ": ";
+    j1 = (i0+iprt < nelm ? i0+iprt : nelm);
+    for (uint32_t j0 = i0; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (nelm > j1)
+	lg.buffer() << " ... (" << nelm - j1 << " ommitted)";
+#endif
+    return i0;
+} // ibis::util::sort_partition
+
+template <typename T1, typename T2>
+void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
+				 uint32_t& starteq, uint32_t& startgt) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    if (nelm < 13) {
+	ibis::util::sort_shell(keys, vals);
+	starteq = keys.size();
+	startgt = keys.size();
+	return;
+    }
+
+    // pick the median of five values
+    T1 pivot[5];
+    pivot[0] = keys[0];
+    pivot[1] = keys[nelm/4];
+    pivot[2] = keys[nelm/2];
+    pivot[3] = keys[3*nelm/4];
+    pivot[4] = keys[nelm-1];
+    for (uint32_t j = 3; j < 5; ++ j) {
+	if (pivot[j] < pivot[j-3]) {
+	    T1 ptmp = pivot[j];
+	    uint32_t i = j;
+	    while (i >= 3 && pivot[i] < pivot[i-3]) {
+		pivot[i] = pivot[i-3];
+		i -= 3;
+	    }
+	    pivot[i] = ptmp;
+	    
+	}
+    }
+    for (uint32_t j = 1; j < 5; ++ j) {
+	if (pivot[j] < pivot[j-1]) {
+	    T1 ptmp = pivot[j];
+	    uint32_t i = j;
+	    while (i >= 1 && pivot[i] < pivot[i-1]) {
+		pivot[i] = pivot[i-1];
+		-- i;
+	    }
+	    pivot[i] = ptmp;
+	}
+    }
+    pivot[0] = pivot[2]; // put the middle one in front for ease of reference
+
+    uint32_t i0 = 0;
+    uint32_t i1 = nelm;
+    uint32_t j0 = 0;
+    uint32_t j1 = nelm;
+    while (i0 < i1-1) {
+	if (keys[i1-1] > *pivot) {
+	    -- i1;
+	}
+	else if (keys[i0] < *pivot) {
+	    ++ i0;
+	}
+	else {
+	    // exchange i0, i1
+	    -- i1;
+#ifdef DEBUG
+	    std::cout << "DEBUG -- ibis::util::sort_partition3 swapping keys["
+		      << i0 << "] (" << keys[i0] << " with keys[" << i1
+		      << "] (" << keys[i1] << std::endl;
+#endif
+	    T1 ktmp = keys[i0];
+	    keys[i0] = keys[i1];
+	    keys[i1] = ktmp;
+	    T2 vtmp = vals[i0];
+	    vals[i0] = vals[i1];
+	    vals[i1] = vtmp;
+	    if (keys[i0] == *pivot) { // exchange i0, j0
+		ktmp = keys[i0];
+		keys[i0] = keys[j0];
+		keys[j0] = ktmp;
+		vtmp = vals[i0];
+		vals[i0] = vals[j0];
+		vals[j0] = vtmp;
+		++ j0;
+	    }
+	    ++ i0;
+	    if (keys[i1] == *pivot) { // exahnge i1, j1
+		-- j1;
+		ktmp = keys[i1];
+		keys[i1] = keys[j1];
+		keys[j1] = ktmp;
+		vtmp = vals[i1];
+		vals[i1] = vals[j1];
+		vals[j1] = vtmp;
+	    }
+	}
+    }
+    if (i0 < i1) { // can only be i0 == i1-1
+	i1 -= (keys[i0] >= *pivot);
+	i0 += (keys[i0] <= *pivot);
+    }
+#ifdef DEBUG
+    std::cout << "DEBUG -- ibis::util::sort_partition3 -- keys[" << i0
+	      << "] = " << keys[i0] << ", keys[" << i1 << "] = "
+	      << keys[i1] << ", pivot = " << *pivot << std::endl;
+#endif
+    for (uint32_t j = 0; j < j0; ++ j) {
+	-- i1;
+	T1 ktmp = keys[j];
+	keys[j] = keys[i1];
+	keys[i1] = ktmp;
+	T2 vtmp = vals[j];
+	vals[j] = vals[i1];
+	vals[i1] = vtmp;
+    }
+    for (uint32_t j = j1; j < nelm; ++ j) {
+	T1 ktmp = keys[i0];
+	keys[i0] = keys[j];
+	keys[j] = ktmp;
+	T2 vtmp = vals[i0];
+	vals[i0] = vals[j];
+	vals[j] = vtmp;
+	++ i0;
+    }
+    starteq = i1;
+    startgt = i0;
+#if defined(DEBUG)
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    uint32_t cnt1 = 0;
+    uint32_t cnt2 = 0;
+    uint32_t cnt3 = 0;
+    for (uint32_t j = 0; j < i1; ++j)
+	cnt1 += (keys[j] >= *pivot);
+    for (uint32_t j = i1; j < i0; ++j)
+	cnt2 += (keys[j] != *pivot);
+    for (uint32_t j = i0; j < nelm; ++j)
+	cnt3 += (keys[j] <= *pivot);
+
+    ibis::util::logger lg(4);
+    lg.buffer() << (cnt1+cnt2+cnt3>0 ? "Warning -- " : "")
+		<< "ibis::util::sort_partition3(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed with starteq = "
+		<< starteq << " and startgt = " << startgt;
+    lg.buffer() << "\npartition 1 ( < " << *pivot << ", cnt1 = " << cnt1
+		<< ") # elements = " << starteq << ": ";
+    j1 = (iprt <= starteq ? iprt : starteq);
+    for (j0 = 0; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (j1 < starteq)
+	lg.buffer() << " ... (" << starteq - j1 << " ommitted)";
+    lg.buffer() << "\npartition 2 ( = " << *pivot << ", cnt2 = " << cnt2
+		<< ") # elements = " << startgt - starteq << ": ";
+    j1 = (starteq+iprt <= startgt ? starteq+iprt  : startgt);
+    for (j0 = starteq; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (j1 < startgt)
+	lg.buffer() << " ... (" << startgt - j1 << " ommitted)";
+    lg.buffer() << "\npartition 3 ( > " << *pivot << ", cnt3 = " << cnt3
+		<< ") # elements = " << nelm - startgt << ": ";
+    j1 = (startgt+iprt < nelm ? startgt+iprt : nelm);
+    for (j0 = startgt; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (nelm > j1)
+	lg.buffer() << " ... (" << nelm - j1 << " ommitted)";
+#endif
+} // ibis::util::sort_partition3
+
+template <typename T1, typename T2>
+void ibis::util::sort_shell(array_t<T1>& keys, array_t<T2>& vals) {
+    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
+    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
+				    4592, 12776, 33936, 86961, 198768,
+				    463792, 1391376};
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    uint32_t gap = nelm / 2;
+    while (gap >= smallgaps[15]) {
+	for (uint32_t j = gap; j < nelm; ++ j) {
+	    const T1 ktmp = keys[j];
+	    const T2 vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= gap && keys[i-gap] > ktmp) {
+		keys[i] = keys[i-gap];
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    keys[i] = ktmp;
+	    vals[i] = vtmp;
+	}
+	gap = (uint32_t) (gap / 2.2);
+    }
+
+    int ig = 15;
+    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig >= 0) {
+	gap = smallgaps[ig];
+	for (uint32_t j = gap; j < nelm; ++ j) {
+	    const T1 ktmp = keys[j];
+	    const T2 vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= gap && keys[i-gap] > ktmp) {
+		keys[i] = keys[i-gap];
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    keys[i] = ktmp;
+	    vals[i] = vtmp;
+	}
+	-- ig;
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_shell(keys[" << keys.size() << "], vals["
+		<< vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_shell
+
+template <typename T1, typename T2>
+void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    bool sorted = true;
+    // first loop goes backward to find the smallest element
+    for (uint32_t j = nelm-1; j > 0; -- j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    T1 ktmp = keys[j];
+	    keys[j] = keys[j-1];
+	    keys[j-1] = ktmp;
+	    T2 vtmp = vals[j];
+	    vals[j] = vals[j-1];
+	    vals[j-1] = vtmp;
+	}
+    }
+    if (sorted) return;
+
+    for (uint32_t i = 2; i < nelm; ++i) {
+	T1 ktmp = keys[i];
+	T2 vtmp = vals[i];
+	uint32_t j = i;
+	while (keys[j-1] > ktmp) {
+	    keys[j] = keys[j-1];
+	    vals[j] = vals[j-1];
+	    -- j;
+	}
+	keys[j] = ktmp;
+	vals[j] = vtmp;
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_insertion(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_insertion
+
+void ibis::util::sortStrings(std::vector<std::string>& keys,
+			     array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    if (nelm > 32) {
+	sortStrings(keys, vals, 0, nelm);
+    }
+    else if (nelm > 1) {
+	sortStrings_shell(keys, vals, 0, nelm);
+    }
+} // ibis::util::sortStrings
+
+void ibis::util::sortStrings(std::vector<std::string>& keys,
+			     array_t<uint32_t>& vals, uint32_t begin,
+			     uint32_t end) {
+    if (end <= begin+1) {
+	return;
+    }
+    else if (end <= begin+29) {
+	sortStrings_shell(keys, vals, begin, end);
+	return;
+    }
+
+    uint32_t split = sortStrings_partition(keys, vals, begin, end);
+    if (split < end) {
+	if (split > begin)
+	    sortStrings(keys, vals, begin, split);
+	sortStrings(keys, vals, split, end);
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = begin+1; j < end; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = begin+(((end-begin) >> ibis::gVerbose) > 0 ?
+			   (1 << ibis::gVerbose) : (end-begin));
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings(keys[" << keys.size() << "], vals["
+		<< vals.size() << "], " << begin << ", " << end
+		<< ") completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = begin; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < end)
+	    lg.buffer() << "\n... " << end-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortStrings
+
+void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
+				   array_t<uint32_t>& vals, uint32_t begin,
+				   uint32_t end) {
+    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
+    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
+				    4592, 12776, 33936, 86961, 198768,
+				    463792, 1391376};
+    const uint32_t nelm = end - begin;
+    uint32_t gap = nelm / 2;
+    while (gap >= smallgaps[15]) {
+	for (uint32_t j = begin+gap; j < end; ++ j) {
+	    const uint32_t vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= begin+gap && keys[i].compare(keys[i-gap]) < 0) {
+		keys[i].swap(keys[i-gap]);
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    vals[i] = vtmp;
+	}
+	gap = (uint32_t) (gap / 2.2);
+    }
+
+    int ig = 15;
+    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig >= 0) {
+	gap = smallgaps[ig];
+	for (uint32_t j = begin+gap; j < end; ++ j) {
+	    const uint32_t vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= begin+gap && keys[i].compare(keys[i-gap]) < 0) {
+		keys[i].swap(keys[i-gap]);
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    vals[i] = vtmp;
+	}
+	-- ig;
+    }
+#if defined(DEBUG)
+    bool sorted = true;
+    for (uint32_t j = begin+1; j < end; ++ j) {
+	if (keys[j-1].compare(keys[j]) > 0) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings_shell(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", "
+		<< end << ") completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = begin; j < begin+iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortStrings_shell
+
+uint32_t 
+ibis::util::sortStrings_partition(std::vector<std::string>& keys,
+				  array_t<uint32_t>& vals, uint32_t begin,
+				  uint32_t end) {
+    if (end < begin+7) {
+	ibis::util::sortStrings_shell(keys, vals, begin, end);
+	return end;
+    }
+    const uint32_t nelm = end - begin;
+
+    // sort three values at position 0, nelm/2, and nelm-1
+    if (keys[begin].compare(keys[(begin+end)/2]) > 0) {
+	keys[begin].swap(keys[(begin+end)/2]);
+	uint32_t vtmp = vals[begin];
+	vals[begin] = vals[(begin+end)/2];
+	vals[(begin+end)/2] = vtmp;
+    }
+    if (keys[(begin+end)/2].compare(keys[end-1]) > 0) {
+	keys[(begin+end)/2].swap(keys[end-1]);
+	uint32_t vtmp = vals[(begin+end)/2];
+	vals[(begin+end)/2] = vals[end-1];
+	vals[end-1] = vtmp;
+	if (keys[begin].compare(keys[(begin+end)/2]) > 0) {
+	    keys[begin].swap(keys[(begin+end)/2]);
+	    vtmp = vals[begin];
+	    vals[begin] = vals[(begin+end)/2];
+	    vals[(begin+end)/2] = vtmp;
+	}
+    }
+    // pick the median of three values
+    std::string pivot(keys[(begin+end)/2]);
+
+    uint32_t i0 = begin;
+    uint32_t i1 = end;
+    while (i0 < i1) {
+	if (pivot.compare(keys[i1-1]) <= 0) {
+	    -- i1;
+	}
+	else if (pivot.compare(keys[i0]) > 0) {
+	    ++ i0;
+	}
+	else {
+	    // exchange i0, i1
+	    -- i1;
+	    keys[i0].swap(keys[i1]);
+	    uint32_t vtmp = vals[i0];
+	    vals[i0] = vals[i1];
+	    vals[i1] = vtmp;
+	    ++ i0;
+	}
+    }
+    if (i0 == begin) {
+	// The median of three was the smallest value, switch to have the
+	// left side <= pivot.
+	i1 = end;
+	while (i0 < i1) {
+	    if (pivot.compare(keys[i1-1]) < 0) {
+		-- i1;
+	    }
+	    else if (pivot.compare(keys[i0]) >= 0) {
+		++ i0;
+	    }
+	    else {
+		// exchange i0, i1
+		-- i1;
+		keys[i0].swap(keys[i1]);
+		uint32_t vtmp = vals[i0];
+		vals[i0] = vals[i1];
+		vals[i1] = vtmp;
+		++ i0;
+	    }
+	}
+    }
+#if defined(DEBUG)
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings_partition(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", "
+		<< end << ") completed with i0 = " << i0 << " and i1 = " << i1
+		<< ", pivot = \"" << pivot << "\"";
+    lg.buffer() << "\npartition 1, # elements = " << i0 << ": ";
+    uint32_t j1 = (begin+iprt <= i0 ? begin+iprt : i0);
+    for (uint32_t j0 = begin; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (j1 < i0)
+	lg.buffer() << " ... (" << i0 - j1 << " ommitted)";
+    lg.buffer() << "\npartition 2, # elements = " << end - i0 << ": ";
+    j1 = (i0+iprt < end ? i0+iprt : end);
+    for (uint32_t j0 = i0; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (end > j1)
+	lg.buffer() << " ... (" << end - j1 << " ommitted)";
+#endif
+    return i0;
+} // ibis::util::sortStrings_partition
+
+void ibis::util::sort_radix(array_t<char>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offsets(256, 0);
+    bool sorted = true;
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offsets[keys[j]+128];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    uint32_t maxv = offsets[0];
+    uint32_t prev = offsets[0];
+    offsets[0] = 0;
+    for (uint32_t j = 1; j < 256; ++ j) {
+	const uint32_t cnt = offsets[j];
+	offsets[j] = prev;
+	prev += cnt;
+	if (maxv < cnt) maxv = cnt;
+    }
+    if (maxv < nelm) {
+	array_t<char> ktmp(nelm);
+	array_t<uint32_t> vtmp(nelm);
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    ktmp[offsets[keys[j]+128]] = keys[j];
+	    vtmp[offsets[keys[j]+128]] = vals[j];
+	    ++ offsets[keys[j]+128];
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << std::hex << keys[j]
+			<< std::dec << ", vals[" << j << "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<unsigned char>& keys,
+			    array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offsets(256, 0);
+    bool sorted = true;
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offsets[keys[j]];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    uint32_t maxv = offsets[0];
+    uint32_t prev = offsets[0];
+    offsets[0] = 0;
+    for (uint32_t j = 1; j < 256; ++ j) {
+	const uint32_t cnt = offsets[j];
+	offsets[j] = prev;
+	prev += cnt;
+	if (cnt > maxv) maxv = cnt;
+    }
+
+    if (maxv < nelm) {
+	array_t<unsigned char> ktmp(nelm);
+	array_t<uint32_t> vtmp(nelm);
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    ktmp[offsets[keys[j]]] = keys[j];
+	    vtmp[offsets[keys[j]]] = vals[j];
+	    ++ offsets[keys[j]];
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << std::hex << keys[j]
+			<< std::dec << ", vals[" << j << "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(256, 0);
+    array_t<uint32_t> offset2(256, 0);
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&255];
+	++ offset2[(keys[j]>>8)+128];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    for (uint32_t j = 1; j < 256; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+    }
+    if (max1 == nelm && max2 == nelm) return;
+
+    array_t<int16_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&255];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ktmp[j]>>8)+128];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(256, 0);
+    array_t<uint32_t> offset2(256, 0);
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&255];
+	++ offset2[keys[j]>>8];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    for (uint32_t j = 1; j < 256; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	if (cnt1 > max1) max1 = cnt1;
+	if (cnt2 > max2) max2 = cnt2;
+    }
+    if (max1 == nelm && max2 == nelm) return;
+
+    array_t<uint16_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&255];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[ktmp[j]>>8];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(1024, 0); // 10-bit
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&2047];
+	++ offset2[(keys[j]>>11)&2047];
+	++ offset3[(keys[j]>>22)+512];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    offset3[0] = 0;
+    for (uint32_t j = 1; j < 1024; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	if (cnt1 > max1) max1 = cnt1;
+	if (cnt2 > max2) max2 = cnt2;
+	if (cnt3 > max3) max3 = cnt3;
+    }
+    for (uint32_t j = 1024; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	if (cnt1 > max1) max1 = cnt1;
+	if (cnt2 > max2) max2 = cnt2;
+    }
+    if (max1 == nelm && max2 == nelm && max2 == nelm) return;
+
+    array_t<int32_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ktmp[j]>>11)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset3[(keys[j]>>22)+512];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(1024, 0); // 10-bit
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&2047];
+	++ offset2[(keys[j]>>11)&2047];
+	++ offset3[(keys[j]>>22)];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    offset3[0] = 0;
+    for (uint32_t j = 1; j < 1024; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+    }
+    for (uint32_t j = 1024; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+    }
+    if (max1 == nelm && max2 == nelm && max3 == nelm) return;
+
+    array_t<uint32_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ktmp[j]>>11)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset3[(keys[j]>>22)];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(2048, 0); // 11-bit
+    array_t<uint32_t> offset4(2048, 0); // 11-bit
+    array_t<uint32_t> offset5(1024, 0); // 10-bit
+    array_t<uint32_t> offset6(1024, 0); // 10-bit
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&2047];
+	++ offset2[(keys[j]>>11)&2047];
+	++ offset3[(keys[j]>>22)&2047];
+	++ offset4[(keys[j]>>33)&2047];
+	++ offset5[(keys[j]>>44)&1023];
+	++ offset6[(keys[j]>>54)+512];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[0];
+    uint32_t max4 = offset4[0];
+    uint32_t max5 = offset5[0];
+    uint32_t max6 = offset6[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[0];
+    uint32_t prev4 = offset4[0];
+    uint32_t prev5 = offset5[0];
+    uint32_t prev6 = offset6[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    offset3[0] = 0;
+    offset4[0] = 0;
+    offset5[0] = 0;
+    offset6[0] = 0;
+    for (uint32_t j = 1; j < 1024; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	const uint32_t cnt5 = offset5[j];
+	const uint32_t cnt6 = offset6[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	offset5[j] = prev5;
+	offset6[j] = prev6;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	prev5 += cnt5;
+	prev6 += cnt6;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+	if (max5 < cnt5) max5 = cnt5;
+	if (max6 < cnt6) max6 = cnt6;
+    }
+    for (uint32_t j = 1024; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+    }
+    if (max1 == nelm && max2 == nelm && max3 == nelm && max4 == nelm &&
+	max5 == nelm && max6 == nelm) return;
+
+    array_t<int64_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ktmp[j]>>11)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset3[(keys[j]>>22)&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 4
+    if (max4 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset4[(ktmp[j]>>33)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 5
+    if (max5 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset5[(keys[j]>>44)&1023];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 6
+    if (max6 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset6[(ktmp[j]>>54)+512];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(2048, 0); // 11-bit
+    array_t<uint32_t> offset4(2048, 0); // 11-bit
+    array_t<uint32_t> offset5(1024, 0); // 10-bit
+    array_t<uint32_t> offset6(1024, 0); // 10-bit
+    bool sorted = true;
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[keys[j]&2047];
+	++ offset2[(keys[j]>>11)&2047];
+	++ offset3[(keys[j]>>22)&2047];
+	++ offset4[(keys[j]>>33)&2047];
+	++ offset5[(keys[j]>>44)&1023];
+	++ offset6[(keys[j]>>54)];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[0];
+    uint32_t max4 = offset4[0];
+    uint32_t max5 = offset5[0];
+    uint32_t max6 = offset6[0];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[0];
+    uint32_t prev4 = offset4[0];
+    uint32_t prev5 = offset5[0];
+    uint32_t prev6 = offset6[0];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    offset3[0] = 0;
+    offset4[0] = 0;
+    offset5[0] = 0;
+    offset6[0] = 0;
+    for (uint32_t j = 1; j < 1024; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	const uint32_t cnt5 = offset5[j];
+	const uint32_t cnt6 = offset6[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	offset5[j] = prev5;
+	offset6[j] = prev6;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	prev5 += cnt5;
+	prev6 += cnt6;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+	if (max5 < cnt5) max5 = cnt5;
+	if (max6 < cnt6) max6 = cnt6;
+    }
+    for (uint32_t j = 1024; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+    }
+    if (max1 == nelm && max2 == nelm && max3 == nelm && max4 == nelm &&
+	max5 == nelm && max6 == nelm) return;
+
+    array_t<uint64_t> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[keys[j]&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vtmp.swap(vals);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ktmp[j]>>11)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset3[(keys[j]>>22)&2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 4
+    if (max4 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset4[(ktmp[j]>>33)&2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 5
+    if (max5 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset5[(keys[j]>>44)&1023];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 6
+    if (max6 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset6[(ktmp[j]>>54)];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<float>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(1024, 0); // 10-bit
+    bool sorted = true;
+    // count the number of values in each bucket
+    const uint32_t *ikeys = reinterpret_cast<const uint32_t*>(keys.begin());
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	const uint32_t& key = ikeys[j];
+	++ offset1[key&2047];
+	++ offset2[(key>>11)&2047];
+	++ offset3[(key>>22)];
+	if (j > 0)
+	sorted = sorted && (keys[j]>=keys[j-1]);
+    }
+    if (sorted) return; // input keys are already sorted
+
+    // determine the starting positions for each bucket
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[1023];
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[1023];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    for (uint32_t j = 1; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	if (cnt1 > max1) max1 = cnt1;
+	if (cnt2 > max2) max2 = cnt2;
+    }
+    for (uint32_t j = 1022; j > 511; -- j) {
+	const uint32_t cnt3 = offset3[j];
+	prev3 += cnt3;
+	offset3[j] = prev3;
+	if (cnt3 > max3) max3 = cnt3;
+    }
+    for (uint32_t j = 0; j < 512; ++ j) {
+	const uint32_t cnt3 = offset3[j];
+	offset3[j] = prev3;
+	prev3 += cnt3;
+	if (cnt3 > max3) max3 = cnt3;
+    }
+    if (max1 == nelm && max2 == nelm && max3 == nelm)
+	return; // all values are the same
+
+    array_t<float> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) { // need actual copying
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[ikeys[j] & 2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else { // swap the arrays to simplify the next pass
+	ktmp.swap(keys);
+	vtmp.swap(vals);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	ikeys = reinterpret_cast<const uint32_t *>(ktmp.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ikeys[j]>>11) & 2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	ikeys = reinterpret_cast<const uint32_t*>(keys.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t key = (ikeys[j]>>22);
+	    uint32_t &pos = offset3[key];
+	    if (key < 512) { // positive value
+		ktmp[pos] = keys[j];
+		vtmp[pos] = vals[j];
+		++ pos;
+	    }
+	    else {
+		-- pos;
+		ktmp[pos] = keys[j];
+		vtmp[pos] = vals[j];
+	    }
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    ikeys = reinterpret_cast<const uint32_t*>(keys.begin());
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << "("
+			<< std::hex << ikeys[j] << std::dec << ")"
+			<< ", vals[" << j << "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+void ibis::util::sort_radix(array_t<double>& keys, array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offset1(2048, 0); // 11-bit
+    array_t<uint32_t> offset2(2048, 0); // 11-bit
+    array_t<uint32_t> offset3(2048, 0); // 11-bit
+    array_t<uint32_t> offset4(2048, 0); // 11-bit
+    array_t<uint32_t> offset5(1024, 0); // 10-bit
+    array_t<uint32_t> offset6(1024, 0); // 10-bit
+    bool sorted = true;
+    const uint64_t *ikeys = reinterpret_cast<const uint64_t*>(keys.begin());
+    // count the number of values in each bucket
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offset1[ikeys[j]&2047];
+	++ offset2[(ikeys[j]>>11)&2047];
+	++ offset3[(ikeys[j]>>22)&2047];
+	++ offset4[(ikeys[j]>>33)&2047];
+	++ offset5[(ikeys[j]>>44)&1023];
+	++ offset6[(ikeys[j]>>54)];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    // determine the starting positions for each bucket
+    uint32_t max1 = offset1[0];
+    uint32_t max2 = offset2[0];
+    uint32_t max3 = offset3[0];
+    uint32_t max4 = offset4[0];
+    uint32_t max5 = offset5[0];
+    uint32_t max6 = offset6[1023];
+    uint32_t prev1 = offset1[0];
+    uint32_t prev2 = offset2[0];
+    uint32_t prev3 = offset3[0];
+    uint32_t prev4 = offset4[0];
+    uint32_t prev5 = offset5[0];
+    uint32_t prev6 = offset6[1023];
+    offset1[0] = 0;
+    offset2[0] = 0;
+    offset3[0] = 0;
+    offset4[0] = 0;
+    offset5[0] = 0;
+    for (uint32_t j = 1; j < 1024; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	const uint32_t cnt5 = offset5[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	offset5[j] = prev5;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	prev5 += cnt5;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+	if (max5 < cnt5) max5 = cnt5;
+    }
+    for (uint32_t j = 1024; j < 2048; ++ j) {
+	const uint32_t cnt1 = offset1[j];
+	const uint32_t cnt2 = offset2[j];
+	const uint32_t cnt3 = offset3[j];
+	const uint32_t cnt4 = offset4[j];
+	offset1[j] = prev1;
+	offset2[j] = prev2;
+	offset3[j] = prev3;
+	offset4[j] = prev4;
+	prev1 += cnt1;
+	prev2 += cnt2;
+	prev3 += cnt3;
+	prev4 += cnt4;
+	if (max1 < cnt1) max1 = cnt1;
+	if (max2 < cnt2) max2 = cnt2;
+	if (max3 < cnt3) max3 = cnt3;
+	if (max4 < cnt4) max4 = cnt4;
+    }
+    for (uint32_t j = 1022; j > 511; --j) {
+	const uint32_t cnt6 = offset6[j];
+	prev6 += cnt6;
+	offset6[j] = prev6;
+	if (max6 < cnt6) max6 = cnt6;
+    }
+    for (uint32_t j = 0; j < 512; ++j) {
+	const uint32_t cnt6 = offset6[j];
+	offset6[j] = prev6;
+	prev6 += cnt6;
+	if (max6 < cnt6) max6 = cnt6;
+    }
+    if (max1 == nelm && max2 == nelm && max3 == nelm && max4 == nelm &&
+	max5 == nelm && max6 == nelm) return;
+
+    array_t<double> ktmp(nelm);
+    array_t<uint32_t> vtmp(nelm);
+    // distribution 1
+    if (max1 < nelm) {
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset1[ikeys[j] & 2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 2
+    if (max2 < nelm) {
+	ikeys = reinterpret_cast<const uint64_t*>(ktmp.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset2[(ikeys[j]>>11) & 2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 3
+    if (max3 < nelm) {
+	ikeys = reinterpret_cast<const uint64_t*>(keys.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset3[(ikeys[j]>>22) & 2047];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 4
+    if (max4 < nelm) {
+	ikeys = reinterpret_cast<const uint64_t*>(ktmp.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset4[(ikeys[j]>>33) & 2047];
+	    keys[pos] = ktmp[j];
+	    vals[pos] = vtmp[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 5
+    if (max5 < nelm) {
+	ikeys = reinterpret_cast<const uint64_t*>(keys.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t &pos = offset5[(ikeys[j]>>44) & 1023];
+	    ktmp[pos] = keys[j];
+	    vtmp[pos] = vals[j];
+	    ++ pos;
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+
+    // distribution 6
+    if (max6 < nelm) {
+	ikeys = reinterpret_cast<const uint64_t*>(ktmp.begin());
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    uint32_t key = (ikeys[j]>>54);
+	    uint32_t &pos = offset6[key];
+	    if (key < 512) { // positive numbers
+		keys[pos] = ktmp[j];
+		vals[pos] = vtmp[j];
+		++ pos;
+	    }
+	    else { // negative numbers
+		-- pos;
+		keys[pos] = ktmp[j];
+		vals[pos] = vtmp[j];
+	    }
+	}
+    }
+    else {
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if defined(DEBUG)
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_radix(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+template <typename T> int64_t
+ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
+		      array_t<T>& valS, array_t<uint32_t>& indS) {
+    if (valR.empty() || valS.empty()) return 0;
+
+    try {
+	if (valR.size() != indR.size()) {
+	    indR.resize(valR.size());
+	    for (uint32_t j = 0; j < valR.size(); ++ j)
+		indR[j] = j;
+	}
+	ibis::util::sortKeys(valR, indR);
+	if (valS.size() != indS.size()) {
+	    indS.resize(valS.size());
+	    for (uint32_t j = 0; j < valS.size(); ++ j)
+		indS[j] = j;
+	}
+	ibis::util::sortKeys(valS, indS);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
+	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
+	    << "]) failed to sort the two values or to create index arrays";
+	return -1;
+    }
+
+    int64_t cnt = 0;
+    uint32_t ir = 0;
+    uint32_t is = 0;
+    const uint32_t nr = valR.size();
+    const uint32_t ns = valS.size();
+    while (ir < nr && is < ns) {
+	if (valR[ir] == valS[is]) {
+	    const uint32_t ir0 = ir;
+	    const uint32_t is0 = is;
+	    for (++ ir; ir < nr && valR[ir] == valR[ir0]; ++ ir);
+	    for (++ is; is < ns && valS[is] == valS[is0]; ++ is);
+	    cnt += (ir-ir0) * (is-is0);
+	}
+	else if (valR[ir] < valS[is]) {
+	    ++ ir;
+	}
+	else {
+	    ++ is;
+	}
+    }
+    return cnt;
+} // ibis::util::sortMerge
+
+int64_t
+ibis::util::sortMerge(std::vector<std::string>& valR, array_t<uint32_t>& indR,
+		      std::vector<std::string>& valS, array_t<uint32_t>& indS) {
+    if (valR.empty() || valS.empty()) return 0;
+
+    try {
+	if (valR.size() != indR.size()) {
+	    indR.resize(valR.size());
+	    for (uint32_t j = 0; j < valR.size(); ++ j)
+		indR[j] = j;
+	}
+	ibis::util::sortStrings(valR, indR);
+	if (valS.size() != indS.size()) {
+	    indS.resize(valS.size());
+	    for (uint32_t j = 0; j < valS.size(); ++ j)
+		indS[j] = j;
+	}
+	ibis::util::sortStrings(valS, indS);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::util::sortMerge(std::string["
+	    << valR.size() << "], std::string[" << valS.size()
+	    << "]) failed to sort the two values or to create index arrays";
+	return -1;
+    }
+
+    int64_t cnt = 0;
+    uint32_t ir = 0;
+    uint32_t is = 0;
+    const uint32_t nr = valR.size();
+    const uint32_t ns = valS.size();
+    while (ir < nr && is < ns) {
+	int cmp = valR[ir].compare(valS[is]);
+	if (cmp == 0) {
+	    const uint32_t ir0 = ir;
+	    const uint32_t is0 = is;
+	    for (++ ir; ir < nr && valR[ir].compare(valR[ir0]) == 0; ++ ir);
+	    for (++ is; is < ns && valS[is].compare(valS[is0]) == 0; ++ is);
+	    cnt += (ir-ir0) * (is-is0);
+	}
+	else if (cmp < 0) {
+	    ++ ir;
+	}
+	else {
+	    ++ is;
+	}
+    }
+    return cnt;
+} // ibis::util::sortMerge
+
+// explicit template instantiations
+template int64_t
+ibis::util::sortMerge<char>(array_t<char>&, array_t<uint32_t>&,
+			    array_t<char>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<unsigned char>
+(array_t<unsigned char>&, array_t<uint32_t>&,
+ array_t<unsigned char>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<int16_t>(array_t<int16_t>&, array_t<uint32_t>&,
+			       array_t<int16_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<uint16_t>(array_t<uint16_t>&, array_t<uint32_t>&,
+				array_t<uint16_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<int32_t>(array_t<int32_t>&, array_t<uint32_t>&,
+			       array_t<int32_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<uint32_t>(array_t<uint32_t>&, array_t<uint32_t>&,
+				array_t<uint32_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<int64_t>(array_t<int64_t>&, array_t<uint32_t>&,
+			       array_t<int64_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<uint64_t>(array_t<uint64_t>&, array_t<uint32_t>&,
+				array_t<uint64_t>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<float>(array_t<float>&, array_t<uint32_t>&,
+			     array_t<float>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<double>(array_t<double>&, array_t<uint32_t>&,
+			      array_t<double>&, array_t<uint32_t>&);
+
+template void
+ibis::util::reorder<signed char>(array_t<signed char>&,
+				 const array_t<uint32_t>&);
+template void
+ibis::util::reorder<unsigned char>(array_t<unsigned char>&,
+				   const array_t<uint32_t>&);
+template void
+ibis::util::reorder<char>(array_t<char>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<int16_t>(array_t<int16_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<int32_t>(array_t<int32_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<int64_t>(array_t<int64_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<uint16_t>(array_t<uint16_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<uint32_t>(array_t<uint32_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<uint64_t>(array_t<uint64_t>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<float>(array_t<float>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<double>(array_t<double>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<array_t<ibis::rid_t> >(array_t<array_t<ibis::rid_t>*>&,
+					   const array_t<uint32_t>&);
+
+template void
+ibis::util::sortAll<int32_t, int32_t>(array_t<int32_t>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<uint32_t, int32_t>(array_t<uint32_t>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<int64_t, int32_t>(array_t<int64_t>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<uint64_t, int32_t>(array_t<uint64_t>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<float, int32_t>(array_t<float>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<double, int32_t>(array_t<double>&, array_t<int32_t>&);
+template void
+ibis::util::sortAll<int32_t, uint32_t>(array_t<int32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<uint32_t, uint32_t>(array_t<uint32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<int64_t, uint32_t>(array_t<int64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<uint64_t, uint32_t>(array_t<uint64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<float, uint32_t>(array_t<float>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<double, uint32_t>(array_t<double>&, array_t<uint32_t>&);
+template void
+ibis::util::sortAll<int32_t, int64_t>(array_t<int32_t>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<uint32_t, int64_t>(array_t<uint32_t>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<int64_t, int64_t>(array_t<int64_t>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<uint64_t, int64_t>(array_t<uint64_t>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<float, int64_t>(array_t<float>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<double, int64_t>(array_t<double>&, array_t<int64_t>&);
+template void
+ibis::util::sortAll<int32_t, uint64_t>(array_t<int32_t>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<uint32_t, uint64_t>(array_t<uint32_t>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<int64_t, uint64_t>(array_t<int64_t>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<uint64_t, uint64_t>(array_t<uint64_t>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<float, uint64_t>(array_t<float>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<double, uint64_t>(array_t<double>&, array_t<uint64_t>&);
+template void
+ibis::util::sortAll<int32_t, float>(array_t<int32_t>&, array_t<float>&);
+template void
+ibis::util::sortAll<uint32_t, float>(array_t<uint32_t>&, array_t<float>&);
+template void
+ibis::util::sortAll<int64_t, float>(array_t<int64_t>&, array_t<float>&);
+template void
+ibis::util::sortAll<uint64_t, float>(array_t<uint64_t>&, array_t<float>&);
+template void
+ibis::util::sortAll<float, float>(array_t<float>&, array_t<float>&);
+template void
+ibis::util::sortAll<double, float>(array_t<double>&, array_t<float>&);
+template void
+ibis::util::sortAll<int32_t, double>(array_t<int32_t>&, array_t<double>&);
+template void
+ibis::util::sortAll<uint32_t, double>(array_t<uint32_t>&, array_t<double>&);
+template void
+ibis::util::sortAll<int64_t, double>(array_t<int64_t>&, array_t<double>&);
+template void
+ibis::util::sortAll<uint64_t, double>(array_t<uint64_t>&, array_t<double>&);
+template void
+ibis::util::sortAll<float, double>(array_t<float>&, array_t<double>&);
+template void
+ibis::util::sortAll<double, double>(array_t<double>&, array_t<double>&);
+
+template void ibis::util::sortKeys(array_t<char>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<unsigned char>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<int16_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<uint16_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<int32_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<uint32_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<int64_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<uint64_t>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<float>&, array_t<uint32_t>&);
+template void ibis::util::sortKeys(array_t<double>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<char>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<unsigned char>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<int16_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<uint16_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<int32_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<uint32_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<int64_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<uint64_t>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<float>&, array_t<uint32_t>&);
+template void ibis::util::sort_quick3(array_t<double>&, array_t<uint32_t>&);
+
+template void
+ibis::util::sort_shell(array_t<char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<unsigned char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<int16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<uint16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<int32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<uint32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<int64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<uint64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<float>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_shell(array_t<double>&, array_t<uint32_t>&);
+
+template void
+ibis::util::sort_insertion(array_t<char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<unsigned char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<int16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<uint16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<int32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<uint32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<int64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<uint64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<float>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_insertion(array_t<double>&, array_t<uint32_t>&);

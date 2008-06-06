@@ -5,7 +5,7 @@
 #define IBIS_TABLE_H
 /**@file
 
-@brief FastBit Table Interface
+   @brief FastBit Table Interface
 
    This is a facade to provide a high-level view of operations are on
    relational tables.  Two main classes are defined here, @c table and @c
@@ -544,17 +544,17 @@ public:
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
-    virtual int getColumnAsByte(size_t cnum, char* vals) const=0;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char* vals) const=0;
-    virtual int getColumnAsShort(size_t cnum, int16_t* vals) const=0;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t* vals) const=0;
-    virtual int getColumnAsInt(size_t cnum, int32_t* vals) const=0;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t* vals) const=0;
-    virtual int getColumnAsLong(size_t cnum, int64_t* vals) const=0;
-    virtual int getColumnAsULong(size_t cnum, uint64_t* vals) const=0;
-    virtual int getColumnAsFloat(size_t cnum, float* vals) const=0;
-    virtual int getColumnAsDouble(size_t cnum, double* vals) const=0;
-    virtual int getColumnAsString(size_t cnum, std::string& vals) const=0;
+    virtual int getColumnAsByte(size_t cnum, char* val) const=0;
+    virtual int getColumnAsUByte(size_t cnum, unsigned char* val) const=0;
+    virtual int getColumnAsShort(size_t cnum, int16_t* val) const=0;
+    virtual int getColumnAsUShort(size_t cnum, uint16_t* val) const=0;
+    virtual int getColumnAsInt(size_t cnum, int32_t* val) const=0;
+    virtual int getColumnAsUInt(size_t cnum, uint32_t* val) const=0;
+    virtual int getColumnAsLong(size_t cnum, int64_t* val) const=0;
+    virtual int getColumnAsULong(size_t cnum, uint64_t* val) const=0;
+    virtual int getColumnAsFloat(size_t cnum, float* val) const=0;
+    virtual int getColumnAsDouble(size_t cnum, double* val) const=0;
+    virtual int getColumnAsString(size_t cnum, std::string& val) const=0;
 
 protected:
     cursor() {};

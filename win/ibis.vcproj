@@ -25,7 +25,7 @@
 				Optimization="0"
 				OptimizeForProcessor="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
-				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=10"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE,FILEMANAGER_UNLOAD_TIME=10"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="TRUE"
 				RuntimeLibrary="1"
@@ -267,6 +267,9 @@
 				RelativePath="..\src\ixzone.cpp">
 			</File>
 			<File
+				RelativePath="..\src\joinin.cpp">
+			</File>
+			<File
 				RelativePath="..\src\mensa.cpp">
 			</File>
 			<File
@@ -304,6 +307,9 @@
 			</File>
 			<File
 				RelativePath="..\src\util.cpp">
+			</File>
+			<File
+				RelativePath="..\src\utilidor.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -358,6 +364,12 @@
 				RelativePath="..\src\iroster.h">
 			</File>
 			<File
+				RelativePath="..\src\join.h">
+			</File>
+			<File
+				RelativePath="..\src\joinin.h">
+			</File>
+			<File
 				RelativePath="..\src\mensa.h">
 			</File>
 			<File
@@ -386,6 +398,9 @@
 			</File>
 			<File
 				RelativePath="..\src\util.h">
+			</File>
+			<File
+				RelativePath="..\src\utilidor.h">
 			</File>
 		</Filter>
 		<Filter

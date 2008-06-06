@@ -214,19 +214,4 @@ inline void array_t<T>::freeMemory() {
 	actual = 0;
     }
 } // array_t<T>::freeMemory
-
-namespace ibis {
-    namespace util {
-	/// Reorder the array arr according to the indices given in ind.
-	template <typename T>
-	void reorder(array_t<T> &arr, const array_t<uint32_t> &ind);
-	template <typename T>
-	void reorder(array_t<T*> &arr, const array_t<uint32_t> &ind);
-	/// Sort two arrays together.  Order arr1 in ascending order first,
-	/// then when arr1 has the same value, order arr2 in ascending
-	/// order as well.
-	template <typename T1, typename T2>
-	void sort(array_t<T1>& arr1, array_t<T2>& arr2);
-    }
-}
 #endif // IBIS_ARRAY_T_H

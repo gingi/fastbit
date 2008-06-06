@@ -10,6 +10,7 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 #include "bundle.h"
+#include "utilidor.h"	// ibis::util::reorder
 #include <sstream>	// std::ostringstream
 
 //////////////////////////////////////////////////////////////////////

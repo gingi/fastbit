@@ -50,6 +50,30 @@
 	to 44 based on the heuristics of neutral space-time trade-off
 	* src/ixpack.cpp: change the default number of coarse bins to 31
 
+2008-04-30 John Wu <John.Wu at ACM.org>
+	* src/joinin.cpp: complete initial implementation of ibis::joinIN
+	* examples/ibis.cpp: change the operation delete row to use -yank,
+	add -join to test the class ibis::joinIN
+	* src/Makefile.am: add entries for the new files, utilidor.cpp,
+	joinin.cpp, utilidor.h, joinin.h and join.h
+
+2008-04-29 John Wu <John.Wu at ACM.org>
+	* src/utilidor.h, src/utilidor.cpp: separate the sorting functions
+	in namespace ibis::util from joinin.cpp and array_t.cpp.  Timing
+	measurements show that the radix sort is the most efficient if
+	there are more than a few thousand elements in the array to be
+	sorted.  Change ibis::util::sort to ibis::util::sortall because it
+	sorts all arrays passed to it.  Rename the newer sorting function
+	to be ibis::util::sortkeys because they only sort according to the
+	arrays keys.
+	* *: create new tag on trunk (ibis-base-080429) and a new branch
+	ibis-branch-080429, discard the branch b093pre-addjoin
+	* src/utilidor.cpp: implement ibis::util::sortMerge
+	* src/joinin.cpp: implement ibis::joinIN::evaluate
+
+2008-04-27 John Wu <John.Wu at ACM.org>
+	* src/joinin.cpp: add radix sort functions
+
 2008-04-28 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:2240 add code to match the SQL patterns in
 	data partition names (a feature that was promised in

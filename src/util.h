@@ -784,7 +784,7 @@ inline char* ibis::util::strnewdup(const char* s) {
 inline char* ibis::util::strnewdup(const char* s, const uint32_t n) {
     char* str = 0;
     if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
-	uint32_t len = strlen(s);
+	size_t len = strlen(s);
 	if (n < len)
 	    len = n;
 	str = new char[len+1];
@@ -796,7 +796,7 @@ inline char* ibis::util::strnewdup(const char* s, const uint32_t n) {
 
 // remove all the trailing char 'tail'
 inline void ibis::util::removeTail(char* str, char tail) {
-    uint32_t j = strlen(str);
+    size_t j = strlen(str);
     while (j > 0 && str[j-1] == tail) {
 	-- j;
 	str[j] = static_cast<char>(0);
@@ -845,7 +845,7 @@ inline double ibis::util::coarsen(const double in, const unsigned prec) {
 
 inline std::string ibis::util::shortName(const std::string& de) {
     std::string tn;
-    uint32_t tmp = ibis::util::checksum(de.c_str(), de.size());
+    size_t tmp = ibis::util::checksum(de.c_str(), de.size());
     ibis::util::int2string(tn, tmp);
     std::swap(tn[0], tn[5]);
     if (! isalpha(tn[0]))

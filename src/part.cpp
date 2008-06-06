@@ -8457,10 +8457,10 @@ long ibis::part::count2DBins(array_t<T1>& vals1,
     const size_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
-    ibis::util::sort(vals1, vals2);
+    ibis::util::sortall(vals1, vals2);
 // #else
 //     if (counts.size() > 4096)
-// 	ibis::util::sort(vals1, vals2);
+// 	ibis::util::sortall(vals1, vals2);
 #endif
     for (size_t ir = 0; ir < nr; ++ ir) {
 	++ counts[dim2 * static_cast<uint32_t>((vals1[ir]-begin1)/stride1) +
@@ -12874,10 +12874,10 @@ void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
 	timer.start();
     }
 #if defined(SORT_VALUES_BEFORE_COUNT)
-    ibis::util::sort(val1, val2);
+    ibis::util::sortall(val1, val2);
 // #else
 //     if (nb1*nb2 > 4096)
-// 	ibis::util::sort(val1, val2);
+// 	ibis::util::sortall(val1, val2);
 #endif
     equalWeightBins(val1, nb1, bnd1);
     equalWeightBins(val2, nb2, bnd2);

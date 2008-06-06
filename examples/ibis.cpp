@@ -107,7 +107,7 @@ static const char *ridfile = 0;
 static const char *appendto = 0;
 static const char *outputfile = 0;
 static const char *indexingOption = 0;
-static const char *junkstring = 0;
+static const char *yankstring = 0;
 static const char *keepstring = 0;
 typedef std::pair<const char*, const char*> namepair;
 
@@ -123,6 +123,21 @@ namespace ibis {
     int _sumBins_option = 0; // default to the old way
 #endif
     extern int accessIndexInWhole;
+
+    /// A simple data structure to hold information about a request for
+    /// join operation.
+    struct joinspec {
+	const char *part1; ///< Name of the first/left data partition.
+	const char *part2; ///< Name of the second/right data partition.
+	const char *jcol;  ///< Name of the join column (part1.jcol=part2.jcol).
+	const char *cond1; ///< Constraints on part1.
+	const char *cond2; ///< Constraints on part2.
+	std::vector<const char*> selcol; ///< Selected columns.
+
+	joinspec() : part1(0), part2(0), jcol(0), cond1(0), cond2(0) {}
+	void print(std::ostream& out) const;
+    }; // joinspec
+    typedef std::vector<joinspec> joinlist;
 }
 
 // printout the usage string
@@ -130,12 +145,13 @@ static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c[onf] conf_file] "
 	"[-d[atadir] data_dir] [-i[nteractive]]\n"
 	"[-q[uery] [SELECT ...] [FROM ...] WHERE ...]\n"
+	"[-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]]\n"
 	"[-ou[tput-file] filename] [-l logfilename] "
 	"[-s[quential-scan]] [-r[id-check] [filename]]\n"
 	"[-n[o-estimation]] [-e[stimation-only]] [-k[eep-temporary-files]]"
 	"[-a[ppend] data_dir [partition_name]]\n"
 	"[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]\n"
-	"[-v[=n]] [-t[=n]] [-h[elp]] [-j[unk] filename|conditions]\n\n"
+	"[-v[=n]] [-t[=n]] [-h[elp]] [-y[ank] filename|conditions]\n\n"
 	"NOTE: multiple -c -d -q and -v options may be specified.  "
 	"Queries are applied to all data partitions by default.  "
 	"Verboseness levels are cumulated.\n\n"
@@ -144,7 +160,7 @@ static void usage(const char* name) {
 	"NOTE: option -t is interpreted as testing if specified alone, "
 	"however if any query is also specified, it is interpreted as "
 	"number of threads\n\n"
-	"NOTE: option -j must be followed by either a file name or a list "
+	"NOTE: option -y must be followed by either a file name or a list "
 	"of conditions.  The named file may contain arbitrary number of "
 	"non-negative integers that are treated as row numbers (starting "
 	"from 0).  The rows whose numbers are specified in the file will "
@@ -153,7 +169,7 @@ static void usage(const char* name) {
 	"conditions will be marked inactive.  Additionally, if the -z option "
 	"is also specified, all inactive rows will be purged permanently "
 	"from the data files.\n\n"
-	"NOTE: option -j is applied to all data partitions known to this "
+	"NOTE: option -y is applied to all data partitions known to this "
         "program.  Use with care.\n\n"
 	"NOTE: the output file stores the results selected by queries, the "
 	"log file is for the rest of the messages such error messages and "
@@ -184,6 +200,32 @@ static void help(const char* name) {
 	"help -- print this message.\n"
 	      << std::endl;
 } // help
+
+void ibis::joinspec::print(std::ostream& out) const {
+    if (selcol.size() > 0) {
+	out << "Select " << selcol[0];
+	for (size_t i = 1; i < selcol.size(); ++ i)
+	    out << ", " << selcol[i];
+	out << " ";
+    }
+    out << "From " << part1 << " Join "	<< part2 << " Using(" << jcol << ")";
+    if (cond1 != 0) {
+	if (cond2 != 0) {
+	    out << " Where " << cond1 << " And " << cond2;
+	}
+	else {
+	    out << " Where " << cond1;
+	}
+    }
+    else if (cond2 != 0) {
+	out << " Where " << cond2;
+    }
+} // ibis::joinspec::print
+
+std::ostream& operator<<(std::ostream& out, const ibis::joinspec& js) {
+    js.print(out);
+    return out;
+}
 
 // show column names
 static void printNames(const ibis::partList& tlist) {
@@ -542,7 +584,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 static void parse_args(int argc, char** argv,
 		       int& mode, ibis::partList& tlist,
 		       stringList& qlist, stringList& alist,
-		       std::vector<std::string> &queff) {
+		       std::vector<std::string> &queff, ibis::joinlist& joins) {
     mode = -1;
     tlist.clear();
     qlist.clear();
@@ -651,15 +693,39 @@ static void parse_args(int argc, char** argv,
 		mode = 1;
 		break;
 	    case 'j':
-	    case 'J': // junk some rows of every data partition available
-		// must have an argument after the flag to indicate a file
-		// containing row numbers or a string indicate conditions
-		// on rows to mark as inactive/junk
-		if (i+1 < argc && *argv[i+1] != '-') {
-		    junkstring = argv[i+1];
-		    i = i + 1;
+	    case 'J': {// join part1 part2 join-column constraints1 constratint2
+		ibis::joinspec js;
+		if (i+3 < argc) {
+		    js.part1 = argv[i+1];
+		    js.part2 = argv[i+2];
+		    js.jcol  = argv[i+3];
+		    i += 3;
 		}
-		break;
+		if (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+			js.cond1 = argv[i];
+		}
+		if (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+			js.cond2 = argv[i];
+		}
+		while (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    js.selcol.push_back(argv[i]);
+		}
+		if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
+		    joins.push_back(js);
+		}
+		else {
+		    LOGGER(1) << *argv << " -j option did not specify a "
+			"complete join operation, discard it.\nUsage\n\t-j "
+			"part1 part2 join-column conditions1 conditions2 "
+			"[columns ...]\n\nNote: Table care not to have any "
+			"of the strings start with -";
+		}
+		break;}
 	    case 'k':
 	    case 'K': // keep temporary query files or reverse -j
 		if (i+1 < argc && *argv[i+1] != '-') { // reverse -j
@@ -823,6 +889,16 @@ static void parse_args(int argc, char** argv,
 		    ibis::gVerbose += atoi(++ptr);
 		}
 		break;}
+	    case 'y':
+	    case 'Y': // yank some rows of every data partition available
+		// must have an argument after the flag to indicate a file
+		// containing row numbers or a string indicate conditions
+		// on rows to mark as inactive/junk
+		if (i+1 < argc && *argv[i+1] != '-') {
+		    yankstring = argv[i+1];
+		    i = i + 1;
+		}
+		break;
 	    case 'z':
 	    case 'Z': {
 		zapping = true;
@@ -852,8 +928,8 @@ static void parse_args(int argc, char** argv,
     }
     if (mode < 0) {
 	mode = (qlist.empty() && testing <= 0 && build_index <= 0 &&
-		alist.empty() && printcmds.empty() &&
-		rdirs.empty() && junkstring == 0 && keepstring == 0);
+		alist.empty() && printcmds.empty() && joins.empty() &&
+		rdirs.empty() && yankstring == 0 && keepstring == 0);
     }
     if (qlist.size() > 1U) {
 	if (testing > 0) {
@@ -947,12 +1023,20 @@ static void parse_args(int argc, char** argv,
 		 it != tlist.end(); ++it)
 		lg.buffer() << (*it).first << "\n";
 	}
-	if (qlist.size()) {
+	if (qlist.size() > 0) {
 	    lg.buffer() << "Quer" << (qlist.size()>1 ? "ies" : "y")
 			<< "[" << qlist.size() << "]:\n";
 	    for (stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it)
 		lg.buffer() << *it << "\n";
+	}
+	if (joins.size() > 0) {
+	    lg.buffer() << "Join" << (joins.size() > 1 ? "s" : "")
+			<< "[" << joins.size() << "]:\n";
+	    for (size_t j = 0; j < joins.size(); ++ j) {
+		joins[j].print(lg.buffer());
+		lg.buffer() << "\n";
+	    }
 	}
     }
 
@@ -1917,6 +2001,81 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	tlist[tbl->name()] = tbl;
 } // doAppend
 
+static void doJoin(const char* uid, const ibis::partList& parts,
+		   ibis::joinspec& js) {
+    std::ostringstream oss;
+    oss << "doJoin(" << js << ")";
+    ibis::util::timer tm(oss.str().c_str(), 1);
+    ibis::partList::const_iterator pt1 = parts.find(js.part1);
+    if (pt1 == parts.end()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << oss.str() << ": " << js.part1
+	    << " is not a know data partition";
+	return;
+    }
+    ibis::partList::const_iterator pt2 = parts.find(js.part2);
+    if (pt2 == parts.end()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << oss.str() << ": " << js.part2
+	    << " is not a know data partition";
+	return;
+    }
+    ibis::join *jn = ibis::join::create(*(*pt1).second, *(*pt2).second,
+					js.jcol, js.cond1, js.cond2);
+    if (jn == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << oss.str()
+	    << ": unable to construct an ibis::join object";
+	return;
+    }
+
+    int64_t nhits = jn->evaluate();
+    LOGGER(ibis::gVerbose >= 0)
+	<< oss.str() << " -- function evaluate() returned " << nhits;
+    if (nhits <= 0 || js.selcol.empty()) {
+	delete jn;
+	return;
+    }
+
+    ibis::join::result *res = jn->select(js.selcol);
+    if (res == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << oss.str()
+	    << ": failed to create an ibis::join::result object";
+	delete jn;
+	return;
+    }
+
+    // print the columns name
+    res->describe(std::cout);
+    size_t nprint = ((nhits >> ibis::gVerbose) > 1 ? (2 << ibis::gVerbose) :
+		     nhits);
+    // print the first few rows of the result
+    for (size_t j = 0; j < nprint; ++ j) {
+	int ierr = res->fetch();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << oss.str() << ": failed to fetch row " << j
+		<< " from the joined table with " << nhits << " row"
+		<< (nhits > 1 ? "s" : "") << ", ierr = " << ierr;
+	    delete res;
+	    delete jn;
+	    return;
+	}
+	ierr = res->dump(std::cout);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << oss.str() << ": failed to print row " << j
+		<< " from the joined table, ierr = " << ierr;
+	}
+    }
+    if (nhits > nprint) {
+	std::cout << " ... " << nhits - nprint << " skipped" << std::endl;
+    }
+    delete res;
+    delete jn;
+} // doJoin
+
 static void readInts(const char* fname, std::vector<uint32_t> &ints) {
     std::ifstream sfile(fname);
     if (! sfile) {
@@ -1933,15 +2092,15 @@ static void readInts(const char* fname, std::vector<uint32_t> &ints) {
 } // readInts
 
 static void doDeletion(ibis::partList& tlist) {
-    if (junkstring == 0 || *junkstring == 0) return;
+    if (yankstring == 0 || *yankstring == 0) return;
 
-    if (ibis::util::getFileSize(junkstring) > 0) {
+    if (ibis::util::getFileSize(yankstring) > 0) {
 	// assume the file contain a list of numbers that are row numbers
 	std::vector<uint32_t> rows;
-	readInts(junkstring, rows);
+	readInts(yankstring, rows);
 	if (rows.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doDeletion -- file \"" << junkstring
+		<< "doDeletion -- file \"" << yankstring
 		<< "\" does not start with integers, integer expected";
 	    return;
 	}
@@ -1971,14 +2130,14 @@ static void doDeletion(ibis::partList& tlist) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "doDeletion will invoke deactive on " << tlist.size()
 	    << " data partition" << (tlist.size() > 1 ? "s" : "")
-	    << " with \"" << junkstring << "\"";
+	    << " with \"" << yankstring << "\"";
 
 	for (ibis::partList::iterator it = tlist.begin();
 	     it != tlist.end(); ++ it) {
-	    long ierr = (*it).second->deactivate(junkstring);
+	    long ierr = (*it).second->deactivate(yankstring);
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "doDeletion -- deactivate(" << (*it).first
-		<< ", " << junkstring << ") returned " << ierr;
+		<< ", " << yankstring << ") returned " << ierr;
 
 	    if (zapping) {
 		ierr = (*it).second->purgeInactive();
@@ -2407,13 +2566,14 @@ int main(int argc, char** argv) {
 	int interactive;
 	stringList qlist;
 	stringList alist;
+	ibis::joinlist joins;
 	std::vector<std::string> queff; // queries read from files (-f)
 	const char* uid = ibis::util::userName();
 	ibis::horometer timer; // total elapsed time
 	timer.start();
 
 	// parse the command line arguments
-	parse_args(argc, argv, interactive, tlist, qlist, alist, queff);
+	parse_args(argc, argv, interactive, tlist, qlist, alist, queff, joins);
 
 	// add new data if any
 	for (stringList::const_iterator it = alist.begin();
@@ -2423,7 +2583,7 @@ int main(int argc, char** argv) {
 	}
 	alist.clear(); // no more use for it
 
-	if (junkstring != 0 && *junkstring != 0)
+	if (yankstring != 0 && *yankstring != 0)
 	    doDeletion(tlist);
 	if (keepstring != 0 && *keepstring != 0)
 	    reverseDeletion(tlist);
@@ -2543,6 +2703,11 @@ int main(int argc, char** argv) {
 		doQuery(uid, (*itt).second, 0, 0, 0, 0, 0);
 	}
 	ridfile = 0;
+
+	// process the joins one at a time
+	for (size_t j = 0; j < joins.size(); ++j) {
+	    doJoin(uid, tlist, joins[j]);
+	}
 
 	if (interactive) {	// iteractive operations
 	    std::string str;
