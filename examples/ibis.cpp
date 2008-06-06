@@ -727,8 +727,8 @@ static void parse_args(int argc, char** argv,
 		}
 		break;}
 	    case 'k':
-	    case 'K': // keep temporary query files or reverse -j
-		if (i+1 < argc && *argv[i+1] != '-') { // reverse -j
+	    case 'K': // keep temporary query files or reverse -y
+		if (i+1 < argc && *argv[i+1] != '-') { // reverse -y
 		    keepstring = argv[i+1];
 		    i = i + 1;
 		}

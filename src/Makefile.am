@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS=gnu
 
 lib_LTLIBRARIES = libfastbit.la
 libfastbit_la_SOURCES = array_t.cpp part.cpp ibin.cpp query.cpp utilidor.cpp index.cpp column.cpp meshQuery.cpp bord.cpp party.cpp predicate.tab.cpp ixambit.cpp bitvector.cpp bitvector64.cpp irange.cpp fileManager.cpp mensa.cpp irelic.cpp parti.cpp iroster.cpp colValues.cpp ixpack.cpp category.cpp ixpale.cpp bundle.cpp qExpr.cpp predicate.yy.cpp ixzone.cpp ixbylt.cpp tafel.cpp util.cpp icegale.cpp ixzona.cpp ixfuzz.cpp ixfuge.cpp isbiad.cpp ifade.cpp idbak2.cpp isapid.cpp icentre.cpp islice.cpp imesa.cpp joinin.cpp idirekte.cpp idbak.cpp capi.cpp ikeywords.cpp icmoins.cpp resource.cpp rids.cpp
-libfastbit_la_LDFLAGS = -versioninfo $(LIB_VERSION_INFO)
+libfastbit_la_LDFLAGS = -version-info $(LIB_VERSION_INFO)
 
 include_HEADERS = config.h array_t.h bitvector.h bitvector64.h bord.h bundle.h capi.h category.h colValues.h column.h const.h fileManager.h horometer.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h join.h joinin.h mensa.h meshQuery.h part.h predicate.h predicate.tab.h qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h
 

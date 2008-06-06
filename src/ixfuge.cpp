@@ -729,13 +729,19 @@ void ibis::fuge::coarsen() {
 	const int wm1 = ncoarse*8 - 1;
 	const long sf = (offsets.back()-offsets[0]) / ncoarse;
 	ncoarse = static_cast<unsigned>(wm1*sf/(sqrt(2.0)*nrows));
-	const double obj1 = (sf+(ncoarse+1-ceil(0.5*ncoarse))*nrows/wm1)
-	    *(sf*0.5/ncoarse+2.0*nrows/wm1);
-	const double obj2 = (sf+(ncoarse+2-ceil(0.5*ncoarse+0.5))*nrows/wm1)
-	    *(sf*0.5/(ncoarse+1.0)+2.0*nrows/wm1);
-	ncoarse += (obj2 < obj1);
+	const unsigned ncmax = (unsigned) sqrt(2.0 * nobs);
+	if (ncoarse < ncmax) {
+	    const double obj1 = (sf+(ncoarse+1-ceil(0.5*ncoarse))*nrows/wm1)
+		*(sf*0.5/ncoarse+2.0*nrows/wm1);
+	    const double obj2 = (sf+(ncoarse+2-ceil(0.5*ncoarse+0.5))*nrows/wm1)
+		*(sf*0.5/(ncoarse+1.0)+2.0*nrows/wm1);
+	    ncoarse += (obj2 < obj1);
+	}
+	else {
+	    ncoarse = ncmax;
+	}
     }
-    if (ncoarse < 5) return;
+    if (ncoarse < 5 || ncoarse <= nobs) return;
 
     const uint32_t nc2 = (ncoarse + 1) / 2;
     const uint32_t ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps

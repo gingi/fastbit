@@ -1,3 +1,18 @@
+2008-06-06 John Wu <John.Wu at ACM.org>
+	* utilidor.h, utilido.cpp, join.h, joinin.h, joinin.cpp: add files
+	that performs radix sort and in-memory equi-join from the branch
+	ibis-branch-080429
+	* src/Makefile.am:5 change versioninfo to version-info
+	* tests/Makefile.am:44 change option -j to -y to match with the
+	new ibis.cpp
+	* src/ixfuge.cpp, src/ixfuzz.cpp, and src/ixbylt.cpp: add code to
+	ensure the number of coarse bins is not more than the number of
+	distinct values (bins)
+	* Makefile.am, tests/Makefile.am: change quick-check to check, and
+	check to more-check, so the default check does a minimal amount of
+	testing as not to surprise the user with the excessive long run
+	time on some platfoms
+
 2008-06-05 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: lines 1341 and 1342 are swapped (a bug reported by
 	Xufei Qian of SDSC)

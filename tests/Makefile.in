@@ -113,6 +113,7 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LIB_VERSION_INFO = @LIB_VERSION_INFO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
@@ -482,10 +483,10 @@ uninstall-am: uninstall-dist_dataDATA
 
 #
 # tests with different levels of thoroughness
-quick-check: clean check-am
+check: clean check-am
 	${MAKE} check-ibis && ${MAKE} check-thula && ${MAKE} check-tcapi && ${MAKE} check-text
-check: quick-check small-tests
-full-check: check large-tests
+more-check: check small-tests
+full-check: more-check large-tests
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -507,7 +508,7 @@ check-tcapi: $(TESTDIR)/-part.txt $(TCAPIEXE)
 check-ibis: $(IBISEXE) $(TESTDIR)/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR) -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ did not pass test 1; fi
 	@$(IBISEXE) -d $(TESTDIR) -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ did not pass test 2; fi
-	@$(IBISEXE) -d $(TESTDIR) -j $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3; else $(ECHO) $@ did not pass test 3; fi
+	@$(IBISEXE) -d $(TESTDIR) -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3; else $(ECHO) $@ did not pass test 3; fi
 	@$(IBISEXE) -d $(TESTDIR) -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 4; else $(ECHO) $@ did not pass test 4; fi
 	@$(IBISEXE) -d $(TESTDIR) -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 5; else $(ECHO) $@ did not pass test 5; fi
 	@$(IBISEXE) -d $(TESTDIR) -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 6; else $(ECHO) $@ did not pass test 6; fi
@@ -682,7 +683,7 @@ $(TCAPIEXE):
 	@cd $(EXDIR) && $(MAKE) tcapi$(EXEEXT)
 # these targets do not refer to files
 .PHONY: clean multilevel match-counts large-sanity-check large-tests small-tests
-.PHONY: large-append-test append-test sanity-check full-check quick-check check
+.PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

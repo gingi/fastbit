@@ -15,8 +15,8 @@ docs:
 # three levels of thoroughness are available for checking the
 # correctness of FastBit functions: quick-check, check, full-check.
 # The normal check may take about ten minutes on a typical Linux machine.
-quick-check:
-	cd tests && $(MAKE) quick-check
+more-check:
+	cd tests && $(MAKE) more-check
 
 full-check:
 	cd tests && $(MAKE) full-check

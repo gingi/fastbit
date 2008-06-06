@@ -23,6 +23,7 @@ OBJ =  array_t.obj \
  column.obj \
  fileManager.obj \
  ibin.obj \
+ joinin.obj \
  bord.obj \
  tafel.obj \
  mensa.obj \
@@ -60,6 +61,7 @@ OBJ =  array_t.obj \
  query.obj \
  resource.obj \
  rids.obj \
+ utilildor.obj \
  util.obj
 
 #
@@ -298,3 +300,11 @@ trydll.obj: trydll.cpp ../src/ibis.h ../src/meshQuery.h ../src/query.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/bundle.h ../src/colValues.h ../src/rids.h
 	$(CXX) $(CCFLAGS) /D CXX_USE_DLL -c -o trydll.obj trydll.cpp
+utilidor.obj: ..\src\utilidor.cpp ..\src\utilidor.h ..\src\array_t.h \
+  ..\src\fileManager.h ..\src\util.h ..\src\const.h ..\src\horometer.h
+	$(CXX) $(CCFLAGS) -c -o utilidor.obj ..\src\utilidor.cpp
+joinin.obj: ..\src\joinin.cpp ..\src\joinin.h ..\src\join.h ..\src\table.h \
+  ..\src\const.h ..\src\part.h ..\src\column.h ..\src\fileManager.h \
+  ..\src\qExpr.h ..\src\util.h ..\src\bitvector.h ..\src\array_t.h \
+  ..\src\resource.h ..\src\query.h ..\src\utilidor.h ..\src\horometer.h
+	$(CXX) $(CCFLAGS) -c -o joinin.obj ..\src\joinin.cpp

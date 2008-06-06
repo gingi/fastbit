@@ -12,7 +12,7 @@ gmake -j 3 all
 Since it take a while (~ 20 min) to build the libraries, it is a good
 idea to spawn multiple jobs to compile them.  However, it is NOT safe to
 run the tests in parallel because different jobs may attempt to write
-the same files.  The commands 'make quick-check', 'make check', and
+the same files.  The commands 'make check', 'make more-check', and
 'make full-check' must be run as a single job.
 
 
@@ -98,34 +98,32 @@ Known Issues
     if you have information about them or know how to fix the problem,
     we would like to hear about it.
 
-(3) It may take a while (~ 15 min) to run the tests especially if the
-    build directory is remoted mounted or you are trying it out under
-    cygwin.  To avoid using the remoted mounted file system for tests,
-    you may specify a location on a local file system to hold the test
-    data, e.g.,
+(3) The tests in 'make check' do a very minimal amount of testing.  To
+    perform more through testing, use 'make more-check' or 'make
+    full-check'.  The tests in 'make more-check' may take ~ 15 min,
+    which 'make full-check' make take several hours.  These longer
+    tests writes a large number of files into the test directory, which
+    is default to tests/tmp.  It is a good idea to use a local file
+    system instead of a remoted mounted file system for test directory.
+    To change the test directory use variable TESTDIR, e.g.,
 
-    make TESTDIR=/tmp/kwu/tests check
+    make TESTDIR=/tmp/kwu/tests full-check
 
-    The target 'quick-test' will take a few seconds, and 'full-check'
-    take about five (5) hours on my desktop PC running linux.
+    which will use /tmp/kwu/tests as the test directory.
 
     Running tests under cygwin seems to take much longer than on a linux
     machine.  I don't know of any way to speed up the test under cygwin.
     Guess, you basically have to use the native file system on MS
-    windows.  If you do anything serious with FastBit, a reasonable
-    option is to compile the executables using setup in directory win.
-    There is a Makefile file named win/MinGW.mak for compiling under
-    MinGW/MinSYS.  If you have a better way than provided there, I would
-    like to hear about it.
+    windows.  Alternatively you may consider MinGW/MinSYS.
 
 (4) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
-    choke up on a SGI Altix system.  It seems to work fine with a newer
-    version of gcc or other compilers such Intel's icpc on the same
+    choke up on a SGI Altix system.  It seems to work fine with newer
+    versions of gcc or other compilers such Intel's icpc on the same
     system.
 
-(5) Valgrind will conplain about FastBit access 4 bytes beyond the end
+(5) Valgrind will complain about FastBit access 4 bytes beyond the end
     of allocated space in some functions of ibis::bitvector.  The
-    content of this read operatioin does no alter the logical of the
+    content of this read operation does no alter the logical of the
     programs (there is a delayed decision to reduce the number of
     if-tests), and the program executes correctly.  If this read
     operation does cause trouble, it would probably cause the OS to
@@ -140,7 +138,7 @@ Known Issues
     memory allowed by the OS.  It is important to coordinate these two
     limits.  More specifically, the memory used by FastBit memory cache
     should be less than the OS limit, otherwise, FastBit program may
-    crash for due to memory allocation problem.  For example, on
+    crash due to memory allocation problem.  For example, on
     jacquard.nersc.gov, the maximum virtual memory allowed per process
     is 2GB, but there are about 6GB of physical memory.  In this case,
     add an RC file with "fileManager.maxBytes=2GB" is needed to reduce
@@ -152,6 +150,12 @@ Known Issues
     supported.  Use option --disable-shared to prevent it from trying to
     build the shared library.  (For NERSC users, franklin does not
     support shared libraries on the compute nodes.)
+
+(8) FastBit makes extensive use of STL objects, this causes a problem
+    when one wants to build a DLL on a windows machine.  There is at
+    least on success story of using STLport to replace the STL from
+    visual studio and build DLL successfully, see
+    <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
 
 ----------

@@ -150,13 +150,19 @@ void ibis::bylt::coarsen() {
 	const long sf = (offsets.back()-offsets[0]) / ncoarse;
 	ncoarse = static_cast<unsigned>
 	    (0.5*wm1*sqrt(sf*(sf-(double)nrows/wm1))/nrows);
-	const double obj1 = (sf + (ncoarse-1.0)*nrows/wm1)
-	    * (sf*0.5/ncoarse + 2.0*nrows/wm1);
-	const double obj2 = (sf + (double)ncoarse*nrows/wm1)
-	    * (sf*0.5/(ncoarse+1) + 2.0*nrows/wm1);
-	ncoarse += (obj2 < obj1);
+	const unsigned ncmax = (unsigned) sqrt(2.0 * vals.size());
+	if (ncoarse < ncmax) {
+	    const double obj1 = (sf + (ncoarse-1.0)*nrows/wm1)
+		* (sf*0.5/ncoarse + 2.0*nrows/wm1);
+	    const double obj2 = (sf + (double)ncoarse*nrows/wm1)
+		* (sf*0.5/(ncoarse+1) + 2.0*nrows/wm1);
+	    ncoarse += (obj2 < obj1);
+	}
+	else {
+	    ncoarse = ncmax;
+	}
     }
-    if (ncoarse < 5) return;
+    if (ncoarse < 5 || ncoarse <= vals.size()) return;
 
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes

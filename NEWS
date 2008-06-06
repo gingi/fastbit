@@ -1,6 +1,14 @@
+Fri Jun  6 15:24:18 PDT 2008
 Version b0.9.4
 -- add ibis::colValues::nosharing to address a seg fault when selecting
-   all values in a partition (a problem reported by Ross Bates)
+   all values in a partition (reported by Ross Bates)
+-- add utilidor.h, utilidor.cpp, join.h, joinin.h, and joinin.cpp to
+   provide radix sorting and in-memory natural join (requested by
+   Matthias Vallentin)
+-- fix bug in ibis::part::writeTDC related to column shape statement
+   (reported by Xufei Qian)
+-- update testing code to match the change of option -j to -y for
+   ibis.cpp (-j is now for join)
 
 Wed May 28 07:38:11 PDT 2008
 Version b0.9.3
