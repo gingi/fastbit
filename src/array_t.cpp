@@ -650,10 +650,10 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 	// find the pivot
 	uint32_t p = partition(ind, front, back);
 	// make sure the smaller half is sorted
-	if (p == back) {
-	    return; // all values are the same
+	if (p >= back) {
+	    front = back; // all values are the same
 	}
-	else if (p - front < back - p) {
+	else if (p - front <= back - p) {
 	    // sort [front, p-1]
 	    if (p > front + QSORT_MIN) { // use quick sort
 		if (lvl >= QSORT_MAX_DEPTH)

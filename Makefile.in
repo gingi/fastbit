@@ -683,7 +683,7 @@ full-check:
 	cd tests && $(MAKE) full-check
 
 clean: clean-recursive
-	-rm -f win/ibis.suo win/ibis.ncb win/fastbit.def
+	-rm -f win/*.suo win/*.ncb win/fastbit.def
 	-rm -fr doc/html doc/latex win/Debug win/Release win/dll
 
 distclean: distclean-recursive

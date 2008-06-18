@@ -3,6 +3,90 @@
 // Copyright 2008 the Regents of the University of California
 #include "utilidor.h"
 
+#ifndef QSORT_MIN
+#define QSORT_MIN 64
+#endif
+#ifndef QSORT_MAX_DEPTH
+#define QSORT_MAX_DEPTH 20
+#endif
+
+namespace ibis {
+    namespace util {
+	/// Shell sort.  Sort both arrays arr1 and arr2.
+	template <typename T1, typename T2>
+	void sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2);
+	/// The parititioning function for ibis::util::sortAll.  Uses
+	/// the standard two-way partitioning.
+	template <typename T1, typename T2>
+	uint32_t sortAll_split(array_t<T1>& arr1, array_t<T2>& arr2);
+
+	/// Quicksort.  Sort the keys only.  Use the standard two-way
+	/// partitioning.
+	template <typename T1, typename T2>
+	void sort_quick(array_t<T1>& keys, array_t<T2>& vals, uint32_t lvl);
+	/// Quicksort.  Sort the keys only.  Use a nonstandard three-way
+	/// partitioning.
+	template <typename T1, typename T2>
+	void sort_quick3(array_t<T1>& keys, array_t<T2>& vals);
+	/// Insertion sort.  It has relatively straightforward memory
+	/// access pattern and may be useful to sort a few numbers at the
+	/// end of a recursive procedure.
+	template <typename T1, typename T2>
+	void sort_insertion(array_t<T1>& keys, array_t<T2>& vals);
+	/// Shell sort.  It has relatively straightforward memory access
+	/// pattern and may be useful to sort a few numbers at the end of a
+	/// recursive sorting function.
+	template <typename T1, typename T2>
+	void sort_shell(array_t<T1>& keys, array_t<T2>& vals);
+	/// Heapsort.  Sort the keys only.  Move the vals along with
+	/// the keys.
+	template <typename T1, typename T2>
+	void sort_heap(array_t<T1>& keys, array_t<T2>& vals);
+	/// Partition function for quicksort.  The return value p separates
+	/// keys into two parts, keys[..:p-1] < keys[p:..].  A return value
+	/// equal to the size of keys indicates all keys are sorted.
+	template <typename T1, typename T2>
+	uint32_t sort_partition(array_t<T1>& keys, array_t<T2>& vals);
+	/// Three-way partitioning algorithm for quicksort.  Upon return
+	/// from this function, keys satisfying the following order
+	/// keys[0:starteq] < keys[starteq:stargt-1] < keys[startgt:..].
+	/// The keys are ordered if starteq = startgt = keys.size().
+	template <typename T1, typename T2>
+	void sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
+			     uint32_t& starteq, uint32_t& startgt);
+
+	/// Quicksort for strings.
+	void sortStrings_quick(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals, uint32_t begin,
+			       uint32_t end);
+	/// Shell sorting procedure.  To clean up after the quick sort
+	/// procedure.
+	void sortStrings_shell(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals,
+			       uint32_t begin, uint32_t end);
+	/// The partitioning procedure for quick sort.  It implements the
+	/// standard two-way partitioning with median-of-three pivot.
+	uint32_t sortStrings_partition(std::vector<std::string>& keys,
+				       array_t<uint32_t>& vals,
+				       uint32_t begin, uint32_t end);
+
+	/// Radix sort.  Allocates buffers needed for copying data.
+	/// @{
+	void sort_radix(array_t<char>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<unsigned char>& keys,
+			array_t<uint32_t>& vals);
+	void sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<float>& keys, array_t<uint32_t>& vals);
+	void sort_radix(array_t<double>& keys, array_t<uint32_t>& vals);
+	/// @}
+    }
+}
+
 template<class T>
 void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
     if (ind.size() <= arr.size()) {
@@ -40,25 +124,24 @@ template <typename T1, typename T2>
 void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
     const uint32_t nvals = (arr1.size() <= arr2.size() ?
 			    arr1.size() : arr2.size());
-    if (nvals < 1024) {
-	sortAll_shell(arr1, arr2);
-	return;
-    }
-
-    // invoke quicksort
-    uint32_t split = sortAll_split(arr1, arr2);
-    if (split < nvals) {
-	if (split > 0) {
-	    array_t<T1> front1(arr1, 0, split);
-	    array_t<T2> front2(arr2, 0, split);
-	    sortAll(front1, front2);
-	}
-	{
+    if (nvals >= 1024) {
+	// split the arrays
+	uint32_t split = sortAll_split(arr1, arr2);
+	if (split < nvals) {
+	    if (split > 0) {
+		array_t<T1> front1(arr1, 0, split);
+		array_t<T2> front2(arr2, 0, split);
+		sortAll(front1, front2);
+	    }
 	    array_t<T1> back1(arr1, split, nvals-split);
 	    array_t<T2> back2(arr2, split, nvals-split);
 	    sortAll(back1, back2);
 	}
     }
+    else {
+	sortAll_shell(arr1, arr2);
+    }
+
 #if defined(DEBUG)
     bool sorted = true;
     for (uint32_t j = 1; j < nvals; ++ j) {
@@ -272,41 +355,76 @@ template <typename T1, typename T2>
 void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
-    if (nelm < 8191) {
-	sort_quick(keys, vals);
-    }
-    else {
-	try {
-	    sort_radix(keys, vals);
-	}
-	catch (...) {
-	    sort_quick(keys, vals);
-	}
-    }
+//     if (nelm > 8192) {
+// 	try { // use radix sort only for large arrays
+// 	    sort_radix(keys, vals);
+// 	}
+// 	catch (...) {
+// 	    // the main reason radix sort might fails is out of memory,
+// 	    // since quick sort does not need extra memory, give it a try
+// 	    sort_quick(keys, vals, 0);
+// 	}
+//     }
+//     else {
+	sort_quick(keys, vals, 0);
+//     }
 } // ibis::util::sortKeys
 
 template <typename T1, typename T2>
-void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals) {
-    const uint32_t nelm = (keys.size() <= vals.size() ?
-			   keys.size() : vals.size());
-    uint32_t pivot = ibis::util::sort_partition(keys, vals);
-    if (pivot < nelm) {
-	if (0 < pivot) {
-	    array_t<T1> kfront(keys, 0, pivot);
-	    array_t<T2> vfront(vals, 0, pivot);
-	    if (pivot >= 32)
-		sort_quick(kfront, vfront);
-	    else
+void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
+			    uint32_t lvl) {
+    const uint32_t nelm =
+	(keys.size() <= vals.size() ? keys.size() : vals.size());
+    uint32_t back = nelm;
+    uint32_t front = 0;
+    while (back > front + QSORT_MIN) {
+	// find the pivot element
+	uint32_t pivot;
+	if (front > 0 || back < nelm) {
+	    array_t<T1> ktmp(keys, front, back-front);
+	    array_t<T2> vtmp(vals, front, back-front);
+	    pivot = front + ibis::util::sort_partition(ktmp, vtmp);
+	}
+	else {
+	    pivot = ibis::util::sort_partition(keys, vals);
+	}
+
+	if (pivot >= back) {
+	    front = back;
+	}
+	else if (pivot-front <= back-pivot) { // the front part is smaller
+	    array_t<T1> kfront(keys, front, pivot-front);
+	    array_t<T2> vfront(vals, front, pivot-front);
+	    if (pivot-front >= QSORT_MIN) {
+		if (lvl <= QSORT_MAX_DEPTH)
+		    sort_quick(kfront, vfront, lvl+1);
+		else // no more recursions
+		    sort_heap(kfront, vfront);
+	    }
+	    else {
 		sort_shell(kfront, vfront);
+	    }
+	    front = pivot;
 	}
-	{
-	    array_t<T1> kback(keys, pivot, nelm-pivot);
-	    array_t<T2> vback(vals, pivot, nelm-pivot);
-	    if (nelm-pivot >= 32)
-		sort_quick(kback, vback);
-	    else
+	else { // the back part is smaller
+	    array_t<T1> kback(keys, pivot, back-pivot);
+	    array_t<T2> vback(vals, pivot, back-pivot);
+	    if (back-pivot >= QSORT_MIN) {
+		if (lvl <= QSORT_MAX_DEPTH)
+		    sort_quick(kback, vback, lvl+1);
+		else // no more recursions
+		    sort_heap(kback, vback);
+	    }
+	    else {
 		sort_shell(kback, vback);
+	    }
+	    back = pivot;
 	}
+    }
+    if (back > front) { // sort the left over elements
+	array_t<T1> kfront(keys, front, back-front);
+	array_t<T2> vfront(vals, front, back-front);
+	sort_shell(kfront, vfront);
     }
 #if defined(DEBUG)
     bool sorted = true;
@@ -370,7 +488,7 @@ void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
     uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
-    lg.buffer() << "ibis::util::sort_quick2(keys[" << keys.size() << "], vals["
+    lg.buffer() << "ibis::util::sort_quick3(keys[" << keys.size() << "], vals["
 		<< vals.size() << "]) completed";
     if (sorted) {
 	lg.buffer() << " successfully";
@@ -385,6 +503,80 @@ void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
     }
 #endif
 } // ibis::util::sort_quick3
+
+template <typename T1, typename T2>
+void ibis::util::sort_heap(array_t<T1>& keys, array_t<T2>& vals) {
+    uint32_t nelm = (keys.size() <= vals.size() ? keys.size() : vals.size());
+    uint32_t parent = nelm / 2;
+    uint32_t curr, child;
+    T1 ktmp;
+    T2 vtmp;
+    while (true) {
+	if (parent > 0) {
+	    // stage 1 -- form heap
+	    -- parent;
+	    ktmp = keys[parent];
+	    vtmp = vals[parent];
+	}
+	else {
+	    // stage 2 -- extract element from the top of heap
+	    -- nelm; // heap size, decrease by one
+	    if (nelm == 0) break;
+	    ktmp = keys[nelm];
+	    keys[nelm] = keys[0]; // top of the heap to position n
+	    vtmp = vals[nelm];
+	    vals[nelm] = vals[0];
+	}
+
+	// push-down procedure
+	curr = parent;
+	child = curr*2 + 1; // the left child
+	while (child < nelm) {
+	    if (child+1 < nelm && keys[child+1] > keys[child])
+		++ child; // use the right child
+	    if (ktmp < keys[child]) {
+		// the child has a larger value, need to decend further
+		keys[curr] = keys[child];
+		curr = child;
+		child += child + 1;
+	    }
+	    else { // heap property is satisfied
+		break;
+	    }
+	} // while (child < n)
+	// temporary values go into their final locatioins
+	keys[curr] = ktmp;
+	vals[curr] = vtmp;
+    } // while (true)
+
+#if defined(DEBUG)
+    bool sorted = true;
+    nelm = (keys.size() <= vals.size() ? keys.size() : vals.size());
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sort_heap(keys[" << keys.size() << "], vals["
+		<< vals.size() << "]) completed";
+    if (sorted) {
+	lg.buffer() << " successfully";
+    }
+    else {
+	lg.buffer() << " with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_heap
 
 template <typename T1, typename T2>
 uint32_t ibis::util::sort_partition(array_t<T1>& keys, array_t<T2>& vals) {
@@ -778,29 +970,35 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     if (nelm > 32) {
-	sortStrings(keys, vals, 0, nelm);
+	sortStrings_quick(keys, vals, 0, nelm);
     }
     else if (nelm > 1) {
 	sortStrings_shell(keys, vals, 0, nelm);
     }
 } // ibis::util::sortStrings
 
-void ibis::util::sortStrings(std::vector<std::string>& keys,
-			     array_t<uint32_t>& vals, uint32_t begin,
-			     uint32_t end) {
-    if (end <= begin+1) {
-	return;
-    }
-    else if (end <= begin+29) {
-	sortStrings_shell(keys, vals, begin, end);
-	return;
+void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
+				   array_t<uint32_t>& vals, uint32_t begin,
+				   uint32_t end) {
+    while (end > begin+QSORT_MIN) {
+	uint32_t split = sortStrings_partition(keys, vals, begin, end);
+	if (split < end) {
+	    if (split - begin <= end - split) {
+		sortStrings_quick(keys, vals, begin, split);
+		begin = split;
+	    }
+	    else {
+		sortStrings_quick(keys, vals, split, end);
+		end = split;
+	    }
+	}
+	else {
+	    begin = split;
+	}
     }
 
-    uint32_t split = sortStrings_partition(keys, vals, begin, end);
-    if (split < end) {
-	if (split > begin)
-	    sortStrings(keys, vals, begin, split);
-	sortStrings(keys, vals, split, end);
+    if (end > begin) { // clean up with shellsort
+	sortStrings_shell(keys, vals, begin, end);
     }
 #if defined(DEBUG)
     bool sorted = true;
@@ -814,8 +1012,8 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
     uint32_t iprt = begin+(((end-begin) >> ibis::gVerbose) > 0 ?
 			   (1 << ibis::gVerbose) : (end-begin));
     ibis::util::logger lg(4);
-    lg.buffer() << "ibis::util::sortStrings(keys[" << keys.size() << "], vals["
-		<< vals.size() << "], " << begin << ", " << end
+    lg.buffer() << "ibis::util::sortStrings_quick(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", " << end
 		<< ") completed ";
     if (sorted) {
 	lg.buffer() << "successfully";
@@ -829,7 +1027,7 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
 	    lg.buffer() << "\n... " << end-iprt << " ommitted\n";
     }
 #endif
-} // ibis::util::sortStrings
+} // ibis::util::sortStrings_quick
 
 void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 				   array_t<uint32_t>& vals, uint32_t begin,

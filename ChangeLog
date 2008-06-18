@@ -1,3 +1,9 @@
+2008-06-18 John Wu <John.Wu at ACM.org>
+	* utilidor.cpp: add ibis::util::sort_heap to implement heap sort
+	as the backup function for sort_quick (quick sort function), most
+	the prototype information for most of the helper function for
+	sorting into utilidor.cpp to hide them from the user
+
 2008-06-17 John Wu <John.Wu at ACM.org>
 	* array_t.h, array_t.cpp: add hsort (heap sort) and change qsort
 	to make use of hsort at deep recursion level, set the maximum
