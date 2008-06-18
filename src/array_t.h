@@ -69,7 +69,8 @@ public:
     inline void swap(array_t<T>& rhs);	///< Exchange the content.
     inline void push_back(const T& elm);///< Add one element.
 
-    /// Produce index for ascending order.
+    /// Produce index for ascending order.  Uses the quicksort algorithm
+    /// with introspection.
     void sort(array_t<uint32_t> &ind) const;
     /// Return the positions of the @c k largest elements.
     void topk(uint32_t k, array_t<uint32_t> &ind) const;
@@ -127,17 +128,23 @@ public:
     void printStatus(std::ostream& out) const;
 
 private:
-    ibis::fileManager::storage *actual; // pointer to the actual space
-    T* m_begin;	// the nominal starting point
-    T* m_end;	// the nominal ending point
+    ibis::fileManager::storage *actual; ///< Pointer to the actual space.
+    T* m_begin;	///< The nominal starting point.
+    T* m_end;	///< The nominal ending point.
     // ibis::horometer timer; // a timer to track usage
 
-    void freeMemory(); // free the associated memory
+    void freeMemory(); ///< Free the associated memory.
 
+    /// Standard two-way partitioning function to quicksort function qsort.
     uint32_t partition(array_t<uint32_t>& ind, uint32_t front,
 		       uint32_t back) const;
+    /// Insertionsort.
     void isort(array_t<uint32_t>& ind, uint32_t front, uint32_t back) const;
-    void qsort(array_t<uint32_t>& ind, uint32_t front, uint32_t back) const;
+    /// Heapsort.
+    void hsort(array_t<uint32_t>& ind, uint32_t front, uint32_t back) const;
+    /// Quicksort with introspection.
+    void qsort(array_t<uint32_t>& ind, uint32_t front, uint32_t back,
+	       uint32_t lvl=0) const;
 };
 
 // swap the content of two array_t

@@ -4670,10 +4670,15 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 
     try {
 	ibis::bitvector high;
-	{ // always attempt to do an estimate first
+	{ // use a block to limit the scope of index lock
 	    indexLock lock(this, "evaluateRange");
-	    if (idx != 0)
-		idx->estimate(cmp, low, high);
+	    if (idx != 0) {
+		double cost = idx->estimateCost(cmp);
+		// use index only if the cost of using its estimate cost is
+		// less than N bytes
+		if (cost <thePart->nRows())
+		    idx->estimate(cmp, low, high);
+	    }
 	}
 	if (low.size() != mymask.size()) { // short index
 	    if (high.size() != low.size())

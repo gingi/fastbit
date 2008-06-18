@@ -13,8 +13,15 @@
 #include "array_t.h"
 #include "util.h"
 
+// When the number of elements in an array to be sorted by qsort is less
+// than QSORT_MIN, the insert sort routine will be used.
 #ifndef QSORT_MIN
 #define QSORT_MIN 64
+#endif
+// When the number of recursion levels is more than QSORT_MAX_DEPTH, switch
+// to use the heap sort routine.
+#ifndef QSORT_MAX_DEPTH
+#define QSORT_MAX_DEPTH 20
 #endif
 
 /// The default constructor.  It constructs an empty array.
@@ -638,7 +645,7 @@ void array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 /// implements @c array_t<T>::sort.
 template<class T>
 void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
-		       uint32_t back) const {
+		       uint32_t back, uint32_t lvl) const {
     while (back > front + QSORT_MIN) { // more than QSORT_MIN elements
 	// find the pivot
 	uint32_t p = partition(ind, front, back);
@@ -649,7 +656,10 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 	else if (p - front < back - p) {
 	    // sort [front, p-1]
 	    if (p > front + QSORT_MIN) { // use quick sort
-		qsort(ind, front, p);
+		if (lvl >= QSORT_MAX_DEPTH)
+		    hsort(ind, front, p);
+		else
+		    qsort(ind, front, p, lvl+1);
 	    }
 	    else if (p > front + 2) { // between 2 and QSORT_MIN elements
 		isort(ind, front, p);
@@ -665,7 +675,12 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 	}
 	else { // sort [p, back-1]
 	    if (p + QSORT_MIN < back) { // more than QSORT_MIN elements
-		qsort(ind, p, back);
+		if (lvl >= QSORT_MAX_DEPTH) {
+		    hsort(ind, p, back);
+		}
+		else {
+		    qsort(ind, p, back, lvl+1);
+		}
 	    }
 	    else if (p + 2 < back) { // 2 to QSORT_MIN elements
 		isort(ind, p, back);
@@ -690,8 +705,65 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 #endif
 } // qsort
 
+/// A heapsort function.  This is used as the back up option in case the
+/// quicksort has been consistently picking bad pivots.
+template<class T>
+void array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
+		       uint32_t back) const {
+    uint32_t n = back;
+    uint32_t parent = front + (back-front)/2;
+    uint32_t curr, child;
+    uint32_t itmp; // temporary index value
+    while (true) {
+	if (parent > front) {
+	    // stage 1 -- form heap
+	    -- parent;
+	    itmp = ind[parent];
+	}
+	else {
+	    // stage 2 -- extract element from the heap
+	    -- n;
+	    if (n <= front) break;
+	    itmp = ind[n];
+	    ind[n] = ind[front];
+	}
+
+	// push-down procedure
+	curr = parent;
+	child = (curr-front)*2 + 1 + front; // the left child
+	while (child < n) {
+	    // choose the child with larger value
+	    if (child+1 < n &&
+		m_begin[ind[child+1]] > m_begin[ind[child]])
+		++ child; // the right child has larger value
+	    if (m_begin[itmp] < m_begin[ind[child]]) {
+		// the child has larger value than the parent
+		ind[curr] = ind[child];
+		curr = child;
+		child = (child-front)*2 + 1 + front;
+	    }
+	    else { // the parent has larger value
+		break;
+	    }
+	} // while (child < n)
+	// the temporary index goes to its final location
+	ind[curr] = itmp;
+    } // while (1)
+#if defined(_DEBUG)
+    ibis::util::logger lg(4);
+    lg.buffer() << "hsort(" << front << ", " << back << ")\n";
+    for (uint32_t i = front; i < back; ++i) {
+	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]];
+	if (i > front && m_begin[ind[i-1]] > m_begin[ind[i]])
+	    lg.buffer() << "\t*** error [ind[" << i-1 << "]] > [ind[" << i
+			<< "]] ***";
+	lg.buffer() << "\n";
+    }
+#endif
+} // array_t<T>::hsort
+
 /// Simple insertion sort.  Not a stable sort.  This function is used
-/// instead of the quick sort function @c array_t<T>::qsort for small
+/// instead of the quick sort function array_t<T>::qsort for small
 /// arrays.
 template<class T>
 void array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,

@@ -1,3 +1,10 @@
+2008-06-17 John Wu <John.Wu at ACM.org>
+	* array_t.h, array_t.cpp: add hsort (heap sort) and change qsort
+	to make use of hsort at deep recursion level, set the maximum
+	recursion depth to 20 in qsort
+	* column.cpp:4674 add call to check the cost of using an index
+	before actually use it
+
 2008-06-06 John Wu <John.Wu at ACM.org>
 	* utilidor.h, utilido.cpp, join.h, joinin.h, joinin.cpp: add files
 	that performs radix sort and in-memory equi-join from the branch
