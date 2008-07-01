@@ -145,7 +145,7 @@ by FastBit are a subset of the SQL SELECT statement.  Each query may have a
 WHERE clause and optionally a SELECT clause.  Note that the FROM clause is
 implicit in the association with an  ibis::part.  The WHERE clause is a
 set of range conditions joined together with logical operators, e.g.,
-"<code>A = 5 AND (B between 6.5 and 8.2 OR C > sqrt(5*D))</code>."  The
+<code>A = 5 AND (B between 6.5 and 8.2 OR C > sqrt(5*D))</code>.  The
 SELECT clause can contain a list of column names and some of the four
 functions AVG, MIN, MAX and SUM.  Each of the four functions can only take
 a column name as its argument.  If a SELECT clause is omitted, it is

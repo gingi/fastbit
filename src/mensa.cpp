@@ -2106,8 +2106,7 @@ int ibis::mensa::dump(std::ostream& out, const char* del) const {
     return 0;
 } // ibis::mensa::dump
 
-int
-ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
+int ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
     int ierr = 0;
     switch (buffer[j].ctype) {
     default: {
@@ -2165,13 +2164,13 @@ ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
 	if (buffer[j].cval == 0) return 0; // null value
 	const float *tmp 
 	    = reinterpret_cast<const float*>(buffer[j].cval->begin());
-	out << tmp[i];
+	out << std::setprecision(8) << tmp[i];
 	break;}
     case ibis::DOUBLE: {
 	if (buffer[j].cval == 0) return 0; // null value
 	const double *tmp 
 	    = reinterpret_cast<const double*>(buffer[j].cval->begin());
-	out << tmp[i];
+	out << std::setprecision(18) << tmp[i];
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {

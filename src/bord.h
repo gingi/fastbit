@@ -337,13 +337,13 @@ inline int ibis::bord::column::dump(std::ostream& out, size_t i) const {
     case ibis::FLOAT: {
 	const array_t<float>* vals =
 	    static_cast<const array_t<float>*>(buffer);
-	out << (*vals)[i];
+	out << std::setprecision(8) << (*vals)[i];
 	ierr = 0;
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* vals =
 	    static_cast<const array_t<double>*>(buffer);
-	out << (*vals)[i];
+	out << std::setprecision(18) << (*vals)[i];
 	ierr = 0;
 	break;}
     case ibis::TEXT:

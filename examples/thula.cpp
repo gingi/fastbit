@@ -22,6 +22,9 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
 
+// the export file, used to dump select records or the whole table
+std::ofstream xfile;
+
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
@@ -123,6 +126,17 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		    ibis::gVerbose += atoi(++ptr);
 		}
 		break;}
+	    case 'x':
+	    case 'X': 
+		if (i+1 < argc) {
+		    ++ i;
+		    xfile.open(argv[i], std::ios_base::out|std::ios_base::app);
+		    if (!xfile)
+			std::cerr << *argv << " failed to open \"" << argv[i]
+				  << "\" for writing output records"
+				  << std::endl;
+		}
+		break;
 	    } // switch (argv[i][1])
 	} // normal arguments
 	else { // assume to be a set of query conditioins
@@ -138,7 +152,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	else
 	    tbl = ibis::table::create(*it);
     }
-    if (tbl == 0 || qcnd.empty()) {
+    if (tbl == 0) {
 	usage(argv[0]);
 	exit(-2);
     }
@@ -157,11 +171,13 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     if (ibis::gVerbose > 0) {
 	tbl->describe(std::cout);
     }
-    std::cout << argv[0] << "\nSelect " << (sel ? sel : "count(*)")
-	      << "\nFrom " << (frm ? frm : tbl->name()) << "\nWhere -- ";
-    for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
-	std::cout  << "\n      " << *it;
-    std::cout << std::endl;
+    if (ibis::gVerbose >= 0 && ! qcnd.empty()) {
+	std::cout << argv[0] << "\nSelect " << (sel ? sel : "count(*)")
+		  << "\nFrom " << (frm ? frm : tbl->name()) << "\nWhere -- ";
+	for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
+	    std::cout  << "\n      " << *it;
+	std::cout << std::endl;
+    }
 } // parse_args
 
 static void clearBuffers(const ibis::table::typeList& tps,
@@ -589,7 +605,9 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 
 	if (ibis::gVerbose > 0 && n0 > 0 && sel->nColumns() > 0) {
 	    sel->orderby(sstr);
-	    if (ibis::gVerbose > 2)
+	    if (xfile)
+		sel->dump(xfile);
+	    else if (ibis::gVerbose > 2)
 		sel->dump(std::cout);
 	    else
 		printValues(*sel);
@@ -655,7 +673,9 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    gb->describe(std::cout);
 
 	    if (gb->nRows() > 0 && gb->nColumns() > 0) {
-		if (ibis::gVerbose > 2)
+		if (xfile)
+		    gb->dump(xfile);
+		else if (ibis::gVerbose > 2)
 		    gb->dump(std::cout);
 		else if (ibis::gVerbose > 0)
 		    printValues(*gb);
@@ -680,7 +700,18 @@ int main(int argc, char** argv) {
 		  << std::endl;
 	exit(-1);
     }
-    if (qcnd.empty()) {
+    if (qcnd.empty() && xfile) {
+	int ierr = tbl->dump(xfile);
+	if (ibis::gVerbose >= 0) {
+	    if (ierr != 0)
+		std::cerr << *argv << " tbl->dump() returned error code "
+			  << ierr << std::endl;
+	    else
+		std::cout << *argv << " successfully exported the content of "
+			  << tbl->name() << std::endl;
+	}
+    }
+    else if (qcnd.empty()) {
 	std::clog << *argv << " must have at least one query specified."
 		  << std::endl;
 	exit(-2);
@@ -690,5 +721,6 @@ int main(int argc, char** argv) {
 	 qit != qcnd.end(); ++ qit) {
 	doQuery(*tbl, *qit, sel, frm);
     }
+    delete tbl;
     return 0;
 } // main
