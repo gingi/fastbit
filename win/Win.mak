@@ -61,7 +61,7 @@ OBJ =  array_t.obj \
  query.obj \
  resource.obj \
  rids.obj \
- utilildor.obj \
+ utilidor.obj \
  util.obj
 
 #

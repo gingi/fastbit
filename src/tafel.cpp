@@ -1634,6 +1634,9 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 	++ iline;
     }
 
+    LOGGER(ibis::gVerbose > 1)
+	<< "ibis::tafel::readCSV(" << filename << ") processed " << iline
+	<< " lines and nrows = " << nrows << std::endl;
     return 0;
 } // ibis::tafel::readCSV
 

@@ -2,6 +2,10 @@
 	* src/mensa.cpp, src/bord.h: change precisions of ASCII
 	representation of floats and doubles to 8 and 18 respectively
 	(default is 6)
+	* examples/ardea.cpp, examples/thula.cpp: change the output
+	precisions of floats and doubles to match src/mensa.cpp
+	* examples/ardea.cpp: change it to write data after reading each
+	CSV file
 
 2008-06-24 John Wu <John.Wu at ACM.org>
 	* examples/thula.cpp: add option -x for exporting content of tables

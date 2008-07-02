@@ -18,6 +18,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #include "resource.h"	// ibis::gParameters
 #include "mensa.h"	// ibis::mensa::select2
 #include <set>		// std::set
+#include <iomanip>	// std::setprecision
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -274,11 +275,11 @@ static void dumpIth(size_t i, ibis::TYPE_T t, void* buf) {
 	break;}
     case ibis::FLOAT: {
 	const float* tmp = static_cast<const float*>(buf);
-	std::cout << tmp[i];
+	std::cout << std::setprecision(8) << tmp[i];
 	break;}
     case ibis::DOUBLE: {
 	const double* tmp = static_cast<const double*>(buf);
-	std::cout << tmp[i];
+	std::cout << std::setprecision(18) << tmp[i];
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {

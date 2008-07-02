@@ -31,6 +31,7 @@ ibis::tablex::appendRow for more information about NULL values.
 #include "table.h"	// ibis::table
 #include "resource.h"	// ibis::gParameters
 #include <set>		// std::set
+#include <iomanip>	// std::setprecision
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -309,11 +310,11 @@ static void dumpIth(size_t i, ibis::TYPE_T t, void* buf) {
 	break;}
     case ibis::FLOAT: {
 	const float* tmp = static_cast<const float*>(buf);
-	std::cout << tmp[i];
+	std::cout << std::setprecision(8) << tmp[i];
 	break;}
     case ibis::DOUBLE: {
 	const double* tmp = static_cast<const double*>(buf);
-	std::cout << tmp[i];
+	std::cout << std::setprecision(18) << tmp[i];
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {
@@ -705,11 +706,23 @@ int main(int argc, char** argv) {
     if (usersupplied) { // use user-supplied data
 	parseNamesTypes(*ta);
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
+	    if (ibis::gVerbose > 0)
+		std::cout << *argv << " start reading CSV file " << csvfiles[i]
+			  << " ..." << std::endl;
 	    ierr = ta->readCSV(csvfiles[i], del);
 	    if (ierr < 0)
 		std::clog << *argv << " failed to parse file \""
 			  << csvfiles[i] << "\", readCSV returned "
 			  << ierr << std::endl;
+	    else {
+		ierr = ta->write(outdir, dsn,
+				 "user-supplied data parsed by ardea.cpp");
+		if (ierr < 0)
+		    std::clog << *argv << " failed to write data in CSV file "
+			      << csvfiles[i] << " to \"" << outdir
+			      << "\", error code = " << ierr << std::endl;
+		ta->clearData();
+	    }
 	}
 	for (size_t i = 0; i < inputrows.size(); ++ i) {
 	    ierr = ta->appendRow(inputrows[i], del);
@@ -718,15 +731,15 @@ int main(int argc, char** argv) {
 			  << " failed to parse text (appendRow returned "
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
-
-	ierr = ta->write(outdir, dsn,
-			 "user-supplied data parsed by ardea.cpp");
-	delete ta;
-	if (ierr < 0) {
-	    std::clog << *argv << " failed to write user-supplied data to "
-		      << outdir << ", error code = " << ierr << std::endl;
+	if (! inputrows.empty()) {
+	    ierr = ta->write(outdir, dsn,
+			     "user-supplied data parsed by ardea.cpp");
+	    if (ierr < 0)
+		std::clog << *argv << " failed to write user-supplied data to "
+			  << outdir << ", error code = " << ierr << std::endl;
 	    return(ierr);
 	}
+	delete ta;
     }
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
@@ -772,7 +785,8 @@ int main(int argc, char** argv) {
 	std::cout << "-- begin printing table --\n";
 	tb->describe(std::cout);
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
-	    if (ibis::gVerbose > 2) // print all values
+	    if (ibis::gVerbose > 30 || (tb->nRows() >> ibis::gVerbose) > 0)
+		// print all values
 		tb->dump(std::cout);
 	    else // print the first ten rows
 		printValues(*tb);
