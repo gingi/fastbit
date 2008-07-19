@@ -449,22 +449,24 @@ void ibis::slice::construct1(const char* f) {
 // (1) scan the data to generate a list of distinct values and their count
 // (2) scan the data a second time to produce the bit vectors
 void ibis::slice::construct2(const char* f) {
-    histogram* hst = new histogram;
-    mapValues(f, *hst); // scan the data to produce the histogram
-    if (hst->empty()) // no data, of course no index
-	return;
+    uint32_t tmp;
+    {
+	histogram hst;
+	mapValues(f, hst); // scan the data to produce the histogram
+	if (hst.empty()) // no data, of course no index
+	    return;
 
-    // convert histogram into two arrays
-    uint32_t tmp = hst->size();
-    vals.resize(tmp);
-    cnts.resize(tmp);
-    histogram::const_iterator it = hst->begin();
-    for (uint32_t i = 0; i < tmp; ++i) {
-	vals[i] = (*it).first;
-	cnts[i] = (*it).second;
-	++ it;
+	// convert histogram into two arrays
+	tmp = hst.size();
+	vals.resize(tmp);
+	cnts.resize(tmp);
+	histogram::const_iterator it = hst.begin();
+	for (uint32_t i = 0; i < tmp; ++i) {
+	    vals[i] = (*it).first;
+	    cnts[i] = (*it).second;
+	    ++ it;
+	}
     }
-    delete hst; // no more use for the histogram
     
     // allocate the correct number of bitvectors
     -- tmp;

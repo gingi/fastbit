@@ -317,22 +317,23 @@ void ibis::sapid::setBit(const uint32_t i, const double val) {
 // (1) scan the data to generate a list of distinct values and their counts
 // (2) scan the data a second time to record the locations in bit vectors
 void ibis::sapid::construct2(const char* f, const uint32_t nbase) {
-    histogram* hst = new histogram;
-    mapValues(f, *hst); // scan the data to produce the histogram
-    if (hst->empty())   // no data, of course no index
-	return;
+    { // a block to limit the scope of hst
+	histogram hst;
+	mapValues(f, hst); // scan the data to produce the histogram
+	if (hst.empty())   // no data, of course no index
+	    return;
 
-    // convert histogram into two arrays
-    uint32_t tmp = hst->size();
-    vals.resize(tmp);
-    cnts.resize(tmp);
-    histogram::const_iterator it = hst->begin();
-    for (uint32_t i = 0; i < tmp; ++i) {
-	vals[i] = (*it).first;
-	cnts[i] = (*it).second;
-	++ it;
+	// convert histogram into two arrays
+	uint32_t tmp = hst.size();
+	vals.resize(tmp);
+	cnts.resize(tmp);
+	histogram::const_iterator it = hst.begin();
+	for (uint32_t i = 0; i < tmp; ++i) {
+	    vals[i] = (*it).first;
+	    cnts[i] = (*it).second;
+	    ++ it;
+	}
     }
-    delete hst; // no longer needed
 
     // determie the bases
     setBases(bases, vals.size(), nbase);
@@ -340,7 +341,7 @@ void ibis::sapid::construct2(const char* f, const uint32_t nbase) {
 
     // allocate the correct number of bitvectors
     uint32_t nobs = 0;
-    for (tmp = 0; tmp < nb; ++tmp)
+    for (uint32_t tmp = 0; tmp < nb; ++tmp)
 	nobs += bases[tmp];
     bits.resize(nobs);
     for (uint32_t i = 0; i < nobs; ++i)
