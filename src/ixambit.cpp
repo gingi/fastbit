@@ -521,7 +521,7 @@ int ibis::ambit::read(const char* f) {
 	minval.swap(dbl);
     }
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != end) {
+    if (ierr != static_cast<int>(end)) {
 	UnixClose(fdes);
 	clear();
 	return -5;
@@ -730,7 +730,7 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
 	minval.swap(dbl);
     }
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != end) {
+    if (ierr != static_cast<int>(end)) {
 	UnixClose(fdes);
 	clear();
 	return -5;

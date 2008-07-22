@@ -423,7 +423,7 @@ int ibis::pack::read(const char* f) {
 	minval.swap(dbl);
     }
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != end) {
+    if (ierr != static_cast<int>(end)) {
 	UnixClose(fdes);
 	clear();
 	return -6;

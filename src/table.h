@@ -306,8 +306,8 @@ class FASTBIT_CXX_DLLSPEC ibis::tablex {
 public:
     /// Create a minimalistic table exclusively for entering new records.
     static ibis::tablex* create();
-    /// Make the incoming table expandable.  Not yet implemented
-    static ibis::tablex* makeExtensible(ibis::table* t);
+//     /// Make the incoming table expandable.  Not yet implemented
+//     static ibis::tablex* makeExtensible(ibis::table* t);
 
     virtual ~tablex() {}; // nothing to do.
 

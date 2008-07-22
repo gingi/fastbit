@@ -642,7 +642,7 @@ void ibis::roster::oocSort(const char *fin) {
     array_t<uint32_t> ibuf1(mblock), ibuf2(mblock);
 
     ierr = nrows / mblock;
-    const uint32_t nblock = ierr + (nrows > ierr * mblock);
+    const uint32_t nblock = ierr + (nrows > static_cast<size_t>(ierr) * mblock);
     ierr = 1;
     for (uint32_t i = nblock; i > 1; ++ierr, i>>=1);
     const bool isodd = (ierr%2 == 1);

@@ -80,7 +80,9 @@ public:
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const char*) const {return 0;}
     virtual void orderby(const stringList&) {};
+    virtual void orderby(const char*) {};
     virtual void reverseRows() {};
 
     virtual int buildIndex(const char*, const char*) {return -1;}
@@ -178,7 +180,9 @@ public:
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const char*) const {return 0;}
     virtual void orderby(const stringList&) {};
+    virtual void orderby(const char*) {};
     virtual void reverseRows() {};
 
     virtual int buildIndex(const char*, const char*) {return -1;}

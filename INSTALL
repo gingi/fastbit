@@ -15,6 +15,8 @@ run the tests in parallel because different jobs may attempt to write
 the same files.  The commands 'make check', 'make more-check', and
 'make full-check' must be run as a single job.
 
+If you are compiling with GCC, please choose version 4 for better
+support of the extensive template use.
 
 ----------
 Configuration Options

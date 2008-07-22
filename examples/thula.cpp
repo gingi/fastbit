@@ -45,14 +45,14 @@ static void usage(const char* name) {
 	      << std::endl;
 } // usage
 
-// Adds a table defined in the named directory.
-static void addTables(ibis::tableList& tlist, const char* dir) {
-    ibis::table *tbl = ibis::table::create(dir);
-    if (tbl == 0) return;
-    if (tbl->nRows() != 0 && tbl->nColumns() != 0)
-	tlist.add(tbl);
-    delete tbl;
-} // addTables
+// // Adds a table defined in the named directory.
+// static void addTables(ibis::tableList& tlist, const char* dir) {
+//     ibis::table *tbl = ibis::table::create(dir);
+//     if (tbl == 0) return;
+//     if (tbl->nRows() != 0 && tbl->nColumns() != 0)
+// 	tlist.add(tbl);
+//     delete tbl;
+// } // addTables
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,

@@ -144,7 +144,7 @@ void ibis::fuzz::coarsen() {
 	}
     }
     // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
-    if (ncoarse < 5 && offsets.back() > offsets[0]+nrows/31) {
+    if (ncoarse < 5U && offsets.back() > offsets[0]+nrows/31U) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8-1;
 	const long sf = (offsets.back()-offsets[0]) / ncoarse;

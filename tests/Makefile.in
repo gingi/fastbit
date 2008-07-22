@@ -641,7 +641,7 @@ ${TESTDIR}/smallmem.rc: ${TESTDIR}
 #
 #
 clean: clean-am
-	rm -f *~ core core.[0-9]*
+	rm -f *\\~ core core.[0-9]*
 	rm -rf ${TESTDIR} .ibis readcsv$(EXEEXT) star2002*
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR) ${TESTDIR} .ibis readcsv$(EXEEXT)

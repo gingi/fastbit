@@ -676,6 +676,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	    nlsptr[i] = nls[i].c_str();
 	return new ibis::bord(tn.c_str(), de.c_str(), nh, nlsptr, tls, buff);
     }
+    return 0;
 } // ibis::mensa::select2
 
 template <typename T>

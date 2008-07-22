@@ -5036,7 +5036,7 @@ int ibis::bin::write(const char* dt) const {
     char header[] = "#IBIS\0\0\0";
     header[5] = (char)ibis::index::BINNING;
     header[6] = (char)sizeof(int32_t);
-    uint32_t ierr = UnixWrite(fdes, header, 8);
+    int32_t ierr = UnixWrite(fdes, header, 8);
     ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
     offs[0] = ((2*sizeof(uint32_t)+sizeof(int32_t)*(nobs+1)+15)/8)*8;

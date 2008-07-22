@@ -355,19 +355,19 @@ template <typename T1, typename T2>
 void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
-//     if (nelm > 8192) {
-// 	try { // use radix sort only for large arrays
-// 	    sort_radix(keys, vals);
-// 	}
-// 	catch (...) {
-// 	    // the main reason radix sort might fails is out of memory,
-// 	    // since quick sort does not need extra memory, give it a try
-// 	    sort_quick(keys, vals, 0);
-// 	}
-//     }
-//     else {
+    if (nelm > 8192) {
+	try { // use radix sort only for large arrays
+	    sort_radix(keys, vals);
+	}
+	catch (...) {
+	    // the main reason radix sort might fails is out of memory,
+	    // since quick sort does not need extra memory, give it a try
+	    sort_quick(keys, vals, 0);
+	}
+    }
+    else {
 	sort_quick(keys, vals, 0);
-//     }
+    }
 } // ibis::util::sortKeys
 
 template <typename T1, typename T2>
@@ -1105,7 +1105,7 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 	ibis::util::sortStrings_shell(keys, vals, begin, end);
 	return end;
     }
-    const uint32_t nelm = end - begin;
+    //const uint32_t nelm = end - begin;
 
     // sort three values at position 0, nelm/2, and nelm-1
     if (keys[begin].compare(keys[(begin+end)/2]) > 0) {

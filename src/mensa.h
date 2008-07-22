@@ -83,12 +83,14 @@ public:
 			   const char* pts) const;
 
     virtual void orderby(const stringList&);
+    virtual void orderby(const char *str) {ibis::table::orderby(str);}
     /// Reversing the ordering of the rows on disk requires too much work
     /// but has no obvious benefit.
     virtual void reverseRows() {};
     /// Directly performing group-by on the base data (without selection)
     /// is not currently supported.
     virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const char *) const {return 0;}
 
     virtual int buildIndex(const char*, const char*);
     virtual int buildIndexes(const char*);

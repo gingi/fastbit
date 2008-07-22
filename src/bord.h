@@ -71,7 +71,13 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
+    virtual table* groupby(const char* str) const {
+	return ibis::table::groupby(str);
+    }
     virtual void orderby(const ibis::table::stringList&);
+    virtual void orderby(const char* str) {
+	ibis::table::orderby(str);
+    }
     virtual void reverseRows();
 
     virtual int buildIndex(const char*, const char*) {return -1;}
