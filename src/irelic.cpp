@@ -1706,7 +1706,7 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
     return ierr;
 } // ibis::relic::getDistribution
 
-/// @NOTE It is assumed that @c range1 is for column 1 in the join
+/// @note It is assumed that @c range1 is for column 1 in the join
 /// expression and @c range2 is for column 2 in the join expression.  No
 /// name matching is performed.
 void ibis::relic::estimate(const ibis::relic& idx2,
@@ -2262,7 +2262,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     return cnt;
 } // ibis::relic::equiJoin
 
-/// @NOTE If the input value @c delta is less than zero it is treated as
+/// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
@@ -2391,7 +2391,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     return cnt;
 } // ibis::relic::rangeJoin
 
-/// @NOTE If the input value @c delta is less than zero it is treated as
+/// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
@@ -2601,7 +2601,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     return cnt;
 } // ibis::relic::rangeJoin
 
-/// @NOTE If the input value @c delta is less than zero it is treated as
+/// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,

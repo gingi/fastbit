@@ -1,3 +1,11 @@
+Thu Jul 31 10:04:21 PDT 2008
+Version b0.9.5
+-- adjust definition of exact-width integers in const.h to avoid
+   potential conflict with VisIt (suggested by Gunther Weber)
+-- adjust scope of histogram in some constructors of two level indexes
+-- add option -x to thula.cpp to export content of tables
+-- add heap sort to sorting functions of array_t and ibis::util
+
 Fri Jun  6 15:24:18 PDT 2008
 Version b0.9.4
 -- add ibis::colValues::nosharing to address a seg fault when selecting

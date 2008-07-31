@@ -1,3 +1,9 @@
+2008-07-30 John Wu <John.Wu at ACM.org>
+	* src/const.h:211-251 change the conditional compilation to more
+	precisely manage the definitions of exact-width integer types --
+	addressing a compatibility issue with VisIt encountered by Gunther
+	Weber
+
 2008-07-22 John Wu <John.Wu at ACM.org>
 	* src, examples: remove some unused variables and functions
 

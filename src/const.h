@@ -218,25 +218,35 @@
 
 #endif
 
-// a hack to check for exact-width data types
-#if HAVE_STDINT_H+0 == 0 && !defined(_WIN32) && !defined(INT64_MIN) && !(defined __x86_64__)
-#  ifndef int16_t
+// a hack to check for exact-width data types -- according the Open Group's
+// defiition of stdint.h, when the exact-width integer types are defined,
+// their corresponding MAX values are also defined with #define.  Since the
+// types themselves may be typedefs, the corresponding INTx_MAX are more
+// reliable checks.
+#if !(HAVE_STDINT_H+0 == 0 || defined(unix) || defined(_WIN32) || defined(__APPLE__) || defined(__x86_64__) || defined(_STDINT_H))
+#  ifndef INT16_MAX
 #    define int16_t short int
+#    define INT16_MAX (32767)
 #  endif
-#  ifndef uint16_t
+#  ifndef UINT16_MAX
 #    define uint16_t unsigned short int
+#    define UINT16_MAX (65535)
 #  endif
-#  ifndef int32_t
+#  ifndef INT32_MAX
 #    define int32_t int
+#    define INT32_MAX (2147483647)
 #  endif
-#  ifndef uint32_t
+#  ifndef UINT32_MAX
 #    define uint32_t unsigned int
+#    define UINT32_MAX (4294967295UL)
 #  endif
-#  ifndef int64_t
+#  ifndef INT64_MAX
 #    define int64_t long long int
+#    define INT64_MAX (9223372036854775807LL)
 #  endif
-#  ifndef uint64_t
+#  ifndef UINT64_MAX
 #    define uint64_t unsigned long long int
+#    define UINT64_MAX (18446744073709551615ULL)
 #  endif
 #endif
 
