@@ -1,3 +1,7 @@
+2008-08-01 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: clean up the in-line documentation about various
+	functions related to the computation of histograms.
+
 2008-07-30 John Wu <John.Wu at ACM.org>
 	* src/const.h:211-251 change the conditional compilation to more
 	precisely manage the definitions of exact-width integer types --
@@ -170,8 +174,8 @@
 
 2008-04-10 John Wu <John.Wu at ACM.org>
 	* src/irelic.cpp: update a number of implementation if
-	read(ibis::fileManager::storage*) to remove the statements that deletes
-	str -- this should not have been done
+	read(ibis::fileManager::storage*) to remove the statements that
+	deletes str -- this should not have been done
 
 2008-04-04 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.h, src/tafel.cpp: add function clearData

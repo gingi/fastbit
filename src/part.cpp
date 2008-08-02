@@ -8286,7 +8286,7 @@ ibis::part::getDistribution
     return mbc;
 } // ibis::part::getDistribution
 
-/// Count the number of records falling in the bins defined by the
+/// Count the number of records falling in the regular bins defined by the
 /// @code begin:end:stride @endcode triplet.  The triplets defines
 /// @code 1+std::floor((end-begin)/stride) @endcode bins:
 /// @code [begin, begin+stride) [begin+stride, begin+stride*2)
@@ -8497,6 +8497,7 @@ long ibis::part::count3DBins(const array_t<T1>& vals1,
     return counts.size();
 } // ibis::part::count3DBins
 
+/// Count the number of values in 2D regular bins.
 /// @sa ibis::part::get1DDistribution
 /// @sa ibis::table::getHistogram2D
 long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
@@ -11286,7 +11287,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 /// The bounds array contains one more element than the counts array and
 /// all the bins defined by the bounds are closed ranges.  More
 /// specifically, the number of elements with values between
-/// @code [bounds[i], bounds[i+1]) @encode
+/// @code [bounds[i], bounds[i+1]) @endcode
 /// is stored in @c counts[i].  Note that the lower bound of a range is
 /// included in the bin, but the upper bound of a bin is excluded from the
 /// bin.
@@ -11384,7 +11385,7 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
 /// that the caller prefer to use the raw data or the indexes to compute the
 /// histogram.  If it is neither one of the two valid choices, this function
 /// will choose one based on their relative sizes.
-
+///
 /// @sa get2DDistributionD.
 /// @sa get2DDistributionI.
 long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
@@ -11424,7 +11425,7 @@ long ibis::part::get2DDistribution(const char *cname1, const char *cname2,
     else if ((elem1 <= 0 || elem2 <= 0) ||
 	(idx1 > 0 && idx2 > 0 && ((double)idx1*nb2+(double)idx2*nb1)*0.1 <
 	 static_cast<double>(elem1+elem2)*nEvents)) {
-	// use indexes
+	// use indexes because they exist and are much smaller in sizes
 	return get2DDistributionI(*col1, *col2, nb1, nb2,
 				  bounds1, bounds2, counts);
     }
@@ -12391,9 +12392,15 @@ int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 } // ibis::part::coarsenBins
 
 /// Computes a conditional 2D histogram to have the specified number of
-/// bins.  This function goes through the data twice to make sure the 1D
-/// bins for each dimension are equal-weight bins.  This does not guarantee
-/// that the 2D bins are equal-weight.
+/// adaptive bins.  This function attempts to make sure the 1D bins for
+/// each dimension are equal-weight bins, which is likely to produce evenly
+/// distributed 2D bins but does not guarantee the uniformity.  For
+/// floating-point values, this function will go through the intermediate
+/// arrays three times, once to compute the actual minimum and maximum
+/// values, once to count the 1D distributions, and finally to count the
+/// number of values in the 2D bins.  The last step is more expensive then
+/// the first two because it involves two binary searches, one on each each
+/// set of the boundaries.
 ///
 /// @sa get2DDistribution.
 long ibis::part::get2DDistribution(const char *constraints,
@@ -12963,6 +12970,10 @@ void ibis::part::mapValues(const array_t<T>& vals,
     }
 } // ibis::part::mapValues
 
+/// Explicit specialization for float arrays.  Goes through the data twice,
+/// once to find the actual min and max values, and once to place the
+/// values in ten times as many bins as desired.  It then coalesces the
+/// finer bins into desired number of bins.
 template <>
 void ibis::part::equalWeightBins(const array_t<float>& vals,
 				 uint32_t nbins, array_t<float>& bounds) {
@@ -12996,6 +13007,10 @@ void ibis::part::equalWeightBins(const array_t<float>& vals,
     bounds.push_back(amin+stride*nb2);
 } // ibis::part::equalWeightBins
 
+/// Explicit specialization for double arrays.  Goes through the data
+/// twice, once to find the actual min and max values, and once to place
+/// the values in ten times as many bins as desired.  It then coalesces the
+/// finer bins into desired number of bins.
 template <>
 void ibis::part::equalWeightBins(const array_t<double>& vals,
 				 uint32_t nbins, array_t<double>& bounds) {

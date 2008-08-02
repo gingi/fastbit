@@ -301,15 +301,18 @@ public:
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
 			   std::vector<uint32_t>& counts) const;
+    /// Compute 1D histogram with adapative bins.
     long get1DDistribution(const char *cname, uint32_t nbin,
 			   std::vector<double>& bounds,
 			   std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram with adapative bins.
     long get2DDistribution(const char *cname1, const char *cname2,
 			   uint32_t nb1, uint32_t nb2,
 			   std::vector<double>& bounds1,
 			   std::vector<double>& bounds2,
 			   std::vector<uint32_t>& counts,
 			   const char* const option=0) const;
+    /// Compute 3D histogram with adapative bins.
     long get2DDistribution(const char *constraints,
 			   const char *name1, const char *name2,
 			   uint32_t nb1, uint32_t nb2,
