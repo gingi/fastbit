@@ -198,23 +198,25 @@ namespace std { // extend namespace std slightly
 } // namespace std
 
 namespace ibis {
-
-    // RIDSet
-    typedef array_t< rid_t > RIDSet;
-
+    /// @defgroup FastBitIBIS FastBit IBIS key implementation objects.
+    /// @{
+    class resource;	///< To store configuration parameters.
+    class bitvector;	///< To store one bit sequence/bitmap.
     class column;	///< One column/attribute of a table.
     class fileManager;	///< A simple file manager.
     class horometer;	///< A timer class.
     class index;	///< The base class of indices.
     class qExpr;	///< The base class of query expressions.
     class roster;	///< A projection of a column in ascending order.
+    class bitvector64;	///< The 64-bit version of bitvector class.
 
     // col with (selected) values -- need to handle bundles
     class bundle;
     class colValues;
-    typedef std::vector<colValues*> colList;
+    /// @}
 
-    class bitvector64; // the 64-bit version of bitvector class
+    typedef array_t< rid_t > RIDSet;    // RIDSet
+    typedef std::vector<colValues*> colList;
 
     /// Compute the outer product of @c a and @c b, add the result to @c c.
     const ibis::bitvector64& outerProduct(const ibis::bitvector& a,

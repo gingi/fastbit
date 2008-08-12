@@ -65,6 +65,8 @@
 #endif
 #include <stdio.h>	// FILE*
 
+/// @defgroup FastBitCAPI FastBit C API.
+/// @{
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -117,8 +119,8 @@ extern "C" {
     FASTBIT_DLLSPEC const char*
     fastbit_get_where_clause(FastBitQueryHandle query);
 
-    /// @defgroup FastBitRawResult Functions to provide column-wise
-    /// accesses to query results.
+    /// @defgroup FastBitRawResult Column-access functiones.
+    /// This set of functions provide column-wise accesses to query results.
     /// @{
     /// Return a pointer to an array holding the values of attribute @c att
     /// that qualifies the specified selection conditions.
@@ -158,8 +160,8 @@ extern "C" {
 				 const char* cname);
     ///@}
 
-    /// @defgroup FastBitResultSet Functions to provide row-wise accesses
-    /// to query results.
+    /// @defgroup FastBitResultSet Row-wise access functiones.
+    /// This set of functions provide row-wise accesses to query results.
     /// @{
     ///@brief The opaque object used to hold a result set.
     struct FastBitResultSet;
@@ -252,4 +254,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+/// @}
 #endif // ifndef IBIS_CAPI_H

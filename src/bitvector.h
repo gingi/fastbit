@@ -59,6 +59,8 @@ Encoding format
     the check.  An input value other than 0 or 1 will cause existing bits
     to be modified in unpredictable ways.
 </ul>
+
+@ingroup FastBitIBIS
 */
 class FASTBIT_CXX_DLLSPEC ibis::bitvector {
 public:

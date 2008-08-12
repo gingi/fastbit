@@ -322,10 +322,11 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 
 // namespace of ibis contains most of the useful classes of the implementation
 namespace ibis { // forward definition of all the classes in IBIS
-    class bitvector;	///< To store one bit sequence/bitmap.
+    /// @defgroup FastBitMain FastBit IBIS main interface objects.
+    /// @{
     class part;		///< To store information about a data partition.
     class query;	///< To store information about a query.
-    class resource;	///< To store configuration parameters.
+    /// @}
 
     /// The object identifiers used to distinguish records.
     union FASTBIT_CXX_DLLSPEC rid_t {

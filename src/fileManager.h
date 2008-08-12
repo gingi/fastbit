@@ -32,6 +32,7 @@
 #define HAS_FILE_MAP
 #endif
 
+/// @ingroup FastBitIBIS
 /// This fileManager is intended to allow different objects to share the same
 /// open file.  It does not manage writing of files.
 class ibis::fileManager {

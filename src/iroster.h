@@ -8,6 +8,7 @@
 ///@file
 /// Defines a pseudo-index.  Used in some performance comparisons.
 
+/// @ingroup FastBitIBIS
 /// A roster list is a list of indices for ordering the values in the
 /// ascending order.  It can use external sort if the data and indices can
 /// not fit into memory.  The indices will be written to a file with .ind

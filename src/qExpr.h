@@ -23,6 +23,7 @@ namespace ibis { // additional names related to qExpr
     class qAnyAny;	///< A special form of any-match-any query.
 }
 
+/// @ingroup FastBitIBIS
 /// The top level query expression object.  It encodes the logical
 /// operations between two child expressions, serving as the interior nodes
 /// of an expression tree.  Leaf nodes are going to be derived later.

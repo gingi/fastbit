@@ -2069,6 +2069,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
     }
 } // qDiscreteRange ctor
 
+/// Construct a qDiscreteRange object from a vector of unsigned 32-bit integers.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<uint32_t>& val)
     : ibis::qRange(ibis::qExpr::DRANGE) {
@@ -2096,13 +2097,14 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
     if (values.size() < val.size()) {
 	unsigned j = val.size() - values.size();
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose >= 2)
 	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
     }
 } // qDiscreteRange ctor
 
+/// Construct a qDiscreteRange object from a vector of double values.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<double>& val)
 	: name(col), values(val) {
@@ -2117,13 +2119,17 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
     size_t j = 0;
     for (size_t i = 1; i < val.size(); ++ i) {
-	j += (values[i] > values[j]);
+	// loop to copy unique values to the beginning of the array
+	if (values[i] > values[j]) {
+	    ++ j;
+	    values[j] = values[i];
+	}
     }
     ++ j;
     values.resize(j);
     if (j < val.size()) {
 	j = val.size() - j;
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose >= 2)
 	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");

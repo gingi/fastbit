@@ -72,6 +72,7 @@ namespace ibis { // the concrete classes of index hierarchy
     class fuge;  // Binned version of interval-equality encoding.
 } // namespace ibis
 
+/// @ingroup FastBitIBIS
 /// The base index class.  Class ibis::index contains the common definitions
 /// and virtual functions of the class hierarchy.  It is assumed that an
 /// ibis::index is for only one column.  The user is to create an new index

@@ -45,12 +45,12 @@ namespace ibis {
     /// One-character code for the enumeration types.
     FASTBIT_CXX_DLLSPEC extern const char* TYPECODE;
 
-    // forward declarations
     class table;
     class tablex;
     class tableList;
 } // namespace ibis
 
+/// @ingroup FastBitMain
 /// The abstract table class.
 /// This is an abstract base class that defines the common operations on a
 /// data table.  Conceptually, data records in a table is organized into
@@ -298,6 +298,7 @@ private:
     const table& operator=(const table&);
 }; // class ibis::table
 
+/// @ingroup FastBitMain
 /// The class for expandable tables.
 /// @note Each function that returns an integer returns 0 in case of
 /// success, a negative value in case error and a positive number as

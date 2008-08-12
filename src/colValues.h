@@ -9,7 +9,8 @@
 ///@file
 /// A set of utility classes for storing the selected values.
 
-/// A pure virtual base class.
+/// @ingroup FastBitIBIS
+/// A pure virtual base class for storing selected values in memory.
 class FASTBIT_CXX_DLLSPEC ibis::colValues {
 public:
     virtual ~colValues() {}

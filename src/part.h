@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+/// @ingroup FastBitMain
 /// The class ibis::part represents a partition of a relational table.  The
 /// current implementation is designed to work with vertically partitioned
 /// data files.  This class contains common information and operations on a

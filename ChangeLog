@@ -1,3 +1,8 @@
+2008-08-11 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp:2123 correct the loop that eliminates duplicate
+	values (an error first encountered by Prabhat)
+	* src: add doxygen groups FastBitIBIS, FastBitMain, and FastBitCAPI
+
 2008-08-01 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: clean up the in-line documentation about various
 	functions related to the computation of histograms.
@@ -166,8 +171,9 @@
 	* src/bitvector64.h: change copy_runs and copy_runsn to no use
 	it.nWords when it.isFill is 0
 	* src/ifade.cpp, src/irelic.cpp, src/isapid.cpp, src/isbiad.cpp,
-	src/islice.cpp: locate(vals[i]) in functions handling
-	ibis::qDiscreteRange incorrectly should be locate(varr[i])
+	src/islice.cpp: locate(vals[i]) should be locate(varr[i]) in
+	functions that process ibis::qDiscreteRange (an error first
+	reported by Prabhat)
 
 2008-04-11 John Wu <John.Wu at ACM.org>
 	* src/bitvector.h: add function empty

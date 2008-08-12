@@ -41,6 +41,7 @@ namespace ibis {
     //class bundlet;
 }
 
+/// @ingroup FastBitIBIS
 /// The public interface of bundles.
 class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:

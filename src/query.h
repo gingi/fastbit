@@ -9,6 +9,7 @@
 ///
 #include "part.h"	// class part
 
+/// @ingroup FastBitMain
 /// A data structure for representing user queries.  This is the primary
 /// entry for user to take advantage of bitmap indexing facilities.  A
 /// query is a very limited version of the SQL SELECT statement.  It is

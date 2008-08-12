@@ -1026,8 +1026,7 @@ long ibis::relic::append(const ibis::relic& tail) {
     return 0;
 } // ibis::relic::append
 
-// return the smallest i such that vals[i] >= val
-// actually vals[i]>val -- Jan 30, 2004
+/// Find the smallest i such that vals[i] > val.
 uint32_t ibis::relic::locate(const double& val) const {
     // check the extreme cases -- use negative tests to capture abnormal
     // numbers
@@ -1079,6 +1078,9 @@ uint32_t ibis::relic::locate(const double& val) const {
     return vals.size();
 } // ibis::relic::locate
 
+/// Locate the bitmaps covered by the range expression.  Bitmaps hit0
+/// (inclusive) through hit1 (execlusive) correspond to values satisfy the
+/// range expression expr.
 void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 			 uint32_t& hit1) const {
     const uint32_t nval = vals.size();

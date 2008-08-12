@@ -31,6 +31,7 @@ namespace ibis { // additional names to the namespace ibis
     class colDoubles;
 } // namespace
 
+/// @ingroup FastBitIBIS
 /// The class to represent a column of a data partition.  FastBit
 /// represents user data as tables (each table may be divided into multiple
 /// partitions) where each table consists of a number of columns.
