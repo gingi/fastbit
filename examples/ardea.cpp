@@ -782,7 +782,7 @@ int main(int argc, char** argv) {
 		  << std::endl;
     }
     if (ibis::gVerbose > 0) {
-	std::cout << "-- begin printing table --\n";
+	std::cout << "-- begin printing table in " << outdir << " --\n";
 	tb->describe(std::cout);
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
 	    uint64_t nprint;
@@ -796,7 +796,7 @@ int main(int argc, char** argv) {
 	    }
 	    tb->dump(std::cout, nprint);
 	}
-	std::cout << "--  end  printing table --\n";
+	std::cout << "--  end  printing table in " << outdir << " --\n";
     }
     if (usersupplied == false) {
 	// check the number of hits of built-in queries

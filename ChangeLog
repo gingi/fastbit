@@ -1,3 +1,9 @@
+2008-08-15 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: cursor::dumpSome performed extra call to
+	fillBuffers
+	* doc/index.html, doc/dataLoading.html: add references to sample
+	data
+
 2008-08-14 John Wu <John.Wu at ACM.org>
 	* src/table.h and friends: add function dump that only print the
 	first few rows (to allow ardea.cpp to only print a few rows

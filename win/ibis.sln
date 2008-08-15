@@ -9,7 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thula", "thula.vcproj", "{3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ardea", "ardea.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0D}"
 	ProjectSection(ProjectDependencies) = postProject
-		{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F} = {360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcapi", "tcapi.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0C}"

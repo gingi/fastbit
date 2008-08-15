@@ -1,3 +1,10 @@
+Version b0.9.6
+-- change the mensa::cursor class to read data one block at a time so
+   that ardea.cpp can print a few row of a large table without running
+   out of memory
+-- clean up the constructor of qDiscreteRange to eliminate duplicates
+   correctly (an error reported by Prabhat)
+
 Thu Jul 31 10:04:21 PDT 2008
 Version b0.9.5
 -- adjust definition of exact-width integers in const.h to avoid

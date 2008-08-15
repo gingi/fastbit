@@ -2545,7 +2545,15 @@ int ibis::mensa::cursor::dump(std::ostream& out, const char* del) const {
     if (static_cast<uint64_t>(curRow) == bBegin) {
 	// first time accessing the data partition
 	ierr = fillBuffers();
-	if (ierr < 0) return -2;
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "ibis::mensa[" << tab.name() << "]::cursor::dump "
+		"call to fillBuffers() failed with ierr = " << ierr
+		<< " at partition " << curPart->second->name()
+		<< ", pBegin " << pBegin << ", bBegin " << bBegin
+		<< ", bEnd " << bEnd;
+	    return -2;
+	}
     }
 
     const size_t i = static_cast<size_t>(curRow - bBegin);
@@ -2576,7 +2584,13 @@ int ibis::mensa::cursor::dumpBlock(std::ostream& out, const char* del) {
 	// first time accessing the data partition
 	ierr = fillBuffers();
 	if (ierr < 0) {
-	    return ierr;
+	    LOGGER(ibis::gVerbose > 1)
+		<< "ibis::mensa[" << tab.name() << "]::cursor::dumpBlock "
+		"call to fillBuffers() failed with ierr = " << ierr
+		<< " at partition " << curPart->second->name()
+		<< ", pBegin " << pBegin << ", bBegin " << bBegin
+		<< ", bEnd " << bEnd;
+	    return -2;
 	}
     }
 
@@ -2632,12 +2646,6 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 	if (curRow == bBegin) {
 	    ierr = fillBuffers();
 	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "ibis::mensa[" << tab.name() << "]::cursor::dumpSome "
-		    "call to fillBuffers() failed with ierr = " << ierr
-		    << " at partition " << curPart->second->name()
-		    << ", pBegin " << pBegin << ", bBegin " << bBegin
-		    << ", bEnd " << bEnd;
 		return -2;
 	    }
 	}
