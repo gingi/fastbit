@@ -91,11 +91,12 @@ public:
 
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const=0;
-    /// Dump the values in ASCII form to the specified output stream.  The
+    /// Print the values in ASCII form to the specified output stream.  The
     /// default delimiter is coma (","), which produces
     /// Comma-Separated-Values (CSV).
     virtual int dump(std::ostream& out, const char* del=", ") const=0;
-
+    /// Print the first nr rows.
+    virtual int dump(std::ostream& out, uint64_t nr) const=0;
     /// Estimate the number of rows satisfying the selection conditions.
     /// The number of rows is between [@c nmin, @c nmax].
     virtual void estimate(const char* cond,

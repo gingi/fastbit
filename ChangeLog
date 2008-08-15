@@ -1,3 +1,22 @@
+2008-08-14 John Wu <John.Wu at ACM.org>
+	* src/table.h and friends: add function dump that only print the
+	first few rows (to allow ardea.cpp to only print a few rows
+	without reading all rows into memory)
+	* src/mensa.h, src/mensa.cpp: change ibis::mensa::cursor to read a
+	small number of rows into memory at a time (instead of always read
+	a whole partition into memory as a time)
+	* src/utilidor.cpp:1103 disable global optimization for
+	ibis::util::sortStrings_partition when using MS VisualStudio
+
+2008-08-13 John Wu <John.Wu at ACM.org>
+	* examples/ardea.cpp:788 change "> 0" to "== 0" (intended to
+	print only small tables, but existing condition got it wrong)
+
+2008-08-12 John Wu <John.Wu at ACM.org>
+	* src/utilidor.cpp:5 include typeinfo (NOTE: gcc 3.3.3 complains
+	about the explicit instantiation of the function templates
+	ibis::util::sortKeys)
+
 2008-08-11 John Wu <John.Wu at ACM.org>
 	* src/qExpr.cpp:2123 correct the loop that eliminates duplicate
 	values (an error first encountered by Prabhat)

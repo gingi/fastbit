@@ -259,7 +259,7 @@ public:
     /// Those storage not associated with files do not have names.  They
     /// are not tracked by the file manager and should be immediately freed
     /// after use.
-    int  unnamed() {return (name == 0);}
+    bool unnamed() {return (name == 0);}
     const char* filename() const {return name;}
 
     /// Is the storage object empty?

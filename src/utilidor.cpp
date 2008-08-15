@@ -2,6 +2,7 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2008 the Regents of the University of California
 #include "utilidor.h"
+#include <typeinfo>
 
 #ifndef QSORT_MIN
 #define QSORT_MIN 64
@@ -1097,7 +1098,10 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 #endif
 } // ibis::util::sortStrings_shell
 
-uint32_t 
+#if defined(_MSC_VER) && defined(_WIN32) && _MSC_VER < 1400
+#pragma optimize("g", off)
+#endif
+uint32_t
 ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 				  array_t<uint32_t>& vals, uint32_t begin,
 				  uint32_t end) {

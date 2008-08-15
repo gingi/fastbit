@@ -41,6 +41,7 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;
+    virtual int dump(std::ostream&, uint64_t) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
@@ -149,6 +150,7 @@ public:
     virtual int dump(std::ostream& out, const char* del) const;
 
     int dumpBlock(std::ostream& out, const char* del);
+    int dumpSome(std::ostream& out, uint64_t nr, const char* del);
 
     virtual int getColumnAsByte(const char*, char*) const;
     virtual int getColumnAsUByte(const char*, unsigned char*) const;
@@ -186,15 +188,21 @@ protected:
     std::vector<bufferElement> buffer;
     bufferMap bufmap;
     const ibis::mensa& tab;
-    int64_t curRow; // the current row number
-    uint64_t curBlock; // the first row number of the current block
     ibis::partList::const_iterator curPart;
+    unsigned preferred_block_size;
+    uint64_t pBegin; // the first row number of the current partition
+    uint64_t bBegin; // the first row number of the current block
+    uint64_t bEnd;   // end of the current block
+    int64_t  curRow; // the current row number
 
     void clearBuffers();
-    void fillBuffers() const;
-    int fillBuffer(size_t) const;
+    int  fillBuffers() const;
+    int  fillBuffer(size_t) const;
     void fillRow(ibis::table::row& res) const;
-    int dumpIJ(std::ostream&, size_t, size_t) const;
+    int  dumpIJ(std::ostream&, size_t, size_t) const;
+    template <typename T>
+    int  getSelected(const ibis::column &col, const ibis::bitvector &mask,
+		     ibis::fileManager::storage *&vals) const;
 
 private:
     cursor();
@@ -324,4 +332,12 @@ ibis::mensa::cursor::getColumnAsString(const char* cn,
     else
 	return -2;
 } // ibis::mensa::cursor::getColumnAsString
+
+inline int
+ibis::mensa::dump(std::ostream& out, uint64_t nr) const {
+    if (parts.empty()) return 0;
+    ibis::mensa::cursor cur(*this);
+    int ierr = cur.dumpSome(out, nr, ", ");
+    return ierr;
+} // ibis::mensa::dump
 #endif // IBIS_MENSA_H

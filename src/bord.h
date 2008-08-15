@@ -37,6 +37,7 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;
+    virtual int dump(std::ostream&, uint64_t) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
@@ -110,7 +111,7 @@ protected:
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
 
-	virtual int dump(std::ostream&, const char*) const;
+	virtual int dump(std::ostream&, size_t, const char*) const;
 
 	void describe(std::ostream&) const;
 	void reverseRows();
@@ -253,8 +254,12 @@ inline void ibis::bord::describe(std::ostream &out) const {
 } // ibis::bord::describe
 
 inline int ibis::bord::dump(std::ostream &out, const char* del) const {
-    return mypart.dump(out, del);
-} // ibis::bord::deump
+    return mypart.dump(out, mypart.nRows(), del);
+} // ibis::bord::dump
+
+inline int ibis::bord::dump(std::ostream &out, uint64_t nr) const {
+    return mypart.dump(out, static_cast<size_t>(nr), ", ");
+} // ibis::bord::dump
 
 inline ibis::table* 
 ibis::bord::groupby(const ibis::table::stringList& keys) const {

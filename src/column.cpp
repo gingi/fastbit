@@ -7202,6 +7202,8 @@ long ibis::column::getDistribution
 template long ibis::column::selectValues
 (const bitvector&, array_t<unsigned char>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValues
+(const bitvector&, array_t<signed char>&, array_t<uint32_t>&) const;
+template long ibis::column::selectValues
 (const bitvector&, array_t<char>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValues
 (const bitvector&, array_t<uint16_t>&, array_t<uint32_t>&) const;

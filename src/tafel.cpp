@@ -1632,11 +1632,15 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 	}
 	nrows += (cnt > 0);
 	++ iline;
+	LOGGER(ibis::gVerbose > 1 && (iline % 1000000) == 0)
+	    << "ibis::tafel::readCSV(" << filename << ") processed " << iline
+	    << " ...";
     }
 
     LOGGER(ibis::gVerbose > 1)
 	<< "ibis::tafel::readCSV(" << filename << ") processed " << iline
-	<< " lines and nrows = " << nrows << std::endl;
+	<< (iline>1 ? " lines":" line") << " of text and extracted " << nrows
+	<< (nrows>1?" records":" record") << std::endl;
     return 0;
 } // ibis::tafel::readCSV
 

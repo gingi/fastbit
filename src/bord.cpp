@@ -940,9 +940,10 @@ void ibis::bord::part::describe(std::ostream& out) const {
   -3  -- some columns not ibis::bord::column (not in-memory)
   -4  -- error in the output stream
  */
-int ibis::bord::part::dump(std::ostream& out, const char* del) const {
+int ibis::bord::part::dump(std::ostream& out, size_t nr,
+			   const char* del) const {
     const size_t ncol = columns.size();
-    if (ncol == 0) return 0;
+    if (ncol == 0 || nr == 0) return 0;
     if (del == 0) del = ",";
 
     std::vector<const ibis::bord::column*> clist;
@@ -1001,7 +1002,8 @@ int ibis::bord::part::dump(std::ostream& out, const char* del) const {
     if (! out) return -4;
     // print the remaining rows without checking the return values from
     // functions called
-    for (size_t i = 1; i < nEvents; ++ i) {
+    if (nr > nEvents) nr = nEvents;
+    for (size_t i = 1; i < nr; ++ i) {
 	(void) clist[0]->dump(out, i);
 	for (size_t j = 1; j < ncol; ++ j) {
 	    out << del;

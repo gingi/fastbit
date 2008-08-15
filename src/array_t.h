@@ -127,6 +127,11 @@ public:
     // print internal pointer addresses
     void printStatus(std::ostream& out) const;
 
+    /// Export the actual storage object.
+    /// @note  <b>Very dangarous</b>.  <b>Likely to be removed soon</b>.
+    /// Don't rely on this function!
+    ibis::fileManager::storage* getStorage() {return actual;}
+
 private:
     ibis::fileManager::storage *actual; ///< Pointer to the actual space.
     T* m_begin;	///< The nominal starting point.

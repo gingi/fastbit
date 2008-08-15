@@ -706,8 +706,8 @@ int main(int argc, char** argv) {
     if (usersupplied) { // use user-supplied data
 	parseNamesTypes(*ta);
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
-	    if (ibis::gVerbose > 0)
-		std::cout << *argv << " start reading CSV file " << csvfiles[i]
+	    if (ibis::gVerbose >= 0)
+		std::cout << *argv << " to read CSV file " << csvfiles[i]
 			  << " ..." << std::endl;
 	    ierr = ta->readCSV(csvfiles[i], del);
 	    if (ierr < 0)
@@ -785,11 +785,16 @@ int main(int argc, char** argv) {
 	std::cout << "-- begin printing table --\n";
 	tb->describe(std::cout);
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
-	    if (ibis::gVerbose > 30 || (tb->nRows() >> ibis::gVerbose) > 0)
-		// print all values
-		tb->dump(std::cout);
-	    else // print the first ten rows
-		printValues(*tb);
+	    uint64_t nprint;
+	    if (ibis::gVerbose > 30) {
+		nprint = tb->nRows();
+	    }
+	    else {
+		nprint = (1 << ibis::gVerbose);
+		if (nprint < 10)
+		    nprint = 10;
+	    }
+	    tb->dump(std::cout, nprint);
 	}
 	std::cout << "--  end  printing table --\n";
     }
