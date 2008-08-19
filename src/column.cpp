@@ -3973,11 +3973,12 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 
 /// Select the values marked in the bitvector @c mask.  Select all values
 /// marked 1 in the @c mask and pack them into the output array @c vals and
-/// fill the array @c inds with the positions of the values selected.  On a
-/// successful executation, it returns the number of values selected.  If
-/// it returns zero (0), the contents of @c vals is not modified.  If it
+/// fill the array @c inds with the positions of the values selected.
+///
+/// On a successful executation, it returns the number of values selected.
+/// If it returns zero (0), the contents of @c vals is not modified.  If it
 /// returns a negative number, the contents of arrays @c vals is not
-/// guaranteed to be in particular state.
+/// guaranteed to be in any particular state.
 template <typename T>
 long ibis::column::selectValues(const bitvector& mask,
 				array_t<T>& vals) const {

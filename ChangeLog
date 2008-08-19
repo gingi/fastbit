@@ -1,3 +1,12 @@
+2008-08-19 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: add get1DDistribution to compute conditional
+	histograms with adaptive bins (supported with template function
+	ibis::part::adaptiveBins)
+
+2008-08-18 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: mark the functions that returns bins with open
+	ends as deprecated
+
 2008-08-15 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: cursor::dumpSome performed extra call to
 	fillBuffers

@@ -284,17 +284,17 @@ public:
     double getColumnSum(const char *name) const;
 
     /// @{
-    /// Compute 1D histogram with regularly spaced bins.
+    /// Compute conditional 1D histogram with regularly spaced bins.
     long get1DDistribution(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 2D histogram with regularly spaced bins.
+    /// Compute conditional 2D histogram with regularly spaced bins.
     long get2DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
 			   double begin2, double end2, double stride2,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 3D histogram with regularly spaced bins.
+    /// Compute conditional 3D histogram with regularly spaced bins.
     long get3DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
@@ -302,18 +302,23 @@ public:
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 1D histogram with adapative bins.
+    /// Compute 1D histogram with adaptive bins.
     long get1DDistribution(const char *cname, uint32_t nbin,
 			   std::vector<double>& bounds,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 2D histogram with adapative bins.
+    /// Compute conditional 1D histogram with adaptive bins.
+    long get1DDistribution(const char *constraints,
+			   const char *cname, uint32_t nbin,
+			   std::vector<double>& bounds,
+			   std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram with adaptive bins.
     long get2DDistribution(const char *cname1, const char *cname2,
 			   uint32_t nb1, uint32_t nb2,
 			   std::vector<double>& bounds1,
 			   std::vector<double>& bounds2,
 			   std::vector<uint32_t>& counts,
 			   const char* const option=0) const;
-    /// Compute 3D histogram with adapative bins.
+    /// Compute conditional 2D histogram with adaptive bins.
     long get2DDistribution(const char *constraints,
 			   const char *name1, const char *name2,
 			   uint32_t nb1, uint32_t nb2,
@@ -323,17 +328,7 @@ public:
     /// @}
 
     /// @{
-    /// Compute the binned distribution of the name variable.  The array
-    /// @c bounds defines the following bins:
-    /// @code
-    /// (..., bounds[0]) [bounds[0], bounds[1]) ... [bounds.back(), ...).
-    /// @endcode
-    /// In other word, @c bounds[n] defines (n+1) bins, with two open bins
-    /// at the two ends.  The array @c counts contains the number of rows
-    /// fall into each bin.  On a successful return from this function, the
-    /// return value of this function is the number of bins defined, which
-    /// is the same as the size of array @c counts but one larger than the
-    /// size of array @c bounds.
+    /// Compute the binned distribution of the named variable.
     long getDistribution(const char *name,
 			 std::vector<double>& bounds,
 			 std::vector<uint32_t>& counts) const;
@@ -342,8 +337,8 @@ public:
 			 const char *name,
 			 std::vector<double>& bounds,
 			 std::vector<uint32_t>& counts) const;
-    /// Compute the binned distribution with the specified maximum number of
-    /// bins.
+    /// Compute the binned distribution with the specified maximum number
+    /// of bins.
     long getDistribution(const char *name, uint32_t nbc,
 			 double *bounds, uint32_t *counts) const;
     /// Compute the conditional binned data distribution with the specified
@@ -352,42 +347,25 @@ public:
 			 uint32_t nbc, double *bounds,
 			 uint32_t *counts) const;
 
-    /// Compute the joint distribution of two variables.  It returns three
-    /// arrays, @c bounds1, @c bounds2, and @c counts.  The arrays @c
-    /// bounds1 and@c bounds2 defines two sets of bins one for each
-    /// variable.  Together they define
-    /// @code (bounds1.size()+1) (bounds2.size()+1) @endcode
-    /// bins for the 2-D joint distributions.
-    /// The array @c counts contains a count for each of the bins.  On
-    /// successful completion of this function, it return the number of
-    /// bins.
+    /// Compute the joint distribution of two variables.
     long getJointDistribution(const char *constraints,
 			      const char *name1, const char *name2,
 			      std::vector<double>& bounds1,
 			      std::vector<double>& bounds2,
 			      std::vector<uint32_t>& counts) const;
 
-    /// Compute a cumulative distribution (a cumulative histogram).  It
-    /// returns the number of entries in arrays @c bounds and @c counts.
-    /// The content of @c counts[i] will be the number of records in the
-    /// named column that are less than @c bounds[i].  The last element in
-    /// array @c bounds is larger than returned by function getColumnMax.
+    /// Compute a cumulative distribution (a cumulative histogram).
     long getCumulativeDistribution(const char *name,
 				   std::vector<double>& bounds,
 				   std::vector<uint32_t>& counts) const;
     /// Compute the cumulative distribution of the variable named @c name
     /// under the specified constraints.
-    /// @note  The constraints have the same syntax as the where-clause of
-    /// the queries.  Here are two examples, "a < 5 and 3.5 >= b >= 1.9" and
-    /// "a * a + b * b > 55 and sqrt(c) > 2."
     long getCumulativeDistribution(const char *constraints,
 				   const char *name,
 				   std::vector<double>& bounds,
 				   std::vector<uint32_t>& counts) const;
     /// This version of @c getCumulativeDistribution uses two user supplied
-    /// arrays @c bounds and @c counts.  The actual number of elements
-    /// filled by this function is the return value, which is guaranteed to
-    /// be no larger than the input value of @c nbc.
+    /// arrays @c bounds and @c counts.
     long getCumulativeDistribution(const char *name, uint32_t nbc,
 				   double *bounds, uint32_t *counts) const;
     /// Compute the conditional distribution and return the distribution in
@@ -720,6 +698,12 @@ protected:
     template <typename T>
 	static void equalWeightBins(const array_t<T>& vals,
 				    uint32_t nbins, array_t<T>& bounds);
+
+    template <typename T>
+	static void adaptiveBins(const array_t<T>& vals, const T vmin,
+				 const T vmax, uint32_t nbins,
+				 std::vector<double>& bounds,
+				 std::vector<uint32_t>& counts);
 
 private:
 
@@ -1063,6 +1047,18 @@ namespace ibis {
     template <> void
     part::equalWeightBins(const array_t<double>& vals,
 			  uint32_t nbins, array_t<double>& bounds);
+
+    template <> void
+    part::adaptiveBins(const array_t<float>& vals, const float vmin,
+		       const float vmax, uint32_t nbins,
+		       std::vector<double>& bounds,
+		       std::vector<uint32_t>& counts);
+
+    template <> void
+    part::adaptiveBins(const array_t<double>& vals, const double vmin,
+		       const double vmax, uint32_t nbins,
+		       std::vector<double>& bounds,
+		       std::vector<uint32_t>& counts);
 }
 
 /// Return an ibis::part::info object that describes the current partition.

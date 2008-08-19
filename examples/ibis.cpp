@@ -257,6 +257,50 @@ static void printAll(const ibis::partList& tlist) {
 static void printColumn(const ibis::part& tbl, const char* cname,
 			const char* cond) {
     ibis::column* col = tbl.getColumn(cname);
+    if (col == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "printColumn: " << cname << " is not a known column name";
+	return;
+    }
+
+    std::vector<double> bounds;
+    std::vector<uint32_t> counts;
+    double amin = col->getActualMin();
+    double amax = col->getActualMax();
+    long nb = tbl.get1DDistribution(cond, cname, 256, bounds, counts);
+
+    if (nb <= 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "printColumn(" << tbl.name() << ", " << cname << ", " << cond
+	    << ") get1DDistribution returned error code " << nb;
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "Column " << cname << " in Partition "
+		    << tbl.name() << ":\n";
+	col->print(lg.buffer());
+	lg.buffer() << ", actual range <" << amin << ", " << amax
+		    << ">\nHistogram [" << nb << "]";
+	if (cond != 0 && *cond != 0)
+	    lg.buffer() << " under the condition of \"" << cond
+			<< "\"";
+	lg.buffer() << "\n(bounds,\t# records in bin)\n";
+	for (int j = 0; j < nb; ++ j) {
+	    if (! (fabs(bounds[j] - bounds[j+1]) >
+		   1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
+		lg.buffer() << "*** Error *** bounds[" << j << "] ("
+			    << bounds[j] << ") is too close to bounds[" << j+1
+			    << "] (" << bounds[j+1] << ")\n";
+	    lg.buffer() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
+			<< counts[j] << "\n";
+	}
+    }
+} // printColumn
+
+// This version uses the deprecated getCumulativeDistribution
+static void printColumn0(const ibis::part& tbl, const char* cname,
+			 const char* cond) {
+    ibis::column* col = tbl.getColumn(cname);
     if (col) {
 	std::vector<double> bounds;
 	std::vector<uint32_t> counts;
@@ -291,14 +335,14 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 			<< ") failed with error code " << nb;
 	}
     }
-} // printColumn
+} // printColumn0
 
 // Print the distribution of each column in the specified partition.  It
 // uses two fixed size arrays for storing distributions.  This causes
 // coarser distributions to printed.
 static void printDistribution(const ibis::part& tbl) {
-    double bounds[100];
-    uint32_t counts[100];
+    std::vector<double> bounds;
+    std::vector<uint32_t> counts;
     ibis::part::info tinfo(tbl);
     {
 	ibis::util::logger lg(0);
@@ -312,8 +356,8 @@ static void printDistribution(const ibis::part& tbl) {
     for (uint32_t i = 0; i < tinfo.cols.size(); ++ i) {
 	double amin = tbl.getActualMin(tinfo.cols[i]->name);
 	double amax = tbl.getActualMax(tinfo.cols[i]->name);
-	long ierr = tbl.getDistribution(tinfo.cols[i]->name,
-					100, bounds, counts);
+	long ierr = tbl.get1DDistribution(tinfo.cols[i]->name,
+					  100, bounds, counts);
 
 	ibis::util::logger lg(0); // use an IO lock
 	lg.buffer() << "  Column " << tinfo.cols[i]->name << " ("
@@ -324,18 +368,15 @@ static void printDistribution(const ibis::part& tbl) {
 	if (ierr > 1) {
 	    lg.buffer() <<", actual range <" << amin << ", " << amax
 			<< ">\n # bins " << ierr << "\n";
-	    lg.buffer() << "(..., " << bounds[0] << ")\t" << counts[0] << "\n";
-	    for (int j = 1; j < ierr-1; ++ j) {
-		if (! (fabs(bounds[j] - bounds[j-1]) >
-		       1e-15*(fabs(bounds[j])+fabs(bounds[j-1]))))
-		    lg.buffer() << "*** Error *** bounds[" << j
-				<< "] is too close to bounds[" << j-1
-				<< "]\n";
-		lg.buffer() << "[" << bounds[j-1] << ", " << bounds[j] << ")\t"
+	    for (int j = 0; j < ierr; ++ j) {
+		if (! (fabs(bounds[j] - bounds[j+1]) >
+		       1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
+		    lg.buffer() << "*** Error *** bounds[" << j << "] ("
+				<< bounds[j] << ") is too close to bounds["
+				<< j+1 << "] (" << bounds[j+1] << ")\n";
+		lg.buffer() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
 			    << counts[j] << "\n";
 	    }
-	    lg.buffer() << "[" << bounds[ierr-2] << ", ...)\t"
-			<< counts[ierr-1] << "\n";
 	}
 	else {
 	    lg.buffer() << "\ngetCumulativeDistribution returned ierr="
@@ -478,11 +519,11 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	    warn = false;
 	    for (ibis::partList::const_iterator tit = tlist.begin();
 		 tit != tlist.end(); ++ tit) {
-		if (ibis::gVerbose > 5)
-		    printJointDistribution(*((*tit).second), name1.c_str(),
-					   name2.c_str(), cond);
 		print2DDistribution(*((*tit).second), name1.c_str(),
 				    name2.c_str(), cond);
+		if (ibis::gVerbose > 9)
+		    printJointDistribution(*((*tit).second), name1.c_str(),
+					   name2.c_str(), cond);
 	    }
 	}
     }
@@ -515,6 +556,8 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	    else { // assume it to be a column name
 		for (tit = tlist.begin(); tit != tlist.end(); ++tit) {
 		    printColumn(*((*tit).second), *it, cond);
+		    if (ibis::gVerbose > 9)
+			printColumn0(*((*tit).second), *it, cond);
 		}
 	    }
 	}

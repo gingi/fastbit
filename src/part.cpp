@@ -8231,12 +8231,26 @@ double ibis::part::getColumnSum(const char *name) const {
     return ret;
 } // ibis::part::getColumnSum
 
-// return the number of bins (i.e., counts.size()) on success.
-// bin 0: (..., bounds[0]) -> counts[0]
-// bin 1: [bounds[0], bounds[1]) -> counts[1]
-// bin 2: [bounds[1], bounds[2]) -> counts[2]
-// bin 3: [bounds[2], bounds[3]) -> counts[3]
-// ...
+///  The array @c bounds defines the following bins:
+/// @code
+/// (..., bounds[0]) [bounds[0], bounds[1]) ... [bounds.back(), ...).
+/// @endcode
+/// or alternatively,
+/// @verbatim
+/// bin 0: (..., bounds[0]) -> counts[0]
+/// bin 1: [bounds[0], bounds[1]) -> counts[1]
+/// bin 2: [bounds[1], bounds[2]) -> counts[2]
+/// bin 3: [bounds[2], bounds[3]) -> counts[3]
+/// ...
+/// @endverbatim
+/// In other word, @c bounds[n] defines (n+1) bins, with two open bins
+/// at the two ends.  The array @c counts contains the number of rows
+/// fall into each bin.  On a successful return from this function, the
+/// return value of this function is the number of bins defined, which
+/// is the same as the size of array @c counts but one larger than the
+/// size of array @c bounds.
+///
+/// Return the number of bins (i.e., counts.size()) on success.
 long
 ibis::part::getDistribution(const char *name,
 			    std::vector<double>& bounds,
@@ -8287,8 +8301,8 @@ ibis::part::getDistribution
 } // ibis::part::getDistribution
 
 /// Count the number of records falling in the regular bins defined by the
-/// @code begin:end:stride @endcode triplet.  The triplets defines
-/// @code 1+std::floor((end-begin)/stride) @endcode bins:
+/// <tt>begin:end:stride</tt> triplet.  The triplets defines
+/// <tt> 1+std::floor((end-begin)/stride) </tt> bins:
 /// @code [begin, begin+stride) [begin+stride, begin+stride*2)
 /// ... [begin+stride*std::floor((end-begin)/stride), end] @endcode.
 ///
@@ -11283,9 +11297,9 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     return ierr;
 } // ibis::part::get3DDistribution
 
-/// Compute 1D histogram with the specified number of bins.
-/// The bounds array contains one more element than the counts array and
-/// all the bins defined by the bounds are closed ranges.  More
+/// The caller specify the number of bins, but not the where to place the
+/// bins.  The bounds array contains one more element than the counts array
+/// and all the bins defined by the bounds are closed ranges.  More
 /// specifically, the number of elements with values between
 /// @code [bounds[i], bounds[i+1]) @endcode
 /// is stored in @c counts[i].  Note that the lower bound of a range is
@@ -11357,6 +11371,529 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
     }
     return counts.size();
 } // ibis::part::get1DDistribution
+
+long ibis::part::get1DDistribution(const char* constraints,
+				   const char* cname, uint32_t nbins,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts) const {
+    if (cname == 0 || *cname == 0 || nEvents == 0) {
+	return -1L;
+    }
+
+    const ibis::column* col = getColumn(cname);
+    if (col == 0)
+	return -2L;
+    if (constraints == 0 || *constraints == 0)
+	return get1DDistribution(*col, nbins, bounds, counts);
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DDistribution attempting to compute a histogram of "
+	    << cname << " with adaptive binning subject to " << constraints;
+	timer.start();
+    }
+
+    long ierr;
+    ibis::bitvector mask;
+    {
+	ibis::query qq(ibis::util::userName(), this);
+	qq.setSelectClause(cname);
+	ierr = qq.setWhereClause(constraints);
+	if (ierr < 0) {
+	    return -3;
+	}
+
+	ierr = qq.evaluate();
+	if (ierr < 0) {
+	    return -4;
+	}
+	if (qq.getNumHits() == 0) {
+	    bounds.clear();
+	    counts.clear();
+	    return 0;
+	}
+
+	mask.copy(*(qq.getHitVector()));
+    }
+
+    switch (col->type()) {
+    case ibis::BYTE: {
+	array_t<char> *vals = col->selectBytes(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	adaptiveBins<char>(*vals, (char)-128, (char)127,
+			   nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> *vals = col->selectUBytes(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "bytess" : "byte")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	adaptiveBins<unsigned char>
+	    (*vals, (unsigned char)0, (unsigned char)255,
+	     nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> *vals = col->selectShorts(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int16_ts" : "int16_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int16_ts" : "int16_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	int16_t vmin = (int16_t)-32768;
+	int16_t vmax = (int16_t)32767;
+	if (vals->size() < static_cast<uint32_t>(vmax)) {
+	    // compute the actual min and max
+	    vmin = (*vals)[0];
+	    vmax = (*vals)[1];
+	    for (uint32_t i = 1; i < vals->size(); ++ i) {
+		if ((*vals)[i] > vmax)
+		    vmax = (*vals)[i];
+		if ((*vals)[i] < vmin)
+		    vmin = (*vals)[i];
+	    }
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> *vals = col->selectUShorts(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint16_ts" : "uint16_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint16_ts" : "uint16_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	uint16_t vmin = 0;
+	uint16_t vmax = (uint16_t)65535;
+	if (vals->size() < 32767) {
+	    // compute the actual min and max
+	    vmin = (*vals)[0];
+	    vmax = (*vals)[1];
+	    for (uint32_t i = 1; i < vals->size(); ++ i) {
+		if ((*vals)[i] > vmax)
+		    vmax = (*vals)[i];
+		if ((*vals)[i] < vmin)
+		    vmin = (*vals)[i];
+	    }
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> *vals = col->selectInts(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int32_ts" : "int32_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int32_ts" : "int32_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	int32_t vmin = (*vals)[0];
+	int32_t vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> *vals = col->selectUInts(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint32_ts" : "uint32_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint32_ts" : "uint32_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	uint32_t vmin = (*vals)[0];
+	uint32_t vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> *vals = col->selectLongs(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int64_ts" : "int64_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "int64_ts" : "int64_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	int64_t vmin = (*vals)[0];
+	int64_t vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> *vals = col->selectULongs(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint64_ts" : "uint64_t")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "uint64_ts" : "uint64_t")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	uint64_t vmin = (*vals)[0];
+	uint64_t vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> *vals = col->selectFloats(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "floats" : "float")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "floats" : "float")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	float vmin = (*vals)[0];
+	float vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> *vals = col->selectDoubles(mask);
+	if (vals == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "doubles" : "double")
+		<< ", but got nothing";
+	    return -5;
+	}
+	else if (vals->size() != mask.cnt()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "]::get1DDistribution expected to retrieve "
+		<< mask.cnt() << (mask.cnt() > 1 ? "doubles" : "double")
+		<< ", but got " << vals->size() << " instead";
+	    delete vals;
+	    return -6;
+	}
+
+	double vmin = (*vals)[0];
+	double vmax = (*vals)[0];
+	for (uint32_t i = 1; i < vals->size(); ++ i) {
+	    if ((*vals)[i] > vmax)
+		vmax = (*vals)[i];
+	    if ((*vals)[i] < vmin)
+		vmin = (*vals)[i];
+	}
+	adaptiveBins(*vals, vmin, vmax, nbins, bounds, counts);
+	delete vals;
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DDistribution does not currently support column type "
+	    << ibis::TYPESTRING[(int) col->type()];
+	return -7;}
+    } // switch (col->type())
+
+    return counts.size();
+} // ibis::part::get1DDistribution
+
+/// The adaptive binning function for integer values.  It is intended to be
+/// used for values in a relatively narrow range.  The input arguments vmin
+/// and vmax must be currect minimum and maximum values in vals -- this
+/// fact is not validated in this function!
+template <typename T> void
+ibis::part::adaptiveBins(const array_t<T>& vals, const T vmin, const T vmax,
+			 uint32_t nbins, std::vector<double>& bounds,
+			 std::vector<uint32_t>& counts) {
+    if (vmin >= vmax) { // same min and max
+	bounds.resize(2);
+	counts.resize(1);
+	bounds[0] = vmin;
+	bounds[1] = vmin+1;
+	counts[0] = vals.size();
+	return;
+    }
+
+    size_t nfine = static_cast<size_t>(1 + (vmax-vmin));
+    array_t<uint32_t> fcnts(nfine, 0U);
+    for (uint32_t i = 0; i < vals.size(); ++ i)
+	++ fcnts[vals[i]-vmin];
+
+    if (nbins <= 1) // too few bins, use 1000
+	nbins = 1000;
+    if (nbins > nfine) {
+	bounds.resize(nfine+1);
+	counts.resize(nfine);
+	for (uint32_t i = 0; i < nfine; ++ i) {
+	    bounds[i] = static_cast<double>(vmin + i);
+	    counts[i] = fcnts[i];
+	}
+	bounds[nfine] = static_cast<double>(vmax+1);
+    }
+    else {
+	array_t<uint32_t> fbnds(nbins);
+	ibis::index::divideCounts(fbnds, fcnts);
+	nbins = fbnds.size();
+	if (fbnds.size() > 1) {
+	    bounds.resize(nbins+1);
+	    counts.resize(nbins);
+	    if (fcnts[0] > 0) {
+		bounds[0] = static_cast<double>(vmin);
+	    }
+	    else {
+		bool nonzero = false;
+		for (uint32_t i = 0; i < fbnds[0]; ++ i) {
+		    if (fcnts[i] != 0) {
+			nonzero = true;
+			bounds[0] = static_cast<double>(vmin+i);
+		    }
+		}
+		if (! nonzero)
+		    bounds[0] = static_cast<double>(vmin+fbnds[0]);
+	    }
+	    bounds[1] = static_cast<double>(vmin+fbnds[0]);
+	    counts[0] = 0;
+	    for (uint32_t i = 0; i < fbnds[0]; ++ i)
+		counts[0] += fcnts[i];
+	    for (uint32_t j = 1; j < nbins; ++ j) {
+		bounds[j+1] = static_cast<double>(vmin+fbnds[j]);
+		counts[j] = 0;
+		for (uint32_t i = fbnds[j-1]; i < fbnds[j]; ++ i)
+		    counts[j] += fcnts[i];
+	    }
+	}
+	else { // assume there is one single value
+	    /// **WARNING** need more investigation!
+	    bounds.resize(2);
+	    counts.resize(1);
+	    bounds[0] = vmin;
+	    bounds[1] = vmax;
+	    counts[0] = vals.size();
+	}
+    }
+} // ibis::part::adaptiveBins
+
+/// The adapative binning function for floats.
+template <> void
+ibis::part::adaptiveBins(const array_t<float>& vals, const float vmin,
+			 const float vmax, uint32_t nbins,
+			 std::vector<double>& bounds,
+			 std::vector<uint32_t>& counts) {
+    if (vmax == vmin) {
+	bounds.resize(2);
+	counts.resize(1);
+	bounds[0] = vmin;
+	bounds[1] = ibis::util::incrDouble(vmin);
+	counts[0] = vals.size();
+	return;
+    }
+
+    if (nbins <= 1) nbins = 1024;
+    const uint32_t nfine = (nbins > 1024 ? 8 : 16) * nbins;
+    float scale = static_cast<float>(nfine) /
+	ibis::util::incrDouble(vmax - vmin);
+    array_t<uint32_t> fcnts(nfine);
+    for (uint32_t i = 0; i < vals.size(); ++ i)
+	++ fcnts[static_cast<uint32_t>((vals[i]-vmin)*scale)];
+
+    array_t<uint32_t> fbnds(nbins);
+    ibis::index::divideCounts(fbnds, fcnts);
+    nbins = fbnds.size();
+    bounds.resize(nbins+1);
+    counts.resize(nbins);
+    bounds[0] = vmin;
+    bounds[1] = vmin + 1.0 / static_cast<double>(scale);
+    counts[0] = 0;
+    for (uint32_t i = 0; i < fbnds[0]; ++ i)
+	counts[0] += fcnts[i];
+    for (uint32_t j = 1; j < nbins; ++ j) {
+	bounds[j+1] = vmin + static_cast<double>(j) / scale;
+	counts[j] = 0;
+	for (uint32_t i = fbnds[j-1]; j < fbnds[j]; ++ i)
+	    counts[j] += fcnts[i];
+    }
+} // ibis::part::adaptiveBins
+
+/// The adapative binning function for doubles.
+template <> void
+ibis::part::adaptiveBins(const array_t<double>& vals, const double vmin,
+			 const double vmax, uint32_t nbins,
+			 std::vector<double>& bounds,
+			 std::vector<uint32_t>& counts) {
+    if (vmax == vmin) {
+	bounds.resize(2);
+	counts.resize(1);
+	bounds[0] = vmin;
+	bounds[1] = ibis::util::incrDouble(vmin);
+	counts[0] = vals.size();
+	return;
+    }
+
+    if (nbins <= 1) nbins = 1024;
+    const uint32_t nfine = (nbins > 1024 ? 8 : 16) * nbins;
+    double scale = static_cast<double>(nfine) /
+	ibis::util::incrDouble(vmax - vmin);
+    array_t<uint32_t> fcnts(nfine);
+    for (uint32_t i = 0; i < vals.size(); ++ i)
+	++ fcnts[static_cast<uint32_t>((vals[i]-vmin)*scale)];
+
+    array_t<uint32_t> fbnds(nbins);
+    ibis::index::divideCounts(fbnds, fcnts);
+    nbins = fbnds.size();
+    bounds.resize(nbins+1);
+    counts.resize(nbins);
+    bounds[0] = vmin;
+    bounds[1] = vmin + 1.0 / scale;
+    counts[0] = 0;
+    for (uint32_t i = 0; i < fbnds[0]; ++ i)
+	counts[0] += fcnts[i];
+    for (uint32_t j = 1; j < nbins; ++ j) {
+	bounds[j+1] = vmin + static_cast<double>(j) / scale;
+	counts[j] = 0;
+	for (uint32_t i = fbnds[j-1]; j < fbnds[j]; ++ i)
+	    counts[j] += fcnts[i];
+    }
+} // ibis::part::adaptiveBins
 
 /// Compute 2D histogram with the specified number of bins.
 /// The user only specify the name of the variables/columns and the number
@@ -12267,7 +12804,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 } // ibis::part::get2DDistributionI
 
 /// This function makes use of an existing index to produce bitmaps
-/// representing a set of bins defined by bnds.  Following typical
+/// representing a set of bins defined by bnds.  Following the private
 /// convention used in FastBit, there are two open bins at the two ends.
 int ibis::part::coarsenBins(const ibis::column& col, uint32_t nbin,
 			    std::vector<double>& bnds,
@@ -13049,9 +13586,11 @@ void ibis::part::equalWeightBins(const array_t<double>& vals,
 /// ascending order, the array will be used as bin boundaries.  Otherwise,
 /// the bin boundaries are automatically determined by this function.  The
 /// basic rule for determining the number of bins is that if there are less
-/// than 10,000 distinct values, than everyone value is counted separatly,
+/// than 10,000 distinct values, than every value is counted separatly,
 /// otherwise 1000 bins will be used and each bin will contain roughly the
 /// same number of records.
+///
+/// @note Deprecated.
 long
 ibis::part::getDistribution(const char *constraints,
 			    const char *name,
@@ -13299,6 +13838,8 @@ ibis::part::getDistribution(const char *constraints,
 /// than the expected maximum.  The minimum number of bins expected is
 /// four (4).  This function will return error code -1 if the value of nbc
 /// is less than 4.
+///
+/// @note Deprecated.
 long
 ibis::part::getDistribution
 (const char *constraints, const char *name, uint32_t nbc,
@@ -13340,6 +13881,12 @@ ibis::part::getDistribution
     return mbc;
 } // ibis::part::getDistribution
 
+/// It returns the number of entries in arrays @c bounds and @c counts.
+/// The content of @c counts[i] will be the number of records in the named
+/// column that are less than @c bounds[i].  The last element in array @c
+/// bounds is larger than returned by function getColumnMax.
+///
+/// @note Deprecated.
 long
 ibis::part::getCumulativeDistribution(const char *name,
 				      std::vector<double>& bounds,
@@ -13354,11 +13901,17 @@ ibis::part::getCumulativeDistribution(const char *name,
     return ierr;
 } // ibis::part::getCumulativeDistribution
 
-/// Because most of the binning scheme leaves two bins for overflow, one
-/// for values less than the expected minimum and one for values greater
-/// than the expected maximum.  The minimum number of bins expected is
-/// four (4).  This function will return error code -1 if the value of nbc
-/// is less than 4.
+/// The actual number of elements filled by this function is the return
+/// value, which is guaranteed to be no larger than the input value of @c
+/// nbc.
+///
+/// @ntoe Because most of the binning scheme leaves two bins for overflow,
+/// one for values less than the expected minimum and one for values
+/// greater than the expected maximum.  The minimum number of bins expected
+/// is four (4).  This function will return error code -1 if the value of
+/// nbc is less than 4.
+///
+/// @note Deprecated.
 long
 ibis::part::getCumulativeDistribution
 (const char *name, uint32_t nbc, double *bounds, uint32_t *counts) const {
@@ -13383,7 +13936,12 @@ ibis::part::getCumulativeDistribution
     return mbc;
 } // ibis::part::getCumulativeDistribution
 
+/// @note  The constraints have the same syntax as the where-clause of
+/// the queries.  Here are two examples, "a < 5 and 3.5 >= b >= 1.9" and
+/// "a * a + b * b > 55 and sqrt(c) > 2."
 /// @note This function does not accept user input bin boundaries.
+///
+/// @note Deprecated.
 long
 ibis::part::getCumulativeDistribution(const char *constraints,
 				      const char *name,
@@ -13567,10 +14125,21 @@ ibis::part::getCumulativeDistribution
     return mbc;
 } // ibis::part::getCumulativeDistribution
 
-/// The arrays @c bounds1 and @c bounds2 are used if they contain values
-/// in ascending order.  If they are empty or their values are not in
-/// ascending order, then a simple linear binning will be used.  By
+/// It returns three arrays, @c bounds1, @c bounds2, and @c counts.  The
+/// arrays @c bounds1 and@c bounds2 defines two sets of bins one for each
+/// variable.  Together they define
+/// @code (bounds1.size()+1) (bounds2.size()+1) @endcode
+/// bins for the 2-D joint distributions.
+///
+/// On successful completion of this function, it return the number of
+/// bins.
+///
+/// @note The arrays @c bounds1 and @c bounds2 are used if they contain
+/// values in ascending order.  If they are empty or their values are not
+/// in ascending order, then a simple linear binning will be used.  By
 /// default, no more than 256 bins are used for each variable.
+///
+/// @note Deprecated.
 long
 ibis::part::getJointDistribution(const char *constraints,
 				 const char *name1, const char *name2,
