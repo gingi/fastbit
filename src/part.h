@@ -666,8 +666,15 @@ protected:
     long get1DDistribution(const ibis::column& col, uint32_t nbin,
 			   std::vector<double>& bounds,
 			   std::vector<uint32_t>& counts) const;
-    /// Compute 2D histogram from base data.
-    long get2DDistributionD(const ibis::column& col1,
+    /// Compute 2D histogram with uniform bins from base data.
+    long get2DDistributionU(const ibis::column& col1,
+			    const ibis::column& col2,
+			    uint32_t nb1, uint32_t nb2,
+			    std::vector<double>& bounds1,
+			    std::vector<double>& bounds2,
+			    std::vector<uint32_t>& counts) const;
+    /// Compute 2D histogram with adaptive bins from base data.
+    long get2DDistributionA(const ibis::column& col1,
 			    const ibis::column& col2,
 			    uint32_t nb1, uint32_t nb2,
 			    std::vector<double>& bounds1,
@@ -680,6 +687,12 @@ protected:
 			    std::vector<double>& bounds1,
 			    std::vector<double>& bounds2,
 			    std::vector<uint32_t>& counts) const;
+    long old2DDistribution(const char *constraints,
+			   const char *name1, const char *name2,
+			   uint32_t nb1, uint32_t nb2,
+			   std::vector<double>& bounds1,
+			   std::vector<double>& bounds2,
+			   std::vector<uint32_t>& counts) const;
     /// Produce a set of bitmaps corresponding to a set of coarse bins.
     int coarsenBins(const ibis::column& col, uint32_t nbin,
 		    std::vector<double>& bnds,
@@ -700,10 +713,24 @@ protected:
 				    uint32_t nbins, array_t<T>& bounds);
 
     template <typename T>
-	static void adaptiveBins(const array_t<T>& vals, const T vmin,
+	static void adaptiveInts(const array_t<T>& vals, const T vmin,
 				 const T vmax, uint32_t nbins,
 				 std::vector<double>& bounds,
 				 std::vector<uint32_t>& counts);
+
+    template <typename T>
+	static void adaptiveFloats(const array_t<T>& vals, const T vmin,
+				   const T vmax, uint32_t nbins,
+				   std::vector<double>& bounds,
+				   std::vector<uint32_t>& counts);
+
+    template <typename T1, typename T2>
+	static void adaptive2DBins(const array_t<T1> vals1,
+				   const array_t<T2> vals2,
+				   uint32_t nb1, uint32_t nb2,
+				   std::vector<double>& bounds1,
+				   std::vector<double>& bounds2,
+				   std::vector<uint32_t>& counts);
 
 private:
 
@@ -1047,18 +1074,6 @@ namespace ibis {
     template <> void
     part::equalWeightBins(const array_t<double>& vals,
 			  uint32_t nbins, array_t<double>& bounds);
-
-    template <> void
-    part::adaptiveBins(const array_t<float>& vals, const float vmin,
-		       const float vmax, uint32_t nbins,
-		       std::vector<double>& bounds,
-		       std::vector<uint32_t>& counts);
-
-    template <> void
-    part::adaptiveBins(const array_t<double>& vals, const double vmin,
-		       const double vmax, uint32_t nbins,
-		       std::vector<double>& bounds,
-		       std::vector<uint32_t>& counts);
 }
 
 /// Return an ibis::part::info object that describes the current partition.

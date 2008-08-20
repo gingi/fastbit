@@ -1,3 +1,11 @@
+2008-08-20 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: change ibis::part::adaptiveBins into two functions
+	adaptiveInts and adaptiveFloats
+	* src/part.cpp: implement two new get2DDistribution for computing
+	2D histograms (both conditional and unconditional) based on the
+	template function adaptive2DBins.  The new implementation avoids
+	the binary look up used in the previous implementation.
+
 2008-08-19 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: add get1DDistribution to compute conditional
 	histograms with adaptive bins (supported with template function
@@ -40,6 +48,10 @@
 2008-08-01 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: clean up the in-line documentation about various
 	functions related to the computation of histograms.
+	* src/part.cpp: change get2DDistributionD to get2DDistributionU
+	* src/part.cpp: add get2DDistributionA and adapative2DBins to
+	implement adapative binning with base data for get2DDistribution
+	(without any condition)
 
 2008-07-30 John Wu <John.Wu at ACM.org>
 	* src/const.h:211-251 change the conditional compilation to more
