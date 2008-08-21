@@ -1,4 +1,9 @@
+Thu Aug 21 09:58:44 PDT 2008
 Version b0.9.6
+-- implement new adaptive binning functions for computing histograms of
+   1D and 2D that avoids binary searches.  The new functions are not
+   only faster, but because they use more fine bins internally the
+   output bins are closer to be equal-weight than before
 -- change the mensa::cursor class to read data one block at a time so
    that ardea.cpp can print a few row of a large table without running
    out of memory

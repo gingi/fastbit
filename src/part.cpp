@@ -11748,7 +11748,17 @@ long ibis::part::get1DDistribution(const char* constraints,
 	    << ibis::TYPESTRING[(int) col->type()];
 	return -7;}
     } // switch (col->type())
-
+    if (ibis::gVerbose > 0) {
+	timer.stop();
+	ibis::util::logger lg(1);
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "") << "]::get1DDistribution "
+	    "computed histogram of column " << cname;
+	if (constraints != 0 && *constraints != 0)
+	    lg.buffer() << " subject to " << constraints;
+	lg.buffer() << " in " << timer.CPUTime() << " sec(CPU) and " << timer.realTime()
+		    << " sec(elapsed)";
+    }
+ 
     return counts.size();
 } // ibis::part::get1DDistribution
 
