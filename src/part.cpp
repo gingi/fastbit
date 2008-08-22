@@ -11952,19 +11952,19 @@ ibis::part::adaptive2DBins(const array_t<T1> vals1, const array_t<T2> vals2,
     // normal case, both vals1 and vals2 have multiple distinct values
     if (nb1 <= 1) nb1 = 100;
     if (nb2 <= 1) nb2 = 100;
-    if (nb1 > 1000 && (double)nb1*nb1*nb1 > nrows) {
-	if (nrows > 1000000)
+    if (nb1 > 2048 && (double)nb1*nb1*nb1 > nrows) {
+	if (nrows > 10000000)
 	    nb1 = static_cast<uint32_t>
 		(0.5 + std::exp(std::log((double)nrows)/3.0));
 	else
-	    nb1 = 1000;
+	    nb1 = 2048;
     }
-    if (nb2 > 1000 && (double)nb2*nb2*nb2 > nrows) {
-	if (nrows > 1000000)
+    if (nb2 > 2048 && (double)nb2*nb2*nb2 > nrows) {
+	if (nrows > 10000000)
 	    nb2 = static_cast<uint32_t>
 		(0.5 + std::exp(std::log((double)nrows)/3.0));
 	else
-	    nb2 = 1000;
+	    nb2 = 2048;
     }
     double tmp = std::exp(std::log((double)nrows/(double)(nb1*nb2))/3.0);
     if (tmp < 2.0) tmp = 2.0;

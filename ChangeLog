@@ -1,3 +1,12 @@
+2008-08-22 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: in adaptive2DBins, change the upper bound on the
+	number of bins from 1000 to 2048 to tests used by Prabhat to run
+	without surprises.  If a user asks for more than 2048 bins in each
+	dimension, they will be reduced to limit the memory required for
+	computing the fine bins
+	* tests/Makefile.am: update test functions to exercise
+	two-dimensional histogram functions, update expected output
+
 2008-08-20 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: change ibis::part::adaptiveBins into two functions
 	adaptiveInts and adaptiveFloats
