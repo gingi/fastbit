@@ -129,26 +129,21 @@ public:
 
     /// Return an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qDiscreteRange& cmp) const;
-
+    /// Evaluate a continue range expression accurately.
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
+    /// Evaluate a discrete range expression accurately.
     virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
 
-    // Estimate the continuous range condition.  Return sure hits in
-    // bitvector low, and sure hits plus candidates in bitvector high.  An
-    // alternative view is that low and high represent an lower bound and
-    // an upper bound of the actual hits.
+    /// Estimate a continuous range condition.
     virtual long estimateRange(const ibis::qContinuousRange& cmp,
 			       ibis::bitvector& low,
 			       ibis::bitvector& high) const;
 
     /// Discover the records that can not be decided using the index.
-    /// Logically, iffy = high - low, were high and low are computed from
-    /// estimateRange.  The return value is the estimated fraction of
-    /// records that might satisfy the range condition.
     virtual float getUndecidable(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& iffy) const;
 

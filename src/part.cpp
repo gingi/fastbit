@@ -2651,7 +2651,9 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange& cmp,
     return ierr;
 } // ibis::part::evaluateRange
 
-// simply pass the job to the named column
+/// Return sure hits in bitvector low, and sure hits plus candidates in
+/// bitvector high.  An alternative view is that low and high represent an
+/// lower bound and an upper bound of the actual hits.
 long ibis::part::estimateRange(const ibis::qContinuousRange& cmp,
 			       ibis::bitvector& low,
 			       ibis::bitvector& high) const {
@@ -3536,6 +3538,9 @@ long ibis::part::negativeScan(const ibis::qRange& cmp,
     return ierr;
 } // ibis::part::negativeScan
 
+/// Logically, iffy = high - low, were high and low are computed from
+/// estimateRange.  The return value is the estimated fraction of records
+/// that might satisfy the range condition.
 float ibis::part::getUndecidable(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& iffy) const {
     float ret = 0;

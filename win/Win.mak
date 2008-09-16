@@ -1,16 +1,20 @@
 # $Id$
 # Makefile for nmake on windows using microsoft compiler visual C++ 7
 #
-VC=C:\Tools\VS\VC7
-CXX=cl
+VC=C:\SWTools\VS\VC
+CXX=$(VC)\BIN\cl
 LINK=$(VC)\BIN\link
-OPT=/MD /GX /GR /O2 /W1 /arch:SSE2
-#OPT=/MD /GX /GR /Ox
+OPT=/MD /EHsc /GR /O2 /W1 /arch:SSE2
+#OPT=/MD /EHsc /GR /Ox
 INC=-I ..\src -I "C:\Tools\pthread\include"
 DEF=/D WIN32 /D _CONSOLE /D FILEMANAGER_UNLOAD_TIME=3
 #/INCREMENTAL:NO /NOLOGO
-LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"$(VC)\PlatformSDK\Lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVCE2.lib psapi.lib Advapi32.lib
-
+LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v6.0A\lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVCE2.lib psapi.lib advapi32.lib
+# ******
+# for VisualStudio .Net and earlier, the following libpath is needed
+# /LIBPATH:"$(VC)\PlatformSDK\Lib"
+# to replace the second libpath argument above
+# ******
 CCFLAGS=/nologo $(DEF) $(INC) $(OPT)
 #
 OBJ =  array_t.obj \
@@ -123,188 +127,189 @@ force:
 ############################################################
 # dependencies generated with g++ -MM
 ardea.obj: ..\examples\ardea.cpp ..\src\table.h ..\src\const.h ..\src\resource.h ..\src\util.h
-	$(CXX) $(CCFLAGS) -c -o ardea.obj ..\examples\ardea.cpp
+	$(CXX) $(CCFLAGS) -c ..\examples\ardea.cpp
 array_t.obj: ..\src\array_t.cpp ..\src\array_t.h ..\src\fileManager.h ..\src\util.h ..\src\const.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o array_t.obj ..\src\array_t.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\array_t.cpp
 bit64.obj: bit64.cpp ..\src\bitvector64.h ..\src\array_t.h ..\src\fileManager.h ..\src\util.h ..\src\const.h \
   ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o bit64.obj bit64.cpp
+	$(CXX) $(CCFLAGS) -c bit64.cpp
 bitvector.obj: ..\src\bitvector.cpp ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\util.h \
   ..\src\const.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o bitvector.obj ..\src\bitvector.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\bitvector.cpp
 bitvector64.obj: ..\src\bitvector64.cpp ..\src\bitvector64.h ..\src\array_t.h ..\src\fileManager.h \
   ..\src\util.h ..\src\const.h ..\src\horometer.h ..\src\bitvector.h
-	$(CXX) $(CCFLAGS) -c -o bitvector64.obj ..\src\bitvector64.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\bitvector64.cpp
 bord.obj: ..\src\bord.cpp ..\src\tab.h ..\src\table.h ..\src\const.h ..\src\bord.h ..\src\util.h ..\src\part.h ..\src\column.h \
   ..\src\qExpr.h ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h \
   ..\src\query.h ..\src\bundle.h ..\src\colValues.h
-	$(CXX) $(CCFLAGS) -c -o bord.obj ..\src\bord.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\bord.cpp
 bundle.obj: ..\src\bundle.cpp ..\src\bundle.h ..\src\util.h ..\src\const.h ..\src\array_t.h ..\src\fileManager.h \
   ..\src\horometer.h ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\qExpr.h ..\src\bitvector.h \
   ..\src\resource.h ..\src\colValues.h
-	$(CXX) $(CCFLAGS) -c -o bundle.obj ..\src\bundle.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\bundle.cpp
 capi.obj: ..\src\capi.cpp ..\src\capi.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\query.h \
   ..\src\bundle.h ..\src\colValues.h
-	$(CXX) $(CCFLAGS) -c -o capi.obj ..\src\capi.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\capi.cpp
 category.obj: ..\src\category.cpp ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\category.h \
   ..\src\irelic.h ..\src\index.h ..\src\ikeywords.h
-	$(CXX) $(CCFLAGS) -c -o category.obj ..\src\category.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\category.cpp
 colValues.obj: ..\src\colValues.cpp ..\src\bundle.h ..\src\util.h ..\src\const.h ..\src\array_t.h \
   ..\src\fileManager.h ..\src\horometer.h ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\qExpr.h \
   ..\src\bitvector.h ..\src\resource.h ..\src\colValues.h
-	$(CXX) $(CCFLAGS) -c -o colValues.obj ..\src\colValues.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\colValues.cpp
 column.obj: ..\src\column.cpp ..\src\resource.h ..\src\util.h ..\src\const.h ..\src\category.h ..\src\irelic.h \
   ..\src\index.h ..\src\qExpr.h ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h \
   ..\src\column.h ..\src\table.h ..\src\part.h
-	$(CXX) $(CCFLAGS) -c -o column.obj ..\src\column.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\column.cpp
 fileManager.obj: ..\src\fileManager.cpp ..\src\fileManager.h ..\src\util.h ..\src\const.h ..\src\resource.h \
   ..\src\array_t.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o fileManager.obj ..\src\fileManager.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\fileManager.cpp
 ibin.obj: ..\src\ibin.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h \
   ..\src\bitvector64.h
-	$(CXX) $(CCFLAGS) -c -o ibin.obj ..\src\ibin.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ibin.cpp
 ibis.obj: ..\examples\ibis.cpp ..\src\ibis.h ..\src\meshQuery.h ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h \
   ..\src\const.h ..\src\qExpr.h ..\src\util.h ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h \
   ..\src\resource.h ..\src\bundle.h ..\src\colValues.h ..\src\rids.h
-	$(CXX) $(CCFLAGS) -c -o ibis.obj ..\examples\ibis.cpp
+	$(CXX) $(CCFLAGS) -c ..\examples\ibis.cpp
+# -o ibis.obj
 icegale.obj: ..\src\icegale.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o icegale.obj ..\src\icegale.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\icegale.cpp
 icentre.obj: ..\src\icentre.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o icentre.obj ..\src\icentre.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\icentre.cpp
 icmoins.obj: ..\src\icmoins.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o icmoins.obj ..\src\icmoins.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\icmoins.cpp
 idbak.obj: ..\src\idbak.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o idbak.obj ..\src\idbak.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\idbak.cpp
 idbak2.obj: ..\src\idbak2.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o idbak2.obj ..\src\idbak2.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\idbak2.cpp
 idirekte.obj: ..\src\idirekte.cpp ..\src\idirekte.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h \
   ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o idirekte.obj ..\src\idirekte.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\idirekte.cpp
 ifade.obj: ..\src\ifade.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ifade.obj ..\src\ifade.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ifade.cpp
 ikeywords.obj: ..\src\ikeywords.cpp ..\src\ikeywords.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\category.h ..\src\irelic.h \
   ..\src\column.h ..\src\table.h ..\src\iroster.h ..\src\part.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ikeywords.obj ..\src\ikeywords.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ikeywords.cpp
 imesa.obj: ..\src\imesa.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o imesa.obj ..\src\imesa.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\imesa.cpp
 index.obj: ..\src\index.cpp ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h ..\src\array_t.h \
   ..\src\fileManager.h ..\src\horometer.h ..\src\ibin.h ..\src\irelic.h ..\src\idirekte.h ..\src\ikeywords.h \
   ..\src\category.h ..\src\column.h ..\src\table.h ..\src\part.h ..\src\resource.h ..\src\bitvector64.h
-	$(CXX) $(CCFLAGS) -c -o index.obj ..\src\index.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\index.cpp
 irange.obj: ..\src\irange.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o irange.obj ..\src\irange.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\irange.cpp
 irelic.obj: ..\src\irelic.cpp ..\src\bitvector64.h ..\src\array_t.h ..\src\fileManager.h ..\src\util.h ..\src\const.h \
   ..\src\horometer.h ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\bitvector.h ..\src\part.h ..\src\column.h \
   ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o irelic.obj ..\src\irelic.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\irelic.cpp
 iroster.obj: ..\src\iroster.cpp ..\src\iroster.h ..\src\array_t.h ..\src\fileManager.h ..\src\util.h ..\src\const.h \
   ..\src\horometer.h ..\src\column.h ..\src\table.h ..\src\qExpr.h ..\src\bitvector.h ..\src\part.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o iroster.obj ..\src\iroster.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\iroster.cpp
 isapid.obj: ..\src\isapid.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o isapid.obj ..\src\isapid.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\isapid.cpp
 isbiad.obj: ..\src\isbiad.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o isbiad.obj ..\src\isbiad.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\isbiad.cpp
 islice.obj: ..\src\islice.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o islice.obj ..\src\islice.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\islice.cpp
 ixambit.obj: ..\src\ixambit.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixambit.obj ..\src\ixambit.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixambit.cpp
 ixbylt.obj: ..\src\ixbylt.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixbylt.obj ..\src\ixbylt.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixbylt.cpp
 ixfuge.obj: ..\src\ixfuge.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h \
   ..\src\util.h ..\src\const.h ..\src\bitvector.h ..\src\column.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h \
   ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixfuge.obj ..\src\ixfuge.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixfuge.cpp
 ixfuzz.obj: ..\src\ixfuzz.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixfuzz.obj ..\src\ixfuzz.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixfuzz.cpp
 ixpack.obj: ..\src\ixpack.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixpack.obj ..\src\ixpack.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixpack.cpp
 ixpale.obj: ..\src\ixpale.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixpale.obj ..\src\ixpale.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixpale.cpp
 ixzona.obj: ..\src\ixzona.cpp ..\src\irelic.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixzona.obj ..\src\ixzona.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixzona.cpp
 ixzone.obj: ..\src\ixzone.cpp ..\src\ibin.h ..\src\index.h ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\bitvector.h \
   ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o ixzone.obj ..\src\ixzone.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\ixzone.cpp
 mensa.obj: ..\src\mensa.cpp ..\src\tab.h ..\src\table.h ..\src\const.h ..\src\bord.h ..\src\util.h ..\src\part.h ..\src\column.h \
   ..\src\qExpr.h ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h \
   ..\src\mensa.h ..\src\query.h ..\src\index.h
-	$(CXX) $(CCFLAGS) -c -o mensa.obj ..\src\mensa.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\mensa.cpp
 meshQuery.obj: ..\src\meshQuery.cpp ..\src\meshQuery.h ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h \
   ..\src\const.h ..\src\qExpr.h ..\src\util.h ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h \
   ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o meshQuery.obj ..\src\meshQuery.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\meshQuery.cpp
 part.obj: ..\src\part.cpp ..\src\qExpr.h ..\src\util.h ..\src\const.h ..\src\category.h ..\src\irelic.h ..\src\index.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\column.h ..\src\table.h \
   ..\src\query.h ..\src\part.h ..\src\resource.h ..\src\iroster.h
-	$(CXX) $(CCFLAGS) -c -o part.obj ..\src\part.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\part.cpp
 parti.obj: ..\src\parti.cpp ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\category.h \
   ..\src\irelic.h ..\src\index.h
-	$(CXX) $(CCFLAGS) -c -o parti.obj ..\src\parti.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\parti.cpp
 party.obj: ..\src\party.cpp ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\iroster.h \
   ..\src\bitvector64.h
-	$(CXX) $(CCFLAGS) -c -o party.obj ..\src\party.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\party.cpp
 predicate.tab.obj: ..\src\predicate.tab.cpp ..\src\predicate.tab.h ..\src\util.h ..\src\const.h ..\src\qExpr.h \
   ..\src\predicate.h
-	$(CXX) $(CCFLAGS) -c -o predicate.tab.obj ..\src\predicate.tab.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\predicate.tab.cpp
 predicate.yy.obj: ..\src\predicate.yy.cpp ..\src\predicate.h ..\src\qExpr.h ..\src\util.h ..\src\const.h \
   ..\src\predicate.tab.h
-	$(CXX) $(CCFLAGS) -c -o predicate.yy.obj ..\src\predicate.yy.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\predicate.yy.cpp
 qExpr.obj: ..\src\qExpr.cpp ..\src\util.h ..\src\const.h ..\src\qExpr.h
-	$(CXX) $(CCFLAGS) -c -o qExpr.obj ..\src\qExpr.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\qExpr.cpp
 query.obj: ..\src\query.cpp ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\predicate.h \
   ..\src\bundle.h ..\src\colValues.h ..\src\ibin.h ..\src\index.h ..\src\iroster.h ..\src\irelic.h ..\src\bitvector64.h
-	$(CXX) $(CCFLAGS) -c -o query.obj ..\src\query.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\query.cpp
 resource.obj: ..\src\resource.cpp ..\src\util.h ..\src\const.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o resource.obj ..\src\resource.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\resource.cpp
 rids.obj: ..\src\rids.cpp ..\src\rids.h ..\src\util.h ..\src\const.h ..\src\array_t.h ..\src\fileManager.h \
   ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o rids.obj ..\src\rids.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\rids.cpp
 tafel.obj: ..\src\tafel.cpp ..\src\tafel.h ..\src\table.h ..\src\const.h ..\src\bitvector.h ..\src\array_t.h \
   ..\src\fileManager.h ..\src\util.h ..\src\horometer.h ..\src\part.h ..\src\column.h ..\src\qExpr.h ..\src\resource.h
-	$(CXX) $(CCFLAGS) -c -o tafel.obj ..\src\tafel.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\tafel.cpp
 thula.obj: ..\examples\thula.cpp ..\src\table.h ..\src\const.h ..\src\resource.h ..\src\util.h
-	$(CXX) $(CCFLAGS) -c -o thula.obj ..\examples\thula.cpp
+	$(CXX) $(CCFLAGS) -c ..\examples\thula.cpp
 util.obj: ..\src\util.cpp ..\src\util.h ..\src\const.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o util.obj ..\src\util.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\util.cpp
 tcapi.obj: ..\examples\tcapi.c ..\src\capi.h
-	$(CXX) $(CCFLAGS) -c -o $@ ..\examples\tcapi.c
+	$(CXX) $(CCFLAGS) -c ..\examples\tcapi.c
 trydll.obj: trydll.cpp ../src/ibis.h ../src/meshQuery.h ../src/query.h \
   ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/bundle.h ../src/colValues.h ../src/rids.h
-	$(CXX) $(CCFLAGS) /D CXX_USE_DLL -c -o trydll.obj trydll.cpp
+	$(CXX) $(CCFLAGS) /D CXX_USE_DLL -c trydll.cpp
 utilidor.obj: ..\src\utilidor.cpp ..\src\utilidor.h ..\src\array_t.h \
   ..\src\fileManager.h ..\src\util.h ..\src\const.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o utilidor.obj ..\src\utilidor.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\utilidor.cpp
 joinin.obj: ..\src\joinin.cpp ..\src\joinin.h ..\src\join.h ..\src\table.h \
   ..\src\const.h ..\src\part.h ..\src\column.h ..\src\fileManager.h \
   ..\src\qExpr.h ..\src\util.h ..\src\bitvector.h ..\src\array_t.h \
   ..\src\resource.h ..\src\query.h ..\src\utilidor.h ..\src\horometer.h
-	$(CXX) $(CCFLAGS) -c -o joinin.obj ..\src\joinin.cpp
+	$(CXX) $(CCFLAGS) -c ..\src\joinin.cpp

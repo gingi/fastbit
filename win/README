@@ -7,8 +7,8 @@ pthreads-win32 library.
 Pthreads-win32 is available for download (under LGPL, for free) from
 http://sourceware.org/pthreads-win32/
 
-I have pthreads-win32 installed at C:\Tool\pthread.  If you install it
-in a different directory, you will need to edit file Win.mak or the
+I have pthreads-win32 installed at C:\Tools\pthread.  If you install it
+in a different directory, you will need to edit file Win.mak and the
 properties of the Visual Studio projects.
 
 NOTE: Visual Studio may produce a large number of warnings, most of
@@ -27,6 +27,14 @@ In December of 2007, we were able to get a test program running
 correctly for a short while, but that situation did not last very long.
 The DLL clients start to malfunction pretty quickly.  If you have any
 recommendataion on how to fix them, please email john dot wu at ACM dot org.
+
+NOTE: On a multi-core machine, VisualStudio 2008 will try to build
+multiple projects at the same time without checking whether there are
+potential dependencies!  This can cause a lot of problems because most
+of the existing projects share the same set of intermediate files.  The
+best course of action is to build one project at a time when using
+VisualStudio.  Alternatively, use 'nmake -f Win.mak' which builds the
+executables sequentially.
 
 ---- The following is no longer correct as of March, 2008 ----
 

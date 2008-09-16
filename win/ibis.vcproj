@@ -1,158 +1,215 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="9.00"
 	Name="ibis"
 	ProjectGUID="{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F}"
 	RootNamespace="ibis"
-	SccProjectName=""
-	SccLocalPath="">
+	TargetFrameworkVersion="131072"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName="Debug/ibis.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				OptimizeForProcessor="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE,FILEMANAGER_UNLOAD_TIME=10"
 				BasicRuntimeChecks="3"
-				SmallerTypeCheck="TRUE"
+				SmallerTypeCheck="true"
 				RuntimeLibrary="1"
-				BufferSecurityCheck="TRUE"
+				BufferSecurityCheck="true"
 				EnableEnhancedInstructionSet="2"
-				DisableLanguageExtensions="FALSE"
-				ForceConformanceInForLoopScope="TRUE"
-				RuntimeTypeInfo="TRUE"
+				DisableLanguageExtensions="false"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Debug/ibis.pch"
 				AssemblerListingLocation="Debug/"
 				ObjectFile="Debug/"
 				ProgramDataBaseFileName="Debug/"
 				BrowseInformation="1"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
+				WarningLevel="1"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
 				OutputFile="Debug/ibis.exe"
 				LinkIncremental="0"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="Debug/ibis.pdb"
 				SubSystem="1"
-				TargetMachine="1"/>
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName="Debug/ibis.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName="Release/ibis.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
-				EnableIntrinsicFunctions="TRUE"
+				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				EnableFiberSafeOptimizations="TRUE"
-				OptimizeForProcessor="3"
+				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
 				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=30"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="0"
-				BufferSecurityCheck="FALSE"
-				EnableFunctionLevelLinking="TRUE"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Release/ibis.pch"
 				AssemblerListingLocation="Release/"
 				ObjectFile="Release/"
 				ProgramDataBaseFileName="Release/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				WarningLevel="1"
+				SuppressStartupBanner="true"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
 				OutputFile="Release\ibis.exe"
 				LinkIncremental="0"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				ProgramDatabaseFile="Release/ibis.pdb"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="pthreadVCE.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName="Release/ibis.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -160,252 +217,334 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath="..\src\array_t.cpp">
+				RelativePath="..\src\array_t.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bitvector.cpp">
+				RelativePath="..\src\bitvector.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bitvector64.cpp">
+				RelativePath="..\src\bitvector64.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bord.cpp">
+				RelativePath="..\src\bord.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bundle.cpp">
+				RelativePath="..\src\bundle.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\category.cpp">
+				RelativePath="..\src\category.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\column.cpp">
+				RelativePath="..\src\column.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\colValues.cpp">
+				RelativePath="..\src\colValues.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\fileManager.cpp">
+				RelativePath="..\src\fileManager.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ibin.cpp">
+				RelativePath="..\src\ibin.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\examples\ibis.cpp">
+				RelativePath="..\examples\ibis.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\icegale.cpp">
+				RelativePath="..\src\icegale.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\icentre.cpp">
+				RelativePath="..\src\icentre.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\icmoins.cpp">
+				RelativePath="..\src\icmoins.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\idbak.cpp">
+				RelativePath="..\src\idbak.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\idbak2.cpp">
+				RelativePath="..\src\idbak2.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\idirekte.cpp">
+				RelativePath="..\src\idirekte.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ifade.cpp">
+				RelativePath="..\src\ifade.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ikeywords.cpp">
+				RelativePath="..\src\ikeywords.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\imesa.cpp">
+				RelativePath="..\src\imesa.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\index.cpp">
+				RelativePath="..\src\index.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\irange.cpp">
+				RelativePath="..\src\irange.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\irelic.cpp">
+				RelativePath="..\src\irelic.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\iroster.cpp">
+				RelativePath="..\src\iroster.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\isapid.cpp">
+				RelativePath="..\src\isapid.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\isbiad.cpp">
+				RelativePath="..\src\isbiad.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\islice.cpp">
+				RelativePath="..\src\islice.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixambit.cpp">
+				RelativePath="..\src\ixambit.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixbylt.cpp">
+				RelativePath="..\src\ixbylt.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixfuge.cpp">
+				RelativePath="..\src\ixfuge.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixfuzz.cpp">
+				RelativePath="..\src\ixfuzz.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixpack.cpp">
+				RelativePath="..\src\ixpack.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixpale.cpp">
+				RelativePath="..\src\ixpale.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixzona.cpp">
+				RelativePath="..\src\ixzona.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ixzone.cpp">
+				RelativePath="..\src\ixzone.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\joinin.cpp">
+				RelativePath="..\src\joinin.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\mensa.cpp">
+				RelativePath="..\src\mensa.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\meshQuery.cpp">
+				RelativePath="..\src\meshQuery.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\part.cpp">
+				RelativePath="..\src\part.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\parti.cpp">
+				RelativePath="..\src\parti.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\party.cpp">
+				RelativePath="..\src\party.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.tab.cpp">
+				RelativePath="..\src\predicate.tab.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.yy.cpp">
+				RelativePath="..\src\predicate.yy.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\qExpr.cpp">
+				RelativePath="..\src\qExpr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\query.cpp">
+				RelativePath="..\src\query.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\resource.cpp">
+				RelativePath="..\src\resource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\rids.cpp">
+				RelativePath="..\src\rids.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\tafel.cpp">
+				RelativePath="..\src\tafel.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\util.cpp">
+				RelativePath="..\src\util.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\src\utilidor.cpp">
+				RelativePath="..\src\utilidor.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath="..\src\array_t.h">
+				RelativePath="..\src\array_t.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bitvector.h">
+				RelativePath="..\src\bitvector.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bitvector64.h">
+				RelativePath="..\src\bitvector64.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bord.h">
+				RelativePath="..\src\bord.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\bundle.h">
+				RelativePath="..\src\bundle.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\category.h">
+				RelativePath="..\src\category.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\column.h">
+				RelativePath="..\src\column.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\colValues.h">
+				RelativePath="..\src\colValues.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\const.h">
+				RelativePath="..\src\const.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\fileManager.h">
+				RelativePath="..\src\fileManager.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\horometer.h">
+				RelativePath="..\src\horometer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ibis.h">
+				RelativePath="..\src\ibis.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\idirekte.h">
+				RelativePath="..\src\idirekte.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\ikeywords.h">
+				RelativePath="..\src\ikeywords.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\index.h">
+				RelativePath="..\src\index.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\iroster.h">
+				RelativePath="..\src\iroster.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\join.h">
+				RelativePath="..\src\join.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\joinin.h">
+				RelativePath="..\src\joinin.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\mensa.h">
+				RelativePath="..\src\mensa.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\part.h">
+				RelativePath="..\src\part.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.h">
+				RelativePath="..\src\predicate.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.tab.h">
+				RelativePath="..\src\predicate.tab.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\qExpr.h">
+				RelativePath="..\src\qExpr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\query.h">
+				RelativePath="..\src\query.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\resource.h">
+				RelativePath="..\src\resource.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\rids.h">
+				RelativePath="..\src\rids.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\tafel.h">
+				RelativePath="..\src\tafel.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\util.h">
+				RelativePath="..\src\util.h"
+				>
 			</File>
 			<File
-				RelativePath="..\src\utilidor.h">
+				RelativePath="..\src\utilidor.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
 		</Filter>
 	</Files>
 	<Globals>

@@ -33,4 +33,4 @@ maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
 
-.PHONY: docs all-tests
+.PHONY: docs more-check full-check

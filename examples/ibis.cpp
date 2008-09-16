@@ -489,7 +489,7 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	names += 6;
     while (*names && isspace(*names))
 	++ names;
-    char *cond = strchr(names, ':');
+    const char *cond = strchr(names, ':');
     if (cond > names) {
 	*const_cast<char*>(cond) = 0; // add a null terminator
 	// skip to the next non-space character

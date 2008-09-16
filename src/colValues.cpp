@@ -148,25 +148,25 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -221,25 +221,25 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -306,13 +306,13 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int64_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<int64_t>((*arr)[i]);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -379,13 +379,13 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint64_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<uint64_t>((*arr)[i]);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -402,7 +402,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
@@ -421,7 +421,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
@@ -440,13 +440,13 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
@@ -513,13 +513,13 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<double>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
 	for (size_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	    (*array)[i] = static_cast<double>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
@@ -2038,7 +2038,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
     case ibis::selected::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
-		double sum = (*array)[starts[i]];
+		double sum = static_cast<double>((*array)[starts[i]]);
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    sum += (*array)[j];
 		(*array)[i] = static_cast<int>(sum / (starts[i+1]-starts[i]));
@@ -2088,7 +2088,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
     case ibis::selected::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
-		double sum = (*array)[starts[i]];
+		double sum = static_cast<double>((*array)[starts[i]]);
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    sum += (*array)[j];
 		(*array)[i] = static_cast<unsigned>
@@ -2285,7 +2285,7 @@ double ibis::colLongs::getMin() const {
     for (uint32_t i = 0; i < nelm; ++ i)
 	if (ret > (*array)[i])
 	    ret = (*array)[i];
-    return ret;
+    return static_cast<double>(ret);
 } // ibis::colLongs::getMin
 
 double ibis::colLongs::getMax() const {
@@ -2294,7 +2294,7 @@ double ibis::colLongs::getMax() const {
     for (uint32_t i = 0; i < nelm; ++ i)
 	if (ret < (*array)[i])
 	    ret = (*array)[i];
-    return ret;
+    return static_cast<double>(ret);
 } // ibis::colLongs::getMax
 
 double ibis::colLongs::getSum() const {
@@ -2311,7 +2311,7 @@ double ibis::colULongs::getMin() const {
     for (uint32_t i = 0; i < nelm; ++ i)
 	if (ret > (*array)[i])
 	    ret = (*array)[i];
-    return ret;
+    return static_cast<double>(ret);
 } // ibis::colULongs::getMin
 
 double ibis::colULongs::getMax() const {
@@ -2320,7 +2320,7 @@ double ibis::colULongs::getMax() const {
     for (uint32_t i = 0; i < nelm; ++ i)
 	if (ret < (*array)[i])
 	    ret = (*array)[i];
-    return ret;
+    return static_cast<double>(ret);
 } // ibis::colULongs::getMax
 
 double ibis::colULongs::getSum() const {

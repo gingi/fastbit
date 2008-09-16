@@ -89,8 +89,8 @@
 #  endif
 #  if !defined(_MSC_VER)
 #    include <sys/types.h>
-#    include <string.h>
 #  endif
+#  include <string.h>
 #endif
 #include <functional>	// std::less, std::binary_function<>
 
@@ -307,9 +307,14 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 #endif
 
 //
-//  General UNIX
+// functions for case-insensitive string comparisons
 //
-#ifndef _WIN32
+#ifdef _WIN32
+#  if _MSC_VER >= 1500
+#    define strnicmp _strnicmp
+#    define stricmp _stricmp
+#  endif
+#else
 #  include <strings.h>	// strcasecmp, strncasecmp
 #  define MessageBox(x1,x2,x3,x4); {} // fake message box
 #  define strnicmp strncasecmp

@@ -694,7 +694,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
 
-.PHONY: docs all-tests
+.PHONY: docs more-check full-check
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
