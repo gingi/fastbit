@@ -11333,12 +11333,13 @@ long ibis::part::get1DDistribution(const char* cname, uint32_t nbin,
 long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
 				   std::vector<double>& bounds,
 				   std::vector<uint32_t>& counts) const {
-    const double begin = col.getActualMin();
-    const double end = col.getActualMax();
+    const double amin = col.getActualMin();
+    const double amax = col.getActualMax();
     long ierr = col.getDistribution(bounds, counts);
     if (ierr < 0) return ierr;
 
     if (static_cast<unsigned>(ierr) > nbin*3/2) {
+	// too many bins returned, combine some of them
 	ibis::util::buffer<double> bbs(nbin+1);
 	ibis::util::buffer<uint32_t> cts(nbin+1);
 	double* pbbs = bbs.address();
@@ -11347,11 +11348,11 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
 	    ierr = packDistribution(bounds, counts, nbin, pbbs, pcts);
 	    if (ierr > 1) { // use the packed bins
 		bounds.resize(ierr+1);
-		bounds[0] = begin;
+		bounds[0] = amin;
 		for (int i = 0; i < ierr; ++ i)
 		    bounds[i+1] = pbbs[i];
-		bounds[ierr] = (col.isFloat() ? ibis::util::incrDouble(end) :
-				std::floor(end)+1.0);
+		bounds[ierr] = (col.isFloat() ? ibis::util::incrDouble(amax) :
+				std::floor(amax)+1.0);
 		counts.resize(ierr);
 		for (int i = 0; i < ierr; ++ i)
 		    counts[i] = pcts[i];
@@ -11360,21 +11361,34 @@ long ibis::part::get1DDistribution(const ibis::column& col, uint32_t nbin,
 	}
     }
 
-    // use the content of bounds and counts directly, need to add two
-    // values to array bounds
-    bounds.resize(counts.size()+1);
-    double prev = bounds[0];
-    bounds[0] = begin;
-    for (unsigned i = 1; i < counts.size(); ++ i) {
-	double tmp = bounds[i];
-	bounds[i] = prev;
-	prev = tmp;
-    }
-    if (col.isFloat()) {
-	bounds.back() = ibis::util::incrDouble(end);
+    if (counts[0] > 0) { // add the actual minimal as the bounds[0]
+	bounds.reserve(counts.size()+1);
+	bounds.resize(bounds.size()+1);
+	for (size_t i = bounds.size()-1; i > 1; -- i)
+	    bounds[i] = bounds[i-1];
+	bounds[0] = amin;
     }
     else {
-	bounds.back() = std::floor(end) + 1.0;
+	const size_t nc = counts.size() - 1;
+	for (size_t i = 0; i < nc; ++ i)
+	    counts[i] = counts[i+1];
+	counts.resize(nc);
+    }
+    if (counts.back() > 0) { // add the largest values as the end of last bin
+	if (bounds.back() < amax) {
+	    if (col.isFloat()) {
+		bounds.push_back(ibis::util::incrDouble(amax));
+	    }
+	    else {
+		bounds.push_back(std::floor(amax) + 1.0);
+	    }
+	}
+	else {
+	    bounds.push_back(ibis::util::compactValue(bounds.back(), DBL_MAX));
+	}
+    }
+    else {
+	counts.resize(counts.size()-1);
     }
     return counts.size();
 } // ibis::part::get1DDistribution

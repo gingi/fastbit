@@ -103,7 +103,7 @@ trydll.exe: trydll.obj fastbit.dll
 	$(LINK) /NOLOGO /out:$@ $(LIB) trydll.obj fastbit.lib
 
 clean:
-	del *.obj core b?_? fastbit.dll *.lib *.exe *.suo *.ncb *.exp *.pdb
+	del *.obj core b?_? fastbit.dll *.lib *.exe *.suo *.ncb *.exp *.pdb *.manifest *.vcproj.*
 #	rmdir Debug Release
 force:
 

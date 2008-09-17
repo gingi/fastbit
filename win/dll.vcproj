@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DLL_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DLL_EXPORTS;CXX_USE_DLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -126,12 +126,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DLL_EXPORTS;CXX_USE_DLL"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;DLL_EXPORTS;CXX_USE_DLL"
 				RuntimeLibrary="0"
-				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="1"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

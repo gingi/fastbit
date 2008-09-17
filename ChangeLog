@@ -1,3 +1,12 @@
+2008-09-17 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:11365 check whether the empty bins exist before
+	adding new bin boundaries
+	* win/*.vcproj: change _USRDLL to CXX_USE_DLL
+
+2008-09-15 John Wu <John.Wu at ACM.org>
+	* win: Update visual studio project files for the new Visual
+	Studio 2008
+
 2008-08-22 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: in adaptive2DBins, change the upper bound on the
 	number of bins from 1000 to 2048 to tests used by Prabhat to run

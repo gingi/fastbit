@@ -2089,13 +2089,13 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 
 int main(int argc, char** argv) {
     ibis::partList tlist;
-#if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetReportMode(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
-		      _CRTDBG_MODE_FILE);
-    _CrtSetReportFile(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
-		      _CRTDBG_FILE_STDERR );
-#endif
+// #if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
+//     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//     _CrtSetReportMode(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
+// 		      _CRTDBG_MODE_FILE);
+//     _CrtSetReportFile(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
+// 		      _CRTDBG_FILE_STDERR );
+// #endif
     if (argc <= 1) {
 	usage(*argv);
 	return 0;
