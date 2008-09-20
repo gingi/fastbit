@@ -1,3 +1,11 @@
+2008-09-19 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp:2275 add check to make sure the column type is not
+	text or category, an error spotted by David Kantowitz <dkantowitz
+	at thinktradellc dot com>
+	* src/mensa.cpp:2504&2516 buffer[j].cval used as a pointer to
+	std::vector<std::string>, but should be a pointer to ibis::column
+	(more specifically ibis::text or ibis::category)
+
 2008-09-17 John Wu <John.Wu at ACM.org>
 	* src/part.cpp:11365 check whether the empty bins exist before
 	adding new bin boundaries

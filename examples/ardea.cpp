@@ -8,7 +8,7 @@ This is a simple test program for functions defined in ibis::tablex.
 The user may specify a set of records to be read by using a combination of
 -m option (for meta data, i.e., column names and types) and -t or -r
 options.  Option -t is used to specify the name of a CSV file and option -r
-is used to specify one line of CSV data on command line.
+is used to specify one row of CSV data on the command line.
 
 The caller may further specify a number of queries to be run on the data
 after they are written to disk.
@@ -52,7 +52,7 @@ static void usage(const char* name) {
 	"\tIt only checks the first character of the types.\n"
 	"\tFor example, one can load the data in tests/test0.csv either one of the following command lines:\n"
 	"\tardea -d somwhere1 -m a:i,b:i,c:i -t tests/test0.csv\n"
-	"\tardea -d somwhere2 -m a:i,b:f,c:d -t tests/test0.csv\n"
+	"\tardea -d somwhere2 -m a:i -m b:f -m c:d -t tests/test0.csv\n"
 	      << std::endl;
 } // usage
 

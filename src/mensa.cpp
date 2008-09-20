@@ -2272,7 +2272,8 @@ int ibis::mensa::cursor::fillBuffer(size_t i) const {
 int ibis::mensa::cursor::fillBuffers() const {
     int ierr;
     for (size_t i = 0; i < buffer.size(); ++ i) {
-	if (buffer[i].cval != 0) {
+	if (buffer[i].cval != 0 && buffer[i].ctype != ibis::CATEGORY &&
+	    buffer[i].ctype != ibis::TEXT) {
 	    buffer[i].cval->endUse();
 	    if (buffer[i].cval->unnamed() && buffer[i].cval->inUse() == 0)
 		delete buffer[i].cval;
@@ -2500,9 +2501,10 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 	case ibis::TEXT: {
 	    res.textsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
-		res.textsvalues.push_back
-		    ((* reinterpret_cast<const std::vector<std::string>*>
-		      (buffer[j].cval))[il]);
+		std::string tmp;
+		reinterpret_cast<const ibis::text*>(buffer[j].cval)
+		    ->getString(curRow-pBegin, tmp);
+		res.textsvalues.push_back(tmp);
 	    }
 	    else {
 		res.textsvalues.push_back("");
@@ -2511,9 +2513,10 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 	case ibis::CATEGORY: {
 	    res.catsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
-		res.catsvalues.push_back
-		    ((* reinterpret_cast<const std::vector<std::string>*>
-		      (buffer[j].cval))[il]);
+		std::string tmp;
+		reinterpret_cast<const ibis::category*>(buffer[j].cval)
+		    ->getString(curRow - pBegin, tmp);
+		res.catsvalues.push_back(tmp);
 	    }
 	    else {
 		res.catsvalues.push_back("");

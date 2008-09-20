@@ -1,3 +1,15 @@
+Fri Sep 19 22:38:43 PDT 2008
+Version b0.9.7
+-- fix an error in mensa.cpp (involving the implementation of
+   ibis::mensa::cursor) spotted by David Kantowitz.  Fix two problems 
+   involving the same member variable elsewhere in the same file.
+-- change _USRDLL to CXX_USE_DLL in the project files to be consistent
+   with conditional macros in source code.  The DLL libraries can now be
+   compiled and run correctly.
+-- update visual studio project files for visual studio 2008
+-- increase the cap on the number of bins in adaptive2DBins to make sure
+   Prabhat's tests run without surprises
+
 Thu Aug 21 09:58:44 PDT 2008
 Version b0.9.6
 -- implement new adaptive binning functions for computing histograms of
