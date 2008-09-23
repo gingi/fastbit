@@ -170,6 +170,7 @@ public:
     virtual void computeMinMax(const char *dir) {
 	computeMinMax(dir, lower, upper);}
     virtual void computeMinMax(const char *, double &min, double &max) const;
+    virtual void getString(uint32_t i, std::string &val) const;
 
     void reverseRows();
     int  limit(size_t nr);

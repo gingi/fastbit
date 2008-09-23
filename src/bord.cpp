@@ -3773,6 +3773,16 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
     return array;
 } // ibis::bord::column::selectDoubles
 
+void ibis::bord::column::getString(uint32_t i, std::string &val) const {
+    val.erase();
+    if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
+	std::vector<std::string> *str_column = 
+	    static_cast<std::vector<std::string> *>(buffer);
+	if ( i < str_column->size())
+	    val = str_column->at(i);
+    }
+} // ibis::bord::column::getString
+
 void ibis::bord::column::reverseRows() {
     switch(m_type) {
     case ibis::ULONG: {

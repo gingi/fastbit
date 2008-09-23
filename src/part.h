@@ -11,6 +11,7 @@
 ///
 #include "column.h"
 #include "resource.h"
+#include "utilidor.h"
 
 #include <string>
 #include <vector>

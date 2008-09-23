@@ -4,7 +4,7 @@
 //      Lawrence Berkeley National Laboratory
 #ifndef IBIS_RIDS_H
 #define IBIS_RIDS_H
-#include "util.h"	// ibis::RIDSet
+#include "utilidor.h"	// ibis::RIDSet
 ///@file
 /// Define simple IO functions for ibis::rid_t.
 /// Based on on OidIOHandler by David Malon <malon@anl.gov>.

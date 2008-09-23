@@ -1,3 +1,12 @@
+2008-09-22 David Kantowitz <dkantowitz at thinktradellc.com>
+	* src/bord.h, src/bord.cpp: add derived version of getString to
+	ibis::bord::column
+
+2008-09-22 John Wu <John.Wu at ACM.org>
+	* src/util.h, src/util.cpp, src/utilidor.h, src/utlidor.cpp: move
+	the sorting function related to RIDSets to utilidor.h/cpp to limit
+	the dependencies of util.h
+
 2008-09-19 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp:2275 add check to make sure the column type is not
 	text or category, an error spotted by David Kantowitz <dkantowitz

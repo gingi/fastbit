@@ -19,7 +19,18 @@
 #include "array_t.h"	// array_t
 
 namespace ibis {
+    typedef array_t< rid_t > RIDSet;    // RIDSet
+
     namespace util {
+
+	///@{
+	/// Sorting RID lists.  The first two use quick sort and the third
+	/// one use the insertion sort.  None of them are stable sort
+	void sortRIDs(ibis::RIDSet& rids);
+	void sortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
+	void isortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
+	///@}
+
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T> &arr, const array_t<uint32_t> &ind);

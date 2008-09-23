@@ -215,7 +215,6 @@ namespace ibis {
     class colValues;
     /// @}
 
-    typedef array_t< rid_t > RIDSet;    // RIDSet
     typedef std::vector<colValues*> colList;
 
     /// Compute the outer product of @c a and @c b, add the result to @c c.
@@ -417,14 +416,6 @@ namespace ibis {
 	void int2string(std::string &str, unsigned v1,
 			unsigned v2, unsigned v3);
 	void int2string(std::string &str, const std::vector<unsigned>& val);
-	///@}
-
-	///@{
-	/// Sorting RID lists.  The first two use quick sort and the third
-	/// one use the insertion sort.  None of them are stable sort
-	void sortRIDs(ibis::RIDSet& rids);
-	void sortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
-	void isortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
 	///@}
 
 	///@{

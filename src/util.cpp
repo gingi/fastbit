@@ -10,7 +10,7 @@
 #include <direct.h>	// _rmdir
 #endif
 #include "util.h"
-#include "array_t.h"
+#include "horometer.h"
 #include "resource.h"
 #include <stdarg.h>	// vsprintf
 #if defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
@@ -1120,110 +1120,6 @@ ibis::util::timer::~timer() {
 	delete chrono_;
     }
 } // ibis::util::timer::~timer
-
-void ibis::util::sortRIDs(ibis::RIDSet& rids) {
-    if (rids.size() > 20)
-	ibis::util::sortRIDs(rids, 0, rids.size());
-    else if (rids.size() > 1)
-	ibis::util::isortRIDs(rids, 0, rids.size());
-}
-
-// sort RIDs in the range of [i, j)
-void ibis::util::sortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
-    if (i >= j) return;
-    std::less<ibis::rid_t> cmp;
-    if (i+32 >= j) { // use buble sort
-	isortRIDs(rids, i, j);
-    }
-    else { // use quick sort
-	ibis::rid_t tgt = rids[(i+j)/2];
-	uint32_t i1 = i;
-	uint32_t i2 = j-1;
-	bool left = cmp(rids[i1], tgt);
-	bool right = !cmp(rids[i2], tgt);
-	while (i1 < i2) {
-	    if (left && right) {
-		// both i1 and i2 are in the right position
-		++ i1; -- i2;
-		left = cmp(rids[i1], tgt);
-		right = !cmp(rids[i2], tgt);
-	    }
-	    else if (right) {
-		// i2 is in the right position
-		-- i2;
-		right = !cmp(rids[i2], tgt);
-	    }
-	    else if (left) {
-		// i1 is in the right position
-		++ i1;
-		left = cmp(rids[i1], tgt);
-	    }
-	    else { // both in the wrong position, swap them
-		ibis::rid_t tmp = rids[i1];
-		rids[i1] = rids[i2];
-		rids[i2] = tmp;
-		++ i1; -- i2;
-		left = cmp(rids[i1], tgt);
-		right = !cmp(rids[i2], tgt);
-	    }
-	}
-	i1 += (left); // if left is true, rids[i1] should be on the left side
-	// everything below i1 is less than tgt
-	if (i1 > i) {
-	    sortRIDs(rids, i, i1);
-	    sortRIDs(rids, i1, j);
-	}
-	else { // nothing has been swapped, i.e., tgt is the smallest
-	    while (i1 < j &&
-		   0 == memcmp(&tgt, &(rids[i1]), sizeof(ibis::rid_t)))
-		++ i1;
-	    if (i1+i1 < i+j) {
-		i2 = (i+j) / 2;
-		ibis::rid_t tmp = rids[i2];
-		rids[i2] = rids[i1];
-		rids[i1] = tmp;
-		++ i1;
-	    }
-	    sortRIDs(rids, i1, j);
-	}
-    }
-#ifdef DEBUG
-    int cnt = 0;
-    ibis::util::logger lg(4);
-    ibis::RIDSet::const_iterator it;
-    lg.buffer() << "sortRIDs(..., " << i << ", " << j << "):\n";
-    for (it = rids.begin(); it != rids.end(); ++ it, ++ cnt)
-	lg.buffer() << cnt << "\t" << *it << "\n";
-#endif
-} // ibis::util::sortRIDs
-
-// insertion sort
-void ibis::util::isortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
-    uint32_t i1, i2, i3;
-    ibis::rid_t tmp;
-    for (i1 = i; i1 < j-1; ++i1) {
-	i3 = i1 + 1;
-	for (i2 = i3+1; i2 < j; ++i2) {
-	    if (rids[i3] > rids[i2])
-		i3 = i2;
-	}
-	// place rids[i3] at the right position
-	if (rids[i3] < rids[i1]) {
-	    tmp = rids[i1];
-	    rids[i1] = rids[i3];
-	    rids[i3] = tmp;
-	}
-	else { // rids[i1] is at the right position, rids[i3] should be
-	       // rids[i1+1]
-	    ++i1;
-	    if (rids[i3] < rids[i1]) {
-		tmp = rids[i1];
-		rids[i1] = rids[i3];
-		rids[i3] = tmp;
-	    }
-	}
-    }
-} // isortRIDs
 
 // The meta characters used in ibis::util::strMatch.  
 #define STRMATCH_META_CSH_ANY '*'
