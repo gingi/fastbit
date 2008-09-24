@@ -1,3 +1,8 @@
+2008-09-24 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tab.h, src/bord.h, src/mensa.h: add an optional
+	argument to ibis::table::dump that prints the first few rows of a
+	table at the suggestion of David Kantowitz.
+
 2008-09-22 David Kantowitz <dkantowitz at thinktradellc.com>
 	* src/bord.h, src/bord.cpp: add derived version of getString to
 	ibis::bord::column

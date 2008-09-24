@@ -41,7 +41,7 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;
-    virtual int dump(std::ostream&, uint64_t) const;
+    virtual int dump(std::ostream&, uint64_t, const char*) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
@@ -334,10 +334,10 @@ ibis::mensa::cursor::getColumnAsString(const char* cn,
 } // ibis::mensa::cursor::getColumnAsString
 
 inline int
-ibis::mensa::dump(std::ostream& out, uint64_t nr) const {
+ibis::mensa::dump(std::ostream& out, uint64_t nr, const char* del) const {
     if (parts.empty()) return 0;
     ibis::mensa::cursor cur(*this);
-    int ierr = cur.dumpSome(out, nr, ", ");
+    int ierr = cur.dumpSome(out, nr, del);
     return ierr;
 } // ibis::mensa::dump
 #endif // IBIS_MENSA_H

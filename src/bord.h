@@ -37,7 +37,7 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;
-    virtual int dump(std::ostream&, uint64_t) const;
+    virtual int dump(std::ostream&, uint64_t, const char*) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
@@ -258,8 +258,9 @@ inline int ibis::bord::dump(std::ostream &out, const char* del) const {
     return mypart.dump(out, mypart.nRows(), del);
 } // ibis::bord::dump
 
-inline int ibis::bord::dump(std::ostream &out, uint64_t nr) const {
-    return mypart.dump(out, static_cast<size_t>(nr), ", ");
+inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
+			    const char* del) const {
+    return mypart.dump(out, static_cast<size_t>(nr), del);
 } // ibis::bord::dump
 
 inline ibis::table* 

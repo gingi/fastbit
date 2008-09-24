@@ -96,7 +96,8 @@ public:
     /// Comma-Separated-Values (CSV).
     virtual int dump(std::ostream& out, const char* del=", ") const=0;
     /// Print the first nr rows.
-    virtual int dump(std::ostream& out, uint64_t nr) const=0;
+    virtual int dump(std::ostream& out, uint64_t nr,
+		     const char* del=", ") const=0;
     /// Estimate the number of rows satisfying the selection conditions.
     /// The number of rows is between [@c nmin, @c nmax].
     virtual void estimate(const char* cond,

@@ -41,7 +41,7 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const {return 0;}
-    virtual int dump(std::ostream&, uint64_t) const {return 0;}
+    virtual int dump(std::ostream&, uint64_t, const char*) const {return 0;}
 
     virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
     virtual int64_t getColumnAsUBytes(const char*,
@@ -124,8 +124,8 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual int dump(std::ostream&, const char*) const;
-    virtual int dump(std::ostream& out, uint64_t) const {
-	return dump(out, ", ");}
+    virtual int dump(std::ostream& out, uint64_t nr, const char* sep) const {
+	if (nr > 0) return dump(out, sep); else return 0;}
 
     virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
     virtual int64_t getColumnAsUBytes(const char*,
