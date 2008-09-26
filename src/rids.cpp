@@ -1,6 +1,6 @@
 // $Id$
 // Copyright 2003-2008 the Regents of the University of California
-// Author: John Wu <John.Wu at nersc.gov>
+// Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 //
 /// Implements the functions defined in ibis::ridHandler.

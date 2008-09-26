@@ -1,5 +1,5 @@
 // $Id$
-// Author: John Wu <John.Wu at nersc.gov>
+// Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 1998-2008 the Regents of the University of California
 //
@@ -2243,9 +2243,9 @@ ibis::qMultiString::qMultiString(const char *col, const char *sval)
 	    if (! tmp.empty())
 		sset.insert(tmp);
 	}
-	else { // space delimited string
+	else { // space and comma delimited string
 	    while (*sval) {
-		if (! isspace(*sval))
+		if (*sval != ',' && ! isspace(*sval))
 		    tmp += *sval;
 		else if (tmp[tmp.size()-1] == '\\')
 		    tmp[tmp.size()-1] = *sval;
@@ -2303,7 +2303,15 @@ void ibis::rangeJoin::print(std::ostream& out) const {
     out << ')';
 } // ibis::rangeJoin::print
 
-/// Constructing an object of type qAnyAny from two strings
+/// Constructing a qAnyAny object from a string and a floating-point value.
+ibis::qAnyAny::qAnyAny(const char *pre, const double dbl)
+    : ibis::qExpr(ibis::qExpr::ANYANY), prefix(pre) {
+    values.resize(1);
+    values[0] = dbl;
+}
+
+/// Constructing an object of type qAnyAny from two strings.  The second
+/// string is expected to be a list of numbers separated by coma and space.
 ibis::qAnyAny::qAnyAny(const char *pre, const char *val)
     : ibis::qExpr(ibis::qExpr::ANYANY), prefix(pre) {
     // use a std::set to temporarily hold the values and eliminate

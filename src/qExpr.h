@@ -1,9 +1,9 @@
 // File: $Id$
-// Author: John Wu <John.Wu at nersc.gov>
+// Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 1998-2008 the Regents of the University of California
 //
-// Primary contact: John Wu <John.Wu at nersc.gov>
+// Primary contact: John Wu <John.Wu at acm.org>
 #ifndef IBIS_EXPR_H
 #define IBIS_EXPR_H
 ///@file
@@ -728,6 +728,7 @@ private:
 class ibis::qAnyAny : public ibis::qExpr {
 public:
     qAnyAny() : qExpr(ANYANY) {};
+    qAnyAny(const char *pre, const double dbl);
     qAnyAny(const char *pre, const char *val);
     ~qAnyAny() {}; // all data members can delete themselves.
 
@@ -1176,8 +1177,12 @@ inline bool ibis::compRange::maybeStringCompare() const {
 	    ==VARIABLE);
 } // ibis::compRange::maybeStringCompare
 
-/// Wrap function print as operator<<.
-inline std::ostream& operator<<(std::ostream& out, const ibis::qExpr& pn) {
+namespace std {
+    inline ostream& operator<<(ostream&, const ibis::qExpr&);
+}
+
+/// Wrap the function print as operator<<.
+inline std::ostream& std::operator<<(std::ostream& out, const ibis::qExpr& pn) {
     pn.print(out);
     return out;
 }

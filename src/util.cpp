@@ -1,6 +1,6 @@
 // $Id$
 // Copyright 2000-2008 the Regents of the University of California
-// Author: John Wu <John.Wu at nersc.gov>
+// Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 //
 // implementation of the utility functions defined in util.h (namespace
