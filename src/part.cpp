@@ -3597,15 +3597,15 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	return 0;
 
     ibis::bitvector mask;
-    ibis::compRange::barrel bar;
+    ibis::math::barrel bar;
     if (cmp.getLeft())
-	bar.recordVariable(static_cast<const ibis::compRange::term*>
+	bar.recordVariable(static_cast<const ibis::math::term*>
 			   (cmp.getLeft()));
     if (cmp.getRight())
-	bar.recordVariable(static_cast<const ibis::compRange::term*>
+	bar.recordVariable(static_cast<const ibis::math::term*>
 			   (cmp.getRight()));
     if (cmp.getTerm3())
-	bar.recordVariable(static_cast<const ibis::compRange::term*>
+	bar.recordVariable(static_cast<const ibis::math::term*>
 			   (cmp.getTerm3()));
 
     mask.set(1, nEvents); // initialize mask to have all set bit
@@ -3634,7 +3634,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 long ibis::part::doScan(const ibis::compRange& cmp,
 			const ibis::bitvector& mask,
 			ibis::bitvector& hits,
-			ibis::compRange::barrel* bar) const {
+			ibis::math::barrel* bar) const {
     if (columns.empty() || nEvents == 0)
 	return 0;
     ibis::horometer timer;
@@ -3647,19 +3647,19 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	timer.start();
     }
 
-    ibis::compRange::barrel* vlist = bar;
-    ibis::compRange::barrel* barr = 0;
+    ibis::math::barrel* vlist = bar;
+    ibis::math::barrel* barr = 0;
     long ierr = 0;
     if (bar == 0) { // need to collect the names of all variables
-	barr = new ibis::compRange::barrel;
+	barr = new ibis::math::barrel;
 	if (cmp.getLeft())
-	    barr->recordVariable(static_cast<const ibis::compRange::term*>
+	    barr->recordVariable(static_cast<const ibis::math::term*>
 				 (cmp.getLeft()));
 	if (cmp.getRight())
-	    barr->recordVariable(static_cast<const ibis::compRange::term*>
+	    barr->recordVariable(static_cast<const ibis::math::term*>
 				 (cmp.getRight()));
 	if (cmp.getTerm3())
-	    barr->recordVariable(static_cast<const ibis::compRange::term*>
+	    barr->recordVariable(static_cast<const ibis::math::term*>
 				 (cmp.getTerm3()));
 	vlist = barr;
     }
@@ -4411,7 +4411,7 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	    hits.set(mask.size(), 0);
     }
 
-    if (bar == 0) // we have declared our own copy of ibis::compRange::barrel
+    if (bar == 0) // we have declared our own copy of ibis::math::barrel
 	delete barr;
 
     if (ibis::gVerbose > 1) {

@@ -1130,7 +1130,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 18:
 #line 212 "predicate.y"
     {   // range join of to variables
-    ibis::compRange::term *ex = static_cast<ibis::compRange::term*>
+    ibis::math::term *ex = static_cast<ibis::math::term*>
 	(qexpr_stack.top());
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1170,11 +1170,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 21:
 #line 467 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LT, t1);
     qexpr_stack.push(pn1);
@@ -1184,11 +1184,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 22:
 #line 478 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LE, t1);
     qexpr_stack.push(pn1);
@@ -1198,11 +1198,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 23:
 #line 489 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_GT, t1);
     qexpr_stack.push(pn1);
@@ -1212,11 +1212,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 24:
 #line 500 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_GE, t1);
     qexpr_stack.push(pn1);
@@ -1226,11 +1226,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 25:
 #line 511 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_EQ, t1);
     qexpr_stack.push(pn1);
@@ -1240,11 +1240,11 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 26:
 #line 522 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     ibis::qExpr* pn2 = new ibis::compRange(t2, ibis::qExpr::OP_EQ, t1);
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -1256,14 +1256,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 27:
 #line 538 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LT, t2,
 			      ibis::qExpr::OP_LT, t1);
@@ -1274,14 +1274,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 28:
 #line 553 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LT, t2,
 			      ibis::qExpr::OP_LE, t1);
@@ -1292,14 +1292,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 29:
 #line 568 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LE, t2,
 			      ibis::qExpr::OP_LT, t1);
@@ -1310,14 +1310,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 30:
 #line 583 "predicate.y"
     {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LE, t2,
 			      ibis::qExpr::OP_LE, t1);
@@ -1328,14 +1328,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 31:
 #line 598 "predicate.y"
     {	// v1 > v2 > v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GT, t2,
 			      ibis::qExpr::OP_GT, t1);
@@ -1346,14 +1346,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 32:
 #line 613 "predicate.y"
     {	// v1 > v2 >= v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GT, t2,
 			      ibis::qExpr::OP_GE, t1);
@@ -1364,14 +1364,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 33:
 #line 628 "predicate.y"
     {	// v1 >= v2 > v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GE, t2,
 			      ibis::qExpr::OP_GT, t1);
@@ -1382,14 +1382,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 34:
 #line 643 "predicate.y"
     {	// v1 >= v2 >= v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GE, t2,
 			      ibis::qExpr::OP_GE, t1);
@@ -1400,14 +1400,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 35:
 #line 658 "predicate.y"
     {   // a two-sided range in SQL terminology
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LE, t3,
 			      ibis::qExpr::OP_LE, t1);
@@ -1422,8 +1422,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator +";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::PLUS);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::PLUS);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1439,8 +1439,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Operator -";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::MINUS);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::MINUS);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1456,8 +1456,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise AND operation ";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::BITAND);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::BITAND);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1473,8 +1473,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise OR Operation ";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::BITOR);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::BITOR);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1490,8 +1490,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Function: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::stdFunction1 *fnc =
-	new ibis::compRange::stdFunction1((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval));
+    ibis::math::stdFunction1 *fnc =
+	new ibis::math::stdFunction1((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval.sval));
     fnc->setLeft(qexpr_stack.top());
     qexpr_stack.pop();
     qexpr_stack.push(fnc);
@@ -1505,8 +1505,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Function: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (6))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::stdFunction2 *fnc =
-	new ibis::compRange::stdFunction2((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (6))].yystate.yysemantics.yysval.sval));
+    ibis::math::stdFunction2 *fnc =
+	new ibis::math::stdFunction2((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (6))].yystate.yysemantics.yysval.sval));
     fnc->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     fnc->setLeft(qexpr_stack.top());
@@ -1522,8 +1522,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Operator -";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::NEGATE);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::NEGATE);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     qexpr_stack.push(opr);
@@ -1537,8 +1537,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator *";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::MULTIPLY);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::MULTIPLY);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1554,8 +1554,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator /";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::DIVIDE);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::DIVIDE);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1571,8 +1571,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator %";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::REMAINDER);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::REMAINDER);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1588,8 +1588,8 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator ^";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::POWER);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::POWER);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -1605,7 +1605,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::variable *var = new ibis::compRange::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
+    ibis::math::variable *var = new ibis::math::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
     qexpr_stack.push(var);
 ;}
     break;
@@ -1618,7 +1618,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
+    ibis::math::number *var = new ibis::math::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.sval));
     qexpr_stack.push(var);
 ;}
     break;
@@ -1640,7 +1640,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 	    << "parseQuery -- failed to extact a hexadecimal "
 	    "integer from string \"" << buf << "\", assume zero (0)";
     }
-    ibis::compRange::number *var = new ibis::compRange::number(val);
+    ibis::math::number *var = new ibis::math::number(val);
     qexpr_stack.push(var);
 ;}
     break;
@@ -1652,9 +1652,9 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: - " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::variable *var = new ibis::compRange::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::NEGATE);
+    ibis::math::variable *var = new ibis::math::variable((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::NEGATE);
     opr->setRight(var);
     qexpr_stack.push(opr);
 ;}
@@ -1667,7 +1667,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: - " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
+    ibis::math::number *var = new ibis::math::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
     var->negate(); // take into account of the negative sign
     qexpr_stack.push(var);
 ;}
@@ -1680,7 +1680,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: + " << (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval);
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
+    ibis::math::number *var = new ibis::math::number((((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.sval));
     qexpr_stack.push(var);
 ;}
     break;

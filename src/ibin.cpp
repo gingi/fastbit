@@ -7716,7 +7716,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
     if (expr.getRange() == 0) {
 	equiJoin(lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0) {
 	    equiJoin(lower, upper);
@@ -7767,7 +7767,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
     if (expr.getRange() == 0) {
 	equiJoin(mask, lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0) {
 	    equiJoin(mask, lower, upper);
@@ -7819,7 +7819,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
     if (expr.getRange() == 0) {
 	equiJoin(idx2, lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0) {
 	    equiJoin(idx2, lower, upper);
@@ -7872,7 +7872,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
     if (expr.getRange() == 0) {
 	equiJoin(idx2, mask, lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0) {
 	    equiJoin(idx2, mask, lower, upper);
@@ -7931,7 +7931,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
     if (expr.getRange() == 0) {
 	equiJoin(idx2, mask, range1, range2, lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	double dlt = fabs(expr.getRange()->eval());
 	if (dlt == 0.0)
 	    equiJoin(idx2, mask, range1, range2, lower, upper);
@@ -7982,7 +7982,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(idx2, mask, range1, range2);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	double dlt = fabs(expr.getRange()->eval());
 	if (dlt == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2);
@@ -8059,7 +8059,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
     if (expr.getRange() == 0) {
 	equiJoin(mask, range1, range2, lower, upper);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	double dlt = fabs(expr.getRange()->eval());
 	if (dlt == 0.0)
 	    equiJoin(mask, range1, range2, lower, upper);
@@ -8109,7 +8109,7 @@ int64_t ibis::bin::estimate(const ibis::rangeJoin& expr,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(mask, range1, range2);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	double dlt = fabs(expr.getRange()->eval());
 	if (dlt == 0.0)
 	    cnt = equiJoin(mask, range1, range2);
@@ -8316,10 +8316,10 @@ void ibis::bin::rangeJoin(const double& delta,
 /// boundaries, this essentially require the express @c expr be a monotonic
 /// function overall.  If this monotonicity is not satisfyied, this
 /// function may miss some hits!
-void ibis::bin::compJoin(const ibis::compRange::term *expr,
+void ibis::bin::compJoin(const ibis::math::term *expr,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -8609,10 +8609,10 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 /// monotonic function overall.  If this monotonicity is not satisfyied,
 /// this function may miss some hits!
 void ibis::bin::compJoin(const ibis::bin& idx2,
-			 const ibis::compRange::term *expr,
+			 const ibis::math::term *expr,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -8931,11 +8931,11 @@ void ibis::bin::rangeJoin(const double& delta,
 /// boundaries, this essentially require the express @c expr be a monotonic
 /// function overall.  If this monotonicity is not satisfyied, this
 /// function may miss some hits!
-void ibis::bin::compJoin(const ibis::compRange::term *expr,
+void ibis::bin::compJoin(const ibis::math::term *expr,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -9316,7 +9316,7 @@ void ibis::bin::rangeJoin(const double& delta,
 /// boundaries, this essentially require the express @c expr be a monotonic
 /// function overall.  If this monotonicity is not satisfyied, this
 /// function may miss some hits!
-void ibis::bin::compJoin(const ibis::compRange::term *expr,
+void ibis::bin::compJoin(const ibis::math::term *expr,
 			 const ibis::bitvector& mask,
 			 const ibis::qRange* const range1,
 			 const ibis::qRange* const range2,
@@ -9330,7 +9330,7 @@ void ibis::bin::compJoin(const ibis::compRange::term *expr,
 	return;
     }
 
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -9648,14 +9648,14 @@ int64_t ibis::bin::rangeJoin(const double& delta,
 /// boundaries, this essentially require the express @c expr be a monotonic
 /// function overall.  If this monotonicity is not satisfyied, this
 /// function may miss some hits!
-int64_t ibis::bin::compJoin(const ibis::compRange::term *expr,
+int64_t ibis::bin::compJoin(const ibis::math::term *expr,
 			    const ibis::bitvector& mask,
 			    const ibis::qRange* const range1,
 			    const ibis::qRange* const range2) const {
     int64_t cnt = 0;
     if (mask.cnt() == 0)
 	return cnt;
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -9971,11 +9971,11 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 /// monotonic function overall.  If this monotonicity is not satisfyied,
 /// this function may miss some hits!
 void ibis::bin::compJoin(const ibis::bin& idx2,
-			 const ibis::compRange::term *expr,
+			 const ibis::math::term *expr,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -10369,7 +10369,7 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 /// monotonic function overall.  If this monotonicity is not satisfyied,
 /// this function may miss some hits!
 void ibis::bin::compJoin(const ibis::bin& idx2,
-			 const ibis::compRange::term *expr,
+			 const ibis::math::term *expr,
 			 const ibis::bitvector& mask,
 			 const ibis::qRange* const range1,
 			 const ibis::qRange* const range2,
@@ -10382,7 +10382,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 	iffy.clear();
 	return;
     }
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
@@ -10727,7 +10727,7 @@ int64_t ibis::bin::rangeJoin(const ibis::bin& idx2,
 /// monotonic function overall.  If this monotonicity is not satisfyied,
 /// this function may miss some hits!
 int64_t ibis::bin::compJoin(const ibis::bin& idx2,
-			    const ibis::compRange::term *expr,
+			    const ibis::math::term *expr,
 			    const ibis::bitvector& mask,
 			    const ibis::qRange* const range1,
 			    const ibis::qRange* const range2) const {
@@ -10735,7 +10735,7 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     if (mask.cnt() == 0) {
 	return cnt;
     }
-    ibis::index::barrel bar(const_cast<const ibis::compRange::term*>(expr));
+    ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)

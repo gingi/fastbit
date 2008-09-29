@@ -210,7 +210,7 @@ LITSTR EQOP NOUNSTR
 
 | JOINOP '(' NOUNSTR ',' NOUNSTR ',' mathexpr ')'
 {   // range join of to variables
-    ibis::compRange::term *ex = static_cast<ibis::compRange::term*>
+    ibis::math::term *ex = static_cast<ibis::math::term*>
 	(qexpr_stack.top());
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -465,66 +465,66 @@ NUMSTR LTOP NOUNSTR LTOP NUMSTR
 computedRange1:
 mathexpr LTOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LT, t1);
     qexpr_stack.push(pn1);
 }
 | mathexpr LEOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LE, t1);
     qexpr_stack.push(pn1);
 }
 | mathexpr GTOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_GT, t1);
     qexpr_stack.push(pn1);
 }
 | mathexpr GEOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_GE, t1);
     qexpr_stack.push(pn1);
 }
 | mathexpr EQOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_EQ, t1);
     qexpr_stack.push(pn1);
 }
 | mathexpr NEQOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     ibis::qExpr* pn2 = new ibis::compRange(t2, ibis::qExpr::OP_EQ, t1);
     pn1 = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
@@ -536,14 +536,14 @@ mathexpr LTOP mathexpr
 computedRange2:
 mathexpr LTOP mathexpr LTOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LT, t2,
 			      ibis::qExpr::OP_LT, t1);
@@ -551,14 +551,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr LTOP mathexpr LEOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LT, t2,
 			      ibis::qExpr::OP_LE, t1);
@@ -566,14 +566,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr LEOP mathexpr LTOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LE, t2,
 			      ibis::qExpr::OP_LT, t1);
@@ -581,14 +581,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr LEOP mathexpr LEOP mathexpr
 {
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_LE, t2,
 			      ibis::qExpr::OP_LE, t1);
@@ -596,14 +596,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr GTOP mathexpr GTOP mathexpr
 {	// v1 > v2 > v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GT, t2,
 			      ibis::qExpr::OP_GT, t1);
@@ -611,14 +611,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr GTOP mathexpr GEOP mathexpr
 {	// v1 > v2 >= v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GT, t2,
 			      ibis::qExpr::OP_GE, t1);
@@ -626,14 +626,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr GEOP mathexpr GTOP mathexpr
 {	// v1 >= v2 > v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GE, t2,
 			      ibis::qExpr::OP_GT, t1);
@@ -641,14 +641,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr GEOP mathexpr GEOP mathexpr
 {	// v1 >= v2 >= v3
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t3, ibis::qExpr::OP_GE, t2,
 			      ibis::qExpr::OP_GE, t1);
@@ -656,14 +656,14 @@ mathexpr LTOP mathexpr LTOP mathexpr
 }
 | mathexpr BETWEENOP mathexpr ANDOP mathexpr
 {   // a two-sided range in SQL terminology
-    ibis::compRange::term *t1 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t1 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t2 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t2 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
-    ibis::compRange::term *t3 =
-	static_cast<ibis::compRange::term*>(qexpr_stack.top());
+    ibis::math::term *t3 =
+	static_cast<ibis::math::term*>(qexpr_stack.top());
     qexpr_stack.pop();
     pn1 = new ibis::compRange(t2, ibis::qExpr::OP_LE, t3,
 			      ibis::qExpr::OP_LE, t1);
@@ -678,8 +678,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator +";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::PLUS);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::PLUS);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -692,8 +692,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Operator -";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::MINUS);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::MINUS);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -706,8 +706,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise AND operation ";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::BITAND);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::BITAND);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -720,8 +720,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Bitwise OR Operation ";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::BITOR);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::BITOR);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -734,8 +734,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Function: " << $1;
 #endif
-    ibis::compRange::stdFunction1 *fnc =
-	new ibis::compRange::stdFunction1($1);
+    ibis::math::stdFunction1 *fnc =
+	new ibis::math::stdFunction1($1);
     fnc->setLeft(qexpr_stack.top());
     qexpr_stack.pop();
     qexpr_stack.push(fnc);
@@ -746,8 +746,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Binary Function: " << $1;
 #endif
-    ibis::compRange::stdFunction2 *fnc =
-	new ibis::compRange::stdFunction2($1);
+    ibis::math::stdFunction2 *fnc =
+	new ibis::math::stdFunction2($1);
     fnc->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     fnc->setLeft(qexpr_stack.top());
@@ -760,8 +760,8 @@ mathexpr ADDOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Unary Operator -";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::NEGATE);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::NEGATE);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     qexpr_stack.push(opr);
@@ -777,8 +777,8 @@ mathexpr MULTOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator *";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::MULTIPLY);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::MULTIPLY);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -791,8 +791,8 @@ mathexpr MULTOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator /";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::DIVIDE);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::DIVIDE);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -805,8 +805,8 @@ mathexpr MULTOP mathexpr
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator %";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::REMAINDER);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::REMAINDER);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -823,8 +823,8 @@ mathexpr EXPOP mathTerm3
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Operator ^";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::POWER);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::POWER);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -837,8 +837,8 @@ mathexpr EXPOP mathTerm3
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0) << "DEBUG - parser got " << " Operator ^";
 #endif
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::POWER);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::POWER);
     opr->setRight(qexpr_stack.top());
     qexpr_stack.pop();
     opr->setLeft(qexpr_stack.top());
@@ -856,7 +856,7 @@ NOUNSTR
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: " << $1;
 #endif
-    ibis::compRange::variable *var = new ibis::compRange::variable($1);
+    ibis::math::variable *var = new ibis::math::variable($1);
     qexpr_stack.push(var);
 }
 | NUMSTR
@@ -866,7 +866,7 @@ NOUNSTR
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: " << $1;
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number($1);
+    ibis::math::number *var = new ibis::math::number($1);
     qexpr_stack.push(var);
 }
 | NUMHEX
@@ -885,7 +885,7 @@ NOUNSTR
 	    << "parseQuery -- failed to extact a hexadecimal "
 	    "integer from string \"" << buf << "\", assume zero (0)";
     }
-    ibis::compRange::number *var = new ibis::compRange::number(val);
+    ibis::math::number *var = new ibis::math::number(val);
     qexpr_stack.push(var);
 }
 | MINUSOP NOUNSTR  %prec UNOT
@@ -894,9 +894,9 @@ NOUNSTR
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Variable: - " << $2;
 #endif
-    ibis::compRange::variable *var = new ibis::compRange::variable($2);
-    ibis::compRange::bediener *opr =
-	new ibis::compRange::bediener(ibis::compRange::NEGATE);
+    ibis::math::variable *var = new ibis::math::variable($2);
+    ibis::math::bediener *opr =
+	new ibis::math::bediener(ibis::math::NEGATE);
     opr->setRight(var);
     qexpr_stack.push(opr);
 }
@@ -906,7 +906,7 @@ NOUNSTR
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: - " << $2;
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number($2);
+    ibis::math::number *var = new ibis::math::number($2);
     var->negate(); // take into account of the negative sign
     qexpr_stack.push(var);
 }
@@ -916,7 +916,7 @@ NOUNSTR
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG - parser got " << " Constant: + " << $2;
 #endif
-    ibis::compRange::number *var = new ibis::compRange::number($2);
+    ibis::math::number *var = new ibis::math::number($2);
     qexpr_stack.push(var);
 }
 ;

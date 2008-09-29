@@ -24,7 +24,7 @@ int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
     else if (cmp.getRange() == 0) {
 	cnt = equiJoin(cmp, trial, pairs);
     }
-    else if (cmp.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(cmp.getRange()->eval());
 	if (delta > 0)
 	    cnt = rangeJoin(cmp, trial, pairs);
@@ -32,7 +32,7 @@ int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
 	    cnt = equiJoin(cmp, trial, pairs);
     }
     else {
-	ibis::compRange::barrel bar(cmp.getRange());
+	ibis::math::barrel bar(cmp.getRange());
 	if (bar.size() == 0) { // a constant function
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0)
@@ -54,8 +54,8 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 			      ibis::bitvector64& pairs) const {
     unsigned nvar = 0; // number of variables involved in @c cmp.
     pairs.clear();
-    if (cmp.getRange()) { // use a ibis::compRange::barrel to count variables
-	ibis::compRange::barrel bar;
+    if (cmp.getRange()) { // use a ibis::math::barrel to count variables
+	ibis::math::barrel bar;
 	bar.recordVariable(cmp.getName1());
 	bar.recordVariable(cmp.getName2());
 	bar.recordVariable(cmp.getRange());
@@ -77,7 +77,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    cnt = equiJoinLoop1(cmp, mask, pairs);
 	    equijoin = true;
 	}
-	else if (cmp.getRange()->termType() == ibis::compRange::NUMBER) {
+	else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0) {
 		cnt = rangeJoinLoop(cmp, mask, pairs);
@@ -89,7 +89,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    }
 	}
 	else {
-	    ibis::compRange::barrel bar(cmp.getRange());
+	    ibis::math::barrel bar(cmp.getRange());
 	    if (bar.size() == 0) { // a constant function
 		const double delta = fabs(cmp.getRange()->eval());
 		if (delta > 0) {
@@ -123,8 +123,8 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 			      const ibis::bitvector& mask) const {
     unsigned nvar = 0; // number of variables involved in @c cmp.
-    if (cmp.getRange()) { // use a ibis::compRange::barrel to count variables
-	ibis::compRange::barrel bar;
+    if (cmp.getRange()) { // use a ibis::math::barrel to count variables
+	ibis::math::barrel bar;
 	bar.recordVariable(cmp.getName1());
 	bar.recordVariable(cmp.getName2());
 	bar.recordVariable(cmp.getRange());
@@ -146,7 +146,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    cnt = equiJoinLoop1(cmp, mask);
 	    equijoin = true;
 	}
-	else if (cmp.getRange()->termType() == ibis::compRange::NUMBER) {
+	else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0) {
 		cnt = rangeJoinLoop(cmp, mask);
@@ -158,7 +158,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    }
 	}
 	else {
-	    ibis::compRange::barrel bar(cmp.getRange());
+	    ibis::math::barrel bar(cmp.getRange());
 	    if (bar.size() == 0) {
 		const double delta = fabs(cmp.getRange()->eval());
 		if (delta > 0) {

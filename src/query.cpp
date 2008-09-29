@@ -2359,11 +2359,11 @@ int ibis::query::verifyPredicate(ibis::qExpr*& qexpr) {
 	}
 	break;}
     case ibis::qExpr::MATHTERM: {
-	ibis::compRange::term* math =
-	    static_cast<ibis::compRange::term*>(qexpr);
-	if (math->termType() == ibis::compRange::VARIABLE) {
-	    const ibis::compRange::variable* var =
-		static_cast<const ibis::compRange::variable*>(math);
+	ibis::math::term* math =
+	    static_cast<ibis::math::term*>(qexpr);
+	if (math->termType() == ibis::math::VARIABLE) {
+	    const ibis::math::variable* var =
+		static_cast<const ibis::math::variable*>(math);
 	    const ibis::column* col =
 		table0->getColumn(var->variableName());
 	    if (col == 0) {
@@ -2384,11 +2384,11 @@ int ibis::query::verifyPredicate(ibis::qExpr*& qexpr) {
 	// compRange have three terms rather than two
 	if (reinterpret_cast<ibis::compRange*>(qexpr)
 	    ->maybeStringCompare()) {
-	    const ibis::compRange::variable *v1 =
-		reinterpret_cast<const ibis::compRange::variable*>
+	    const ibis::math::variable *v1 =
+		reinterpret_cast<const ibis::math::variable*>
 		(qexpr->getLeft());
-	    const ibis::compRange::variable *v2 =
-		reinterpret_cast<const ibis::compRange::variable*>
+	    const ibis::math::variable *v2 =
+		reinterpret_cast<const ibis::math::variable*>
 		(qexpr->getRight());
 	    const ibis::column *c1 =
 		table0->getColumn(v1->variableName());
@@ -4370,9 +4370,9 @@ void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
 	const ibis::rangeJoin* jn = terms[i];
 	double delta = 0.0;
 	if (jn->getRange()) {
-	    const ibis::compRange::term *tm = jn->getRange();
+	    const ibis::math::term *tm = jn->getRange();
 	    if (tm != 0) {
-		if (tm->termType() != ibis::compRange::NUMBER)
+		if (tm->termType() != ibis::math::NUMBER)
 		    continue;
 		else
 		    delta = tm->eval();
@@ -4476,10 +4476,10 @@ int64_t ibis::query::processJoin() {
 	if (terms[jj]->getRange() == 0)
 	    -- jj;
 	else if (terms[jj]->getRange()->termType() ==
-		 ibis::compRange::NUMBER)
+		 ibis::math::NUMBER)
 	    -- jj;
 	else {
-	    ibis::compRange::barrel baj(terms[jj]->getRange());
+	    ibis::math::barrel baj(terms[jj]->getRange());
 	    if (baj.size() == 0 ||
 		(baj.size() == 1 &&
 		 0 == stricmp(baj.name(0), terms[jj]->getName1()))) {
@@ -4487,8 +4487,8 @@ int64_t ibis::query::processJoin() {
 	    }
 	    else if (terms[ii]->getRange() != 0 &&
 		     terms[ii]->getRange()->termType() !=
-		     ibis::compRange::NUMBER) {
-		ibis::compRange::barrel bai(terms[ii]->getRange());
+		     ibis::math::NUMBER) {
+		ibis::math::barrel bai(terms[ii]->getRange());
 		if (bai.size() > 1 ||
 		    (bai.size() == 1 &&
 		     0 != stricmp(bai.name(0), terms[ii]->getName1()))) {
@@ -4905,7 +4905,7 @@ int64_t ibis::query::processJoin() {
 
     bool symm = false;
     { // use a block to limit the scopes of the two barrel variables
-	ibis::compRange::barrel bar1, bar2;
+	ibis::math::barrel bar1, bar2;
 	for (uint32_t i = 0; i < terms.size(); ++ i) {
 	    bar1.recordVariable(terms[i]->getName1());
 	    bar1.recordVariable(terms[i]->getRange());
@@ -5185,7 +5185,7 @@ int64_t ibis::query::sortJoin(const ibis::rangeJoin& cmp,
     int64_t cnt = 0;
     if (cmp.getRange() == 0)
 	cnt = sortEquiJoin(cmp, mask);
-    else if (cmp.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(cmp.getRange()->eval());
 	if (delta > 0)
 	    cnt = sortRangeJoin(cmp, mask);
@@ -5193,7 +5193,7 @@ int64_t ibis::query::sortJoin(const ibis::rangeJoin& cmp,
 	    cnt = sortEquiJoin(cmp, mask);
     }
     else {
-	ibis::compRange::barrel bar(cmp.getRange());
+	ibis::math::barrel bar(cmp.getRange());
 	if (bar.size() == 0) {
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0)
@@ -5230,7 +5230,7 @@ ibis::query::sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
 		sortEquiJoin(*(terms[i]), mask, pairfile.c_str());
 	    }
 	    else if (terms[i]->getRange()->termType() ==
-		     ibis::compRange::NUMBER) {
+		     ibis::math::NUMBER) {
 		const double delta = fabs(terms[i]->getRange()->eval());
 		if (delta > 0)
 		    sortRangeJoin(*(terms[i]), mask, pairfile.c_str());
@@ -5238,7 +5238,7 @@ ibis::query::sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
 		    sortEquiJoin(*(terms[i]), mask, pairfile.c_str());
 	    }
 	    else {
-		ibis::compRange::barrel bar(terms[i]->getRange());
+		ibis::math::barrel bar(terms[i]->getRange());
 		if (bar.size() == 0) {
 		    const double delta = fabs(terms[i]->getRange()->eval());
 		    if (delta > 0)

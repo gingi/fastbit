@@ -293,11 +293,11 @@ private:
 		   const double& delta,
 		   ibis::bitvector64& lower,
 		   ibis::bitvector64& iffy) const;
-    void compJoin(const ibis::compRange::term *expr,
+    void compJoin(const ibis::math::term *expr,
 		  ibis::bitvector64& lower,
 		  ibis::bitvector64& iffy) const;
     void compJoin(const ibis::bin& idx2,
-		  const ibis::compRange::term *expr,
+		  const ibis::math::term *expr,
 		  ibis::bitvector64& lower,
 		  ibis::bitvector64& iffy) const;
     void equiJoin(const ibis::bitvector& mask,
@@ -316,12 +316,12 @@ private:
 		   const ibis::bitvector& mask,
 		   ibis::bitvector64& lower,
 		   ibis::bitvector64& iffy) const;
-    void compJoin(const ibis::compRange::term *expr,
+    void compJoin(const ibis::math::term *expr,
 		  const ibis::bitvector& mask,
 		  ibis::bitvector64& lower,
 		  ibis::bitvector64& iffy) const;
     void compJoin(const ibis::bin& idx2,
-		  const ibis::compRange::term *expr,
+		  const ibis::math::term *expr,
 		  const ibis::bitvector& mask,
 		  ibis::bitvector64& lower,
 		  ibis::bitvector64& iffy) const;
@@ -337,7 +337,7 @@ private:
 		   const ibis::qRange* const range2,
 		   ibis::bitvector64& sure,
 		   ibis::bitvector64& iffy) const;
-    void compJoin(const ibis::compRange::term *delta,
+    void compJoin(const ibis::math::term *delta,
 		  const ibis::bitvector& mask,
 		  const ibis::qRange* const range1,
 		  const ibis::qRange* const range2,
@@ -351,7 +351,7 @@ private:
 		      const ibis::bitvector& mask,
 		      const ibis::qRange* const range1,
 		      const ibis::qRange* const range2) const;
-    int64_t compJoin(const ibis::compRange::term *delta,
+    int64_t compJoin(const ibis::math::term *delta,
 		     const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2) const;
@@ -370,7 +370,7 @@ private:
 		   ibis::bitvector64& sure,
 		   ibis::bitvector64& iffy) const;
     void compJoin(const ibis::bin& idx2,
-		  const ibis::compRange::term *delta,
+		  const ibis::math::term *delta,
 		  const ibis::bitvector& mask,
 		  const ibis::qRange* const range1,
 		  const ibis::qRange* const range2,
@@ -387,7 +387,7 @@ private:
 		      const ibis::qRange* const range1,
 		      const ibis::qRange* const range2) const;
     int64_t compJoin(const ibis::bin& idx2,
-		     const ibis::compRange::term *delta,
+		     const ibis::math::term *delta,
 		     const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2) const;

@@ -142,7 +142,7 @@ private:
     int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const double& delta, ibis::bitvector64& hits) const;
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
-		     const ibis::compRange::term& delta,
+		     const ibis::math::term& delta,
 		     ibis::bitvector64& hits) const;
 
     int64_t equiJoin(const ibis::relic& idx2,
@@ -150,7 +150,7 @@ private:
     int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const double& delta) const;
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
-		     const ibis::compRange::term& delta) const;
+		     const ibis::math::term& delta) const;
 
     int64_t equiJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
@@ -165,7 +165,7 @@ private:
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2,
-		     const ibis::compRange::term& delta,
+		     const ibis::math::term& delta,
 		     ibis::bitvector64& hits) const {
 	return compJoin(idx2, mask, delta, hits);
     }
@@ -183,7 +183,7 @@ private:
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2,
-		     const ibis::compRange::term& delta) const {
+		     const ibis::math::term& delta) const {
 	return compJoin(idx2, mask, delta);
     }
 

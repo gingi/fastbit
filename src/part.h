@@ -179,7 +179,7 @@ public:
     virtual long doScan(const ibis::compRange& cmp,
 			const ibis::bitvector& mask,
 			ibis::bitvector& hits,
-			ibis::compRange::barrel* bar=0) const;
+			ibis::math::barrel* bar=0) const;
 
     /// Locate the records that satisfy the range condition.  Since the
     /// values are provided, this function does not check the name of the
@@ -960,7 +960,7 @@ private:
 /// To read a list of variables at the same time.
 /// This implementation opens each data file and read the values from the
 /// files one at a time.
-class ibis::part::barrel : public ibis::compRange::barrel {
+class ibis::part::barrel : public ibis::math::barrel {
 public:
     barrel(const ibis::part *t=0) : _tbl(t), position(0) {};
     virtual ~barrel() {close();} ///< Destructor closes the open files.

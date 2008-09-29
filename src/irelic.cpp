@@ -1737,7 +1737,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(idx2, mask, range1, range2, lower);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2, lower);
@@ -1800,7 +1800,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(idx2, mask, range1, range2);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2);
@@ -1862,7 +1862,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(idx2, mask, lower);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, lower);
@@ -1910,7 +1910,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
     if (expr.getRange() == 0) {
 	cnt = equiJoin(idx2, mask);
     }
-    else if (expr.getRange()->termType() == ibis::compRange::NUMBER) {
+    else if (expr.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(expr.getRange()->eval());
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask);
@@ -2607,12 +2607,12 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 /// equal to zero (0).
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,
-			      const ibis::compRange::term& delta,
+			      const ibis::math::term& delta,
 			      ibis::bitvector64& hits) const {
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
-    ibis::compRange::barrel bar(&delta);
+    ibis::math::barrel bar(&delta);
     if (bar.size() == 1 &&
 	stricmp(bar.name(0), col->name()) == 0) {
 	// continue
@@ -2672,11 +2672,11 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,
-			      const ibis::compRange::term& delta) const {
+			      const ibis::math::term& delta) const {
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
 
-    ibis::compRange::barrel bar(&delta);
+    ibis::math::barrel bar(&delta);
     if (bar.size() == 1 &&
 	stricmp(bar.name(0), col->name()) == 0) {
 	// continue

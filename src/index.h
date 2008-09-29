@@ -455,9 +455,9 @@ private:
 
 /// A specialization that adds function @c setValue.  This function allows
 /// the client to directly set the value for an individual variable.
-class ibis::index::barrel : public ibis::compRange::barrel {
+class ibis::index::barrel : public ibis::math::barrel {
 public:
-    barrel(const ibis::compRange::term* t) : ibis::compRange::barrel(t) {}
+    barrel(const ibis::math::term* t) : ibis::math::barrel(t) {}
 
     void setValue(uint32_t i, double v) {varvalues[i] = v;}
 }; // ibis::index::barrel
