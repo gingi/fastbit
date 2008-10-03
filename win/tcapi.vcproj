@@ -307,11 +307,27 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.h"
+				RelativePath="..\src\whereClause.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.tab.h"
+				RelativePath="..\src\whereLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.hh"
+				>
+			</File>
+			<File
+				RelativePath="..\src\location.hh"
+				>
+			</File>
+			<File
+				RelativePath="..\src\position.hh"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stack.hh"
 				>
 			</File>
 			<File

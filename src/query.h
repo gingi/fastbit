@@ -8,6 +8,7 @@
 /// The header file defining the individual query objects.
 ///
 #include "part.h"	// class part
+#include "whereClause.h"	// ibis::whereClause
 
 /// @ingroup FastBitMain
 /// A data structure for representing user queries.  This is the primary
@@ -101,7 +102,7 @@ public:
     /// specified in the argument.
     int setTable(const ibis::part* tbl);
     /// Return the where clause string.
-    virtual const char* getWhereClause() const {return condition;}
+    virtual const char* getWhereClause() const {return conds.getString();}
     /// Return the select clause string.
     virtual const char* getSelectClause() const {return *comps;}
 
@@ -285,7 +286,7 @@ public:
 
 protected:
     char* user; 	///< Name of the user who specified the query
-    char* condition;	///< Query condition (string)
+    whereClause conds;	///< Query conditions
     selected comps;	///< Names of selected components
     QUERY_STATE state;	///< Status of the query
     ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
@@ -299,7 +300,6 @@ protected:
     void reorderExpr(); // reorder query expression
 
     bool hasBundles() const;
-    int  verifyPredicate(qExpr*& qexpr);
     int  computeHits();	  // generate the hit vector for range queries
     void getBounds();	  // get the upper and lower bounds for range queries
     // use index only to come up with a upper bound and a lower bound
@@ -319,8 +319,6 @@ protected:
 
     /// Process the join operation and return the number of pairs.
     int64_t processJoin();
-    /// Add constraints derived from domains of the two join columns.
-    void addJoinConstraints(ibis::qExpr*& exp0) const;
 
     // read/write the basic information about the query and its state
     virtual void writeQuery();
@@ -452,7 +450,6 @@ private:
     char* myID; 	// The unique ID of this query object
     char* myDir;	// Name of the directory containing the query record
     RIDSet* rids_in;	// Rid list specified in an RID query
-    qExpr* expr;	// Query expression (pointer to the root of the tree)
     const part* table0;	// Default table used to process the query
     time_t dstime;		// When query evaluation started
     mutable pthread_rwlock_t lock; // Rwlock for access control

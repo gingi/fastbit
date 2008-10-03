@@ -11,7 +11,6 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 #include "query.h"	// class query (prototypes for all functions here)
-#include "predicate.h"	// definitions use when parsing queries
 #include "bundle.h"	// class bundle
 #include "ibin.h"	// ibis::bin
 #include "iroster.h"	// ibis::roster, used by ibis::table::vault
@@ -297,28 +296,26 @@ int ibis::query::setTable(const part* tbl) {
 	comps.remove(badnames);
     }
 
-    if (expr == 0) {
+    if (conds.empty()) {
 	state = UNINITIALIZED;
     }
     else {
-	int ierr = verifyPredicate(expr);
+	int ierr = conds.verify(*table0);
 	if (ierr != 0) {
 	    logWarning("setTable", "The WHERE clause \"%s\" contains "
 		       "%d incorrect name(s). It will be removed",
-		       (condition ? condition : "<long expression>"), ierr);
+		       (conds.getString() ? conds.getString() :
+			"<long expression>"), ierr);
 	    if (comps.size())
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
-	    delete [] condition;
-	    condition = 0;
-	    delete expr;
-	    expr = 0;
+	    conds.clear();
 	}
     }
 
     if (comps.size() != 0) {
-	if (rids_in || expr) {
+	if (rids_in != 0 || conds.getExpr() != 0) {
 	    state = SPECIFIED;
 	    writeQuery();
 	}
@@ -392,27 +389,8 @@ int ibis::query::setSelectClause(const char* str) {
 	comps.select(oldComps.c_str());
     }
 
-    if (expr == 0) {
-	state = UNINITIALIZED;
-    }
-    else {
-	int ierr = verifyPredicate(expr);
-	if (ierr != 0) {
-	    logWarning("setSelectClause", "The WHERE clause \"%s\" "
-		       "contains %d incorrect name(s). It will not be used",
-		       (condition ? condition : "<long expression>"), ierr);
-	    if (comps.size())
-		state = SET_COMPONENTS;
-	    else
-		state = UNINITIALIZED;
-	    delete [] condition;
-	    condition = 0;
-	    delete expr;
-	    expr = 0;
-	}
-    }
     if (comps.size() != 0) {
-	if (rids_in || condition) {
+	if (rids_in || conds.getExpr() != 0) {
 	    state = SPECIFIED;
 	    writeQuery();
 	}
@@ -434,97 +412,75 @@ int ibis::query::setSelectClause(const char* str) {
 /// This function may be called multiple times and each invocation will
 /// overwrite the previous where clause.
 int ibis::query::setWhereClause(const char* str) {
-    if (str == 0 || *str == static_cast<char>(0)) return -4;
+    if (str == 0 || *str == static_cast<char>(0))
+	return -4; // invalid input where clause
+    if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
+	return 0; // no change in where clause
 
-    writeLock lck(this, "setWhereClause");
-    char *oldCond = condition;
-    qExpr *oldExpr = expr;
-    if (condition) {
-	if (stricmp(str, condition)) { // different values
-	    if (ibis::gVerbose > 2)
+    try {
+	ibis::whereClause tmp(str);
+	if (tmp.getExpr() == 0) {
+	    logWarning("setWhereClause", "failed to parse the WHERE clause "
+		       "\"%s\"", str);
+	    return -5;
+	}
+	if (table0 != 0) {
+	    int ierr = tmp.verify(*table0);
+	    if (ierr != 0) {
+		logWarning("setWhereClause", "The WHERE clause \"%s\" contains "
+			   "%d incorrect name(s).  It will not be used.",
+			   str, ierr);
+		return -6;
+	    }
+	}
+
+	if (ibis::gVerbose > 2) {
+	    if (conds.getString() != 0)
 		logMessage("setWhereClause", "replace previous condition "
-			   "\"%s\" with \"%s\".", condition, str);
+			   "\"%s\" with \"%s\".", conds.getString(), str);
+	    else
+		logMessage("setWhereClause", "add a new where clause \"%s\".",
+			   str);
+	}
+	writeLock lck(this, "setWhereClause");
+	conds.swap(tmp);
+
+	if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+	    state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+	    dstime = 0;
+	    if (hits == sup) {
+		delete hits;
+		hits = 0;
+		sup = 0;
+	    }
+	    else {
+		delete hits;
+		delete sup;
+		hits = 0;
+		sup = 0;
+	    }
+	    removeFiles();
+	}
+
+
+	if (comps.size()) {
+	    state = SPECIFIED;
+	    writeQuery();
 	}
 	else {
-	    return 0; // no change needed
+	    state = SET_PREDICATE;
 	}
     }
-
-    if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
-	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
-	dstime = 0;
-	if (hits == sup) {
-	    delete hits;
-	    hits = 0;
-	    sup = 0;
-	}
-	else {
-	    delete hits;
-	    delete sup;
-	    hits = 0;
-	    sup = 0;
-	}
-	removeFiles();
-    }
-
-    expr = ibis::parseQuery(str);
-    if (expr == 0) {
+    catch (...) {
 	logWarning("setWhereClause", "failed to parse the WHERE clause "
 		   "\"%s\"", str);
-	if (oldCond && oldExpr) {
-	    condition = oldCond;
-	    expr = oldExpr;
-	}
-	else if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
 	return -5;
     }
-    else {
-	condition = ibis::util::strnewdup(str);
-	addJoinConstraints(expr); // add constraints derived from joins
-	//ibis::qExpr::simplify(expr);
-    }
 
-    int ierr = verifyPredicate(expr);
-    if (ierr != 0) {
-	logWarning("setWhereClause", "The WHERE clause \"%s\" contains %d "
-		   "incorrect name(s).  It will not be used.", str, ierr);
-	if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	delete [] condition;
-	condition = 0;
-	delete expr;
-	expr = 0;
-	if (oldCond && oldExpr) {
-	    condition = oldCond;
-	    expr = oldExpr;
-	}
-	else if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	return -6;
-    }
-
-    // finally free the old where clause
-    delete [] oldCond;
-    delete oldExpr;
-
-    if (comps.size()) {
-	state = SPECIFIED;
-	writeQuery();
-    }
-    else {
-	state = SET_PREDICATE;
-    }
     if (ibis::gVerbose > 0) {
 	logMessage("setWhereClause", "WHERE \"%s\"", str);
 	LOGGER(ibis::gVerbose >= 4)
-	    << "  Translated the WHERE clause into: " << *expr;
+	    << "  Translated the WHERE clause into: " << *conds.getExpr();
     }
     return 0;
 } // ibis::query::setWhereClause
@@ -556,27 +512,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     }
     if (nts == 0) return -4;
 
-    writeLock lck(this, "setWhereClause");
-    char *oldCond = condition;
-    qExpr *oldExpr = expr;
-
-    if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
-	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
-	dstime = 0;
-	if (hits == sup) {
-	    delete hits;
-	    hits = 0;
-	    sup = 0;
-	}
-	else {
-	    delete hits;
-	    delete sup;
-	    hits = 0;
-	    sup = 0;
-	}
-	removeFiles();
-    }
-
+    ibis::qExpr *expr; // to hold the new conditions
     if (lbounds.size() > 0) {
 	if (rbounds.size() > 0) {
 	    double lb = (lbounds[0] <= rbounds[0] ?
@@ -620,42 +556,42 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	}
 	expr->setRight(tmp);
     }
-#if defined(_DEBUG) || defined(DEBUG)
-    if (expr != 0) {
-	std::ostringstream ostr;
-	ostr << *expr;
-	condition = ibis::util::strnewdup(ostr.str().c_str());
-    }
-#else
-    condition = 0;
-#endif
-    int ierr = verifyPredicate(expr);
-    if (ierr != 0) {
-	logWarning("setWhereClause", "The WHERE clause specified in three "
-		   "arrays contain %d incorrect name(s). Revert to old values.",
-		   ierr);
-	if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	delete [] condition;
-	condition = 0;
-	delete expr;
-	expr = 0;
-	if (oldCond && oldExpr) {
-	    condition = oldCond;
-	    expr = oldExpr;
+    if (table0 != 0) {
+	int ierr = conds.verify(*table0);
+	if (ierr != 0) {
+	    logWarning("setWhereClause", "The WHERE clause specified in three "
+		       "arrays contain %d incorrect name(s).  "
+		       "Revert to old values.", ierr);
+	    if (comps.size())
+		state = SET_COMPONENTS;
+	    else
+		state = UNINITIALIZED;
+	    delete expr;
+	    return -6;
 	}
-	else if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	return -6;
     }
 
-    // finally free the old where clause
-    delete [] oldCond;
-    delete oldExpr;
+    writeLock lck(this, "setWhereClause");
+    if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+	dstime = 0;
+	if (hits == sup) {
+	    delete hits;
+	    hits = 0;
+	    sup = 0;
+	}
+	else {
+	    delete hits;
+	    delete sup;
+	    hits = 0;
+	    sup = 0;
+	}
+	removeFiles();
+    }
+
+    // assign the new query conditions to conds
+    conds.setExpr(expr);
+    delete expr;
 
     if (comps.size()) {
 	state = SPECIFIED;
@@ -666,18 +602,29 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     }
     LOGGER(ibis::gVerbose >= 2)
 	<< "query[" << myID << "]::setWhereClause converted three arrays to \""
-	<< *expr << "\"";
+	<< *(conds.getExpr()) << "\"";
     return 0;
 } // ibis::query::setWhereClause
 
 /// This function accepts a user constructed query expression object.  It
-/// can be used to bypass call to ibis::parseQuery.
+/// can be used to bypass the parsing of where clause string.
 int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 
+    ibis::whereClause wc;
+    wc.setExpr(qx);
+    if (table0 != 0) {
+	int ierr = wc.verify(*table0);
+	if (ierr != 0) {
+	    logWarning("setWhereClause", "The WHERE clause expressed in the "
+		       "qExpr object contains %d incorrect name(s).  Revert to "
+		       "old value", ierr);
+	    return -6;
+	}
+    }
+
     writeLock lck(this, "setWhereClause");
-    char *oldCond = condition;
-    qExpr *oldExpr = expr;
+    wc.swap(conds);
 
     if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
 	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
@@ -696,60 +643,6 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	removeFiles();
     }
 
-    expr = qx->dup();
-    if (expr == 0) {
-	logWarning("setWhereClause",
-		   "failed to duplicate the incoming ibis::qExpr object");
-	if (oldCond && oldExpr) {
-	    condition = oldCond;
-	    expr = oldExpr;
-	}
-	else if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	return -5;
-    }
-    else {
-#if defined(DEBUG) || defined(_DEBUG)
-	std::ostringstream ostr;
-	ostr << *expr;
-	condition = ibis::util::strnewdup(ostr.str().c_str());
-#else
-	condition = 0;
-#endif
-	addJoinConstraints(expr); // add constraints derived from joins
-	ibis::qExpr::simplify(expr);
-    }
-
-    int ierr = verifyPredicate(expr);
-    if (ierr != 0) {
-	logWarning("setWhereClause", "The WHERE clause expressed in the "
-		   "qExpr object contains %d incorrect name(s).  Revert to "
-		   "old value", ierr);
-	if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	delete [] condition;
-	condition = 0;
-	delete expr;
-	expr = 0;
-	if (oldCond && oldExpr) {
-	    condition = oldCond;
-	    expr = oldExpr;
-	}
-	else if (comps.size())
-	    state = SET_COMPONENTS;
-	else
-	    state = UNINITIALIZED;
-	return -6;
-    }
-
-    // finally free the old where clause
-    delete [] oldCond;
-    delete oldExpr;
-
     if (comps.size()) {
 	state = SPECIFIED;
 	writeQuery();
@@ -760,7 +653,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     LOGGER(ibis::gVerbose >= 2)
 	<< "query[" << myID
 	<< "]::setWhereClause accepted new query conditions \""
-	<< *expr << "\"";
+	<< *conds.getExpr() << "\"";
     return 0;
 } // ibis::query::setWhereClause
 
@@ -810,7 +703,8 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
 int ibis::query::estimate() {
     if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
 	return -1;
-    if (rids_in == 0 && expr == 0 && comps.empty()) { // not ready for this yet
+    if (rids_in == 0 && conds.empty() && comps.empty()) {
+	// not ready for this yet
 	if (ibis::gVerbose > 1)
 	    logMessage("estimate", "must have either a valid query "
 		       "condition (the WHERE clause) or a list of RIDs");
@@ -851,7 +745,7 @@ int ibis::query::estimate() {
 		}
 
 #ifndef DONOT_REORDER_EXPRESSION
-		if (expr != 0 && false == expr->directEval())
+		if (conds.getExpr() != 0 && false == conds->directEval())
 		    reorderExpr();
 #endif
 		getBounds(); // actual function to perform the estimation
@@ -865,8 +759,8 @@ int ibis::query::estimate() {
 
 		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
-		    << (condition ? condition : expr ? "<long expression>":
-			"<RID query>")
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed due to a memory allocation problem -- "
 		    << e.what();
 		return -9;
@@ -879,8 +773,8 @@ int ibis::query::estimate() {
 
 		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
-		    << (condition ? condition : expr ? "<long expressioin>" :
-			"<RID query>")
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expressioin>" : "<RID query>")
 		    << ") failed -- " << e.what();
 		return -9;
 	    }
@@ -892,8 +786,8 @@ int ibis::query::estimate() {
 
 		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
-		    << (condition ? condition : expr ? "<long expression>" :
-			"<RID query>")
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed -- " << s;
 		return -9;
 	    }
@@ -905,8 +799,8 @@ int ibis::query::estimate() {
 
 		LOGGER(ibis::gVerbose >= 0)
 		    << " Error *** ibis::query[" << myID << "]::estimate("
-		    << (condition ? condition : expr ? "<long expression>" :
-			"<RID query>")
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed due to a unexpected exception ";
 		return -9;
 	    }
@@ -923,19 +817,21 @@ int ibis::query::estimate() {
 	logWarning("estimate", "unable to generate estimated hits");
     }
     else if (ibis::gVerbose > 0) {
-	if (expr) {
-	    if (expr->hasJoin())
+	if (conds.getExpr()) {
+	    if (conds->hasJoin())
 		/*logMessage("estimate", "")*/;
 	    else if (hits && sup && hits != sup) {
 		logMessage("estimate", "# of hits for query \"%s\" is in "
-			   "[%lu, %lu]", (condition ? condition :
-					  "<long expression>"),
+			   "[%lu, %lu]",
+			   (conds.getString() ? conds.getString() :
+			    "<long expression>"),
 			   static_cast<long unsigned>(hits->cnt()),
 			   static_cast<long unsigned>(sup->cnt()));
 	    }
 	    else if (hits) {
 		logMessage("estimate", "# of hits for query \"%s\" is %lu",
-			   (condition ? condition : "<long expression>"),
+			   (conds.getString() ? conds.getString() :
+			    "<long expression>"),
 			    static_cast<long unsigned>(hits->cnt()));
 	    }
 	    else {
@@ -958,7 +854,7 @@ int ibis::query::estimate() {
 			   "%g pages during the execution of this function",
 			   pcnt);
 	}
-	if ((expr == 0 || ! expr->hasJoin()) &&
+	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
 	    (ibis::gVerbose >= 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= (hits?hits->bytes():0)+
@@ -1003,7 +899,7 @@ long ibis::query::getMaxNumHits() const {
 int ibis::query::evaluate(const bool evalSelect) {
     if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
 	return -1;
-    if (rids_in == 0 && expr == 0 && comps.empty()) {
+    if (rids_in == 0 && conds.empty() && comps.empty()) {
 	if (ibis::gVerbose > 1)
 	    logMessage("evaluate", "must have either a SELECT clause, "
 		       "a WHERE clause, or a RID list");
@@ -1047,7 +943,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 
 	    ierr = computeHits(); // do actual computation here
 	    if (ierr < 0) return ierr;
-	    if (hits != 0 && hits->cnt() > 0 && expr != 0) {
+	    if (hits != 0 && hits->cnt() > 0 && ! conds.empty()) {
 		if (ibis::gVerbose > 3) {
 		    const unsigned nb = hits->size();
 		    const unsigned nc = hits->cnt();
@@ -1066,7 +962,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 			       nc, (nc>1 ? "s" : ""), sz, (sz>1 ? "s" : ""),
 			       cf, rw, eb);
 		}
-		if (expr->hasJoin()) {// has join conditions
+		if (conds->hasJoin()) {// has join conditions
 		    if (myDir == 0)
 			setMyDir(table0->name());
 		    processJoin();
@@ -1080,8 +976,8 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    }
 	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (condition ? condition : expr ? "<long expression>" :
-		    "<RID query>") << ") failed "
+		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
+		    "<long expression>" : "<RID query>") << ") failed "
 		<< "due to a memory allocation problem, " << e.what();
 	    return -9;
 	}
@@ -1093,8 +989,8 @@ int ibis::query::evaluate(const bool evalSelect) {
 
 	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (condition ? condition : expr ? "<long expression>" :
-		    "<RID query>") << ") failed "
+		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
+		    "<long expression>" : "<RID query>") << ") failed "
 		<< "due to " << e.what();
 	    return -9;
 	}
@@ -1106,8 +1002,8 @@ int ibis::query::evaluate(const bool evalSelect) {
 
 	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (condition ? condition : expr ? "<long expression>" :
-		    "<RID query>") << ") failed "
+		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
+		    "<long expression>" : "<RID query>") << ") failed "
 		<< "due to " << e;
 	    return -9;
 	}
@@ -1118,8 +1014,8 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    }
 	    LOGGER(ibis::gVerbose >= 0)
 		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (condition ? condition : expr ? "<long expression>" :
-		    "<RID query>") << ") failed "
+		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
+		    "<long expression>" : "<RID query>") << ") failed "
 		<< "due to a unknown exception ";
 	    return -9;
 	}
@@ -1180,20 +1076,21 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    logMessage("evaluate", "nHits = 0.");
     }
     else if (ibis::gVerbose > 0) {
-	if (expr != 0) {
-	    if (expr->hasJoin())
+	if (conds.getExpr() != 0) {
+	    if (conds->hasJoin())
 		/*logMessage("evaluate", "")*/;
 	    else if (comps.size() > 0)
 		logMessage("evaluate", "user %s SELECT %s FROM %s WHERE "
-			   "%s ==> %lu hit%s.", user, *comps,
-			   table0->name(), (condition ? condition :
-					    "<long expression>"),
+			   "%s ==> %lu hit%s.", user, *comps, table0->name(),
+			   (conds.getString() ? conds.getString() :
+			    "<long expression>"),
 			   static_cast<long unsigned>(hits->cnt()),
 			   (hits->cnt()>1?"s":""));
 	    else
 		logMessage("evaluate", "user %s FROM %s WHERE %s ==> "
 			   "%lu hit%s.", user, table0->name(),
-			   (condition ? condition : "<long expression>"),
+			   (conds.getString() ? conds.getString() :
+			    "<long expression>"),
 			   static_cast<long unsigned>(hits->cnt()),
 			   (hits->cnt()>1?"s":""));
 	}
@@ -1211,7 +1108,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 			   "%g pages during the execution of this function",
 			   pcnt);
 	}
- 	if ((expr == 0 || !expr->hasJoin()) &&
+ 	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
 	    (ibis::gVerbose >= 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= hits->bytes()))) {
@@ -1236,11 +1133,12 @@ long ibis::query::countHits() const {
     long int ierr = -1;
     if (hits != 0 && (sup == 0 || sup == hits))
 	ierr = hits->cnt();
-    else if (table0 != 0 && expr != 0 &&
-	     (expr->getType() == ibis::qExpr::RANGE ||
-	      expr->getType() == ibis::qExpr::DRANGE))
-	ierr = table0->countHits(*static_cast<ibis::qRange*>(expr));
-    else if (expr == 0)
+    else if (table0 != 0 && conds.getExpr() != 0 &&
+	     (conds->getType() == ibis::qExpr::RANGE ||
+	      conds->getType() == ibis::qExpr::DRANGE))
+	ierr = table0->countHits(*static_cast<const ibis::qRange*>
+				 (conds.getExpr()));
+    else if (conds.empty())
 	ierr = table0->nRows();
     return ierr;
 } // ibis::query::countHits
@@ -1568,22 +1466,17 @@ ibis::query::QUERY_STATE ibis::query::getState() const {
 // expand predicate clause so that the conditions are all on preferred
 // bounds
 void ibis::query::expandQuery() {
-    if (expr == 0) // no predicate clause specified
+    if (conds.empty()) // no predicate clause specified
 	return;
 
     writeLock lck(this, "expandQuery");
     if (dslock == 0) {
 	dslock = new ibis::part::readLock(table0, myID);
     }
-    doExpand(expr); // do the actual work
+    doExpand(conds.getExpr()); // do the actual work
 
     // rewrite the query expression string
-    std::ostringstream ostr;
-    ostr << *expr;
-    delete [] condition;
-    condition = new char[ostr.str().size()+1];
-    if (condition)
-	strcpy(condition, ostr.str().c_str());
+    conds.resetString();
 
     // update the state of this query
     if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
@@ -1608,22 +1501,17 @@ void ibis::query::expandQuery() {
 // contract predicate clause so that the conditions are all on preferred
 // bounds
 void ibis::query::contractQuery() {
-    if (expr == 0) // no predicate clause specified
+    if (conds.empty()) // no predicate clause specified
 	return;
 
     writeLock lck(this, "contractQuery");
     if (dslock == 0) {
 	dslock = new ibis::part::readLock(table0, myID);
     }
-    doContract(expr); // do the actual work
+    doContract(conds.getExpr()); // do the actual work
 
     // rewrite the query expression string
-    std::ostringstream ostr;
-    ostr << *expr;
-    delete [] condition;
-    condition = new char[ostr.str().size()+1];
-    if (condition)
-	strcpy(condition, ostr.str().c_str());
+    conds.resetString();
 
     // update the state of this query
     if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
@@ -1650,10 +1538,10 @@ void ibis::query::contractQuery() {
 /// complex conditions are return in a string.
 std::string ibis::query::removeComplexConditions() {
     std::string ret;
-    if (expr == 0) return ret;
+    if (conds.empty()) return ret;
 
     ibis::qExpr *simple, *tail;
-    int ierr = expr->separateSimple(simple, tail);
+    int ierr = conds->separateSimple(simple, tail);
     if (ierr == 0) { // a mixture of complex and simple conditions
 	QUERY_STATE old = state;
 	std::ostringstream oss0, oss1;
@@ -1661,7 +1549,7 @@ std::string ibis::query::removeComplexConditions() {
 	tail->print(oss1);
 	LOGGER(ibis::gVerbose >= 3)
 	    << "ibis::query::removeComplexConditions split \""
-	    << (condition ? condition : "<long expression>")
+	    << (conds.getString() ? conds.getString() : "<long expression>")
 	    << "\" into \"" << *simple << "\" ("
 	    << oss0.str() << ") AND \"" << *tail << "\" ("
 	    << oss1.str() << ")";
@@ -1680,18 +1568,8 @@ std::string ibis::query::removeComplexConditions() {
 	    logMessage("removeComplexConditions", "the whole WHERE clause "
 		       "is considered complex, no simple conjunctive "
 		       "range conditions can be separated out");
-	if (condition != 0) {
-	    ret = condition;
-	    delete [] condition;
-	    condition = 0;
-	}
-	else {
-	    std::ostringstream ostr;
-	    ostr << *expr;
-	    ret = ostr.str();
-	}
-	delete expr;
-	expr = 0;
+	ret = conds.getString();
+	conds.clear();
 	if (rids_in == 0) {
 	    if (sup != 0 && sup != hits) {
 		delete sup;
@@ -1721,8 +1599,8 @@ std::string ibis::query::removeComplexConditions() {
 /// reconstructed in case of crash.
 ibis::query::query(const char* uid, const part* et, const char* pref) :
     user(ibis::util::strnewdup(uid ? uid : ibis::util::userName())),
-    condition(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0),
-    myID(0), myDir(0), rids_in(0), expr(0), table0(et), dstime(0) {
+    state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
+    myDir(0), rids_in(0), table0(et), dstime(0) {
     myID = newToken(uid);
     lastError[0] = static_cast<char>(0);
 
@@ -1750,8 +1628,8 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 /// is used to recover a query from crash, not intended for user to
 /// manually construct a query in a directory.
 ibis::query::query(const char* dir, const ibis::partList& tl) :
-    user(0), condition(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0),
-    myID(0), myDir(0), rids_in(0), expr(0), table0(0), dstime(0) {
+    user(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
+    myDir(0), rids_in(0), table0(0), dstime(0) {
     const char *ptr = strrchr(dir, DIRSEP);
     if (ptr == 0) {
 	myID = ibis::util::strnewdup(dir);
@@ -1792,11 +1670,11 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 	    if (hits != 0) delete hits;
 	    hits = 0;
 	    sup = 0;
-	    if (comps.size() && (expr || rids_in))
+	    if (comps.size() && (conds.getExpr() != 0 || rids_in != 0))
 		state = SPECIFIED;
 	    else if (comps.size())
 		state = SET_COMPONENTS;
-	    else if (expr)
+	    else if (conds.getExpr() != 0)
 		state = SET_PREDICATE;
 	    else if (rids_in)
 		state = SET_RIDS;
@@ -2316,213 +2194,6 @@ void ibis::query::logMessage(const char* event, const char* fmt, ...) const {
     fflush(fptr);
 } // ibis::query::logMessage
 
-// verify that the names are in the current list of attributes
-int ibis::query::verifyPredicate(ibis::qExpr*& qexpr) {
-    int ierr = 0;
-
-    if (qexpr == 0 || table0 == 0)
-	return ierr;
-
-    switch (qexpr->getType()) {
-    case ibis::qExpr::RANGE: {
-	ibis::qContinuousRange* range =
-	    static_cast<ibis::qContinuousRange*>(qexpr);
-	if (range->colName()) { // allow name to be NULL
-	    const ibis::column* col = table0->getColumn(range->colName());
-	    if (col == 0) {
-		++ ierr;
-		logWarning("verifyPredicate", "table %s does not "
-			   "contain a column named %s", table0->name(),
-			   range->colName());
-	    }
-	    else if (col->type() == ibis::FLOAT) {
-		// reduce the precision of the bounds
-		range->leftBound() =
-		    static_cast<float>(range->leftBound());
-		range->rightBound() =
-		    static_cast<float>(range->rightBound());
-	    }
-	}
-	break;}
-    case ibis::qExpr::STRING: {
-	const ibis::qString* str =
-	    static_cast<const ibis::qString*>(qexpr);
-	if (str->leftString()) { // allow name to be NULL
-	    const ibis::column* col =
-		table0->getColumn(str->leftString());
-	    if (col == 0) {
-		++ ierr;
-		logWarning("verifyPredicate", "table %s does not "
-			   "contain a column named %s", table0->name(),
-			   str->leftString());
-	    }
-	}
-	break;}
-    case ibis::qExpr::MATHTERM: {
-	ibis::math::term* math =
-	    static_cast<ibis::math::term*>(qexpr);
-	if (math->termType() == ibis::math::VARIABLE) {
-	    const ibis::math::variable* var =
-		static_cast<const ibis::math::variable*>(math);
-	    const ibis::column* col =
-		table0->getColumn(var->variableName());
-	    if (col == 0) {
-		++ ierr;
-		logWarning("verifyPredicate", "table %s does not "
-			   "contain a column named %s", table0->name(),
-			   var->variableName());
-	    }
-	}
-	ibis::qExpr *tmp = math->getLeft();
-	if (tmp != 0)
-	    ierr += verifyPredicate(tmp);
-	tmp = math->getRight();
-	if (tmp != 0)
-	    ierr += verifyPredicate(tmp);
-	break;}
-    case ibis::qExpr::COMPRANGE: {
-	// compRange have three terms rather than two
-	if (reinterpret_cast<ibis::compRange*>(qexpr)
-	    ->maybeStringCompare()) {
-	    const ibis::math::variable *v1 =
-		reinterpret_cast<const ibis::math::variable*>
-		(qexpr->getLeft());
-	    const ibis::math::variable *v2 =
-		reinterpret_cast<const ibis::math::variable*>
-		(qexpr->getRight());
-	    const ibis::column *c1 =
-		table0->getColumn(v1->variableName());
-	    const ibis::column *c2 =
-		table0->getColumn(v2->variableName());
-	    if (c1 != 0) {
-		if (c2 == 0) {
-		    if (c1->type() == ibis::TEXT ||
-			c1->type() == ibis::CATEGORY) {
-			if (ibis::gVerbose > 3)
-			    logMessage("verifyPredicate", "replacing (%s = "
-				       "%s) with (%s = \"%s\")",
-				       v1->variableName(),
-				       v2->variableName(),
-				       v1->variableName(),
-				       v2->variableName());
-			ibis::qString *tmp = new
-			    ibis::qString(v1->variableName(),
-					  v2->variableName());
-			delete qexpr;
-			qexpr = tmp;
-		    }
-		    else {
-			++ ierr;
-			logWarning("verifyPredicate", "expected column "
-				   "\"%s\" to be of string type, but "
-				   "it is %s", v1->variableName(),
-				   ibis::TYPESTRING[c1->type()]);
-		    }
-		}
-	    }
-	    else if (c2 != 0) {
-		if (c2->type() == ibis::TEXT ||
-		    c2->type() == ibis::CATEGORY) {
-		    if (ibis::gVerbose > 3)
-			logMessage("verifyPredicate", "replacing (%s = %s) "
-				   "with (%s = \"%s\")",v2->variableName(),
-				   v1->variableName(), v2->variableName(),
-				   v1->variableName());
-		    ibis::qString *tmp = new
-			ibis::qString(v2->variableName(),
-				      v1->variableName());
-		    delete qexpr;
-		    qexpr = tmp;
-		}
-		else {
-		    ++ ierr;
-		    logWarning("verifyPredicate", "expected column "
-			       "\"%s\" to be of string type, but "
-			       "it is %s", v2->variableName(),
-			       ibis::TYPESTRING[c2->type()]);
-		}
-	    }
-	    else {
-		ierr += 2;
-		logWarning("verifyPredicate", "neither %s or %s are "
-			   "columns names of table %s",
-			   v1->variableName(), v2->variableName(),
-			   table0->name());
-	    }
-	}
-	else {
-	    if (qexpr->getLeft() != 0)
-		ierr = verifyPredicate(qexpr->getLeft());
-	    if (qexpr->getRight() != 0)
-		ierr += verifyPredicate(qexpr->getRight());
-	    ibis::qExpr* cr = reinterpret_cast<ibis::compRange*>
-		(qexpr)->getTerm3();
-	    ierr += verifyPredicate(cr);
-	}
-	break;}
-    case ibis::qExpr::DRANGE : {
-	ibis::qDiscreteRange *range =
-	    reinterpret_cast<ibis::qDiscreteRange*>(qexpr);
-	if (range->colName()) { // allow name to be NULL
-	    const ibis::column* col = table0->getColumn(range->colName());
-	    if (col == 0) {
-		++ ierr;
-		logWarning("verifyPredicate", "table %s does not "
-			   "contain a column named %s", table0->name(),
-			   range->colName());
-	    }
-	    else if (col->type() == ibis::FLOAT) {
-		// reduce the precision of the bounds
-		std::vector<double>& val = range->getValues();
-		for (std::vector<double>::iterator it = val.begin();
-		     it != val.end(); ++ it)
-		    *it = static_cast<float>(*it);
-	    }
-	}
-	break;}
-    case ibis::qExpr::MSTRING : {
-	ibis::qMultiString *range =
-	    reinterpret_cast<ibis::qMultiString*>(qexpr);
-	if (range->colName()) { // allow name to be NULL
-	    const ibis::column* col = table0->getColumn(range->colName());
-	    if (col == 0) {
-		++ ierr;
-		logWarning("verifyPredicate", "table %s does not "
-			   "contain a column named %s", table0->name(),
-			   range->colName());
-	    }
-	}
-	break;}
-    case ibis::qExpr::JOIN : {
-	ibis::rangeJoin *rj = reinterpret_cast<ibis::rangeJoin*>(qexpr);
-	const ibis::column* c1 = table0->getColumn(rj->getName1());
-	if (c1 == 0) {
-	    ++ ierr;
-	    logWarning("verifyPredicate", "table %s does not "
-		       "contain a column named %s", table0->name(),
-		       rj->getName1());
-	}
-	const ibis::column* c2 = table0->getColumn(rj->getName2());
-	if (c2 == 0) {
-	    ++ ierr;
-	    logWarning("verifyPredicate", "table %s does not "
-		       "contain a column named %s", table0->name(),
-		       rj->getName2());
-	}
-	ibis::qExpr *t = rj->getRange();
-	ierr += verifyPredicate(t);
-	break;}
-    default: {
-	if (qexpr->getLeft() != 0)
-	    ierr = verifyPredicate(qexpr->getLeft());
-	if (qexpr->getRight() != 0)
-	    ierr += verifyPredicate(qexpr->getRight());
-	break;}
-    } // end switch
-
-    return ierr;
-} // ibis::query::verifyPredicate
-
 bool ibis::query::hasBundles() const {
     char ridfile[PATH_MAX];
     char bdlfile[PATH_MAX];
@@ -2545,10 +2216,10 @@ void ibis::query::reorderExpr() {
     ibis::query::weight wt(table0);
 
     // call qExpr::reorder to do the actual work
-    double ret = expr->reorder(wt);
+    double ret = conds->reorder(wt);
     LOGGER(ibis::gVerbose >= 6)
 	<< "query[" << myID << "]:reorderExpr returns " << ret
-	<< ".  The new query expression is \n" << *expr;
+	<< ".  The new query expression is \n" << *conds.getExpr();
 } // ibis::query::reorderExpr
 
 void ibis::query::getBounds() {
@@ -2581,10 +2252,10 @@ void ibis::query::getBounds() {
 	mask &= tmp;
     }
 
-    if (expr) { // range condition
+    if (conds.getExpr() != 0) { // range condition
 	sup = new ibis::bitvector;
 	hits = new ibis::bitvector;
-	doEstimate(expr, *hits, *sup);
+	doEstimate(conds.getExpr(), *hits, *sup);
 	if (hits->size() != table0->nRows()) {
 	    logWarning("getBounds", "hits.size(%lu) differ from expected "
 		       "value(%lu)", static_cast<long unsigned>(hits->size()),
@@ -2842,25 +2513,25 @@ int ibis::query::computeHits() {
 	ibis::util::logger lg(7);
 	lg.buffer() << "ibis::query[" << myID << "]::computeHits -- "
 	    "starting to compute hits for the query";
-	if (expr != 0)
-	    lg.buffer() << " \""<< *expr << "\"";
+	if (conds.getExpr() != 0)
+	    lg.buffer() << " \""<< *conds.getExpr() << "\"";
     }
 
     int ierr = 0;
     if (hits == 0) { // have not performed an estimate
-	if (rids_in) { // has a RID list
+	if (rids_in != 0) { // has a RID list
 	    getBounds();
 	}
-	else if (expr) { // usual range query
+	else if (conds.getExpr() != 0) { // usual range query
 	    dstime = table0->timestamp();
 	    hits = new ibis::bitvector;
 #ifndef DONOT_REORDER_EXPRESSION
-	    if (! expr->directEval())
+	    if (! conds->directEval())
 		reorderExpr();
 #endif
 	    delete sup;
 	    sup = 0;
-	    ierr = doEvaluate(expr, table0->getMask(), *hits);
+	    ierr = doEvaluate(conds.getExpr(), table0->getMask(), *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();
@@ -2902,7 +2573,7 @@ int ibis::query::computeHits() {
 	(*sup) -= (*hits);
 
 	if (sup->cnt() < (msk.cnt() >> 2)) { // use doScan
-	    ierr = doScan(expr, *sup, delta);
+	    ierr = doScan(conds.getExpr(), *sup, delta);
 	    if (ierr >= 0) {
 		delete sup;  // no longer need it
 		*hits |= delta;
@@ -2916,7 +2587,7 @@ int ibis::query::computeHits() {
 	else { // use doEvaluate
 	    delete sup;
 	    sup = 0;
-	    ierr = doEvaluate(expr, msk, *hits);
+	    ierr = doEvaluate(conds.getExpr(), msk, *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();
@@ -2924,7 +2595,7 @@ int ibis::query::computeHits() {
 	}
     }
 
-    if ((expr == 0 || ! expr->hasJoin()) &&
+    if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
 	(ibis::gVerbose >= 30 || (ibis::gVerbose > 4 &&
 				  (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg(4);
@@ -2952,7 +2623,7 @@ int ibis::query::computeHits() {
 
 // perform a simple sequential scan by using the function doScan
 long ibis::query::sequentialScan(ibis::bitvector& res) const {
-    if (expr == 0)
+    if (conds.empty())
 	return -8;
 
     long ierr;
@@ -2962,7 +2633,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     if (ibis::gVerbose > 2)
 	timer.start();
     try {
-	ierr = doScan(expr, table0->getMask(), res);
+	ierr = doScan(conds.getExpr(), table0->getMask(), res);
 	if (ierr < 0)
 	    return ierr - 20;
     }
@@ -2971,29 +2642,30 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
-	    << *expr << ") failed due to a memory allocation problem, "
-	    << e.what();
+	    << *conds.getExpr()
+	    << ") failed due to a memory allocation problem, " << e.what();
     }
     catch (const std::exception& e) {
 	ierr = -2;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
-	    << *expr << ") failed due to a std::exception, " << e.what();
+	    << *conds.getExpr() << ") failed due to a std::exception, "
+	    << e.what();
     }
     catch (const char *e) {
 	ierr = -3;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
-	    << *expr << ") failed due to a string exception, " << e;
+	    << *conds.getExpr() << ") failed due to a string exception, " << e;
     }
     catch (...) {
 	ierr = -4;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
-	    << *expr << ") failed due to an unexpected exception";
+	    << *conds.getExpr() << ") failed due to an unexpected exception";
     }
 
     if (ierr > 0 && ibis::gVerbose > 2) {
@@ -3046,9 +2718,9 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     long ierr;
     readLock lock(this, "getExpandedHits"); // don't change query
-    if (expr != 0) {
+    if (conds.getExpr() != 0) {
 	ibis::part::readLock lock2(table0, myID); // don't change data
-	doEvaluate(expr, res);
+	doEvaluate(conds.getExpr(), res);
 	ierr = res.cnt();
     }
     else if (rids_in != 0) {
@@ -3989,12 +3661,12 @@ void ibis::query::writeQuery() {
 	fprintf(fptr, "%s\n%s\n<NULL>\n%d\n", user, table0->name(),
 		(int)state);
     fprintf(fptr, "%ld\n", dstime);
-    if (condition) {
-	fprintf(fptr, "%s\n", condition);
+    if (conds.getString() != 0) {
+	fprintf(fptr, "%s\n", conds.getString());
     }
-    else if (expr != 0) {
+    else if (conds.getExpr() != 0) {
 	std::ostringstream ostr;
-	ostr << *expr;
+	ostr << *conds.getExpr();
 	fprintf(fptr, "%s\n", ostr.str().c_str());
     }
     else {
@@ -4087,10 +3759,6 @@ void ibis::query::clear() {
     writeLock lck(this, "clear");
     comps.clear();
     // clear all pointers to in-memory resrouces
-    delete [] condition;
-    condition = 0;
-    delete expr;
-    expr = 0;
     delete rids_in;
     rids_in = 0;
 
@@ -4353,108 +4021,13 @@ int ibis::query::doContract(ibis::qExpr* exp0) const {
     return ret;
 } // ibis::query::doContract
 
-void ibis::query::addJoinConstraints(ibis::qExpr*& exp0) const {
-    std::vector<const ibis::rangeJoin*> terms;
-    ibis::qExpr::simplify(exp0);
-    if (exp0 == 0) // may become nil pointer after simplify
-	return;
-    exp0->extractJoins(terms);
-    if (terms.empty()) // no join terms to use
-	return;
-
-    LOGGER(ibis::gVerbose >= 7)
-	<< "ibis::query[" << myID
-	<< "]::addJoinConstraints -- current query expression\n" << *exp0;
-
-    for (uint32_t i = 0; i < terms.size(); ++ i) {
-	const ibis::rangeJoin* jn = terms[i];
-	double delta = 0.0;
-	if (jn->getRange()) {
-	    const ibis::math::term *tm = jn->getRange();
-	    if (tm != 0) {
-		if (tm->termType() != ibis::math::NUMBER)
-		    continue;
-		else
-		    delta = tm->eval();
-	    }
-	}
-
-	const char *nm1 = jn->getName1();
-	const char *nm2 = jn->getName2();
-	const ibis::column *col1 = table0->getColumn(nm1);
-	const ibis::column *col2 = table0->getColumn(nm2);
-	if (col1 == 0 || col2 == 0)
-	    continue;
-
-	double cmin1 = col1->getActualMin();
-	double cmax1 = col1->getActualMax();
-	double cmin2 = col2->getActualMin();
-	double cmax2 = col2->getActualMax();
-	ibis::qRange* cur1 = exp0->findRange(nm1);
-	ibis::qRange* cur2 = exp0->findRange(nm2);
-	if (cur1) {
-	    double tmp = cur1->leftBound();
-	    if (tmp > cmin1)
-		cmin1 = tmp;
-	    tmp = cur1->rightBound();
-	    if (tmp < cmax1)
-		cmax1 = tmp;
-	}
-	if (cur2) {
-	    double tmp = cur2->leftBound();
-	    if (tmp > cmin2)
-		cmin2 = tmp;
-	    tmp = cur2->rightBound();
-	    if (tmp < cmax2)
-		cmax2 = tmp;
-	}
-
-	if (cmin1 < cmin2-delta || cmax1 > cmax2+delta) {
-	    double bd1 = (cmin1 >= cmin2-delta ? cmin1 : cmin2-delta);
-	    double bd2 = (cmax1 <= cmax2+delta ? cmax1 : cmax2+delta);
-	    if (cur1) { // reduce the range of an existing range condition
-		cur1->restrictRange(bd1, bd2);
-	    }
-	    else { // add an addition term of nm1
-		ibis::qContinuousRange *qcr =
-		    new ibis::qContinuousRange(bd1, ibis::qExpr::OP_LE,
-					       nm1, ibis::qExpr::OP_LE,
-					       bd2);
-		ibis::qExpr *qop = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-						   qcr, exp0->getRight());
-		exp0->getRight() = qop;
-	    }
-	}
-
-	if (cmin2 < cmin1-delta || cmax2 > cmax1+delta) {
-	    double bd1 = (cmin2 >= cmin1-delta ? cmin2 : cmin1-delta);
-	    double bd2 = (cmax2 <= cmax1+delta ? cmax2 : cmax1+delta);
-	    if (cur2) {
-		cur2->restrictRange(bd1, bd2);
-	    }
-	    else {
-		ibis::qContinuousRange *qcr =
-		    new ibis::qContinuousRange(bd1, ibis::qExpr::OP_LE,
-					       nm2, ibis::qExpr::OP_LE,
-					       bd2);
-		ibis::qExpr *qop = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-						   qcr, exp0->getLeft());
-		exp0->getLeft() = qop;
-	    }
-	}
-    }
-    LOGGER(ibis::gVerbose >= 7)
-	<< "ibis::query[" << myID << "]::addJoinConstraints -- "
-	"query expression with additional constraints\n" << *exp0;
-} // ibis::query::addJoinConstraints
-
 /// This function only counts the number of hits; it does produce the
 /// actual tuples for the results of join.  Additionally, it performs only
 /// self-join, i.e., join a table with itself.  This is only meant to test
 /// some algorithms for evaluating joins.
 int64_t ibis::query::processJoin() {
     int64_t ret = 0;
-    if (expr == 0) return ret;
+    if (conds.empty()) return ret;
     //     if (state != ibis::query::FULL_EVALUATE ||
     // 	timestamp() != partition()->timestamp())
     // 	evaluate();
@@ -4465,7 +4038,7 @@ int64_t ibis::query::processJoin() {
 
     // extract all rangeJoin objects from the root of the expression tree
     // to the first operator that is not AND
-    expr->extractJoins(terms);
+    conds->extractJoins(terms);
     if (terms.empty())
 	return ret;
 
@@ -4584,8 +4157,8 @@ int64_t ibis::query::processJoin() {
     ibis::column::indexLock idy2(col2, "processJoin");
     const ibis::index *idx1 = idy1.getIndex();
     const ibis::index *idx2 = idy2.getIndex();
-    const ibis::qRange *range1 = expr->findRange(col1->name());
-    const ibis::qRange *range2 = expr->findRange(col2->name());
+    const ibis::qRange *range1 = conds->findRange(col1->name());
+    const ibis::qRange *range2 = conds->findRange(col2->name());
     if (idx1 != 0 && idx2 != 0 && terms.size() == 1 &&
 	idx1->type() == ibis::index::RELIC &&
 	idx2->type() == ibis::index::RELIC) {
@@ -4704,8 +4277,8 @@ int64_t ibis::query::processJoin() {
 		break;
 	    }
 
-	    const ibis::qRange *r1 = expr->findRange(c1->name());
-	    const ibis::qRange *r2 = expr->findRange(c2->name());
+	    const ibis::qRange *r1 = conds->findRange(c1->name());
+	    const ibis::qRange *r2 = conds->findRange(c2->name());
 	    ibis::column::indexLock ilck1(c1, "processJoin");
 	    ibis::column::indexLock ilck2(c2, "processJoin");
 	    const ibis::index *ix1 = ilck1.getIndex();
@@ -4846,8 +4419,8 @@ int64_t ibis::query::processJoin() {
 			   "column name", name1, name2);
 	    }
 
-	    const ibis::qRange *r1 = expr->findRange(c1->name());
-	    const ibis::qRange *r2 = expr->findRange(c2->name());
+	    const ibis::qRange *r1 = conds->findRange(c1->name());
+	    const ibis::qRange *r2 = conds->findRange(c2->name());
 	    ibis::column::indexLock ilck1(c1, "processJoin");
 	    ibis::column::indexLock ilck2(c2, "processJoin");
 	    const ibis::index *ix1 = ilck1.getIndex();

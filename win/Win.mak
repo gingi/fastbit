@@ -59,8 +59,9 @@ OBJ =  array_t.obj \
  ixzona.obj \
  ixzone.obj \
  meshQuery.obj \
- predicate.tab.obj \
- predicate.yy.obj \
+ whereClause.obj \
+ whereLexer.obj \
+ whereParser.obj \
  qExpr.obj \
  query.obj \
  resource.obj \
@@ -103,24 +104,13 @@ trydll.exe: trydll.obj fastbit.dll
 	$(LINK) /NOLOGO /out:$@ $(LIB) trydll.obj fastbit.lib
 
 clean:
-	del *.obj core b?_? fastbit.dll *.lib *.exe *.suo *.ncb *.exp *.pdb *.manifest *.vcproj.*
+	del *.obj core b?_? fastbit.dll *.lib *.exe *.suo *.ncb *.exp *.pdb *.manifest
 #	rmdir Debug Release
 force:
 
 #suffixes
-.SUFFIXES: .obj .cpp .h
+.SUFFIXES: .obj .cpp .cc .hh .h
 # #
-# # rules to generate .h and .cpp files from predicate.y and predicate.l
-# predicate: predicate.tab.h predicate.tab.cpp predicate.yy.cpp
-# predicate.tab.cpp predicate.tab.h: predicate.y
-# 	yacc -d -b predicate predicate.y
-# 	mv predicate.tab.c predicate.tab.cpp
-# #	touch predicate.tab.cpp
-# predicate.yy.cpp: predicate.l
-# 	lex predicate.l
-# 	sed -e 's/^yylex/int yylex/' lex.yy.c > predicate.yy.cpp
-# 	rm lex.yy.c
-# predicate.h: predicate.tab.h predicate.yy.cpp
 # suffixes based rules
 .cpp.obj:
 	$(CXX) $(CCFLAGS) -c $<
@@ -273,16 +263,19 @@ party.obj: ..\src\party.cpp ..\src\part.h ..\src\column.h ..\src\table.h ..\src\
   ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\iroster.h \
   ..\src\bitvector64.h
 	$(CXX) $(CCFLAGS) -c ..\src\party.cpp
-predicate.tab.obj: ..\src\predicate.tab.cpp ..\src\predicate.tab.h ..\src\util.h ..\src\const.h ..\src\qExpr.h \
-  ..\src\predicate.h
-	$(CXX) $(CCFLAGS) -c ..\src\predicate.tab.cpp
-predicate.yy.obj: ..\src\predicate.yy.cpp ..\src\predicate.h ..\src\qExpr.h ..\src\util.h ..\src\const.h \
-  ..\src\predicate.tab.h
-	$(CXX) $(CCFLAGS) -c ..\src\predicate.yy.cpp
+whereClause.obj: ..\src\whereClause.cpp ..\src\whereParser.hh ..\src\util.h ..\src\const.h ..\src\qExpr.h \
+  ..\src\whereClause.h
+	$(CXX) $(CCFLAGS) -I . -c ..\src\whereClause.cpp
+whereParser.obj: ..\src\whereParser.cc ..\src\whereParser.hh ..\src\util.h ..\src\const.h ..\src\qExpr.h \
+  ..\src\whereClause.h
+	$(CXX) $(CCFLAGS) -I . -c ..\src\whereParser.cc
+whereLexer.obj: ..\src\whereLexer.cc ..\src\whereClause.h ..\src\qExpr.h ..\src\util.h ..\src\const.h \
+  ..\src\whereParser.hh
+	$(CXX) $(CCFLAGS) -I . -c ..\src\whereLexer.cc
 qExpr.obj: ..\src\qExpr.cpp ..\src\util.h ..\src\const.h ..\src\qExpr.h
 	$(CXX) $(CCFLAGS) -c ..\src\qExpr.cpp
 query.obj: ..\src\query.cpp ..\src\query.h ..\src\part.h ..\src\column.h ..\src\table.h ..\src\const.h ..\src\qExpr.h ..\src\util.h \
-  ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\predicate.h \
+  ..\src\bitvector.h ..\src\array_t.h ..\src\fileManager.h ..\src\horometer.h ..\src\resource.h ..\src\whereClause.h \
   ..\src\bundle.h ..\src\colValues.h ..\src\ibin.h ..\src\index.h ..\src\iroster.h ..\src\irelic.h ..\src\bitvector64.h
 	$(CXX) $(CCFLAGS) -c ..\src\query.cpp
 resource.obj: ..\src\resource.cpp ..\src\util.h ..\src\const.h ..\src\resource.h

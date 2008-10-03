@@ -1,3 +1,15 @@
+2008-10-02 John Wu <John.Wu at ACM.org>
+	* src: move ibis::query::verifyPredicate to
+	ibis::whereClause::verify, move ibis::query::addJoinConstraints to
+	ibis::whereClause::amplify
+
+2008-09-29 John Wu <John.Wu at ACM.org>
+	* src: start using a new set of query parser for where clause: add
+	whereClause.cpp, whereLexer.h; rename predicate.h -->
+	whereClause.h, predicate.l --> whereLexer.ll predicate.y -->
+	whereParser.yy, predicate.yy.cpp --> whereLexer.cc predicate.tab.h
+	--> whereParser.hh, predicate.tab.cpp --> whereParser.cc
+
 2008-09-29 John Wu <John.Wu at ACM.org>
 	* src/qExpr.h, src/qExpr.cpp: move ibis::compRange::term and
 	derived classes out of ibis::compRange and into ibis::math, change

@@ -36,8 +36,6 @@ best course of action is to build one project at a time when using
 VisualStudio.  Alternatively, use 'nmake -f Win.mak' which builds the
 executables sequentially.
 
----- The following is no longer correct as of March, 2008 ----
-
 It is possible to build a DLL library that exports ibis::part and
 ibis::query interface as well as the C API of Fastbit.
 To use the nmake system directly, one may build the DLL library and the
@@ -90,4 +88,11 @@ NOTE: The test suite in ../tests rely on too many features that are only
       available on Unix type of machines and can not be run on MS
       Windows.
 
+Sept. 27, 2008 On some windows machines, under visual studio, the
+compilation process once in a while fails for not being able to write
+certain files.  Usually rebuild a second time fix the problem -- not
+sure where is the really problem.
+
+Oct. 1, 2008 added FlexLexer.h so that the new version of parser code
+can compile under MS windows systems
 

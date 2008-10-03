@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -351,14 +351,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.tab.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\predicate.yy.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\qExpr.cpp"
 				>
 			</File>
@@ -384,6 +376,18 @@
 			</File>
 			<File
 				RelativePath="..\src\utilidor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereClause.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereLexer.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
 		</Filter>
@@ -473,6 +477,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\location.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\mensa.h"
 				>
 			</File>
@@ -481,11 +489,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\predicate.tab.h"
+				RelativePath="..\src\position.hh"
 				>
 			</File>
 			<File
@@ -505,6 +509,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\stack.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\tafel.h"
 				>
 			</File>
@@ -514,6 +522,18 @@
 			</File>
 			<File
 				RelativePath="..\src\utilidor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
 		</Filter>

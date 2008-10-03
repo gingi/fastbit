@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
 				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=10"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
@@ -146,7 +146,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
 				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=30"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -382,14 +382,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.tab.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\predicate.yy.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\qExpr.cpp"
 				>
 			</File>
@@ -419,6 +411,18 @@
 			</File>
 			<File
 				RelativePath="..\src\utilidor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereClause.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereLexer.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
 		</Filter>
@@ -499,6 +503,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\location.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\mensa.h"
 				>
 			</File>
@@ -507,11 +515,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\predicate.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\predicate.tab.h"
+				RelativePath="..\src\position.hh"
 				>
 			</File>
 			<File
@@ -528,6 +532,10 @@
 			</File>
 			<File
 				RelativePath="..\src\rids.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stack.hh"
 				>
 			</File>
 			<File
@@ -548,6 +556,18 @@
 			</File>
 			<File
 				RelativePath="..\src\utilidor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
 		</Filter>

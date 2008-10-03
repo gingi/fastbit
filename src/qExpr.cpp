@@ -34,123 +34,707 @@ char* ibis::math::stdfun1_name[] =
      "tan", "tanh"};
 char* ibis::math::stdfun2_name[] = {"atan2", "fmod", "ldexp", "pow"};
 
-bool ibis::qExpr::hasJoin() const {
-    if (type == JOIN) {
-	return true;
-    }
-    else if (left) {
-	if (right)
-	    return left->hasJoin() || right->hasJoin();
-	else
-	    return left->hasJoin();
-    }
-    else if (right) {
-	return right->hasJoin();
-    }
-    else {
-	return false;
-    }
-} // ibis::qExpr::hasJoin
+// simplify the arithmetic expression to use ibis::qRange as much as possible
+void ibis::qExpr::simplify(ibis::qExpr*& expr) {
+    if (expr == 0) return;
 
-// construct a qRange directly from a string representation of the constants
-ibis::qContinuousRange::qContinuousRange
-(const char *lstr, qExpr::COMPARE lop, const char* prop,
- qExpr::COMPARE rop, const char *rstr)
-    : qRange(RANGE), name(ibis::util::strnewdup(prop)),
-      left_op(lop), right_op(rop) {
-    // first convert the values from string format to double format
-    if (lstr)
-	lower = (*lstr)?atof(lstr):(-DBL_MAX);
-    else
-	lower = -DBL_MAX;
-    if (rstr)
-	upper = (*rstr)?atof(rstr):(DBL_MAX);
-    else
-	upper = DBL_MAX;
+    switch (expr->getType()) {
+    default:
+	break;
+    case ibis::qExpr::LOGICAL_NOT:
+	simplify(expr->left);
+	break;
+    case ibis::qExpr::LOGICAL_AND: {
+	// TODO: add code to combine simple experessions on the same variable.
+	simplify(expr->left);
+	simplify(expr->right);
+	bool emptyleft = (expr->left == 0 ||
+			  ((expr->left->getType() == RANGE ||
+			    expr->left->getType() == DRANGE) &&
+			   reinterpret_cast<qRange*>(expr->left)->empty()));
+	bool emptyright = (expr->right == 0 ||
+			   ((expr->right->getType() == RANGE ||
+			     expr->right->getType() == DRANGE) &&
+			    reinterpret_cast<qRange*>(expr->right)->empty()));
+	if (emptyleft) {
+	    ibis::qExpr* tmp = expr->left;
+	    expr->left = 0;
+	    delete expr;
+	    expr = tmp;
+	}
+	else if (emptyright) {
+	    ibis::qExpr *tmp = expr->right;
+	    expr->right = 0;
+	    delete expr;
+	    expr = tmp;
+	}
+	if (expr->left != 0 && expr->right != 0 &&
+	    expr->left->type == ibis::qExpr::RANGE &&
+	    expr->right->type == ibis::qExpr::RANGE &&
+	    stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
+		    static_cast<ibis::qRange*>(expr->right)->colName()) == 0) {
+	    ibis::qContinuousRange* tm1 =
+		static_cast<ibis::qContinuousRange*>(expr->left);
+	    ibis::qContinuousRange* tm2 =
+		static_cast<ibis::qContinuousRange*>(expr->right);
+	    if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		 tm1->left_op == ibis::qExpr::OP_LT) &&
+		(tm2->left_op == ibis::qExpr::OP_LE ||
+		 tm2->left_op == ibis::qExpr::OP_LT) &&
+		(tm1->right_op == ibis::qExpr::OP_LE ||
+		 tm1->right_op == ibis::qExpr::OP_LT) &&
+		(tm2->right_op == ibis::qExpr::OP_LE ||
+		 tm2->right_op == ibis::qExpr::OP_LT)) { // two two-sided ranges
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		if (tm1->upper > tm2->upper) {
+		    tm1->right_op = tm2->right_op;
+		    tm1->upper = tm2->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LE &&
+			 tm2->right_op == ibis::qExpr::OP_LT) {
+		    tm1->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 two-sided range, tm2 one-sided
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 one-sided range, tm2 two-sided
+		if (tm2->lower < tm1->lower) {
+		    tm2->left_op = tm1->left_op;
+		    tm2->lower = tm1->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm2->left_op == ibis::qExpr::OP_LE &&
+			 tm1->left_op == ibis::qExpr::OP_LT) {
+		    tm2->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 two-sided range, tm2 one-sided
+		if (tm1->upper > tm2->upper) {
+		    tm1->right_op = tm2->right_op;
+		    tm1->upper = tm2->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LE &&
+			 tm2->right_op == ibis::qExpr::OP_LT) {
+		    tm1->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// tm1 one-sided range, tm2 two-sided
+		if (tm2->upper > tm1->upper) {
+		    tm2->right_op = tm1->right_op;
+		    tm2->upper = tm1->upper;
+		}
+		else if (tm1->upper == tm2->upper &&
+			 tm2->right_op == ibis::qExpr::OP_LE &&
+			 tm1->right_op == ibis::qExpr::OP_LT) {
+		    tm2->right_op = ibis::qExpr::OP_LT;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		if (tm1->lower < tm2->lower) {
+		    tm1->left_op = tm2->left_op;
+		    tm1->lower = tm2->lower;
+		}
+		else if (tm1->lower == tm2->lower &&
+			 tm1->left_op == ibis::qExpr::OP_LE &&
+			 tm2->left_op == ibis::qExpr::OP_LT) {
+		    tm1->left_op = ibis::qExpr::OP_LT;
+		}
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		if (tm2->upper > tm1->upper) {
+		    tm2->right_op = tm1->right_op;
+		    tm2->upper = tm1->upper;
+		}
+		else if (tm2->upper == tm1->upper &&
+			 tm1->right_op == ibis::qExpr::OP_LT &&
+			 tm2->right_op == ibis::qExpr::OP_LE) {
+		    tm2->right_op = tm1->right_op;
+		}
+		expr->right = 0;
+		delete expr;
+		expr = tm2;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		tm1->right_op = tm2->right_op;
+		tm1->upper = tm2->upper;
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT) &&
+		     (tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		// both one-sided
+		tm1->left_op = tm2->left_op;
+		tm1->lower = tm2->lower;
+		expr->left = 0;
+		delete expr;
+		expr = tm1;
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_LE ||
+		      tm1->right_op == ibis::qExpr::OP_LT)) {
+		if (tm2->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->lower)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->upper)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm2->left_op == ibis::qExpr::OP_LE ||
+		      tm2->left_op == ibis::qExpr::OP_LT) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT)) {
+		if (tm1->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->lower)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->upper)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
+		      tm1->left_op == ibis::qExpr::OP_LT) &&
+		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
+		if (tm2->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->lower)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm1->inRange(tm2->upper)) {
+			expr->right = 0;
+			delete expr;
+			expr = tm2;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	    else if ((tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
+		     (tm2->right_op == ibis::qExpr::OP_LE ||
+		      tm2->right_op == ibis::qExpr::OP_LT)) {
+		if (tm1->left_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->lower)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
+		    if (tm2->inRange(tm1->upper)) {
+			expr->left = 0;
+			delete expr;
+			expr = tm1;
+		    }
+		    else {
+			delete expr;
+			expr = 0;
+		    }
+		}
+	    }
+	}
+	break;}
+    case ibis::qExpr::LOGICAL_OR:
+    case ibis::qExpr::LOGICAL_XOR: {
+	simplify(expr->left);
+	simplify(expr->right);
+	bool emptyleft = (expr->left == 0 ||
+			  ((expr->left->getType() == RANGE ||
+			    expr->left->getType() == DRANGE) &&
+			   reinterpret_cast<qRange*>(expr->left)->empty()));
+	bool emptyright = (expr->right == 0 ||
+			   ((expr->right->getType() == RANGE ||
+			     expr->right->getType() == DRANGE) &&
+			    reinterpret_cast<qRange*>(expr->right)->empty()));
+	if (emptyleft) {
+	    if (emptyright) { // keep left
+		ibis::qExpr* tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	    else { // keep right
+		ibis::qExpr* tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (emptyright) { // keep left
+	    ibis::qExpr *tmp = expr->left;
+	    expr->left = 0;
+	    delete expr;
+	    expr = tmp;
+	}
+	break;}
+    case ibis::qExpr::LOGICAL_MINUS: {
+	simplify(expr->left);
+	simplify(expr->right);
+	bool emptyleft = (expr->left == 0 ||
+			  ((expr->left->getType() == RANGE ||
+			    expr->left->getType() == DRANGE) &&
+			   reinterpret_cast<qRange*>(expr->left)->empty()));
+	bool emptyright = (expr->right == 0 ||
+			   ((expr->right->getType() == RANGE ||
+			     expr->right->getType() == DRANGE) &&
+			    reinterpret_cast<qRange*>(expr->right)->empty()));
+	if (emptyleft || emptyright) {
+	    // keep left: if left is empty, the overall result is empty;
+	    // if the right is empty, the overall result is the left
+	    ibis::qExpr* tmp = expr->left;
+	    expr->left = 0;
+	    delete expr;
+	    expr = tmp;
+	}
+	break;}
+    case ibis::qExpr::COMPRANGE: {
+	ibis::compRange* cr = reinterpret_cast<ibis::compRange*>(expr);
+	ibis::math::term *t1, *t2;
+	t1 = reinterpret_cast<ibis::math::term*>(cr->getLeft());
+	if (t1 != 0) {
+	    t2 = t1->reduce();
+	    if (t2 != t1)
+		cr->setLeft(t2);
+	}
+
+	t1 = reinterpret_cast<ibis::math::term*>(cr->getRight());
+	if (t1 != 0) {
+	    t2 = t1->reduce();
+	    if (t2 != t1)
+		cr->setRight(t2);
+	}
+
+	t1 = reinterpret_cast<ibis::math::term*>(cr->getTerm3());
+	if (t1 != 0) {
+	    t2 = t1->reduce();
+	    if (t2 != t1)
+		cr->setTerm3(t2);
+	}
+
+	if (cr->getLeft() != 0 && cr->getRight() != 0 && cr->getTerm3() != 0) {
+	    ibis::math::term* tm1 =
+		reinterpret_cast<ibis::math::term*>(cr->getLeft());
+	    ibis::math::term* tm2 =
+		reinterpret_cast<ibis::math::term*>(cr->getRight());
+	    ibis::math::term* tm3 =
+		reinterpret_cast<ibis::math::term*>(cr->getTerm3());
+	    if (tm1->termType() == ibis::math::NUMBER &&
+		tm3->termType() == ibis::math::NUMBER &&
+		tm2->termType() == ibis::math::OPERATOR) {
+		if (reinterpret_cast<ibis::math::term*>
+		    (tm2->getLeft())->termType() == ibis::math::NUMBER &&
+		    reinterpret_cast<ibis::math::term*>
+		    (tm2->getRight())->termType() ==
+		    ibis::math::VARIABLE) {
+		    const ibis::math::bediener& op2 =
+			*static_cast<ibis::math::bediener*>(tm2);
+		    double cnst = static_cast<ibis::math::number*>
+			(tm2->getLeft())->eval();
+		    switch (op2.operador) {
+		    default: break; // do nothing
+		    case ibis::math::PLUS: {
+			ibis::qContinuousRange *tmp = new
+			    ibis::qContinuousRange
+			    (tm1->eval()-cnst, cr->leftOperator(),
+			     static_cast<const ibis::math::variable*>
+			     (op2.getRight())->variableName(),
+			     cr->rightOperator(), tm2->eval()-cnst);
+			delete expr;
+			expr = tmp;
+			cr = 0;
+			break;}
+		    case ibis::math::MINUS: {
+			ibis::qContinuousRange *tmp = new
+			    ibis::qContinuousRange
+			    (tm1->eval()+cnst, cr->leftOperator(),
+			     static_cast<const ibis::math::variable*>
+			     (op2.getRight())->variableName(),
+			     cr->rightOperator(), tm2->eval()+cnst);
+			delete expr;
+			expr = tmp;
+			cr = 0;
+			break;}
+		    case ibis::math::MULTIPLY: {
+			if (cnst > 0.0) {
+			    ibis::qContinuousRange *tmp = new
+				ibis::qContinuousRange
+				(tm1->eval()/cnst, cr->leftOperator(),
+				 static_cast<const ibis::math::variable*>
+				 (op2.getRight())->variableName(),
+				 cr->rightOperator(), tm2->eval()/cnst);
+			    delete expr;
+			    expr = tmp;
+			    cr = 0;
+			}
+			break;}
+		    }
+		}
+	    }
+	} // three terms
+	else if (cr->getLeft() != 0 && cr->getRight() != 0) { // two terms
+	    ibis::math::term* tm1 =
+		reinterpret_cast<ibis::math::term*>(cr->getLeft());
+	    ibis::math::term* tm2 =
+		reinterpret_cast<ibis::math::term*>(cr->getRight());
+	    if (tm1->termType() == ibis::math::NUMBER &&
+		tm2->termType() == ibis::math::OPERATOR) {
+		ibis::math::number* nm1 =
+		    static_cast<ibis::math::number*>(tm1);
+		ibis::math::bediener* op2 =
+		    static_cast<ibis::math::bediener*>(tm2);
+		ibis::math::term* tm21 =
+		    reinterpret_cast<ibis::math::term*>(tm2->getLeft());
+		ibis::math::term* tm22 =
+		    reinterpret_cast<ibis::math::term*>(tm2->getRight());
+		if (tm21->termType() == ibis::math::NUMBER) {
+		    switch (op2->operador) {
+		    default: break;
+		    case ibis::math::PLUS: {
+			nm1->val -= tm21->eval();
+			cr->getRight() = tm22;
+			op2->getRight() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MINUS: {
+			cr->getLeft() = tm22;
+			nm1->val = tm21->eval() - nm1->val;
+			cr->getRight() = nm1;
+			op2->getRight() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MULTIPLY: {
+			const double cnst = tm21->eval();
+			if (cnst > 0.0) {
+			    nm1->val /= cnst;
+			    cr->getRight() = tm22;
+			    op2->getRight() = 0;
+			    delete op2;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			else {
+			    nm1->val /= tm21->eval();
+			    op2->getRight() = 0;
+			    delete op2;
+			    cr->getRight() = nm1;
+			    cr->getLeft() = tm22;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			break;}
+		    case ibis::math::DIVIDE: {
+			nm1->val = tm21->eval() / nm1->val;
+			cr->getLeft() = tm22;
+			cr->getRight() = nm1;
+			op2->getRight() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    }
+		}
+		else if (tm22->termType() == ibis::math::NUMBER) {
+		    switch (op2->operador) {
+		    default: break;
+		    case ibis::math::PLUS: {
+			nm1->val -= tm21->eval();
+			cr->getRight() = tm22;
+			op2->getLeft() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MINUS: {
+			nm1->val += tm22->eval();
+			cr->getRight() = tm21;
+			op2->getLeft() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MULTIPLY: {
+			const double cnst = tm22->eval();
+			if (cnst > 0.0) {
+			    cr->getRight() = tm21;
+			    nm1->val /= cnst;
+			    op2->getLeft() = 0;
+			    delete op2;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			else {
+			    nm1->val /= tm22->eval();
+			    op2->getLeft() = 0;
+			    delete op2;
+			    cr->getRight() = nm1;
+			    cr->getLeft() = tm21;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			break;}
+		    case ibis::math::DIVIDE: {
+			nm1->val *= tm22->eval();
+			cr->getRight() = tm21;
+			op2->getLeft() = 0;
+			delete op2;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    }
+		}
+	    }
+	    else if (tm1->termType() == ibis::math::OPERATOR &&
+		     tm2->termType() == ibis::math::NUMBER) {
+		ibis::math::bediener* op1 =
+		    static_cast<ibis::math::bediener*>(tm1);
+		ibis::math::number* nm2 =
+		    static_cast<ibis::math::number*>(tm2);
+		ibis::math::term* tm11 =
+		    reinterpret_cast<ibis::math::term*>(tm1->getLeft());
+		ibis::math::term* tm12 =
+		    reinterpret_cast<ibis::math::term*>(tm1->getRight());
+		if (tm11->termType() == ibis::math::NUMBER) {
+		    switch (op1->operador) {
+		    default: break;
+		    case ibis::math::PLUS: {
+			nm2->val -= tm11->eval();
+			cr->getLeft() = tm12;
+			op1->getRight() = 0;
+			delete op1;
+			cr = 0;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MINUS: {
+			cr->getRight() = tm12;
+			nm2->val = tm11->eval() - nm2->val;
+			cr->getLeft() = nm2;
+			op1->getRight() = 0;
+			cr = 0;
+			delete op1;
+			ibis::qExpr::simplify(expr);
+			break;}
+		    case ibis::math::MULTIPLY: {
+			const double cnst = tm11->eval();
+			if (cnst > 0.0) {
+			    cr->getLeft() = tm12;
+			    nm2->val /= cnst;
+			    op1->getRight() = 0;
+			    delete op1;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			else {
+			    nm2->val /= tm11->eval();
+			    op1->getRight() = 0;
+			    delete op1;
+			    cr->getLeft() = nm2;
+			    cr->getRight() = tm12;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			break;}
+		    case ibis::math::DIVIDE: {
+			if (nm2->val > 0.0) {
+			    nm2->val = tm11->eval() / nm2->val;
+			    cr->getLeft() = nm2;
+			    cr->getRight() = tm12;
+			    op1->getRight() = 0;
+			    delete op1;
+			    cr = 0;
+			    ibis::qExpr::simplify(expr);
+			}
+			break;}
+		    }
+		}
+	    }
+	}
+
+	if (cr != 0 && cr != expr) {
 #ifdef DEBUG
-    LOGGER(ibis::gVerbose >= 0)
-	<< "column: " << name << "\n"
-	<< "left string: \"" << (lstr?lstr:"<NULL>")
-	<< "\", right string: \"" << (rstr?rstr:"<NULL>") << "\"\n"
-	<< lower << ", " << name << ", " << upper;
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "replace a compRange with a qRange " << *expr;
 #endif
-
-    // make show the left operator is OP_LE and the right one is OP_LT
-    if (left_op == qExpr::OP_LT) { // change open left boundary to close one
-	left_op = qExpr::OP_LE;
-	lower = ibis::util::incrDouble(lower);
-    }
-    else if (left_op == qExpr::OP_EQ) {
-	right_op = qExpr::OP_UNDEFINED;
-	upper = lower;
-    }
-    if (right_op == qExpr::OP_LE) { // change closed right boundary to open
-	right_op = qExpr::OP_LT;
-	upper = ibis::util::incrDouble(upper);
-    }
-    else if (right_op == qExpr::OP_EQ) {
-	left_op = qExpr::OP_UNDEFINED;
-	lower = upper;
-    }
-} // constructor of qContinuousRange
-
-void ibis::qContinuousRange::restrictRange(double left, double right) {
-    if ((left_op == OP_GT || left_op == OP_GE) &&
-	(right_op == OP_GT || right_op == OP_GE)) { // swap left and right
-	if (left_op == OP_GT)
-	    left_op = OP_LT;
-	else
-	    left_op = OP_LE;
-	if (right_op == OP_GT)
-	    right_op = OP_LT;
-	else
-	    right_op = OP_LE;
-
-	double tmp = lower;
-	lower = upper;
-	upper = tmp;
-    }
-    if (((left_op == OP_LT || left_op == OP_LE) && lower < left) ||
-	(left_op == OP_UNDEFINED &&
-	 (right_op == OP_LT || right_op == OP_LE))) {
-	lower = left;
-	left_op = OP_LE;
-    }
-   if (((right_op == OP_LT || right_op == OP_LE) && upper > right) ||
-	((left_op == OP_LT || left_op == OP_LE) &&
-	 right_op == OP_UNDEFINED)) {
-	upper = right;
-	right_op = OP_LE;
-    }
-    if ((left_op == OP_EQ && right_op == OP_UNDEFINED &&
-	 (lower < left || lower > right)) ||
-	(left_op == OP_UNDEFINED && right_op == OP_EQ &&
-	 (upper < left || upper > right))) { // empty range
-	left_op = OP_EQ;
-	right_op = OP_EQ;
-	lower = left;
-	upper = (right > left ? right : left + 1.0);
-    }
-} // ibis::qContinuousRange::restrictRange
-
-bool ibis::qContinuousRange::empty() const {
-    if ((left_op == OP_LT || left_op == OP_LE) &&
-	(right_op == OP_LT || right_op == OP_LE)) {
-	return (lower > upper || (lower == upper &&
-				  (left_op != OP_LE || right_op != OP_LE)));
-    }
-    else if (left_op == OP_EQ && right_op == OP_EQ) {
-	return (lower != upper);
-    }
-    else if ((left_op == OP_GT || left_op == OP_GE) &&
-	     (right_op == OP_GT || right_op == OP_GE)) {
-	return (upper > lower ||
-		(lower == upper && (left_op != OP_GE || right_op != OP_GE)));
-    }
-    else {
-	return false;
-    }
-} // ibis::qContinuousRange::empty
+	    expr = cr->simpleRange();
+	    delete cr;
+	}
+	else if (expr->getType() == ibis::qExpr::COMPRANGE &&
+		 static_cast<ibis::compRange*>(expr)->isSimpleRange()) {
+#ifdef DEBUG
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "replace a compRange with a qRange " << *expr;
+#endif
+	    cr = static_cast<ibis::compRange*>(expr);
+	    expr = cr->simpleRange();
+	    delete cr;
+	}
+	break;}
+    case ibis::qExpr::RANGE: { // a continuous range
+// 	ibis::qContinuousRange *cr =
+// 	    reinterpret_cast<ibis::qContinuousRange*>(expr);
+// 	if (cr->empty()) {
+// 	    expr = 0;
+// 	    delete cr;
+// 	}
+	break;}
+    case ibis::qExpr::DRANGE: { // break a DRANGE into multiple RANGE
+// 	ibis::qDiscreteRange *dr =
+// 	    reinterpret_cast<ibis::qDiscreteRange*>(expr);
+// 	ibis::qExpr *tmp = dr->convert();
+// 	delete expr;
+// 	expr = tmp;
+	break;}
+    case ibis::qExpr::MSTRING: { // break a MSTRING into multiple STRING
+	ibis::qExpr *tmp = reinterpret_cast<ibis::qMultiString*>(expr)
+	    ->convert();
+	delete expr;
+	expr = tmp;
+	break;}
+    case ibis::qExpr::JOIN: {
+	ibis::math::term *range =
+	    reinterpret_cast<ibis::rangeJoin*>(expr)->getRange();
+	if (range != 0) {
+	    ibis::math::term *tmp = range->reduce();
+	    if (tmp != range)
+		reinterpret_cast<ibis::rangeJoin*>(expr)->setRange(tmp);
+	}
+	break;}
+    } // switch(...
+} // ibis::qExpr::simplify
 
 void ibis::qExpr::print(std::ostream& out) const {
     switch (type) {
@@ -193,167 +777,7 @@ void ibis::qExpr::print(std::ostream& out) const {
     default:
 	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
     } // end of outer-mode switch statement
-} // qExpr::print()
-
-void ibis::qContinuousRange::print(std::ostream& out) const {
-    if (name == 0) {
-	out << "NULL";
-	return;
-    }
-
-    switch (left_op) {
-    case OP_EQ: {
-	out << name << "==" << lower;
-	break;
-    }
-    case OP_LT: {
-	switch (right_op) {
-	case OP_LT:
-	    out << lower << " < " << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << lower << " < " << name << " <= " << upper;
-	    break;
-	case OP_UNDEFINED:
-	    out << lower << " < " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
-	break;
-    } // case OP_LT
-    case OP_LE: {
-	switch (right_op) {
-	case OP_LT:
-	    out << lower << " <= " << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << lower << " <= " << name << " <= " << upper;
-	    break;
-	case OP_UNDEFINED:
-	    out << lower << " <= " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
-	break;
-    } // case OP_LE
-    case OP_GT: {
-	switch (right_op) {
-	case OP_GT:
-	    out << upper << " < " << name << " < " << lower;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name << " < " << lower;
-	    break;
-	case OP_UNDEFINED:
-	    out << name << " < " << lower;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
-	break;
-    } // case OP_GT
-    case OP_GE: {
-	switch (right_op) {
-	case OP_GT:
-	    out << upper << " < " << name << " <= " << lower;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name << " <= " << lower;
-	    break;
-	case OP_UNDEFINED:
-	    out << name << " <= " << lower;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
-	break;
-    } // case OP_GE
-    default:
-	switch (right_op) {
-	case OP_EQ:
-	    out << name << "==" << upper;
-	    break;
-	case OP_LT:
-	    out << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << name << " <= " << upper;
-	    break;
-	case OP_GT:
-	    out << upper << " < " << name;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch right_op
-	break;
-    } // switch (left_op)
-} // ibis::qContinuousRange::print(std::ostream& out)
-
-void ibis::qContinuousRange::printRange(std::ostream& out) const {
-    if (name == 0) return;
-    if (getLeft() != 0) getLeft()->printRange(out);
-    if (getRight() != 0) getRight()->printRange(out);
-    if (getLeft() == 0 && getRight() == 0 &&
-	(left_op != OP_UNDEFINED || right_op != OP_UNDEFINED)) {
-	out << name << "\t";
-	if (left_op != OP_UNDEFINED) {
-	    uint64_t lval = static_cast<uint64_t>(lower);
-	    if (right_op != OP_UNDEFINED) {
-		uint64_t uval = static_cast<uint64_t>(upper);
-		out << (lval == lower ? lval : lower) << "\t"
-		    << (uval == upper ? uval : upper) << std::endl;
-	    }
-	    else {
-		out << (lval == lower ? lval : lower) << std::endl;
-	    }
-	}
-	else { // right_op must not be OP_UNDEFINED
-	    uint64_t ival = static_cast<uint64_t>(upper);
-	    out << (ival == upper ? ival : upper) << std::endl;
-	}
-    }
-} // ibis::qContinuousRange::printRange
-
-// the constructor of qString.  The string rs must have matching quote if it
-// is quoted.  It may also contain meta character '\' that is used to escape
-// the quote and other characters.  The meta character will also be striped.
-ibis::qString::qString(const char* ls, const char* rs) :
-    qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
-    // need to remove leading and trailing quote and the meta characters
-    rstr = new char[1+strlen(rs)];
-    const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
-    const char* cptr = rs;
-    char* dptr = rstr;
-    if (quote) ++cptr;
-    while (*cptr != quote) {
-	if (*cptr != '\\') {
-	    *dptr = *cptr;
-	}
-	else {
-	    ++cptr;
-	    *dptr = *cptr;
-	}
-	++cptr; ++dptr;
-    }
-    *dptr = 0; // terminate rstr with the NULL character
-}
-
-void ibis::qString::print(std::ostream& out) const {
-    if (lstr && rstr)
-	out << '(' << lstr << " == \"" << rstr << "\")";
-    else
-	out << "NULL";
-}
+} // ibis::qExpr::print
 
 // make the expression tree lean left
 void ibis::qExpr::adjust() {
@@ -535,6 +959,455 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     }
     return ret;
 } // ibis::qExpr::reorder
+
+/// It returns 0 if there is a mixture of simple and complex conditions.
+/// In this case, both simple and tail would be non-nil.  The return value
+/// is -1 if all conditions are complex and 1 if all conditions are simple.
+/// In these two cases, both simple and tail are nil.
+int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
+				ibis::qExpr *&tail) const {
+    if (ibis::gVerbose > 12) {
+	ibis::util::logger lg(12);
+	lg.buffer() << "ibis::qExpr::separateSimple -- input: ";
+	print(lg.buffer());
+    }
+
+    int ret = INT_MAX;
+    std::vector<const ibis::qExpr*> terms;
+    const ibis::qExpr* ptr;
+    if (type == LOGICAL_AND) {
+	uint32_t i, j;
+	// after adjust only one term is on the right-hand side
+	terms.push_back(right);
+
+	ptr = left;
+	while (ptr->type == type) {
+	    // loop for left child of the same type
+	    terms.push_back(ptr->right);
+	    ptr = ptr->left;
+	}
+
+	// left child is no longer the same type
+	terms.push_back(ptr);
+
+	// all node connected by the same operator are collected together in
+	// terms.  Next, separate the simple nodes from the others
+	i = 0;
+	j = terms.size() - 1;
+	while (i < j) {
+	    if (terms[i]->isSimple()) {
+		++ i;
+	    }
+	    else if (terms[j]->isSimple()) {
+		ptr = terms[i];
+		terms[i] = terms[j];
+		terms[j] = ptr;
+		-- j;
+		++ i;
+	    }
+	    else {
+		-- j;
+	    }
+	}
+	if (terms[i]->isSimple())
+	    ++ i;
+
+#ifdef DEBUG
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg(4);
+	    lg.buffer() << "qExpr::separateSimple -- terms joined with AND\n";
+	    for (i=0; i<terms.size(); ++i)
+		lg.buffer() << *(terms[i]) << "\n";
+	}
+#endif
+
+	if (i > 1 && i < terms.size()) {
+	    // more than one term, need AND operators
+	    simple = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
+				     terms[0]->dup(), terms[1]->dup());
+	    for (j = 2; j < i; ++ j)
+		simple = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
+					 simple, terms[j]->dup());
+	}
+	else if (i == 1) {
+	    simple = terms[0]->dup();
+	}
+	else { // no simple conditions, or all simple conditions
+	    simple = 0;
+	}
+	if (i == 0 || i >= terms.size()) {
+	    // no complex conditions, or only complex conditions
+	    tail = 0;
+	}
+	else if (terms.size() > i+1) { // more than one complex terms
+	    tail = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
+				   terms[i]->dup(), terms[i+1]->dup());
+	    for (j = i+2; j < terms.size(); ++ j)
+		tail = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
+				       tail, terms[j]->dup());
+	}
+	else { // only one complex term
+	    tail = terms[i]->dup();
+	}
+	if (i == 0) // nothing simple
+	    ret = -1;
+	else if (i < terms.size()) // mixed simple and complex
+	    ret = 0;
+	else // all simple
+	    ret = 1;
+    } // if (type == LOGICAL_AND)
+    else if (isSimple()) {
+	simple = 0;
+	tail = 0;
+	ret = 1;
+    }
+    else {
+	simple = 0;
+	tail = 0;
+	ret = -1;
+    }
+
+    if (ibis::gVerbose > 12) {
+	ibis::util::logger lg;
+	switch (ret) {
+	default:
+	case 0:
+	    if (simple) {
+		lg.buffer() << "ibis::qExpr::separateSimple -- simple  "
+		    "conditions: ";
+		simple->print(lg.buffer());
+		lg.buffer() << "\n";
+	    }
+	    if (tail) {
+		lg.buffer()<< "ibis::qExpr::separateSimple -- complex "
+		    "conditions: ";
+		tail->print(lg.buffer());
+		lg.buffer() << "\n";
+	    }
+	    break;
+	case -1:
+	    lg.buffer() << "ibis::qExpr::separateSimple -- no simple terms";
+	    break;
+	case 1:
+	    lg.buffer() << "ibis::qExpr::separateSimple -- all simple terms";
+	    break;
+	}
+    }
+    return ret;
+} // ibis::qExpr::separateSimple
+
+ibis::qRange* ibis::qExpr::findRange(const char *vname) {
+    ibis::qRange *ret = 0;
+    if (type == RANGE || type == DRANGE) {
+	ret = reinterpret_cast<ibis::qRange*>(this);
+	if (stricmp(vname, ret->colName()) != 0)
+	    ret = 0;
+	return ret;
+    }
+    else if (type == LOGICAL_AND) {
+	if (left)
+	    ret = left->findRange(vname);
+	if (ret == 0) {
+	    if (right)
+		ret = right->findRange(vname);
+	}
+	return ret;
+    }
+    else {
+	return ret;
+    }
+} // ibis::qExpr::findRange
+
+bool ibis::qExpr::hasJoin() const {
+    if (type == JOIN) {
+	return true;
+    }
+    else if (left) {
+	if (right)
+	    return left->hasJoin() || right->hasJoin();
+	else
+	    return left->hasJoin();
+    }
+    else if (right) {
+	return right->hasJoin();
+    }
+    else {
+	return false;
+    }
+} // ibis::qExpr::hasJoin
+
+void ibis::qExpr::extractJoins(std::vector<const rangeJoin*>& terms)
+    const {
+    if (type == LOGICAL_AND) {
+	if (left != 0)
+	    left->extractJoins(terms);
+	if (right != 0)
+	    right->extractJoins(terms);
+    }
+    else if (type == JOIN) {
+	terms.push_back(reinterpret_cast<const rangeJoin*>(this));
+    }
+} // ibis::qExpr::extractJoins
+
+// construct a qRange directly from a string representation of the constants
+ibis::qContinuousRange::qContinuousRange
+(const char *lstr, qExpr::COMPARE lop, const char* prop,
+ qExpr::COMPARE rop, const char *rstr)
+    : qRange(RANGE), name(ibis::util::strnewdup(prop)),
+      left_op(lop), right_op(rop) {
+    // first convert the values from string format to double format
+    if (lstr)
+	lower = (*lstr)?atof(lstr):(-DBL_MAX);
+    else
+	lower = -DBL_MAX;
+    if (rstr)
+	upper = (*rstr)?atof(rstr):(DBL_MAX);
+    else
+	upper = DBL_MAX;
+#ifdef DEBUG
+    LOGGER(ibis::gVerbose >= 0)
+	<< "column: " << name << "\n"
+	<< "left string: \"" << (lstr?lstr:"<NULL>")
+	<< "\", right string: \"" << (rstr?rstr:"<NULL>") << "\"\n"
+	<< lower << ", " << name << ", " << upper;
+#endif
+
+    // make show the left operator is OP_LE and the right one is OP_LT
+    if (left_op == qExpr::OP_LT) { // change open left boundary to close one
+	left_op = qExpr::OP_LE;
+	lower = ibis::util::incrDouble(lower);
+    }
+    else if (left_op == qExpr::OP_EQ) {
+	right_op = qExpr::OP_UNDEFINED;
+	upper = lower;
+    }
+    if (right_op == qExpr::OP_LE) { // change closed right boundary to open
+	right_op = qExpr::OP_LT;
+	upper = ibis::util::incrDouble(upper);
+    }
+    else if (right_op == qExpr::OP_EQ) {
+	left_op = qExpr::OP_UNDEFINED;
+	lower = upper;
+    }
+} // constructor of qContinuousRange
+
+void ibis::qContinuousRange::restrictRange(double left, double right) {
+    if ((left_op == OP_GT || left_op == OP_GE) &&
+	(right_op == OP_GT || right_op == OP_GE)) { // swap left and right
+	if (left_op == OP_GT)
+	    left_op = OP_LT;
+	else
+	    left_op = OP_LE;
+	if (right_op == OP_GT)
+	    right_op = OP_LT;
+	else
+	    right_op = OP_LE;
+
+	double tmp = lower;
+	lower = upper;
+	upper = tmp;
+    }
+    if (((left_op == OP_LT || left_op == OP_LE) && lower < left) ||
+	(left_op == OP_UNDEFINED &&
+	 (right_op == OP_LT || right_op == OP_LE))) {
+	lower = left;
+	left_op = OP_LE;
+    }
+   if (((right_op == OP_LT || right_op == OP_LE) && upper > right) ||
+	((left_op == OP_LT || left_op == OP_LE) &&
+	 right_op == OP_UNDEFINED)) {
+	upper = right;
+	right_op = OP_LE;
+    }
+    if ((left_op == OP_EQ && right_op == OP_UNDEFINED &&
+	 (lower < left || lower > right)) ||
+	(left_op == OP_UNDEFINED && right_op == OP_EQ &&
+	 (upper < left || upper > right))) { // empty range
+	left_op = OP_EQ;
+	right_op = OP_EQ;
+	lower = left;
+	upper = (right > left ? right : left + 1.0);
+    }
+} // ibis::qContinuousRange::restrictRange
+
+bool ibis::qContinuousRange::empty() const {
+    if ((left_op == OP_LT || left_op == OP_LE) &&
+	(right_op == OP_LT || right_op == OP_LE)) {
+	return (lower > upper || (lower == upper &&
+				  (left_op != OP_LE || right_op != OP_LE)));
+    }
+    else if (left_op == OP_EQ && right_op == OP_EQ) {
+	return (lower != upper);
+    }
+    else if ((left_op == OP_GT || left_op == OP_GE) &&
+	     (right_op == OP_GT || right_op == OP_GE)) {
+	return (upper > lower ||
+		(lower == upper && (left_op != OP_GE || right_op != OP_GE)));
+    }
+    else {
+	return false;
+    }
+} // ibis::qContinuousRange::empty
+
+void ibis::qContinuousRange::print(std::ostream& out) const {
+    if (name == 0) {
+	out << "NULL";
+	return;
+    }
+
+    switch (left_op) {
+    case OP_EQ: {
+	out << name << "==" << lower;
+	break;
+    }
+    case OP_LT: {
+	switch (right_op) {
+	case OP_LT:
+	    out << lower << " < " << name << " < " << upper;
+	    break;
+	case OP_LE:
+	    out << lower << " < " << name << " <= " << upper;
+	    break;
+	case OP_UNDEFINED:
+	    out << lower << " < " << name;
+	    break;
+	default:
+	    out << " ILL-DEFINED-RANGE";
+	    break;
+	} // end of switch (right_op)
+	break;
+    } // case OP_LT
+    case OP_LE: {
+	switch (right_op) {
+	case OP_LT:
+	    out << lower << " <= " << name << " < " << upper;
+	    break;
+	case OP_LE:
+	    out << lower << " <= " << name << " <= " << upper;
+	    break;
+	case OP_UNDEFINED:
+	    out << lower << " <= " << name;
+	    break;
+	default:
+	    out << " ILL-DEFINED-RANGE";
+	    break;
+	} // end of switch (right_op)
+	break;
+    } // case OP_LE
+    case OP_GT: {
+	switch (right_op) {
+	case OP_GT:
+	    out << upper << " < " << name << " < " << lower;
+	    break;
+	case OP_GE:
+	    out << upper << " <= " << name << " < " << lower;
+	    break;
+	case OP_UNDEFINED:
+	    out << name << " < " << lower;
+	    break;
+	default:
+	    out << " ILL-DEFINED-RANGE";
+	    break;
+	} // end of switch (right_op)
+	break;
+    } // case OP_GT
+    case OP_GE: {
+	switch (right_op) {
+	case OP_GT:
+	    out << upper << " < " << name << " <= " << lower;
+	    break;
+	case OP_GE:
+	    out << upper << " <= " << name << " <= " << lower;
+	    break;
+	case OP_UNDEFINED:
+	    out << name << " <= " << lower;
+	    break;
+	default:
+	    out << " ILL-DEFINED-RANGE";
+	    break;
+	} // end of switch (right_op)
+	break;
+    } // case OP_GE
+    default:
+	switch (right_op) {
+	case OP_EQ:
+	    out << name << "==" << upper;
+	    break;
+	case OP_LT:
+	    out << name << " < " << upper;
+	    break;
+	case OP_LE:
+	    out << name << " <= " << upper;
+	    break;
+	case OP_GT:
+	    out << upper << " < " << name;
+	    break;
+	case OP_GE:
+	    out << upper << " <= " << name;
+	    break;
+	default:
+	    out << " ILL-DEFINED-RANGE";
+	    break;
+	} // end of switch right_op
+	break;
+    } // switch (left_op)
+} // ibis::qContinuousRange::print(std::ostream& out)
+
+void ibis::qContinuousRange::printRange(std::ostream& out) const {
+    if (name == 0) return;
+    if (getLeft() != 0) getLeft()->printRange(out);
+    if (getRight() != 0) getRight()->printRange(out);
+    if (getLeft() == 0 && getRight() == 0 &&
+	(left_op != OP_UNDEFINED || right_op != OP_UNDEFINED)) {
+	out << name << "\t";
+	if (left_op != OP_UNDEFINED) {
+	    uint64_t lval = static_cast<uint64_t>(lower);
+	    if (right_op != OP_UNDEFINED) {
+		uint64_t uval = static_cast<uint64_t>(upper);
+		out << (lval == lower ? lval : lower) << "\t"
+		    << (uval == upper ? uval : upper) << std::endl;
+	    }
+	    else {
+		out << (lval == lower ? lval : lower) << std::endl;
+	    }
+	}
+	else { // right_op must not be OP_UNDEFINED
+	    uint64_t ival = static_cast<uint64_t>(upper);
+	    out << (ival == upper ? ival : upper) << std::endl;
+	}
+    }
+} // ibis::qContinuousRange::printRange
+
+// the constructor of qString.  The string rs must have matching quote if it
+// is quoted.  It may also contain meta character '\' that is used to escape
+// the quote and other characters.  The meta character will also be striped.
+ibis::qString::qString(const char* ls, const char* rs) :
+    qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
+    // need to remove leading and trailing quote and the meta characters
+    rstr = new char[1+strlen(rs)];
+    const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
+    const char* cptr = rs;
+    char* dptr = rstr;
+    if (quote) ++cptr;
+    while (*cptr != quote) {
+	if (*cptr != '\\') {
+	    *dptr = *cptr;
+	}
+	else {
+	    ++cptr;
+	    *dptr = *cptr;
+	}
+	++cptr; ++dptr;
+    }
+    *dptr = 0; // terminate rstr with the NULL character
+}
+
+void ibis::qString::print(std::ostream& out) const {
+    if (lstr && rstr)
+	out << '(' << lstr << " == \"" << rstr << "\")";
+    else
+	out << "NULL";
+}
 
 /// Record variables from a @c term recursively.
 void
@@ -1330,708 +2203,6 @@ ibis::qContinuousRange* ibis::compRange::simpleRange() const {
     return res;
 } // ibis::compRange::simpleRange
 
-// simplify the arithmetic expression to use ibis::qRange as much as possible
-void ibis::qExpr::simplify(ibis::qExpr*& expr) {
-    if (expr == 0) return;
-
-    switch (expr->getType()) {
-    default:
-	break;
-    case ibis::qExpr::LOGICAL_NOT:
-	simplify(expr->left);
-	break;
-    case ibis::qExpr::LOGICAL_AND: {
-	// TODO: add code to combine simple experessions on the same variable.
-	simplify(expr->left);
-	simplify(expr->right);
-	bool emptyleft = (expr->left == 0 ||
-			  ((expr->left->getType() == RANGE ||
-			    expr->left->getType() == DRANGE) &&
-			   reinterpret_cast<qRange*>(expr->left)->empty()));
-	bool emptyright = (expr->right == 0 ||
-			   ((expr->right->getType() == RANGE ||
-			     expr->right->getType() == DRANGE) &&
-			    reinterpret_cast<qRange*>(expr->right)->empty()));
-	if (emptyleft) {
-	    ibis::qExpr* tmp = expr->left;
-	    expr->left = 0;
-	    delete expr;
-	    expr = tmp;
-	}
-	else if (emptyright) {
-	    ibis::qExpr *tmp = expr->right;
-	    expr->right = 0;
-	    delete expr;
-	    expr = tmp;
-	}
-	if (expr->left != 0 && expr->right != 0 &&
-	    expr->left->type == ibis::qExpr::RANGE &&
-	    expr->right->type == ibis::qExpr::RANGE &&
-	    stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
-		    static_cast<ibis::qRange*>(expr->right)->colName()) == 0) {
-	    ibis::qContinuousRange* tm1 =
-		static_cast<ibis::qContinuousRange*>(expr->left);
-	    ibis::qContinuousRange* tm2 =
-		static_cast<ibis::qContinuousRange*>(expr->right);
-	    if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		 tm1->left_op == ibis::qExpr::OP_LT) &&
-		(tm2->left_op == ibis::qExpr::OP_LE ||
-		 tm2->left_op == ibis::qExpr::OP_LT) &&
-		(tm1->right_op == ibis::qExpr::OP_LE ||
-		 tm1->right_op == ibis::qExpr::OP_LT) &&
-		(tm2->right_op == ibis::qExpr::OP_LE ||
-		 tm2->right_op == ibis::qExpr::OP_LT)) { // two two-sided ranges
-		if (tm1->lower < tm2->lower) {
-		    tm1->left_op = tm2->left_op;
-		    tm1->lower = tm2->lower;
-		}
-		else if (tm1->lower == tm2->lower &&
-			 tm1->left_op == ibis::qExpr::OP_LE &&
-			 tm2->left_op == ibis::qExpr::OP_LT) {
-		    tm1->left_op = ibis::qExpr::OP_LT;
-		}
-		if (tm1->upper > tm2->upper) {
-		    tm1->right_op = tm2->right_op;
-		    tm1->upper = tm2->upper;
-		}
-		else if (tm1->upper == tm2->upper &&
-			 tm1->right_op == ibis::qExpr::OP_LE &&
-			 tm2->right_op == ibis::qExpr::OP_LT) {
-		    tm1->right_op = ibis::qExpr::OP_LT;
-		}
-		expr->left = 0;
-		delete expr;
-		expr = tm2;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
-		// tm1 two-sided range, tm2 one-sided
-		if (tm1->lower < tm2->lower) {
-		    tm1->left_op = tm2->left_op;
-		    tm1->lower = tm2->lower;
-		}
-		else if (tm1->lower == tm2->lower &&
-			 tm1->left_op == ibis::qExpr::OP_LE &&
-			 tm2->left_op == ibis::qExpr::OP_LT) {
-		    tm1->left_op = ibis::qExpr::OP_LT;
-		}
-		expr->left = 0;
-		delete expr;
-		expr = tm1;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
-		// tm1 one-sided range, tm2 two-sided
-		if (tm2->lower < tm1->lower) {
-		    tm2->left_op = tm1->left_op;
-		    tm2->lower = tm1->lower;
-		}
-		else if (tm1->lower == tm2->lower &&
-			 tm2->left_op == ibis::qExpr::OP_LE &&
-			 tm1->left_op == ibis::qExpr::OP_LT) {
-		    tm2->left_op = ibis::qExpr::OP_LT;
-		}
-		expr->right = 0;
-		delete expr;
-		expr = tm2;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
-		// tm1 two-sided range, tm2 one-sided
-		if (tm1->upper > tm2->upper) {
-		    tm1->right_op = tm2->right_op;
-		    tm1->upper = tm2->upper;
-		}
-		else if (tm1->upper == tm2->upper &&
-			 tm1->right_op == ibis::qExpr::OP_LE &&
-			 tm2->right_op == ibis::qExpr::OP_LT) {
-		    tm1->right_op = ibis::qExpr::OP_LT;
-		}
-		expr->left = 0;
-		delete expr;
-		expr = tm1;
-	    }
-	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT) &&
-		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
-		// tm1 one-sided range, tm2 two-sided
-		if (tm2->upper > tm1->upper) {
-		    tm2->right_op = tm1->right_op;
-		    tm2->upper = tm1->upper;
-		}
-		else if (tm1->upper == tm2->upper &&
-			 tm2->right_op == ibis::qExpr::OP_LE &&
-			 tm1->right_op == ibis::qExpr::OP_LT) {
-		    tm2->right_op = ibis::qExpr::OP_LT;
-		}
-		expr->right = 0;
-		delete expr;
-		expr = tm2;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
-		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
-		// both one-sided
-		if (tm1->lower < tm2->lower) {
-		    tm1->left_op = tm2->left_op;
-		    tm1->lower = tm2->lower;
-		}
-		else if (tm1->lower == tm2->lower &&
-			 tm1->left_op == ibis::qExpr::OP_LE &&
-			 tm2->left_op == ibis::qExpr::OP_LT) {
-		    tm1->left_op = ibis::qExpr::OP_LT;
-		}
-		expr->left = 0;
-		delete expr;
-		expr = tm1;
-	    }
-	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
-		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED)) {
-		// both one-sided
-		if (tm2->upper > tm1->upper) {
-		    tm2->right_op = tm1->right_op;
-		    tm2->upper = tm1->upper;
-		}
-		else if (tm2->upper == tm1->upper &&
-			 tm1->right_op == ibis::qExpr::OP_LT &&
-			 tm2->right_op == ibis::qExpr::OP_LE) {
-		    tm2->right_op = tm1->right_op;
-		}
-		expr->right = 0;
-		delete expr;
-		expr = tm2;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED) &&
-		     (tm2->left_op == ibis::qExpr::OP_UNDEFINED)) {
-		// both one-sided
-		tm1->right_op = tm2->right_op;
-		tm1->upper = tm2->upper;
-		expr->left = 0;
-		delete expr;
-		expr = tm1;
-	    }
-	    else if ((tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT) &&
-		     (tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm1->left_op == ibis::qExpr::OP_UNDEFINED) &&
-		     (tm2->right_op == ibis::qExpr::OP_UNDEFINED)) {
-		// both one-sided
-		tm1->left_op = tm2->left_op;
-		tm1->lower = tm2->lower;
-		expr->left = 0;
-		delete expr;
-		expr = tm1;
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_LE ||
-		      tm1->right_op == ibis::qExpr::OP_LT)) {
-		if (tm2->left_op == ibis::qExpr::OP_EQ) {
-		    if (tm1->inRange(tm2->lower)) {
-			expr->right = 0;
-			delete expr;
-			expr = tm2;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
-		    if (tm1->inRange(tm2->upper)) {
-			expr->right = 0;
-			delete expr;
-			expr = tm2;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-	    }
-	    else if ((tm2->left_op == ibis::qExpr::OP_LE ||
-		      tm2->left_op == ibis::qExpr::OP_LT) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT)) {
-		if (tm1->left_op == ibis::qExpr::OP_EQ) {
-		    if (tm2->inRange(tm1->lower)) {
-			expr->left = 0;
-			delete expr;
-			expr = tm1;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
-		    if (tm2->inRange(tm1->upper)) {
-			expr->left = 0;
-			delete expr;
-			expr = tm1;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-	    }
-	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
-		      tm1->left_op == ibis::qExpr::OP_LT) &&
-		     (tm1->right_op == ibis::qExpr::OP_UNDEFINED)) {
-		if (tm2->left_op == ibis::qExpr::OP_EQ) {
-		    if (tm1->inRange(tm2->lower)) {
-			expr->right = 0;
-			delete expr;
-			expr = tm2;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
-		    if (tm1->inRange(tm2->upper)) {
-			expr->right = 0;
-			delete expr;
-			expr = tm2;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-	    }
-	    else if ((tm2->left_op == ibis::qExpr::OP_UNDEFINED) &&
-		     (tm2->right_op == ibis::qExpr::OP_LE ||
-		      tm2->right_op == ibis::qExpr::OP_LT)) {
-		if (tm1->left_op == ibis::qExpr::OP_EQ) {
-		    if (tm2->inRange(tm1->lower)) {
-			expr->left = 0;
-			delete expr;
-			expr = tm1;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
-		    if (tm2->inRange(tm1->upper)) {
-			expr->left = 0;
-			delete expr;
-			expr = tm1;
-		    }
-		    else {
-			delete expr;
-			expr = 0;
-		    }
-		}
-	    }
-	}
-	break;}
-    case ibis::qExpr::LOGICAL_OR:
-    case ibis::qExpr::LOGICAL_XOR: {
-	simplify(expr->left);
-	simplify(expr->right);
-	bool emptyleft = (expr->left == 0 ||
-			  ((expr->left->getType() == RANGE ||
-			    expr->left->getType() == DRANGE) &&
-			   reinterpret_cast<qRange*>(expr->left)->empty()));
-	bool emptyright = (expr->right == 0 ||
-			   ((expr->right->getType() == RANGE ||
-			     expr->right->getType() == DRANGE) &&
-			    reinterpret_cast<qRange*>(expr->right)->empty()));
-	if (emptyleft) {
-	    if (emptyright) { // keep left
-		ibis::qExpr* tmp = expr->left;
-		expr->left = 0;
-		delete expr;
-		expr = tmp;
-	    }
-	    else { // keep right
-		ibis::qExpr* tmp = expr->right;
-		expr->right = 0;
-		delete expr;
-		expr = tmp;
-	    }
-	}
-	else if (emptyright) { // keep left
-	    ibis::qExpr *tmp = expr->left;
-	    expr->left = 0;
-	    delete expr;
-	    expr = tmp;
-	}
-	break;}
-    case ibis::qExpr::LOGICAL_MINUS: {
-	simplify(expr->left);
-	simplify(expr->right);
-	bool emptyleft = (expr->left == 0 ||
-			  ((expr->left->getType() == RANGE ||
-			    expr->left->getType() == DRANGE) &&
-			   reinterpret_cast<qRange*>(expr->left)->empty()));
-	bool emptyright = (expr->right == 0 ||
-			   ((expr->right->getType() == RANGE ||
-			     expr->right->getType() == DRANGE) &&
-			    reinterpret_cast<qRange*>(expr->right)->empty()));
-	if (emptyleft || emptyright) {
-	    // keep left: if left is empty, the overall result is empty;
-	    // if the right is empty, the overall result is the left
-	    ibis::qExpr* tmp = expr->left;
-	    expr->left = 0;
-	    delete expr;
-	    expr = tmp;
-	}
-	break;}
-    case ibis::qExpr::COMPRANGE: {
-	ibis::compRange* cr = reinterpret_cast<ibis::compRange*>(expr);
-	ibis::math::term *t1, *t2;
-	t1 = reinterpret_cast<ibis::math::term*>(cr->getLeft());
-	if (t1 != 0) {
-	    t2 = t1->reduce();
-	    if (t2 != t1)
-		cr->setLeft(t2);
-	}
-
-	t1 = reinterpret_cast<ibis::math::term*>(cr->getRight());
-	if (t1 != 0) {
-	    t2 = t1->reduce();
-	    if (t2 != t1)
-		cr->setRight(t2);
-	}
-
-	t1 = reinterpret_cast<ibis::math::term*>(cr->getTerm3());
-	if (t1 != 0) {
-	    t2 = t1->reduce();
-	    if (t2 != t1)
-		cr->setTerm3(t2);
-	}
-
-	if (cr->getLeft() != 0 && cr->getRight() != 0 && cr->getTerm3() != 0) {
-	    ibis::math::term* tm1 =
-		reinterpret_cast<ibis::math::term*>(cr->getLeft());
-	    ibis::math::term* tm2 =
-		reinterpret_cast<ibis::math::term*>(cr->getRight());
-	    ibis::math::term* tm3 =
-		reinterpret_cast<ibis::math::term*>(cr->getTerm3());
-	    if (tm1->termType() == ibis::math::NUMBER &&
-		tm3->termType() == ibis::math::NUMBER &&
-		tm2->termType() == ibis::math::OPERATOR) {
-		if (reinterpret_cast<ibis::math::term*>
-		    (tm2->getLeft())->termType() == ibis::math::NUMBER &&
-		    reinterpret_cast<ibis::math::term*>
-		    (tm2->getRight())->termType() ==
-		    ibis::math::VARIABLE) {
-		    const ibis::math::bediener& op2 =
-			*static_cast<ibis::math::bediener*>(tm2);
-		    double cnst = static_cast<ibis::math::number*>
-			(tm2->getLeft())->eval();
-		    switch (op2.operador) {
-		    default: break; // do nothing
-		    case ibis::math::PLUS: {
-			ibis::qContinuousRange *tmp = new
-			    ibis::qContinuousRange
-			    (tm1->eval()-cnst, cr->leftOperator(),
-			     static_cast<const ibis::math::variable*>
-			     (op2.getRight())->variableName(),
-			     cr->rightOperator(), tm2->eval()-cnst);
-			delete expr;
-			expr = tmp;
-			cr = 0;
-			break;}
-		    case ibis::math::MINUS: {
-			ibis::qContinuousRange *tmp = new
-			    ibis::qContinuousRange
-			    (tm1->eval()+cnst, cr->leftOperator(),
-			     static_cast<const ibis::math::variable*>
-			     (op2.getRight())->variableName(),
-			     cr->rightOperator(), tm2->eval()+cnst);
-			delete expr;
-			expr = tmp;
-			cr = 0;
-			break;}
-		    case ibis::math::MULTIPLY: {
-			if (cnst > 0.0) {
-			    ibis::qContinuousRange *tmp = new
-				ibis::qContinuousRange
-				(tm1->eval()/cnst, cr->leftOperator(),
-				 static_cast<const ibis::math::variable*>
-				 (op2.getRight())->variableName(),
-				 cr->rightOperator(), tm2->eval()/cnst);
-			    delete expr;
-			    expr = tmp;
-			    cr = 0;
-			}
-			break;}
-		    }
-		}
-	    }
-	} // three terms
-	else if (cr->getLeft() != 0 && cr->getRight() != 0) { // two terms
-	    ibis::math::term* tm1 =
-		reinterpret_cast<ibis::math::term*>(cr->getLeft());
-	    ibis::math::term* tm2 =
-		reinterpret_cast<ibis::math::term*>(cr->getRight());
-	    if (tm1->termType() == ibis::math::NUMBER &&
-		tm2->termType() == ibis::math::OPERATOR) {
-		ibis::math::number* nm1 =
-		    static_cast<ibis::math::number*>(tm1);
-		ibis::math::bediener* op2 =
-		    static_cast<ibis::math::bediener*>(tm2);
-		ibis::math::term* tm21 =
-		    reinterpret_cast<ibis::math::term*>(tm2->getLeft());
-		ibis::math::term* tm22 =
-		    reinterpret_cast<ibis::math::term*>(tm2->getRight());
-		if (tm21->termType() == ibis::math::NUMBER) {
-		    switch (op2->operador) {
-		    default: break;
-		    case ibis::math::PLUS: {
-			nm1->val -= tm21->eval();
-			cr->getRight() = tm22;
-			op2->getRight() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MINUS: {
-			cr->getLeft() = tm22;
-			nm1->val = tm21->eval() - nm1->val;
-			cr->getRight() = nm1;
-			op2->getRight() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MULTIPLY: {
-			const double cnst = tm21->eval();
-			if (cnst > 0.0) {
-			    nm1->val /= cnst;
-			    cr->getRight() = tm22;
-			    op2->getRight() = 0;
-			    delete op2;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			else {
-			    nm1->val /= tm21->eval();
-			    op2->getRight() = 0;
-			    delete op2;
-			    cr->getRight() = nm1;
-			    cr->getLeft() = tm22;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			break;}
-		    case ibis::math::DIVIDE: {
-			nm1->val = tm21->eval() / nm1->val;
-			cr->getLeft() = tm22;
-			cr->getRight() = nm1;
-			op2->getRight() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    }
-		}
-		else if (tm22->termType() == ibis::math::NUMBER) {
-		    switch (op2->operador) {
-		    default: break;
-		    case ibis::math::PLUS: {
-			nm1->val -= tm21->eval();
-			cr->getRight() = tm22;
-			op2->getLeft() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MINUS: {
-			nm1->val += tm22->eval();
-			cr->getRight() = tm21;
-			op2->getLeft() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MULTIPLY: {
-			const double cnst = tm22->eval();
-			if (cnst > 0.0) {
-			    cr->getRight() = tm21;
-			    nm1->val /= cnst;
-			    op2->getLeft() = 0;
-			    delete op2;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			else {
-			    nm1->val /= tm22->eval();
-			    op2->getLeft() = 0;
-			    delete op2;
-			    cr->getRight() = nm1;
-			    cr->getLeft() = tm21;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			break;}
-		    case ibis::math::DIVIDE: {
-			nm1->val *= tm22->eval();
-			cr->getRight() = tm21;
-			op2->getLeft() = 0;
-			delete op2;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    }
-		}
-	    }
-	    else if (tm1->termType() == ibis::math::OPERATOR &&
-		     tm2->termType() == ibis::math::NUMBER) {
-		ibis::math::bediener* op1 =
-		    static_cast<ibis::math::bediener*>(tm1);
-		ibis::math::number* nm2 =
-		    static_cast<ibis::math::number*>(tm2);
-		ibis::math::term* tm11 =
-		    reinterpret_cast<ibis::math::term*>(tm1->getLeft());
-		ibis::math::term* tm12 =
-		    reinterpret_cast<ibis::math::term*>(tm1->getRight());
-		if (tm11->termType() == ibis::math::NUMBER) {
-		    switch (op1->operador) {
-		    default: break;
-		    case ibis::math::PLUS: {
-			nm2->val -= tm11->eval();
-			cr->getLeft() = tm12;
-			op1->getRight() = 0;
-			delete op1;
-			cr = 0;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MINUS: {
-			cr->getRight() = tm12;
-			nm2->val = tm11->eval() - nm2->val;
-			cr->getLeft() = nm2;
-			op1->getRight() = 0;
-			cr = 0;
-			delete op1;
-			ibis::qExpr::simplify(expr);
-			break;}
-		    case ibis::math::MULTIPLY: {
-			const double cnst = tm11->eval();
-			if (cnst > 0.0) {
-			    cr->getLeft() = tm12;
-			    nm2->val /= cnst;
-			    op1->getRight() = 0;
-			    delete op1;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			else {
-			    nm2->val /= tm11->eval();
-			    op1->getRight() = 0;
-			    delete op1;
-			    cr->getLeft() = nm2;
-			    cr->getRight() = tm12;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			break;}
-		    case ibis::math::DIVIDE: {
-			if (nm2->val > 0.0) {
-			    nm2->val = tm11->eval() / nm2->val;
-			    cr->getLeft() = nm2;
-			    cr->getRight() = tm12;
-			    op1->getRight() = 0;
-			    delete op1;
-			    cr = 0;
-			    ibis::qExpr::simplify(expr);
-			}
-			break;}
-		    }
-		}
-	    }
-	}
-
-	if (cr != 0 && cr != expr) {
-#ifdef DEBUG
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "replace a compRange with a qRange " << *expr;
-#endif
-	    expr = cr->simpleRange();
-	    delete cr;
-	}
-	else if (expr->getType() == ibis::qExpr::COMPRANGE &&
-		 static_cast<ibis::compRange*>(expr)->isSimpleRange()) {
-#ifdef DEBUG
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "replace a compRange with a qRange " << *expr;
-#endif
-	    cr = static_cast<ibis::compRange*>(expr);
-	    expr = cr->simpleRange();
-	    delete cr;
-	}
-	break;}
-    case ibis::qExpr::RANGE: { // a continuous range
-// 	ibis::qContinuousRange *cr =
-// 	    reinterpret_cast<ibis::qContinuousRange*>(expr);
-// 	if (cr->empty()) {
-// 	    expr = 0;
-// 	    delete cr;
-// 	}
-	break;}
-    case ibis::qExpr::DRANGE: { // break a DRANGE into multiple RANGE
-// 	ibis::qDiscreteRange *dr =
-// 	    reinterpret_cast<ibis::qDiscreteRange*>(expr);
-// 	ibis::qExpr *tmp = dr->convert();
-// 	delete expr;
-// 	expr = tmp;
-	break;}
-    case ibis::qExpr::MSTRING: { // break a MSTRING into multiple STRING
-	ibis::qExpr *tmp = reinterpret_cast<ibis::qMultiString*>(expr)
-	    ->convert();
-	delete expr;
-	expr = tmp;
-	break;}
-    case ibis::qExpr::JOIN: {
-	ibis::math::term *range =
-	    reinterpret_cast<ibis::rangeJoin*>(expr)->getRange();
-	if (range != 0) {
-	    ibis::math::term *tmp = range->reduce();
-	    if (tmp != range)
-		reinterpret_cast<ibis::rangeJoin*>(expr)->setRange(tmp);
-	}
-	break;}
-    } // switch(...
-} // ibis::qExpr::simplify
-
 ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
     : ibis::qRange(ibis::qExpr::DRANGE) {
     if (col == 0 || *col == 0) return;
@@ -2146,7 +2317,7 @@ void ibis::qDiscreteRange::print(std::ostream& out) const {
 	    out << ", " << values[i];
     }
     out << ')';
-} // qDiscreteRange::print
+} // ibis::qDiscreteRange::print
 
 void ibis::qDiscreteRange::printRange(std::ostream& out) const {
     for (uint32_t i = 0; i < values.size(); ++ i) {
@@ -2157,7 +2328,7 @@ void ibis::qDiscreteRange::printRange(std::ostream& out) const {
 	else
 	    out << values[i] << "\n";
     }
-} // qDiscreteRange::printRange
+} // ibis::qDiscreteRange::printRange
 
 ibis::qExpr* ibis::qDiscreteRange::convert() const {
     if (name.empty()) return 0;
@@ -2371,174 +2542,3 @@ void ibis::qAnyAny::printRange(std::ostream& out) const {
 	    out << values[i] << "\n";
     }
 } // ibis::qAnyAny::printRange
-
-/// It returns 0 if there is a mixture of simple and complex conditions.
-/// In this case, both simple and tail would be non-nil.  The return value
-/// is -1 if all conditions are complex and 1 if all conditions are simple.
-/// In these two cases, both simple and tail are nil.
-int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
-				ibis::qExpr *&tail) const {
-    if (ibis::gVerbose > 12) {
-	ibis::util::logger lg(12);
-	lg.buffer() << "ibis::qExpr::separateSimple -- input: ";
-	print(lg.buffer());
-    }
-
-    int ret = INT_MAX;
-    std::vector<const ibis::qExpr*> terms;
-    const ibis::qExpr* ptr;
-    if (type == LOGICAL_AND) {
-	uint32_t i, j;
-	// after adjust only one term is on the right-hand side
-	terms.push_back(right);
-
-	ptr = left;
-	while (ptr->type == type) {
-	    // loop for left child of the same type
-	    terms.push_back(ptr->right);
-	    ptr = ptr->left;
-	}
-
-	// left child is no longer the same type
-	terms.push_back(ptr);
-
-	// all node connected by the same operator are collected together in
-	// terms.  Next, separate the simple nodes from the others
-	i = 0;
-	j = terms.size() - 1;
-	while (i < j) {
-	    if (terms[i]->isSimple()) {
-		++ i;
-	    }
-	    else if (terms[j]->isSimple()) {
-		ptr = terms[i];
-		terms[i] = terms[j];
-		terms[j] = ptr;
-		-- j;
-		++ i;
-	    }
-	    else {
-		-- j;
-	    }
-	}
-	if (terms[i]->isSimple())
-	    ++ i;
-
-#ifdef DEBUG
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
-	    lg.buffer() << "qExpr::separateSimple -- terms joined with AND\n";
-	    for (i=0; i<terms.size(); ++i)
-		lg.buffer() << *(terms[i]) << "\n";
-	}
-#endif
-
-	if (i > 1 && i < terms.size()) {
-	    // more than one term, need AND operators
-	    simple = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-				     terms[0]->dup(), terms[1]->dup());
-	    for (j = 2; j < i; ++ j)
-		simple = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-					 simple, terms[j]->dup());
-	}
-	else if (i == 1) {
-	    simple = terms[0]->dup();
-	}
-	else { // no simple conditions, or all simple conditions
-	    simple = 0;
-	}
-	if (i == 0 || i >= terms.size()) {
-	    // no complex conditions, or only complex conditions
-	    tail = 0;
-	}
-	else if (terms.size() > i+1) { // more than one complex terms
-	    tail = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-				   terms[i]->dup(), terms[i+1]->dup());
-	    for (j = i+2; j < terms.size(); ++ j)
-		tail = new ibis::qExpr(ibis::qExpr::LOGICAL_AND,
-				       tail, terms[j]->dup());
-	}
-	else { // only one complex term
-	    tail = terms[i]->dup();
-	}
-	if (i == 0) // nothing simple
-	    ret = -1;
-	else if (i < terms.size()) // mixed simple and complex
-	    ret = 0;
-	else // all simple
-	    ret = 1;
-    } // if (type == LOGICAL_AND)
-    else if (isSimple()) {
-	simple = 0;
-	tail = 0;
-	ret = 1;
-    }
-    else {
-	simple = 0;
-	tail = 0;
-	ret = -1;
-    }
-
-    if (ibis::gVerbose > 12) {
-	ibis::util::logger lg;
-	switch (ret) {
-	default:
-	case 0:
-	    if (simple) {
-		lg.buffer() << "ibis::qExpr::separateSimple -- simple  "
-		    "conditions: ";
-		simple->print(lg.buffer());
-		lg.buffer() << "\n";
-	    }
-	    if (tail) {
-		lg.buffer()<< "ibis::qExpr::separateSimple -- complex "
-		    "conditions: ";
-		tail->print(lg.buffer());
-		lg.buffer() << "\n";
-	    }
-	    break;
-	case -1:
-	    lg.buffer() << "ibis::qExpr::separateSimple -- no simple terms";
-	    break;
-	case 1:
-	    lg.buffer() << "ibis::qExpr::separateSimple -- all simple terms";
-	    break;
-	}
-    }
-    return ret;
-} // ibis::qExpr::separateSimple
-
-void ibis::qExpr::extractJoins(std::vector<const rangeJoin*>& terms)
-    const {
-    if (type == LOGICAL_AND) {
-	if (left != 0)
-	    left->extractJoins(terms);
-	if (right != 0)
-	    right->extractJoins(terms);
-    }
-    else if (type == JOIN) {
-	terms.push_back(reinterpret_cast<const rangeJoin*>(this));
-    }
-} // ibis::qExpr::extractJoins
-
-ibis::qRange* ibis::qExpr::findRange(const char *vname) {
-    ibis::qRange *ret = 0;
-    if (type == RANGE || type == DRANGE) {
-	ret = reinterpret_cast<ibis::qRange*>(this);
-	if (stricmp(vname, ret->colName()) != 0)
-	    ret = 0;
-	return ret;
-    }
-    else if (type == LOGICAL_AND) {
-	if (left)
-	    ret = left->findRange(vname);
-	if (ret == 0) {
-	    if (right)
-		ret = right->findRange(vname);
-	}
-	return ret;
-    }
-    else {
-	return ret;
-    }
-} // ibis::qExpr::findRange
