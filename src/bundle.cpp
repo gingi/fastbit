@@ -330,6 +330,15 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	bdlfile[0] = 0;
     }
     const ibis::selected& cmps = q.components();
+    if (cmps.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::bundle1 can not continue with an empty "
+	    "select clause";
+	throw "ibis::bundle1 can not work with empty select clauses";
+    }
+    LOGGER(cmps.size() != 1 && ibis::gVerbose > 0)
+	<< "Warning -- ibis::bundle1 will only use the 1st terms of "
+	<< cmps.size();
     ibis::column* c = tbl->getColumn(cmps[0]);
     if (c == 0) {
 	ibis::util::logMessage("Warning", "ibis::bundle1::ctor name %s "

@@ -144,8 +144,8 @@ protected:
     mutable bool infile; // is the current content in file?
 
     // Hides constructors from others.
-    bundle(const ibis::selected& c) : comps(c), starts(0), rids(0), id(""),
-				      infile(false) {};
+    bundle(const ibis::selected& c)
+	: comps(c), starts(0), rids(0), id(""), infile(false) {};
     // use ibis::query::getRIDs(const ibis::bitvector&) const to avoid the
     // read lock required by ibis::query::getRIDs() const.
     explicit bundle(const ibis::query& q)
@@ -249,7 +249,9 @@ public:
 private:
     ibis::colValues* col;
 
+    /// Sort all records.
     void sort();
+    /// Reverse the order of records.
     void reverse();
 
     bundle1();

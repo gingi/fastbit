@@ -2169,7 +2169,9 @@ ibis::part::accessHint(const ibis::bitvector& mask,
     return hint;
 } // ibis::part::accessHint
 
-// retrieve value for the qualified events
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<int32_t>* ibis::part::selectInts
 (const char* pname, const ibis::bitvector& mask) const {
     array_t<int32_t>* res = 0;
@@ -2210,6 +2212,9 @@ array_t<int32_t>* ibis::part::selectInts
     return res;
 } // ibis::part::selectInts
 
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<uint32_t>* ibis::part::selectUInts
 (const char* pname, const ibis::bitvector& mask) const {
     array_t<uint32_t>* res = 0;
@@ -2250,6 +2255,9 @@ array_t<uint32_t>* ibis::part::selectUInts
     return res;
 } // ibis::part::selectUInts
 
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<int64_t>* ibis::part::selectLongs
 (const char* pname, const ibis::bitvector& mask) const {
     array_t<int64_t>* res = 0;
@@ -2290,6 +2298,9 @@ array_t<int64_t>* ibis::part::selectLongs
     return res;
 } // ibis::part::selectLongs
 
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<float>* ibis::part::selectFloats
 (const char* pname, const ibis::bitvector& mask) const {
     array_t<float>* res = 0;
@@ -2330,6 +2341,9 @@ array_t<float>* ibis::part::selectFloats
     return res;
 } // ibis::part::selectFloats
 
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<double>* ibis::part::selectDoubles
 (const char* pname, const ibis::bitvector& mask) const {
     array_t<double>* res = 0;
@@ -4431,6 +4445,90 @@ long ibis::part::doScan(const ibis::compRange& cmp,
 	ierr = hits.cnt();
     return ierr;
 } // ibis::part::doScan
+
+long ibis::part::evaluate(const ibis::math::term& trm,
+			  const ibis::bitvector& msk,
+			  array_t<double>& res) const {
+    if (columns.empty() || nEvents == 0 || msk.size() == 0 || msk.cnt() == 0)
+	return 0;
+
+    ibis::part::barrel vlist(this);
+    vlist.recordVariable(&trm);
+    res.reserve(msk.cnt());
+    if (vlist.size() == 0) { // a constant expression
+	res.resize(msk.cnt());
+	const double val = trm.eval();
+	for (unsigned i = 0; i < msk.cnt(); ++ i)
+	    res[i] = val;
+	return msk.cnt();
+    }
+    if (trm.termType() == ibis::math::VARIABLE) { // a single variable
+	const ibis::math::variable& var =
+	    static_cast<const ibis::math::variable&>(trm);
+	array_t<double> *tmp = selectDoubles(var.variableName(), msk);
+	if (tmp != 0) {
+	    res.swap(*tmp);
+	    delete tmp;
+	    return res.size();
+	}
+	else {
+	    return -1;
+	}
+    }
+
+    long ierr = 0;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1) {
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::part[" << m_name
+	    << "]::evaluate - starting to evaluate \"" << trm
+	    << "\" with mask (" << msk.cnt() << " out of "
+	    << msk.size() << ")";
+	timer.start();
+    }
+
+    // open all necessary files
+    vlist.open();
+    // feed the values into vlist and evaluate the arithmetic expression
+    ibis::bitvector::indexSet idx = msk.firstIndexSet();
+    const ibis::bitvector::word_t *iix = idx.indices();
+    while (idx.nIndices() > 0) {
+	if (idx.isRange()) {
+	    // move the file pointers of open files
+	    vlist.seek(*iix);
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.read();
+		res.push_back(trm.eval());
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+	else {
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.seek(iix[j]);
+		vlist.read();
+		res.push_back(trm.eval());
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+
+	++ idx;
+    } // while (idx.nIndices() > 0)
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg(1);
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+		    << "]::evaluate -- evaluating " << trm << " on "
+		    << msk.cnt() << " records (total: " << nEvents
+		    << ") took " << timer.realTime()
+		    << " sec elapsed time and produced " << res.size()
+		    << " value" << (res.size() > 1 ? "s" : "");
+#if defined(DEBUG) && DEBUG + 0 > 1
+	lg.buffer() << "\nmask\n" << msk << "\nhit vector\n" << hits;
+#endif
+    }
+    if (ierr >= 0)
+	ierr = res.size();
+    return ierr;
+} // ibis::part::evaluate
 
 long ibis::part::matchAny(const ibis::qAnyAny& cmp,
 			  ibis::bitvector& hits) const {

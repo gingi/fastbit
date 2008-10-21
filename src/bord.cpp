@@ -1060,7 +1060,8 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     // create bundle
     ibis::bundle *bdl = ibis::bundle::create(*this, sel, buf);
     if (bdl == 0) {
-	LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::groupby -- failed to create "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::bord::part::groupby -- failed to create "
 	    "bundle for \"" << *sel << "\" from in-memory data";
 
 	return 0;

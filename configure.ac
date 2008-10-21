@@ -27,7 +27,7 @@ AC_CHECK_LIB([rt], [clock_gettime])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h float.h libintl.h limits.h stdlib.h string.h strings.h sys/param.h sys/time.h unistd.h values.h])
+AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h strings.h sys/time.h unistd.h values.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -210,6 +210,33 @@ AC_LANG_RESTORE
 #end AC_DEFUN MY_CHECK_PTHREAD
 MY_CHECK_PTHREAD(, [AC_MSG_ERROR(FastBit requires pthread support)])
 
+#AC_MSG_CHECKING(whether to enable debugging)
+AC_ARG_ENABLE(debug,
+              [AC_HELP_STRING([--enable-debug],
+	       [turn on debugging [default: disable]])],
+	      [enable_debug="yes"], [enable_debug="no"])
+AC_ARG_ENABLE(xopt,
+	      [AC_HELP_STRING([--enable-xopt],
+	       [turn on extra optimization [default: disable]])],
+	      [enable_xopt="yes"], [enable_xopt="no"])
+if test "x$enable_debug" = "xyes"; then
+if test "x$enable_xopt" = "xyes"; then
+OPT="-g -O2"
+else
+OPT="-g -O0"
+fi
+#AC_MSG_RESULT(yes)
+else
+if test "x$enable_xopt" = "xyes"; then
+OPT="-O5"
+else
+OPT="-O"
+fi
+#AC_MSG_RESULT(no)
+fi
+CFLAGS="$OPT $PTHREAD_CFLAGS"
+CXXFLAGS="$OPT $PTHREAD_CFLAGS"
+
 #
 AC_DEFUN([AC_PROG_JAVA_WORKS], [
 AC_CHECK_PROG(uudecode, uudecode$EXEEXT, yes)
@@ -362,6 +389,7 @@ if test ! "x$JAVA_HOME" = "x"
 then
   JAVAPREFIX="${JAVA_HOME}/bin"
   CFLAGS="${CFLAGS} -I${JAVAHOME}/include/ -I${JAVAHOME}/include/${build_os}"
+  CXXFLAGS="${CXXFLAGS} -I${JAVAHOME}/include/ -I${JAVAHOME}/include/${build_os}"
 fi
 AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
 
@@ -375,32 +403,9 @@ AM_CONDITIONAL(BUILD_JAVA_TEST, test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_java
 AM_CONDITIONAL(BUILD_JAVA_INTERFACE, test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes")
 AC_SUBST(BUILD_JAVA_INTERFACE)
 
-#AC_MSG_CHECKING(whether to enable debugging)
-AC_ARG_ENABLE(debug,
-              [AC_HELP_STRING([--enable-debug],
-	       [turn on debugging [default: disable]])],
-	      [enable_debug="yes"], [enable_debug="no"])
-AC_ARG_ENABLE(xopt,
-	      [AC_HELP_STRING([--enable-xopt],
-	       [turn on extra optimization [default: disable]])],
-	      [enable_xopt="yes"], [enable_xopt="no"])
-if test "x$enable_debug" = "xyes"; then
-if test "x$enable_xopt" = "xyes"; then
-OPT="-g -O2"
-else
-OPT="-g -O0"
-fi
-#AC_MSG_RESULT(yes)
-else
-if test "x$enable_xopt" = "xyes"; then
-OPT="-O5"
-else
-OPT="-O"
-fi
-#AC_MSG_RESULT(no)
-fi
-CFLAGS="$OPT $PTHREAD_CFLAGS"
-CXXFLAGS="$OPT $PTHREAD_CFLAGS"
+# make sure FlexLexer.h is accessible
+AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win", CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
+
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(LIB_VERSION_INFO)

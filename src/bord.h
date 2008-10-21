@@ -9,8 +9,8 @@
 #include "part.h"	// ibis::part
 
 ///@file
-/// Defines ibis::bord.  This is an in-memory table, which a single data
-/// partition completely residing in memory.
+/// Defines ibis::bord.  This is an in-memory data table, with a single
+/// data partition completely residing in memory.
 namespace ibis {
     class bord;
 } // namespace ibis
@@ -19,7 +19,7 @@ namespace ibis {
 /// ibis::table::select produces an ibis::bord object if the query
 /// produce nontrivial results.
 ///
-/// @note Bord is the Danish word for "table."
+/// @note Bord is a Danish word for "table."
 class ibis::bord : public ibis::table {
 public:
     typedef std::vector<void *> bufferList;
@@ -93,6 +93,7 @@ public:
 
 protected:
     class column;
+    /// An in-memory data partition.
     class part : virtual public ibis::part {
     public:
 	part(const char *tn, const char *td, uint64_t nr,
@@ -128,7 +129,8 @@ protected:
 	long reorderStrings(std::vector<std::string>& vals,
 			    const array_t<uint32_t>& ind) const;
     }; // ibis::bord::part
-    part mypart;
+
+    part mypart; ///< The data partition for an in-memory table.
 
     /// Clear the existing content.
     void clear();
@@ -143,8 +145,15 @@ private:
     friend class cursor;
 }; // ibis::bord
 
-/// An in-memory version of ibis::column.  The void* points to an array<T>
-/// object where the type T is designated by column type.
+/// An in-memory version of ibis::column.  For integers and floating-point
+/// values, the buffer (with type void*) points to an array<T> where the
+/// type T is designated by the column type.  For a string-valued column,
+/// the buffer (with type void*) is std::vector<std::string>*.
+///
+/// @note Since the in-memory data tables are typically created at run-time
+/// through select operations, the data types associated with a column is
+/// only known at run-time.  This is a ugly option available in a compiled
+/// C++ program.  The developers welcome suggestions for a better option.
 class ibis::bord::column : virtual public ibis::column {
 public:
     column(const ibis::bord::part* tbl, ibis::TYPE_T t,

@@ -255,17 +255,24 @@ public:
 			 ibis::bitvector64& result) const;
     /******************************************************************/
 
-    // retrieve value for the qualified rows
+    /// Retrieve values of the name column as 32-bit integers.
     array_t<int32_t>*  selectInts(const char* name,
 				  const ibis::bitvector& mask) const;
+    /// Retrieve values of the name column as 32-bit unsigned integers.
     array_t<uint32_t>* selectUInts(const char* name,
 				   const ibis::bitvector& mask) const;
+    /// Retrieve values of the name column as 64-bit integers.
     array_t<int64_t>*  selectLongs(const char* name,
 				   const ibis::bitvector& mask) const;
+    /// Retrieve values of the name column as 32-bit floating-point values.
     array_t<float>*   selectFloats(const char* name,
 				   const ibis::bitvector& mask) const;
+    /// Retrieve values of the name column as 64-bit floating-point values.
     array_t<double>* selectDoubles(const char* name,
 				   const ibis::bitvector& mask) const;
+    /// Evaluate the arithematic expression.
+    long evaluate(const ibis::math::term&, const ibis::bitvector&,
+		  array_t<double>&) const;
 
     /******************************************************************/
     // A group of functions added August, 2005 to provide summary

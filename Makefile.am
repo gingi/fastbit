@@ -4,7 +4,8 @@ windir = $(prefix)/share/win
 javadir = $(prefix)/share/java
 dist_win_DATA = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
-	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj
+	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
+	win/FlexLexer.h
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html

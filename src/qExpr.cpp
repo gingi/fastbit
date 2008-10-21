@@ -6,6 +6,7 @@
 // implement the functions defined in qExpr.h
 //
 #include "util.h"
+#include "part.h"
 #include "qExpr.h"
 
 #ifdef sun
@@ -1409,7 +1410,7 @@ void ibis::qString::print(std::ostream& out) const {
 	out << "NULL";
 }
 
-/// Record variables from a @c term recursively.
+/// Record all variables in @c term recursively.
 void
 ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
     if (t != 0) {

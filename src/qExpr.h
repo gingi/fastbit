@@ -554,7 +554,7 @@ namespace ibis {
 	    const literal& operator=(const literal&);
 	}; // literal
 
-	// An operator.  Bediener is German for operator.
+	/// An operator.  Bediener is German for operator.
 	class bediener : public term {
 	public:
 	    bediener(ibis::math::OPERADOR op) : operador(op) {};
