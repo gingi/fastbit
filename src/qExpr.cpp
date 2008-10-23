@@ -28,7 +28,7 @@
 
 // the names of the operators used in ibis::compRange
 char* ibis::math::operator_name[] =
-    {"?", "|", "&", "+", "-", "*", "/", "-", "**"};
+    {"?", "|", "&", "+", "-", "*", "/", "%", "-", "**"};
 char* ibis::math::stdfun1_name[] =
     {"acos", "asin", "atan", "ceil", "cos", "cosh", "exp", "fabs",
      "floor", "frexp", "log10", "log", "modf", "sin", "sinh", "sqrt",

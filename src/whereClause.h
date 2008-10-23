@@ -117,17 +117,9 @@ public:
     const ibis::qExpr* getExpr(void) const {return expr_;}
     ibis::qExpr* getExpr(void) {return expr_;}
     /// Simplify the query expression.
-    void simplify();
+    void simplify() {ibis::qExpr::simplify(expr_);}
     /// Verify the names exist in the data partition p0.
-    int verify(const ibis::part& p0) {
-	if (expr_ != 0) {
-	    amplify(p0);
-	    return _verify(p0, expr_);
-	}
-	else {
-	    return 0;
-	}
-    }
+    int verify(const ibis::part& p0);
 
     /// Member access operator redefined to point to ibis::qExpr.
     ibis::qExpr* operator->() {return expr_;}

@@ -1115,8 +1115,8 @@ ibis::util::timer::~timer() {
     if (chrono_ != 0) {
 	chrono_->stop();
 	ibis::util::logger(2).buffer()
-	    << mesg_ << " -- stop timer: " << chrono_->CPUTime()
-	    << " sec CPU time, " << chrono_->realTime() << " sec elapsed time";
+	    << mesg_ << " -- stop timer ... duration: " << chrono_->CPUTime()
+	    << " sec(CPU), " << chrono_->realTime() << " sec(elapsed)";
 	delete chrono_;
     }
 } // ibis::util::timer::~timer

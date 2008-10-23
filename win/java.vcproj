@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;;."
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\SWTools\Java\jdk1.6.0_07\include;C:\SWTools\Java\jdk1.6.0_07\include\win32;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;C:\SWTools\Java\jdk1.6.0_07\include;&quot;C:\SWTools\Java\jdk1.6.0_07\include\win32&quot;;."
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\SWTools\Java\jdk1.6.0_07\include;C:\SWTools\Java\jdk1.6.0_07\include\win32;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -390,6 +390,9 @@
 				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
+			<File RelativePath="..\src\selectClause.cpp"></File>
+			<File RelativePath="..\src\selectLexer.cc"></File>
+			<File RelativePath="..\src\selectParser.cc"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -536,6 +539,9 @@
 				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
+			<File RelativePath="..\src\selectClause.h"></File>
+			<File RelativePath="..\src\selectLexer.h"></File>
+			<File RelativePath="..\src\selectParser.hh"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

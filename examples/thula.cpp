@@ -37,11 +37,11 @@ static void usage(const char* name) {
 	"be used in turn.\n"
 	      << "\nNote: data in all directories specified by -c and -d "
 	"options are considered as one table!"
-	      << "\nNote: only the last select clause is used; a select "
-	"clause can only contain a list of column names."
-	      << "\nNote: only the last from clause is used; a from clause "
-	"specifies what data partitions participate in the query.  It may "
-	"contain '_' and '%'."
+	      << "\nNote: when multiple select clauses are specified, only "
+	"the last one is used."
+	      << "\nNote: a from clause specifies what data partitions "
+	"participate in the query.  It may contain wild characters '_' and '%'."
+	"  When multiple from clauses are specified, only the last one is used."
 	      << std::endl;
 } // usage
 
@@ -275,11 +275,11 @@ static void dumpIth(size_t i, ibis::TYPE_T t, void* buf) {
 	break;}
     case ibis::FLOAT: {
 	const float* tmp = static_cast<const float*>(buf);
-	std::cout << std::setprecision(8) << tmp[i];
+	std::cout << std::setprecision(7) << tmp[i];
 	break;}
     case ibis::DOUBLE: {
 	const double* tmp = static_cast<const double*>(buf);
-	std::cout << std::setprecision(18) << tmp[i];
+	std::cout << std::setprecision(15) << tmp[i];
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {
@@ -552,18 +552,17 @@ static void printValues(const ibis::table& tbl) {
 void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	     const char* fstr) {
     if (wstr == 0 || *wstr == 0) return;
-    if (sstr != 0 && *sstr != 0 && strchr(sstr, '(') != 0) {
-	std::cerr << "doQuery(" << wstr << ", " << sstr
-		  << ") -- can not process select clause with functions\n"
-		  << std::endl;
-	return;
-    }
+
+    std::string mesg;
+    mesg = "doQuery(";
+    mesg += wstr;
+    mesg += ')';
+    ibis::util::timer atimer(mesg.c_str(), 1);
 
     uint64_t n0, n1;
     if (ibis::gVerbose > 1 && fstr == 0) {
 	tbl.estimate(wstr, n0, n1);
-	std::cout << "doQuery(" << wstr
-		  << ") -- the estimated number of hits on "
+	std::cout << mesg << " -- the estimated number of hits on "
 		  << tbl.name() << " is ";
 	if (n1 > n0)
 	    std::cout << "between " << n0 << " and " << n1 << "\n";
@@ -582,31 +581,31 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    sel = mns->select2(sstr, wstr, fstr);
 	}
 	else {
-	    std::cout << "Warning -- doQuery(" << wstr << " can not cast an "
+	    std::cout << "Warning -- " << mesg << " can not cast an "
 		"abstract ibis::table to the necessary concrete class.  "
 		"Will ignore the from clause " << fstr << std::endl;
 	    sel = tbl.select(sstr, wstr);
 	}
     }
     if (sel == 0) {
-	std::cout << "doQuery(" << wstr << ") failed to produce any result"
+	std::cout << mesg << " failed to produce any result"
 		  << std::endl;
 	return;
     }
 
     n0 = sel->nRows();
     n1 = tbl.nRows();
-    std::cout << "doQuery(" << wstr << ") evaluated on " << tbl.name()
+    std::cout << mesg << " evaluated on " << tbl.name()
 	      << " produced " << n0 << " hit" << (n0>1 ? "s" : "")
 	      << " out of " << n1 << " record" << (n1>1 ? "s" : "")
 	      << "\n";
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 0 || (xfile.is_open() && xfile.good())) {
 	std::cout << "-- begin printing the result table --\n";
 	sel->describe(std::cout); // ask the table to describe itself
 
-	if (ibis::gVerbose > 0 && n0 > 0 && sel->nColumns() > 0) {
+	if (n0 > 0 && sel->nColumns() > 0) {
 	    sel->orderby(sstr);
-	    if (xfile)
+	    if (xfile.is_open() && xfile.good())
 		sel->dump(xfile);
 	    else if (ibis::gVerbose > 2)
 		sel->dump(std::cout);
@@ -618,7 +617,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
     std::cout << std::endl;
 
     // test the function groupby on the table sel
-    if (sel->nColumns() > 0 && ibis::gVerbose > 0) {
+    if (sel->nColumns() > 0 && ibis::gVerbose > 0 && sstr != 0 && *sstr != 0
+	&& strchr(sstr, '(') == 0) {
 	std::cout << "\n-- *** extra test for function groupby *** --\n";
 	ibis::table* gb = 0;
 	ibis::nameList nl(sstr);
@@ -674,7 +674,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    gb->describe(std::cout);
 
 	    if (gb->nRows() > 0 && gb->nColumns() > 0) {
-		if (xfile)
+		if (xfile.is_open() && xfile.good())
 		    gb->dump(xfile);
 		else if (ibis::gVerbose > 2)
 		    gb->dump(std::cout);
@@ -701,7 +701,7 @@ int main(int argc, char** argv) {
 		  << std::endl;
 	exit(-1);
     }
-    if (qcnd.empty() && xfile) {
+    if (qcnd.empty() && xfile.is_open() && xfile.good()) {
 	int ierr = tbl->dump(xfile);
 	if (ibis::gVerbose >= 0) {
 	    if (ierr != 0)

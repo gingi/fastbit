@@ -545,7 +545,7 @@ void ibis::roster::icSort(const char* fin) {
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	col->logMessage("roster::icSort", "in-core sorting of %lu numbers "
-			"from %s took %g sec(CPU) and %g sec(elapsed)",
+			"from %s took %g sec(CPU), %g sec(elapsed)",
 			static_cast<long unsigned>(ind.size()), fnm.c_str(),
 			timer.CPUTime(), timer.realTime());
     }
@@ -790,7 +790,7 @@ void ibis::roster::oocSort(const char *fin) {
     else if (ibis::gVerbose > 2) {
 	timer.stop();
 	col->logMessage("roster::oocSort", "out-of-core sorting (%s -> %s "
-			"(%s)) took %g sec(CPU) and %g sec(elapsed)",
+			"(%s)) took %g sec(CPU), %g sec(elapsed)",
 			datafile.c_str(), nsrt.c_str(), nind.c_str(),
 			timer.CPUTime(), timer.realTime());
     }

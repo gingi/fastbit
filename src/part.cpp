@@ -1742,7 +1742,7 @@ void ibis::part::sortRIDs() const {
     UnixClose(fdes);
     timer.stop();
     if (ibis::gVerbose > 4)
-	logMessage("sortRIDs", "sorting %lu RIDs took  %g sec(CPU) %g "
+	logMessage("sortRIDs", "sorting %lu RIDs took  %g sec(CPU), %g "
 		   "sec(elapsed); result written to %s",
 		   static_cast<long unsigned>(rmap.size()),
 		   timer.CPUTime(), timer.realTime(), name);
@@ -4446,9 +4446,9 @@ long ibis::part::doScan(const ibis::compRange& cmp,
     return ierr;
 } // ibis::part::doScan
 
-long ibis::part::evaluate(const ibis::math::term& trm,
-			  const ibis::bitvector& msk,
-			  array_t<double>& res) const {
+long ibis::part::calculate(const ibis::math::term& trm,
+			   const ibis::bitvector& msk,
+			   array_t<double>& res) const {
     if (columns.empty() || nEvents == 0 || msk.size() == 0 || msk.cnt() == 0)
 	return 0;
 
@@ -4481,7 +4481,7 @@ long ibis::part::evaluate(const ibis::math::term& trm,
     if (ibis::gVerbose > 1) {
 	LOGGER(ibis::gVerbose >= 3)
 	    << "ibis::part[" << m_name
-	    << "]::evaluate - starting to evaluate \"" << trm
+	    << "]::calculate - starting to evaluate \"" << trm
 	    << "\" with mask (" << msk.cnt() << " out of "
 	    << msk.size() << ")";
 	timer.start();
@@ -4516,7 +4516,7 @@ long ibis::part::evaluate(const ibis::math::term& trm,
 	timer.stop();
 	ibis::util::logger lg(1);
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::evaluate -- evaluating " << trm << " on "
+		    << "]::calculate -- evaluating " << trm << " on "
 		    << msk.cnt() << " records (total: " << nEvents
 		    << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << res.size()
@@ -4528,7 +4528,7 @@ long ibis::part::evaluate(const ibis::math::term& trm,
     if (ierr >= 0)
 	ierr = res.size();
     return ierr;
-} // ibis::part::evaluate
+} // ibis::part::calculate
 
 long ibis::part::matchAny(const ibis::qAnyAny& cmp,
 			  ibis::bitvector& hits) const {
@@ -5008,8 +5008,8 @@ long ibis::part::selfTest(int nth, const char* pref) const {
     }
     else if (ibis::gVerbose > 1) {
 	timer.stop();
-	logMessage("selfTest", "completed successfully using %g sec(CPU) "
-		   "and %g sec(elapsed)", timer.CPUTime(),
+	logMessage("selfTest", "completed successfully using %g sec(CPU), "
+		   "%g sec(elapsed)", timer.CPUTime(),
 		   timer.realTime());
     }
 
@@ -5110,7 +5110,7 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
     recursiveQuery(pref, (*it).second, lower, upper, nerrors);
     if (ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("queryTest", "tests on %s took %g sec(CPU) and %g "
+	logMessage("queryTest", "tests on %s took %g sec(CPU), %g "
 		   "sec(elapsed)", (*it).first, timer.CPUTime(),
 		   timer.realTime());
     }
@@ -5436,7 +5436,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	delete rid1;
 	if (ibis::gVerbose > 1) {
 	    timer.stop();
-	    logMessage("quickTest", "tests on %s took %g sec(CPU) and %g "
+	    logMessage("quickTest", "tests on %s took %g sec(CPU), %g "
 		       "sec(elapsed)", att->name(), timer.CPUTime(),
 		       timer.realTime());
 	}
@@ -5542,7 +5542,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 
     if (ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("quickTest", "tests on %s took %g sec(CPU) and %g "
+	logMessage("quickTest", "tests on %s took %g sec(CPU), %g "
 		   "sec(elapsed)", att->name(), timer.CPUTime(),
 		   timer.realTime());
     }
@@ -5613,8 +5613,9 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    }
 	    else if (seqhits.cnt() != cnt0) {
 		++(*nerrors);
-		logWarning("queryTest", "sequential scan on \"%s\" produced "
-			   "%lu, but evaluate produced %lu", predicate,
+		logWarning("queryTest", "a sequential scan on \"%s\" produced "
+			   "%lu, but the function evaluate produced %lu",
+			   predicate,
 			   static_cast<long unsigned>(seqhits.cnt()),
 			   static_cast<long unsigned>(cnt0));
 	    }
@@ -8553,7 +8554,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get1DDistribution", "computing the distribution of column "
-		   "%s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
 		   cname, (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
 		   timer.CPUTime(), timer.realTime());
@@ -9069,7 +9070,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get2DDistribution", "computing the joint distribution of "
-		   "column %s and %s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   "column %s and %s%s%s took %g sec(CPU), %g sec(elapsed)",
 		   cname1, cname2, (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
 		   timer.CPUTime(), timer.realTime());
@@ -11391,7 +11392,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get3DDistribution", "computing the joint distribution of "
-		   "columns %s, %s, and %s%s%s took %g sec(CPU) and %g "
+		   "columns %s, %s, and %s%s%s took %g sec(CPU), %g "
 		   "sec(elapsed)", cname1, cname2, cname2,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
@@ -11868,12 +11869,13 @@ long ibis::part::get1DDistribution(const char* constraints,
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg(1);
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "") << "]::get1DDistribution "
-	    "computed histogram of column " << cname;
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "")
+		    << "]::get1DDistribution computed histogram of column "
+		    << cname;
 	if (constraints != 0 && *constraints != 0)
 	    lg.buffer() << " subject to " << constraints;
-	lg.buffer() << " in " << timer.CPUTime() << " sec(CPU) and " << timer.realTime()
-		    << " sec(elapsed)";
+	lg.buffer() << " in " << timer.CPUTime() << " sec(CPU), "
+		    << timer.realTime() << " sec(elapsed)";
     }
  
     return counts.size();
@@ -12661,7 +12663,7 @@ long ibis::part::get2DDistributionA(const ibis::column& col1,
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
 	    << (counts.size() > 1 ? "s" : "") << " using " << timer.CPUTime()
-	    << " sec (CPU) and " << timer.realTime() << " sec (elapsed)";
+	    << " sec (CPU), " << timer.realTime() << " sec (elapsed)";
     }
     return ierr;
 } // ibis::part::get2DDistributionA
@@ -13194,7 +13196,7 @@ long ibis::part::get2DDistributionU(const ibis::column& col1,
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
 	    << (counts.size() > 1 ? "s" : "") << " using " << timer.CPUTime()
-	    << " sec (CPU) and " << timer.realTime() << " sec (elapsed)";
+	    << " sec (CPU), " << timer.realTime() << " sec (elapsed)";
     }
     return ierr;
 } // ibis::part::get2DDistributionU
@@ -13491,7 +13493,7 @@ long ibis::part::get2DDistributionI(const ibis::column& col1,
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
 	    << (counts.size() > 1 ? "s" : "") << " using " << timer.CPUTime()
-	    << " sec (CPU) and " << timer.realTime() << " sec (elapsed)";
+	    << " sec (CPU), " << timer.realTime() << " sec (elapsed)";
     }
     return counts.size();
 } // ibis::part::get2DDistributionI
@@ -13942,7 +13944,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	timer.stop();
 	logMessage("get2DDistribution",
 		   "computing the joint distribution of column %s and "
-		   "%s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
 		   (*it1).first, (*it2).first,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
@@ -14399,7 +14401,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	timer.stop();
 	logMessage("old2DDistribution",
 		   "computing the joint distribution of column %s and "
-		   "%s%s%s took %g sec(CPU) and %g sec(elapsed)",
+		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
 		   (*it1).first, (*it2).first,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
@@ -14449,7 +14451,7 @@ void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
 	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2
-	    << ") spent " << timer.CPUTime() << " sec(CPU) and "
+	    << ") spent " << timer.CPUTime() << " sec(CPU), "
 	    << timer.realTime() << " sec(elapsed) to determine bin boundaries";
 	timer.start();
     }
@@ -14471,7 +14473,7 @@ void ibis::part::mapValues(array_t<E1>& val1, array_t<E2>& val2,
 	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2
-	    << ") spent " << timer.CPUTime() << " sec(CPU) and "
+	    << ") spent " << timer.CPUTime() << " sec(CPU), "
 	    << timer.realTime() << " sec(elapsed) to count the number "
 	    "of values in each bin";
     }
@@ -14635,7 +14637,7 @@ ibis::part::getDistribution(const char *constraints,
 	    timer.stop();
 	    logMessage("getDistribution",
 		       "computing the distribution of column %s took %g "
-		       "sec(CPU) and %g sec(elapsed)",
+		       "sec(CPU), %g sec(elapsed)",
 		       (*it).first, timer.CPUTime(), timer.realTime());
 	}
 	return ierr;
@@ -14843,7 +14845,7 @@ ibis::part::getDistribution(const char *constraints,
 	logMessage("getDistribution",
 		   "computing the distribution of "
 		   "column %s with restriction \"%s\" took %g "
-		   "sec(CPU) and %g sec(elapsed)", (*it).first,
+		   "sec(CPU), %g sec(elapsed)", (*it).first,
 		   constraints, timer.CPUTime(), timer.realTime());
     }
     if (ierr < 0)
@@ -14987,7 +14989,7 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	    timer.stop();
 	    logMessage("getCumulativeDistribution",
 		       "computing the distribution of column %s took %g "
-		       "sec(CPU) and %g sec(elapsed)",
+		       "sec(CPU), %g sec(elapsed)",
 		       (*it).first, timer.CPUTime(), timer.realTime());
 	}
     }
@@ -15114,7 +15116,7 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	    logMessage("getCumulativeDistribution",
 		       "computing the distribution of "
 		       "column %s with restriction \"%s\" took %g "
-		       "sec(CPU) and %g sec(elapsed)", (*it).first,
+		       "sec(CPU), %g sec(elapsed)", (*it).first,
 		       constraints, timer.CPUTime(), timer.realTime());
 	}
     }
@@ -15696,7 +15698,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	logMessage("getJointDistribution",
 		   "computing the joint distribution of "
 		   "column %s and %s%s%s took %g "
-		   "sec(CPU) and %g sec(elapsed)",
+		   "sec(CPU), %g sec(elapsed)",
 		   (*it1).first, (*it2).first,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
@@ -16042,12 +16044,64 @@ long ibis::part::barrel::read() {
     long ierr = 0;
     for (uint32_t i = 0; i < size(); ++ i) {
 	switch (cols[i]->type()) {
+	case ibis::UBYTE: { // unsigned char
+	    unsigned char utmp;
+	    if (stores[i]) {
+		utmp = *(reinterpret_cast<unsigned char*>
+			 (stores[i]->begin() +
+			  sizeof(utmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(utmp) !=
+			UnixRead(fdes[i], &utmp, sizeof(utmp)));
+	    }
+	    value(i) = utmp;
+	    break;}
+	case ibis::BYTE: { // signed char
+	    char itmp;
+	    if (stores[i]) {
+		itmp = *(reinterpret_cast<char*>
+			 (stores[i]->begin() +
+			  sizeof(itmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(itmp) !=
+			UnixRead(fdes[i], &itmp, sizeof(itmp)));
+	    }
+	    value(i) = itmp;
+	    break;}
+	case ibis::USHORT: { // unsigned short
+	    uint16_t utmp;
+	    if (stores[i]) {
+		utmp = *(reinterpret_cast<uint16_t*>
+			 (stores[i]->begin() +
+			  sizeof(utmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(utmp) !=
+			UnixRead(fdes[i], &utmp, sizeof(utmp)));
+	    }
+	    value(i) = utmp;
+	    break;}
+	case ibis::SHORT: { // signed short integer
+	    int16_t itmp;
+	    if (stores[i]) {
+		itmp = *(reinterpret_cast<int16_t*>
+			 (stores[i]->begin() +
+			  sizeof(itmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(itmp) !=
+			UnixRead(fdes[i], &itmp, sizeof(itmp)));
+	    }
+	    value(i) = itmp;
+	    break;}
 	case ibis::CATEGORY:
 	case ibis::UINT:
 	case ibis::TEXT: { // unsigned integer
-	    unsigned utmp;
+	    uint32_t utmp;
 	    if (stores[i]) {
-		utmp = *(reinterpret_cast<unsigned*>
+		utmp = *(reinterpret_cast<uint32_t*>
 			 (stores[i]->begin() +
 			  sizeof(utmp) * position));
 	    }
@@ -16058,9 +16112,35 @@ long ibis::part::barrel::read() {
 	    value(i) = utmp;
 	    break;}
 	case ibis::INT: { // signed integer
-	    int itmp;
+	    int32_t itmp;
 	    if (stores[i]) {
-		itmp = *(reinterpret_cast<int*>
+		itmp = *(reinterpret_cast<int32_t*>
+			 (stores[i]->begin() +
+			  sizeof(itmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(itmp) !=
+			UnixRead(fdes[i], &itmp, sizeof(itmp)));
+	    }
+	    value(i) = itmp;
+	    break;}
+	case ibis::ULONG: { // unsigned long integer
+	    uint64_t utmp;
+	    if (stores[i]) {
+		utmp = *(reinterpret_cast<uint64_t*>
+			 (stores[i]->begin() +
+			  sizeof(utmp) * position));
+	    }
+	    else {
+		ierr = (sizeof(utmp) !=
+			UnixRead(fdes[i], &utmp, sizeof(utmp)));
+	    }
+	    value(i) = utmp;
+	    break;}
+	case ibis::LONG: { // signed long integer
+	    int64_t itmp;
+	    if (stores[i]) {
+		itmp = *(reinterpret_cast<int64_t*>
 			 (stores[i]->begin() +
 			  sizeof(itmp) * position));
 	    }

@@ -1,5 +1,5 @@
 
-2D-Joint distribution of a and b from table tmp subject to the condition c>50, # bins 625 on 25 x 25 cells
+2D-Joint distribution of a and b from table t1 subject to the condition c>50, # bins 625 on 25 x 25 cells
 0	[0, 1.92) [0, 1.92)	4
 26	[1.92, 3.84) [1.92, 3.84)	4
 52	[3.84, 5.76) [3.84, 5.76)	4
@@ -25,5 +25,5 @@
 572	[43.2, 45.12) [43.2, 45.12)	4
 598	[45.12, 47.04) [45.12, 47.04)	4
 624	[47.04, 48) [47.04, 48)	2
-  Number of occupied cells = 25, total count = 98, number of rows in tmp = 200
+  Number of occupied cells = 25, total count = 98, number of rows in t1 = 200
 

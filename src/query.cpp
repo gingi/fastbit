@@ -4,8 +4,8 @@
 // Copyright 2000-2008 the Regents of the University of California
 //
 //  The implementation of class query.  It performs most of the query
-//  processing functions, calls the table object form the actual estimation
-//  work.
+//  processing functions, calls the data partition object for the actual
+//  estimation work.
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -13,7 +13,7 @@
 #include "query.h"	// class query (prototypes for all functions here)
 #include "bundle.h"	// class bundle
 #include "ibin.h"	// ibis::bin
-#include "iroster.h"	// ibis::roster, used by ibis::table::vault
+#include "iroster.h"	// ibis::roster, used by ibis::part::vault
 #include "irelic.h"	// ibis::join::estimate
 #include "bitvector64.h"
 
@@ -242,7 +242,7 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
 
 /// Integer error code:
 ///  0: successful completion of the requested operation.
-/// -1: nil pointer to table or empty table.
+/// -1: nil pointer to data partition or empty partition.
 /// -2: invalid string for select clause.
 /// -3: select clause contains invalid column name.
 /// -4: invalid string for where clause.
@@ -253,12 +253,12 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
 /// -9: encountered some exceptional conditions during query evaluations.
 /// -10: no private directory to store bundles.
 /// -11: Query not fully evaluated.
-int ibis::query::setTable(const part* tbl) {
+int ibis::query::setPartition(const part* tbl) {
     if (tbl == 0) return -1;
-    if (tbl == table0) return 0;
+    if (tbl == mypart) return 0;
     if (tbl->nRows() == 0 || tbl->nColumns() == 0) return -1;
 
-    writeLock control(this, "setTable");
+    writeLock control(this, "setPartition");
     if (dslock != 0) { // release the read lock on the data partition
 	delete dslock;
 	dslock = 0;
@@ -280,17 +280,17 @@ int ibis::query::setTable(const part* tbl) {
 	removeFiles();
     }
 
-    table0 = tbl;
+    mypart = tbl;
     std::vector<size_t> badnames;
     for (size_t i = 0; i < comps.size(); ++i) {
-	if (0 == table0->getColumn(comps[i])) {
+	if (0 == mypart->getColumn(comps[i])) {
 	    badnames.push_back(i);
-	    logWarning("setTable", "table %s does not contain a "
-		       "column named %s", table0->name(), comps[i]);
+	    logWarning("setPartition", "partition %s does not contain a "
+		       "column named %s", mypart->name(), comps[i]);
 	}
     }
     if (!badnames.empty()) {
-	logWarning("setTable", "The select clause \"%s\" contains %lu "
+	logWarning("setPartition", "The select clause \"%s\" contains %lu "
 		   "invalid column name(s).  It will be removed",
 		   *comps, static_cast<long unsigned>(badnames.size()));
 	comps.remove(badnames);
@@ -300,9 +300,9 @@ int ibis::query::setTable(const part* tbl) {
 	state = UNINITIALIZED;
     }
     else {
-	int ierr = conds.verify(*table0);
+	int ierr = conds.verify(*mypart);
 	if (ierr != 0) {
-	    logWarning("setTable", "The WHERE clause \"%s\" contains "
+	    logWarning("setPartition", "The WHERE clause \"%s\" contains "
 		       "%d incorrect name(s). It will be removed",
 		       (conds.getString() ? conds.getString() :
 			"<long expression>"), ierr);
@@ -327,10 +327,10 @@ int ibis::query::setTable(const part* tbl) {
 	state = SET_PREDICATE;
     }
     if (ibis::gVerbose > 0) {
-	logMessage("setTable", "new dataset name %s", table0->name());
+	logMessage("setPartition", "new data patition name %s", mypart->name());
     }
     return 0;
-} // ibis::query::setTable
+} // ibis::query::setPartition
 
 int ibis::query::setSelectClause(const char* str) {
     writeLock control(this, "setSelectClause");
@@ -370,11 +370,11 @@ int ibis::query::setSelectClause(const char* str) {
 
     comps.select(str);
     std::vector<size_t> badnames;
-    for (size_t i = 0; table0 != 0 && i < comps.size(); ++i) {
-	if (0 == table0->getColumn(comps[i])) {
+    for (size_t i = 0; mypart != 0 && i < comps.size(); ++i) {
+	if (0 == mypart->getColumn(comps[i])) {
 	    badnames.push_back(i);
-	    logWarning("setSelectClause", "table %s does not contain a "
-		       "column named %s", table0->name(), comps[i]);
+	    logWarning("setSelectClause", "partition %s does not contain a "
+		       "column named %s", mypart->name(), comps[i]);
 	}
     }
     if (! badnames.empty())
@@ -424,8 +424,8 @@ int ibis::query::setWhereClause(const char* str) {
 		       "\"%s\"", str);
 	    return -5;
 	}
-	if (table0 != 0) {
-	    int ierr = tmp.verify(*table0);
+	if (mypart != 0) {
+	    int ierr = tmp.verify(*mypart);
 	    if (ierr != 0) {
 		logWarning("setWhereClause", "The WHERE clause \"%s\" contains "
 			   "%d incorrect name(s).  It will not be used.",
@@ -556,8 +556,8 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	}
 	expr->setRight(tmp);
     }
-    if (table0 != 0) {
-	int ierr = conds.verify(*table0);
+    if (mypart != 0) {
+	int ierr = conds.verify(*mypart);
 	if (ierr != 0) {
 	    logWarning("setWhereClause", "The WHERE clause specified in three "
 		       "arrays contain %d incorrect name(s).  "
@@ -613,8 +613,8 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 
     ibis::whereClause wc;
     wc.setExpr(qx);
-    if (table0 != 0) {
-	int ierr = wc.verify(*table0);
+    if (mypart != 0) {
+	int ierr = wc.verify(*mypart);
 	if (ierr != 0) {
 	    logWarning("setWhereClause", "The WHERE clause expressed in the "
 		       "qExpr object contains %d incorrect name(s).  Revert to "
@@ -701,7 +701,7 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
 // quick estimate returns two bitvectors pointed by hits and sup
 // where hits should contain no more set bits than that of sup
 int ibis::query::estimate() {
-    if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
     if (rids_in == 0 && conds.empty() && comps.empty()) {
 	// not ready for this yet
@@ -715,7 +715,7 @@ int ibis::query::estimate() {
     }
 
     double pcnt = ibis::fileManager::instance().pageCount();
-    if (dstime != 0 && dstime != table0->timestamp()) {
+    if (dstime != 0 && dstime != mypart->timestamp()) {
 	// clear the current results and prepare for re-evaluation
 	dstime = 0;
 	if (hits == sup) {
@@ -740,8 +740,8 @@ int ibis::query::estimate() {
 		timer.start();
 	    try {
 		if (dslock == 0) { // acquire read lock on the dataset
-		    dslock = new ibis::part::readLock(table0, myID);
-		    dstime = table0->timestamp();
+		    dslock = new ibis::part::readLock(mypart, myID);
+		    dstime = mypart->timestamp();
 		}
 
 #ifndef DONOT_REORDER_EXPRESSION
@@ -807,7 +807,7 @@ int ibis::query::estimate() {
 	    if (ibis::gVerbose > 0) {
 		timer.stop();
 		logMessage("estimate", "time to compute the bounds: "
-			   "%g sec(CPU) and %g sec(elapsed).", timer.CPUTime(),
+			   "%g sec(CPU), %g sec(elapsed).", timer.CPUTime(),
 			   timer.realTime());
 	    }
 	}
@@ -897,7 +897,7 @@ long ibis::query::getMaxNumHits() const {
 // the values of the columns specified in the select clause, and will write
 // the values to disk for later use.
 int ibis::query::evaluate(const bool evalSelect) {
-    if (table0 == 0 || table0->nRows() == 0 || table0->nColumns() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
     if (rids_in == 0 && conds.empty() && comps.empty()) {
 	if (ibis::gVerbose > 1)
@@ -915,8 +915,8 @@ int ibis::query::evaluate(const bool evalSelect) {
     double pcnt = ibis::fileManager::instance().pageCount();
     writeLock lck(this, "evaluate");
     if ((state < FULL_EVALUATE) ||
-	(dstime != 0 && dstime != table0->timestamp())) {
-	if (dstime != 0 && dstime != table0->timestamp()) {
+	(dstime != 0 && dstime != mypart->timestamp())) {
+	if (dstime != 0 && dstime != mypart->timestamp()) {
 	    // clear the current results and prepare for re-evaluation
 	    dstime = 0;
 	    if (hits == sup) {
@@ -936,9 +936,9 @@ int ibis::query::evaluate(const bool evalSelect) {
 	if (ibis::gVerbose > 0)
 	    timer.start();
 	try {
-	    if (dslock == 0) { // acquire read lock on the table0
-		dslock = new ibis::part::readLock(table0, myID);
-		dstime = table0->timestamp();
+	    if (dslock == 0) { // acquire read lock on the mypart
+		dslock = new ibis::part::readLock(mypart, myID);
+		dstime = mypart->timestamp();
 	    }
 
 	    ierr = computeHits(); // do actual computation here
@@ -964,7 +964,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		}
 		if (conds->hasJoin()) {// has join conditions
 		    if (myDir == 0)
-			setMyDir(table0->name());
+			setMyDir(mypart->name());
 		    processJoin();
 		}
 	    }
@@ -1023,7 +1023,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    const long unsigned nhits = hits->cnt();
 	    timer.stop();
 	    logMessage("evaluate", "time to compute the %lu "
-		       "hit%s: %g sec(CPU) and %g sec(elapsed).",
+		       "hit%s: %g sec(CPU), %g sec(elapsed).",
 		       nhits, (nhits > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -1043,8 +1043,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		timer.stop();
 		logMessage("evaluate", "time to read qualified values "
 			   "and write to disk (%s) is "
-			   "%g sec(CPU) and %g sec(elapsed).",
-			   myDir,
+			   "%g sec(CPU), %g sec(elapsed).", myDir,
 			   timer.CPUTime(),
 			   timer.realTime());
 	    }
@@ -1055,7 +1054,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	if (ibis::gVerbose > 0) {
 	    timer.stop();
 	    logMessage("evaluate", "time to compute the %lu "
-		       "hits: %g sec(CPU) and %g sec(elapsed).",
+		       "hits: %g sec(CPU), %g sec(elapsed).",
 		       static_cast<long unsigned>(hits->cnt()),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -1063,7 +1062,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    logWarning("evaluate", "unable to construct ibis::bundle");
     }
 
-    if (dslock) { // make sure the read lock on the data table is released
+    if (dslock) { // make sure the read lock on the data partition is released
 	delete dslock;
 	dslock = 0;
     }
@@ -1081,14 +1080,14 @@ int ibis::query::evaluate(const bool evalSelect) {
 		/*logMessage("evaluate", "")*/;
 	    else if (comps.size() > 0)
 		logMessage("evaluate", "user %s SELECT %s FROM %s WHERE "
-			   "%s ==> %lu hit%s.", user, *comps, table0->name(),
+			   "%s ==> %lu hit%s.", user, *comps, mypart->name(),
 			   (conds.getString() ? conds.getString() :
 			    "<long expression>"),
 			   static_cast<long unsigned>(hits->cnt()),
 			   (hits->cnt()>1?"s":""));
 	    else
 		logMessage("evaluate", "user %s FROM %s WHERE %s ==> "
-			   "%lu hit%s.", user, table0->name(),
+			   "%lu hit%s.", user, mypart->name(),
 			   (conds.getString() ? conds.getString() :
 			    "<long expression>"),
 			   static_cast<long unsigned>(hits->cnt()),
@@ -1128,18 +1127,18 @@ long int ibis::query::getNumHits() const {
 } // ibis::query::getNumHits
 
 // Caution: This function does not obtain a read lock on the query or the
-// table.  Call it at your own risk.
+// partition.  Call it at your own risk.
 long ibis::query::countHits() const {
     long int ierr = -1;
     if (hits != 0 && (sup == 0 || sup == hits))
 	ierr = hits->cnt();
-    else if (table0 != 0 && conds.getExpr() != 0 &&
+    else if (mypart != 0 && conds.getExpr() != 0 &&
 	     (conds->getType() == ibis::qExpr::RANGE ||
 	      conds->getType() == ibis::qExpr::DRANGE))
-	ierr = table0->countHits(*static_cast<const ibis::qRange*>
+	ierr = mypart->countHits(*static_cast<const ibis::qRange*>
 				 (conds.getExpr()));
     else if (conds.empty())
-	ierr = table0->nRows();
+	ierr = mypart->nRows();
     return ierr;
 } // ibis::query::countHits
 
@@ -1164,8 +1163,8 @@ int ibis::query::orderby(const char *names, int direction) const {
     }
     if (ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("orderby", "reordered according to %s using %g sec(CPU) "
-		   "and %g sec(elapsed)", names, timer.CPUTime(),
+	logMessage("orderby", "reordered according to %s using %g sec(CPU), "
+		   "%g sec(elapsed)", names, timer.CPUTime(),
 		   timer.realTime());
     }
     return 0;
@@ -1202,7 +1201,7 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
 	ierr = bdl->truncate(names, direction, keep);
 	if (ierr >= 0 && oldsize >= static_cast<long unsigned>(ierr)) {
 	    if (updateHits) {
-		ierr = table0->evaluateRIDSet(*(bdl->getRIDs()), *hits);
+		ierr = mypart->evaluateRIDSet(*(bdl->getRIDs()), *hits);
 		state = HITS_TRUNCATED;
 	    }
 	    else {
@@ -1213,8 +1212,8 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
 	delete bdl;
 	if (ibis::gVerbose > 1) {
 	    timer.stop();
-	    logMessage("limit", "reordered according to %s using %g sec(CPU) "
-		       "and %g sec(elapsed), saved %ld bundles", names,
+	    logMessage("limit", "reordered according to %s using %g sec(CPU), "
+		       "%g sec(elapsed), saved %ld bundles", names,
 		       timer.CPUTime(), timer.realTime(), ierr);
 	}
     }
@@ -1229,7 +1228,7 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
 // content of the file, else if the query was processed on the same data,
 // call the dataset object to retrieve the RIDs, otherwise it will be NULL.
 ibis::RIDSet* ibis::query::getRIDs() const {
-    if (table0 == 0 || table0->hasRIDs() == false)
+    if (mypart == 0 || mypart->hasRIDs() == false)
 	return 0;
     if (state != FULL_EVALUATE) {
 	logWarning("getRIDs", "call evaluate() first");
@@ -1254,10 +1253,10 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 	rids = 0;
     }
 
-    if (gotRIDs == false) { // need to get RIDs from the table object
-	ibis::part::readLock rock(table0, "getRIDs");
-	if (hits && (dstime == table0->timestamp() || dstime == 0)) {
-	    rids = table0->getRIDs(*hits);
+    if (gotRIDs == false) { // need to get RIDs from the part object
+	ibis::part::readLock rock(mypart, "getRIDs");
+	if (hits && (dstime == mypart->timestamp() || dstime == 0)) {
+	    rids = mypart->getRIDs(*hits);
 	    writeRIDs(rids);
 	    if (rids->size() != hits->cnt())
 		logWarning("getRIDs", "retrieved %lu row IDs, but "
@@ -1293,7 +1292,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
     if (state != ibis::query::FULL_EVALUATE ||
 	timestamp() != partition()->timestamp()) {
 	logWarning("getRIDsInBundle", "query not fully evaluated or the "
-		   "table has changed since last evaluation.  Need to "
+		   "partition has changed since last evaluation.  Need to "
 		   "call evaluate again.");
 	return rids;
     }
@@ -1348,30 +1347,30 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 // Compute the row IDs of those marked 1 in the mask.
 ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
     ibis::RIDSet* ridset = 0;
-    if (table0 == 0 || table0->hasRIDs() == false)
+    if (mypart == 0 || mypart->hasRIDs() == false)
 	return ridset;
 
-    ibis::part::readLock tmp(table0, myID);
-    ridset = table0->getRIDs(mask);
+    ibis::part::readLock tmp(mypart, myID);
+    ridset = mypart->getRIDs(mask);
     if (ridset == 0 || ridset->size() != mask.cnt())
-	logWarning("getRIDs", "got %lu row IDs from table %s, expected %lu",
+	logWarning("getRIDs", "got %lu row IDs from partition %s, expected %lu",
 		   static_cast<long unsigned>(ridset != 0 ? ridset->size() : 0),
-		   table0->name(),
+		   mypart->name(),
 		   static_cast<long unsigned>(mask.cnt()));
     else if (ibis::gVerbose > 5)
-	logMessage("getRIDs", "retrieved %lu row IDs from table %s",
+	logMessage("getRIDs", "retrieved %lu row IDs from partitioni %s",
 		   static_cast<long unsigned>(ridset!=0 ? ridset->size() : 0),
-		   table0->name());
+		   mypart->name());
     return ridset;
 } // ibis::query::getRIDs
 
 array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
-    if (state != FULL_EVALUATE || dstime != table0->timestamp())
+    if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
     array_t<int32_t>* res = 0;
-    if (dstime == table0->timestamp() && hits != 0) {
+    if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedInts");
-	res = table0->selectInts(colname, *hits);
+	res = mypart->selectInts(colname, *hits);
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedInts", "got %lu integer value(s)",
 		       static_cast<long unsigned>(res != 0 ? res->size(): 0));
@@ -1380,12 +1379,12 @@ array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
 } // ibis::query::getQualifiedInts
 
 array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
-    if (state != FULL_EVALUATE || dstime != table0->timestamp())
+    if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
     array_t<uint32_t>* res = 0;
-    if (dstime == table0->timestamp() && hits != 0) {
+    if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedUInts");
-	res = table0->selectUInts(colname, *hits);
+	res = mypart->selectUInts(colname, *hits);
 	if (ibis::gVerbose > 2)
 	    logMessage("getQualifiedUInts", "got %lu integer value(s)",
 		       static_cast<long unsigned>(res != 0 ? res->size() : 0));
@@ -1394,16 +1393,16 @@ array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
 } // ibis::query::getQualifiedUInts
 
 array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
-    if (state != FULL_EVALUATE || dstime != table0->timestamp())
+    if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
     array_t<float>* res = 0;
-    if (dstime == table0->timestamp() && hits != 0) {
+    if (dstime == mypart->timestamp() && hits != 0) {
 	const bool newlock = (dslock == 0);
 	if (newlock) {
-	    dslock = new ibis::part::readLock(table0, myID);
+	    dslock = new ibis::part::readLock(mypart, myID);
 	}
 	readLock lck(this, "getQualifiedFloats");
-	res = table0->selectFloats(colname, *hits);
+	res = mypart->selectFloats(colname, *hits);
 
 	if (newlock) {
 	    delete dslock;
@@ -1417,16 +1416,16 @@ array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
 } // ibis::query::getQualifiedFloats
 
 array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
-    if (state != FULL_EVALUATE || dstime != table0->timestamp())
+    if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
     array_t<double>* res = 0;
-    if (dstime == table0->timestamp() && hits != 0) {
+    if (dstime == mypart->timestamp() && hits != 0) {
 	const bool newlock = (dslock == 0);
 	if (newlock) {
-	    dslock = new ibis::part::readLock(table0, myID);
+	    dslock = new ibis::part::readLock(mypart, myID);
 	}
 	readLock lck(this, "getQualifiedDoubles");
-	res = table0->selectDoubles(colname, *hits);
+	res = mypart->selectDoubles(colname, *hits);
 
 	if (newlock) {
 	    delete dslock;
@@ -1471,7 +1470,7 @@ void ibis::query::expandQuery() {
 
     writeLock lck(this, "expandQuery");
     if (dslock == 0) {
-	dslock = new ibis::part::readLock(table0, myID);
+	dslock = new ibis::part::readLock(mypart, myID);
     }
     doExpand(conds.getExpr()); // do the actual work
 
@@ -1506,7 +1505,7 @@ void ibis::query::contractQuery() {
 
     writeLock lck(this, "contractQuery");
     if (dslock == 0) {
-	dslock = new ibis::part::readLock(table0, myID);
+	dslock = new ibis::part::readLock(mypart, myID);
     }
     doContract(conds.getExpr()); // do the actual work
 
@@ -1577,7 +1576,7 @@ std::string ibis::query::removeComplexConditions() {
 	    }
 	    if (hits == 0)
 		hits = new ibis::bitvector;
-	    hits->set(1, table0->nRows());
+	    hits->set(1, mypart->nRows());
 	    state = FULL_EVALUATE;
 	}
 	else if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
@@ -1600,7 +1599,7 @@ std::string ibis::query::removeComplexConditions() {
 ibis::query::query(const char* uid, const part* et, const char* pref) :
     user(ibis::util::strnewdup(uid ? uid : ibis::util::userName())),
     state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
-    myDir(0), rids_in(0), table0(et), dstime(0) {
+    myDir(0), rids_in(0), mypart(et), dstime(0) {
     myID = newToken(uid);
     lastError[0] = static_cast<char>(0);
 
@@ -1629,7 +1628,7 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 /// manually construct a query in a directory.
 ibis::query::query(const char* dir, const ibis::partList& tl) :
     user(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
-    myDir(0), rids_in(0), table0(0), dstime(0) {
+    myDir(0), rids_in(0), mypart(0), dstime(0) {
     const char *ptr = strrchr(dir, DIRSEP);
     if (ptr == 0) {
 	myID = ibis::util::strnewdup(dir);
@@ -2213,7 +2212,7 @@ bool ibis::query::hasBundles() const {
 // reorder the query expression to minimize the work of evaluation
 // (assuming the query expression is evaluated from left to right)
 void ibis::query::reorderExpr() {
-    ibis::query::weight wt(table0);
+    ibis::query::weight wt(mypart);
 
     // call qExpr::reorder to do the actual work
     double ret = conds->reorder(wt);
@@ -2226,14 +2225,14 @@ void ibis::query::getBounds() {
     if (ibis::gVerbose > 7)
 	logMessage("getBounds", "compute upper and lower bounds of hits");
 
-    ibis::bitvector mask(table0->getMask());
-    if (mask.size() != table0->nRows())
-	mask.adjustSize(table0->nRows(), table0->nRows());
+    ibis::bitvector mask(mypart->getMask());
+    if (mask.size() != mypart->nRows())
+	mask.adjustSize(mypart->nRows(), mypart->nRows());
     if (comps.size() > 0) {
 	ibis::bitvector tmp;
 	ibis::selected::const_iterator it = comps.begin();
 	while (it != comps.end()) {
-	    table0->getColumn(it->c_str())->getNullMask(tmp);
+	    mypart->getColumn(it->c_str())->getNullMask(tmp);
 	    mask &= tmp;
 #if defined(DEBUG)
 	    LOGGER(ibis::gVerbose >= 0) << *it << " null mask:\n" << tmp
@@ -2248,7 +2247,7 @@ void ibis::query::getBounds() {
 
     if (rids_in) { // RID list
 	ibis::bitvector tmp;
-	table0->evaluateRIDSet(*rids_in, tmp);
+	mypart->evaluateRIDSet(*rids_in, tmp);
 	mask &= tmp;
     }
 
@@ -2256,21 +2255,21 @@ void ibis::query::getBounds() {
 	sup = new ibis::bitvector;
 	hits = new ibis::bitvector;
 	doEstimate(conds.getExpr(), *hits, *sup);
-	if (hits->size() != table0->nRows()) {
+	if (hits->size() != mypart->nRows()) {
 	    logWarning("getBounds", "hits.size(%lu) differ from expected "
 		       "value(%lu)", static_cast<long unsigned>(hits->size()),
-		       static_cast<long unsigned>(table0->nRows()));
-	    hits->setBit(table0->nRows()-1, 0);
+		       static_cast<long unsigned>(mypart->nRows()));
+	    hits->setBit(mypart->nRows()-1, 0);
 	}
 	*hits &= mask;
 	hits->compress();
 
-	if (sup->size() != table0->nRows() && sup->size() > 0) {
+	if (sup->size() != mypart->nRows() && sup->size() > 0) {
 	    if (sup->size() && ibis::gVerbose > 3)
 		logMessage("getBounds", "sup.size(%lu) differ from expected "
 			   "value(%lu)",
 			   static_cast<long unsigned>(sup->size()),
-			   static_cast<long unsigned>(table0->nRows()));
+			   static_cast<long unsigned>(mypart->nRows()));
 	    sup->clear(); // assume hits is accruate
 	}
 	if (sup->size() == hits->size()) {
@@ -2451,40 +2450,40 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	break;
     }
     case ibis::qExpr::RANGE:
-	table0->estimateRange
+	mypart->estimateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 	     low, high);
 	break;
     case ibis::qExpr::DRANGE:
-	table0->estimateRange
+	mypart->estimateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
 	     low, high);
 	break;
     case ibis::qExpr::STRING:
-	table0->lookforString
+	mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), low);
 	high.clear();
 	break;
     case ibis::qExpr::MSTRING:
-	table0->lookforString
+	mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qMultiString*>(term)), low);
 	high.clear();
 	break;
     case ibis::qExpr::ANYANY:
-	table0->estimateMatchAny
+	mypart->estimateMatchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), low, high);
 	break;
     case ibis::qExpr::COMPRANGE:
 	// can not estimate complex range condition yet
-	high.set(1, table0->nRows());
-	low.set(0, table0->nRows());
+	high.set(1, mypart->nRows());
+	low.set(0, mypart->nRows());
 	break;
     default:
 	if (ibis::gVerbose > 2)
 	    logMessage("doEstimate", "unable to estimate query term of "
 		       "unknown type, presume every row is a hit");
-	high.set(1, table0->nRows());
-	low.set(1, table0->nRows());
+	high.set(1, mypart->nRows());
+	low.set(1, mypart->nRows());
     }
 #ifdef DEBUG
     LOGGER(ibis::gVerbose >= 0)
@@ -2523,7 +2522,7 @@ int ibis::query::computeHits() {
 	    getBounds();
 	}
 	else if (conds.getExpr() != 0) { // usual range query
-	    dstime = table0->timestamp();
+	    dstime = mypart->timestamp();
 	    hits = new ibis::bitvector;
 #ifndef DONOT_REORDER_EXPRESSION
 	    if (! conds->directEval())
@@ -2531,7 +2530,7 @@ int ibis::query::computeHits() {
 #endif
 	    delete sup;
 	    sup = 0;
-	    ierr = doEvaluate(conds.getExpr(), table0->getMask(), *hits);
+	    ierr = doEvaluate(conds.getExpr(), mypart->getMask(), *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();
@@ -2540,9 +2539,9 @@ int ibis::query::computeHits() {
 	else if (comps.size() > 0) {
 	    hits = new ibis::bitvector;
 	    if (hits == 0) return -1;
-	    hits->set(1, table0->nRows());
+	    hits->set(1, mypart->nRows());
 	    for (size_t i = 0; i < comps.size(); ++ i) {
-		const ibis::column *col = table0->getColumn(comps[i]);
+		const ibis::column *col = mypart->getColumn(comps[i]);
 		if (col != 0) {
 		    ibis::bitvector tmp;
 		    col->getNullMask(tmp);
@@ -2568,7 +2567,7 @@ int ibis::query::computeHits() {
 	}
     }
     else { // need to actually examine the data files involved
-	const ibis::bitvector& msk = table0->getMask();
+	const ibis::bitvector& msk = mypart->getMask();
 	ibis::bitvector delta;
 	(*sup) -= (*hits);
 
@@ -2628,12 +2627,12 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 
     long ierr;
     readLock lock(this, "sequentialScan"); // read lock on query
-    ibis::part::readLock lds(table0, myID); // read lock on data
+    ibis::part::readLock lds(mypart, myID); // read lock on data
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
     try {
-	ierr = doScan(conds.getExpr(), table0->getMask(), res);
+	ierr = doScan(conds.getExpr(), mypart->getMask(), res);
 	if (ierr < 0)
 	    return ierr - 20;
     }
@@ -2670,7 +2669,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 
     if (ierr > 0 && ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("sequentialScan", "produced %ld hit%s in %g sec(CPU) "
+	logMessage("sequentialScan", "produced %ld hit%s in %g sec(CPU), "
 		   "%g sec(elapsed).", ierr, (ierr>1?"s":""),
 		   timer.CPUTime(), timer.realTime());
 	if (ibis::gVerbose > 4 && hits != 0 && state == FULL_EVALUATE) {
@@ -2683,7 +2682,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 			   static_cast<long unsigned>(diff.cnt()),
 			   (diff.cnt()>1?"s":""));
 		if (ibis::gVerbose > 6) {
-		    uint32_t maxcnt = (ibis::gVerbose > 30 ? table0->nRows()
+		    uint32_t maxcnt = (ibis::gVerbose > 30 ? mypart->nRows()
 				       : (1U << ibis::gVerbose));
 		    if (maxcnt > diff.cnt())
 			maxcnt = diff.cnt();
@@ -2719,13 +2718,13 @@ long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     long ierr;
     readLock lock(this, "getExpandedHits"); // don't change query
     if (conds.getExpr() != 0) {
-	ibis::part::readLock lock2(table0, myID); // don't change data
+	ibis::part::readLock lock2(mypart, myID); // don't change data
 	doEvaluate(conds.getExpr(), res);
 	ierr = res.cnt();
     }
     else if (rids_in != 0) {
-	ibis::part::readLock lock2(table0, myID);
-	table0->evaluateRIDSet(*rids_in, res);
+	ibis::part::readLock lock2(mypart, myID);
+	mypart->evaluateRIDSet(*rids_in, res);
 	ierr = res.cnt();
     }
     else {
@@ -2741,7 +2740,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
     int ierr = 0;
     if (term == 0) return ierr;
     if (term == 0) { // no hits
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 	return ierr;
     }
     LOGGER(ibis::gVerbose >= 8)
@@ -2793,31 +2792,31 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::RANGE:
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)), ht);
 	break;
     case ibis::qExpr::DRANGE:
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), ht);
 	break;
     case ibis::qExpr::ANYANY:
-	table0->matchAny
+	mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), ht);
 	break;
     case ibis::qExpr::STRING:
-	table0->lookforString
+	mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	if (ibis::gVerbose > 1)
 	    logMessage("doScan", "NOTE -- scanning the index for "
 		       "string comparisons");
 	break;
     case ibis::qExpr::COMPRANGE:
-	table0->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
+	mypart->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
 		       ht);
 	break;
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
-	ht.set(1, table0->nRows());
+	ht.set(1, mypart->nRows());
 	ierr = -2;
 	break;
     }
@@ -2827,7 +2826,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ierr = -1;
     }
     if (ierr < 0) // no confirmed hits
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
     return ierr;
 } // ibis::query::doScan
 
@@ -2975,18 +2974,18 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	switch (ibis::_scan_option) {
 	default:
 	case 1: { // option 1 -- the original implementation use this one
-	    ierr = table0->doScan
+	    ierr = mypart->doScan
 		(*(reinterpret_cast<const ibis::qRange*>(term)), mask, ht);
 	    break;
 	}
 	case 2: { // option 2
 	    ibis::bitvector iffy;
-	    float frac = table0->getUndecidable
+	    float frac = mypart->getUndecidable
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 iffy);
 	    const uint32_t cnt0 = iffy.cnt();
 	    if (cnt0 > 0) {
-		ierr = table0->doScan
+		ierr = mypart->doScan
 		    (*(reinterpret_cast<const ibis::qRange*>(term)),
 		     iffy, ht);
 		if (ierr >= 0) {
@@ -3002,13 +3001,13 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	}
 	case 3: { // option 3
 	    ibis::bitvector iffy;
-	    float frac = table0->getUndecidable
+	    float frac = mypart->getUndecidable
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 iffy);
 	    const uint32_t cnt0 = iffy.cnt();
 	    if (cnt0 > 0) {
 		ibis::bitvector comp;
-		ierr = table0->negativeScan
+		ierr = mypart->negativeScan
 		    (*(reinterpret_cast<const ibis::qRange*>(term)),
 		     comp, iffy);
 		if (ierr >= 0) {
@@ -3023,7 +3022,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	}
 	case 4: { // option 4
 	    ibis::bitvector iffy;
-	    float frac = table0->getUndecidable
+	    float frac = mypart->getUndecidable
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 iffy);
 	    const uint32_t cnt0 = iffy.cnt();
@@ -3031,7 +3030,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 		iffy &= mask;
 		const uint32_t cnt1 = iffy.cnt();
 		if (cnt1 > 0) {
-		    ierr = table0->doScan
+		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 iffy, ht);
 		    if (ierr >= 0) {
@@ -3051,7 +3050,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	}
 	case 5: { // option 5
 	    ibis::bitvector iffy;
-	    float frac = table0->getUndecidable
+	    float frac = mypart->getUndecidable
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 iffy);
 	    const uint32_t cnt0 = iffy.cnt();
@@ -3063,7 +3062,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 // 		    (iffy.size(), iffy.cnt(), iffy.bytes());
 		if (cnt1 > 0) {
 		    ibis::bitvector comp;
-		    ierr = table0->negativeScan
+		    ierr = mypart->negativeScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 comp, iffy);
 		    if (ierr >= 0) {
@@ -3090,7 +3089,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 // 	// together with AND operators! TODO: need something better
 // 	// a combined version of option 4 and 5
 // 	ibis::bitvector iffy;
-// 	float frac = table0->getUndecidable
+// 	float frac = mypart->getUndecidable
 // 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 // 	     iffy);
 // 	const uint32_t cnt0 = iffy.cnt();
@@ -3101,14 +3100,14 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 // 		ht.copy(mask);
 // 	    }
 // 	    else if (cnt1 >= cnt0) { // directly use the input mask
-// 		table0->doScan
+// 		mypart->doScan
 // 		    (*(reinterpret_cast<const ibis::qRange*>(term)),
 // 		     mask, ht);
 // 	    }
 // 	    else if (static_cast<int>(frac+frac) > 0) {
 // 		// negative evaluation -- option 5
 // 		ibis::bitvector comp;
-// 		table0->negativeScan
+// 		mypart->negativeScan
 // 		    (*(reinterpret_cast<const ibis::qRange*>(term)),
 // 		     comp, iffy);
 // 		ht.copy(mask);
@@ -3116,7 +3115,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 // 	    }
 // 	    else {
 // 		// direct evaluation -- option 4
-// 		table0->doScan
+// 		mypart->doScan
 // 		    (*(reinterpret_cast<const ibis::qRange*>(term)),
 // 		     iffy, ht);
 // 		iffy -= ht;
@@ -3127,23 +3126,23 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 // 	else { // no row eliminated
 // 	    ht.copy(mask);
 // 	}
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qRange*>(term)), mask, ht);
 #endif
 	break;
     }
     case ibis::qExpr::DRANGE: {
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
 	break;
     }
     case ibis::qExpr::ANYANY: {
-	ierr = table0->matchAny
+	ierr = mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), mask, ht);
 	break;
     }
     case ibis::qExpr::STRING: {
-	ierr = table0->lookforString
+	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
 	if (ibis::gVerbose > 1)
@@ -3152,7 +3151,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
 	break;
     }
@@ -3165,12 +3164,12 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     default: {
 	logWarning("doScan", "unable to evaluate query term of "
 		   "unknown type");
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 	ierr = -1;
 	break;}
     }
     if (ierr < 0) // no confirmed hits
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 #ifdef DEBUG
     ibis::util::logger lg(ibis::gVerbose-1);
     lg.buffer() << "ibis::query[" << myID << "]::doScan(" << *term
@@ -3193,7 +3192,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    ibis::bitvector& ht) const {
     if (term == 0) { // no hits
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 	return 0;
     }
     LOGGER(ibis::gVerbose >= 6)
@@ -3247,12 +3246,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::RANGE: {
 	ibis::bitvector tmp;
-	tmp.set(1, table0->nRows());
-	ierr = table0->evaluateRange
+	tmp.set(1, mypart->nRows());
+	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 	     tmp, ht);
 	if (ierr < 0) {
-	    ierr = table0->estimateRange
+	    ierr = mypart->estimateRange
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 ht, tmp);
 	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
@@ -3261,7 +3260,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		// condition
 		tmp -= ht; // tmp now contains entries to be scanned
 		ibis::bitvector res;
-		ierr = table0->doScan
+		ierr = mypart->doScan
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
 		if (ierr >= 0)
 		    ht |= res;
@@ -3270,12 +3269,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::DRANGE: { // call evalauteRange, use doScan on failure
-	ierr = table0->evaluateRange
+	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
-	     table0->getMask(), ht);
+	     mypart->getMask(), ht);
 	if (ierr < 0) { // revert to estimate and scan
 	    ibis::bitvector tmp;
-	    ierr = table0->estimateRange
+	    ierr = mypart->estimateRange
 		(*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
 		 ht, tmp);
 	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
@@ -3284,7 +3283,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		// condition
 		tmp -= ht; // tmp now contains entries to be scanned
 		ibis::bitvector res;
-		ierr = table0->doScan
+		ierr = mypart->doScan
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
 		if (ierr >= 0)
 		    ht |= res;
@@ -3293,12 +3292,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::STRING: {
-	table0->lookforString
+	mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), ht);
 	break;
     }
@@ -3306,12 +3305,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	const ibis::qAnyAny *tmp =
 	    reinterpret_cast<const ibis::qAnyAny*>(term);
 	ibis::bitvector more;
-	table0->estimateMatchAny(*tmp, ht, more);
+	mypart->estimateMatchAny(*tmp, ht, more);
 	if (ht.size() == more.size() && ht.cnt() < more.cnt()) {
 	    more -= ht;
 	    if (more.cnt() > 0) {
 		ibis::bitvector res;
-		table0->matchAny(*tmp, res, more);
+		mypart->matchAny(*tmp, res, more);
 		ht |= res;
 	    }
 	}
@@ -3319,13 +3318,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
-	ht.set(1, table0->nRows());
+	ht.set(1, mypart->nRows());
 	break;
     }
     default:
 	logWarning("doEvaluate", "unable to evaluate query term of "
 		   "unknown type, presume every row is a hit");
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 	ierr = -1;
     }
 #ifdef DEBUG
@@ -3352,7 +3351,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    ibis::bitvector& ht) const {
     int ierr = 0;
     if (term == 0) { // no hits
-	ht.set(0, table0->nRows());
+	ht.set(0, mypart->nRows());
 	return ierr;
     }
     if (mask.cnt() == 0) { // no hits
@@ -3417,12 +3416,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::RANGE: {
-	ierr = table0->evaluateRange
+	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 	     mask, ht);
 	if (ierr < 0) {
 	    ibis::bitvector tmp;
-	    ierr = table0->estimateRange
+	    ierr = mypart->estimateRange
 		(*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
 		 ht, tmp);
 	    if (ierr >= 0) {
@@ -3436,7 +3435,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ht &= mask;
 		    tmp &= mask;
 		    ibis::bitvector res;
-		    ierr = table0->doScan
+		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 tmp, res);
 		    if (ierr >= 0)
@@ -3447,11 +3446,11 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::DRANGE: { // try evaluateRange, then doScan
-	ierr = table0->evaluateRange
+	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
 	if (ierr < 0) { // revert to estimate and scan
 	    ibis::bitvector tmp;
-	    ierr = table0->estimateRange
+	    ierr = mypart->estimateRange
 		(*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
 		 ht, tmp);
 	    if (ierr >= 0) {
@@ -3465,7 +3464,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ht &= mask;
 		    tmp &= mask;
 		    ibis::bitvector res;
-		    ierr = table0->doScan
+		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 tmp, res);
 		    if (ierr >= 0)
@@ -3476,13 +3475,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::STRING: {
-	ierr = table0->lookforString
+	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = table0->doScan
+	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
 	break;
     }
@@ -3490,14 +3489,14 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	const ibis::qAnyAny *tmp =
 	    reinterpret_cast<const ibis::qAnyAny*>(term);
 	ibis::bitvector more;
-	ierr = table0->estimateMatchAny(*tmp, ht, more);
+	ierr = mypart->estimateMatchAny(*tmp, ht, more);
 	ht &= mask;
 	if (ht.size() == more.size() && ht.cnt() < more.cnt()) {
 	    more -= ht;
 	    more &= mask;
 	    if (more.cnt() > 0) {
 		ibis::bitvector res;
-		table0->matchAny(*tmp, more, res);
+		mypart->matchAny(*tmp, more, res);
 		ht |= res;
 	    }
 	}
@@ -3573,7 +3572,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     }
     user = ibis::util::strnewdup(fn);
 
-    // table names
+    // data partition names
     fgets(fn, MAX_LINE, fptr);
     ptr = fn + strlen(fn);
     -- ptr;
@@ -3582,10 +3581,10 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	-- ptr;
     }
     ibis::partList::const_iterator it = tl.find(fn);
-    if (it != tl.end()) { // found the table
-	table0 = (*it).second;
+    if (it != tl.end()) { // found the partition
+	mypart = (*it).second;
     }
-    else { // table name is not valid
+    else { // partition name is not valid
 	state = UNINITIALIZED;
 	delete [] user;
 	user = 0;
@@ -3603,7 +3602,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     if (strnicmp(fn, "<NULL>", 6))
 	setSelectClause(fn);
 
-    // table state (read as an integer)
+    // data partitioin state (read as an integer)
     fscanf(fptr, "%ld", &i);
     state = (QUERY_STATE) i;
 
@@ -3655,10 +3654,10 @@ void ibis::query::writeQuery() {
     }
 
     if (comps.size() > 0)
-	fprintf(fptr, "%s\n%s\n%s\n%d\n", user, table0->name(),
+	fprintf(fptr, "%s\n%s\n%s\n%d\n", user, mypart->name(),
 		*comps, (int)state);
     else
-	fprintf(fptr, "%s\n%s\n<NULL>\n%d\n", user, table0->name(),
+	fprintf(fptr, "%s\n%s\n<NULL>\n%d\n", user, mypart->name(),
 		(int)state);
     fprintf(fptr, "%ld\n", dstime);
     if (conds.getString() != 0) {
@@ -3773,7 +3772,7 @@ void ibis::query::clear() {
 	hits = 0;
 	sup = 0;
     }
-    if (dslock) { // remove read lock on the associated table
+    if (dslock) { // remove read lock on the associated data partition
 	delete dslock;
 	dslock = 0;
     }
@@ -3792,7 +3791,7 @@ void ibis::query::clear() {
 } // ibis::query::clear
 
 void ibis::query::removeFiles() {
-    if (dslock != 0) { // release read lock on table
+    if (dslock != 0) { // release read lock on the data partition
 	delete dslock;
 	dslock = 0;
     }
@@ -3984,7 +3983,7 @@ int ibis::query::doExpand(ibis::qExpr* exp0) const {
     case ibis::qExpr::RANGE: { // a range condition
 	ibis::qContinuousRange* range =
 	    reinterpret_cast<ibis::qContinuousRange*>(exp0);
-	ibis::column* col = table0->getColumn(range->colName());
+	ibis::column* col = mypart->getColumn(range->colName());
 	ret = col->expandRange(*range);
 	break;
     }
@@ -4011,7 +4010,7 @@ int ibis::query::doContract(ibis::qExpr* exp0) const {
     case ibis::qExpr::RANGE: { // a range condition
 	ibis::qContinuousRange* range =
 	    reinterpret_cast<ibis::qContinuousRange*>(exp0);
-	ibis::column* col = table0->getColumn(range->colName());
+	ibis::column* col = mypart->getColumn(range->colName());
 	ret = col->contractRange(*range);
 	break;
     }
@@ -4023,8 +4022,8 @@ int ibis::query::doContract(ibis::qExpr* exp0) const {
 
 /// This function only counts the number of hits; it does produce the
 /// actual tuples for the results of join.  Additionally, it performs only
-/// self-join, i.e., join a table with itself.  This is only meant to test
-/// some algorithms for evaluating joins.
+/// self-join, i.e., join a partition with itself.  This is only meant to
+/// test some algorithms for evaluating joins.
 int64_t ibis::query::processJoin() {
     int64_t ret = 0;
     if (conds.empty()) return ret;
@@ -4086,22 +4085,22 @@ int64_t ibis::query::processJoin() {
     }
 
     const ibis::bitvector64::word_t npairs =
-	static_cast<ibis::bitvector64::word_t>(table0->nRows()) *
-	table0->nRows();
+	static_cast<ibis::bitvector64::word_t>(mypart->nRows()) *
+	mypart->nRows();
     // retrieve two column pointers for future operations
-    const ibis::column *col1 = table0->getColumn(terms.back()->getName1());
-    const ibis::column *col2 = table0->getColumn(terms.back()->getName2());
+    const ibis::column *col1 = mypart->getColumn(terms.back()->getName1());
+    const ibis::column *col2 = mypart->getColumn(terms.back()->getName2());
     while ((col1 == 0 || col2 == 0) && terms.size() > 0) {
 	std::ostringstream ostr;
 	ostr << *(terms.back());
-	logWarning("processJoin", "either %s or %s from table %s is not a "
-		   "valid column name in table %s", terms.back()->getName1(),
-		   terms.back()->getName2(), ostr.str().c_str(),
-		   table0->name());
+	logWarning("processJoin", "either %s or %s from partition %s is not a "
+		   "valid column name in partition %s",
+		   terms.back()->getName1(), terms.back()->getName2(),
+		   ostr.str().c_str(), mypart->name());
 	terms.resize(terms.size()-1); // remove the invalid term
 	if (terms.size() > 0) {
-	    col1 = table0->getColumn(terms.back()->getName1());
-	    col2 = table0->getColumn(terms.back()->getName2());
+	    col1 = mypart->getColumn(terms.back()->getName1());
+	    col2 = mypart->getColumn(terms.back()->getName2());
 	}
     }
     if (terms.empty()) {
@@ -4133,7 +4132,7 @@ int64_t ibis::query::processJoin() {
     { // OPTION 0 -- directly read the values
 	ibis::horometer watch;
 	watch.start();
-	cnt = table0->evaluateJoin(terms, mask);
+	cnt = mypart->evaluateJoin(terms, mask);
 	watch.stop();
 	//logMessage("processJoin", "OPTION 0 -- loop join computes %lld "
 	//	   "hits in %g seconds", cnt, watch.realTime());
@@ -4227,9 +4226,9 @@ int64_t ibis::query::processJoin() {
 	for (int i = terms.size() - 1; i > 0 && low.cnt()>0;) {
 	    -- i;
 	    const char *name1 = terms[i]->getName1();
-	    const ibis::column *c1 = table0->getColumn(name1);
+	    const ibis::column *c1 = mypart->getColumn(name1);
 	    const char *name2 = terms[i]->getName2();
-	    const ibis::column *c2 = table0->getColumn(name2);
+	    const ibis::column *c2 = mypart->getColumn(name2);
 	    if (c1 == 0 || c2 == 0) {
 		approx2 = true;
 		break;
@@ -4269,9 +4268,9 @@ int64_t ibis::query::processJoin() {
 	for (int i = terms.size() - 1; i > 0 && low.cnt()>0;) {
 	    -- i;
 	    const char *name1 = terms[i]->getName1();
-	    const ibis::column *c1 = table0->getColumn(name1);
+	    const ibis::column *c1 = mypart->getColumn(name1);
 	    const char *name2 = terms[i]->getName2();
-	    const ibis::column *c2 = table0->getColumn(name2);
+	    const ibis::column *c2 = mypart->getColumn(name2);
 	    if (c1 == 0 || c2 == 0) {
 		approx3 = true;
 		break;
@@ -4363,9 +4362,9 @@ int64_t ibis::query::processJoin() {
 	for (int i = terms.size()-1; i > 0 && high.cnt() > 0;) {
 	    -- i;
 	    const char *name1 = terms[i]->getName1();
-	    const ibis::column *c1 = table0->getColumn(name1);
+	    const ibis::column *c1 = mypart->getColumn(name1);
 	    const char *name2 = terms[i]->getName2();
-	    const ibis::column *c2 = table0->getColumn(name2);
+	    const ibis::column *c2 = mypart->getColumn(name2);
 	    if (c1 == 0 || c2 == 0) {
 		logWarning("processJoin", "either %s or %s is not a "
 			   "column name", name1, name2);
@@ -4411,9 +4410,9 @@ int64_t ibis::query::processJoin() {
 	for (int i = terms.size()-1; i > 0 && high.cnt() > 0;) {
 	    -- i;
 	    const char *name1 = terms[i]->getName1();
-	    const ibis::column *c1 = table0->getColumn(name1);
+	    const ibis::column *c1 = mypart->getColumn(name1);
 	    const char *name2 = terms[i]->getName2();
-	    const ibis::column *c2 = table0->getColumn(name2);
+	    const ibis::column *c2 = mypart->getColumn(name2);
 	    if (c1 == 0 || c2 == 0) {
 		logWarning("processJoin", "either %s or %s is not a "
 			   "column name", name1, name2);
@@ -4561,7 +4560,7 @@ int64_t ibis::query::processJoin() {
 	    iffypairs -= surepairs;
 #if defined(DEBUG) && DEBUG > 2
 	    if (surepairs.cnt() > 0) { // verify the pairs in surepairs
-		int64_t ct1 = table0->evaluateJoin(*(terms.back()),
+		int64_t ct1 = mypart->evaluateJoin(*(terms.back()),
 						   surepairs, tmp);
 		if (ct1 > 0 && tmp.size() == surepairs.size())
 		    tmp ^= surepairs;
@@ -4570,7 +4569,7 @@ int64_t ibis::query::processJoin() {
 		    ostr << tmp.cnt();
 		    logWarning("processJoin", "some (%s) surepairs are "
 			       "not correct", ostr.str().c_str());
-		    const unsigned nrows = table0->nRows();
+		    const unsigned nrows = mypart->nRows();
 		    ibis::util::logger lg;
 		    for (ibis::bitvector64::indexSet ix =
 			     tmp.firstIndexSet();
@@ -4593,12 +4592,12 @@ int64_t ibis::query::processJoin() {
 #endif
 	    if (iffypairs.cnt() <
 		static_cast<uint64_t>(mask.cnt())*mask.cnt()) {
-		int64_t ct2 = table0->evaluateJoin(*(terms.back()),
+		int64_t ct2 = mypart->evaluateJoin(*(terms.back()),
 						   iffypairs, tmp);
 		if (ct2 > 0 && tmp.size() == surepairs.size())
 		    surepairs |= tmp;
 #if defined(DEBUG) && DEBUG + 0 > 1
-		ct2 = table0->evaluateJoin(*(terms.back()), mask, iffypairs);
+		ct2 = mypart->evaluateJoin(*(terms.back()), mask, iffypairs);
 		if (ct2 > 0 && iffypairs.size() == surepairs.size())
 		    iffypairs ^= surepairs;
 		if (iffypairs.cnt() == 0) {
@@ -4611,7 +4610,7 @@ int64_t ibis::query::processJoin() {
 		    logWarning("processJoin", "bruteforce scan produced %s "
 			       "different results from the indexed scan",
 			       ostr.str().c_str());
-		    const unsigned nrows = table0->nRows();
+		    const unsigned nrows = mypart->nRows();
 		    ibis::util::logger lg;
 		    for (ibis::bitvector64::indexSet ix =
 			     iffypairs.firstIndexSet();
@@ -4633,7 +4632,7 @@ int64_t ibis::query::processJoin() {
 #endif
 	    }
 	    else {
-		table0->evaluateJoin(*(terms.back()), mask, surepairs);
+		mypart->evaluateJoin(*(terms.back()), mask, surepairs);
 	    }
 	}
     }
@@ -4674,14 +4673,14 @@ int64_t ibis::query::processJoin() {
 	    if (iffypairs.cnt() == surepairs.cnt())
 		// the last term has been evaluated accurately, remove it
 		terms.resize(terms.size() - 1);
-	    int64_t ct4 = table0->evaluateJoin(terms, iffypairs, surepairs);
+	    int64_t ct4 = mypart->evaluateJoin(terms, iffypairs, surepairs);
 	    if (ct4 < 0) {
 		logWarning("processJoin",
 			   "evaluateJoin failed with error code %ld",
 			   static_cast<long int>(ct4));
 	    }
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    ct4 = table0->evaluateJoin(terms, mask, iffypairs);
+	    ct4 = mypart->evaluateJoin(terms, mask, iffypairs);
 	    if (ct4 > 0 && iffypairs.size() == surepairs.size())
 		iffypairs ^= surepairs;
 	    if (iffypairs.cnt() == 0) {
@@ -4694,7 +4693,7 @@ int64_t ibis::query::processJoin() {
 		logWarning("processJoin", "bruteforce scan produced %s "
 			   "different results from the indexed scan",
 			   ostr.str().c_str());
-		const unsigned nrows = table0->nRows();
+		const unsigned nrows = mypart->nRows();
 		ibis::util::logger lg;
 		for (ibis::bitvector64::indexSet ix =
 			 iffypairs.firstIndexSet();
@@ -4715,7 +4714,7 @@ int64_t ibis::query::processJoin() {
 #endif
 	}
 	else {
-	    table0->evaluateJoin(terms, mask, surepairs);
+	    mypart->evaluateJoin(terms, mask, surepairs);
 	}
     }
 
@@ -4746,7 +4745,7 @@ int64_t ibis::query::processJoin() {
 
     if (ibis::gVerbose > 0) {
 	outstr << "), got " << ret << (ret > 1 ? " hits" : " hit");
-	logMessage("processJoin", "%s, used %g sec(CPU) %g sec(elapsed)",
+	logMessage("processJoin", "%s, used %g sec(CPU), %g sec(elapsed)",
 		   outstr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return ret;
@@ -4775,7 +4774,7 @@ int64_t ibis::query::sortJoin(const ibis::rangeJoin& cmp,
 		cnt = sortEquiJoin(cmp, mask);
 	}
 	else {
-	    cnt = table0->evaluateJoin(cmp, mask);
+	    cnt = mypart->evaluateJoin(cmp, mask);
 	}
     }
     return cnt;
@@ -4789,7 +4788,7 @@ ibis::query::sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
 	    logWarning("sortJoin", "unable to create a directory to store "
 		       "temporary files needed for the sort-merge join "
 		       "algorithm.  Use loop join instead.");
-	    return table0->evaluateJoin(terms, mask);
+	    return mypart->evaluateJoin(terms, mask);
 	}
 
 	int64_t cnt = mask.cnt();
@@ -4820,7 +4819,7 @@ ibis::query::sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
 			sortEquiJoin(*(terms[i]), mask, pairfile.c_str());
 		}
 		else {
-		    table0->evaluateJoin(*(terms[i]), mask,
+		    mypart->evaluateJoin(*(terms[i]), mask,
 					 pairfile.c_str());
 		}
 	    }
@@ -5277,17 +5276,17 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 
 #ifdef DEBUG
     for (uint32_t i = 0; i < ind1.size(); ++ i)
-	if (ind1[i] > table0->nRows())
+	if (ind1[i] > mypart->nRows())
 	    logWarning("recordDeltaPairs", "ind1[%lu] = %lu is out of "
 		       "range (shoud be < %lu)", static_cast<long unsigned>(i),
 		       static_cast<long unsigned>(ind1[i]),
-		       static_cast<long unsigned>(table0->nRows()));
+		       static_cast<long unsigned>(mypart->nRows()));
     for (uint32_t i = 0; i < ind2.size(); ++ i)
-	if (ind2[i] > table0->nRows())
+	if (ind2[i] > mypart->nRows())
 	    logWarning("recordDeltaPairs", "ind2[%lu] = %lu is out of "
 		       "range (shoud be < %lu)", static_cast<long unsigned>(i),
 		       static_cast<long unsigned>(ind2[i]),
-		       static_cast<long unsigned>(table0->nRows()));
+		       static_cast<long unsigned>(mypart->nRows()));
 #endif
     int64_t cnt = 0;
     uint32_t idbuf[2];
@@ -5316,8 +5315,8 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 #ifdef DEBUG
 		if (idbuf[0] != ind1[jj] || idbuf[1] !=
 		    (ind2.size() == val2.size() ? ind2[i] : i) ||
-		    idbuf[0] >= table0->nRows() ||
-		    idbuf[1] >= table0->nRows()) {
+		    idbuf[0] >= mypart->nRows() ||
+		    idbuf[1] >= mypart->nRows()) {
 		    logWarning("recordDeltaPairs", "idbuf (%lu, %lu) differs "
 			       "from expected (%lu, %lu) or is out of range",
 			       static_cast<long unsigned>(idbuf[0]),
@@ -5486,8 +5485,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	timer.start();
 
     long ierr = 0;
-    const ibis::column *col1 = table0->getColumn(cmp.getName1());
-    const ibis::column *col2 = table0->getColumn(cmp.getName2());
+    const ibis::column *col1 = mypart->getColumn(cmp.getName1());
+    const ibis::column *col2 = mypart->getColumn(cmp.getName2());
     if (col1 == 0) {
 	logWarning("sortEquiJoin", "can not find the named column (%s)",
 		   cmp.getName1());
@@ -5712,7 +5711,7 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit" << (cnt>1 ? "s" : "");
 	logMessage("sortEquiJoin", "equi-join(%s, %s) produced %s in "
-		   "%g sec(CPU) and %g sec(elapsed)",
+		   "%g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -5729,8 +5728,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 
     long ierr = 0;
     int64_t cnt = 0;
-    const ibis::column *col1 = table0->getColumn(cmp.getName1());
-    const ibis::column *col2 = table0->getColumn(cmp.getName2());
+    const ibis::column *col1 = mypart->getColumn(cmp.getName1());
+    const ibis::column *col2 = mypart->getColumn(cmp.getName2());
     if (col1 == 0) {
 	logWarning("sortRangeJoin", "can not find the named column (%s)",
 		   cmp.getName1());
@@ -5964,7 +5963,7 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit" << (cnt>1 ? "s" : "");
 	logMessage("sortRangeJoin", "range join(%s, %s, %g) produced %s "
-		   "in %g sec(CPU) and %g sec(elapsed)",
+		   "in %g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(),
 		   fabs(cmp.getRange()->eval()), ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
@@ -5986,8 +5985,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	timer.start();
 
     long ierr = 0;
-    const ibis::column *col1 = table0->getColumn(cmp.getName1());
-    const ibis::column *col2 = table0->getColumn(cmp.getName2());
+    const ibis::column *col1 = mypart->getColumn(cmp.getName1());
+    const ibis::column *col2 = mypart->getColumn(cmp.getName2());
     if (col1 == 0) {
 	logWarning("sortEquiJoin", "can not find the named column (%s)",
 		   cmp.getName1());
@@ -6252,7 +6251,7 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit" << (cnt>1 ? "s" : "");
 	logMessage("sortEquiJoin", "equi-join(%s, %s) produced %s in "
-		   "%g sec(CPU) and %g sec(elapsed)",
+		   "%g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -6272,8 +6271,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 
     long ierr = 0;
     int64_t cnt = 0;
-    const ibis::column *col1 = table0->getColumn(cmp.getName1());
-    const ibis::column *col2 = table0->getColumn(cmp.getName2());
+    const ibis::column *col1 = mypart->getColumn(cmp.getName1());
+    const ibis::column *col2 = mypart->getColumn(cmp.getName2());
     if (col1 == 0) {
 	logWarning("sortRangeJoin", "can not find the named column (%s)",
 		   cmp.getName1());
@@ -6358,12 +6357,12 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	ierr = col1->selectValues(mask, val1, ind1);
 #if defined(DEBUG)
 	for (uint32_t i = 0; i < ind1.size(); ++ i)
-	    if (ind1[i] > table0->nRows())
+	    if (ind1[i] > mypart->nRows())
 		logWarning("sortRangeJoin", "before sorting: ind1[%lu] = %lu "
 			   "is out of range (shoud be < %lu)",
 			   static_cast<long unsigned>(i),
 			   static_cast<long unsigned>(ind1[i]),
-			   static_cast<long unsigned>(table0->nRows()));
+			   static_cast<long unsigned>(mypart->nRows()));
 #endif
 	{
 	    array_t<uint32_t> tmp(val1.size());
@@ -6372,12 +6371,12 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	}
 #if defined(DEBUG)
 	for (uint32_t i = 0; i < ind1.size(); ++ i)
-	    if (ind1[i] > table0->nRows())
+	    if (ind1[i] > mypart->nRows())
 		logWarning("sortRangeJoin", "after sorting: ind1[%lu] = %lu "
 			   "is out of range (shoud be < %lu)",
 			   static_cast<long unsigned>(i),
 			   static_cast<long unsigned>(ind1[i]),
-			   static_cast<long unsigned>(table0->nRows()));
+			   static_cast<long unsigned>(mypart->nRows()));
 #endif
 	switch (col2->type()) {
 	case ibis::INT: {
@@ -6565,7 +6564,7 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit" << (cnt>1 ? "s" : "");
 	logMessage("sortRangeJoin", "range join(%s, %s, %g) produced %s in "
-		   "%g sec(CPU) and %g sec(elapsed)",
+		   "%g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(),
 		   fabs(cmp.getRange()->eval()), ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());

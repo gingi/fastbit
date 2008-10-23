@@ -1,4 +1,4 @@
-// $Id: selectClause.cpp,v 1.1 2008/10/21 16:04:14 kewu Exp $
+// $Id: selectClause.cpp,v 1.2 2008/10/23 23:42:22 kewu Exp $
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2008 the Regents of the University of California
@@ -98,11 +98,43 @@ int ibis::selectClause::parse(const char *cl) {
     return ierr;
 } // ibis::selectClause::parse
 
-/// Fill the names array with the appropriate names for each term of the
-/// select clause.
+void ibis::selectClause::describe(unsigned i, std::string &str) const {
+    if (i >= terms_.size()) return;
+    std::ostringstream oss;
+    switch (aggr_[i]) {
+    default:
+	oss << *(terms_[i]);
+	break;
+    case AVG:
+	oss << "AVG(" << *(terms_[i]) << ")";
+	break;
+    case CNT:
+	oss << "COUNT(" << *(terms_[i]) << ")";
+	break;
+    case MAX:
+	oss << "MAX(" << *(terms_[i]) << ")";
+	break;
+    case MIN:
+	oss << "MIN(" << *(terms_[i]) << ")";
+	break;
+    case SUM:
+	oss << "SUM(" << *(terms_[i]) << ")";
+	break;
+    }
+
+    str = oss.str();
+} // ibis::selectClause::describe
+
+/// Fill the names array.  If an alias is present, it is used, if the term
+/// is a variable, the variable name is used, otherwise, a name of the form
+/// "shhh" is generated where "hhh" is the hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
     if (terms_.size() == 0) return;
+
+    size_t prec = 0;
+    for (size_t j = terms_.size(); j > 0; j >>= 4)
+	++ prec;
 
     names_.resize(terms_.size());
     // go through the aliases first
@@ -113,31 +145,69 @@ void ibis::selectClause::fillNames() {
     // fill those without a specified name
     for (size_t j = 0; j < terms_.size(); ++ j) {
 	if (names_[j].empty()) {
-	    std::ostringstream oss;
-	    switch (aggr_[j]) {
-	    default:
-		oss << *(terms_[j]);
-		break;
-	    case AVG:
-		oss << "AVG(" << *(terms_[j]) << ")";
-		break;
-	    case CNT:
-		oss << "COUNT(" << *(terms_[j]) << ")";
-		break;
-	    case MAX:
-		oss << "MAX(" << *(terms_[j]) << ")";
-		break;
-	    case MIN:
-		oss << "MIN(" << *(terms_[j]) << ")";
-		break;
-	    case SUM:
-		oss << "SUM(" << *(terms_[j]) << ")";
-		break;
-	    }	
-	    names_[j] = oss.str();
+	    if (terms_[j]->termType() == ibis::math::VARIABLE) {
+		names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
+		    ->variableName();
+	    }
+	    else {
+		std::ostringstream oss;
+		oss << "s" << std::setprecision(prec) << j;
+		names_[j] = oss.str();
+	    }
 	}
     }
 } // ibis::selectClause::fillNames
+
+/// Given a name find the term in the select clause.
+int ibis::selectClause::find(const char* key) const {
+    int ret = -1;
+    if (key != 0 && *key != 0) {
+	StringToInt::const_iterator it = alias_.find(key);
+	if (it != alias_.end()) {
+	    ret = it->second;
+	}
+	else {
+	    // try to match short-hand names
+	    for (ret = 0; ret < static_cast<int>(names_.size()); ++ ret) {
+		if (stricmp(names_[ret].c_str(), key) == 0)
+		    break;
+	    }
+	    // try to match the string version of each arithmetic expression
+	    if (ret >= static_cast<int>(names_.size())) {
+		for (unsigned int i = 0; i < terms_.size(); ++ i) {
+		    std::ostringstream oss;
+		    switch (aggr_[i]) {
+		    default:
+			oss << *(terms_[i]);
+			break;
+		    case AVG:
+			oss << "AVG(" << *(terms_[i]) << ")";
+			break;
+		    case CNT:
+			oss << "COUNT(" << *(terms_[i]) << ")";
+			break;
+		    case MAX:
+			oss << "MAX(" << *(terms_[i]) << ")";
+			break;
+		    case MIN:
+			oss << "MIN(" << *(terms_[i]) << ")";
+			break;
+		    case SUM:
+			oss << "SUM(" << *(terms_[i]) << ")";
+			break;
+		    }
+		    if (stricmp(oss.str().c_str(), key) == 0) {
+			ret = i;
+			break;
+		    }
+		}
+	    }
+	    if (ret >= static_cast<int>(names_.size()))
+		ret = -1;
+	}
+    }
+    return ret;
+} // ibis::selectClause::find
 
 void ibis::selectClause::print(std::ostream& out) const {
     std::vector<const std::string*> aliases(terms_.size(), 0);
@@ -197,11 +267,19 @@ int ibis::selectClause::_verify(const ibis::part& part0,
 		<< var.variableName();
 	}
     }
+    else if (xp0.termType() == ibis::math::UNDEFINED) {
+	++ ierr;
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::selectClause::verify -- ibis::math::term has a "
+	    "undefined type";
+    }
     else {
 	if (xp0.getLeft() != 0)
-	    ierr = _verify(part0, *static_cast<const ibis::math::term*>(xp0.getLeft()));
+	    ierr = _verify(part0, *static_cast<const ibis::math::term*>
+			   (xp0.getLeft()));
 	if (xp0.getRight() != 0)
-	    ierr += _verify(part0, *static_cast<const ibis::math::term*>(xp0.getRight()));
+	    ierr += _verify(part0, *static_cast<const ibis::math::term*>
+			    (xp0.getRight()));
     }
 
     return ierr;
@@ -219,22 +297,3 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
 	mask &= tmp;
     }
 } // ibis::selectClause::getNullMask
-
-int ibis::selectClause::find(const char* key) const {
-    int ret = -1;
-    if (key != 0 && *key != 0) {
-	StringToInt::const_iterator it = alias_.find(key);
-	if (it != alias_.end()) {
-	    ret = it->second;
-	}
-	else {
-	    for (ret = 0; ret < static_cast<int>(names_.size()); ++ ret) {
-		if (stricmp(names_[ret].c_str(), key) == 0)
-		    break;
-	    }
-	    if (ret >= static_cast<int>(names_.size()))
-		ret = -1;
-	}
-    }
-    return ret;
-} // ibis::selectClause::find

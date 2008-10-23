@@ -1162,12 +1162,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	timer.stop();
 	if (isRead) {
 	    c->logMessage("readIndex", "the %s index was read (%s) in %g "
-			  "sec(CPU) and %g sec(elapsed)", ind->name(), dfname,
+			  "sec(CPU), %g sec(elapsed)", ind->name(), dfname,
 			  timer.CPUTime(), timer.realTime());
 	}
 	else {
 	    c->logMessage("createIndex", "creating a (%s) index took %g "
-			  "sec(CPU) and %g sec(elapsed)", ind->name(),
+			  "sec(CPU), %g sec(elapsed)", ind->name(),
 			  timer.CPUTime(), timer.realTime());
 	}
 	if (ibis::gVerbose > 3) {
@@ -4392,7 +4392,7 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie,
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	ibis::util::logMessage("index", "addBits operated on %u bitmap%s "
-			       "(%lu in %lu out) took %g sec(CPU) and "
+			       "(%lu in %lu out) took %g sec(CPU), "
 			       "%g sec(elapsed).",
 			       static_cast<unsigned>(na), (na>1?"s":""),
 			       static_cast<long unsigned>(bytes),
@@ -4901,7 +4901,7 @@ void ibis::index::addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	ibis::util::logMessage("index", "addBits operated on %u bitmap%s "
-			       "(%lu in %lu out) took %g sec(CPU) and "
+			       "(%lu in %lu out) took %g sec(CPU), "
 			       "%g sec(elapsed).",
 			       static_cast<unsigned>(na), (na>1?"s":""),
 			       static_cast<long unsigned>(bytes),
@@ -5467,7 +5467,7 @@ void ibis::index::sumBits(uint32_t ib, uint32_t ie,
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	ibis::util::logMessage("index", "sumBits operated on %u bitmap%s "
-			       "(%lu in %lu out) took %g sec(CPU) and "
+			       "(%lu in %lu out) took %g sec(CPU), "
 			       "%g sec(elapsed).",
 			       static_cast<unsigned>(na), (na>1?"s":""),
 			       static_cast<long unsigned>(bytes),
@@ -5699,8 +5699,8 @@ void ibis::index::addBins(const std::vector<ibis::bitvector*>& bts,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "addBins(%lu, %lu) took %g sec(CPU) "
-			       "and %g sec(elapsed).",
+	ibis::util::logMessage("index", "addBins(%lu, %lu) took %g sec(CPU), "
+			       "%g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());
@@ -6559,7 +6559,7 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
 	timer.stop();
 	ibis::util::logMessage("index", "sumBins operated on %lu bitmap%s "
 			       "using option %d (%lu in %lu out) took "
-			       "%g sec(CPU) and %g sec(elapsed).",
+			       "%g sec(CPU), %g sec(elapsed).",
 			       static_cast<long unsigned>(na),
 			       (na>1?"s":""), ibis::_sumBins_option,
 			       bytes, res.bytes(), timer.CPUTime(),
@@ -6887,7 +6887,7 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	ibis::util::logMessage("index", "sumBins operated on %lu bitmap%s "
-			       "(%lu B in %lu B out) took %g sec(CPU) and "
+			       "(%lu B in %lu B out) took %g sec(CPU), "
 			       "%g sec(elapsed).",
 			       static_cast<long unsigned>(na), (na>1?"s":""),
 			       static_cast<long unsigned>(bytes),
@@ -7000,8 +7000,8 @@ void ibis::index::sumBins(const std::vector<ibis::bitvector*>& bts,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "sumBins(%lu, %lu) took %g sec(CPU) "
-			       "and %g sec(elapsed).",
+	ibis::util::logMessage("index", "sumBins(%lu, %lu) took %g sec(CPU), "
+			       "%g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());

@@ -237,6 +237,45 @@ fi
 CFLAGS="$OPT $PTHREAD_CFLAGS"
 CXXFLAGS="$OPT $PTHREAD_CFLAGS"
 
+AC_DEFUN([AC_JNI_INCLUDE_DIR],[
+
+JNI_INCLUDE_DIRS=""
+
+case "$host_os" in
+  darwin*) _JTOPDIR=`echo "$JAVA_HOME" | sed -e 's:/[[^/]]*$::'`
+           _JINC="$_JTOPDIR/Headers";;
+  *)       _JINC="$JAVA_HOME/include";;
+esac
+if test -f "$_JINC/jni.h"; then
+  JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JINC"
+else
+  JAVA_HOME=`echo "$JAVA_HOME" | sed -e 's:/[[^/]]*$::'`
+  if test -f "$JAVA_HOME/include/jni.h"; then
+    JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/include"
+  else
+    AC_MSG_ERROR([cannot find java include files])
+  fi
+fi
+
+# system specific java includes
+case "$host_os" in
+  bsdi*)     _JNI_INC_SUBDIRS="bsdos";;
+  linux*)    _JNI_INC_SUBDIRS="linux genunix";;
+  osf*)      _JNI_INC_SUBDIRS="alpha";;
+  solaris*)  _JNI_INC_SUBDIRS="solaris";;
+  mingw*)    _JNI_INC_SUBDIRS="win32";;
+  cygwin*)   _JNI_INC_SUBDIRS="win32";;
+  *)         _JNI_INC_SUBDIRS="genunix";;
+esac
+
+# add all subdirectories
+for JINCSUBDIR in $_JNI_INC_SUBDIRS
+do
+  if test -d "$JAVA_HOME/include/$JINCSUBDIR"; then
+    JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/include/$JINCSUBDIR"
+  fi
+done
+])
 #
 AC_DEFUN([AC_PROG_JAVA_WORKS], [
 AC_CHECK_PROG(uudecode, uudecode$EXEEXT, yes)
@@ -321,9 +360,9 @@ AC_PROVIDE([$0])dnl
 ]
 )
 AC_DEFUN([AC_PROG_JAVAC_WORKS],[
-AC_CACHE_CHECK([if $JAVAC works], ac_cv_prog_javac_works, [
-JAVA_TEST=Test.java
-CLASS_TEST=Test.class
+	AC_CACHE_CHECK([if $JAVAC works], ac_cv_prog_javac_works, [
+	JAVA_TEST=Test.java
+	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
 /* [#]line __oline__ "configure" */
 public class Test {
@@ -341,62 +380,72 @@ rm -f $JAVA_TEST $CLASS_TEST
 AC_PROVIDE([$0])dnl
 ])
 AC_DEFUN([AC_PROG_JAVAC],[
-AC_REQUIRE([AC_EXEEXT])dnl
-if test "x$JAVAPREFIX" = x; then
+	AC_REQUIRE([AC_EXEEXT])dnl
+	if test "x$JAVAPREFIX" = x; then
         test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT)
-else
-        test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX)
-fi
-test "x$JAVAC" = x && AC_MSG_ERROR([no acceptable Java compiler found in \$PATH])
-AC_PROG_JAVAC_WORKS
-AC_PROVIDE([$0])dnl
-])
+	else
+        #test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
+	JAVAC=$JAVAPREFIX/javac$EXEEXT
+	fi
+	test "x$JAVAC" = x && AC_MSG_ERROR([no acceptable Java compiler found in \$PATH])
+	AC_PROG_JAVAC_WORKS
+	AC_PROVIDE([$0])dnl
+	])
 AC_DEFUN([AC_PROG_JAVA],[
-AC_REQUIRE([AC_EXEEXT])dnl
-if test x$JAVAPREFIX = x; then
+	AC_REQUIRE([AC_EXEEXT])dnl
+	if test x$JAVAPREFIX = x; then
         test x$JAVA = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT)
-else
-        test x$JAVA = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX)
-fi
-test x$JAVA = x && AC_MSG_ERROR([no acceptable Java virtual machine found in \$PATH])
-AC_PROG_JAVA_WORKS
-AC_PROVIDE([$0])dnl
-])
+	else
+        #test x$JAVA = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX/java$EXEEXT)
+	JAVA=$JAVAPREFIX/java$EXEEXT
+	fi
+	test x$JAVA = x && AC_MSG_ERROR([no acceptable Java virtual machine found in \$PATH])
+	AC_PROG_JAVA_WORKS
+	AC_PROVIDE([$0])dnl
+	])
 
 # Set the optional Java SDK directory.
 AC_ARG_WITH(java,
 	    AC_HELP_STRING([--with-java=dir],
 			   [use dir as Java SDK root directory]),
-            [if test "x$with_java" != "xyes" && test "x$with_java" != "xno" && test "x$with_java" != "x"; then JAVA_HOME=$with_java; fi],
+            [if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi],
 	    [with_java="no"; JAVA_HOME="";])
-if test ! "x$with_java" = "xno" ; then
-if test "x$JAVA_HOME" = "x" ; then
-case "${host_os}" in
-# On Darwin the JDK, if present, is installed in /Library/Java/Home .
-darwin*)
-  JAVA_HOME="/Library/Java/Home"
-  ;;
-# On Fedora Core systems the JDK is usually in /usr/java/default .
-linux*)
-  JAVA_HOME="/usr/java/default"
-  ;;
-*)
-  ;;
-esac
-fi
+  if test ! "x$with_java" = "xno" ; then
+    if test "x$JAVA_HOME" = "x" ; then
+    case "${host_os}" in
+    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+    darwin*)
+      JAVA_HOME="/Library/Java/Home"
+      ;;
+    # On Fedora Core systems the JDK is usually in /usr/java/default .
+    linux*)
+      JAVA_HOME="/usr/java/default"
+      ;;
+    *)
+    ;;
+    esac
+  fi
 
-if test ! "x$JAVA_HOME" = "x"
-then
-  JAVAPREFIX="${JAVA_HOME}/bin"
-  CFLAGS="${CFLAGS} -I${JAVAHOME}/include/ -I${JAVAHOME}/include/${build_os}"
-  CXXFLAGS="${CXXFLAGS} -I${JAVAHOME}/include/ -I${JAVAHOME}/include/${build_os}"
-fi
-AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
+  if test ! "x$JAVA_HOME" = "x"
+  then
+    JAVAPREFIX="${JAVA_HOME}/bin"
+    # Check for Java programs. Order here is important: check first
+    # for the compiler.
+    AC_PROG_JAVAC
+    AC_PROG_JAVA
 
-# Check for Java programs. Order here is important: check first
-# for the compiler.
-AC_PROG_JAVAC
-AC_PROG_JAVA
+    if test ! "x$JAVAC" = "xno"
+    then
+      AC_JNI_INCLUDE_DIR
+      for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+      do
+        CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
+        CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
+      done
+
+      AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
+    fi
+  fi
 fi
 # build java test program if java and javac exist
 AM_CONDITIONAL(BUILD_JAVA_TEST, test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_javac_supports_enums" = "xno")
@@ -404,7 +453,7 @@ AM_CONDITIONAL(BUILD_JAVA_INTERFACE, test ! "x$JAVAC" = "xno" &&  test "x$HAS_JN
 AC_SUBST(BUILD_JAVA_INTERFACE)
 
 # make sure FlexLexer.h is accessible
-AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win", CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
+AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
 
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)

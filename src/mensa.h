@@ -79,7 +79,7 @@ public:
     /// accepts an extra argument for caller to specify a list of names of
     /// data partitions that will participate in the select operation.  The
     /// argument pts may contain wild characters accepted by SQL function
-    /// 'LIKE', '_' and '%'.
+    /// 'LIKE', more specifically, '_' and '%'.
     virtual table* select2(const char* sel, const char* cond,
 			   const char* pts) const;
 
@@ -115,13 +115,18 @@ protected:
     /// Compute the number of hits.
     int64_t computeHits(const char* cond) const {
 	return computeHits(cond, parts);}
+
     /// Compute he number of hits from a list of data partitions
     static int64_t computeHits(const char* cond, const ibis::partList& pts);
+    /// The function to handle non-trivial version of select operation.
+    static table* doSelect(const char* sel, const char* cond,
+			   const ibis::partList& pts);
     /// Append new data (in @c from) to a larger array (pointed to by @c to).
-    template <typename T>
-    void addIncoreData(void*& to, const array_t<T>& from,
-		       size_t nold, const T special) const;
-    void addStrings(void*&, const std::vector<std::string>&, size_t) const;
+    template <typename T> static void 
+    addIncoreData(void*& to, const array_t<T>& from,
+		  size_t nold, const T special);
+    static void
+    addStrings(void*&, const std::vector<std::string>&, size_t);
 
 private:
     // disallow copying.

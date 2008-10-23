@@ -1765,7 +1765,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 	    ostr << " produced " << cnt << " hit" << (cnt>1 ? "s" : "")
 		 << "(result bitvector size " << lower.bytes() << " bytes)";
 	    ibis::util::logMessage
-		("relic::estimate", "processing %s took %g sec(CPU) and "
+		("relic::estimate", "processing %s took %g sec(CPU), "
 		 "%g sec(elapsed)",
 		 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
 	}
@@ -1827,7 +1827,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
 	if (cnt >= 0) {
 	    ostr << " produced " << cnt << " hit" << (cnt>1 ? "s" : "");
 	    ibis::util::logMessage
-		("relic::estimate", "processing %s took %g sec(CPU) and "
+		("relic::estimate", "processing %s took %g sec(CPU), "
 		 "%g sec(elapsed)",
 		 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
 	}
@@ -1880,7 +1880,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 	    ostr << " produced " << cnt << " hit" << (cnt>1 ? "s" : "")
 		 << "(result bitvector size " << lower.bytes() << " bytes)";
 	    ibis::util::logMessage
-		("relic::estimate", "processing %s took %g sec(CPU) and "
+		("relic::estimate", "processing %s took %g sec(CPU), "
 		 "%g sec(elapsed)",
 		 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
 	}
@@ -1927,7 +1927,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
 	if (cnt >= 0) {
 	    ostr  << " produced " << cnt << " hit" << (cnt>1 ? "s" : "");
 	    ibis::util::logMessage("relic::estimate", "processing %s took %g "
-				   "sec(CPU) and %g sec(elapsed)",
+				   "sec(CPU), %g sec(elapsed)",
 				   ostr.str().c_str(), timer.CPUTime(),
 				   timer.realTime());
 	}

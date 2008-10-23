@@ -726,6 +726,9 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 
 /// Retrieve selected 1-byte integer values.  Note that unsigned
 /// integers are simply treated as signed integers.
+///
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
     array_t<char>* array = new array_t<char>;
@@ -820,13 +823,15 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectBytes", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
     return array;
 } // ibis::column::selectBytes
 
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<unsigned char>*
 ibis::column::selectUBytes(const ibis::bitvector& mask) const {
     array_t<unsigned char>* array = new array_t<unsigned char>;
@@ -921,7 +926,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectUBytes", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -931,6 +936,8 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 /// Can convert all integers 2-byte or less in length.  Note that unsigned
 /// integers are simply treated as signed integers.  Shoter types
 /// of signed integers are treated correctly as positive values.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<int16_t>*
 ibis::column::selectShorts(const ibis::bitvector& mask) const {
     array_t<int16_t>* array = new array_t<int16_t>;
@@ -1154,13 +1161,15 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectShorts", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
     return array;
 } // ibis::column::selectShorts
 
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<uint16_t>*
 ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     array_t<uint16_t>* array = new array_t<uint16_t>;
@@ -1384,13 +1393,15 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectUShorts", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
     return array;
 } // ibis::column::selectUShorts
 
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<int32_t>*
 ibis::column::selectInts(const ibis::bitvector& mask) const {
     array_t<int32_t>* array = new array_t<int32_t>;
@@ -1778,7 +1789,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectInts", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -1787,6 +1798,8 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 
 /// Can be called on columns of unsigned integral types, UINT, CATEGORY,
 /// USHORT, and UBYTE.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
     const {
     array_t<uint32_t>* array = new array_t<uint32_t>;
@@ -2015,7 +2028,7 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectUInts", "retrieving %lu unsigned integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2023,9 +2036,11 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 } // ibis::column::selectUInts
 
 /// Can be called on all integral types.  Note that 64-byte unsigned
-/// integers are simply treated as signed integer.  This may cause the
+/// integers are simply treated as signed integers.  This may cause the
 /// values to be interperted incorrectly.  Shorter version of unsigned
 /// integers are treated correctly as positive values.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
     const {
     array_t<int64_t>* array = new array_t<int64_t>;
@@ -2610,7 +2625,7 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectLongs", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2618,6 +2633,8 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 } // ibis::column::selectLongs
 
 /// Can be called on all unsigned integral types.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
     const {
     array_t<uint64_t>* array = new array_t<uint64_t>;
@@ -2974,7 +2991,7 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectULongs", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2982,6 +2999,12 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 } // ibis::column::selectULongs
 
 /// Put selected values of a float column into an array.
+///
+/// @note Only performs safe conversion.  Conversions from 32-bit integers,
+/// 64-bit integers and 64-bit floating-point values are not allowed.  A
+/// nil array will be returned if the current column can not be converted.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
     const {
     array_t<float>* array = new array_t<float>;
@@ -3337,7 +3360,7 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectFloats", "retrieving %lu float value%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -3345,9 +3368,11 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 } // ibis::column::selectFloats
 
 /// Put the selected values into an array as doubles.
-/// @note Any column type could be selected as doubles.  Other selectXXXs
-/// function only work on the same data type.  This is the only function
-/// that allows one to convert to a different type.  This is mainly to 
+///
+/// @note Any numerical values can be converted to doubles, however for
+/// 64-bit integers this conversion may cause lose of precision.
+/// @note The caller is responsible for freeing the returned array from any
+/// of the selectTypes functions.
 array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
     const {
     array_t<double>* array = new array_t<double>;
@@ -3429,7 +3454,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3503,7 +3528,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3577,7 +3602,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned short "
-		       "integer%s took %g sec(CPU) %g sec(elapsed)",
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3651,7 +3676,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu short integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3725,7 +3750,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned 1-byte "
-		       "integer%s took %g sec(CPU) %g sec(elapsed)",
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3799,7 +3824,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu 1-byte integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3873,7 +3898,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu float value%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3948,7 +3973,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu double value%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}

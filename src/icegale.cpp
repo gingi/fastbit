@@ -1056,7 +1056,7 @@ void ibis::egale::addBins_(uint32_t ib, uint32_t ie,
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	ibis::util::logMessage("ibis::egale", "addBins(%lu, %lu) took %g "
-			       "sec(CPU) and %g sec(elapsed).",
+			       "sec(CPU), %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());

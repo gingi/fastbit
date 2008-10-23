@@ -1,3 +1,17 @@
+Thu Oct 23 16:42:31 PDT 2008
+Version b0.9.8
+-- add arithmetic expression to the select clauses accepted by function
+   ibis::table::select
+-- update java example (correct issues raised by Niklas Bulitta)
+-- rewrite the parser for query expressions to use the C++ options of
+   bison and flex (predicate* changed to where*)
+-- add parsing code to handle arithmetic expression in select clauses
+-- reorganizes ibis::qExpr class hierarchy and move arithmetic
+   expressions under namespace ibis::math
+-- address an error report by David Kantowitz about
+   ibis::column::getString
+-- minor changes to print statement and code organizations
+
 Fri Sep 19 22:38:43 PDT 2008
 Version b0.9.7
 -- fix an error in mensa.cpp (involving the implementation of

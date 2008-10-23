@@ -26,7 +26,7 @@ public:
     bord(const char *tn, const char *td, uint64_t nr,
 	 const ibis::table::stringList &cn,
 	 const ibis::table::typeList &ct,
-	 const bufferList& buf);
+	 const bufferList &buf, const ibis::table::stringList *cdesc=0);
     virtual ~bord() {clear();}
 
     virtual uint64_t nRows() const {return mypart.nRows();}
@@ -98,8 +98,9 @@ protected:
     public:
 	part(const char *tn, const char *td, uint64_t nr,
 	     const ibis::table::stringList &cn,
-	     const ibis::table::typeList &ct,
-	     const ibis::bord::bufferList& buf);
+	     const ibis::table::typeList   &ct,
+	     const ibis::bord::bufferList  &buf,
+	     const ibis::table::stringList *cdesc=0);
 
 	template <typename E>
 	long doScan(const array_t<E>& varr,
@@ -359,13 +360,13 @@ inline int ibis::bord::column::dump(std::ostream& out, size_t i) const {
     case ibis::FLOAT: {
 	const array_t<float>* vals =
 	    static_cast<const array_t<float>*>(buffer);
-	out << std::setprecision(8) << (*vals)[i];
+	out << std::setprecision(7) << (*vals)[i];
 	ierr = 0;
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* vals =
 	    static_cast<const array_t<double>*>(buffer);
-	out << std::setprecision(18) << (*vals)[i];
+	out << std::setprecision(15) << (*vals)[i];
 	ierr = 0;
 	break;}
     case ibis::TEXT:

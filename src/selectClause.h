@@ -1,4 +1,4 @@
-// $Id: selectClause.h,v 1.1 2008/10/21 16:04:14 kewu Exp $
+// $Id: selectClause.h,v 1.2 2008/10/23 23:42:22 kewu Exp $
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2008 the Regents of the University of California
@@ -33,7 +33,7 @@ public:
     const char* operator*(void) const {return clause_.c_str();}
 
     bool empty() const {return terms_.empty();}
-    size_t numTerms() const {return terms_.size();}
+    size_t size() const {return terms_.size();}
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
     const mathTerms& getTerms() const {return terms_;}
@@ -54,10 +54,11 @@ public:
 
     int find(const char*) const;
     const char* getName(unsigned i) const {return names_[i].c_str();}
+    void describe(unsigned i, std::string &str) const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM};
-    AGREGADO getAgregado(size_t i) const {return aggr_[i];}
+    AGREGADO getAggregator(size_t i) const {return aggr_[i];}
 
     /// Make sure all the variables are present in the specified data
     /// partition.  Returns the number of variables that are not. 

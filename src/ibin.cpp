@@ -2330,21 +2330,21 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	timer.stop();
 	if (ierr < 0) 
 	    col->logWarning("bin::checkBin", "checking bin # %lu [%lu] took "
-			    "%g sec(CPU) and %g sec(elapsed).  Returning "
+			    "%g sec(CPU), %g sec(elapsed).  Returning "
 			    "error code %ld",
 			    static_cast<long unsigned>(jbin),
 			    static_cast<long unsigned>(bits[jbin]->cnt()),
 			    timer.CPUTime(), timer.realTime(), ierr);
 	else
 	    col->logMessage("bin::checkBin", "checking bin # %lu [%lu] took "
-			    "%g sec(CPU) and %g sec(elapsed).  Returning %ld",
+			    "%g sec(CPU), %g sec(elapsed).  Returning %ld",
 			    static_cast<long unsigned>(jbin),
 			    static_cast<long unsigned>(bits[jbin]->cnt()),
 			    timer.CPUTime(), timer.realTime(), ierr);
     }
     else if (ierr < 0) {
 	col->logWarning("bin::checkBin", "checking bin # %lu [%lu] took "
-			"%g sec(CPU) and %g sec(elapsed).  Returning "
+			"%g sec(CPU), %g sec(elapsed).  Returning "
 			"error code %ld",
 			static_cast<long unsigned>(jbin),
 			static_cast<long unsigned>(bits[jbin]->cnt()),
@@ -2409,14 +2409,14 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	timer.stop();
 	if (ierr < 0)
 	    col->logWarning("bin::checkBin", "checking bin # %lu (%lu) "
-			    "took %g sec(CPU) and %g sec(elapsed).  Returning "
+			    "took %g sec(CPU), %g sec(elapsed).  Returning "
 			    "error code %ld",
 			    static_cast<long unsigned>(jbin),
 			    static_cast<long unsigned>(mask.cnt()),
 			    timer.CPUTime(), timer.realTime(), ierr);
 	else
 	    col->logMessage("bin::checkBin", "checking bin # %lu (%lu) "
-			    "took %g sec(CPU) and %g sec(elapsed). Returning "
+			    "took %g sec(CPU), %g sec(elapsed). Returning "
 			    "%ld",
 			    static_cast<long unsigned>(jbin),
 			    static_cast<long unsigned>(mask.cnt()),
@@ -2424,7 +2424,7 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
     }
     else {
 	col->logWarning("bin::checkBin", "checking bin # %lu (%lu) "
-			"took %g sec(CPU) and %g sec(elapsed).  Returning "
+			"took %g sec(CPU), %g sec(elapsed).  Returning "
 			"error code %ld",
 			static_cast<long unsigned>(jbin),
 			static_cast<long unsigned>(mask.cnt()),
@@ -7745,7 +7745,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	     << "] hit(s)";
 	ibis::util::logMessage
 	    ("bin::estimate(symmetric)",
-	     "processing %s took %g sec(CPU) and %g sec(elapsed)",
+	     "processing %s took %g sec(CPU), %g sec(elapsed)",
 	     ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
 } // ibis::bin::estimate
@@ -7796,7 +7796,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	     << "] hit(s)";
 	ibis::util::logMessage
 	    ("bin::estimate(symmetric)",
-	     "processing %s took %g sec(CPU) and %g sec(elapsed)",
+	     "processing %s took %g sec(CPU), %g sec(elapsed)",
 	     ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
 } // ibis::bin::estimate
@@ -7847,7 +7847,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	     << (upper.cnt()>=lower.cnt() ? upper.cnt() : lower.cnt())
 	     << "] hit(s)";
 	ibis::util::logMessage
-	    ("bin::estimate", "processing %s took %g sec(CPU) and "
+	    ("bin::estimate", "processing %s took %g sec(CPU), "
 	     "%g sec(elapsed)", ostr.str().c_str(),
 	     timer.CPUTime(), timer.realTime());
     }
@@ -7900,7 +7900,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	     << (upper.cnt()>=lower.cnt() ? upper.cnt() : lower.cnt())
 	     << "] hit(s)";
 	ibis::util::logMessage
-	    ("bin::estimate", "processing %s took %g sec(CPU) and "
+	    ("bin::estimate", "processing %s took %g sec(CPU), "
 	     "%g sec(elapsed)", ostr.str().c_str(),
 	     timer.CPUTime(), timer.realTime());
     }
@@ -7960,7 +7960,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	     << " and "
 	     << (upper.cnt() > lower.cnt() ? upper.cnt() : lower.cnt());
 	ibis::util::logMessage("bin::estimate", "processing %s, took %g "
-			       "sec(CPU) and %g sec(elapsed)",
+			       "sec(CPU), %g sec(elapsed)",
 			       ostr.str().c_str(), timer.CPUTime(),
 			       timer.realTime());
     }
@@ -8008,7 +8008,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 	ostr << " produced no more than " << cnt
 	     << (cnt>1 ? " hits" : " hit");
 	ibis::util::logMessage("bin::estimate", "processing %s, took %g "
-			       "sec(CPU) and %g sec(elapsed)",
+			       "sec(CPU), %g sec(elapsed)",
 			       ostr.str().c_str(), timer.CPUTime(),
 			       timer.realTime());
     }
@@ -8088,7 +8088,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	     << " and "
 	     << (upper.cnt() > lower.cnt() ? upper.cnt() : lower.cnt());
 	ibis::util::logMessage("bin::estimate", "processing %s, took %g "
-			       "sec(CPU) and %g sec(elapsed)",
+			       "sec(CPU), %g sec(elapsed)",
 			       ostr.str().c_str(), timer.CPUTime(),
 			       timer.realTime());
     }
@@ -8135,7 +8135,7 @@ int64_t ibis::bin::estimate(const ibis::rangeJoin& expr,
 	ostr << " produced no more than " << cnt
 	     << (cnt>1 ? " hits" : " hit");
 	ibis::util::logMessage("bin::estimate", "processing %s, took %g "
-			       "sec(CPU) and %g sec(elapsed)",
+			       "sec(CPU), %g sec(elapsed)",
 			       ostr.str().c_str(), timer.CPUTime(),
 			       timer.realTime());
     }

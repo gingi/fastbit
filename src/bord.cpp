@@ -16,9 +16,10 @@
 
 ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 		 const ibis::table::stringList &cn,
-		 const ibis::table::typeList &ct,
-		 const ibis::bord::bufferList& buf)
-    : ibis::table(tn, td), mypart(tn, td, nr, cn, ct, buf) {
+		 const ibis::table::typeList   &ct,
+		 const ibis::bord::bufferList  &buf,
+		 const ibis::table::stringList *cdesc)
+    : ibis::table(tn, td), mypart(tn, td, nr, cn, ct, buf, cdesc) {
 } // ibis::bord::bord
 
 void ibis::bord::clear() {
@@ -866,34 +867,40 @@ int64_t ibis::bord::computeHits(const char *cond) const {
 
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList &cn,
-		       const ibis::table::typeList &ct,
-		       const ibis::bord::bufferList& buf)
+		       const ibis::table::typeList   &ct,
+		       const ibis::bord::bufferList  &buf,
+		       const ibis::table::stringList *cdesc)
     : ibis::part("incore") {
     m_name = ibis::util::strnewdup(tn);
     m_desc = ibis::util::strnewdup(td);
     nEvents = static_cast<size_t>(nr);
     if (nEvents != nr) {
-	LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::part can not handle " << nr
-		   << " rows in an in-memory table";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "ibis::bord::part::part can not handle " << nr
+	    << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
 
     const size_t nc = (cn.size()<=ct.size() ? cn.size() : ct.size());
     for (size_t i = 0; i < nc; ++ i) {
 	if (columns.find(cn[i]) == columns.end()) {
-	    ibis::column *tmp =
-		new ibis::bord::column(this, ct[i], cn[i], buf[i]);
+	    ibis::column *tmp;
+	    if (cdesc != 0 && cdesc->size() > i)
+		tmp = new ibis::bord::column(this, ct[i], cn[i], buf[i],
+					     (*cdesc)[i]);
+	    else
+		tmp = new ibis::bord::column(this, ct[i], cn[i], buf[i]);
 	    columns[tmp->name()] = tmp;
 	    colorder.push_back(tmp);
 	}
     }
-    LOGGER(ibis::gVerbose >= 0) << "ibis::bord::part::part("
-	      << (m_name != 0 ? m_name : "<unnamed>") << ", "
-	      << (m_desc != 0 ? m_desc : "")
-	      << ") completed allocating memory for "
-	      << columns.size() << " column"
-	      << (columns.size() > 1U ? "s" : "") << " with "
-	      << nr << " row" << (nr > 1U ? "s" : "");
+
+    LOGGER(ibis::gVerbose > 0)
+	<< "ibis::bord::part::part(" << (m_name != 0 ? m_name : "<unnamed>")
+	<< ", " << (m_desc != 0 ? m_desc : "")
+	<< ") completed allocating memory for "
+	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "")
+	<< " with " << nr << " row" << (nr > 1U ? "s" : "");
 } // ibis::bord::part::part
 
 void ibis::bord::part::describe(std::ostream& out) const {
@@ -1512,7 +1519,7 @@ long ibis::bord::part::reorderValues(array_t<T>& vals,
 	timer.stop();
 	nseg = starts.size() - 1;
 	logMessage("reorderValues", "reordered %lu value%s (into %lu "
-		   "segment%s) in %g sec(CPU) and %g sec(elapsed)",
+		   "segment%s) in %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(nEvents), (nEvents>1 ? "s" : ""),
 		   static_cast<long unsigned>(nseg), (nseg>1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
@@ -2269,7 +2276,7 @@ ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectInts", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2458,7 +2465,7 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectUInts", "retrieving %lu unsigned integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2957,7 +2964,7 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectLongs", "retrieving %lu integer%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -3248,7 +3255,7 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
 	timer.stop();
 	long unsigned cnt = mask.cnt();
 	logMessage("selectFloats", "retrieving %lu float value%s "
-		   "took %g sec(CPU) %g sec(elapsed)",
+		   "took %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -3328,7 +3335,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3390,7 +3397,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3452,7 +3459,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned short "
-		       "integer%s took %g sec(CPU) %g sec(elapsed)",
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3514,7 +3521,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu short integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3576,7 +3583,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu unsigned 1-byte "
-		       "integer%s took %g sec(CPU) %g sec(elapsed)",
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3638,7 +3645,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu 1-byte integer%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3700,7 +3707,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu float value%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
@@ -3762,7 +3769,7 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	    timer.stop();
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectDoubles", "retrieving %lu double value%s "
-		       "took %g sec(CPU) %g sec(elapsed)",
+		       "took %g sec(CPU), %g sec(elapsed)",
 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}

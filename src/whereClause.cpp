@@ -1,4 +1,4 @@
-// $Id: whereClause.cpp,v 1.2 2008/10/21 16:04:14 kewu Exp $
+// $Id: whereClause.cpp,v 1.3 2008/10/23 23:42:23 kewu Exp $
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2008 the Regents of the University of California
@@ -81,15 +81,22 @@ int ibis::whereClause::parse(const char* cl) {
     return ierr;
 } // ibis::whereClause::parse
 
-void ibis::whereClause::simplify() {
-    ibis::qExpr::simplify(expr_);
-} // ibis::whereClause::simplify
-
 void ibis::whereClause::clear() throw () {
     clause_.clear();
     delete expr_;
     expr_ = 0;
 } // ibis::whereClause::clear
+
+int ibis::whereClause::verify(const ibis::part& part0) {
+    if (expr_ != 0) {
+	ibis::qExpr::simplify(expr_);
+	amplify(part0);
+	return _verify(part0, expr_);
+    }
+    else {
+	return 0;
+    }
+} // ibis::whereClause::verify
 
 /// The actual work horse of the verify function.  This function check each
 /// variable name specified in the query conditions to make sure they all

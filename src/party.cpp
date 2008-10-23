@@ -327,7 +327,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 	ostr << trial.cnt() << " pair(s) and produced "
 	     << result.cnt() << " hit(s)";
 	logMessage("equiJoin", "equi-join(%s, %s) evaluated %s using "
-		   "%g sec(CPU) and %g sec(elapsed)",
+		   "%g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -460,7 +460,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 	ostr << trial.cnt() << " pair(s) and produced "
 	     << result.cnt() << " hit(s)";
 	logMessage("rangeJoin", "rangeJoin(%s, %s, %g) evaluated %s "
-		   "using %g sec(CPU) and %g sec(elapsed)",
+		   "using %g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta,
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
@@ -600,7 +600,7 @@ int64_t ibis::part::compJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cmp << " evaluated " << trial.cnt() << " pair(s) and produced "
 	     << result.cnt() << " hit(s)";
-	logMessage("compJoin", "%s using %g sec(CPU) and %g sec(elapsed)",
+	logMessage("compJoin", "%s using %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return result.cnt();
@@ -794,7 +794,7 @@ ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
 	    ostr << " AND " << *(cmp[k]);
 	ostr << ") evaluated " << trial.cnt() << " pair(s) and produced "
 	     << result.cnt() << " hit(s)";
-	logMessage("evaluateJoin", "%s using %g sec(CPU) and %g sec(elapsed)",
+	logMessage("evaluateJoin", "%s using %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return result.cnt();
@@ -1349,7 +1349,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hits ";
 	logMessage("equiJoinLoop", "in-memory equi-join(%s, %s) produced %s "
-		   "using %g sec(CPU) and %g sec(elapsed)", cmp.getName1(),
+		   "using %g sec(CPU), %g sec(elapsed)", cmp.getName1(),
 		   cmp.getName2(), ostr.str().c_str(), timer.CPUTime(),
 		   timer.realTime());
     }
@@ -1771,7 +1771,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hits ";
 	logMessage("equiJoinLoop", "in-memory equi-join(%s, %s) produced %s "
-		   "using %g sec(CPU) and %g sec(elapsed)", cmp.getName1(),
+		   "using %g sec(CPU), %g sec(elapsed)", cmp.getName1(),
 		   cmp.getName2(), ostr.str().c_str(), timer.CPUTime(),
 		   timer.realTime());
     }
@@ -1957,7 +1957,7 @@ int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << pairs.cnt() << " hit(s)";
 	logMessage("equiJoinLoop2", "equi-join(%s, %s) produced %s "
-		   "using %g sec(CPU) and %g sec(elapsed)", cmp.getName1(),
+		   "using %g sec(CPU), %g sec(elapsed)", cmp.getName1(),
 		   cmp.getName2(), ostr.str().c_str(), timer.CPUTime(),
 		   timer.realTime());
     }
@@ -2128,7 +2128,7 @@ int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit(s)";
 	logMessage("equiJoinLoop2", "equi-join(%s, %s) produced %s "
-		   "using %g sec(CPU) and %g sec(elapsed)", cmp.getName1(),
+		   "using %g sec(CPU), %g sec(elapsed)", cmp.getName1(),
 		   cmp.getName2(), ostr.str().c_str(), timer.CPUTime(),
 		   timer.realTime());
     }
@@ -2692,7 +2692,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << pairs.cnt() << " hit(s)";
 	logMessage("rangeJoinLoop", "rangeJoin(%s, %s, %g) produced %s "
-		   "in %g second(CPU) and %g sec(elapsed)",
+		   "in %g second(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta, ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -2985,7 +2985,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << cnt << " hit(s)";
 	logMessage("rangeJoinLoop", "rangeJoin(%s, %s, %g) produced %s "
-		   "in %g second(CPU) and %g sec(elapsed)",
+		   "in %g second(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta, ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -3187,7 +3187,7 @@ int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
 	timer.stop();
 	std::ostringstream ostr;
 	ostr << cmp << " producted " << pairs.cnt() << " hit(s)";
-	logMessage("compJoinLoop", "%s took %g sec(CPU) and %g sec(elapsed)",
+	logMessage("compJoinLoop", "%s took %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return pairs.cnt();
@@ -3371,7 +3371,7 @@ int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
 	timer.stop();
 	std::ostringstream ostr;
 	ostr << cmp << " producted " << cnt << " hit(s)";
-	logMessage("compJoinLoop", "%s took %g sec(CPU) and %g sec(elapsed)",
+	logMessage("compJoinLoop", "%s took %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return cnt;
@@ -3626,7 +3626,7 @@ int64_t ibis::part::loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
 	for (unsigned i = 1; i < ncmp; ++ i)
 	    ostr << " AND " << *(cmp[i]);
 	ostr << ") producted " << pairs.cnt() << " hit(s)";
-	logMessage("loopJoin", "%s took %g sec(CPU) and %g sec(elapsed)",
+	logMessage("loopJoin", "%s took %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return pairs.cnt();
@@ -3867,7 +3867,7 @@ int64_t ibis::part::loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
 	for (unsigned i = 1; i < ncmp; ++ i)
 	    ostr << " AND " << *(cmp[i]);
 	ostr << ") producted " << cnt << " hit(s)";
-	logMessage("loopJoin", "%s took %g sec(CPU) and %g sec(elapsed)",
+	logMessage("loopJoin", "%s took %g sec(CPU), %g sec(elapsed)",
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return cnt;

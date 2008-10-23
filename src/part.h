@@ -270,9 +270,9 @@ public:
     /// Retrieve values of the name column as 64-bit floating-point values.
     array_t<double>* selectDoubles(const char* name,
 				   const ibis::bitvector& mask) const;
-    /// Evaluate the arithematic expression.
-    long evaluate(const ibis::math::term&, const ibis::bitvector&,
-		  array_t<double>&) const;
+    /// Calculate the values of an arithmetic expression.
+    long calculate(const ibis::math::term&, const ibis::bitvector&,
+		   array_t<double>&) const;
 
     /******************************************************************/
     // A group of functions added August, 2005 to provide summary

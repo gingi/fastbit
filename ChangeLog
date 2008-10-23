@@ -1,3 +1,38 @@
+2008-10-23 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: add statement to skip extra spaces and delimiters
+	in ibis::table::parseNames
+	* src/mensa.cpp: implement ibis::mensa::doSelect
+	* src/part.cpp:16043 change ibis::part::barrel::read to use 8
+	fixed-size integers instead of just "int" and "unsigned int"
+	* src/qExpr.cpp:31 operator_name array missed "%" (for remainder)
+	* tests/Makefile.am: add two test case under check-thula to
+	exercise the new arithmetic expression handling in funct
+	ibis::table::select
+
+2008-10-22 John Wu <John.Wu at ACM.org>
+	* src: unify the display of time duration to be "%g sec(CPU), %g
+	sec(elapsed)"
+	* examples/thula.cpp: modify it to use the new select function
+	with arithmetic expressions
+	* Makefile.am:12 add java/FastBit.java and java/milky.java for
+	source tar distribution (an omission reported by Niklas Bulitta
+	<officeman at freenet.de>)
+
+2008-10-21 John Wu <John.Wu at ACM.org>
+	* src/query.h: rename setTable to setPartition
+	* src/query.cpp: change word "table" to "data partition" or "partition"
+	* src/capi.h: adjust the LOGGER statements to make them line up
+	nicer
+	* src/menda.h: add doSelect to handle the non-trivial cases of
+	selection
+
+2008-10-20 John Wu <John.Wu at ACM.org>
+	* src: add selectClause.cpp, selectClause.h, selectLexer.cc,
+	selectLexer.h, selectLexer.ll, selectParser.cc, selectParser.hh,
+	and selectParser.yy
+	* configure.ac: add statements to check for the presence of
+	FlexLexer.h
+
 2008-10-02 John Wu <John.Wu at ACM.org>
 	* src: move ibis::query::verifyPredicate to
 	ibis::whereClause::verify, move ibis::query::addJoinConstraints to

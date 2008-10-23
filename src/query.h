@@ -14,7 +14,7 @@
 /// A data structure for representing user queries.  This is the primary
 /// entry for user to take advantage of bitmap indexing facilities.  A
 /// query is a very limited version of the SQL SELECT statement.  It is
-/// only defined on one table and it takes a where clause and a select
+/// only defined on one data partition and it takes a where clause and a select
 /// clause.  The where clause is mandatory.  It contains a list of range
 /// conditions joined together with logical operators, such as "temperature
 /// > 700 and 100 <= presessure < 350".  Records whose attribute values
@@ -64,7 +64,7 @@ public:
     /// named directory @c dir.  This is only used for recovering from
     /// program crashes.
     query(const char* dir, const ibis::partList& tl);
-    /// Constructor.  Generates a new query on the given table et.
+    /// Constructor.  Generates a new query on the given data partition et.
     query(const char* uid=0, const part* et=0, const char* pref=0);
 
     /// Functions about the identity of the query
@@ -73,8 +73,8 @@ public:
     const char* userName() const {return user;} ///< User started the query
     /// The time stamp on the data used to process the query.
     time_t timestamp() const {return dstime;}
-    /// Return the pointer to the data table used to process the query.
-    const part* partition() const {return table0;}
+    /// Return the pointer to the data partition used to process the query.
+    const part* partition() const {return mypart;}
     /// Return a list of names specified in the select clause.
     const selected& components() const {return comps;};
 
@@ -98,9 +98,11 @@ public:
     /// hit or not.  The select clause will be reordered to make the plain
     /// column names without functions appear before with functions.
     virtual int setSelectClause(const char *str);
-    /// Resets the table used to evaluate the query conditions to the table
-    /// specified in the argument.
-    int setTable(const ibis::part* tbl);
+    /// Resets the data partition used to evaluate the query conditions to
+    /// the partition specified in the argument.
+    int setPartition(const ibis::part* tbl);
+    /// This is deprecated, will be removed soon.
+    int setTable(const ibis::part* tbl) {return setPartition(tbl);}
     /// Return the where clause string.
     virtual const char* getWhereClause() const {return conds.getString();}
     /// Return the select clause string.
@@ -208,13 +210,12 @@ public:
     /// The caller must call the operator @c delete to free the pointers
     /// returned.
     ///
-    /// @note
-    /// Any column of the table may be specified, not just those given in
-    /// the select clause.  The content returned is read from disk when
-    /// these functions are called, which may be different from their
-    /// values when the function @c evaluate was called.  In other word,
-    /// they may be inconsistent with the conditions specified in the where
-    /// clause.  For append-only data, this is NOT an issue.
+    /// @note Any column of the data partition may be specified, not just
+    /// those given in the select clause.  The content returned is read
+    /// from disk when these functions are called, which may be different
+    /// from their values when the function @c evaluate was called.  In
+    /// other word, they may be inconsistent with the conditions specified
+    /// in the where clause.  For append-only data, this is NOT an issue.
     ///
     /// The above caveat also applies to the two versions of getRIDs.
     array_t<int32_t>* getQualifiedInts(const char* column_name);
@@ -291,7 +292,7 @@ protected:
     QUERY_STATE state;	///< Status of the query
     ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
     ibis::bitvector* sup;///< Estimated upper bound
-    mutable ibis::part::readLock* dslock;	///< A read lock on the table0
+    mutable ibis::part::readLock* dslock;	///< A read lock on the mypart
     mutable char lastError[MAX_LINE+PATH_MAX];	///< The warning/error message
 
     void logError(const char* event, const char* fmt, ...) const;
@@ -305,37 +306,41 @@ protected:
     // use index only to come up with a upper bound and a lower bound
     void doEstimate(const qExpr* term, ibis::bitvector& low,
 		    ibis::bitvector& high) const;
-    // assume the mask contains information from the indexes already, read the
-    // data table to resolve the query
+    /// Assume the mask contains information from the indexes already, read
+    /// the data partition to resolve the query.
     int doScan(const qExpr* term, const ibis::bitvector& mask,
 	       ibis::bitvector& hits) const;
-    // only read the data table to resolve the query
+    /// Read the data partition to resolve the query expression.
     int doScan(const qExpr* term, ibis::bitvector& hits) const;
-    // attempt evaluate one predicate condition at a time by using both
-    // index and raw data table
+    /// Evaluate one term of a query conditions.
     int doEvaluate(const qExpr* term, ibis::bitvector& hits) const;
+    /// Evaluate one term of a query conditions.
     int doEvaluate(const qExpr* term, const ibis::bitvector& mask,
 		   ibis::bitvector& hits) const;
 
     /// Process the join operation and return the number of pairs.
     int64_t processJoin();
 
-    // read/write the basic information about the query and its state
+    /// Write the basic information about the query to disk.
     virtual void writeQuery();
+    /// Read the status information from disk.
     void readQuery(const ibis::partList& tl);
-    void removeFiles(); // remove the files written by this object
+    /// Remove the files written by this object.
+    void removeFiles();
 
-    // read/write the results of the query processing (hits, fids, rids,
-    // file bundles)
+    /// Read the results of the query.
     void readHits();
+    /// Write the results of the query.
     void writeHits() const;
+    /// Export the Row IDs of the hits to log file.
     void printRIDs(const RIDSet& ridset) const;
-    // count the number of pages might be accessed to retrieve every value
-    // in the hit vector
+    /// Count the number of pages accessed to retrieve every value in the
+    /// hit vector.
     uint32_t countPages(unsigned wordsize) const;
 
-    // expand/contract query expression
+    /// Expand range conditions to remove the need of candidate check.
     int doExpand(ibis::qExpr* exp0) const;
+    /// Contract range conditions to remove the need of candidate check.
     int doContract(ibis::qExpr* exp0) const;
 
     // A group of functions to count the number of pairs
@@ -450,7 +455,7 @@ private:
     char* myID; 	// The unique ID of this query object
     char* myDir;	// Name of the directory containing the query record
     RIDSet* rids_in;	// Rid list specified in an RID query
-    const part* table0;	// Default table used to process the query
+    const part* mypart;	// Data partition used to process the query
     time_t dstime;		// When query evaluation started
     mutable pthread_rwlock_t lock; // Rwlock for access control
 

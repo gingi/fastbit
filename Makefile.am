@@ -9,6 +9,7 @@ dist_win_DATA = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html
+dist_java_DATA = java/FastBit.java java/milky.java
 
 docs:
 	cd src && $(MAKE) docs

@@ -15,10 +15,10 @@ problems.  To request for help, please email
 fastbit-users@hpcrdm.lbl.gov.
 
 A more extensive test option is also available by issuing 'make
-all-tests' from either this directory or the directory above this one.
-This option goes through a set of tests on a large data set and it also
-tests a few older indexing options that have not been used by the
-developers for a while.
+more-check' or 'make full-check' from either this directory or the
+directory above this one.  These options go through larger sets of tests
+on a large data set and 'full-check' even runs through a few old
+indexing options that have not been used by the developers for a while.
 
 About the data: There are two CSV files named test0.csv and test1.csv.
 They are converted into the binary format used by FastBit with
@@ -31,13 +31,20 @@ scripts/query-count.list (parsed by scripts/match-count.pl).  All tests
 are executed through the executable compiled from ibis.cpp (in directory
 ../examples).
 
+By default, the test data files are created in a subdirectory named tmp
+in the tests directory.  This location can be moved by selecting a
+different value for TESTDIR.  Because the test scripts generate a few
+files with the same names as those in tests directory, NEVER sets
+TESTDIR to directory tests.
+
+
 ----------
 KNOWN PROBLEMS
 
--- The command 'make all-tests' somehow stalls on cygwin and the smaller
-   set of tests also take extra long on cygwin compared to other
-   systems.  If you have any suggestions on address this problem, please
-   post it to fastbit-users@hpcrdm.lbl.gov.
+-- The command 'make full-check' and 'make more-check' takes a very long
+   time on cygwin compared to other systems.  If you have any
+   suggestions on address this problem, please post it to
+   fastbit-users@hpcrdm.lbl.gov.
 
 -- This suite of tests rely on perl for many of its functions.  I have
    not found a way to run it on MS Windows outside of cygwin.

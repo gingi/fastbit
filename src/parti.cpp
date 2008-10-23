@@ -576,7 +576,7 @@ long ibis::part::reorderValues(const char *fname,
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	logMessage("reorderValues", "wrote %lu reordered value%s (# seg %lu) "
-		   "to %s in %g sec(CPU) and %g sec(elapsed)",
+		   "to %s in %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(nrows), (nrows>1 ? "s" : ""),
 		   static_cast<long unsigned>(starts.size()-1),
 		   fname, timer.CPUTime(), timer.realTime());
@@ -1192,7 +1192,7 @@ long ibis::part::appendToBackup(const char* dir) {
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("appendToBackup", "completed integrating %lu rows into %s, "
-		   "took %g sec(CPU) and %g sec(elapsed) ",
+		   "took %g sec(CPU), %g sec(elapsed) ",
 		   static_cast<long unsigned>(napp), backupDir,
 		   timer.CPUTime(), timer.realTime());
     }

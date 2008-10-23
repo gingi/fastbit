@@ -25,6 +25,24 @@ either ..\win\dll\Debug or ..\win\dll\Release depending how you build
 it.  The directory containg the DLL file needs to be in environment
 variable PATH in order for the java run-time system to find it.
 
+To test JNI interface, an example file (named milky.java) is provided.
+To compile it, type
+
+javac FastBit.java milky.java
+
+To run
+
+java milky data-dir "query conditions"
+
+for example,
+
+java milky ../tests/tmp/t1 "a>10 and c between 50 and 70"
+
+The above mentioned data directory is created by running "make check" in
+the top level directory of FastBit source code distribution.  The
+expected output is
+
+applying "a>10 and c between 50 and 70" on data in ../tests/tmp/t1 produced 42 hits
 
 
 ----

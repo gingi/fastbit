@@ -33,7 +33,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	q.logMessage("createBundle", "time to generate the bundle: "
-		      "%g sec(CPU) and %g sec(elapsed)", timer.CPUTime(),
+		      "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
 		      timer.realTime());
     }
     return bdl;
@@ -56,7 +56,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	q.logMessage("createBundle", "time to generate the bundle: "
-		     "%g sec(CPU) and %g sec(elapsed)", timer.CPUTime(),
+		     "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
 		     timer.realTime());
     }
     return bdl;

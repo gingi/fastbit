@@ -425,6 +425,9 @@
 				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
+			<File RelativePath="..\src\selectClause.cpp"></File>
+			<File RelativePath="..\src\selectLexer.cc"></File>
+			<File RelativePath="..\src\selectParser.cc"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -570,6 +573,9 @@
 				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
+			<File RelativePath="..\src\selectClause.h"></File>
+			<File RelativePath="..\src\selectLexer.h"></File>
+			<File RelativePath="..\src\selectParser.hh"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

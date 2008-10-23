@@ -921,7 +921,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
 	    << " and " << nrows << " row" << (nrows>1 ? "s" : "")
 	    << " (total " << nold+nrows << ") to " << dir
-	    << " using " << timer.CPUTime() << " sec(CPU) and "
+	    << " using " << timer.CPUTime() << " sec(CPU), "
 	    << timer.realTime() << " sec(elapsed)";
     }
 
