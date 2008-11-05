@@ -392,8 +392,7 @@ static void printDistribution(const ibis::partList& tlist) {
     }
 } // printDistribution
 
-// print the joint distribution without any conditions -- exercise the new
-// get2DDistribution
+// print the joint distribution -- exercise the new get2DDistribution
 static void print2DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *cond) {
     std::vector<double> bds1, bds2;
@@ -429,6 +428,12 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	lg.buffer() << "  Number of occupied cells = " << cnt
 		    << ", total count = " << tot << ", number of rows in "
 		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	lg.buffer() << "part[" << tbl.name()
+		    << "].get2DDistribution returned with ierr = " << ierr
+		    << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+		    << bds2.size() << ", cnts.size() = " << cnts.size();
     }
 } // print2DDistribution
 
@@ -477,7 +482,65 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 		    << ", total count = " << tot << ", number of rows in "
 		    << tbl.name() << " = " << tbl.nRows() << "\n";
     }
+    else {
+	lg.buffer() << "part[" << tbl.name()
+		    << "].getJointDistribution returned with ierr = " << ierr
+		    << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+		    << bds2.size() << ", cnts.size() = " << cnts.size();
+    }
 } // printJointDistribution
+
+// print the joint distribution -- exercise the new get3DDistribution
+static void print3DDistribution(const ibis::part& tbl, const char *col1,
+				const char *col2, const char *col3,
+				const char *cond) {
+    std::vector<double> bds1, bds2, bds3;
+    std::vector<uint32_t> cnts;
+    ibis::util::logger lg(0);
+    long ierr;
+    if (cond == 0 || *cond == 0)
+	ierr = tbl.get3DDistribution(col1, col2, col3, 25, 25, 25,
+				     bds1, bds2, bds3, cnts);
+    else
+	ierr = tbl.get3DDistribution(cond, col1, col2, 12, 12, 12,
+				     bds1, bds2, bds3, cnts);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
+	const uint32_t nbin2 = bds2.size() - 1;
+	const uint32_t nbin3 = bds3.size() - 1;
+	const uint32_t nb23 = nbin2 * nbin3;
+	lg.buffer() << "\n3D-Joint distribution of " << col1 << ", " << col2
+		    << ", and " << col3 << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()-1
+		    << " x " << nbin2 << " x " << nbin3 << " cells\n";
+
+	uint32_t cnt = 0, tot=0;
+	for (uint32_t i = 0; i < cnts.size(); ++ i) {
+	    if (cnts[i] > 0) {
+		const uint32_t i1 = i / nb23;
+		const uint32_t i2 = (i % nb23) / nbin3;
+		const uint32_t i3 = i % nbin3;
+		lg.buffer() << i << "\t[" << bds1[i1] << ", " << bds1[i1+1]
+			    << ") [" << bds2[i2] << ", " << bds2[i2+1]
+			    << ") [" << bds3[i3] << ", " << bds3[i3+1]
+			    << ")\t" << cnts[i] << "\n";
+		tot += cnts[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total count = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	lg.buffer() << "part[" << tbl.name()
+		    << "].get3DDistribution returned with ierr = " << ierr
+		    << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+		    << bds2.size() << ", bds3.size() = " << bds3.size()
+		    << ", cnts.size() = " << cnts.size();
+    }
+} // print3DDistribution
 
 // print some helpful information
 static void print(const char* cmd, const ibis::partList& tlist) {
@@ -497,26 +560,23 @@ static void print(const char* cmd, const ibis::partList& tlist) {
     }
     if (strnicmp(names, "joint ", 6) == 0) {
 	names += 6;
-	bool warn = true;
-	while (*names) {
-	    std::string name1, name2;
-	    ibis::util::getString(name1, names);
-	    if (name1.empty()) {
-		if (warn)
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "the command 'print joint' needs two "
-			"column names as arguments";
-		return;
-	    }
-	    ibis::util::getString(name2, names);
-	    if (name2.empty()) {
-		if (warn)
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "the command 'print joint' needs two "
-			"column names as arguments";
-		return;
-	    }
-	    warn = false;
+	std::string name1, name2, name3;
+	ibis::util::getString(name1, names);
+	if (name1.empty()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "the command 'print joint' needs two "
+		"column names as arguments";
+	    return;
+	}
+	ibis::util::getString(name2, names);
+	if (name2.empty()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "the command 'print joint' needs two "
+		"column names as arguments";
+	    return;
+	}
+	ibis::util::getString(name3, names);
+	if (name3.empty()) { // got two names, 2D distributions
 	    for (ibis::partList::const_iterator tit = tlist.begin();
 		 tit != tlist.end(); ++ tit) {
 		print2DDistribution(*((*tit).second), name1.c_str(),
@@ -524,6 +584,13 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 		if (ibis::gVerbose > 9)
 		    printJointDistribution(*((*tit).second), name1.c_str(),
 					   name2.c_str(), cond);
+	    }
+	}
+	else {
+	    for (ibis::partList::const_iterator tit = tlist.begin();
+		 tit != tlist.end(); ++ tit) {
+		print3DDistribution(*((*tit).second), name1.c_str(),
+				    name2.c_str(), name3.c_str(), cond);
 	    }
 	}
     }
@@ -2634,12 +2701,17 @@ int main(int argc, char** argv) {
 	    timer1.start();
 	    for (ibis::partList::const_iterator it = tlist.begin();
 		 it != tlist.end(); ++ it) {
-		if (zapping)
-		    (*it).second->purgeIndexFiles();
-		if (indexingOption != 0)
-		    (*it).second->indexSpec(indexingOption);
-		(*it).second->buildIndex(build_index, indexingOption);
-		//(*it).second->loadIndex(indexingOption);
+		if (indexingOption != 0 &&
+		    (it->second->indexSpec() == 0 ||
+		     stricmp(indexingOption, it->second->indexSpec()) != 0)) {
+		    it->second->indexSpec(indexingOption);
+		    it->second->purgeIndexFiles();
+		}
+		else if (zapping) {
+		    it->second->purgeIndexFiles();
+		}
+		it->second->buildIndex(build_index, indexingOption);
+		//it->second->loadIndex(indexingOption);
 	    }
 	    timer1.stop();
 	    LOGGER(ibis::gVerbose >= 0)

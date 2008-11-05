@@ -205,7 +205,7 @@ public:
     /// A record is placed in bin
     /// @code (x - begin) / stride, @endcode where the first bin is bin 0.
     /// The total number of bins is
-    /// @code (end - begin) / stride. @endcode
+    /// @code 1 + floor((end - begin) / stride). @endcode
     /// @note Records (rows) outside of the range [begin, end] are not
     /// counted.
     /// @note Non-positive @c stride is considered as an error.

@@ -43,9 +43,9 @@ public:
     /// and complete path.
     part(const char* adir, const char* bdir);
     /// Initialize a partition with given meta tags.
-    part(const std::vector<const char*>& mtags);
+    part(const std::vector<const char*> &mtags);
     /// Initialize a partition with given meta tags.
-    part(const ibis::resource::vList& mtags);
+    part(const ibis::resource::vList &mtags);
 
     /// Return descriptive information about the data partition.
     inline info* getInfo() const;
@@ -94,15 +94,15 @@ public:
     size_t nRows() const {return nEvents;}
 
     /// Output a description of every column of the data partition.
-    void print(std::ostream& out) const;
+    void print(std::ostream &out) const;
 
     /// Match a name-value pair in the meta tags.
     bool matchNameValuePair(const char* name, const char* value) const;
     /// Match multiple name-value pairs against the internally stored meta
     /// tags.
-    bool matchMetaTags(const std::vector<const char*>& mtags) const;
+    bool matchMetaTags(const std::vector<const char*> &mtags) const;
     /// Match multiple name-value pairs.
-    bool matchMetaTags(const ibis::resource::vList& mtags) const;
+    bool matchMetaTags(const ibis::resource::vList &mtags) const;
     /// Return the value of the meta tag with the specified name.
     inline const char* getMetaTag(const char*) const;
 
@@ -113,163 +113,163 @@ public:
     // themselves, but rely on the caller to maintain a consistent lock.
     /******************************************************************/
     /// Return the row number of the row with specified RID.
-    uint32_t getRowNumber(const rid_t& rid) const;
+    uint32_t getRowNumber(const rid_t &rid) const;
     long evaluateRIDSet(const ibis::RIDSet&, ibis::bitvector&) const; 
     array_t<rid_t>* getRIDs() const {return rids;} // all RIDs
-    array_t<rid_t>* getRIDs(const ibis::bitvector& mask) const;// some RIDs
+    array_t<rid_t>* getRIDs(const ibis::bitvector &mask) const;// some RIDs
     bool hasRIDs() const {return (rids!=0) ? (rids->size()==nEvents) : false;}
 
     /// Estimate the cost of evaluate the query expression.
-    virtual double estimateCost(const ibis::qContinuousRange& cmp) const;
-    virtual double estimateCost(const ibis::qDiscreteRange& cmp) const;
-    virtual double estimateCost(const ibis::qString& cmp) const;
-    virtual double estimateCost(const ibis::qMultiString& cmp) const;
+    virtual double estimateCost(const ibis::qContinuousRange &cmp) const;
+    virtual double estimateCost(const ibis::qDiscreteRange &cmp) const;
+    virtual double estimateCost(const ibis::qString &cmp) const;
+    virtual double estimateCost(const ibis::qMultiString &cmp) const;
 
     /// Return an upper bound on the number of hits.
-    virtual long estimateRange(const ibis::qContinuousRange& cmp) const;
+    virtual long estimateRange(const ibis::qContinuousRange &cmp) const;
 
     /// Return an upper bound on the number of hits.
-    virtual long estimateRange(const ibis::qDiscreteRange& cmp) const;
+    virtual long estimateRange(const ibis::qDiscreteRange &cmp) const;
     /// Evaluate a continue range expression accurately.
-    virtual long evaluateRange(const ibis::qContinuousRange& cmp,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& res) const;
+    virtual long evaluateRange(const ibis::qContinuousRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
     /// Evaluate a discrete range expression accurately.
-    virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& res) const;
+    virtual long evaluateRange(const ibis::qDiscreteRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
 
     /// Estimate a continuous range condition.
-    virtual long estimateRange(const ibis::qContinuousRange& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
+    virtual long estimateRange(const ibis::qContinuousRange &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const;
 
     /// Discover the records that can not be decided using the index.
-    virtual float getUndecidable(const ibis::qContinuousRange& cmp,
-				 ibis::bitvector& iffy) const;
+    virtual float getUndecidable(const ibis::qContinuousRange &cmp,
+				 ibis::bitvector &iffy) const;
 
     /// Estimate the discrete range condition.
-    virtual long estimateRange(const ibis::qDiscreteRange& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
+    virtual long estimateRange(const ibis::qDiscreteRange &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const;
     /// Discover the records that can not be decided using the index.
-    virtual float getUndecidable(const ibis::qDiscreteRange& cmp,
-				 ibis::bitvector& iffy) const;
+    virtual float getUndecidable(const ibis::qDiscreteRange &cmp,
+				 ibis::bitvector &iffy) const;
 
     /// Evaluate the range condition.  Scan the base data to resolve the
     /// range condition.
-    virtual long doScan(const ibis::qRange& cmp,
-			ibis::bitvector& hits) const;
+    virtual long doScan(const ibis::qRange &cmp,
+			ibis::bitvector &hits) const;
     /// Evalute the range condition on the records that are marked 1 in the
     /// mask.
-    virtual long doScan(const ibis::qRange& cmp,
-			const ibis::bitvector& mask,
-			ibis::bitvector& hits) const;
+    virtual long doScan(const ibis::qRange &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits) const;
     /// Compute the records (marked 1 in the mask) that does not satisfy
     /// the range condition.
-    virtual long negativeScan(const ibis::qRange& cmp,
-			      const ibis::bitvector& mask,
-			      ibis::bitvector& hits) const;
+    virtual long negativeScan(const ibis::qRange &cmp,
+			      const ibis::bitvector &mask,
+			      ibis::bitvector &hits) const;
 
     /// Locate the records that satisfy the complex range condition.
-    virtual long doScan(const ibis::compRange& cmp,
-			ibis::bitvector& hits) const;
+    virtual long doScan(const ibis::compRange &cmp,
+			ibis::bitvector &hits) const;
     /// Locate the records that have mark value 1 and satisfy the complex
     /// range conditions.
-    virtual long doScan(const ibis::compRange& cmp,
-			const ibis::bitvector& mask,
-			ibis::bitvector& hits,
+    virtual long doScan(const ibis::compRange &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits,
 			ibis::math::barrel* bar=0) const;
 
     /// Locate the records that satisfy the range condition.  Since the
     /// values are provided, this function does not check the name of the
     /// variable involved in the range condition.
     template <typename E>
-    long doScan(const array_t<E>& varr,
-		const ibis::qRange& cmp,
-		const ibis::bitvector& mask,
-		ibis::bitvector& hits) const;
+    long doScan(const array_t<E> &varr,
+		const ibis::qRange &cmp,
+		const ibis::bitvector &mask,
+		ibis::bitvector &hits) const;
     template <typename E>
-    long doScan(const array_t<E>& varr,
-		const ibis::qContinuousRange& cmp,
-		const ibis::bitvector& mask,
-		ibis::bitvector& hits) const;
+    long doScan(const array_t<E> &varr,
+		const ibis::qContinuousRange &cmp,
+		const ibis::bitvector &mask,
+		ibis::bitvector &hits) const;
 
     /// Count the number of hits for a single range condition.
-    long countHits(const ibis::qRange& cmp) const;
+    long countHits(const ibis::qRange &cmp) const;
 
     /// Estimate a lower bound and an upper bound on the records that are
     /// hits.  The bitvector @c low contains records that are hits (for
     /// sure) and the bitvector @c high contains records that are possible
     /// hits.
-    virtual long estimateMatchAny(const ibis::qAnyAny& cmp,
-				  ibis::bitvector& low,
-				  ibis::bitvector& high) const;
-    virtual long matchAny(const ibis::qAnyAny& cmp,
-			  ibis::bitvector& hits) const;
-    virtual long matchAny(const ibis::qAnyAny& cmp,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector& hits) const;
+    virtual long estimateMatchAny(const ibis::qAnyAny &cmp,
+				  ibis::bitvector &low,
+				  ibis::bitvector &high) const;
+    virtual long matchAny(const ibis::qAnyAny &cmp,
+			  ibis::bitvector &hits) const;
+    virtual long matchAny(const ibis::qAnyAny &cmp,
+			  const ibis::bitvector &mask,
+			  ibis::bitvector &hits) const;
 
     /// Find all records that has the exact string value.
-    long lookforString(const ibis::qString& cmp,
-		       ibis::bitvector& low) const;
-    long lookforString(const ibis::qMultiString& cmp,
-		       ibis::bitvector& low) const;
+    long lookforString(const ibis::qString &cmp,
+		       ibis::bitvector &low) const;
+    long lookforString(const ibis::qMultiString &cmp,
+		       ibis::bitvector &low) const;
     /// Return an upper bound of the number of records that have the exact
     /// string value.
-    long lookforString(const ibis::qString& cmp) const;
-    long lookforString(const ibis::qMultiString& cmp) const;
+    long lookforString(const ibis::qString &cmp) const;
+    long lookforString(const ibis::qMultiString &cmp) const;
 
     /// Evaluate a self-join.  Return the number of pairs satisfying join
     /// condition.  Only records marked with mask=1 are considered.  The
     /// result pairs are stored in the bitvector @a pairs.  A pair <i, j>
     /// would be marked at position i*nRows() + j in @a pairs.
-    int64_t evaluateJoin(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector64& pairs) const;
+    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector64 &pairs) const;
     /// Return the number of pairs satisfying the join condition.  In
     /// addition, write the pairs into the file named @c pairfile.
-    int64_t evaluateJoin(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector& mask,
+    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector &mask,
 			 const char* pairfile) const;
     /// Return only the number of pairs satisfying the join condition.
-    int64_t evaluateJoin(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector& mask) const;
+    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector &mask) const;
     /// Evaluate a join defined with multiple (conjunctive) range join
     /// conditions.
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector64& pairs) const;
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
-			 const ibis::bitvector& mask) const;
+    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector64 &pairs) const;
+    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+			 const ibis::bitvector &mask) const;
     /// Evaluate all pairs in @c trial to determine whether they really
     /// satisfy the range join defined in @c cmp.  The result is stored in
     /// the argument @c result.  This function returns the number of hits
     /// found.
-    int64_t evaluateJoin(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector64& trial,
-			 ibis::bitvector64& result) const;
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
-			 const ibis::bitvector64& trial,
-			 ibis::bitvector64& result) const;
+    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector64 &trial,
+			 ibis::bitvector64 &result) const;
+    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+			 const ibis::bitvector64 &trial,
+			 ibis::bitvector64 &result) const;
     /******************************************************************/
 
     /// Retrieve values of the name column as 32-bit integers.
     array_t<int32_t>*  selectInts(const char* name,
-				  const ibis::bitvector& mask) const;
+				  const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 32-bit unsigned integers.
     array_t<uint32_t>* selectUInts(const char* name,
-				   const ibis::bitvector& mask) const;
+				   const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 64-bit integers.
     array_t<int64_t>*  selectLongs(const char* name,
-				   const ibis::bitvector& mask) const;
+				   const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 32-bit floating-point values.
     array_t<float>*   selectFloats(const char* name,
-				   const ibis::bitvector& mask) const;
+				   const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 64-bit floating-point values.
     array_t<double>* selectDoubles(const char* name,
-				   const ibis::bitvector& mask) const;
+				   const ibis::bitvector &mask) const;
     /// Calculate the values of an arithmetic expression.
     long calculate(const ibis::math::term&, const ibis::bitvector&,
 		   array_t<double>&) const;
@@ -290,13 +290,13 @@ public:
     /// Compute conditional 1D histogram with regularly spaced bins.
     long get1DDistribution(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<uint32_t> &counts) const;
     /// Compute conditional 2D histogram with regularly spaced bins.
     long get2DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
 			   double begin2, double end2, double stride2,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<uint32_t> &counts) const;
     /// Compute conditional 3D histogram with regularly spaced bins.
     long get3DDistribution(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
@@ -304,42 +304,60 @@ public:
 			   double begin2, double end2, double stride2,
 			   const char *cname3,
 			   double begin3, double end3, double stride3,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<uint32_t> &counts) const;
     /// Compute 1D histogram with adaptive bins.
     long get1DDistribution(const char *cname, uint32_t nbin,
-			   std::vector<double>& bounds,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<double> &bounds,
+			   std::vector<uint32_t> &counts) const;
     /// Compute conditional 1D histogram with adaptive bins.
     long get1DDistribution(const char *constraints,
 			   const char *cname, uint32_t nbin,
-			   std::vector<double>& bounds,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<double> &bounds,
+			   std::vector<uint32_t> &counts) const;
     /// Compute 2D histogram with adaptive bins.
     long get2DDistribution(const char *cname1, const char *cname2,
 			   uint32_t nb1, uint32_t nb2,
-			   std::vector<double>& bounds1,
-			   std::vector<double>& bounds2,
-			   std::vector<uint32_t>& counts,
+			   std::vector<double> &bounds1,
+			   std::vector<double> &bounds2,
+			   std::vector<uint32_t> &counts,
 			   const char* const option=0) const;
     /// Compute conditional 2D histogram with adaptive bins.
     long get2DDistribution(const char *constraints,
 			   const char *name1, const char *name2,
 			   uint32_t nb1, uint32_t nb2,
-			   std::vector<double>& bounds1,
-			   std::vector<double>& bounds2,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<double> &bounds1,
+			   std::vector<double> &bounds2,
+			   std::vector<uint32_t> &counts) const;
+    /// Compute 3D histogram with adaptive bins.
+    long get3DDistribution(const char *cname1, const char *cname2,
+			   const char *cname3,
+			   uint32_t nb1, uint32_t nb2, uint32_t nb3,
+			   std::vector<double> &bounds1,
+			   std::vector<double> &bounds2,
+			   std::vector<double> &bounds3,
+			   std::vector<uint32_t> &counts,
+			   const char* const option=0) const;
+    /// Compute conditional 3D histogram with adaptive bins.
+    long get3DDistribution(const char *constraints,
+			   const char *cname1, const char *cname2,
+			   const char *cname3,
+			   uint32_t nb1, uint32_t nb2, uint32_t nb3,
+			   std::vector<double> &bounds1,
+			   std::vector<double> &bounds2,
+			   std::vector<double> &bounds3,
+			   std::vector<uint32_t> &counts) const;
     /// @}
 
     /// @{
     /// Compute the binned distribution of the named variable.
     long getDistribution(const char *name,
-			 std::vector<double>& bounds,
-			 std::vector<uint32_t>& counts) const;
+			 std::vector<double> &bounds,
+			 std::vector<uint32_t> &counts) const;
     /// Compute the conditional binned data distribution.
     long getDistribution(const char *constraints,
 			 const char *name,
-			 std::vector<double>& bounds,
-			 std::vector<uint32_t>& counts) const;
+			 std::vector<double> &bounds,
+			 std::vector<uint32_t> &counts) const;
     /// Compute the binned distribution with the specified maximum number
     /// of bins.
     long getDistribution(const char *name, uint32_t nbc,
@@ -353,20 +371,20 @@ public:
     /// Compute the joint distribution of two variables.
     long getJointDistribution(const char *constraints,
 			      const char *name1, const char *name2,
-			      std::vector<double>& bounds1,
-			      std::vector<double>& bounds2,
-			      std::vector<uint32_t>& counts) const;
+			      std::vector<double> &bounds1,
+			      std::vector<double> &bounds2,
+			      std::vector<uint32_t> &counts) const;
 
     /// Compute a cumulative distribution (a cumulative histogram).
     long getCumulativeDistribution(const char *name,
-				   std::vector<double>& bounds,
-				   std::vector<uint32_t>& counts) const;
+				   std::vector<double> &bounds,
+				   std::vector<uint32_t> &counts) const;
     /// Compute the cumulative distribution of the variable named @c name
     /// under the specified constraints.
     long getCumulativeDistribution(const char *constraints,
 				   const char *name,
-				   std::vector<double>& bounds,
-				   std::vector<uint32_t>& counts) const;
+				   std::vector<double> &bounds,
+				   std::vector<uint32_t> &counts) const;
     /// This version of @c getCumulativeDistribution uses two user supplied
     /// arrays @c bounds and @c counts.
     long getCumulativeDistribution(const char *name, uint32_t nbc,
@@ -389,10 +407,10 @@ public:
     /// dimensions is explicitly used in ibis::meshQuery functions
     /// toRanges, range2d, range3d and rangend.  The function getMeshShape
     /// returns the sizes of the dimensions in a std::vector.
-    const std::vector<uint32_t>& getMeshShape() const {return shapeSize;}
+    const std::vector<uint32_t> &getMeshShape() const {return shapeSize;}
     /// Return the name of the dimensions corresponding to the vector
     /// returned from getMeshShape.
-    const std::vector<std::string>& getMeshDimensions() const {
+    const std::vector<std::string> &getMeshDimensions() const {
 	return shapeName;}
     /// Digest the mesh shape stored in the string.  The shape can be just
     /// numbers, e.g., "(10, 12, 14)", or 'name=value' pairs, e.g.,
@@ -404,7 +422,7 @@ public:
     /// Write the TDC file to record the changes to the partition.
     void updateTDC() const {writeTDC(nEvents, columns, activeDir);}
     /// Update the list of columns with information in this data partition
-    void combineNames(ibis::table::namesTypes& metalist) const;
+    void combineNames(ibis::table::namesTypes &metalist) const;
 
     /******************************************************************/
     /// Append data from @c dir.
@@ -422,17 +440,17 @@ public:
     /// Sort rows with the lowest cardinality attribute first.
     long reorder();
     /// Sort rows according the values of the columns specified in @c names.
-    long reorder(const ibis::table::stringList& names);
+    long reorder(const ibis::table::stringList &names);
 
     /// Mark the specified rows as inactive.  Return the number of rows
     /// inactive or error code.
     /// @note Only active rows participate in queries.
-    long deactivate(const std::vector<uint32_t>& rows);
+    long deactivate(const std::vector<uint32_t> &rows);
     /// Mark all rows satisfying the specified conditions as inactive.
     long deactivate(const char* conds);
     /// Make sure the specified rows are active.  Return the total number
     /// of active rows or error code.
-    long reactivate(const std::vector<uint32_t>& rows);
+    long reactivate(const std::vector<uint32_t> &rows);
     /// Make sure the rows satisfying the specified conditionis are active.
     long reactivate(const char* conds);
     /// Purge all inactive rows from the partition.  This operations is
@@ -440,22 +458,22 @@ public:
     /// error code.
     long purgeInactive();
     /// Return a reference to the mask of active rows.
-    const ibis::bitvector& getMask() const {return amask;}
+    const ibis::bitvector &getMask() const {return amask;}
 
     /// A class function to read the meta tags in the tdc file.
     static char* readMetaTags(const char* const dir);
     /// Generate name for a partition based on the meta tags.
-    static void  genName(const std::vector<const char*>& mtags,
+    static void  genName(const std::vector<const char*> &mtags,
 			 std::string &name);
     /// Generate name for a partition based on the meta tags.
-    static void  genName(const ibis::resource::vList& mtags,
+    static void  genName(const ibis::resource::vList &mtags,
 			 std::string &name);
     /// Given a @c bitvector, compute the number of pages would be accessed.
-    static uint32_t countPages(const ibis::bitvector& mask,
+    static uint32_t countPages(const ibis::bitvector &mask,
 			       unsigned elemsize=4);
     /// Evaluate the strategy to access a data file.
     ibis::fileManager::ACCESS_PREFERENCE
-    accessHint(const ibis::bitvector& mask, unsigned elemsize=4) const;
+    accessHint(const ibis::bitvector &mask, unsigned elemsize=4) const;
 
     // a struct to pack the arguments to the thread function startTests
     struct thrArg {
@@ -467,8 +485,8 @@ public:
     struct indexBuilderPool {
 	ibis::util::counter cnt;
 	const char* opt;
-	const part& tbl;
-	indexBuilderPool(const part& t, const char* spec)
+	const part &tbl;
+	indexBuilderPool(const part &t, const char* spec)
 	    : cnt(t.name()), opt(spec), tbl(t) {}
     };
 
@@ -527,9 +545,9 @@ protected:
     // protected member functions
     //
     /// Read TDC file.
-    int  readTDC(size_t& nrows, columnList& plist, const char* dir);
+    int  readTDC(size_t &nrows, columnList &plist, const char* dir);
     /// Write TDC file.
-    void writeTDC(const uint32_t nrows, const columnList& plist,
+    void writeTDC(const uint32_t nrows, const columnList &plist,
 		  const char* dir) const;
     void readRIDs() const; ///< Read RIDs from file 'rids'.
     void freeRIDs() const; ///< Remove the rids list from memory.
@@ -538,8 +556,8 @@ protected:
     // a whole partition but are expected to be processed like a categorical
     // attribute in queries
     void extendMetaTags();
-    void setMetaTags(const ibis::resource::vList& mts);
-    void setMetaTags(const std::vector<const char*>& mts);
+    void setMetaTags(const ibis::resource::vList &mts);
+    void setMetaTags(const std::vector<const char*> &mts);
 
     /// Read shape of the mesh from tdc file.
     void readMeshShape(const char* const dir);
@@ -556,16 +574,16 @@ protected:
 
     /// Write the named data file with values in the given order.
     template <typename T>
-    long writeValues(const char *fname, const array_t<uint32_t>& ind);
+    long writeValues(const char *fname, const array_t<uint32_t> &ind);
     /// Write the named data file in a segmented sorted order.
     template <typename T>
-    long reorderValues(const char *fname, const array_t<uint32_t>& indin,
-		       array_t<uint32_t>& indout, array_t<uint32_t>& starts);
+    long reorderValues(const char *fname, const array_t<uint32_t> &indin,
+		       array_t<uint32_t> &indout, array_t<uint32_t> &starts);
     long append1(const char* dir);
     long append2(const char* dir);
 
-    long deactivate(const ibis::bitvector& rows);
-    long reactivate(const ibis::bitvector& rows);
+    long deactivate(const ibis::bitvector &rows);
+    long reactivate(const ibis::bitvector &rows);
     void numbersToBitvector(const std::vector<uint32_t>&,
 			    ibis::bitvector&) const;
     void stringToBitvector(const char*, ibis::bitvector&) const;
@@ -573,167 +591,207 @@ protected:
     // evaluate the range conditions -- the actual comparison functions
     // comparisons are only conducted on entries with mask == 1
     template <typename T>
-    long doCompare(const array_t<T>& array,
-		   const ibis::bitvector& mask,
- 		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
+    long doCompare(const array_t<T> &array,
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qRange &cmp) const;
 
     // perform the negative comparison, hits are those don't satisfy the
     // range conditions (comparison only performed for those rows with mask
     // == 1
     template <typename T>
-    long negativeCompare(const array_t<T>& array,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
+    long negativeCompare(const array_t<T> &array,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qRange &cmp) const;
     template <typename T>
     long doCompare(const char *file,
-		   const ibis::bitvector& mask,
- 		   ibis::bitvector& hits,
-		   const ibis::qRange& cmp) const;
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qRange &cmp) const;
     template <typename T>
     long negativeCompare(const char *file,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector& hits,
-			 const ibis::qRange& cmp) const;
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qRange &cmp) const;
 
     template <typename T, typename F>
-    long doCompare(const array_t<T>& vals, F cmp,
-		   const ibis::bitvector& mask,
-		   ibis::bitvector& hits) const;
+    long doCompare(const array_t<T> &vals, F cmp,
+		   const ibis::bitvector &mask,
+		   ibis::bitvector &hits) const;
 
     template <typename T, typename F>
-    long doCompare0(const array_t<T>& vals, F cmp,
-		    const ibis::bitvector& mask,
-		    ibis::bitvector& hits) const;
+    long doCompare0(const array_t<T> &vals, F cmp,
+		    const ibis::bitvector &mask,
+		    ibis::bitvector &hits) const;
 
     template <typename T, typename F1, typename F2>
-    long doCompare(const array_t<T>& vals, F1 cmp1, F2 cmp2,
-		   const ibis::bitvector& mask,
-		   ibis::bitvector& hits) const;
+    long doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+		   const ibis::bitvector &mask,
+		   ibis::bitvector &hits) const;
 
     template <typename T, typename F1, typename F2>
-    long doCompare0(const array_t<T>& vals, F1 cmp1, F2 cmp2,
-		    const ibis::bitvector& mask,
-		    ibis::bitvector& hits) const;
+    long doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+		    const ibis::bitvector &mask,
+		    ibis::bitvector &hits) const;
 
     template <typename T>
-    long doCount(const ibis::qRange& cmp) const;
+    long doCount(const ibis::qRange &cmp) const;
 
     template <typename T>
-    long doCount(const array_t<T>& vals, const ibis::qRange& cmp,
-		 const ibis::bitvector& mask) const;
+    long doCount(const array_t<T> &vals, const ibis::qRange &cmp,
+		 const ibis::bitvector &mask) const;
 
     template <typename T, typename F>
-    long doCount(const array_t<T>& vals,
-		 const ibis::bitvector& mask, F cmp) const;
+    long doCount(const array_t<T> &vals,
+		 const ibis::bitvector &mask, F cmp) const;
 
     template <typename T, typename F1, typename F2>
-    long doCount(const array_t<T>& vals,
-		 const ibis::bitvector& mask, F1 cmp1, F2 cmp2) const;
+    long doCount(const array_t<T> &vals,
+		 const ibis::bitvector &mask, F1 cmp1, F2 cmp2) const;
 
     /// Pack a cumulative distribution stored in two std::vectors into two
     /// arrays provided by the caller.
-    long packCumulativeDistribution(const std::vector<double>& bounds,
-				    const std::vector<uint32_t>& counts,
+    long packCumulativeDistribution(const std::vector<double> &bounds,
+				    const std::vector<uint32_t> &counts,
 				    uint32_t nbc,
 				    double *bptr, uint32_t *cptr) const;
     /// Pack a binned distribution.
-    long packDistribution(const std::vector<double>& bounds,
-			  const std::vector<uint32_t>& counts,
+    long packDistribution(const std::vector<double> &bounds,
+			  const std::vector<uint32_t> &counts,
 			  uint32_t nbc, double *bptr, uint32_t *cptr) const;
 
     /// Count the number of values in 2D bins.
     template <typename T1, typename T2>
-    long count2DBins(array_t<T1>& vals1,
-		     const double& begin1, const double& end1,
-		     const double& stride1,
-		     array_t<T2>& vals2,
-		     const double& begin2, const double& end2,
-		     const double& stride2,
-		     std::vector<uint32_t>& counts) const;
+    long count2DBins(array_t<T1> &vals1,
+		     const double &begin1, const double &end1,
+		     const double &stride1,
+		     array_t<T2> &vals2,
+		     const double &begin2, const double &end2,
+		     const double &stride2,
+		     std::vector<uint32_t> &counts) const;
     /// Count the number of values in 3D bins.
     template <typename T1, typename T2, typename T3>
-    long count3DBins(const array_t<T1>& vals1,
-		     const double& begin1, const double& end1,
-		     const double& stride1,
-		     const array_t<T2>& vals2,
-		     const double& begin2, const double& end2,
-		     const double& stride2,
-		     const array_t<T3>& vals3,
-		     const double& begin3, const double& end3,
-		     const double& stride3,
-		     std::vector<uint32_t>& counts) const;
+    long count3DBins(const array_t<T1> &vals1,
+		     const double &begin1, const double &end1,
+		     const double &stride1,
+		     const array_t<T2> &vals2,
+		     const double &begin2, const double &end2,
+		     const double &stride2,
+		     const array_t<T3> &vals3,
+		     const double &begin3, const double &end3,
+		     const double &stride3,
+		     std::vector<uint32_t> &counts) const;
 
     /// Comptue 1D histogram from index.
-    long get1DDistribution(const ibis::column& col, uint32_t nbin,
-			   std::vector<double>& bounds,
-			   std::vector<uint32_t>& counts) const;
+    long get1DDistribution(const ibis::column &col, uint32_t nbin,
+			   std::vector<double> &bounds,
+			   std::vector<uint32_t> &counts) const;
     /// Compute 2D histogram with uniform bins from base data.
-    long get2DDistributionU(const ibis::column& col1,
-			    const ibis::column& col2,
+    long get2DDistributionU(const ibis::column &col1,
+			    const ibis::column &col2,
 			    uint32_t nb1, uint32_t nb2,
-			    std::vector<double>& bounds1,
-			    std::vector<double>& bounds2,
-			    std::vector<uint32_t>& counts) const;
+			    std::vector<double> &bounds1,
+			    std::vector<double> &bounds2,
+			    std::vector<uint32_t> &counts) const;
     /// Compute 2D histogram with adaptive bins from base data.
-    long get2DDistributionA(const ibis::column& col1,
-			    const ibis::column& col2,
+    long get2DDistributionA(const ibis::column &col1,
+			    const ibis::column &col2,
 			    uint32_t nb1, uint32_t nb2,
-			    std::vector<double>& bounds1,
-			    std::vector<double>& bounds2,
-			    std::vector<uint32_t>& counts) const;
+			    std::vector<double> &bounds1,
+			    std::vector<double> &bounds2,
+			    std::vector<uint32_t> &counts) const;
     /// Compute 2D histogram from indexes.
-    long get2DDistributionI(const ibis::column& col1,
-			    const ibis::column& col2,
+    long get2DDistributionI(const ibis::column &col1,
+			    const ibis::column &col2,
 			    uint32_t nb1, uint32_t nb2,
-			    std::vector<double>& bounds1,
-			    std::vector<double>& bounds2,
-			    std::vector<uint32_t>& counts) const;
+			    std::vector<double> &bounds1,
+			    std::vector<double> &bounds2,
+			    std::vector<uint32_t> &counts) const;
     long old2DDistribution(const char *constraints,
 			   const char *name1, const char *name2,
 			   uint32_t nb1, uint32_t nb2,
-			   std::vector<double>& bounds1,
-			   std::vector<double>& bounds2,
-			   std::vector<uint32_t>& counts) const;
+			   std::vector<double> &bounds1,
+			   std::vector<double> &bounds2,
+			   std::vector<uint32_t> &counts) const;
     /// Produce a set of bitmaps corresponding to a set of coarse bins.
-    int coarsenBins(const ibis::column& col, uint32_t nbin,
-		    std::vector<double>& bnds,
-		    std::vector<ibis::bitvector*>& btmp) const;
+    int coarsenBins(const ibis::column &col, uint32_t nbin,
+		    std::vector<double> &bnds,
+		    std::vector<ibis::bitvector*> &btmp) const;
+    /// Compute 3D histogram with adaptive bins from base data.
+    long get3DDistributionA(const ibis::bitvector &mask,
+			    const ibis::column &col1,
+			    const ibis::column &col2,
+			    const ibis::column &col3,
+			    uint32_t nb1, uint32_t nb2, uint32_t nb3,
+			    std::vector<double> &bounds1,
+			    std::vector<double> &bounds2,
+			    std::vector<double> &bounds3,
+			    std::vector<uint32_t> &counts) const;
+    template <typename E1>
+    long get3DDistributionA1(const ibis::bitvector &mask,
+			     const array_t<E1> &vals1,
+			     const ibis::column &col2,
+			     const ibis::column &col3,
+			     uint32_t nb1, uint32_t nb2, uint32_t nb3,
+			     std::vector<double> &bounds1,
+			     std::vector<double> &bounds2,
+			     std::vector<double> &bounds3,
+			     std::vector<uint32_t> &counts) const;
+    template <typename E1, typename E2>
+    long get3DDistributionA2(const ibis::bitvector &mask,
+			     const array_t<E1> &vals1,
+			     const array_t<E2> &vals2,
+			     const ibis::column &col3,
+			     uint32_t nb1, uint32_t nb2, uint32_t nb3,
+			     std::vector<double> &bounds1,
+			     std::vector<double> &bounds2,
+			     std::vector<double> &bounds3,
+			     std::vector<uint32_t> &counts) const;
 
     template <typename E1, typename E2>
-	static void mapValues(array_t<E1>& val1, array_t<E2>& val2,
+	static void mapValues(array_t<E1> &val1, array_t<E2> &val2,
 			      uint32_t nb1, uint32_t nb2,
-			      array_t<E1>& bnd1, array_t<E2>& bnd2,
-			      std::vector<uint32_t>& cnts);
+			      array_t<E1> &bnd1, array_t<E2> &bnd2,
+			      std::vector<uint32_t> &cnts);
 
     template <typename T>
-	static void mapValues(const array_t<T>& vals,
-			      std::map<T, uint32_t>& hist);
+	static void mapValues(const array_t<T> &vals,
+			      std::map<T, uint32_t> &hist);
 
     template <typename T>
-	static void equalWeightBins(const array_t<T>& vals,
-				    uint32_t nbins, array_t<T>& bounds);
+	static void equalWeightBins(const array_t<T> &vals,
+				    uint32_t nbins, array_t<T> &bounds);
 
     template <typename T>
-	static void adaptiveInts(const array_t<T>& vals, const T vmin,
+	static void adaptiveInts(const array_t<T> &vals, const T vmin,
 				 const T vmax, uint32_t nbins,
-				 std::vector<double>& bounds,
-				 std::vector<uint32_t>& counts);
+				 std::vector<double> &bounds,
+				 std::vector<uint32_t> &counts);
 
     template <typename T>
-	static void adaptiveFloats(const array_t<T>& vals, const T vmin,
+	static void adaptiveFloats(const array_t<T> &vals, const T vmin,
 				   const T vmax, uint32_t nbins,
-				   std::vector<double>& bounds,
-				   std::vector<uint32_t>& counts);
+				   std::vector<double> &bounds,
+				   std::vector<uint32_t> &counts);
 
     template <typename T1, typename T2>
-	static void adaptive2DBins(const array_t<T1> vals1,
-				   const array_t<T2> vals2,
+	static void adaptive2DBins(const array_t<T1> &vals1,
+				   const array_t<T2> &vals2,
 				   uint32_t nb1, uint32_t nb2,
-				   std::vector<double>& bounds1,
-				   std::vector<double>& bounds2,
-				   std::vector<uint32_t>& counts);
+				   std::vector<double> &bounds1,
+				   std::vector<double> &bounds2,
+				   std::vector<uint32_t> &counts);
+
+    template <typename T1, typename T2, typename T3>
+	static void adaptive3DBins(const array_t<T1> &vals1,
+				   const array_t<T2> &vals2,
+				   const array_t<T3> &vals3,
+				   uint32_t nb1, uint32_t nb2, uint32_t nb3,
+				   std::vector<double> &bounds1,
+				   std::vector<double> &bounds2,
+				   std::vector<double> &bounds3,
+				   std::vector<uint32_t> &counts);
 
 private:
 
@@ -755,68 +813,68 @@ private:
 
     void   fillRIDs(const char* fn) const; //< Generate new RIDs.
     void   sortRIDs() const; //< Sort current list of RIDs and write rids.srt.
-    uint32_t searchSortedRIDs(const ibis::rid_t& rid) const;
-    uint32_t searchRIDs(const ibis::rid_t& rid) const;
+    uint32_t searchSortedRIDs(const ibis::rid_t &rid) const;
+    uint32_t searchRIDs(const ibis::rid_t &rid) const;
     void   searchSortedRIDs(const ibis::RIDSet&, ibis::bitvector&) const;
     void   searchRIDs(const ibis::RIDSet&, ibis::bitvector&) const;
 
     // functions to perform join operations.
-    int64_t equiJoin(const ibis::rangeJoin& cmp,
-		     const ibis::bitvector64& trial,
-		     ibis::bitvector64& result) const;
-    int64_t rangeJoin(const ibis::rangeJoin& cmp,
-		      const ibis::bitvector64& trial,
-		      ibis::bitvector64& result) const;
-    int64_t compJoin(const ibis::rangeJoin& cmp,
-		     const ibis::bitvector64& trial,
-		     ibis::bitvector64& result) const;
+    int64_t equiJoin(const ibis::rangeJoin &cmp,
+		     const ibis::bitvector64 &trial,
+		     ibis::bitvector64 &result) const;
+    int64_t rangeJoin(const ibis::rangeJoin &cmp,
+		      const ibis::bitvector64 &trial,
+		      ibis::bitvector64 &result) const;
+    int64_t compJoin(const ibis::rangeJoin &cmp,
+		     const ibis::bitvector64 &trial,
+		     ibis::bitvector64 &result) const;
 
-    int64_t loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
-		     const ibis::bitvector& mask,
-		     ibis::bitvector64& pairs) const;
-    int64_t loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
-		     const ibis::bitvector& mask) const;
-    int64_t loopJoin(const ibis::rangeJoin& cmp,
-		     const ibis::bitvector& mask,
-		     ibis::bitvector64& pairs) const;
-    int64_t loopJoin(const ibis::rangeJoin& cmp,
-		     const ibis::bitvector& mask) const;
-    int64_t equiJoinLoop1(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector64& pairs) const;
-    int64_t equiJoinLoop1(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask) const;
-    int64_t equiJoinLoop2(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector64& pairs) const;
-    int64_t equiJoinLoop2(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask) const;
+    int64_t loopJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+		     const ibis::bitvector &mask,
+		     ibis::bitvector64 &pairs) const;
+    int64_t loopJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+		     const ibis::bitvector &mask) const;
+    int64_t loopJoin(const ibis::rangeJoin &cmp,
+		     const ibis::bitvector &mask,
+		     ibis::bitvector64 &pairs) const;
+    int64_t loopJoin(const ibis::rangeJoin &cmp,
+		     const ibis::bitvector &mask) const;
+    int64_t equiJoinLoop1(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask,
+			  ibis::bitvector64 &pairs) const;
+    int64_t equiJoinLoop1(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask) const;
+    int64_t equiJoinLoop2(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask,
+			  ibis::bitvector64 &pairs) const;
+    int64_t equiJoinLoop2(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask) const;
     template <class type1, class type2>
-    void rangeJoinLoop(const array_t<type1>& arr1,
-		       const ibis::bitvector& msk1,
-		       const array_t<type2>& arr2,
-		       const ibis::bitvector& msk2,
+    void rangeJoinLoop(const array_t<type1> &arr1,
+		       const ibis::bitvector &msk1,
+		       const array_t<type2> &arr2,
+		       const ibis::bitvector &msk2,
 		       const double delta,
-		       ibis::bitvector64& pairs) const;
+		       ibis::bitvector64 &pairs) const;
     template <class type1, class type2>
-    int64_t rangeJoinLoop(const array_t<type1>& arr1,
-			  const ibis::bitvector& msk1,
-			  const array_t<type2>& arr2,
-			  const ibis::bitvector& msk2,
+    int64_t rangeJoinLoop(const array_t<type1> &arr1,
+			  const ibis::bitvector &msk1,
+			  const array_t<type2> &arr2,
+			  const ibis::bitvector &msk2,
 			  const double delta) const;
-    int64_t rangeJoinLoop(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector64& pairs) const;
-    int64_t rangeJoinLoop(const ibis::rangeJoin& cmp,
-			  const ibis::bitvector& mask) const;
-    int64_t compJoinLoop(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector& mask,
-			 ibis::bitvector64& pairs) const;
-    int64_t compJoinLoop(const ibis::rangeJoin& cmp,
-			 const ibis::bitvector& mask) const;
+    int64_t rangeJoinLoop(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask,
+			  ibis::bitvector64 &pairs) const;
+    int64_t rangeJoinLoop(const ibis::rangeJoin &cmp,
+			  const ibis::bitvector &mask) const;
+    int64_t compJoinLoop(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector64 &pairs) const;
+    int64_t compJoinLoop(const ibis::rangeJoin &cmp,
+			 const ibis::bitvector &mask) const;
 
     part(const part&);
-    const part& operator=(const part&);
+    const part &operator=(const part&);
 }; // class ibis::part
 
 namespace ibis {
@@ -825,15 +883,15 @@ namespace ibis {
     namespace util {
 	/// Look for data directories in the given pair of directories.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList& tables,
+	tablesFromDir(ibis::partList &tables,
 		      const char *adir, const char *bdir);
 	/// Look into the given directory for table.tdc files
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList& tables, const char *adir);
+	tablesFromDir(ibis::partList &tables, const char *adir);
 	/// Reconstruct partitions using data directories specified in the
 	/// resources.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromResources(ibis::partList& tables, const ibis::resource& res);
+	tablesFromResources(ibis::partList &tables, const ibis::resource &res);
     } // namespace util
 } // namespace ibis
 
@@ -848,9 +906,9 @@ struct FASTBIT_CXX_DLLSPEC ibis::part::info {
     /// The list of columns in the partition.
     std::vector<ibis::column::info*> cols;
 
-    info(const char* na, const char* de, const uint64_t& nr,
-	 const ibis::part::columnList& co);
-    info(const ibis::part& tbl);
+    info(const char* na, const char* de, const uint64_t &nr,
+	 const ibis::part::columnList &co);
+    info(const ibis::part &tbl);
     ~info();
 
 private:
@@ -885,7 +943,7 @@ private:
 
     readLock() {}; // no default constructor
     readLock(const readLock&) {}; // can not copy
-    const readLock& operator=(const readLock&);
+    const readLock &operator=(const readLock&);
 }; // ibis::part::readLock
 
 /// Provide a write lock on an ibis::part.
@@ -902,7 +960,7 @@ private:
 
     writeLock() {}; // no default constructor
     writeLock(const writeLock&) {}; // can not copy
-    const writeLock& operator=(const writeLock&);
+    const writeLock &operator=(const writeLock&);
 }; // ibis::part::writeLock
 
 /// An non-blocking version of writeLock.  The function @c acquired returns
@@ -927,9 +985,9 @@ private:
     const int locked;
 
     advisoryLock() : thePart(0), mesg(0), locked(0) {};
-    advisoryLock(const advisoryLock& rhs)
+    advisoryLock(const advisoryLock &rhs)
 	: thePart(rhs.thePart), mesg(rhs.mesg), locked(0) {};
-    const advisoryLock& operator=(const advisoryLock&);
+    const advisoryLock &operator=(const advisoryLock&);
 }; // ibis::part::advisoryLock
 
 /// Provide a mutual exclusion lock on an ibis::part object.
@@ -961,7 +1019,7 @@ private:
 
     mutexLock() {}; // no default constructor
     mutexLock(const mutexLock&) {}; // can not copy
-    const mutexLock& operator=(const mutexLock&);
+    const mutexLock &operator=(const mutexLock&);
 }; // ibis::part::mutexLock
 
 /// To read a list of variables at the same time.
@@ -980,7 +1038,7 @@ public:
     virtual long seek(uint32_t pos);
     uint32_t tell() const {return position;}
 
-    void getNullMask(ibis::bitvector& mask) const;
+    void getNullMask(ibis::bitvector &mask) const;
     const ibis::column* getColumn(uint32_t i) const {return cols[i];}
 
 protected:
@@ -995,7 +1053,7 @@ protected:
 /// A version of barrel that keys on an index array (i.e., a roster).
 class ibis::part::vault : public ibis::part::barrel {
 public:
-    vault(const ibis::roster& r);
+    vault(const ibis::roster &r);
     virtual ~vault() {close();}
 
     virtual long open(const ibis::part *t=0); ///< Open all data files.
@@ -1008,12 +1066,12 @@ public:
     uint32_t tellReal() const;
 
 private:
-    const ibis::roster& _roster;
+    const ibis::roster &_roster;
 
     template <class T>
-    uint32_t seekValue(int fd, const T& val) const;
+    uint32_t seekValue(int fd, const T &val) const;
     template <class T>
-    uint32_t seekValue(const array_t<T>&arr, const T& val) const;
+    uint32_t seekValue(const array_t<T>&arr, const T &val) const;
 }; // ibis::part::vault
 /*
 barrel
@@ -1072,11 +1130,11 @@ namespace ibis {
     // Explicit template specialization for member function
     // ibis::part::equalWeightBins
     template <> void
-    part::equalWeightBins(const array_t<float>& vals,
-			  uint32_t nbins, array_t<float>& bounds);
+    part::equalWeightBins(const array_t<float> &vals,
+			  uint32_t nbins, array_t<float> &bounds);
     template <> void
-    part::equalWeightBins(const array_t<double>& vals,
-			  uint32_t nbins, array_t<double>& bounds);
+    part::equalWeightBins(const array_t<double> &vals,
+			  uint32_t nbins, array_t<double> &bounds);
 }
 
 /// Return an ibis::part::info object that describes the current partition.
@@ -1141,27 +1199,27 @@ inline const char* ibis::part::getMetaTag(const char* name) const {
 	return static_cast<const char*>(0);
 } // getMetaTag
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
-					const ibis::bitvector& mask,
-					ibis::bitvector64& pairs) const {
+inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+					const ibis::bitvector &mask,
+					ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
-					const ibis::bitvector& mask,
+inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+					const ibis::bitvector &mask,
 					const char *pairfile) const {
     logWarning("evaluate", "not implemented yet");
     return -1;
 } // ibis::part::evaluateJoin
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
-					const ibis::bitvector& mask) const {
+inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+					const ibis::bitvector &mask) const {
     return loopJoin(cmp, mask);
 } // ibis::part::evaluateJoin
 
 inline int64_t ibis::part::evaluateJoin
-(const std::vector<const ibis::rangeJoin*>& cmp,
- const ibis::bitvector& mask, ibis::bitvector64& pairs) const {
+(const std::vector<const ibis::rangeJoin*> &cmp,
+ const ibis::bitvector &mask, ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
