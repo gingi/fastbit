@@ -78,9 +78,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="Debug/thula.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
@@ -175,9 +175,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="Release\thula.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				ProgramDatabaseFile="Release/thula.pdb"
@@ -398,6 +398,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\selectClause.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectLexer.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectParser.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\src\tafel.cpp"
 				>
 			</File>
@@ -425,9 +437,6 @@
 				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
-			<File RelativePath="..\src\selectClause.cpp"></File>
-			<File RelativePath="..\src\selectLexer.cc"></File>
-			<File RelativePath="..\src\selectParser.cc"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -538,6 +547,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\selectClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectParser.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\stack.hh"
 				>
 			</File>
@@ -573,9 +594,6 @@
 				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
-			<File RelativePath="..\src\selectClause.h"></File>
-			<File RelativePath="..\src\selectLexer.h"></File>
-			<File RelativePath="..\src\selectParser.hh"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

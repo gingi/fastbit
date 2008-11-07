@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\SWTools\Java\jdk1.6.0_07\include;C:\SWTools\Java\jdk1.6.0_07\include\win32;."
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk1.6.0_10\include;C:\Tools\Java\jdk1.6.0_10\include\win32;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/fastbitjni.dll"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/fastbitjni.pdb"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\SWTools\Java\jdk1.6.0_07\include;C:\SWTools\Java\jdk1.6.0_07\include\win32;."
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk1.6.0_10\include;C:\Tools\Java\jdk1.6.0_10\include\win32;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORTS;JAVA_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/fastbitjni.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
@@ -367,6 +367,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\selectClause.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectLexer.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectParser.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\src\tafel.cpp"
 				>
 			</File>
@@ -390,9 +402,6 @@
 				RelativePath="..\src\whereParser.cc"
 				>
 			</File>
-			<File RelativePath="..\src\selectClause.cpp"></File>
-			<File RelativePath="..\src\selectLexer.cc"></File>
-			<File RelativePath="..\src\selectParser.cc"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -512,6 +521,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\selectClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\selectParser.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\stack.hh"
 				>
 			</File>
@@ -539,9 +560,6 @@
 				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
-			<File RelativePath="..\src\selectClause.h"></File>
-			<File RelativePath="..\src\selectLexer.h"></File>
-			<File RelativePath="..\src\selectParser.hh"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

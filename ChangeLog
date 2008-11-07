@@ -1,6 +1,23 @@
 2008-11-05 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: add an element of 0 to bnds[123] to simplify the
+	loops in ibis::part::adaptive3DBins, delete val2 in
+	get2DDistribution, round up bin boundaries for integers in
+	get2DDistribution and get3DDistribution, fix errors in
+	get3DDistribution, make sure the bin boundaries does not round
+	down to values that are included in the bin to its left (this
+	could happen because the bin numbers are computed using the
+	differences which could be smaller, when these differences are
+	added back, the rounding may lead to smaller bin boundaries)
+	* tests/Makefile.am: add test case check-ibis 9 to try out the 3D
+	histogramming function
+
+2008-11-05 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add statements to print out the return code
 	in three functions that computes joint distributions
+	* win: change the version numbers in the VisualStudio project
+	files lower so it can work with the 2003 version
+	* examples/ibis.cpp:505 missing col3 in the calling sequence of
+	get3DDistribution
 
 2008-11-03 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:482 add print3DDistribution to exercise new

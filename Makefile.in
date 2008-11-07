@@ -259,7 +259,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 
 distclean-libtool:
-	-rm -f libtool
+	-rm -f libtool config.lt
 install-dist_docDATA: $(dist_doc_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(docdir)" || $(MKDIR_P) "$(DESTDIR)$(docdir)"

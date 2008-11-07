@@ -11,7 +11,7 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-dist_data_DATA=test0.csv test1.csv hist0 hist1 thula-0 thula-1 \
+dist_data_DATA=test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 \
 	scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
 #
 # tests with different levels of thoroughness
@@ -41,7 +41,7 @@ check-tcapi: $(TESTDIR)/t1/-part.txt $(TCAPIEXE)
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ did not pass test 2; fi
 	@$(ECHO)
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
-	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1
+	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 1; else $(ECHO) $@ did not pass test 1; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 2; else $(ECHO) $@ did not pass test 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 3; else $(ECHO) $@ did not pass test 3; fi
@@ -49,7 +49,8 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 5; else $(ECHO) $@ did not pass test 5; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then $(ECHO) $@ passed test 6; else $(ECHO) $@ did not pass test 6; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 7; else $(ECHO) $@ did not pass test 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ did not pass test 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 8; else $(ECHO) $@ did not pass test 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then $(ECHO) $@ passed test 9; else $(ECHO) $@ did not pass test 9; fi
 	@$(ECHO)
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0 > /dev/null

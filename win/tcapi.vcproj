@@ -79,9 +79,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dll\Debug\fastbit.lib pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="dll\Debug\fastbit.lib pthreadVC2.lib psapi.lib"
 				OutputFile="Debug/tcapi.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Debug"
 				GenerateDebugInformation="true"
@@ -175,9 +175,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dll\Release\fastbit.lib pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="dll\Release\fastbit.lib pthreadVC2.lib psapi.lib"
 				OutputFile="Release\tcapi.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Release"
 				ProgramDatabaseFile="Release/tcapi.pdb"
@@ -299,6 +299,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\location.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\mensa.h"
 				>
 			</File>
@@ -307,27 +311,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\whereClause.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\whereLexer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\whereParser.hh"
-				>
-			</File>
-			<File
-				RelativePath="..\src\location.hh"
-				>
-			</File>
-			<File
 				RelativePath="..\src\position.hh"
-				>
-			</File>
-			<File
-				RelativePath="..\src\stack.hh"
 				>
 			</File>
 			<File
@@ -347,11 +331,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\stack.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\tafel.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\whereParser.hh"
 				>
 			</File>
 		</Filter>

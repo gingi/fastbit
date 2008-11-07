@@ -1,7 +1,7 @@
 # $Id$
 # Makefile for nmake on windows using microsoft compiler visual C++ 7
 #
-VC=C:\SWTools\VS\VC
+VC=C:\Tools\VS\VC
 CXX=$(VC)\BIN\cl
 LINK=$(VC)\BIN\link
 OPT=/MD /EHsc /GR /O2 /W1 /arch:SSE2
@@ -9,7 +9,7 @@ OPT=/MD /EHsc /GR /O2 /W1 /arch:SSE2
 INC=-I ..\src -I "C:\Tools\pthread\include"
 DEF=/D WIN32 /D _CONSOLE /D FILEMANAGER_UNLOAD_TIME=3
 #/INCREMENTAL:NO /NOLOGO
-LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v6.0A\lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVCE2.lib psapi.lib advapi32.lib
+LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v6.0A\lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVC2.lib psapi.lib advapi32.lib
 # ******
 # for VisualStudio .Net and earlier, the following libpath is needed
 # /LIBPATH:"$(VC)\PlatformSDK\Lib"

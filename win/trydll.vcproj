@@ -62,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)/fastbit.lib pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="$(OutDir)/fastbit.lib pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/trydll.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Debug"
 				DelayLoadDLLs=""
@@ -142,9 +142,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)/fastbit.lib pthreadVCE2.lib psapi.lib"
+				AdditionalDependencies="$(OutDir)/fastbit.lib pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/trydll.exe"
-				LinkIncremental="0"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Release"
 				GenerateDebugInformation="false"

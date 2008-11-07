@@ -502,7 +502,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	ierr = tbl.get3DDistribution(col1, col2, col3, 25, 25, 25,
 				     bds1, bds2, bds3, cnts);
     else
-	ierr = tbl.get3DDistribution(cond, col1, col2, 12, 12, 12,
+	ierr = tbl.get3DDistribution(cond, col1, col2, col3, 12, 12, 12,
 				     bds1, bds2, bds3, cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	const uint32_t nbin2 = bds2.size() - 1;
@@ -515,11 +515,11 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()-1
 		    << " x " << nbin2 << " x " << nbin3 << " cells\n";
 
-	uint32_t cnt = 0, tot=0;
+	uint32_t cnt = 0, tot = 0;
 	for (uint32_t i = 0; i < cnts.size(); ++ i) {
 	    if (cnts[i] > 0) {
 		const uint32_t i1 = i / nb23;
-		const uint32_t i2 = (i % nb23) / nbin3;
+		const uint32_t i2 = (i - i1 * nb23) / nbin3;
 		const uint32_t i3 = i % nbin3;
 		lg.buffer() << i << "\t[" << bds1[i1] << ", " << bds1[i1+1]
 			    << ") [" << bds2[i2] << ", " << bds2[i2+1]
