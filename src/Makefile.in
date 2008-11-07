@@ -56,9 +56,9 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" \
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libfastbit_la_LIBADD =
-am_libfastbit_la_OBJECTS = array_t.lo part.lo ibin.lo query.lo \
-	utilidor.lo index.lo column.lo meshQuery.lo bord.lo party.lo \
-	whereParser.lo ixambit.lo bitvector.lo bitvector64.lo \
+am_libfastbit_la_OBJECTS = array_t.lo parth.lo part.lo ibin.lo \
+	query.lo utilidor.lo index.lo column.lo meshQuery.lo bord.lo \
+	party.lo whereParser.lo ixambit.lo bitvector.lo bitvector64.lo \
 	irange.lo fileManager.lo mensa.lo irelic.lo parti.lo \
 	iroster.lo colValues.lo ixpack.lo category.lo ixpale.lo \
 	bundle.lo qExpr.lo whereLexer.lo ixzone.lo ixbylt.lo tafel.lo \
@@ -211,7 +211,7 @@ top_srcdir = @top_srcdir@
 uudecode = @uudecode@
 AUTOMAKE_OPTIONS = gnu
 lib_LTLIBRARIES = libfastbit.la
-libfastbit_la_SOURCES = array_t.cpp part.cpp ibin.cpp query.cpp utilidor.cpp index.cpp column.cpp meshQuery.cpp bord.cpp party.cpp whereParser.cc ixambit.cpp bitvector.cpp bitvector64.cpp irange.cpp fileManager.cpp mensa.cpp irelic.cpp parti.cpp iroster.cpp colValues.cpp ixpack.cpp category.cpp ixpale.cpp bundle.cpp qExpr.cpp whereLexer.cc ixzone.cpp ixbylt.cpp tafel.cpp util.cpp icegale.cpp ixzona.cpp ixfuzz.cpp ixfuge.cpp isbiad.cpp ifade.cpp idbak2.cpp isapid.cpp icentre.cpp islice.cpp imesa.cpp joinin.cpp idirekte.cpp idbak.cpp capi.cpp ikeywords.cpp icmoins.cpp resource.cpp rids.cpp whereClause.cpp selectClause.cpp selectParser.cc selectLexer.cc
+libfastbit_la_SOURCES = array_t.cpp parth.cpp part.cpp ibin.cpp query.cpp utilidor.cpp index.cpp column.cpp meshQuery.cpp bord.cpp party.cpp whereParser.cc ixambit.cpp bitvector.cpp bitvector64.cpp irange.cpp fileManager.cpp mensa.cpp irelic.cpp parti.cpp iroster.cpp colValues.cpp ixpack.cpp category.cpp ixpale.cpp bundle.cpp qExpr.cpp whereLexer.cc ixzone.cpp ixbylt.cpp tafel.cpp util.cpp icegale.cpp ixzona.cpp ixfuzz.cpp ixfuge.cpp isbiad.cpp ifade.cpp idbak2.cpp isapid.cpp icentre.cpp islice.cpp imesa.cpp joinin.cpp idirekte.cpp idbak.cpp capi.cpp ikeywords.cpp icmoins.cpp resource.cpp rids.cpp whereClause.cpp selectClause.cpp selectParser.cc selectLexer.cc
 libfastbit_la_LDFLAGS = -version-info $(LIB_VERSION_INFO)
 include_HEADERS = config.h array_t.h bitvector.h bitvector64.h bord.h bundle.h capi.h category.h colValues.h column.h const.h fileManager.h horometer.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h join.h joinin.h mensa.h meshQuery.h part.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh
 dist_data_DATA = whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy Doxyfile
@@ -341,6 +341,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mensa.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/meshQuery.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/part.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parth.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parti.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/party.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qExpr.Plo@am__quote@
