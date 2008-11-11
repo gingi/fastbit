@@ -9489,7 +9489,7 @@ ibis::part::getCumulativeDistribution(const char *name,
 /// value, which is guaranteed to be no larger than the input value of @c
 /// nbc.
 ///
-/// @ntoe Because most of the binning scheme leaves two bins for overflow,
+/// @note Because most of the binning scheme leaves two bins for overflow,
 /// one for values less than the expected minimum and one for values
 /// greater than the expected maximum.  The minimum number of bins expected
 /// is four (4).  This function will return error code -1 if the value of

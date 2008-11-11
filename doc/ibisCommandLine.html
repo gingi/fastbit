@@ -144,7 +144,7 @@ Here is the full list of options.
 
 <li><code>-a[ppend] data_dir [to table_name]</code>
 <br>Take the data in the named directory and append it to the table with
-the specified name.<br>
+the specified name.</p><p>
 <em>Note</em>: to specify a table name the keyword
 <code>to</code> must appear before the table name.  If a table name is
 not specified, ibis attempt to use the meta tags contained in the table
@@ -155,18 +155,41 @@ More information about loading data can be found in <A
 href="dataLoading.html">dataLoading.html</a>.
 
 
-<li><code>-b[uild-index] [num-threads|indexing-option]</code>
+<li><A name="build"></A>
+<code>-b[uild-index] [num-threads|indexing-option]</code>
 <br>Instruct FastBit to build indexes of all datasets known.  Usually it
 builds indexes as needed, therefore there is no need to explicitly build
 indexes.
 <p>
 The option <code>-b</code> may be followed by one of two
-arguments, a decimal number to indicate the number of simultaneous
-threads to use to build the indexes, or a string arguments to indicate
+arguments, an integer to indicate the number of simultaneous
+threads to use while building the indexes, or a string arguments to indicate
 the type of indexes to build.  An indexing option string might look like
-"<code>&lt;binning nbins=1000/&gt; &lt;encoding range ncomp=2/&gt;".
+"<code>&lt;binning nbins=1000/&gt; &lt;encoding range ncomp=2/&gt;</code>".
 More about the indexing options is available at <A
 HREF="indexSpec.html">indexSpec.html</A>.
+</p>
+<p>To specify the number of threads and an indexing option, use two
+separate instances of <code>-b</code> option, such as,
+<pre>
+-b "&lt;binning none/&gt; &lt;encoding interval-equality/&gt;" -b 2
+</pre>
+</p>
+<p>
+Since building indexes is an expensive operation, FastBit by default
+only builds new indexe for a column if no index currently exists.  To
+force FastBit to remove existing indexes and rebuild them from
+scratch, specify option <code>-z</code> in addition.
+</p>
+<p>
+<em>Note</em>: The numbre of threads to use depends heavily on the
+amount of memory available.  Indexes are built one column of a data
+partition at a time.  Each thread works one a column of a partition at
+any given time, and the index for the column is built completely
+in-memory before written to disk.  If your data partitions are large,
+then each threads will require a lot of memory to complete it work.  The
+default number of threads to use for index building is one (1).
+</p>
 
 <li><code>-c[onf] conf_file</code>
 
@@ -191,7 +214,7 @@ about the configuration file is available in <A
 HREF="dataLoading.html">dataLoading.html</A>.
 
 
-<li><code>-d[atadir] data_dir [backup_dir]</code>
+<li><A name="data"></A><code>-d[atadir] data_dir [backup_dir]</code>
 
 <br>As an alternative to specify the data directories in a configuration
 file, one may specified them directly on the command line.  The effect
@@ -257,7 +280,7 @@ information, may be redirected with option <code>-l</code>.
 conditions]]</code>
 <br>Print information about the tables known to ibis program.
 
-<li><code>-q[uery] [SELECT ...] [FROM ...] WHERE ...</code>
+<li><A name="query"></A><code>-q[uery] [SELECT ...] [FROM ...] WHERE ...</code>
 <br>On most systems the strings following <code>-q</code> must be quoted in
 order for them to be perceived as one argument.
 
@@ -329,8 +352,13 @@ IBIS.  A range condition can also involve multiple attributes, such as,
 < sqrt(cx*cx+cy*cy)".  Note all one-argument and two-argument arithmetic
 functions available in <code>math.h</code> are supported.  The key word
 WHERE and the conditions following it are essential to a query and can
-not be ommited.
+<b>not</b> be ommited.
 
+<p>
+The select clause may also contain arithmetic expressions, e.g.,
+<pre>
+-q "select pressure, sqrt(vx*vx+vy*vy+vz*vz) where temperature > 1000"
+</pre>
 
 <h2><A name="output">Sample output</A></h2>
 Here is a sample output produced on June 13, 2005 using the sample

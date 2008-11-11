@@ -19,6 +19,9 @@
 #include <limits>	// std::numeric_limits
 #include <cmath>	// std::floor
 
+/// This function expects a valid data directory to find data partitions.
+/// If the incoming directory is not a valid string, it will use
+/// ibis::gParameter() to find data partitions.
 ibis::mensa::mensa(const char* dir) : nrows(0) {
     if (dir != 0 && *dir != 0)
 	ibis::util::tablesFromDir(parts, dir);
@@ -57,7 +60,11 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
     }
 } // constructor with one directory as argument
 
+/// This function expects a pair of data directories to define data
+/// partitions.  If either dir1 and dir2 is not valid, it will attempt to
+/// find data partitions using global parameters ibis::gParameters().
 ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
+    if (*dir1 == 0 && *dir2 == 0) return;
     if (dir1 != 0 && *dir1 != 0) {
 	ibis::util::tablesFromDir(parts, dir1, dir2);
     }

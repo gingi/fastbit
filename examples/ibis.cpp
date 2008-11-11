@@ -78,8 +78,9 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
-#include "ibis.h"
-#include <sstream> // std::ostringstream
+#include <ibis.h>
+#include <mensa.h>	// ibis::mensa
+#include <sstream>	// std::ostringstream
 
 // local data types
 typedef std::vector<const char*> stringList;
@@ -103,6 +104,7 @@ static bool skip_estimation = false;
 static bool sequential_scan = false;
 static bool verify_rid = false;
 static bool zapping = false;
+static bool appendToOutput = false;
 static const char *ridfile = 0;
 static const char *appendto = 0;
 static const char *outputfile = 0;
@@ -138,6 +140,19 @@ namespace ibis {
 	void print(std::ostream& out) const;
     }; // joinspec
     typedef std::vector<joinspec> joinlist;
+
+    /// A temporary holder of data partitions for query evaluations.
+    class mensa2 : public mensa {
+    public:
+	mensa2(const partList&);
+	~mensa2();
+
+    private:
+	// limit the automatically generated constructors
+	mensa2();
+	mensa2(const mensa2&);
+	mensa2& operator=(const mensa2&);
+    }; // mensa2
 }
 
 // printout the usage string
@@ -1353,8 +1368,45 @@ static void parse_args(int argc, char** argv,
     }
 } // parse_args
 
+/// Ibis::mensa2 is constructed from a list of data partitions.
+ibis::mensa2::mensa2(const ibis::partList &l) : ibis::mensa() {
+    if (l.empty()) return;
+
+    parts.insert(l.begin(), l.end());
+    for (ibis::partList::const_iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	(*it).second->combineNames(naty);
+	nrows += (*it).second->nRows();
+    }
+    if (name_.empty() && ! parts.empty()) {
+	// take on the name of the first partition
+	ibis::partList::const_iterator it = parts.begin();
+	name_ = "T-";
+	name_ += (*it).first;
+	if (desc_.empty()) {
+	    
+	}
+    }
+    if (ibis::gVerbose > 0 && ! name_.empty()) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "ibis::mensa2 -- constructed table "
+		    << name_ << " (" << desc_ << ") from a list of "
+		    << l.size() << " data partition"
+		    << (l.size()>1 ? "s" : "")
+		    << ", with " << naty.size() << " column"
+		    << (naty.size()>1 ? "s" : "") << " and "
+		    << nrows << " row" << (nrows>1 ? "s" : "");
+    }
+} // ibis::mensa2::mensa2
+
+/// Ibis::mensa2 does not own the data partitions and does not free the
+/// resources in those partitions.
+ibis::mensa2::~mensa2 () {
+    parts.clear();
+} // ibis::mensa2::~mensa2
+
 // evaluate a single query -- directly retrieve values of selected columns
-static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
+static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     const char* sstr) {
     LOGGER(ibis::gVerbose >= 1)
 	<< "xdoQuery -- processing query " << wstr
@@ -1537,10 +1589,113 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
     }
 } // printQueryResults
 
+// Execute a query using the new ibis::table interface
+static void tableSelect(const ibis::partList &pl, const char* uid,
+		       const char* wstr, const char* sstr,
+		       const char* ordkeys, int direction,
+		       uint32_t limit) {
+    ibis::mensa2 tbl(pl); // construct a temporary ibis::table object
+    std::string sqlstring; //
+    {
+	std::ostringstream ostr;
+	if (sstr != 0 && *sstr != 0)
+	    ostr << "SELECT " << sstr;
+	ostr << " FROM " << tbl.name();
+	if (wstr != 0 && *wstr != 0)
+	    ostr << " WHERE " << wstr;
+	if (ordkeys && *ordkeys) {
+	    ostr << " ORDER BY " << ordkeys;
+	    if (direction >= 0)
+		ostr << " ASC";
+	    else
+		ostr << " DESC";
+	}
+	if (limit > 0)
+	    ostr << " LIMIT " << limit;
+	sqlstring = ostr.str();
+    }
+    LOGGER(ibis::gVerbose >= 2)
+	<< "tableSelect -- processing \"" << sqlstring << '\"';
+
+    ibis::horometer timer;
+    timer.start();
+
+    if (! skip_estimation) {
+	uint64_t num1, num2;
+	tbl.estimate(wstr, num1, num2);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg(1);
+	    lg.buffer() << "tableSelect -- the number of hits is ";
+	    if (num2 > num1)
+		lg.buffer() << "between " << num1 << " and ";
+	    lg.buffer() << num2;
+	}
+	if (estimate_only) {
+	    if (ibis::gVerbose >= 0) {
+		timer.stop();
+		ibis::util::logger lg(0);
+		lg.buffer() << "tableSelect:: estimate(" << wstr << ") took "
+			    << timer.CPUTime() << " CPU seconds, "
+			    << timer.realTime() << " elapsed seconds";
+	    }
+	    return; // stop here is only want to estimate
+	}
+    }
+
+    ibis::table *sel1 = tbl.select(sstr, wstr);
+    if (sel1 == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "tableSelect:: select(" << sstr << ", " << wstr
+	    << ") failed on table " << tbl.name();
+	return;
+    }
+
+    LOGGER(ibis::gVerbose > 0)
+	<< "tableSelect -- select(" << sstr << ", " << wstr
+	<< ") on table " << tbl.name() << " produced " << sel1->nRows()
+	<< " row" << (sel1->nRows() > 1 ? "s" : "");
+    if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
+	sel1->orderby(ordkeys);
+	if (direction < 0)
+	    sel1->reverseRows();
+    }
+
+    if (outputfile != 0 && *outputfile != 0) {
+	if (limit == 0)
+	    limit = static_cast<uint32_t>(sel1->nRows());
+	if (0 == strcmp(outputfile, "/dev/null")) {
+	    std::ofstream output(outputfile, std::ios::out |
+				 (appendToOutput ? std::ios::app :
+				  std::ios::trunc));
+	    sel1->dump(output, limit, ", ");
+	}
+    }
+    else if (ibis::gVerbose > 0) {
+	ibis::util::logger lg(0);
+	if (limit == 0) {
+	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
+		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
+	    lg.buffer() << "tableSelect -- the first " << limit << " rows of "
+			<< sqlstring << "\n";
+	}
+	else {
+	    lg.buffer() << "tableSelect -- the results of " << sqlstring
+			<< "\n";
+	}
+	sel1->dump(lg.buffer(), limit, ", ");
+    }
+    delete sel1;
+    timer.stop();
+    LOGGER(ibis::gVerbose > 0)
+	<< "tableSelect:: complete evaluation of " << sqlstring
+	<< " took " << timer.CPUTime() << " CPU seconds, "
+	<< timer.realTime() << " elapsed seconds";
+} // tableSelect
+
 // evaluate a single query -- print selected columns through ibis::bundle
-static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
+static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    const char* sstr, const char* ordkeys, int direction,
-		    const uint32_t limit) {
+		    uint32_t limit) {
     std::string sqlstring; //
     {
 	std::ostringstream ostr;
@@ -1626,7 +1781,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    lg.buffer() << "doQuery:: sequentialScan("
 			<< aQuery.getWhereClause() << ") produced "
 			<< num2 << " hit" << (num2>1 ? "s" : "") << ", took "
-			<< timer.CPUTime() << " CPU seconds and "
+			<< timer.CPUTime() << " CPU seconds, "
 			<< timer.realTime() << " elapsed seconds";
 	}
 	return;
@@ -1655,7 +1810,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		ibis::util::logger lg(0);
 		lg.buffer() << "doQuery:: estimate("
 			    << aQuery.getWhereClause() << ") took "
-			    << timer.CPUTime() << " CPU seconds and "
+			    << timer.CPUTime() << " CPU seconds, "
 			    << timer.realTime() << " elapsed seconds";
 	    }
 	    return; // stop here is only want to estimate
@@ -1675,7 +1830,6 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
     num1 = aQuery.getNumHits();
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
-	static bool appendToOutput = false;
 	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
 	    // read the values into memory, but avoid sorting the values
 	    const ibis::selected& cmps = aQuery.components();
@@ -1756,7 +1910,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	ibis::util::logger lg(0);
 	lg.buffer() << "doQuery:: evaluate(" << sqlstring
 		    << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-		    << ", took " << timer.CPUTime() << " CPU seconds and "
+		    << ", took " << timer.CPUTime() << " CPU seconds, "
 		    << timer.realTime() << " elapsed seconds";
     }
 
@@ -1789,7 +1943,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		ibis::util::logger lg(0);
 		lg.buffer() << "doQuery ibis::bundle::create generated "
 			    << num2 << " bundles in " << timer.CPUTime()
-			    << " CPU seconds and " << timer.realTime()
+			    << " CPU seconds, " << timer.realTime()
 			    << " elapsed seconds";
 	    }
 	}
@@ -1925,7 +2079,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 
 // evaluate a single query -- only work on partitions that have defined
 // column shapes, i.e., they contain data computed on meshes.
-static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
+static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			const char* sstr) {
     LOGGER(ibis::gVerbose >= 1)
 	<< "doMeshQuery -- processing query " << wstr
@@ -1983,7 +2137,7 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		ibis::util::logger lg(0);
 		lg.buffer() << "doMeshQuery:: estimate("
 			    << aQuery.getWhereClause() << ") took "
-			    << timer.CPUTime() << " CPU seconds and "
+			    << timer.CPUTime() << " CPU seconds, "
 			    << timer.realTime() << " elapsed seconds";
 	    }
 	    return; // stop here is only want to estimate
@@ -2001,10 +2155,9 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
     if (ibis::gVerbose >= 0) {
 	timer.stop();
 	ibis::util::logger lg(0);
-	lg.buffer() << "doMeshQuery:: evaluate("
-		    << aQuery.getWhereClause() 
+	lg.buffer() << "doMeshQuery:: evaluate(" << aQuery.getWhereClause() 
 		    << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-		    << ", took " << timer.CPUTime() << " CPU seconds and "
+		    << ", took " << timer.CPUTime() << " CPU seconds, "
 		    << timer.realTime() << " elapsed seconds";
     }
 
@@ -2208,7 +2361,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "doAppend(" << dir << "): adding " << ierr
-	    << " rows took "  << timer.CPUTime() << " CPU seconds and "
+	    << " rows took "  << timer.CPUTime() << " CPU seconds, "
 	    << timer.realTime() << " elapsed seconds";
     }
     const long napp = ierr;
@@ -2250,7 +2403,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "doAppend(" << dir << "): committing " << napp
 		<< " rows to partition \"" << tbl->name() << "\" took "
-		<< timer.CPUTime() << " CPU seconds and "
+		<< timer.CPUTime() << " CPU seconds, "
 		<< timer.realTime() << " elapsed seconds.  "
 		"Total number of rows is " << tbl->nRows() << ".";
 	}
@@ -2676,8 +2829,24 @@ static void parseString(ibis::partList& tlist, const char* uid,
 
     // remove count(*) from select clause
     
-
-    if (qtables.size()) {
+    if (! sstr.empty()) {
+	if (! qtables.empty()) {
+	    ibis::partList tl2;
+	    for (ibis::nameList::const_iterator it = qtables.begin();
+		 it != qtables.end(); ++it) {
+		ibis::partList::iterator tit = tlist.find(*it);
+		if (tit != tlist.end())
+		    tl2[tit->first] = tit->second;
+	    }
+	    tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
+			ordkeys.c_str(), direction, limit);
+	}
+	else {
+	    tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
+			ordkeys.c_str(), direction, limit);
+	}
+    }
+    else if (! qtables.empty()) {
 	// go through each partition the user has specified and process the
 	// queries
 	for (ibis::nameList::const_iterator it = qtables.begin();
@@ -2686,14 +2855,14 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	    if (tit != tlist.end()) {
 		if (verify_rid || sequential_scan ||
 		    (*tit).second->getMeshShape().empty())
-		    doQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str(),
+		    doQuery((*tit).second, uid, wstr.c_str(), sstr.c_str(),
 			    ordkeys.c_str(), direction, limit);
 		else
-		    doMeshQuery(uid, (*tit).second, wstr.c_str(),
+		    doMeshQuery((*tit).second, uid, wstr.c_str(),
 				sstr.c_str());
 
 		if (ibis::gVerbose > 10 || testing > 0)
-		    xdoQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str());
+		    xdoQuery((*tit).second, uid, wstr.c_str(), sstr.c_str());
 	    }
 	    else { // is it a pattern ?
 		unsigned int cnt = 0;
@@ -2701,11 +2870,11 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    if (ibis::util::strMatch((*tit).first, *it)) {
 			if (verify_rid || sequential_scan ||
 			    (*tit).second->getMeshShape().empty())
-			    doQuery(uid, (*tit).second, wstr.c_str(),
+			    doQuery((*tit).second, uid, wstr.c_str(),
 				    sstr.c_str(), ordkeys.c_str(), direction,
 				    limit);
 			else
-			    doMeshQuery(uid, (*tit).second, wstr.c_str(),
+			    doMeshQuery((*tit).second, uid, wstr.c_str(),
 					sstr.c_str());
 		    }
 		}
@@ -2719,13 +2888,13 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	     tit != tlist.end(); ++tit) {
 	    if (verify_rid || sequential_scan ||
 		(*tit).second->getMeshShape().empty())
-		doQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str(),
+		doQuery((*tit).second, uid, wstr.c_str(), sstr.c_str(),
 			ordkeys.c_str(), direction, limit);
 	    else
-		doMeshQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str());
+		doMeshQuery((*tit).second, uid, wstr.c_str(), sstr.c_str());
 
 	    if (ibis::gVerbose > 10 || testing > 0)
-		xdoQuery(uid, (*tit).second, wstr.c_str(), sstr.c_str());
+		xdoQuery((*tit).second, uid, wstr.c_str(), sstr.c_str());
 	}
     }
 } // parseString
@@ -2894,7 +3063,7 @@ int main(int argc, char** argv) {
 		<< *argv << ": building indexes for " << tlist.size()
 		<< " data partition"
 		<< (tlist.size()>1 ? "s" : "") << " took "
-		<< timer1.CPUTime() << " CPU seconds and "
+		<< timer1.CPUTime() << " CPU seconds, "
 		<< timer1.realTime() << " elapsed seconds\n";
 	}
 
@@ -2926,10 +3095,9 @@ int main(int argc, char** argv) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< *argv << ": testing " << tlist.size() << " data partition"
 		<< (tlist.size()>1 ? "s" : "") << " took "
-		<< timer3.CPUTime() << " CPU seconds and "
+		<< timer3.CPUTime() << " CPU seconds, "
 		<< timer3.realTime() << " elapsed seconds\n";
 	}
-
 
 	if (tlist.empty() && !qlist.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -2984,7 +3152,7 @@ int main(int argc, char** argv) {
 	    for (ibis::partList::iterator itt = tlist.begin();
 		 itt != tlist.end();
 		 ++ itt)
-		doQuery(uid, (*itt).second, 0, 0, 0, 0, 0);
+		doQuery((*itt).second, uid, 0, 0, 0, 0, 0);
 	}
 	ridfile = 0;
 

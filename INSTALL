@@ -18,6 +18,19 @@ the same files.  The commands 'make check', 'make more-check', and
 If you are compiling with GCC, please choose version 4 for better
 support of the extensive template use.
 
+To place the executable files and libraries in their expected locations,
+execute 'make install'.  One make change where the files are installed
+by specifying a prefix, e.g.,
+
+make prefix=${HOME} install
+
+which will put the executables in ${HOME}/bin and libraries in
+${HOME}/lib.  Prior to installation, the executables and libraries are
+located in various hidden directories selected by libtools.  For
+example, libibis.a is usually located in src/.libs and the executables
+in examples are in examples/.libs.
+
+
 ----------
 Configuration Options
 

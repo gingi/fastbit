@@ -28,6 +28,7 @@ namespace ibis {
 /// @note Mensa is a Latin word for "table."
 class ibis::mensa : public ibis::table {
 public:
+    mensa() : nrows(0) {};
     explicit mensa(const char* dir);
     mensa(const char* dir1, const char* dir2);
     virtual ~mensa() {clear();}

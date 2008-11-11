@@ -1,3 +1,13 @@
+Mon Nov 10 21:26:14 PST 2008
+Version b0.9.9
+-- add adaptive binning for 3D histograms
+-- add histogram functions that output bitvectors instead of counts
+-- add print3DDistribution to examples/ibis.cpp and a test case in
+   check-ibis
+-- add function tableSelect to ibis.cpp to exercise querying through
+   ibis::table select function (which accepts arithmetic expressions in
+   the select clauses)
+
 Thu Oct 23 16:42:31 PDT 2008
 Version b0.9.8
 -- add arithmetic expression to the select clauses accepted by function

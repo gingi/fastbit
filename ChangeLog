@@ -6,6 +6,10 @@
 	retrieve the counts only, getxDDistributions, may not
 	produce exactly the same output as those compute the bit vectors,
 	getxDBins)
+	* src/mensa.h: add default constructor to ibis::mensa
+	* example/ibis.cpp: add function tableSelect to process queries
+	using the select function of ibis::table interface (which can
+	handle arithmetic expressions in the select clauses)
 
 2008-11-09 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/parth.cpp: add get1DBins, get2DBins, and
