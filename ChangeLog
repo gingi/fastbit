@@ -1,4 +1,30 @@
-2008-11-05 John Wu <John.Wu at ACM.org>
+2008-11-10 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add calls to get2DBins and get3DBins in
+	print2DDistribution and print3DDistribution as sanity check for
+	these functions, add call to get1DBins in printColumn (Caution:
+	due the different number of internal bins used, the function that
+	retrieve the counts only, getxDDistributions, may not
+	produce exactly the same output as those compute the bit vectors,
+	getxDBins)
+
+2008-11-09 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/parth.cpp: add get1DBins, get2DBins, and
+	get3DBins and supporting functions
+	
+2008-11-07 John Wu <John.Wu at ACM.org>
+	* src/parth.cpp: move histogram functions from part.cpp to
+	parth.cpp
+	* src/index.h: swap two pairs of names, addBins and addBits,
+	sumBins and sumBits in ibis::index; move functions addBits and
+	sumBits into public scope
+	* src/part.h, src/parth.cpp: add adaptiveIntsDetailed and
+	adaptiveFloatsDetailed, change all adaptive binning templates to
+	return long
+	* src/util.h, src/bitvector.cpp: add two versions of function
+	ibis::util::intersect, rename ibis::outProduct to be
+	ibis::util::outerProduct
+
+2008-11-06 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: add an element of 0 to bnds[123] to simplify the
 	loops in ibis::part::adaptive3DBins, delete val2 in
 	get2DDistribution, round up bin boundaries for integers in

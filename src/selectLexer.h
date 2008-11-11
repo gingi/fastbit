@@ -1,4 +1,4 @@
-// $Id: selectLexer.h,v 1.1 2008/10/21 16:04:14 kewu Exp $
+// $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2008 the Regents of the University of California

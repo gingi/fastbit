@@ -1,4 +1,4 @@
-// $Id: selectClause.h,v 1.2 2008/10/23 23:42:22 kewu Exp $
+// $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2008 the Regents of the University of California

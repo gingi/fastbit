@@ -455,7 +455,7 @@ static yyconst flex_int16_t yy_chk[184] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "selectLexer.ll"
-/* $Id: selectLexer.cc,v 1.2 2008/10/23 23:42:22 kewu Exp $ -*- mode: c++ -*-
+/* $Id$ -*- mode: c++ -*-
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory

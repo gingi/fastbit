@@ -32,7 +32,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     try {
 	uint32_t n2 = (nobs + 1) / 2;
 	bits[0] = new ibis::bitvector;
-	sumBins(b2, 0, n2, *(bits[0]));
+	sumBits(b2, 0, n2, *(bits[0]));
 	for (uint32_t i=1; i + n2 <= nobs; ++i) {
 	    bits[i] = new ibis::bitvector();
 	    bits[i]->copy(*bits[i-1]);
@@ -83,7 +83,7 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 
 	//rhs.activate(); // make sure all bitvectors are here
 	bits[0] = new ibis::bitvector;
-	sumBins(rhs.bits, 0, n2, *bits[0]);
+	sumBits(rhs.bits, 0, n2, *bits[0]);
 	bits[n2] = 0;
 
 	for (i = 1; i + n2 <= nobs; ++i) {

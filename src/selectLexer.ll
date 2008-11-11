@@ -1,4 +1,4 @@
-/* $Id: selectLexer.ll,v 1.1 2008/10/21 16:04:14 kewu Exp $ -*- mode: c++ -*-
+/* $Id$ -*- mode: c++ -*-
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory

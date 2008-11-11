@@ -4548,7 +4548,7 @@ int64_t ibis::query::processJoin() {
 	estimated = iffypairs.cnt();
 	if (surepairs.cnt() > 0 || iffypairs.cnt() > 0) {
 	    ibis::bitvector64 tmp;
-	    ibis::outerProduct(mask, mask, tmp);
+	    ibis::util::outerProduct(mask, mask, tmp);
 	    //    std::cout << "TEMP surepairs.size() = " << surepairs.size()
 	    //	      << " surepairs.cnt() = " << surepairs.cnt() << std::endl;
 	    //    std::cout << "TEMP iffypairs.size() = " << iffypairs.size()
@@ -4660,7 +4660,7 @@ int64_t ibis::query::processJoin() {
 	}
 	else {
 	    surepairs.set(0, npairs);
-	    ibis::outerProduct(mask, mask, iffypairs);
+	    ibis::util::outerProduct(mask, mask, iffypairs);
 	}
 
 	if (iffypairs.size() != npairs)

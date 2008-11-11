@@ -838,7 +838,7 @@ protected:
     // protected member functions
     egale(const ibis::column* c, const char* f, const array_t<double>& bd,
 	  const array_t<uint32_t> bs);
-    void addBins_(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void addBits_(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
     virtual double computeSum() const;
     virtual void clear() {
 	cnts.clear(); bases.clear();

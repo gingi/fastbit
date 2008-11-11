@@ -695,7 +695,7 @@ void ibis::relic::speedTest(std::ostream& out) const {
 	    if (crossproduct) {
 		for (uint32_t j=0; j<nloops; ++j) {
 		    ibis::bitvector64 t64;
-		    ibis::outerProduct(*(bits[i-1]), *(bits[i]), t64);
+		    ibis::util::outerProduct(*(bits[i-1]), *(bits[i]), t64);
 		    osize = t64.bytes();
 		    ocnt = t64.cnt();
 		}
@@ -1491,7 +1491,7 @@ long ibis::relic::evaluate(const ibis::qContinuousRange& expr,
     locate(expr, hit0, hit1);
     if (hit1 < hit0)
 	hit1 = hit0;
-    sumBits(hit0, hit1, lower);
+    sumBins(hit0, hit1, lower);
     return lower.cnt();
 } // ibis::relic::evaluate
 
@@ -1989,7 +1989,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 		    tmp2.copy(mask);
 		    tmp2 &= *(idx2.bits[ib2]);
 		    if (tmp2.cnt() > 0) { // add the outer product
-			ibis::outerProduct(tmp1, tmp2, hits);
+			ibis::util::outerProduct(tmp1, tmp2, hits);
 		    }
 		}
 	    }
@@ -2147,7 +2147,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 			tmp2.copy(mask);
 			tmp2 &= *(idx2.bits[ib2]);
 			if (tmp2.cnt() > 0) { // add the outer product
-			    ibis::outerProduct(tmp1, tmp2, hits);
+			    ibis::util::outerProduct(tmp1, tmp2, hits);
 			}
 		    }
 		}
@@ -2310,10 +2310,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    if (tmp2.cnt() > 0) {
-		ibis::outerProduct(tmp1, tmp2, hits);
+		ibis::util::outerProduct(tmp1, tmp2, hits);
 	    }
 	}
     } // for (uint32_t ib1...
@@ -2375,7 +2375,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    cnt += tmp1.cnt() * tmp2.cnt();
 	}
@@ -2480,10 +2480,10 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 	// this only work if range2 is a qContinuousRange
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    if (tmp2.cnt() > 0) {
-		ibis::outerProduct(tmp1, tmp2, hits);
+		ibis::util::outerProduct(tmp1, tmp2, hits);
 	    }
 	}
     } // for (uint32_t ib1...
@@ -2585,7 +2585,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 	// this only work if range2 is a qContinuousRange
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    cnt += tmp2.cnt() * tmp1.cnt();
 	}
@@ -2649,10 +2649,10 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	uint32_t ib2e = idx2.vals.find(hi);
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    if (tmp2.cnt() > 0) {
-		ibis::outerProduct(tmp1, tmp2, hits);
+		ibis::util::outerProduct(tmp1, tmp2, hits);
 	    }
 	}
     } // for (uint32_t ib1...
@@ -2713,7 +2713,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	uint32_t ib2e = idx2.vals.find(hi);
 	if (ib2e > ib2s) {
 	    ibis::bitvector tmp2;
-	    idx2.sumBits(ib2s, ib2e, tmp2);
+	    idx2.sumBins(ib2s, ib2e, tmp2);
 	    tmp2 &= mask;
 	    cnt += tmp1.cnt() * tmp2.cnt();
 	}

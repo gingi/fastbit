@@ -5244,7 +5244,7 @@ void ibis::bin::speedTest(std::ostream& out) const {
 	    if (crossproduct) {
 		for (uint32_t j=0; j<nloops; ++j) {
 		    ibis::bitvector64 t64;
-		    ibis::outerProduct(*(bits[i-1]), *(bits[i]), t64);
+		    ibis::util::outerProduct(*(bits[i-1]), *(bits[i]), t64);
 		    osize = t64.bytes();
 		    ocnt = t64.cnt();
 		}
@@ -5794,7 +5794,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
     locate(expr, cand0, cand1, hit0, hit1);
     if (hit1 < hit0)
 	hit1 = hit0;
-    sumBits(hit0, hit1, lower);
+    sumBins(hit0, hit1, lower);
     long ierr0 = 0, ierr1 = 0;
     if (cand0 < hit0) {
 	ibis::bitvector tmp;
@@ -5848,7 +5848,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
 		else {
 		    col->logWarning("bin::evaluate", "the result of doScan "
 				    "(%lu, %lu) does not match the result "
-				    "of sumBits (%lu, %lu)",
+				    "of sumBins (%lu, %lu)",
 				    static_cast<long unsigned>(delta.size()),
 				    static_cast<long unsigned>(delta.cnt()),
 				    static_cast<long unsigned>(lower.size()),
@@ -5902,15 +5902,15 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     if (hit1 < hit0)
 	hit1 = hit0;
     // Oct. 11, 2001 --
-    // tests show that simply use sumBins (which uses
+    // tests show that simply use sumBits (which uses
     // ibis::bitvector::operator|= to perform logical OR operations) is a
     // reasonable choice compared to the alternative
     // see irelic.cpp for an example of the alternatives that have been
     // considered.
     // May, 9, 2006 --
-    // changed to sumBits to take advantage of automatic activation
+    // changed to sumBins to take advantage of automatic activation
     if (hit0 < hit1) {
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	if (cand0 < hit0 || (cand1 > hit1 && hit1 < nobs)) {
 	    upper.copy(lower);
 	    if (cand0 < hit0) {
@@ -5932,7 +5932,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     }
     else {
 	lower.set(0, nrows);
-	sumBits(cand0, cand1, upper);
+	sumBins(cand0, cand1, upper);
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
@@ -8177,15 +8177,15 @@ void ibis::bin::equiJoin(ibis::bitvector64& sure,
 		minval[il1] == minval[il2] &&
 		minval[il1] == maxval[il2] ) {
 		// exactly equal, record the pairs in @c sure
-		ibis::outerProduct
+		ibis::util::outerProduct
 		    (*(bits[il1]), *(bits[il2]), sure);
 	    }
 	    else { // not exactly sure, put the result in iffy
 		// bins [il2, iu2) from idx2 overlaps with bin il1 of *this
 		for (iu2 = il2+1; iu2 < nobs &&
 			 minval[iu2] <= maxval[il1]; ++ iu2);
-		sumBits(il2, iu2, cumu, ilc, iuc);
-		ibis::outerProduct(*(bits[il1]), cumu, iffy);
+		sumBins(il2, iu2, cumu, ilc, iuc);
+		ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 		ilc = il2;
 		iuc = iu2;
 	    }
@@ -8252,8 +8252,8 @@ void ibis::bin::rangeJoin(const double& delta,
 	    for (in2 = il2; in2 < nobs &&
 		     maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		sumBits(im2, in2, cumv, ilv, iuv);
-		ibis::outerProduct
+		sumBins(im2, in2, cumv, ilv, iuv);
+		ibis::util::outerProduct
 		    (*(bits[il1]), cumv, sure);
 		ilv = im2;
 		iuv = in2;
@@ -8261,17 +8261,17 @@ void ibis::bin::rangeJoin(const double& delta,
 	    if (il2 < im2 || in2 < iu2) { // need to update iffy
 		if (il2+1 == im2 && in2 == iu2) {
 		    // only bits[il2]
-		    ibis::outerProduct(*(bits[il1]), *(bits[il2]), iffy);
+		    ibis::util::outerProduct(*(bits[il1]), *(bits[il2]), iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only bits[in2]
-		    ibis::outerProduct(*(bits[il1]), *(bits[in2]), iffy);
+		    ibis::util::outerProduct(*(bits[il1]), *(bits[in2]), iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(bits[il2]));
 		    tmp |= *(bits[in2]);
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -8285,8 +8285,8 @@ void ibis::bin::rangeJoin(const double& delta,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    sumBits(il2, iu2, cumu, ilu, iuu);
-		    ibis::outerProduct(*(bits[il1]), cumu, iffy);
+		    sumBins(il2, iu2, cumu, ilu, iuu);
+		    ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -8397,8 +8397,8 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 		for (in2 = il2+1; in2 < nobs &&
 			 maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
-		    ibis::outerProduct(*(bits[il1]), cumv, sure);
+		    sumBins(im2, in2, cumv, ilv, iuv);
+		    ibis::util::outerProduct(*(bits[il1]), cumv, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -8407,8 +8407,8 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 	    for (iu2 = il2+1; iu2 < nobs &&
 		     minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
-	    ibis::outerProduct(*(bits[il1]), cumu, iffy);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
+	    ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -8466,15 +8466,15 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 		minval[il1] == idx2.minval[il2] &&
 		minval[il1] == idx2.maxval[il2] ) {
 		// exactly equal, record the pairs in @c sure
-		ibis::outerProduct
+		ibis::util::outerProduct
 		    (*(bits[il1]), *(idx2.bits[il2]), sure);
 	    }
 	    else { // not exactly sure, put the result in iffy
 		// bins [il2, iu2) from idx2 overlaps with bin il1 of *this
 		for (iu2 = il2+1; iu2 < idx2.nobs &&
 			 idx2.minval[iu2] <= maxval[il1]; ++ iu2);
-		sumBits(il2, iu2, cumu, ilc, iuc);
-		ibis::outerProduct(*(bits[il1]), cumu, iffy);
+		sumBins(il2, iu2, cumu, ilc, iuc);
+		ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 		ilc = il2;
 		iuc = iu2;
 	    }
@@ -8542,8 +8542,8 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 	    for (in2 = il2; in2 < idx2.nobs &&
 		     idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		idx2.sumBits(im2, in2, cumv, ilv, iuv);
-		ibis::outerProduct
+		idx2.sumBins(im2, in2, cumv, ilv, iuv);
+		ibis::util::outerProduct
 		    (*(bits[il1]), cumv, sure);
 		ilv = im2;
 		iuv = in2;
@@ -8551,19 +8551,19 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 	    if (il2 < im2 || in2 < iu2) { // need to update iffy
 		if (il2+1 == im2 && in2 == iu2) {
 		    // only idx2.bits[il2]
-		    ibis::outerProduct(*(bits[il1]), *(idx2.bits[il2]),
+		    ibis::util::outerProduct(*(bits[il1]), *(idx2.bits[il2]),
 				       iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[in2]
-		    ibis::outerProduct(*(bits[il1]), *(idx2.bits[in2]),
+		    ibis::util::outerProduct(*(bits[il1]), *(idx2.bits[in2]),
 				       iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp |= *(idx2.bits[in2]);
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -8577,8 +8577,8 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    idx2.sumBits(il2, iu2, cumu, ilu, iuu);
-		    ibis::outerProduct(*(bits[il1]), cumu, iffy);
+		    idx2.sumBins(il2, iu2, cumu, ilu, iuu);
+		    ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -8691,8 +8691,8 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 		for (in2 = il2+1; in2 < idx2.nobs &&
 			 idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
-		    ibis::outerProduct(*(bits[il1]), cumv, sure);
+		    sumBins(im2, in2, cumv, ilv, iuv);
+		    ibis::util::outerProduct(*(bits[il1]), cumv, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -8701,8 +8701,8 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 	    for (iu2 = il2+1; iu2 < idx2.nobs &&
 		     idx2.minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
-	    ibis::outerProduct(*(bits[il1]), cumu, iffy);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
+	    ibis::util::outerProduct(*(bits[il1]), cumu, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -8769,18 +8769,18 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 		    ibis::bitvector tmp(*(bits[il2]));
 		    tmp &= mask;
 		    if (tmp.cnt() > 0)
-			ibis::outerProduct(curr, tmp, sure);
+			ibis::util::outerProduct(curr, tmp, sure);
 		}
 		else { // not exactly sure, put the result in iffy
 		    // bins [il2, iu2) from idx2 overlaps with bin il1 of
 		    // *this
 		    for (iu2 = il2+1; iu2 < nobs &&
 			     minval[iu2] <= maxval[il1]; ++ iu2);
-		    sumBits(il2, iu2, cumu, ilc, iuc);
+		    sumBins(il2, iu2, cumu, ilc, iuc);
 		    ibis::bitvector tmp(cumu);
 		    tmp &= mask;
 		    if (cumu.cnt() > 0)
-			ibis::outerProduct(curr, tmp, iffy);
+			ibis::util::outerProduct(curr, tmp, iffy);
 		    ilc = il2;
 		    iuc = iu2;
 		}
@@ -8860,10 +8860,10 @@ void ibis::bin::rangeJoin(const double& delta,
 	    for (in2 = il2; in2 < nobs &&
 		     maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		sumBits(im2, in2, cumv, ilv, iuv);
+		sumBins(im2, in2, cumv, ilv, iuv);
 		ibis::bitvector tmp(mask);
 		tmp &= cumv;
-		ibis::outerProduct(curr, tmp, sure);
+		ibis::util::outerProduct(curr, tmp, sure);
 		ilv = im2;
 		iuv = in2;
 	    }
@@ -8872,20 +8872,20 @@ void ibis::bin::rangeJoin(const double& delta,
 		    // only bits[il2]
 		    ibis::bitvector tmp(mask);
 		    tmp &= *(bits[il2]);
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only bits[in2]
 		    ibis::bitvector tmp(mask);
 		    tmp &= *(bits[in2]);
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(bits[il2]));
 		    tmp |= *(bits[in2]);
 		    tmp &= mask;
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -8899,10 +8899,10 @@ void ibis::bin::rangeJoin(const double& delta,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    sumBits(il2, iu2, cumu, ilu, iuu);
+		    sumBins(il2, iu2, cumu, ilu, iuu);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumu;
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -9019,10 +9019,10 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 		for (in2 = il2+1; in2 < nobs &&
 			 maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
+		    sumBins(im2, in2, cumv, ilv, iuv);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumv;
-		    ibis::outerProduct(curr, tmp, sure);
+		    ibis::util::outerProduct(curr, tmp, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -9031,10 +9031,10 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 	    for (iu2 = il2+1; iu2 < nobs &&
 		     minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector cmk(mask);
 	    cmk &= cumu;
-	    ibis::outerProduct(curr, cmk, iffy);
+	    ibis::util::outerProduct(curr, cmk, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -9130,7 +9130,7 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 			ibis::bitvector tmp(*(bits[il2]));
 			tmp &= mask;
 			if (tmp.cnt() > 0)
-			    ibis::outerProduct(curr, tmp, sure);
+			    ibis::util::outerProduct(curr, tmp, sure);
 		    }
 		}
 		else { // not exactly sure, put the result in iffy
@@ -9138,11 +9138,11 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 		    // *this
 		    for (iu2 = il2+1; iu2 < nbmax &&
 			     minval[iu2] <= maxval[il1]; ++ iu2);
-		    sumBits(il2, iu2, cumu, ilc, iuc);
+		    sumBins(il2, iu2, cumu, ilc, iuc);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumu;
 		    if (tmp.cnt() > 0)
-			ibis::outerProduct(curr, tmp, iffy);
+			ibis::util::outerProduct(curr, tmp, iffy);
 		    ilc = il2;
 		    iuc = iu2;
 		}
@@ -9245,10 +9245,10 @@ void ibis::bin::rangeJoin(const double& delta,
 	    for (in2 = il2; in2 < nbmax &&
 		     maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		sumBits(im2, in2, cumv, ilv, iuv);
+		sumBins(im2, in2, cumv, ilv, iuv);
 		ibis::bitvector tmp(mask);
 		tmp &= cumv;
-		ibis::outerProduct(curr, tmp, sure);
+		ibis::util::outerProduct(curr, tmp, sure);
 		ilv = im2;
 		iuv = in2;
 	    }
@@ -9257,20 +9257,20 @@ void ibis::bin::rangeJoin(const double& delta,
 		    // only bits[il2]
 		    ibis::bitvector tmp(mask);
 		    tmp &= *(bits[il2]);
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only bits[in2]
 		    ibis::bitvector tmp(mask);
 		    tmp &= *(bits[in2]);
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(bits[il2]));
 		    tmp |= *(bits[in2]);
 		    tmp &= mask;
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -9284,10 +9284,10 @@ void ibis::bin::rangeJoin(const double& delta,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    sumBits(il2, iu2, cumu, ilu, iuu);
+		    sumBins(il2, iu2, cumu, ilu, iuu);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumu;
-		    ibis::outerProduct(*(bits[il1]), tmp, iffy);
+		    ibis::util::outerProduct(*(bits[il1]), tmp, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -9429,10 +9429,10 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 		for (in2 = il2+1; in2 < nbmax &&
 			 maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
+		    sumBins(im2, in2, cumv, ilv, iuv);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumv;
-		    ibis::outerProduct(curr, tmp, sure);
+		    ibis::util::outerProduct(curr, tmp, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -9441,10 +9441,10 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 	    for (iu2 = il2+1; iu2 < nbmax &&
 		     minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector cmk(mask);
 	    cmk &= cumu;
-	    ibis::outerProduct(curr, cmk, iffy);
+	    ibis::util::outerProduct(curr, cmk, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -9526,7 +9526,7 @@ int64_t ibis::bin::equiJoin(const ibis::bitvector& mask,
 	    if (curr.cnt() > 0) {
 		for (iu2 = il2+1; iu2 < nbmax &&
 			 minval[iu2] <= maxval[il1]; ++ iu2);
-		sumBits(il2, iu2, cumu, ilc, iuc);
+		sumBins(il2, iu2, cumu, ilc, iuc);
 		ibis::bitvector tmp(mask);
 		tmp &= cumu;
 		cnt += curr.cnt() * tmp.cnt();
@@ -9617,7 +9617,7 @@ int64_t ibis::bin::rangeJoin(const double& delta,
 
 	    for (iu2 = il2+1; iu2 < nbmax &&
 		     minval[iu2] <= maxval[il1]+delta; ++ iu2);
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector tmp(mask);
 	    tmp &= cumu;
 	    cnt += tmp.cnt() * curr.cnt();
@@ -9745,7 +9745,7 @@ int64_t ibis::bin::compJoin(const ibis::math::term *expr,
 	    for (iu2 = il2+1; iu2 < nbmax &&
 		     minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector tmp(mask);
 	    tmp &= cumu;
 	    cnt += tmp.cnt() * curr.cnt();
@@ -9816,16 +9816,16 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 		ibis::bitvector tmp(*(idx2.bits[il2]));
 		tmp &= mask;
 		if (tmp.cnt() > 0)
-		    ibis::outerProduct(curr, tmp, sure);
+		    ibis::util::outerProduct(curr, tmp, sure);
 	    }
 	    else { // not exactly sure, put the result in iffy
 		// bins [il2, iu2) from idx2 overlaps with bin il1 of *this
 		for (iu2 = il2+1; iu2 < idx2.nobs &&
 			 idx2.minval[iu2] <= maxval[il1]; ++ iu2);
-		sumBits(il2, iu2, cumu, ilc, iuc);
+		sumBins(il2, iu2, cumu, ilc, iuc);
 		ibis::bitvector tmp(mask);
 		tmp &= cumu;
-		ibis::outerProduct(curr, tmp, iffy);
+		ibis::util::outerProduct(curr, tmp, iffy);
 		ilc = il2;
 		iuc = iu2;
 	    }
@@ -9899,10 +9899,10 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 	    for (in2 = il2; in2 < idx2.nobs &&
 		     idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		idx2.sumBits(im2, in2, cumv, ilv, iuv);
+		idx2.sumBins(im2, in2, cumv, ilv, iuv);
 		ibis::bitvector tmp(mask);
 		tmp &= cumv;
-		ibis::outerProduct(curr, tmp, sure);
+		ibis::util::outerProduct(curr, tmp, sure);
 		ilv = im2;
 		iuv = in2;
 	    }
@@ -9911,20 +9911,20 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 		    // only idx2.bits[il2]
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[in2]
 		    ibis::bitvector tmp(*(idx2.bits[in2]));
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp |= *(idx2.bits[in2]);
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -9938,10 +9938,10 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    idx2.sumBits(il2, iu2, cumu, ilu, iuu);
+		    idx2.sumBins(il2, iu2, cumu, ilu, iuu);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumu;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -10059,10 +10059,10 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 		for (in2 = il2+1; in2 < idx2.nobs &&
 			 idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
+		    sumBins(im2, in2, cumv, ilv, iuv);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumv;
-		    ibis::outerProduct(curr, tmp, sure);
+		    ibis::util::outerProduct(curr, tmp, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -10071,10 +10071,10 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 	    for (iu2 = il2+1; iu2 < idx2.nobs &&
 		     idx2.minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector cmk(mask);
 	    cmk &= cumu;
-	    ibis::outerProduct(curr, cmk, iffy);
+	    ibis::util::outerProduct(curr, cmk, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -10177,17 +10177,17 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp &= mask;
 		    if (tmp.cnt() > 0)
-			ibis::outerProduct(curr, tmp, sure);
+			ibis::util::outerProduct(curr, tmp, sure);
 		}
 	    }
 	    else { // not exactly sure, put the result in iffy
 		// bins [il2, iu2) from idx2 overlaps with bin il1 of *this
 		for (iu2 = il2+1; iu2 < nb2max &&
 			 idx2.minval[iu2] <= maxval[il1]; ++ iu2);
-		sumBits(il2, iu2, cumu, ilc, iuc);
+		sumBins(il2, iu2, cumu, ilc, iuc);
 		ibis::bitvector tmp(mask);
 		tmp &= cumu;
-		ibis::outerProduct(curr, tmp, iffy);
+		ibis::util::outerProduct(curr, tmp, iffy);
 		ilc = il2;
 		iuc = iu2;
 	    }
@@ -10297,10 +10297,10 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 	    for (in2 = il2; in2 < nb2max &&
 		     idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 	    if (im2 < in2) { // sure hits
-		idx2.sumBits(im2, in2, cumv, ilv, iuv);
+		idx2.sumBins(im2, in2, cumv, ilv, iuv);
 		ibis::bitvector tmp(mask);
 		tmp &= cumv;
-		ibis::outerProduct(curr, tmp, sure);
+		ibis::util::outerProduct(curr, tmp, sure);
 		ilv = im2;
 		iuv = in2;
 	    }
@@ -10309,20 +10309,20 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 		    // only idx2.bits[il2]
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[in2]
 		    ibis::bitvector tmp(*(idx2.bits[in2]));
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[il2] and idex.bits[in2]
 		    ibis::bitvector tmp(*(idx2.bits[il2]));
 		    tmp |= *(idx2.bits[in2]);
 		    tmp &= mask;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		}
 		else {
 		    // need to put entries from multiple bins into iffy
@@ -10336,10 +10336,10 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 			ilu = ilv;
 			iuu = iuv;
 		    }
-		    idx2.sumBits(il2, iu2, cumu, ilu, iuu);
+		    idx2.sumBins(il2, iu2, cumu, ilu, iuu);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumu;
-		    ibis::outerProduct(curr, tmp, iffy);
+		    ibis::util::outerProduct(curr, tmp, iffy);
 		    ilu = il2;
 		    iuu = iu2;
 		}
@@ -10486,10 +10486,10 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 		for (in2 = il2+1; in2 < nb2max &&
 			 idx2.maxval[in2] <= minval[il1]+delta; ++ in2);
 		if (im2 < in2) { // sure hits
-		    sumBits(im2, in2, cumv, ilv, iuv);
+		    sumBins(im2, in2, cumv, ilv, iuv);
 		    ibis::bitvector tmp(mask);
 		    tmp &= cumv;
-		    ibis::outerProduct(curr, tmp, sure);
+		    ibis::util::outerProduct(curr, tmp, sure);
 		    ilv = im2;
 		    iuv = in2;
 		}
@@ -10498,10 +10498,10 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 	    for (iu2 = il2+1; iu2 < nb2max &&
 		     idx2.minval[iu2] <= maxval[il1]+delta; ++ iu2);
 	    // not exactly sure, put the result in iffy
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector cmk(mask);
 	    cmk &= cumu;
-	    ibis::outerProduct(curr, cmk, iffy);
+	    ibis::util::outerProduct(curr, cmk, iffy);
 	    ilu = il2;
 	    iuu = iu2;
 	}
@@ -10593,7 +10593,7 @@ int64_t ibis::bin::equiJoin(const ibis::bin& idx2,
 	    // bins [il2, iu2) from idx2 overlaps with bin il1 of *this
 	    for (iu2 = il2+1; iu2 < nb2max &&
 		     idx2.minval[iu2] <= maxval[il1]; ++ iu2);
-	    sumBits(il2, iu2, cumu, ilc, iuc);
+	    sumBins(il2, iu2, cumu, ilc, iuc);
 	    ibis::bitvector tmp(mask);
 	    tmp &= cumu;
 	    cnt += tmp.cnt() * curr.cnt();
@@ -10695,7 +10695,7 @@ int64_t ibis::bin::rangeJoin(const ibis::bin& idx2,
 
 	    for (iu2 = il2+1; iu2 < nb2max &&
 		     idx2.minval[iu2] <= maxval[il1]+delta; ++ iu2);
-	    idx2.sumBits(il2, iu2, cumu, ilu, iuu);
+	    idx2.sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector tmp(mask);
 	    tmp &= cumu;
 	    cnt += curr.cnt() * tmp.cnt();
@@ -10829,7 +10829,7 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
 	    // idx2.minval[iu2] > maxval[il1+delta
 	    for (iu2 = il2+1; iu2 < nb2max &&
 		     idx2.minval[iu2] <= maxval[il1]+delta; ++ iu2);
-	    sumBits(il2, iu2, cumu, ilu, iuu);
+	    sumBins(il2, iu2, cumu, ilu, iuu);
 	    ibis::bitvector tmp(mask);
 	    tmp &= cumu;
 	    cnt += tmp.cnt() * curr.cnt();

@@ -3509,7 +3509,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 ///
 /// Return a const reference of @c c.  If the input @c does not have
 /// the correct size, it will be replaced by the outer product.
-const ibis::bitvector64& ibis::outerProduct(const ibis::bitvector& a,
+const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
 					    const ibis::bitvector& b,
 					    ibis::bitvector64& c) {
     if (b.cnt() == 0) // do nothing, empty a will be detected later
@@ -3578,7 +3578,7 @@ const ibis::bitvector64& ibis::outerProduct(const ibis::bitvector& a,
 	uint64_t expected = a.cnt();
 	expected *= b.cnt();
 	uint64_t diff = c.cnt() - oldcnt;
-	lg.buffer() << "ibis::outerProduct: adding the outer product between "
+	lg.buffer() << "ibis::util::outerProduct: adding the outer product between "
 	    "two bitvectors with "
 		    << a.cnt() << " out of " << a.size() << " set bits and "
 		    << b.cnt() << " out of " << b.size()
@@ -3596,16 +3596,16 @@ const ibis::bitvector64& ibis::outerProduct(const ibis::bitvector& a,
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG: ibis::outerProduct\na" << a
+	lg.buffer() << "DEBUG: ibis::util::outerProduct\na" << a
 		  << "\nb" << b << "\nresult" << c;
     }
 #endif
     return c;
-} // ibis::outerProduct
+} // ibis::util::outerProduct
 
 /// The result @c contains only the strict upper triangular portion of the
 /// full outer product.
-const ibis::bitvector64& ibis::outerProductUpper(const ibis::bitvector& a,
+const ibis::bitvector64& ibis::util::outerProductUpper(const ibis::bitvector& a,
 						 const ibis::bitvector& b,
 						 ibis::bitvector64& c) {
     if (b.cnt() == 0) // do nothing, empty a will be detected later
@@ -3685,7 +3685,7 @@ const ibis::bitvector64& ibis::outerProductUpper(const ibis::bitvector& a,
 	expected *= b.cnt();
 	uint64_t diff = c.cnt();
 	diff -= oldcnt;
-	lg.buffer() << "ibis::outerProductUpper: adding the outer product "
+	lg.buffer() << "ibis::util::outerProductUpper: adding the outer product "
 	    "between two bitvectors with "
 		  << a.cnt() << " out of " << a.size() << " set bits and "
 		  << b.cnt() << " out of " << b.size()
@@ -3703,9 +3703,9 @@ const ibis::bitvector64& ibis::outerProductUpper(const ibis::bitvector& a,
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG: ibis::outerProductUpper\na" << a
+	lg.buffer() << "DEBUG: ibis::util::outerProductUpper\na" << a
 		    << "\nb" << b << "\nresult" << c;
     }
 #endif
     return c;
-} // ibis::outerProductUpper
+} // ibis::util::outerProductUpper

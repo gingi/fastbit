@@ -367,6 +367,18 @@ public:
     static void divideCounts(array_t<uint32_t>& bounds,
 			     const array_t<uint32_t>& cnt);
 
+    // three static functions to perform the task of summing up bit sequences
+    static void addBits(const std::vector<ibis::bitvector*>& bits,
+			uint32_t ib, uint32_t ie, ibis::bitvector& res);
+    static void sumBits(const std::vector<ibis::bitvector*>& bits,
+			uint32_t ib, uint32_t ie, ibis::bitvector& res);
+    static void sumBits(const std::vector<ibis::bitvector*>& bits,
+			const ibis::bitvector& tot, uint32_t ib, uint32_t ie,
+			ibis::bitvector& res);
+    // a static function to assign bases for multicomponent schemes
+    static void setBases(array_t<uint32_t>& bases, uint32_t card,
+			 uint32_t nbase = 2);
+
 protected:
     // shared members for all indexes
     /// Pointer to the column this index is for.
@@ -420,30 +432,18 @@ protected:
 			const char* opt);
     /// Add the sum of @c bits[ib] through @c bits[ie-1] to @c res.  Always
     /// explicitly use @c bits[ib] through @c bits[ie-1].
-    void addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
     /// Compute the sum of bit vectors [@c ib, @c ie).  If computing a
     /// complement is faster, assume all bit vectors add up to @c tot.
-    void addBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
+    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 		 const ibis::bitvector& tot) const;
     /// Compute the bitwise OR of all bitvectors (in bits) from ib to ie.
     /// As usual, bits[ib] is included but bits[ie] is excluded.
-    void sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
     /// Compute a new sum for bit vectors [ib, ie) by taking advantage of the
     /// old sum for bitvectors [ib0, ie0).
-    void sumBits(uint32_t ib, uint32_t ie, ibis::bitvector& res,
+    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 		 uint32_t ib0, uint32_t ie0) const;
-
-    // three static functions to perform the task of summing up bit sequences
-    static void addBins(const std::vector<ibis::bitvector*>& bits,
-			uint32_t ib, uint32_t ie, ibis::bitvector& res);
-    static void sumBins(const std::vector<ibis::bitvector*>& bits,
-			uint32_t ib, uint32_t ie, ibis::bitvector& res);
-    static void sumBins(const std::vector<ibis::bitvector*>& bits,
-			const ibis::bitvector& tot, uint32_t ib, uint32_t ie,
-			ibis::bitvector& res);
-    // a static function to assign bases for multicomponent schemes
-    static void setBases(array_t<uint32_t>& bases, uint32_t card,
-			 uint32_t nbase = 2);
 
     class barrel;
 

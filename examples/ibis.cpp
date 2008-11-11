@@ -270,9 +270,18 @@ static void printColumn(const ibis::part& tbl, const char* cname,
     long nb = tbl.get1DDistribution(cond, cname, 256, bounds, counts);
 
     if (nb <= 0) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "printColumn(" << tbl.name() << ", " << cname << ", " << cond
 	    << ") get1DDistribution returned error code " << nb;
+	return;
+    }
+    else if (nb != (long)counts.size() || bounds.size() != counts.size()+1) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "get1DDistribution return value (" << nb
+		    << ") does match the size of array counts ("
+		    << counts.size() << ") or bounds.size(" << bounds.size()
+		    << ") does not equual to 1+counts.size (" << counts.size();
+	return;
     }
     else {
 	ibis::util::logger lg(0);
@@ -293,6 +302,51 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 			    << "] (" << bounds[j+1] << ")\n";
 	    lg.buffer() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
 			<< counts[j] << "\n";
+	}
+    }
+    if (nb > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> boundt;
+	ibis::util::logger lg(0);
+	long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
+	lg.buffer() << "\nprintColumn(" << cname << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get1DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get1DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (bounds.size() != boundt.size() ||
+		 counts.size() != bins.size()) {
+	    lg.buffer() << "get1DDistribution returned " << counts.size()
+			<< " bin" << (counts.size() > 1 ? "s" : "")
+			<< ", but get1DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "")
+			<< "; bounds.size(" << bounds.size()
+			<< "), boundt.size(" << boundt.size()
+			<< "), counts.size(" << counts.size()
+			<< "), bins.size(" << bins.size() << ")";
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bounds.size(); ++ i)
+		if (bounds[i] != boundt[i]) {
+		    lg.buffer() << "bounds[" << i << "] (" << bounds[i]
+				<< ") != boundt[" << i << "] (" << boundt[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < counts.size(); ++ i)
+		if (bins[i].cnt() != counts[i]) {
+		    lg.buffer() << "counts[" << i << "] (" << counts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays counts with bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	}
     }
 } // printColumn
@@ -397,7 +451,6 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *cond) {
     std::vector<double> bds1, bds2;
     std::vector<uint32_t> cnts;
-    ibis::util::logger lg(0);
     long ierr;
     if (cond == 0 || *cond == 0)
 	ierr = tbl.get2DDistribution(col1, col2, 125, 125, bds1, bds2, cnts);
@@ -405,6 +458,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	ierr = tbl.get2DDistribution(cond, col1, col2, 25, 25, bds1, bds2,
 				     cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
+	ibis::util::logger lg(0);
 	const uint32_t nbin2 = bds2.size() - 1;
 	lg.buffer() << "\n2D-Joint distribution of " << col1 << " and " << col2
 		    << " from table " << tbl.name();
@@ -430,10 +484,67 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 		    << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
+	ibis::util::logger lg(0);
 	lg.buffer() << "part[" << tbl.name()
 		    << "].get2DDistribution returned with ierr = " << ierr
 		    << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
 		    << bds2.size() << ", cnts.size() = " << cnts.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> bdt1, bdt2;
+	ierr = tbl.get2DBins(cond, col1, col2, 25, 25, bdt1, bdt2, bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint2DDistribution(" << col1 << ", " << col2
+		    << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get2DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+		 cnts.size() != bins.size()) {
+	    lg.buffer() << "get2DDistribution returned a " << bds1.size()-1
+			<< " x " << bds2.size()-1 << " 2D mesh with "
+			<< cnts.size() << " element"
+			<< (cnts.size() > 1 ? "s" : "")
+			<< ", but get2DBins returned a " << bdt1.size()-1
+			<< " x " << bdt2.size()-1 << " 2D mesh with "
+			<< bins.size() << " element"
+			<< (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bds1.size(); ++ i)
+		if (bds1[i] != bdt1[i]) {
+		    lg.buffer() << "bds1[" << i << "] (" << bds1[i]
+				<< ") != bdt1[" << i << "] (" << bdt1[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds2.size(); ++ i)
+		if (bds2[i] != bdt2[i]) {
+		    lg.buffer() << "bds2[" << i << "] (" << bds2[i]
+				<< ") != bdt2[" << i << "] (" << bdt2[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts with bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	    if (ierr > 0)
+		lg.buffer() << "\nNOTE: due to the different number of internal bins used for the adaptive histograms, get3DDistribution and get3DBins may not produce exactly the same answers";
+	}
     }
 } // print2DDistribution
 
@@ -496,7 +607,6 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 				const char *cond) {
     std::vector<double> bds1, bds2, bds3;
     std::vector<uint32_t> cnts;
-    ibis::util::logger lg(0);
     long ierr;
     if (cond == 0 || *cond == 0)
 	ierr = tbl.get3DDistribution(col1, col2, col3, 25, 25, 25,
@@ -508,6 +618,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	const uint32_t nbin2 = bds2.size() - 1;
 	const uint32_t nbin3 = bds3.size() - 1;
 	const uint32_t nb23 = nbin2 * nbin3;
+	ibis::util::logger lg(0);
 	lg.buffer() << "\n3D-Joint distribution of " << col1 << ", " << col2
 		    << ", and " << col3 << " from table " << tbl.name();
 	if (cond && *cond)
@@ -534,11 +645,76 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 		    << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
+	ibis::util::logger lg(0);
 	lg.buffer() << "part[" << tbl.name()
 		    << "].get3DDistribution returned with ierr = " << ierr
 		    << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
 		    << bds2.size() << ", bds3.size() = " << bds3.size()
 		    << ", cnts.size() = " << cnts.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> bdt1, bdt2, bdt3;
+	ierr = tbl.get3DBins(cond, col1, col2, col3, 12, 12, 12,
+			     bdt1, bdt2, bdt3, bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint3DDistribution(" << col1 << ", " << col2
+		    << ", " << col3 << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get3DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+		 bds3.size() != bdt3.size() || cnts.size() != bins.size()) {
+	    lg.buffer() << "get3DDistribution returned a " << bds1.size()-1
+			<< " x " << bds2.size()-1 << " x " << bds3.size()-1
+			<< " 3D mesh with " << cnts.size() << " element"
+			<< (cnts.size() > 1 ? "s" : "")
+			<< ", but get3DBins returned a " << bdt1.size()-1
+			<< " x " << bdt2.size()-1 << " x " << bdt3.size()-1
+			<< " 3D mesh with " << bins.size() << " element"
+			<< (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bds1.size(); ++ i)
+		if (bds1[i] != bdt1[i]) {
+		    lg.buffer() << "bds1[" << i << "] (" << bds1[i]
+				<< ") != bdt1[" << i << "] (" << bdt1[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds2.size(); ++ i)
+		if (bds2[i] != bdt2[i]) {
+		    lg.buffer() << "bds2[" << i << "] (" << bds2[i]
+				<< ") != bdt2[" << i << "] (" << bdt2[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds3.size(); ++ i)
+		if (bds3[i] != bdt3[i]) {
+		    lg.buffer() << "bds3[" << i << "] (" << bds3[i]
+				<< ") != bdt3[" << i << "] (" << bdt3[i]
+				<< ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts with bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	    if (ierr > 0)
+		lg.buffer() << "\nNOTE: due to the different number of internal bins used for the adaptive histograms, get3DDistribution and get3DBins may not produce exactly the same answers";
+	}
     }
 } // print3DDistribution
 

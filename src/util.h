@@ -217,15 +217,6 @@ namespace ibis {
 
     typedef std::vector<colValues*> colList;
 
-    /// Compute the outer product of @c a and @c b, add the result to @c c.
-    const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
-					  const ibis::bitvector& b,
-					  ibis::bitvector64& c);
-    /// Add the strict upper triangular portion of the outer production
-    /// between @c a and @c b to @c c.
-    const ibis::bitvector64& outerProductUpper(const ibis::bitvector& a,
-					       const ibis::bitvector& b,
-					       ibis::bitvector64& c);
     /// The reference to the global configuration parameters.
     FASTBIT_CXX_DLLSPEC ibis::resource& gParameters();
 
@@ -485,6 +476,25 @@ namespace ibis {
 	/// LIKE, '_' and '%'.
 	bool strMatch(const char* str, const char* pat);
 
+	/// Compute the outer product of @c a and @c b, add the result to @c c.
+	const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
+					      const ibis::bitvector& b,
+					      ibis::bitvector64& c);
+	/// Add the strict upper triangular portion of the outer production
+	/// between @c a and @c b to @c c.
+	const ibis::bitvector64& outerProductUpper(const ibis::bitvector& a,
+						   const ibis::bitvector& b,
+						   ibis::bitvector64& c);
+
+	/// Intersect two sets of bit vectors.
+	long intersect(const std::vector<ibis::bitvector> &bits1,
+		       const std::vector<ibis::bitvector> &bits2,
+		       std::vector<ibis::bitvector> &res);
+	/// Intersect three sets of bit vectors.
+	long intersect(const std::vector<ibis::bitvector> &bits1,
+		       const std::vector<ibis::bitvector> &bits2,
+		       const std::vector<ibis::bitvector> &bits3,
+		       std::vector<ibis::bitvector> &res);
 	/// Return the current time in string format as @c asctime_r.
 	/// The argument @c str must have 26 or more bytes and is used to
 	/// carry the time output.

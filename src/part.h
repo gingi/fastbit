@@ -346,6 +346,26 @@ public:
 			   std::vector<double> &bounds2,
 			   std::vector<double> &bounds3,
 			   std::vector<uint32_t> &counts) const;
+    /// Partition records satisfying specified conditions into bins with
+    /// about the same number of records.
+    long get1DBins(const char *constraints, const char *cname1, uint32_t nb1,
+		   std::vector<double> &bounds1,
+		   std::vector<ibis::bitvector> &bins) const;
+    /// Partition records satisfying specified conditions into 2D bins.
+    long get2DBins(const char *constraints,
+		   const char *cname1, const char *cname2,
+		   uint32_t nb1, uint32_t nb2,
+		   std::vector<double> &bounds1,
+		   std::vector<double> &bounds2,
+		   std::vector<ibis::bitvector> &bins) const;
+    /// Partition records satisfying specified conditions into 3D bins.
+    long get3DBins(const char *constraints,
+		   const char *cname1, const char *cname2, const char *cname3,
+		   uint32_t nb1, uint32_t nb2, uint32_t nb3,
+		   std::vector<double> &bounds1,
+		   std::vector<double> &bounds2,
+		   std::vector<double> &bounds3,
+		   std::vector<ibis::bitvector> &bins) const;
     /// @}
 
     /// @{
@@ -683,7 +703,12 @@ protected:
 		     const double &stride3,
 		     std::vector<uint32_t> &counts) const;
 
-    /// Comptue 1D histogram from index.
+    /// Compute 1D histogram from raw data.
+    long get1DBins_(const ibis::bitvector &mask, const ibis::column &col,
+		    uint32_t nbin, std::vector<double> &bounds,
+		    std::vector<ibis::bitvector> &bins, const char *mesg) const;
+
+    /// Compute 1D histogram from index.
     long get1DDistribution(const ibis::column &col, uint32_t nbin,
 			   std::vector<double> &bounds,
 			   std::vector<uint32_t> &counts) const;
@@ -764,19 +789,19 @@ protected:
 				    uint32_t nbins, array_t<T> &bounds);
 
     template <typename T>
-	static void adaptiveInts(const array_t<T> &vals, const T vmin,
+	static long adaptiveInts(const array_t<T> &vals, const T vmin,
 				 const T vmax, uint32_t nbins,
 				 std::vector<double> &bounds,
 				 std::vector<uint32_t> &counts);
 
     template <typename T>
-	static void adaptiveFloats(const array_t<T> &vals, const T vmin,
+	static long adaptiveFloats(const array_t<T> &vals, const T vmin,
 				   const T vmax, uint32_t nbins,
 				   std::vector<double> &bounds,
 				   std::vector<uint32_t> &counts);
 
     template <typename T1, typename T2>
-	static void adaptive2DBins(const array_t<T1> &vals1,
+	static long adaptive2DBins(const array_t<T1> &vals1,
 				   const array_t<T2> &vals2,
 				   uint32_t nb1, uint32_t nb2,
 				   std::vector<double> &bounds1,
@@ -784,7 +809,7 @@ protected:
 				   std::vector<uint32_t> &counts);
 
     template <typename T1, typename T2, typename T3>
-	static void adaptive3DBins(const array_t<T1> &vals1,
+	static long adaptive3DBins(const array_t<T1> &vals1,
 				   const array_t<T2> &vals2,
 				   const array_t<T3> &vals3,
 				   uint32_t nb1, uint32_t nb2, uint32_t nb3,
@@ -792,6 +817,20 @@ protected:
 				   std::vector<double> &bounds2,
 				   std::vector<double> &bounds3,
 				   std::vector<uint32_t> &counts);
+
+    template <typename T> static long
+	adaptiveIntsDetailed(const ibis::bitvector &mask,
+			     const array_t<T> &vals,
+			     const T vmin, const T vmax, uint32_t nbins,
+			     std::vector<double> &bounds,
+			     std::vector<ibis::bitvector> &detail);
+
+    template <typename T> static long
+	adaptiveFloatsDetailed(const ibis::bitvector &mask,
+			       const array_t<T> &vals,
+			       const T vmin, const T vmax, uint32_t nbins,
+			       std::vector<double> &bounds,
+			       std::vector<ibis::bitvector> &detail);
 
 private:
 

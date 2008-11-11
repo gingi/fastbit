@@ -642,7 +642,7 @@ long ibis::sapid::append(const char* dt, const char* df, uint32_t nnew) {
 
 // add up bits[ib:ie-1] and to res -- must execute \sum_{i=ib}^{ie}, can
 // not use compelement
-void ibis::sapid::addBins_(uint32_t ib, uint32_t ie,
+void ibis::sapid::addBits_(uint32_t ib, uint32_t ie,
 			   ibis::bitvector& res) const {
     const uint32_t nobs = bits.size();
     if (res.size() == 0) {
@@ -681,7 +681,7 @@ void ibis::sapid::addBins_(uint32_t ib, uint32_t ie,
     }
     if (decmp) { // use decompressed res
 	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("ibis::sapid", "addBins(%lu, %lu) using "
+	    ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) using "
 				   "uncompressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -695,7 +695,7 @@ void ibis::sapid::addBins_(uint32_t ib, uint32_t ie,
     }
     else { // use compressed res
 	if (ibis::gVerbose > 5) 
-	    ibis::util::logMessage("ibis::sapid", "addBins(%lu, %lu) using "
+	    ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) using "
 				   "compressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -733,13 +733,13 @@ void ibis::sapid::addBins_(uint32_t ib, uint32_t ie,
 
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("ibis::sapid", "addBins(%lu, %lu) took %g "
+	ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) took %g "
 			       "sec(CPU), %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());
     }
-} // addBins_
+} // addBits_
 
 // compute the bitvector that is the answer for the query x = b
 void ibis::sapid::evalEQ(ibis::bitvector& res, uint32_t b) const {
@@ -782,10 +782,10 @@ void ibis::sapid::evalLE(ibis::bitvector& res, uint32_t b) const {
 	    const uint32_t k = b % bases[i];
 	    res.set(0, nrows);
 	    if (k+k <= bases[i]) {
-		addBits(offset, offset+k+1, res);
+		addBins(offset, offset+k+1, res);
 	    }
 	    else {
-		addBits(offset+k+1, offset+bases[i], res);
+		addBins(offset+k+1, offset+bases[i], res);
 		res.flip();
 	    }
 	    offset += bases[i];
@@ -809,11 +809,11 @@ void ibis::sapid::evalLE(ibis::bitvector& res, uint32_t b) const {
 	    }
 	    if (k > 0) {
 		if (k+k <= bases[i]) {
-		    addBits(offset, j, res);
+		    addBins(offset, j, res);
 		}
 		else {
 		    ibis::bitvector tmp;
-		    addBits(j, offset+bases[i], tmp);
+		    addBins(j, offset+bases[i], tmp);
 		    tmp.flip();
 		    res |= tmp;
 		}
@@ -862,10 +862,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 	    k1 = b1 % bases[i];
 	    if (k0 <= k1) {
 		if (k0+k0 <= bases[i]) {
-		    addBits(offset, offset+k0+1, low);
+		    addBins(offset, offset+k0+1, low);
 		}
 		else if (k0+1 < bases[i]) {
-		    addBits(offset+k0+1, offset+bases[i], low);
+		    addBins(offset+k0+1, offset+bases[i], low);
 		    low.flip();
 		}
 		else {
@@ -877,10 +877,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 		else if (k0 < k1) {
 		    if (k1+k1 <= k0+bases[i]) {
 			res = low;
-			addBits(offset+k0+1, offset+k1+1, res);
+			addBins(offset+k0+1, offset+k1+1, res);
 		    }
 		    else {
-			addBits(offset+k1+1, offset+bases[i], res);
+			addBins(offset+k1+1, offset+bases[i], res);
 			res.flip();
 		    }
 		}
@@ -890,10 +890,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 	    }
 	    else { // k0 > k1
 		if (k1+k1 <= bases[i]) {
-		    addBits(offset, offset+k1+1, res);
+		    addBins(offset, offset+k1+1, res);
 		}
 		else if (k1+1 < bases[i]) {
-		    addBits(offset+k1+1, offset+bases[i], res);
+		    addBins(offset+k1+1, offset+bases[i], res);
 		    res.flip();
 		}
 		else {
@@ -904,10 +904,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 		}
 		else if (k0+k0 <= k1+bases[i]) {
 		    low = res;
-		    addBits(offset+k1+1, offset+k0+1, low);
+		    addBins(offset+k1+1, offset+k0+1, low);
 		}
 		else {
-		    addBits(offset+k0+1, offset+bases[i], low);
+		    addBins(offset+k0+1, offset+bases[i], low);
 		    low.flip();
 		}
 	    }
@@ -940,10 +940,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 		if (k0 <= k1) {
 		    if (k0 > 0) {
 			if (k0+k0 <= bases[i]) {
-			    addBits(offset, offset+k0, tmp);
+			    addBins(offset, offset+k0, tmp);
 			}
 			else {
-			    addBits(offset+k0, offset+bases[i], tmp);
+			    addBins(offset+k0, offset+bases[i], tmp);
 			    tmp.flip();
 			}
 			low |= tmp;
@@ -952,11 +952,11 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 			if (k1+k1 <= k0+bases[i]) {
 			    if (k0 > 0)
 				res |= tmp;
-			    addBits(offset+k0, offset+k1, res);
+			    addBins(offset+k0, offset+k1, res);
 			}
 			else {
 			    tmp.clear();
-			    addBits(offset+k1, offset+bases[i], tmp);
+			    addBins(offset+k1, offset+bases[i], tmp);
 			    tmp.flip();
 			    res |= tmp;
 			}
@@ -968,10 +968,10 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 		else { // k0 > k1
 		    if (k1 > 0) {
 			if (k1+k1 <= bases[i]) {
-			    addBits(offset, offset+k1, tmp);
+			    addBins(offset, offset+k1, tmp);
 			}
 			else {
-			    addBits(offset+k1, offset+bases[i], tmp);
+			    addBins(offset+k1, offset+bases[i], tmp);
 			    tmp.flip();
 			}
 			res |= tmp;
@@ -979,11 +979,11 @@ void ibis::sapid::evalLL(ibis::bitvector& res,
 		    if (k0+k0 <= k1+bases[i]) {
 			if (k1 > 0)
 			    low |= tmp;
-			addBits(offset+k1, offset+k0, low);
+			addBins(offset+k1, offset+k0, low);
 		    }
 		    else {
 			tmp.clear();
-			addBits(offset+k0, offset+bases[i], tmp);
+			addBins(offset+k0, offset+bases[i], tmp);
 			tmp.flip();
 			low |= tmp;
 		    }

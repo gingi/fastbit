@@ -386,7 +386,7 @@ private:
     void construct1(const char* f = 0, const uint32_t nbase = 2);
     void construct2(const char* f = 0, const uint32_t nbase = 2);
 
-    void addBins_(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void addBits_(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
     void evalLE(ibis::bitvector& res, uint32_t b) const;
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;

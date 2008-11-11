@@ -1663,7 +1663,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     bool same = false; // are upper and lower the same ?
     // attempt to generate lower and upper bounds together
     if (cand0 == hit0 && cand1 == hit1) { // top level only
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	upper.copy(lower);
     }
     else if (cand0+1 == cand1) { // all in one coarse bin
@@ -1720,13 +1720,13 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 
 		// add up the bins
 		if (hit0 < hit1) {
-		    sub[j]->addBits(hit0, hit1, lower);
+		    sub[j]->addBins(hit0, hit1, lower);
 		}
 		else {
 		    lower.set(0, nrows);
 		}
 		upper.copy(lower);
-		sub[j]->sumBits(cand0, cand1, upper, hit0, hit1);
+		sub[j]->sumBins(cand0, cand1, upper, hit0, hit1);
 	    }
 	    else { // subrange cand0 is not defined
 		lower.set(0, nrows);
@@ -1750,7 +1750,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     }
     else if (cand0 == hit0) { // the right bound needs finer level
 	// implicitly: hit1+1 == cand1, hit1 < nobs
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	if (sub.size() == nobs && sub[hit1] != 0) { // sub is defined
 	    if (bits[hit1] == 0)
 		activate(hit1);
@@ -1773,13 +1773,13 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		else if (rbound <= sub[hit1]->minval[i]) {
 		    same = true;
 		    if (i > 0) {
-			sub[hit1]->addBits(0, i, lower, *(bits[hit1]));
+			sub[hit1]->addBins(0, i, lower, *(bits[hit1]));
 		    }
 		    upper.copy(lower);
 		}
 		else if (rbound <= sub[hit1]->maxval[i]) {
 		    if (i > 0) {
-			sub[hit1]->addBits(0, i, lower, *(bits[hit1]));
+			sub[hit1]->addBins(0, i, lower, *(bits[hit1]));
 		    }
 		    upper.copy(lower);
 		    sub[hit1]->activate(i);
@@ -1788,7 +1788,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		}
 		else {
 		    same = true;
-		    sub[hit1]->addBits(0, i+1, lower, *(bits[hit1]));
+		    sub[hit1]->addBins(0, i+1, lower, *(bits[hit1]));
 		    upper.copy(lower);
 		}
 	    }
@@ -1803,7 +1803,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     }
     else if (cand1 == hit1) { // the left end needs finer level
 	// implcitly: cand0=hit0-1; hit0 > 0
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 
 	if (sub.size() == nobs && sub[cand0] != 0) { // sub defined
 	    if (bits[cand0] == 0)
@@ -1819,12 +1819,12 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 				    bounds[cand0]);
 		}
 		else if (lbound > sub[cand0]->maxval[i]) {
-		    sub[cand0]->addBits(i+1, sub[cand0]->nobs, lower,
+		    sub[cand0]->addBins(i+1, sub[cand0]->nobs, lower,
 					*(bits[cand0]));
 		    upper.copy(lower);
 		}
 		else if (lbound > sub[cand0]->minval[i]) {
-		    sub[cand0]->addBits(i+1, sub[cand0]->nobs, lower,
+		    sub[cand0]->addBins(i+1, sub[cand0]->nobs, lower,
 					*(bits[cand0]));
 		    upper.copy(lower);
 
@@ -1833,7 +1833,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 			upper |= *(sub[cand0]->bits[i]);
 		}
 		else {
-		    sub[cand0]->addBits(i, sub[cand0]->nobs, lower,
+		    sub[cand0]->addBins(i, sub[cand0]->nobs, lower,
 					*(bits[cand0]));
 		    upper.copy(lower);
 		}
@@ -1849,7 +1849,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     }
     else { // both ends need the finer level
 	// top level bins
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 
 	// first deal with the right end of the range
 	j = hit1 - 1;
@@ -1875,13 +1875,13 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		    same = true;
 		    if (i > 0) {
 			if (bits[hit1] != 0)
-			    sub[hit1]->addBits(0, i, lower, *(bits[hit1]));
+			    sub[hit1]->addBins(0, i, lower, *(bits[hit1]));
 		    }
 		}
 		else if (rbound <= sub[hit1]->maxval[i]) {
 		    if (i > 0) {
 			if (bits[hit1] != 0)
-			    sub[hit1]->addBits(0, i, lower, *(bits[hit1]));
+			    sub[hit1]->addBins(0, i, lower, *(bits[hit1]));
 		    }
 		    upper.copy(lower);
 		    sub[hit1]->activate(i);
@@ -1891,7 +1891,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		else {
 		    same = true;
 		    if (bits[hit1])
-			sub[hit1]->addBits(0, i+1, lower, *(bits[hit1]));
+			sub[hit1]->addBins(0, i+1, lower, *(bits[hit1]));
 		}
 	    }
 	}
@@ -1925,7 +1925,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 			activate(cand0);
 		    if (bits[cand0] != 0) {
 			ibis::bitvector tmp;
-			sub[cand0]->addBits(i+1, sub[cand0]->nobs, tmp,
+			sub[cand0]->addBins(i+1, sub[cand0]->nobs, tmp,
 					    *(bits[cand0]));
 			lower |= tmp;
 			if (same) {
@@ -1941,7 +1941,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 			activate(cand0);
 		    if (bits[cand0] != 0) {
 			ibis::bitvector tmp;
-			sub[cand0]->addBits(i+1, sub[cand0]->nobs, tmp,
+			sub[cand0]->addBins(i+1, sub[cand0]->nobs, tmp,
 					    *(bits[cand0]));
 			lower |= tmp;
 			if (same) {
@@ -1960,7 +1960,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 			activate(cand0);
 		    if (bits[cand0] != 0) {
 			ibis::bitvector tmp;
-			sub[cand0]->addBits(i, sub[cand0]->nobs, tmp,
+			sub[cand0]->addBins(i, sub[cand0]->nobs, tmp,
 					    *(bits[cand0]));
 			lower |= tmp;
 			if (same) {

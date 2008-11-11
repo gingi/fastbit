@@ -531,7 +531,7 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	|| cbits.size() != (ncoarse-(ncoarse+1)/2+1)
 	|| offsets[cand1]-offsets[cand0] < 262144) {
 	// use the fine level bitmaps only
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	if (cand0 < hit0 || (cand1 > hit1 && hit1 < nobs)) {
 	    upper.copy(lower);
 	    if (cand0 < hit0) {
@@ -575,18 +575,18 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	    + (offsets[hit0] - offsets[cbounds[c1-1]])
 	    + (offsets[cbounds[c1]] - offsets[hit1]);
 	if (offsets[hit1]-offsets[hit0] <= static_cast<long>(0.99*tmp)) {
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	}
 	else {
 	    coarseEvaluate(c1-1, c1, lower);
 	    if (hit0 > cbounds[c1-1]) {
 		ibis::bitvector bv;
-		sumBits(cbounds[c1-1], hit0, bv);
+		sumBins(cbounds[c1-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) {
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}
@@ -635,32 +635,32 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 2: // direct | - | direct
 	    coarseEvaluate(c0, c1-1, lower);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 3: // complement | - | direct
 	    coarseEvaluate(c0-1, c1-1, lower);
 	    if (cbounds[c0-1] < hit0) { // left edge bin, complement
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 4: // direct | - | complement
 	    coarseEvaluate(c0, c1, lower);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	    break;
@@ -668,12 +668,12 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	    coarseEvaluate(c0-1, c1, lower);
 	    if (hit0 > cbounds[c0-1]) { // left edge bin
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}
@@ -777,11 +777,11 @@ void ibis::fuge::coarsen() {
     }
     cbits.resize(ncb);
     cbits[0] = new ibis::bitvector();
-    sumBits(0, cbounds[nc2], *(cbits[0]));
+    sumBins(0, cbounds[nc2], *(cbits[0]));
     for (unsigned i = 1; i < ncb; ++ i) {
 	ibis::bitvector front, back;
-	sumBits(cbounds[i-1], cbounds[i], front);
-	sumBits(cbounds[i-1+nc2], cbounds[i+nc2], back);
+	sumBins(cbounds[i-1], cbounds[i], front);
+	sumBins(cbounds[i-1+nc2], cbounds[i+nc2], back);
 	cbits[i] = new ibis::bitvector(*(cbits[i-1]));
 	*(cbits[i]) -= front;
 	*(cbits[i]) |= back;

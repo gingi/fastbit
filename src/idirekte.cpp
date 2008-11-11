@@ -787,7 +787,7 @@ long ibis::direkte::evaluate(const ibis::qContinuousRange& expr,
 			     ibis::bitvector& lower) const {
     uint32_t ib, ie;
     locate(expr, ib, ie);
-    sumBits(ib, ie, lower);
+    sumBins(ib, ie, lower);
     return lower.cnt();
 } // ibis::direkte::evaluate
 
@@ -797,7 +797,7 @@ void ibis::direkte::estimate(const ibis::qContinuousRange& expr,
     upper.clear();
     uint32_t ib, ie;
     locate(expr, ib, ie);
-    sumBits(ib, ie, lower);
+    sumBins(ib, ie, lower);
 } // ibis::direkte::estimate
 
 uint32_t ibis::direkte::estimate(const ibis::qContinuousRange& expr) const {

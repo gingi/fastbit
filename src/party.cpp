@@ -820,7 +820,7 @@ ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
     if (bvsize <= ibis::fileManager::bytesFree()) {
 	// there is enough space for the two bitvectors
 	ibis::bitvector64 trial, result;
-	ibis::outerProduct(mask, mask, trial);
+	ibis::util::outerProduct(mask, mask, trial);
 	return evaluateJoin(cmp, trial, result);
     }
     else {

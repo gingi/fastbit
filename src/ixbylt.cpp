@@ -201,10 +201,10 @@ void ibis::bylt::coarsen() {
 	ibis::bitvector tmp;
 	if (i > 0) {
 	    tmp.copy(*(cbits[i-1]));
-	    addBits(cbounds[i], cbounds[i+1], tmp);
+	    addBins(cbounds[i], cbounds[i+1], tmp);
 	}
 	else {
-	    sumBits(cbounds[i], cbounds[i+1], tmp);
+	    sumBins(cbounds[i], cbounds[i+1], tmp);
 	}
 	cbits.push_back(new ibis::bitvector(tmp));
     }
@@ -747,7 +747,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 			      cbits.size() : cbounds.size()-1);
     if (hit0+3 >= hit1 || ncoarse == 0 || coffsets.size() <= cbits.size()) {
 	// no more than three bitmaps involved, or don't know the sizes
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	return lower.cnt();
     }
 
@@ -775,7 +775,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		    + (offsets[cbounds[c1]] - offsets[hit1])
 		    : offsets.back() - offsets[0]);
 	if ((offsets[hit1]-offsets[hit0])/100 <= tmp/99) {
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	}
 	else {
 	    activateCoarse(c1>1?c1-2:0, c1);
@@ -787,12 +787,12 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		lower -= *(cbits[c1-2]);
 	    if (hit0 > cbounds[c1-1]) {
 		ibis::bitvector bv;
-		sumBits(cbounds[c1-1], hit0, bv);
+		sumBins(cbounds[c1-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) {
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}
@@ -848,7 +848,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    switch (option) {
 	    default:
 	    case 1:
-		sumBits(hit0, hit1, lower);
+		sumBins(hit0, hit1, lower);
 		break;
 	    case 2:
 		col->getNullMask(lower);
@@ -856,7 +856,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		if (cbits[c0] != 0)
 		    lower -= *(cbits[c0]);
 		if (hit0 < cbounds[0])
-		    addBits(hit0, cbounds[c0], lower);
+		    addBins(hit0, cbounds[c0], lower);
 		break;
 	    case 3:
 		col->getNullMask(lower);
@@ -866,12 +866,12 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 			lower -= *(cbits[c0-1]);
 
 		    ibis::bitvector bv;
-		    sumBits(cbounds[c0-1], hit0, bv);
+		    sumBins(cbounds[c0-1], hit0, bv);
 		    lower -= bv;
 		}
 		else if (hit0 > 0) {
 		    ibis::bitvector bv;
-		    sumBits(0, hit0, bv);
+		    sumBins(0, hit0, bv);
 		    lower -= bv;
 		}
 		break;
@@ -890,10 +890,10 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		else
 		    bv.set(0, nrows);
 		if (cbounds.back() < hit0)
-		    addBits(cbounds.back(), hit0, lower);
+		    addBins(cbounds.back(), hit0, lower);
 	    }
 	    else {
-		sumBits(hit0, hit1, bv);
+		sumBins(hit0, hit1, bv);
 	    }
 	    col->getNullMask(lower);
 	    lower -= bv;
@@ -924,7 +924,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 2: // [- | direct]
 	    if (c1 > 1) {
@@ -934,10 +934,10 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		else
 		    col->getNullMask(lower);
 		if (cbounds[c1-1] < hit1)
-		    addBits(cbounds[c1-1], hit1, lower);
+		    addBins(cbounds[c1-1], hit1, lower);
 	    }
 	    else {
-		sumBits(hit0, hit1, lower);
+		sumBins(hit0, hit1, lower);
 	    }
 	    break;
 	case 4: // [- | complement];
@@ -953,7 +953,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (hit1 < cbounds[c1]) {
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	    break;
@@ -1005,7 +1005,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 2: // [direct | - | direct]
 	    if (c0+2 >= ncoarse) {
@@ -1022,9 +1022,9 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    if (cbits[c0-1] != 0)
 		lower -= *(cbits[c0-1]);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[ncoarse] < hit1)
-		addBits(cbounds[ncoarse], hit1, lower); // right edge bin
+		addBins(cbounds[ncoarse], hit1, lower); // right edge bin
 	    break;
 	case 3: // [complement | - | direct]
 	    activateCoarse(ncoarse-1);
@@ -1039,11 +1039,11 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (hit0 > cbounds[c0-1]) { // left edge bin
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[ncoarse] < hit1)
-		addBits(cbounds[ncoarse], hit1, lower); // right edge bin
+		addBins(cbounds[ncoarse], hit1, lower); // right edge bin
 	    break;
 	case 4: // [direct | - | complement]
 	    activateCoarse(c0-1);
@@ -1051,10 +1051,10 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    if (cbits[c0-1] != 0)
 		lower -= *(cbits[c0-1]);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (bits.size() > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, bits.size(), bv);
+		sumBins(hit1, bits.size(), bv);
 		lower -= bv;
 	    }
 	    break;
@@ -1067,12 +1067,12 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (hit0 > cbounds[c0-1]) {
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (bits.size() > hit1) {
 		ibis::bitvector bv;
-		sumBits(hit1, bits.size(), bv);
+		sumBins(hit1, bits.size(), bv);
 		lower -= bv;
 	    }
 	}
@@ -1114,7 +1114,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 3: // complement | - | direct
 	    activateCoarse((c0>1?c0-2:0), c0);
@@ -1126,11 +1126,11 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		lower -= *(cbits[c0-2]);
 	    if (cbounds[c0-1] < hit0) { // left edge bin, complement
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 4: // direct | - | complement
 	    activateCoarse(c0-1, c1+1);
@@ -1141,10 +1141,10 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    if (cbits[c0-1] != 0)
 		lower -= *(cbits[c0-1]);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	    break;
@@ -1161,12 +1161,12 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (hit0 > cbounds[c0-1]) { // left edge bin
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}
@@ -1216,7 +1216,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 2: // direct | - | direct
 	    if (c0 >= c1-2) {
@@ -1233,9 +1233,9 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    if (cbits[c0-1] != 0)
 		lower -= *(cbits[c0-1]);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 3: // complement | - | direct
 	    activateCoarse(c1-2);
@@ -1250,11 +1250,11 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (cbounds[c0-1] < hit0) { // left edge bin, complement
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 4: // direct | - | complement
 	    activateCoarse(c0-1);
@@ -1266,10 +1266,10 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    if (cbits[c0-1] != 0)
 		lower -= *(cbits[c0-1]);
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	    break;
@@ -1286,12 +1286,12 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	    if (hit0 > cbounds[c0-1]) { // left edge bin
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}

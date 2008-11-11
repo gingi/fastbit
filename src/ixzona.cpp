@@ -159,7 +159,7 @@ void ibis::zona::coarsen() {
 	// generate a new bitmap for each coarse bin, even if it only
 	// contains one fine level bitmap
 	ibis::bitvector tmp;
-	sumBits(cbounds[i], cbounds[i+1], tmp);
+	sumBins(cbounds[i], cbounds[i+1], tmp);
 	cbits.push_back(new ibis::bitvector(tmp));
     }
 
@@ -582,7 +582,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 			      cbits.size() : cbounds.size()-1);
     if (hit0+3 >= hit1 || offsets.size() < bits.size() || ncoarse == 0) {
 	// no more than three bitmaps involved, or don't know the sizes
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	return lower.cnt();
     }
 
@@ -608,7 +608,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	long tmp = coffsets[c0] - coffsets[c0-1]
 	    + offsets[cbounds[c0]] - offsets[cbounds[c0-1]] - fine;
 	if (static_cast<long>(0.99*fine) <= tmp) {
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	}
 	else {
 	    activateCoarse(c0-1);
@@ -618,12 +618,12 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 		col->getNullMask(lower);
 	    if (hit0 > cbounds[c0-1]) {
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (hit1 < cbounds[c0]) {
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c0], bv);
+		sumBins(hit1, cbounds[c0], bv);
 		lower -= bv;
 	    }
 	}
@@ -678,7 +678,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	switch (option) {
 	default:
 	case 1: // use fine level only
-	    sumBits(hit0, hit1, lower);
+	    sumBins(hit0, hit1, lower);
 	    break;
 	case 2: // direct | - | direct
 	    if (c0 < c1-1) {
@@ -686,83 +686,83 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 		if (tmp + tmp <= csize) {
 		    lower.set(0, nrows);
 		    activateCoarse(c0, c1-1);
-		    addBins(cbits, c0, c1-1, lower);
+		    addBits(cbits, c0, c1-1, lower);
 		}
 		else {
 		    ibis::bitvector bv;
 		    bv.set(0, nrows);
 		    if (c0 > 0) {
 			activateCoarse(0, c0);
-			addBins(cbits, 0, c0, bv);
+			addBits(cbits, 0, c0, bv);
 		    }
 		    if (c1 <= ncoarse) {
 			activateCoarse(c1-1, ncoarse);
-			addBins(cbits, c1-1, ncoarse, bv);
+			addBits(cbits, c1-1, ncoarse, bv);
 		    }
 		    col->getNullMask(lower);
 		    lower -= bv;
 		}
 	    }
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 3: // complement | - | direct
 	    tmp = coffsets[c1-1] - coffsets[c0-1];
 	    if (tmp + tmp <= csize) {
 		lower.set(0, nrows);
 		activateCoarse(c0-1, c1-1);
-		addBins(cbits, c0-1, c1-1, lower);
+		addBits(cbits, c0-1, c1-1, lower);
 	    }
 	    else {
 		ibis::bitvector bv;
 		bv.set(0, nrows);
 		if (c0 > 1) {
 		    activateCoarse(0, c0-1);
-		    addBins(cbits, 0, c0-1, bv);
+		    addBits(cbits, 0, c0-1, bv);
 		}
 		if (c1 <= ncoarse) {
 		    activateCoarse(c1-1, ncoarse);
-		    addBins(cbits, c1-1, ncoarse, bv);
+		    addBits(cbits, c1-1, ncoarse, bv);
 		}
 		col->getNullMask(lower);
 		lower -= bv;
 	    }
 	    if (cbounds[c0-1] < hit0) { // left edge bin, complement
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1-1] < hit1)
-		addBits(cbounds[c1-1], hit1, lower); // right edge bin
+		addBins(cbounds[c1-1], hit1, lower); // right edge bin
 	    break;
 	case 4: // direct | - | complement
 	    tmp = coffsets[c1] - coffsets[c0];
 	    if (tmp + tmp <= csize) {
 		lower.set(0, nrows);
 		activateCoarse(c0, c1);
-		addBins(cbits, c0, c1, lower);
+		addBits(cbits, c0, c1, lower);
 	    }
 	    else {
 		ibis::bitvector bv;
 		bv.set(0, nrows);
 		if (c0 > 0) {
 		    activateCoarse(0, c0);
-		    addBins(cbits, 0, c0, bv);
+		    addBits(cbits, 0, c0, bv);
 		}
 		if (c1 < ncoarse) {
 		    activateCoarse(c1, ncoarse);
-		    addBins(cbits, c1, ncoarse, bv);
+		    addBits(cbits, c1, ncoarse, bv);
 		}
 		col->getNullMask(lower);
 		lower -= bv;
 	    }
 	    if (hit0 < cbounds[c0])
-		addBits(hit0, cbounds[c0], lower); // left edge bin
+		addBins(hit0, cbounds[c0], lower); // left edge bin
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	    break;
@@ -771,30 +771,30 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	    if (tmp + tmp <= csize) {
 		lower.set(0, nrows);
 		activateCoarse(c0-1, c1);
-		addBins(cbits, c0-1, c1, lower);
+		addBits(cbits, c0-1, c1, lower);
 	    }
 	    else {
 		ibis::bitvector bv;
 		bv.set(0, nrows);
 		if (c0 > 1) {
 		    activateCoarse(0, c0-1);
-		    addBins(cbits, 0, c0-1, bv);
+		    addBits(cbits, 0, c0-1, bv);
 		}
 		if (c1 < ncoarse) {
 		    activateCoarse(c1, ncoarse);
-		    addBins(cbits, c1, ncoarse, bv);
+		    addBits(cbits, c1, ncoarse, bv);
 		}
 		col->getNullMask(lower);
 		lower -= bv;
 	    }
 	    if (hit0 > cbounds[c0-1]) { // left edge bin
 		ibis::bitvector bv;
-		sumBits(cbounds[c0-1], hit0, bv);
+		sumBins(cbounds[c0-1], hit0, bv);
 		lower -= bv;
 	    }
 	    if (cbounds[c1] > hit1) { // right edge bin
 		ibis::bitvector bv;
-		sumBits(hit1, cbounds[c1], bv);
+		sumBins(hit1, cbounds[c1], bv);
 		lower -= bv;
 	    }
 	}

@@ -1658,7 +1658,7 @@ void ibis::pale::estimate(const ibis::qContinuousRange& expr,
     bool same = false; // are upper and lower the same ?
     // attempt to generate lower and upper bounds together
     if (cand0 == hit0 && cand1 == hit1) { // top level only
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	upper.copy(lower);
     }
     else if (cand0+1 == cand1) { // all in one coarse bin
@@ -1826,7 +1826,7 @@ void ibis::pale::estimate(const ibis::qContinuousRange& expr,
     }
     else if (cand0 == hit0) { // the right bound needs finer level
 	// implicitly: hit1+1 == cand1, hit1 < nobs
-	sumBits(hit0, hit1, lower);
+	sumBins(hit0, hit1, lower);
 	if (sub.size() == nobs && sub[hit1] != 0) { // sub is defined
 	    if (bits[hit1] == 0)
 		activate(hit1);
@@ -1896,7 +1896,7 @@ void ibis::pale::estimate(const ibis::qContinuousRange& expr,
     }
     else if (cand1 == hit1) { // the left end needs finer level
 	// implcitly: cand0=hit0-1; hit0 > 0
-	sumBits(cand0, cand1, upper);
+	sumBins(cand0, cand1, upper);
 
 	if (sub.size() == nobs && sub[cand0] != 0) { // sub defined
 	    if (bits[cand0] == 0)
@@ -1963,7 +1963,7 @@ void ibis::pale::estimate(const ibis::qContinuousRange& expr,
     }
     else { // both ends need the finer level
 	// top level bins (add right, subtract left)
-	sumBits(cand0, hit1, lower);
+	sumBins(cand0, hit1, lower);
 
 	// first deal with the right end of the range
 	if (hit1 >= nobs) { // right end is open

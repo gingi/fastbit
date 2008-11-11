@@ -4074,3 +4074,55 @@ ibis::bitvector::indexSet& ibis::bitvector::indexSet::operator++() {
     it = end + 1;
     return *this;
 } // ibis::bitvector::indexSet::operator++
+
+/// \code
+/// res[jj*bits2.size()+ii] = bits1[jj] & bits2[ii]
+/// \endcode
+long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
+			   const std::vector<ibis::bitvector> &bits2,
+			   std::vector<ibis::bitvector> &res) {
+    if (bits1.empty() || bits2.empty())
+	return 0;
+    res.resize(bits1.size() * bits2.size());
+    for (size_t jj = 0; jj < bits1.size(); ++ jj) {
+	const size_t joff = jj * bits2.size();
+	for (size_t ii = 0; ii < bits2.size(); ++ ii) {
+	    ibis::bitvector *tmp = bits1[jj] & bits2[ii];
+	    if (tmp != 0) {
+		res[joff+ii].swap(*tmp);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "ibis::util::intersect(" << bits1.size() << ", "
+		    << bits2.size() << ") failed to compute the intersection "
+		    << "of bitmaps bits1[" << jj << "] and bits2[" << ii << "]";
+	    }
+	}
+    }
+    return res.size();
+} // ibis::util::intersect
+
+/// \code
+/// res[(kk*bits2.size()+jj)*bits3.size()+ii] = bits1[kk] & bits2[jj] & bits3[ii]
+/// \endcode
+long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
+			   const std::vector<ibis::bitvector> &bits2,
+			   const std::vector<ibis::bitvector> &bits3,
+			   std::vector<ibis::bitvector> &res) {
+    if (bits1.empty() || bits2.empty() || bits3.empty())
+	return 0;
+    res.resize(bits1.size() * bits2.size() * bits3.size());
+    for (size_t kk = 0; kk < bits1.size(); ++ kk) {
+	const size_t koff = kk * bits2.size();
+	for (size_t jj = 0; jj < bits2.size(); ++ jj) {
+	    const size_t joff = (koff + jj) * bits3.size();
+	    for (size_t ii = 0; ii < bits3.size(); ++ ii) {
+		ibis::bitvector tmp(bits1[ii]);
+		tmp &= bits2[jj];
+		tmp &= bits3[kk];
+		res[joff+ii].swap(tmp);
+	    }
+	}
+    }
+    return res.size();
+} // ibis::util::intersect

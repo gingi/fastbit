@@ -379,6 +379,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\parth.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\parti.cpp"
 				>
 			</File>
