@@ -1,3 +1,9 @@
+2008-11-12 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp:1666 change == to !=, write output file if it
+	is NOT /dev/null
+	* tests/Makefile.am:57,59,61 modify tests to accommodate the new
+	output format used by ibis.cpp (output from function tableSelect)
+
 2008-11-10 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add calls to get2DBins and get3DBins in
 	print2DDistribution and print3DDistribution as sanity check for

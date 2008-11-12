@@ -96,3 +96,8 @@ sure where is the really problem.
 Oct. 1, 2008 added FlexLexer.h so that the new version of parser code
 can compile under MS windows systems
 
+Nov. 11, 2008: If your version of VisualStudio complains about the
+version of the project files being too new or too old, you should be
+able to open those files and manually change the version numbers.
+The few times I have tried this, they all worked out fine for me.
+Guess, the project files here are relatively simple.

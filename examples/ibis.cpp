@@ -1663,7 +1663,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     if (outputfile != 0 && *outputfile != 0) {
 	if (limit == 0)
 	    limit = static_cast<uint32_t>(sel1->nRows());
-	if (0 == strcmp(outputfile, "/dev/null")) {
+	if (0 != strcmp(outputfile, "/dev/null")) {
 	    std::ofstream output(outputfile, std::ios::out |
 				 (appendToOutput ? std::ios::app :
 				  std::ios::trunc));

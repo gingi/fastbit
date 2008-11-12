@@ -934,13 +934,13 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 
     const bool ca = (m_vec.size()*MAXBITS == nbits);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
-    if (ca) {
-	if (cb)
+    if (ca) { // *this is not compressed
+	if (cb) // rhs is not compressed
 	    and_c0(rhs);
 	else
 	    and_d1(rhs);
     }
-    else if (cb) {
+    else if (cb) { // rhs is not compressed
 	bitvector tmp;
 	tmp.copy(rhs);
 	swap(tmp);
@@ -1074,8 +1074,8 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 
     const bool ca = (m_vec.size()*MAXBITS == nbits);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
-    if (ca) {
-	if (cb)
+    if (ca) { // *this is not compressed
+	if (cb) // rhs is not compressed
 	    or_c0(rhs);
 	else
 	    or_d1(rhs);
