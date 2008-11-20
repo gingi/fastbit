@@ -269,6 +269,8 @@ static void clearBuffers(const ibis::table::typeList& tps,
 		delete tmp;
 		break;}
 	default: {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "clearBuffers unable to type " << tps[j];
 	    break;}
 	}
     }
@@ -323,6 +325,8 @@ static void dumpIth(size_t i, ibis::TYPE_T t, void* buf) {
 	std::cout << '"' << (*tmp)[i] << '"';
 	break;}
     default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "dumpIth -- unable to process type " << t;
 	break;}
     }
 } // dumpIth
@@ -491,7 +495,11 @@ static int printValues1(const ibis::table& tbl) {
 	    }
 	    buffers[i] = buf;
 	    break;}
-	default: break;
+	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "printValues1(" << tbl.name() << ") -- unable to handle "
+		<< "column " << nms[i] << " of type " << tps[i];
+	    break;
 	}
     }
     if (nms.size() != tbl.nColumns() || nms.size() == 0) return -3;
@@ -663,7 +671,6 @@ static void parseNamesTypes(ibis::tablex& tbl) {
 	    break;
 	case 'i':
 	case 'I':
-	default:
 	    tbl.addColumn(nm.c_str(), ibis::INT);
 	    break;
 	case 'l':
@@ -685,6 +692,14 @@ static void parseNamesTypes(ibis::tablex& tbl) {
 	case 't':
 	case 'T':
 	    tbl.addColumn(nm.c_str(), ibis::TEXT);
+	    break;
+	default:
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- parseNamesTypes does not recognize type "
+		<< *str << ", know types are:\nb(byte), s(short), i(int), "
+		"l(long), f(float), d(double), k(key), and t(text)\n"
+		".. assume it is type int";
+	    tbl.addColumn(nm.c_str(), ibis::INT);
 	    break;
 	}
     }

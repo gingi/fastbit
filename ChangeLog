@@ -1,3 +1,7 @@
+2008-11-20 John Wu <John.Wu at ACM.org>
+	* examples/ardea.cpp:696 separate out the default branch in
+	parseNamesTypes to print a warning message
+
 2008-11-12 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:1666 change == to !=, write output file if it
 	is NOT /dev/null
