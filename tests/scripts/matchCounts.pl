@@ -27,7 +27,7 @@ while (<QH>) {
     next if /^#/; # skip comment lines
     next if /^$/; # skip blank lines
     chop; # remove the end-of-line character
-    @ln = split /,/; # split a line into query and hits
+    @ln = split /;/; # split a line into query and hits
     next if (@ln < 2);
 
     ++ $nlines;
@@ -35,21 +35,22 @@ while (<QH>) {
     $hits = $ln[1];
     $rc = 0xffff & system("$ARGV[0] -q \"$cond\" > $tmp");
     #print "\"$ARGV[0] -q $cond > $tmp\" returned with code ", $rc, "\n";
-    $bak = "$tmp-$cond";
-    $bak =~ s/\s/_/g;
+    $bak = $cond;
+    $bak =~ s/\W/_/g;
+    $bak = "$tmp-$bak";
     #print "\$bak=$bak\n";
     if ($rc == 0) {
 	$match = `fgrep "==> $hits " $tmp | wc -l`;
 	if ($match) {
 	    ++$nmatches;
-	    if (`fgrep Error $tmp | wc -l` > 0) {
+	    if (`egrep "Error|Warning|warning|failed" $tmp | wc -l` > 0) {
 		system("cp", $tmp, "$bak");
-		print "Query \"$cond\" completed with errors, output file saved to $tmp-$cond\n";
+		print "Query \"$cond\" completed with errors, output file saved to $bak\n";
 	    }
 	}
 	else {
 	    system("cp", $tmp, "$bak");
-	    print "Query \"$cond\" failed to match expected number of hits, output file saved to $tmp-$cond\n";
+	    print "Query \"$cond\" failed to match expected number of hits, output file saved to $bak\n";
 	}
     }
     elsif ($rc == 0xff00) {

@@ -1274,7 +1274,7 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
     return maxLength;
 } // ibis::part::readTDC
 
-/// Write the metadata about the data partition into an ASCII file
+/// Write the metadata about the data partition into the ASCII file named
 /// "-part.txt".
 void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
 			  const char* dir) const {
@@ -1369,7 +1369,7 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
 		   static_cast<long unsigned>(nrows),
 		   static_cast<long unsigned>(plist.size()), filename);
     delete [] filename;
-} // ibis::part::writeTDC()
+} // ibis::part::writeTDC
 
 /// Make a deep copy of the incoming name-value pairs.
 void ibis::part::setMetaTags(const ibis::resource::vList &mts) {
@@ -4521,9 +4521,6 @@ long ibis::part::calculate(const ibis::math::term &trm,
 		    << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << res.size()
 		    << " value" << (res.size() > 1 ? "s" : "");
-#if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "\nmask\n" << msk << "\nhit vector\n" << hits;
-#endif
     }
     if (ierr >= 0)
 	ierr = res.size();
@@ -4596,12 +4593,14 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 // actually compute the min and max of each attribute and write out a new
 // TDC file
 void ibis::part::computeMinMax() {
+    writeLock lock(this, "computeMinMax");
     for (columnList::iterator it=columns.begin(); it!=columns.end(); ++it) {
 	(*it).second->computeMinMax();
     }
-    if (activeDir == 0) return;
 
+    if (activeDir == 0) return;
     writeTDC(nEvents, columns, activeDir);
+
     Stat_T tmp;
     if (backupDir != 0 && *backupDir != 0) {
 	if (UnixStat(backupDir, &tmp) == 0) {
@@ -4614,6 +4613,7 @@ void ibis::part::computeMinMax() {
 /// May use @c nthr threads to build indices.
 /// @sa ibis::part::loadIndex
 void ibis::part::buildIndex(int nthr, const char* opt) {
+    writeLock lock(this, "buildIndex");
     ibis::horometer timer;
     timer.start();
     if (ibis::gVerbose > 5)
@@ -4690,6 +4690,16 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 		    << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
 		    << " took " << timer.CPUTime() << " CPU seconds and "
 		    << timer.realTime() << " elapsed seconds";
+    }
+
+    if (activeDir == 0) return;
+    writeTDC(nEvents, columns, activeDir);
+    Stat_T tmp;
+    if (backupDir != 0 && *backupDir != 0) {
+	if (UnixStat(backupDir, &tmp) == 0) {
+	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
+		writeTDC(nEvents, columns, backupDir);
+	}
     }
 } // ibis::part::buildIndex
 

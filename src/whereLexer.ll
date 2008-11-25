@@ -126,7 +126,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     return token::NUMSEQ;
 }
 
-\({WS}*({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))*{WS}*\) {
+\({WS}*({QUOTED}|{NAME}){WS}*({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a string sequence: " << yytext;

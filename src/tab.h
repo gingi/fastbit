@@ -40,8 +40,10 @@ public:
     virtual typeList columnTypes() const;
 
     virtual void describe(std::ostream&) const;
-    virtual int dump(std::ostream&, const char*) const {return 0;}
-    virtual int dump(std::ostream&, uint64_t, const char*) const {return 0;}
+    virtual int dump(std::ostream& out, const char*) const {
+	if (ibis::gVerbose > 0) out << "(empty table)\n"; return 0;}
+    virtual int dump(std::ostream& out, uint64_t, const char*) const {
+	if (ibis::gVerbose > 0) out << "(empty table)\n"; return 0;}
 
     virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
     virtual int64_t getColumnAsUBytes(const char*,

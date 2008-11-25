@@ -600,7 +600,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTD
 	ncases=`expr 1 + $$ncases`; $(ECHO); $(ECHO) "test case # $${ncases}"; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
 	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
-	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 4" scripts/query-count.list ${TESTDIR} && npassed=`expr 1 + $$npassed`; \
+	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 2" scripts/query-count.list ${TESTDIR} && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	$(ECHO); $(ECHO) $@: passed $${npassed} out of $${ncases} test cases; $(ECHO)
 	@$(ECHO)
@@ -611,7 +611,7 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTDIR
 	rm -f ${TESTDIR}/0/test?/*.idx ${TESTDIR}/0/test?/*.bin; \
 	$(ECHO); \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 4" scripts/query-count.list ${TESTDIR}; \
+	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 2" scripts/query-count.list ${TESTDIR}; \
 	done;
 	@$(ECHO)
 #

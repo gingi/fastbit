@@ -558,7 +558,10 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	    lg.buffer() << "matching arrays cnts with bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	    if (ierr > 0)
-		lg.buffer() << "\nNOTE: due to the different number of internal bins used for the adaptive histograms, get3DDistribution and get3DBins may not produce exactly the same answers";
+		lg.buffer() << "\nNOTE: due to the different numbers of "
+		    "internal bins used for the adaptive histograms, "
+		    "get3DDistribution and get3DBins may not produce "
+		    "exactly the same answers";
 	}
     }
 } // print2DDistribution
@@ -728,7 +731,10 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	    lg.buffer() << "matching arrays cnts with bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	    if (ierr > 0)
-		lg.buffer() << "\nNOTE: due to the different number of internal bins used for the adaptive histograms, get3DDistribution and get3DBins may not produce exactly the same answers";
+		lg.buffer() << "\nNOTE: due to the different numbers of "
+		    "internal bins used for the adaptive histograms, "
+		    "get3DDistribution and get3DBins may not produce "
+		    "exactly the same answers";
 	}
     }
 } // print3DDistribution
@@ -1670,9 +1676,9 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    sel1->dump(output, limit, ", ");
 	}
     }
-    else if (ibis::gVerbose > 0) {
+    else if (ibis::gVerbose >= 0) {
 	ibis::util::logger lg(0);
-	if (limit == 0) {
+	if (limit == 0 && sel1->nColumns() > 0) {
 	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
 		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
 	    lg.buffer() << "tableSelect -- the first " << limit << " rows of "

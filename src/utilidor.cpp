@@ -1213,7 +1213,6 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 	ibis::util::sortStrings_shell(keys, vals, begin, end);
 	return end;
     }
-    //const uint32_t nelm = end - begin;
 
     // sort three values at position 0, nelm/2, and nelm-1
     if (keys[begin].compare(keys[(begin+end)/2]) > 0) {
@@ -1279,6 +1278,7 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 	}
     }
 #if defined(DEBUG)
+    const uint32_t nelm = end - begin;
     uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);

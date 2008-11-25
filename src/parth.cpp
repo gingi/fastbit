@@ -3088,7 +3088,7 @@ long ibis::part::get1DDistribution(const ibis::column &col, uint32_t nbin,
     if (counts[0] > 0) { // add the actual minimal as the bounds[0]
 	bounds.reserve(counts.size()+1);
 	bounds.resize(bounds.size()+1);
-	for (size_t i = bounds.size()-1; i > 1; -- i)
+	for (size_t i = bounds.size()-1; i > 0; -- i)
 	    bounds[i] = bounds[i-1];
 	bounds[0] = amin;
     }
@@ -3099,9 +3099,16 @@ long ibis::part::get1DDistribution(const ibis::column &col, uint32_t nbin,
 	counts.resize(nc);
     }
     if (counts.back() > 0) { // add the largest values as the end of last bin
-	if (bounds.back() < amax) {
+	if (amax - bounds.back() >= 0.0) {
 	    if (col.isFloat()) {
-		bounds.push_back(ibis::util::incrDouble(amax));
+		double tmp;
+		if (bounds.size() > 1)
+		    tmp = ibis::util::compactValue
+			(amax, amax + (bounds[bounds.size()-1] -
+				       bounds[bounds.size()-2]));
+		else
+		    tmp = ibis::util::incrDouble(amax);
+		bounds.push_back(tmp);
 	    }
 	    else {
 		bounds.push_back(std::floor(amax) + 1.0);

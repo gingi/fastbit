@@ -933,7 +933,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	    lg.buffer() << "ibis::fileManager -- getFile(" << name
 			<< ") took " << treal << " sec(elapsed) ["
 			<< tcpu << " sec(CPU)] to "
-			<< (tmp->isFileMap()?"mmap":"read") << tmp->size()
+			<< (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
 			<< " bytes at a speed of " << rt2
 			<< " MB/s [" << rt1 << "]";
 	    if (ibis::gVerbose > 11) {
@@ -1091,7 +1091,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    lg.buffer() << "ibis::fileManager -- tryGetFile(" << name
 			<< ") took " << treal << " sec(elapsed) ["
 			<< tcpu  << " sec(CPU)] to "
-			<< (tmp->isFileMap()?"mmap":"read") << tmp->size()
+			<< (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
 			<< " bytes at a speed of " << rt2
 			<< " MB/s [" << rt1 << "]";
 	    if (ibis::gVerbose > 11) {
@@ -1246,7 +1246,7 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	    lg.buffer() << "ibis::fileManager -- getFileSegment(" << name
 			<< ") took " << treal <<  " sec(elapsed) ["
 			<< tcpu << " sec(CPU)] to "
-			<< (st->isFileMap()?"mmap":"read") << st->size()
+			<< (st->isFileMap()?"mmap ":"read ") << st->size()
 			<< " bytes at a speed of " << rt2 << " MB/s ["
 			<< rt1 << "]";
 	    if (ibis::gVerbose > 11) {

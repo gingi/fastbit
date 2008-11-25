@@ -1,3 +1,29 @@
+2008-11-24 John Wu <John.Wu at ACM.org>
+	* src/parth.cpp:3091 change "i > 1" to "i > 0" in
+	ibis::part::get1DDistribution to fix an error in histogram
+	computation found by Niklas Bulitta
+	* src/parth.cpp:3102 change test to produce a tighter upper bound
+	for the last bin boundary
+	* src/part.cpp: add write lock to computeMinMax and buildIndex
+	* examples/ibis.cpp:679 change ibis::gVerbose > 0 to
+	ibis::gVerbose >= 0, to print selected values without requiring -v
+	option
+	* src/ifade.cpp, src/isapid.cpp, src/isbiad.cpp, src/islice.cpp:
+	add cases to handle 6 more different types of integer values --
+	fixes an error observed by Niklas Bulitta
+	* tests/scripts/matchCounts.pl:45 change fgrep to egrep to catch
+	a larger variety of error messages
+	* tests/scripts/matchCounts.pl:38 convert all non-alphanumeric
+	characters in query condition to underscore so that the backup
+	file names may be acceptable on windows (under cygwin)
+	* src/utilidor.cpp:1281 add definition for nelm (used in DEBUG
+	code)
+	* src/part.cpp:4535 removed invalid DEBUG code
+	* src/whereLexer.ll:129 change STRSEQ to contain at least three
+	strings (to avoid trouble with one- and two-argument functions),
+	this also means that the string form of the 'IN' operator must
+	have at least three strings on the right-hand side
+
 2008-11-20 John Wu <John.Wu at ACM.org>
 	* examples/ardea.cpp:696 separate out the default branch in
 	parseNamesTypes to print a warning message
@@ -24,7 +50,7 @@
 2008-11-09 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/parth.cpp: add get1DBins, get2DBins, and
 	get3DBins and supporting functions
-	
+
 2008-11-07 John Wu <John.Wu at ACM.org>
 	* src/parth.cpp: move histogram functions from part.cpp to
 	parth.cpp

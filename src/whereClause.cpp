@@ -28,7 +28,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
     }
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "whereClause(" << cl
+	    << "Warning -- whereClause(" << cl
 	    << ") failed to parse the string into an expression tree";
 	if (expr_ != 0) {
 	    delete expr_;
@@ -71,7 +71,7 @@ int ibis::whereClause::parse(const char* cl) {
     }
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "whereClause(" << cl
+	    << "Warning -- whereClause(" << cl
 	    << ") failed to parse the string into an expression tree";
 	if (expr_ != 0) {
 	    delete expr_;

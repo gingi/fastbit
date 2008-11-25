@@ -483,6 +483,282 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 			    fnm.c_str());
 	}
 	break;}
+    case ibis::ULONG: {// unsigned long int
+	array_t<uint64_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::LONG: {// signed long int
+	array_t<int64_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::USHORT: {// unsigned short int
+	array_t<uint16_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::SHORT: {// signed short int
+	array_t<int16_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::UBYTE: {// unsigned char
+	array_t<unsigned char> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::BYTE: {// signed char
+	array_t<signed char> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("sbiad::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("sbiad::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
@@ -580,7 +856,8 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	return;
     default:
 	col->logWarning("sbiad::ctor", "unable to create bit sbiad index "
-			"for this type of column");
+			"for column type %s",
+			ibis::TYPESTRING[(int)col->type()]);
 	return;
     }
 

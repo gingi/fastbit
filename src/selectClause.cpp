@@ -34,8 +34,8 @@ ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
 	lexer = 0;
     }
     if (ierr != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "selectWhere(" << cl << ") failed to parse the string";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- selectWhere failed to parse string \"" << cl << "\"";
 	clear();
     }
 } // ibis::selectClause::selectClause
@@ -92,7 +92,8 @@ int ibis::selectClause::parse(const char *cl) {
     }
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "selectWhere::parse(" << cl << ") failed to parse the string";
+	    << "Warning -- selectWhere::parse failed to parse string\""
+	    << cl << "\"";
 	clear();
     }
     return ierr;
