@@ -3844,12 +3844,13 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 		addBounds(sml, rbd, nbp, eqw);
 	    }
 	    else { // the absolute value of lbd is very small
-		bounds.push_back(ibis::util::compactValue(3*lbd, 0.2*lbd));
+		if (lbd < 0.0)
+		    bounds.push_back(ibis::util::compactValue(3*lbd, 0.2*lbd));
 		bounds.push_back(0.0);
 		if (col->type() == ibis::FLOAT)
-		    addBounds(rbd*FLT_EPSILON, rbd, nbins-1, eqw);
+		    addBounds(rbd*1e-6, rbd, nbins-1, eqw);
 		else
-		    addBounds(rbd*DBL_EPSILON, rbd, nbins-1, eqw);
+		    addBounds(rbd*1e-10, rbd, nbins-1, eqw);
 	    }
 	}
 	else if (rbd >= -lbd * DBL_EPSILON) {

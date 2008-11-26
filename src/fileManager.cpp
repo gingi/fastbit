@@ -25,6 +25,11 @@
 #include <sys/stat.h>	// stat, open
 #include <time.h>
 #include <limits.h>
+
+#if defined(HAVE_SYS_SYSCTL) || defined(__APPLE__) || defined(__FreeBSD__)
+#include <sys/sysctl.h> // sysctl
+#endif
+
 #if defined(_WIN32) && defined(_MSC_VER)
 #  include <windows.h>
 #  include <psapi.h>	// GetPerformanceInfo, struct PERFORMANCE_INFORMATION
@@ -40,6 +45,9 @@ uint32_t ibis::fileManager::pagesize = 8192;
 #if defined(SAFE_COUNTS) || defined(DEBUG)
 pthread_mutex_t ibis::fileManager::countMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
+
+// default to about 256 MB
+#define _FASTBIT_DEFAULT_MEMORY_SIZE 256*1024*1024
 
 // explicit instantiation required
 template int ibis::fileManager::getFile<uint64_t>
@@ -571,7 +579,8 @@ ibis::fileManager::fileManager()
     }
     if (maxBytes < 10*1024*1024) {
 #ifdef _SC_PHYS_PAGES
-	uint64_t mem=0;
+	// most *nix flavors defines this for physical number of pages
+	uint64_t mem = 0;
 #ifdef _SC_PAGESIZE
 	pagesize = sysconf(_SC_PAGESIZE);
 	mem = static_cast<uint64_t>(sysconf(_SC_PHYS_PAGES)) * pagesize;
@@ -584,7 +593,37 @@ ibis::fileManager::fileManager()
 	    maxBytes = (ULONG_MAX - (ULONG_MAX>>2));
 	else if (mem > 0)
 	    maxBytes = mem;
-#elif defined(_PSAPI_H_) // has psapi
+#elif defined(CTL_HW) && (defined(HW_MEMSIZE) || defined(HW_PHYSMEM))
+	// BSD flavored systems provides sysctl for finding out the
+	// physical memory size
+	uint64_t mem = 0;
+	size_t len = sizeof(mem);
+	int mib[2] = {CTL_HW, 0};
+#ifdef HW_MEMSIZE
+	mib[1] = HW_MEMSIZE;
+#else
+	mib[1] = HW_PHYSMEM;
+#endif
+	if (sysctl(mib, 2, &mem, &len, NULL, 0) == 0 && len <= sizeof(mem)) {
+	    mem >>= 1;
+	    if (mem > ULONG_MAX)
+		maxBytes = (ULONG_MAX - (ULONG_MAX>>2));
+	    else if (mem > 0)
+		maxBytes = mem;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "fileManager failed to determine the physical memory size "
+		<< "with sysctl(CTL_HW=" << CTL_HW << ", HW_PHYSMEM="
+		<< HW_PHYSMEM << ") -- "
+		<< (errno != 0 ? strerror(errno) :
+		    (len != sizeof(mem)) ? "return value of incorrect size" :
+		    "unknwon error")
+		<< ", mem=" << mem;
+	    maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
+	}
+#elif defined(_PSAPI_H_)
+	// MS Windows uses psapi to physical memory size
 	PERFORMANCE_INFORMATION pi;
 	if (GetPerformanceInfo(&pi, sizeof(pi))) {
 	    size_t avail = pi.PhysicalAvailable;
@@ -614,7 +653,7 @@ ibis::fileManager::fileManager()
 // 	GetSystemInfo(&sysinfo);
 // 	pagesize = sysinfo.dwPageSize;
 #else
-	maxBytes = 200*1024*1024; // default to about 200 MB
+	maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
 	if (ibis::gVerbose > 2)
 	    ibis::util::logMessage("fileManager::ctor",
 				   "using a default value of %lu bytes",
@@ -1300,12 +1339,11 @@ int ibis::fileManager::unload(size_t size) {
     // collect the list of files that can be unloaded
     std::vector<fileList::iterator> candidates;
     fileList::iterator it;
-    size_t sum;
     time_t startTime = time(0);
     time_t current = startTime;
 
     while (current < startTime+FILEMANAGER_UNLOAD_TIME) { // will wait
-	sum = 0; // sum of the total bytes of the files can can be unloaded
+	size_t sum = 0; // sum of the total bytes that can can be unloaded
 	for (it=mapped.begin(); it!=mapped.end(); ++it) {
 	    if ((*it).second->inUse() == 0 &&
 		(*it).second->pastUse() > 0) {
@@ -1318,37 +1356,21 @@ int ibis::fileManager::unload(size_t size) {
 		sum += (*it).second->size();
 	    }
 	}
-	if (maxBytes <= totalBytes || totalBytes-sum > maxBytes-size) {
+	if (maxBytes <= totalBytes || totalBytes-sum > maxBytes-size)
 	    // invoke the external cleaners and recompute the total
-	    sum = 0;
 	    invokeCleaners();
-	    for (it=mapped.begin(); it!=mapped.end(); ++it) {
-		if ((*it).second->inUse() == 0 &&
-		    (*it).second->pastUse() > 0) {
-		    candidates.push_back(it);
-		    sum += (*it).second->size();
-		}
-	    }
-	    for (it=incore.begin(); it!=incore.end(); ++it) {
-		if ((*it).second->inUse() == 0 &&
-		    (*it).second->pastUse() > 0) {
-		    candidates.push_back(it);
-		    sum += (*it).second->size();
-		}
+
+	// collects the candidates to be removed
+	for (it=mapped.begin(); it!=mapped.end(); ++it) {
+	    if ((*it).second->inUse() == 0 &&
+		(*it).second->pastUse() > 0) {
+		candidates.push_back(it);
 	    }
 	}
-	else { // collects the candidates to be removed
-	    for (it=mapped.begin(); it!=mapped.end(); ++it) {
-		if ((*it).second->inUse() == 0 &&
-		    (*it).second->pastUse() > 0) {
-		    candidates.push_back(it);
-		}
-	    }
-	    for (it=incore.begin(); it!=incore.end(); ++it) {
-		if ((*it).second->inUse() == 0 &&
-		    (*it).second->pastUse() > 0) {
-		    candidates.push_back(it);
-		}
+	for (it=incore.begin(); it!=incore.end(); ++it) {
+	    if ((*it).second->inUse() == 0 &&
+		(*it).second->pastUse() > 0) {
+		candidates.push_back(it);
 	    }
 	}
 
@@ -1397,9 +1419,8 @@ int ibis::fileManager::unload(size_t size) {
 	    return 0;
 	}
 	else if (candidates.size() > 0) {
-	    sum = 0;
-	    while (candidates.size() > 0 &&
-		   maxBytes-size < totalBytes-sum)  {
+	    // note: totalBytes is updated when an object is deleted
+	    while (candidates.size() > 0 && maxBytes-size < totalBytes)  {
 		it = candidates.back();
 		roFile *tmp = (*it).second;
 		if (ibis::gVerbose > 4) {
@@ -1412,7 +1433,6 @@ int ibis::fileManager::unload(size_t size) {
 		    }
 		}
 
-		sum += tmp->size();
 		if (tmp->mapped) {
 		    mapped.erase(it);
 		}
@@ -1422,7 +1442,7 @@ int ibis::fileManager::unload(size_t size) {
 		delete tmp; // remove the target selected
 		candidates.resize(candidates.size()-1);
 	    }
-	    if (maxBytes-size >= totalBytes-sum)
+	    if (maxBytes-size >= totalBytes)
 		return 0;
 	}
 

@@ -1,3 +1,22 @@
+2008-11-25 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp:3850 make the lower bound larger to create more
+	bins for larger values in log-scale -- this affects the case of
+	indexing integer values as floating-point values and the minimum
+	value is exactly 0, in which case the majority of the bin
+	boundaries are less than 1 and useless
+	* src/column.cpp:4696 add a statement in evaluateRange to clear
+	the existing content of result variable (low), later statements
+	depend on the size of this variable to determine what to do
+	* configure.ac: update to autoconf 2.63
+	* src/fileManager.cpp: in function unload, clean up the usage of
+	variable sum, simplify the logic for determining what objects to
+	remove.  The previous usage of sum is incorrect in the loop
+	to free candiates.
+	* src/fileManager.cpp: add call to sysctl on BSD flavored machines
+	to find out the physical memory size
+	* tests: completed more-check successfully on portnoy (FreeBSD),
+	davinci(linux), data2 (linux), starsky(Darwin), and bit (cygwin)
+
 2008-11-24 John Wu <John.Wu at ACM.org>
 	* src/parth.cpp:3091 change "i > 1" to "i > 0" in
 	ibis::part::get1DDistribution to fix an error in histogram
@@ -26,7 +45,8 @@
 
 2008-11-20 John Wu <John.Wu at ACM.org>
 	* examples/ardea.cpp:696 separate out the default branch in
-	parseNamesTypes to print a warning message
+	parseNamesTypes to print a warning message (suggested by Niklas
+	Bulitta)
 
 2008-11-12 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:1666 change == to !=, write output file if it

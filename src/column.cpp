@@ -4693,6 +4693,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     ibis::bitvector mymask;
     getNullMask(mymask);
     mymask &= mask;
+    low.clear(); // clear the existing content
 
     try {
 	ibis::bitvector high;
@@ -4808,7 +4809,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 1)
+		LOGGER(ibis::gVerbose >= 3)
 		    << "Warning -- ibis::column[" << thePart->name()
 		    << "." << name() << "]::evaluateRange(" << cmp
 		    << ") -- idx(" << idx->name()

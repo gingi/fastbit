@@ -1,3 +1,13 @@
+Tue Nov 25 18:27:56 PST 2008
+Version ibis1.0.0
+-- modify ibis.cpp to accommodate new output produced by arithmetic
+   expressions in select clauses
+-- add warning messages as suggested by Niklas Bulitta
+-- address errors involving short integers (reported by Niklas) and
+   other types of integer variables when creating unbinned (precise)
+   bitmap indexes
+-- update test scripts to catch the errors discovered by Niklas
+
 Mon Nov 10 21:26:14 PST 2008
 Version b0.9.9
 -- add adaptive binning for 3D histograms

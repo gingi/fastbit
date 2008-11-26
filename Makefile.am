@@ -1,4 +1,5 @@
 AUTOMAKE_OPTIONS=gnu
+ACLOCAL_AMFLAGS=-I tests/m4
 SUBDIRS = src examples java tests
 windir = $(prefix)/share/win
 javadir = $(prefix)/share/java

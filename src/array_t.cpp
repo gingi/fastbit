@@ -34,7 +34,7 @@ array_t<T>::array_t()
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t<T> failed to allocate memory for an empty array";
+	    << "Warning -- array_t<T> failed to allocate an empty array";
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -49,7 +49,7 @@ array_t<T>::array_t(uint32_t n)
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t<T> failed to allocate memory for an array with "
+	    << "Warning -- array_t<T> failed to allocate an array with "
 	    << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
@@ -68,8 +68,8 @@ array_t<T>::array_t(uint32_t n, const T& val)
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t<T> failed to allocate memory for copying " << n
-	    << " element" << (n > 1 ? "s" : "");
+	    << "Warning -- array_t<T> failed to allocate memory for copying "
+	    << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -975,8 +975,9 @@ void array_t<T>::resize(uint32_t n) {
 	    }
 	    else {
 		m_end = m_begin;
-		LOGGER(ibis::gVerbose >= 0) << "array_t: unable to allocate " << n
-			  << " bytes, previous content lost!";
+		LOGGER(ibis::gVerbose >= 0)
+		    << "array_t: unable to allocate " << n
+		    << " bytes, previous content lost!";
 		throw ibis::bad_alloc("failed to resize array");
 	    }
 	}

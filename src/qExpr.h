@@ -404,9 +404,9 @@ namespace ibis {
 		      FREXP, LOG10, LOG, MODF, SIN, SINH, SQRT, TAN, TANH};
 	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, POW};
 
-	extern char* operator_name[];
-	extern char* stdfun1_name[];
-	extern char* stdfun2_name[];
+	extern const char* operator_name[];
+	extern const char* stdfun1_name[];
+	extern const char* stdfun2_name[];
 
 	/// All types of terms allowed in a compRange.
 	class term : public ibis::qExpr { // abstract term class
