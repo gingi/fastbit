@@ -198,7 +198,7 @@ void ibis::dictionary::clear() {
 	++ it; // leave the <NULL> entry alone
 	if (newentry > 1) {
 	    delete [] *it; // all entries from [1:newentry) are deleted here
-	    it += newentry;
+	    it += (newentry-1);
 	}
 	if (svec.size() > newentry) {
 	    while (it != svec.end()) {

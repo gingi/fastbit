@@ -2139,7 +2139,7 @@ void ibis::fileManager::roFile::beginUse() {
 	ibis::fileManager::instance().gainReadAccess(name);
 #if defined(DEBUG) && defined(SAFE_COUNTS)
 	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
-			       << " got a read lock on " << name;
+				    << " got a read lock on " << name;
 #endif
     }
     lastUse = time(0);
@@ -2164,7 +2164,7 @@ void ibis::fileManager::roFile::endUse() {
 	ibis::fileManager::instance().releaseAccess(name);
 #if defined(DEBUG) && defined(SAFE_COUNTS)
 	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
-			       << " released the lock on " << name;
+				    << " released the lock on " << name;
 #endif
 	// signal to ibis::fileManager that this file is ready for deletion
 	if (nref == 0)

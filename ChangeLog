@@ -1,3 +1,9 @@
+2008-11-28 John Wu <John.Wu at ACM.org>
+	* src/category.cpp:201 incremented it by (newentry-1) instead of
+	newentry
+	* tests/readcsv.cpp: change header files to satisfy g++-4 under
+	cygwin
+
 2008-11-25 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp:3850 make the lower bound larger to create more
 	bins for larger values in log-scale -- this affects the case of

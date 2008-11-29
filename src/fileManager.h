@@ -213,7 +213,7 @@ private:
 	    }
 	    else
 		ibis::util::logMessage("Warning", "fileManager::mutexLock for "
-				       "%s failed to initialize because %s ",
+				       "%s failed to initialize -- %s ",
 				       mesg, strerror(errno));
 	}
 	~mutexLock() {
@@ -224,7 +224,7 @@ private:
 	    }
 	    else
 		ibis::util::logMessage("Warning", "failed to release lock for "
-				       "%s because %s", mesg,
+				       "%s -- %s", mesg,
 				       strerror(errno));
 	}
     private:
@@ -464,7 +464,7 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::releaseAccess "
-			       "to %s" " returned %d because %s",
+			       "to %s" " returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // void ibis::fileManager::releaseAccess()
@@ -478,7 +478,7 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::gainReadAccess "
-			       "to %s returned %d because %s",
+			       "to %s returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // void ibis::fileManager::gainReadAccess()
@@ -492,7 +492,7 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::gainWriteAccess "
-			       "to %s returned %i because %s",
+			       "to %s returned %i -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // void ibis::fileManager::gainWriteAccess()

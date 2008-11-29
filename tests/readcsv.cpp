@@ -32,22 +32,20 @@
    an string.
 */
 #include <stdio.h>	// fopen, fgets
+#include <stdlib.h>	// exit
 #include <string.h>	// strlen
 #include <ctype.h>	// isdigit
 #include <time.h>	// time
+#include <unistd.h>	// chdir
 #if defined(__CYGWIN__)
 #include <sys/stat.h>	// mkdir
 #elif defined(__HOS_AIX__)
-#include <unistd.h>	// chdir
 #include <sys/stat.h>	// mkdir
 #elif defined(_WIN32)
 #include <direct.h>	// _mkdir, _chdir
 #elif defined(linux) || defined(unix) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/stat.h>	// mkdir
 #include <sys/types.h>
-#include <unistd.h>	// chdir
-#else
-#include <unistd.h>	// mkdir, chdir
 #endif
 
 #include <iostream>	// std::cout, std::cerr, std::endl
