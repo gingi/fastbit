@@ -38,7 +38,7 @@ The following is a brief description of the four examples.
 -- ardea.cpp exercises the functions to extend a table (API defined in
    ibis::tablex).
 
-The directory contains a number of HTML files that documents key
+The directory doc contains a number of HTML files that documents key
 features of FastBit.  In particular, the file quickstart.html contains
 brief instructions for basic tasks and should be useful starting for
 those not familiar with FastBit already.
@@ -49,13 +49,13 @@ in-line documentation
 
 make docs
 
-The resulting documentation will be in directory doc/html.
+The resulting documentation is in directory doc/html.
 Alternatively, you may view the on-line version of the documents at
 http://sdm.lbl.gov/fastbit/doc/.
 
 The FastBit mailing list could be a valuable resource.  It is archived
 on line at http://hpcrdm.lbl.gov/mailman/private/fastbit-users/.  If you have
-question not answered in the documents and the mailing list, post your
+question not answered in the documents or the mailing list, post your
 questions to the FastBit mailing list.  You need to first join the
 mailing list by visiting
 https://hpcrdm.lbl.gov/mailman/listinfo/fastbit-users.

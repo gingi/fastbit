@@ -1,3 +1,7 @@
+2008-12-1 John Wu <John.Wu at ACM.org>
+	* README, win/README, tests/README: update the instructions
+	following an inquiry from a new user
+
 2008-11-28 John Wu <John.Wu at ACM.org>
 	* src/category.cpp:201 incremented it by (newentry-1) instead of
 	newentry

@@ -1,15 +1,11 @@
 This directory contains a makefile (Win.mak) and a set of project files
 for building the library and the examples.  They require Visual Studio
 .NET or later as well as a version of pthreads-win32.  You have to edit
-this files to point to the correct locations of the compiler and the
-pthreads-win32 library.
+these files to point to the correct locations of the compiler and the
+pthreads-win32 library!
 
 Pthreads-win32 is available for download (under LGPL, for free) from
 http://sourceware.org/pthreads-win32/
-
-I have pthreads-win32 installed at C:\Tools\pthread.  If you install it
-in a different directory, you will need to edit file Win.mak and the
-properties of the Visual Studio projects.
 
 NOTE: Visual Studio may produce a large number of warnings, most of
 which are harmless as far as we know.  However, if you do notice
@@ -20,13 +16,6 @@ NOTE: Win.mak works with nmake that comes with Visual Studio.  Invoke it
 with command line such as
 
 nmake -f Win.mak all
-
-Due to extensive use of std::map and other STL classes that are hard to
-export in DLL, only the C API can be safely used in a DLL client.
-In December of 2007, we were able to get a test program running
-correctly for a short while, but that situation did not last very long.
-The DLL clients start to malfunction pretty quickly.  If you have any
-recommendataion on how to fix them, please email john dot wu at ACM dot org.
 
 NOTE: On a multi-core machine, VisualStudio 2008 will try to build
 multiple projects at the same time without checking whether there are
@@ -45,13 +34,13 @@ nmake -f Win.mak clean && nmake -f Win.mak dll && nmake -f win.mak trydll
 
 The test program trydll.cpp is a modified version of
 ..\examples\ibis.cpp with troublesome functions removed.  It maintains
-the key functionality of ibis.cpp, which exercise the ibis::part and
+the key functionality of ibis.cpp, which exercises the ibis::part and
 ibis::query functions.
 
 The test program tcapi.c exercises the C API of FastBit.  Please refere
 the source code ..\examples\tcapi.c for usage of tcapi.exe.
 
-Here is a set of comments to try assuming that you've built tcapi.exe
+Here is a set of commands to try, assuming that you've built tcapi.exe
 and trydll.exe in this directory.
 
 # generate a sample data with 100 rows and 3 columns named a, b, and c
@@ -67,7 +56,8 @@ trydll.exe -d tmp -q "select c where a < 10"
 To compile under MinGW/MSYS with dll use the following command
 make -f MinGW.mak pthreads-w32 dll trydll tcapi
 
-NOTE: One can not compile examples/ibis.cpp, use win/trydll.cpp instead.
+NOTE: In case examples/ibis.cpp fails to compile, try win/trydll.cpp
+instead.
 
 Known problem with DLL under MS windows (either Visual studio or MinGW/MSYS)
 
@@ -89,15 +79,16 @@ NOTE: The test suite in ../tests rely on too many features that are only
       Windows.
 
 Sept. 27, 2008 On some windows machines, under visual studio, the
-compilation process once in a while fails for not being able to write
-certain files.  Usually rebuild a second time fix the problem -- not
-sure where is the really problem.
+compilation fails once in a while for not being able to write certain
+files.  Usually rebuild a second time fix the problem -- not sure where
+is the real problem.
 
 Oct. 1, 2008 added FlexLexer.h so that the new version of parser code
 can compile under MS windows systems
 
 Nov. 11, 2008: If your version of VisualStudio complains about the
 version of the project files being too new or too old, you should be
-able to open those files and manually change the version numbers.
-The few times I have tried this, they all worked out fine for me.
-Guess, the project files here are relatively simple.
+able to open those files in a text editor and change the version numbers
+to those of your VisualStudio installation.  The few times I have tried
+this, they all worked out fine.  If you have a better solution to this
+little problem, please email yours to <fastbit-users@hpcrdm.lbl.gov>.
