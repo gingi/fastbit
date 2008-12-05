@@ -879,6 +879,8 @@ const char* ibis::util::userName() {
 	char buf[64];
 	if (GetUserName(buf, &len))
 	    uid = buf;
+#elif defined(__MINGW32__)
+	// MinGW does not have support for user names?!
 #elif defined(_POSIX_VERSION)
 	// the trusted getpwuid(getuid()) combination
 	struct passwd *pass = getpwuid(getuid());

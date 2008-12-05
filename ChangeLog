@@ -1,3 +1,9 @@
+2008-12-4 John Wu <John.Wu at ACM.org>
+	* win/Win.mak, win/MinGW.mak: update makefiles for Visual Studio's
+	nmake and GNU make under MinGW/MinSYS
+	* src/util.cpp: add conditional comiplation macro for MinGW32 in
+	ibis::util::userName()
+
 2008-12-1 John Wu <John.Wu at ACM.org>
 	* README, win/README, tests/README: update the instructions
 	following an inquiry from a new user

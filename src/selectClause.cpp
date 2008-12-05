@@ -99,6 +99,7 @@ int ibis::selectClause::parse(const char *cl) {
     return ierr;
 } // ibis::selectClause::parse
 
+/// Write the string form of the ith term into str.
 void ibis::selectClause::describe(unsigned i, std::string &str) const {
     if (i >= terms_.size()) return;
     std::ostringstream oss;
