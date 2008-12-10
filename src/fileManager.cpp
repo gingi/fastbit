@@ -346,16 +346,17 @@ void ibis::fileManager::printStatus(std::ostream& out) const {
 	 it0 != mapped.end(); ++it0) {
 	mtot += (*it0).second->printStatus(out);
     }
-    out << "\nThe total bytes of all mapped files is " << mtot << std::endl;
+    out << "\nSize of all mapped files is " << mtot << std::endl;
     out << "\n\nThe number of files read into memory is " << incore.size()
 	<< ".\n";
     for (fileList::const_iterator it1 = incore.begin();
 	 it1 != incore.end(); ++it1) {
 	itot += (*it1).second->printStatus(out);
     }
-    out << "\nThe total bytes of all files read into memory is " << itot
+    out << "\nSince of all files read into memory is " << itot
 	<< std::endl;
-    out << "\nThe total size of all named storages is " << itot + mtot
+    out << "\nSize of all named storages is " << itot + mtot
+	<< "\nSize of all unnamed storages is " << totalBytes - (itot + mtot)
 	<< "\nThe total size of all named and unnamed storages is "
 	<< totalBytes
 	<< "\nThe prescribed maximum size is " << maxBytes
@@ -484,10 +485,11 @@ void ibis::fileManager::flushDir(const char* name) {
     }
 } // ibis::fileManager::flushDir
 
-// clear the two lists of files
+/// Clear the two lists of files.
 void ibis::fileManager::clear() {
-    if (ibis::gVerbose > 12) {
-	ibis::util::logger lg(12);
+    if (ibis::gVerbose > 12 || (totalBytes > 0 && ibis::gVerbose > 6)) {
+	ibis::util::logger lg(2);
+	lg.buffer() << "ibis::fileManager::clear -- starting ...";
 	printStatus(lg.buffer());
     }
 
@@ -510,9 +512,11 @@ void ibis::fileManager::clear() {
     for (std::vector<roFile*>::iterator it = tmp.begin();
 	 it != tmp.end(); ++ it)
 	delete (*it);
-    if ((totalBytes != 0 && ibis::gVerbose > 0) || ibis::gVerbose > 12)
-	ibis::util::logMessage("fileManager::clear", "There are %lu bytes "
-			       "of storage remain in memory", totalBytes);
+
+    LOGGER((totalBytes != 0 && ibis::gVerbose > 0) || ibis::gVerbose > 12)
+	<< "fileManager::clear -- There are " << totalBytes
+	<< " byte" << (totalBytes>1 ? "s" : "")
+	<< " of storage remain in memory after removing all managed objects";
 } // ibis::fileManager::clear
 
 void ibis::fileManager::addCleaner(const ibis::fileManager::cleaner* cl) {

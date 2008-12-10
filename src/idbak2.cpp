@@ -848,8 +848,8 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     nobs = 0;
     for (ibis::bak2::bakMap::const_iterator ir = bmap.begin();
 	 ir != bmap.end(); ++ ir) {
-	nobs += ((*ir).second.loc0 != 0);
-	nobs += ((*ir).second.loc1 != 0);
+	nobs += static_cast<unsigned>((*ir).second.loc0 != 0)
+	    + static_cast<unsigned>((*ir).second.loc1 != 0);
     }
     // initialize the arrays
     bits.resize(nobs);
@@ -860,7 +860,7 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     // copy the values
     ibis::bak2::bakMap::iterator it = bmap.begin();
     for (uint32_t i = 0; i < nobs; ++it) {
-	if ((*it).second.loc0) {
+	if ((*it).second.loc0 != 0) {
 	    bits[i] = (*it).second.loc0;
 	    if (i > 0)
 		bounds[i] = ibis::util::compactValue
@@ -875,7 +875,7 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
 	    (*it).second.loc0 = 0;
 	    ++ i;
 	}
-	if ((*it).second.loc1) {
+	if ((*it).second.loc1 != 0) {
 	    bits[i] = (*it).second.loc1;
 	    bounds[i] = (*it).second.min1;
 	    minval[i] = (*it).second.min1;

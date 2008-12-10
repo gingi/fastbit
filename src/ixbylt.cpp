@@ -162,7 +162,7 @@ void ibis::bylt::coarsen() {
 	    ncoarse = ncmax;
 	}
     }
-    if (ncoarse < 5 || ncoarse <= vals.size()) return;
+    if (ncoarse < 5 || ncoarse >= vals.size()) return;
 
     // partition the fine level bitmaps into groups with nearly equal
     // number of bytes
@@ -1690,7 +1690,7 @@ void ibis::bylt::print(std::ostream& out) const {
     out << "the range-equality encoded bitmap index for "
 	<< col->partition()->name() << '.'
 	<< col->name() << " contains " << nc+1 << " coarse bin"
-	<< (nc>0 ? "s" : "") << " and " << bits.size()
+	<< (nc>1 ? "s" : "") << " and " << bits.size()
 	<< " fine bit vectors for " << nrows << " objects\n";
     uint32_t nprt = (ibis::gVerbose < 30 ? 1 << ibis::gVerbose : bits.size());
     uint32_t omitted = 0;

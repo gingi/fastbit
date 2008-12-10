@@ -400,12 +400,12 @@ void ibis::fuge::adjustLength(uint32_t nr) {
 
 // the printing function
 void ibis::fuge::print(std::ostream& out) const {
-    out << "index (binned interval-equality code) for "
-	<< col->partition()->name() << '.' << col->name()
-	<< " contains " << nobs+1 << " coarse bins for "
-	<< nrows << " objects \n";
     const uint32_t nc = (cbounds.empty() ? 0U : cbounds.size()-1);
     const uint32_t ncb = nc+1 - (nc+1)/2;
+    out << "index (binned interval-equality code) for "
+	<< col->partition()->name() << '.' << col->name()
+	<< " contains " << nc << " coarse bin" << (nc > 1 ? "s" : "")
+	<< ", " << nobs << " fine bins for " << nrows << " objects \n";
     uint32_t nprt = (ibis::gVerbose < 30 ? 1 << ibis::gVerbose : bits.size());
     uint32_t omitted = 0;
     uint32_t end;
@@ -741,7 +741,7 @@ void ibis::fuge::coarsen() {
 	    ncoarse = ncmax;
 	}
     }
-    if (ncoarse < 5 || ncoarse <= nobs) return;
+    if (ncoarse < 5 || ncoarse >= nobs) return;
 
     const uint32_t nc2 = (ncoarse + 1) / 2;
     const uint32_t ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps

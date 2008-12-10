@@ -161,7 +161,7 @@ void ibis::fuzz::coarsen() {
 	    ncoarse = ncmax;
 	}
     }
-    if (ncoarse < 5 || ncoarse <= vals.size()) return;
+    if (ncoarse < 5 || ncoarse >= vals.size()) return;
 
     const uint32_t nc2 = (ncoarse + 1) / 2;
     const uint32_t ncb = ncoarse - nc2 + 1; // # of coarse level bitmaps
