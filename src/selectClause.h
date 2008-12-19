@@ -69,6 +69,7 @@ public:
     selectClause& operator=(const selectClause& rhs) {
 	selectClause tmp(rhs);
 	swap(tmp);
+	return *this;
     }
     /// Swap the content of two select clauses.
     void swap(selectClause& rhs) {

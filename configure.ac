@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.63)
 
-AC_INIT([FastBit],[ibis1.0.0],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.0.1],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/config.h])

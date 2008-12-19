@@ -1,3 +1,17 @@
+2008-12-18 John Wu <John.Wu at ACM.org>
+	* src/mensa.h, src/mensa.cpp, src/bord.cpp: add function dumpNames
+	* examples/ibis.cpp: add outputnamestoo to capture the request to
+	also output the column names in the output file
+	* doc/ibisCommandLine.html: update the description of option
+	-output to indicate the new variant -output-with-header
+	* tests/Makefile.am: capitalize the word NOT to make failure
+	messages stand out a little bit more
+	* src/selectClause.h:72 add (required) return statement
+
+2008-12-17 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tab.h, src/bord.h: add function dumpNames to
+	print a one-line header for CSV output
+
 2008-12-9 John Wu <John.Wu at ACM.org>
 	* src/ixbylt.cpp, src/ixfuge.cpp, src/ixfuzz.cpp: the function
 	coarsen contains an incorrect test, the condition (ncoarse < 5 ||
@@ -88,7 +102,8 @@
 	* src/mensa.h: add default constructor to ibis::mensa
 	* example/ibis.cpp: add function tableSelect to process queries
 	using the select function of ibis::table interface (which can
-	handle arithmetic expressions in the select clauses)
+	handle arithmetic expressions in the select clauses and combines
+	answers from different data partitions)
 
 2008-11-09 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/parth.cpp: add get1DBins, get2DBins, and

@@ -1,3 +1,12 @@
+Thu Dec 18 10:47:05 PST 2008
+Version ibis1.0.1
+-- correct errors in two-level indexes that prevented them from actually
+   generating the coarse level
+-- update README file in various directories
+-- update Makefiles for MinGW and Visual Studio
+-- add option -output-with-header as a variant of -output as requested
+   by David Marks
+
 Tue Nov 25 18:27:56 PST 2008
 Version ibis1.0.0
 -- modify ibis.cpp to accommodate new output produced by arithmetic

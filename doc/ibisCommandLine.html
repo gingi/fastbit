@@ -264,12 +264,15 @@ command line.
 
 <li><code>-o[utput] filename</code>
 <br>Tell <code>ibis</code> to append the result of select statements to
-the name file rather than to standard output.  The output are
+the named file rather than to standard output.  The output are
 coma-separated values.
 
 <p>
-<em>NOTE</em>: the output file contains an header of the variable names
-and functions.  No type information is provided.
+<em>NOTE</em>: Each set of results from a select statement will be
+preceded by a line of column names if the option appears as
+-output-[with-header] (the command line tool ibis only check till the
+second dash, nothing more).  If multiple select statements are
+specified, a header line for each select statement is printed.
 <p>
 <em>NOTE</em>: this file contains the results of the select statments
 only.  Other messages, such as errors, progress information, and debug

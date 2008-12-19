@@ -105,6 +105,7 @@ static bool sequential_scan = false;
 static bool verify_rid = false;
 static bool zapping = false;
 static bool appendToOutput = false;
+static bool outputnamestoo = false;
 static const char *ridfile = 0;
 static const char *appendto = 0;
 static const char *outputfile = 0;
@@ -1090,6 +1091,9 @@ static void parse_args(int argc, char** argv,
 		}
 		else if (i+1 < argc && argv[i+1][0] != '-') {
 		    // output file specified
+		    if (! outputnamestoo)
+			outputnamestoo =
+			    (0 == strnicmp(argv[i]+2, "utput-", 6));
 		    outputfile = argv[i+1];
 		    i = i + 1;
 		}
@@ -1673,6 +1677,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    std::ofstream output(outputfile, std::ios::out |
 				 (appendToOutput ? std::ios::app :
 				  std::ios::trunc));
+	    if (outputnamestoo)
+		sel1->dumpNames(output, ", ");
 	    sel1->dump(output, limit, ", ");
 	}
     }
@@ -1688,6 +1694,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    lg.buffer() << "tableSelect -- the results of " << sqlstring
 			<< "\n";
 	}
+	if (outputnamestoo)
+	    sel1->dumpNames(lg.buffer(), ", ");
 	sel1->dump(lg.buffer(), limit, ", ");
     }
     delete sel1;

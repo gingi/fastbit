@@ -41,6 +41,7 @@ public:
     virtual int addPartition(const char* dir);
 
     virtual void describe(std::ostream&) const;
+    virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
 

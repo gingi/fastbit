@@ -939,6 +939,42 @@ void ibis::bord::part::describe(std::ostream& out) const {
     out << std::endl;
 } // ibis::bord::part::describe
 
+void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
+    if (columns.empty()) return;
+
+    if (colorder.empty()) {
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it) {
+	    if (it != columns.begin())
+		out << del;
+	    out << (*it).first;
+	}
+    }
+    else if (colorder.size() == columns.size()) {
+	out << colorder[0]->name();
+	for (size_t i = 1; i < columns.size(); ++ i)
+	    out << del << colorder[i]->name();
+    }
+    else {
+	std::set<const char*, ibis::lessi> names;
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    names.insert((*it).first);
+	for (size_t i = 0; i < colorder.size(); ++ i) {
+	    if (i > 0)
+		out << del;
+	    out << colorder[i]->name();
+	    names.erase(colorder[i]->name());
+	}
+	for (std::set<const char*, ibis::lessi>::const_iterator it =
+		 names.begin(); it != names.end(); ++ it) {
+	    ibis::part::columnList::const_iterator cit = columns.find(*it);
+	    out << del << (*cit).first;
+	}
+    }
+    out << std::endl;
+} // ibis::bord::part::dumpNames
+
 /**
    return values:
    0  -- normal (successful) completion

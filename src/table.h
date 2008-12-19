@@ -91,6 +91,8 @@ public:
 
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const=0;
+    /// Print all column names on one line.
+    virtual void dumpNames(std::ostream& out, const char* del=", ") const=0;
     /// Print the values in ASCII form to the specified output stream.  The
     /// default delimiter is coma (","), which produces
     /// Comma-Separated-Values (CSV).

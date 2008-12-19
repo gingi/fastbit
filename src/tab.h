@@ -40,6 +40,7 @@ public:
     virtual typeList columnTypes() const;
 
     virtual void describe(std::ostream&) const;
+    virtual void dumpNames(std::ostream&, const char*) const {}
     virtual int dump(std::ostream& out, const char*) const {
 	if (ibis::gVerbose > 0) out << "(empty table)\n"; return 0;}
     virtual int dump(std::ostream& out, uint64_t, const char*) const {
@@ -125,6 +126,7 @@ public:
     virtual typeList columnTypes() const;
 
     virtual void describe(std::ostream&) const;
+    virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream& out, uint64_t nr, const char* sep) const {
 	if (nr > 0) return dump(out, sep); else return 0;}
@@ -311,7 +313,11 @@ inline void ibis::tabele::describe(std::ostream& out) const {
 	<< std::endl;
 }
 
-inline int ibis::tabele::dump(std::ostream& out, const char* del) const {
+inline void ibis::tabele::dumpNames(std::ostream& out, const char*) const {
+    out << col << std::endl;
+}
+
+inline int ibis::tabele::dump(std::ostream& out, const char *) const {
     out << nrows << std::endl;
     return 0;
 }

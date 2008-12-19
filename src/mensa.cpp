@@ -208,6 +208,16 @@ void ibis::mensa::describe(std::ostream& out) const {
     out << std::endl;
 } // ibis::mensa::describe
 
+void ibis::mensa::dumpNames(std::ostream& out, const char* del) const {
+    if (naty.empty()) return;
+
+    ibis::table::namesTypes::const_iterator it = naty.begin();
+    out << (*it).first;
+    for (++ it; it != naty.end(); ++ it)
+	out << del << (*it).first;
+    out << std::endl;
+} // ibis::mensa::dumpNames
+
 const char* ibis::mensa::indexSpec(const char* colname) const {
     if (parts.empty()) {
 	return 0;

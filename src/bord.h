@@ -36,6 +36,7 @@ public:
     virtual ibis::table::typeList columnTypes() const;
 
     virtual void describe(std::ostream&) const;
+    virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
 
@@ -116,6 +117,7 @@ protected:
 	virtual int dump(std::ostream&, size_t, const char*) const;
 
 	void describe(std::ostream&) const;
+	void dumpNames(std::ostream&, const char*) const;
 	void reverseRows();
 	int limit(size_t);
 
@@ -263,6 +265,10 @@ private:
 inline void ibis::bord::describe(std::ostream &out) const {
     mypart.describe(out);
 } // ibis::bord::describe
+
+inline void ibis::bord::dumpNames(std::ostream &out, const char* del) const {
+    mypart.dumpNames(out, del);
+} // ibis::bord::dumpNames
 
 inline int ibis::bord::dump(std::ostream &out, const char* del) const {
     return mypart.dump(out, mypart.nRows(), del);

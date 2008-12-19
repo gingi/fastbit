@@ -118,6 +118,7 @@ long ibis::zona::append(const char* dt, const char* df, uint32_t nnew) {
     return ret;
 }
 
+/// Produces the coarse bins.
 void ibis::zona::coarsen() {
     const uint32_t ncoarse = 11; // default number of coarse bins (w=64, 16)
     const uint32_t nbits = bits.size();
