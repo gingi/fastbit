@@ -1,3 +1,8 @@
+2008-12-23 John Wu <John.Wu at ACM.org>
+	* src/part.h: add get1DBins, get2DBins and get3DBins that takes
+	(begin, end, stride) triples to define exact bin boundaries (a
+	feature requested by Prabhat and Oliver Rubel)
+
 2008-12-18 John Wu <John.Wu at ACM.org>
 	* src/mensa.h, src/mensa.cpp, src/bord.cpp: add function dumpNames
 	* examples/ibis.cpp: add outputnamestoo to capture the request to

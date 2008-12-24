@@ -465,13 +465,14 @@ static void printDistribution(const ibis::partList& tlist) {
 // print the joint distribution -- exercise the new get2DDistribution
 static void print2DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *cond) {
+    const uint32_t NB1 = 25;
     std::vector<double> bds1, bds2;
     std::vector<uint32_t> cnts;
     long ierr;
     if (cond == 0 || *cond == 0)
-	ierr = tbl.get2DDistribution(col1, col2, 125, 125, bds1, bds2, cnts);
+	ierr = tbl.get2DDistribution(col1, col2, NB1, NB1, bds1, bds2, cnts);
     else
-	ierr = tbl.get2DDistribution(cond, col1, col2, 25, 25, bds1, bds2,
+	ierr = tbl.get2DDistribution(cond, col1, col2, NB1, NB1, bds1, bds2,
 				     cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	ibis::util::logger lg(0);
@@ -510,7 +511,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
     if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;
 	std::vector<double> bdt1, bdt2;
-	ierr = tbl.get2DBins(cond, col1, col2, 25, 25, bdt1, bdt2, bins);
+	ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
 	ibis::util::logger lg(0);
 	lg.buffer() << "\nprint2DDistribution(" << col1 << ", " << col2
 		    << ") -- \n";
@@ -561,7 +562,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	    if (ierr > 0)
 		lg.buffer() << "\nNOTE: due to the different numbers of "
 		    "internal bins used for the adaptive histograms, "
-		    "get3DDistribution and get3DBins may not produce "
+		    "get2DDistribution and get2DBins may not produce "
 		    "exactly the same answers";
 	}
     }
@@ -624,14 +625,15 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 static void print3DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *col3,
 				const char *cond) {
+    const uint32_t NB1 = 100;
     std::vector<double> bds1, bds2, bds3;
     std::vector<uint32_t> cnts;
     long ierr;
     if (cond == 0 || *cond == 0)
-	ierr = tbl.get3DDistribution(col1, col2, col3, 25, 25, 25,
+	ierr = tbl.get3DDistribution(col1, col2, col3, NB1, NB1, NB1,
 				     bds1, bds2, bds3, cnts);
     else
-	ierr = tbl.get3DDistribution(cond, col1, col2, col3, 12, 12, 12,
+	ierr = tbl.get3DDistribution(cond, col1, col2, col3, NB1, NB1, NB1,
 				     bds1, bds2, bds3, cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	const uint32_t nbin2 = bds2.size() - 1;
@@ -675,7 +677,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
     if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;
 	std::vector<double> bdt1, bdt2, bdt3;
-	ierr = tbl.get3DBins(cond, col1, col2, col3, 12, 12, 12,
+	ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
 			     bdt1, bdt2, bdt3, bins);
 	ibis::util::logger lg(0);
 	lg.buffer() << "\nprint3DDistribution(" << col1 << ", " << col2
