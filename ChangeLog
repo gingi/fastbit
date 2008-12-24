@@ -1,3 +1,15 @@
+2008-12-24 John Wu <John.Wu at ACM.org>
+	* src/bitvector.cpp:4093 add statement to delete tmp, add call to
+	compress and copy the resulting bit vector which typically reduces
+	the memory usage
+	* src/bitvector.cpp:4116 reorganize the triple-nested loop to
+	reduce the number of temporary variables generated, add call to
+	compress, and copy the result to reduce memory footprint held by
+	the result bit vectors
+	* src/parth.cpp in adaptiveIntsDetailed and adaptiveFloatsDetailed
+	add function calls to compress the bit vectors generated from
+	sumBits
+
 2008-12-23 John Wu <John.Wu at ACM.org>
 	* src/part.h: add get1DBins, get2DBins and get3DBins that takes
 	(begin, end, stride) triples to define exact bin boundaries (a

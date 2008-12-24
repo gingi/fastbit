@@ -4089,7 +4089,9 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 	for (size_t ii = 0; ii < bits2.size(); ++ ii) {
 	    ibis::bitvector *tmp = bits1[jj] & bits2[ii];
 	    if (tmp != 0) {
-		res[joff+ii].swap(*tmp);
+		tmp->compress();
+		res[joff+ii].copy(*tmp);
+		delete tmp;
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -4098,6 +4100,12 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 		    << "of bitmaps bits1[" << jj << "] and bits2[" << ii << "]";
 	    }
 	}
+#if defined(_DEBUG) || defined(DEBUG)
+	LOGGER(ibis::gVerbose > 5)
+	    << "ibis::util::intersect -- completed (" << jj
+	    << ", ...), memory in use = "
+	    << ibis::fileManager::instance().bytesInUse();
+#endif
     }
     return res.size();
 } // ibis::util::intersect
@@ -4116,12 +4124,21 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 	const size_t koff = kk * bits2.size();
 	for (size_t jj = 0; jj < bits2.size(); ++ jj) {
 	    const size_t joff = (koff + jj) * bits3.size();
+	    ibis::bitvector bjk(bits2[jj]);
+	    bjk &= bits1[kk];
+	    bjk.compress();
 	    for (size_t ii = 0; ii < bits3.size(); ++ ii) {
-		ibis::bitvector tmp(bits1[ii]);
-		tmp &= bits2[jj];
-		tmp &= bits3[kk];
-		res[joff+ii].swap(tmp);
+		ibis::bitvector tmp(bits3[ii]);
+		tmp &= bjk;
+		tmp.compress();
+		res[joff+ii].copy(tmp);
 	    }
+#if defined(_DEBUG) || defined(DEBUG)
+	    LOGGER(ibis::gVerbose > 5)
+		<< "ibis::util::intersect -- completed (" << kk << ", " << jj
+		<< ", ...), memory in use = "
+		<< ibis::fileManager::instance().bytesInUse();
+#endif
 	}
     }
     return res.size();

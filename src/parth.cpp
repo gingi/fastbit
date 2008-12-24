@@ -4739,7 +4739,8 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	timer.stop();
 	logMessage("get3DBins", "computing the distribution of column "
 		   "%s, %s and %s%s%s took %g sec(CPU), %g sec(elapsed)",
-		   cname1, cname2, cname2, (constraints ? " with restriction " : ""),
+		   cname1, cname2, cname2,
+		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -6012,16 +6013,22 @@ ibis::part::adaptiveIntsDetailed(const ibis::bitvector &mask,
 		bounds[0] = static_cast<double>(vmin);
 	}
 	bounds[1] = static_cast<double>(vmin+fbnds[0]);
-	if (fbnds[0] > 1)
+	if (fbnds[0] > 1) {
 	    ibis::index::sumBits(pos, 0, fbnds[0], detail[0]);
-	else
+	    detail[0].compress();
+	}
+	else {
 	    detail[0].swap(*pos[0]);
+	}
 	for (uint32_t j = 1; j < nbins; ++ j) {
 	    bounds[j+1] = static_cast<double>(vmin+fbnds[j]);
-	    if (fbnds[j] > fbnds[j-1]+1)
+	    if (fbnds[j] > fbnds[j-1]+1) {
 		ibis::index::sumBits(pos, fbnds[j-1], fbnds[j], detail[j]);
-	    else
+		detail[j].compress();
+	    }
+	    else {
 		detail[j].swap(*pos[fbnds[j-1]]);
+	    }
 	}
     }
 
@@ -6143,16 +6150,22 @@ ibis::part::adaptiveFloatsDetailed(const ibis::bitvector &mask,
     detail.resize(nbins);
     bounds[0] = vmin;
     bounds[1] = vmin + 1.0 / scale;
-    if (fbnds[0] > 1)
+    if (fbnds[0] > 1) {
 	ibis::index::sumBits(pos, 0, fbnds[0], detail[0]);
-    else
+	detail[0].compress();
+    }
+    else {
 	detail[0].swap(*pos[0]);
+    }
     for (uint32_t j = 1; j < nbins; ++ j) {
 	bounds[j+1] = vmin + static_cast<double>(j+1) / scale;
-	if (fbnds[j+1] > fbnds[j]+1)
+	if (fbnds[j+1] > fbnds[j]+1) {
 	    ibis::index::sumBits(pos, fbnds[j-1], fbnds[j], detail[j]);
-	else
+	    detail[j].compress();
+	}
+	else {
 	    detail[j].swap(*pos[fbnds[j-1]]);
+	}
     }
 
     for (size_t i = 0; i < nfine; ++ i)
@@ -10342,6 +10355,18 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	delete vals;
 	break;}
     }
+#if defined(_DEBUG) || defined(DEBUG)
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "ibis::part::get1DBins_ completed for " << mesg
+		    << ", memory in use = "
+		    << ibis::fileManager::instance().bytesInUse();
+	if (ibis::gVerbose > 7) {
+	    lg.buffer() << "\nCurrent status of the file manager:";
+	    ibis::fileManager::instance().printStatus(lg.buffer());
+	}
+    }
+#endif
     return ierr;
 } // ibis::part::get1DBins_
 
