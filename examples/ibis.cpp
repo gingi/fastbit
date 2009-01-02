@@ -361,7 +361,7 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 				<< bins[i].cnt() << ")\n";
 		    ++ ierr;
 		}
-	    lg.buffer() << "matching arrays counts with bins produces "
+	    lg.buffer() << "matching arrays counts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	}
     }
@@ -462,9 +462,135 @@ static void printDistribution(const ibis::partList& tlist) {
     }
 } // printDistribution
 
-// print the joint distribution -- exercise the new get2DDistribution
+// print the joint distribution -- exercise the new get2DDistribution that
+// uses (begin, end, stride) triplets
 static void print2DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *cond) {
+    const uint32_t NB1 = 25;
+    const ibis::column *cptr1 = tbl.getColumn(col1);
+    const ibis::column *cptr2 = tbl.getColumn(col2);
+    if (cptr1 == 0 || cptr2 == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "print2DDistribution(" << tbl.name() << ", " << col1 << ", "
+	    << col2 << ", "<< (cond != 0 ? cond : "")
+	    << ") can not proceed because some of the names are not found "
+	    << "in the named data partition";
+	return;
+    }
+
+    double amin1 = cptr1->getActualMin();
+    double amin2 = cptr2->getActualMin();
+    double amax1 = cptr1->getActualMax();
+    double amax2 = cptr2->getActualMax();
+    if (amin1 > amax1 || amin2 > amax2) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "print2DDistribution(" << tbl.name() << ", " << col1 << ", "
+	    << col2 << ", "<< (cond != 0 ? cond : "")
+	    << ") can not proceed due to failure to determine min/max values";
+	return;
+    }
+
+    double stride1, stride2;
+    if (amin1 >= amax1) {
+	stride1 = 1.0;
+    }
+    else if (cptr1->isFloat()) {
+	stride1 = (ibis::util::incrDouble(amax1) - amin1) / NB1;
+    }
+    else {
+	stride1 = (amax1 + 1 - amin1) / NB1;
+    }
+    if (amin2 >= amax2) {
+	stride2 = 1.0;
+    }
+    else if (cptr2->isFloat()) {
+	stride2 = (ibis::util::incrDouble(amax2) - amin2) / NB1;
+    }
+    else {
+	stride2 = (amax2 + 1 - amin2) / NB1;
+    }
+    long ierr;
+    std::vector<uint32_t> cnts;
+    ierr = tbl.get2DDistribution(cond,
+				 col1, amin1, amax1, stride1,
+				 col2, amin2, amax2, stride2,
+				 cnts);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n2D-Joint distribution of " << col1 << " and " << col2
+		    << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << " with " << cnts.size() << " bin"
+		    << (cnts.size() > 1 ? "s" : "") << " on " << NB1
+		    << " x " << NB1 << " cells\n";
+
+	uint32_t cnt = 0, tot = 0;
+	for (uint32_t i = 0; i < cnts.size(); ++ i) {
+	    if (cnts[i] > 0) {
+		const uint32_t i1 = i / NB1;
+		const uint32_t i2 = i % NB1;
+		lg.buffer() << i << "\t[" << amin1+stride1*i1 << ", "
+			    << amin1+stride1*(i1+1)
+			    << ") [" << amin2+stride2*i2 << ", "
+			    << amin2+stride2*(i2+1)
+			    << ")\t" << cnts[i] << "\n";
+		tot += cnts[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total count = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "part[" << tbl.name()
+		    << "].get2DDistribution returned with ierr = " << ierr
+		    << ", cnts.size() = " << cnts.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<ibis::bitvector> bins;
+	ierr = tbl.get2DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint2DDistribution(" << col1 << ", " << col2
+		    << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get2DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (cnts.size() != bins.size()) {
+	    lg.buffer() << "get2DDistribution returned " << cnts.size()
+			<< " bin" << (cnts.size() > 1 ? "s" : "")
+			<< ", but get2DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	}
+    }
+} // print2DDistribution
+
+// print the joint distribution -- exercise the new get2DDistribution
+static void print2DDist(const ibis::part& tbl, const char *col1,
+			const char *col2, const char *cond) {
     const uint32_t NB1 = 25;
     std::vector<double> bds1, bds2;
     std::vector<uint32_t> cnts;
@@ -481,7 +607,8 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 		    << " from table " << tbl.name();
 	if (cond && *cond)
 	    lg.buffer() << " subject to the condition " << cond;
-	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()-1
+	lg.buffer() << " with " << cnts.size() << " bin"
+		    << (cnts.size() > 1 ? "s" : "") << " on " << bds1.size()-1
 		    << " x " << bds2.size()-1 << " cells\n";
 
 	uint32_t cnt = 0, tot=0;
@@ -557,7 +684,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 				<< bins[i].cnt() << ")\n";
 		    ++ ierr;
 		}
-	    lg.buffer() << "matching arrays cnts with bins produces "
+	    lg.buffer() << "matching arrays cnts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	    if (ierr > 0)
 		lg.buffer() << "\nNOTE: due to the different numbers of "
@@ -566,7 +693,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 		    "exactly the same answers";
 	}
     }
-} // print2DDistribution
+} // print2DDist
 
 // the joint distribution may subject to some conditions -- exercises the
 // old getJointDistribution
@@ -582,7 +709,8 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 		    << " from table " << tbl.name();
 	if (cond && *cond)
 	    lg.buffer() << " subject to the condition " << cond;
-	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()+1
+	lg.buffer() << " with " << cnts.size() << " bin"
+		    << (cnts.size() > 1 ? "s" : "") << " on " << bds1.size()+1
 		    << " x " << bds2.size()+1 << " cells\n";
 
 	uint32_t cnt = 0, tot=0;
@@ -621,11 +749,156 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
     }
 } // printJointDistribution
 
-// print the joint distribution -- exercise the new get3DDistribution
+// print the joint distribution -- exercise the new get3DDistribution that
+// uses (begin, end, stride) triplets
 static void print3DDistribution(const ibis::part& tbl, const char *col1,
 				const char *col2, const char *col3,
 				const char *cond) {
-    const uint32_t NB1 = 100;
+    const uint32_t NB1 = 12;
+    const ibis::column *cptr1 = tbl.getColumn(col1);
+    const ibis::column *cptr2 = tbl.getColumn(col2);
+    const ibis::column *cptr3 = tbl.getColumn(col3);
+    if (cptr1 == 0 || cptr2 == 0 || cptr3 == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "print3DDistribution(" << tbl.name() << ", " << col1 << ", "
+	    << col2 << ", " << col3 << ", "<< (cond != 0 ? cond : "")
+	    << ") can not proceed because some of the names are not found "
+	    << "in the named data partition";
+	return;
+    }
+
+    double amin1 = cptr1->getActualMin();
+    double amin2 = cptr2->getActualMin();
+    double amin3 = cptr3->getActualMin();
+    double amax1 = cptr1->getActualMax();
+    double amax2 = cptr2->getActualMax();
+    double amax3 = cptr3->getActualMax();
+    if (amin1 > amax1 || amin2 > amax2 || amin3 > amax3) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "print3DDistribution(" << tbl.name() << ", " << col1 << ", "
+	    << col2 << ", " << col3 << ", "<< (cond != 0 ? cond : "")
+	    << ") can not proceed due to failure to determine min/max values";
+	return;
+    }
+
+    double stride1, stride2, stride3;
+    if (amin1 >= amax1) {
+	stride1 = 1.0;
+    }
+    else if (cptr1->isFloat()) {
+	stride1 = (ibis::util::incrDouble(amax1) - amin1) / NB1;
+    }
+    else {
+	stride1 = (amax1 + 1 - amin1) / NB1;
+    }
+    if (amin2 >= amax2) {
+	stride2 = 1.0;
+    }
+    else if (cptr2->isFloat()) {
+	stride2 = (ibis::util::incrDouble(amax2) - amin2) / NB1;
+    }
+    else {
+	stride2 = (amax2 + 1 - amin2) / NB1;
+    }
+    if (amin3 >= amax3) {
+	stride3 = 1.0;
+    }
+    else if (cptr3->isFloat()) {
+	stride3 = (ibis::util::incrDouble(amax3) - amin3) / NB1;
+    }
+    else {
+	stride3 = (amax3 + 1 - amin3) / NB1;
+    }
+    long ierr;
+    std::vector<uint32_t> cnts;
+    ierr = tbl.get3DDistribution(cond,
+				 col1, amin1, amax1, stride1,
+				 col2, amin2, amax2, stride2,
+				 col3, amin3, amax3, stride3,
+				 cnts);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
+	const uint32_t nb23 = NB1 * NB1;
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n3D-Joint distribution of " << col1 << ", " << col2
+		    << ", and " << col3 << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << " with " << cnts.size() << " bin"
+		    << (cnts.size() > 1 ? "s" : "") << " on " << NB1
+		    << " x " << NB1 << " x " << NB1 << " cells\n";
+
+	uint32_t cnt = 0, tot = 0;
+	for (uint32_t i = 0; i < cnts.size(); ++ i) {
+	    if (cnts[i] > 0) {
+		const uint32_t i1 = i / nb23;
+		const uint32_t i2 = (i - i1 * nb23) / NB1;
+		const uint32_t i3 = i % NB1;
+		lg.buffer() << i << "\t[" << amin1+stride1*i1 << ", "
+			    << amin1+stride1*(i1+1)
+			    << ") [" << amin2+stride2*i2 << ", "
+			    << amin2+stride2*(i2+1)
+			    << ") [" << amin3+stride3*i3 << ", "
+			    << amin3+stride3*(i3+1)
+			    << ")\t" << cnts[i] << "\n";
+		tot += cnts[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total count = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "part[" << tbl.name()
+		    << "].get3DDistribution returned with ierr = " << ierr
+		    << ", cnts.size() = " << cnts.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<ibis::bitvector> bins;
+	ierr = tbl.get3DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     col3, amin3, amax3, stride3,
+			     bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint3DDistribution(" << col1 << ", " << col2
+		    << ", " << col3 << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get3DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (cnts.size() != bins.size()) {
+	    lg.buffer() << "get3DDistribution returned " << cnts.size()
+			<< " bin" << (cnts.size() > 1 ? "s" : "")
+			<< ", but get3DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	}
+    }
+} // print3DDistribution
+
+/// The version that uses adaptive bins.
+static void print3DDist(const ibis::part& tbl, const char *col1,
+			const char *col2, const char *col3,
+			const char *cond) {
+    const uint32_t NB1 = 12;
     std::vector<double> bds1, bds2, bds3;
     std::vector<uint32_t> cnts;
     long ierr;
@@ -644,7 +917,8 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 		    << ", and " << col3 << " from table " << tbl.name();
 	if (cond && *cond)
 	    lg.buffer() << " subject to the condition " << cond;
-	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()-1
+	lg.buffer() << " with " << cnts.size() << " bin"
+		    << (cnts.size() > 1 ? "s" : "") << " on " << bds1.size()-1
 		    << " x " << nbin2 << " x " << nbin3 << " cells\n";
 
 	uint32_t cnt = 0, tot = 0;
@@ -731,7 +1005,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 				<< bins[i].cnt() << ")\n";
 		    ++ ierr;
 		}
-	    lg.buffer() << "matching arrays cnts with bins produces "
+	    lg.buffer() << "matching arrays cnts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	    if (ierr > 0)
 		lg.buffer() << "\nNOTE: due to the different numbers of "
@@ -740,7 +1014,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 		    "exactly the same answers";
 	}
     }
-} // print3DDistribution
+} // print3DDist
 
 // print some helpful information
 static void print(const char* cmd, const ibis::partList& tlist) {
@@ -781,6 +1055,9 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 		 tit != tlist.end(); ++ tit) {
 		print2DDistribution(*((*tit).second), name1.c_str(),
 				    name2.c_str(), cond);
+		if (ibis::gVerbose > 6)
+		    print2DDist(*((*tit).second), name1.c_str(), name2.c_str(),
+				cond);
 		if (ibis::gVerbose > 9)
 		    printJointDistribution(*((*tit).second), name1.c_str(),
 					   name2.c_str(), cond);
@@ -791,6 +1068,9 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 		 tit != tlist.end(); ++ tit) {
 		print3DDistribution(*((*tit).second), name1.c_str(),
 				    name2.c_str(), name3.c_str(), cond);
+		if (ibis::gVerbose > 6)
+		    print3DDist(*((*tit).second), name1.c_str(),
+				name2.c_str(), name3.c_str(), cond);
 	    }
 	}
     }

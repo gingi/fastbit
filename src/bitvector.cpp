@@ -360,9 +360,9 @@ ibis::bitvector::word_t ibis::bitvector::compressible() const {
 ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     nset = 0;
     word_t nb = 0;
-    array_t<word_t>::const_iterator i;
 
-    for (i = m_vec.begin(); i < m_vec.end(); ++i) {
+    for (array_t<word_t>::const_iterator i = m_vec.begin();
+	 i < m_vec.end(); ++ i) {
 	if ((*i) < HEADER0) {
 	    nb += MAXBITS;
 	    nset += cnt_ones(*i);
@@ -390,6 +390,7 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 		  << active.nbits << " bit(s) in the active word";
     }
 #endif
+    m_vec.nosharing(); // make sure the array is not shared
     if (ind >= size()) {
 	word_t diff = ind - size() + 1;
 	if (active.nbits) {
@@ -806,8 +807,8 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 ibis::bitvector::word_t
 ibis::bitvector::count(const ibis::bitvector& mask) const {
     word_t cnt = 0;
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (mask.m_vec.size()*MAXBITS == mask.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (mask.m_vec.size()*MAXBITS == mask.nbits && mask.nbits > 0);
     if (ca && cb) {
 	array_t<word_t>::const_iterator j = m_vec.begin();
 	array_t<word_t>::const_iterator k = mask.m_vec.begin();
@@ -932,8 +933,8 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
     }
 #endif
 
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) { // *this is not compressed
 	if (cb) // rhs is not compressed
 	    and_c0(rhs);
@@ -1002,8 +1003,8 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -1072,8 +1073,8 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
     }
 #endif
 
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) { // *this is not compressed
 	if (cb) // rhs is not compressed
 	    or_c0(rhs);
@@ -1140,8 +1141,8 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -1210,8 +1211,8 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
     }
 #endif
 
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    xor_c0(rhs);
@@ -1269,8 +1270,8 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -1330,8 +1331,8 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator-=: A=" << *this << "B=" << rhs;
     }
 #endif
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    minus_c0(rhs);
@@ -3578,7 +3579,7 @@ void ibis::bitvector::minus_c0(const ibis::bitvector& rhs) {
 // number of bits is less than nt, append 0 bits to that there are nt
 // total bits.  The final result always contains nt bits.
 void ibis::bitvector::adjustSize(word_t nv, word_t nt) {
-    if (nbits < m_vec.size() * MAXBITS)
+    if (nbits == 0 || nbits < m_vec.size() * MAXBITS)
 	nbits = do_cnt();
     if (size() == nt) return;
     m_vec.nosharing();

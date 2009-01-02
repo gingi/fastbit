@@ -1,3 +1,25 @@
+2008-01-02 John Wu <John.Wu at ACM.org>
+	* src/array_t.cpp: in constructors assign m_begin to 0 in the
+	initialization lists, assign values to m_begin in the constructor
+	body after checking the values of actual
+	* src/bitvector.cpp:393 add call to m_vec.nosharing() to
+	ibis::bitvector::setBit (when a std::vector<ibis::bitvector> is
+	resized, it creates multiple copies of a dummy bitvector)
+	* src/parth.cpp: line 3011, vals2 should have been vals3, lines
+	2987 and 2974, end2 should have been end3!
+	* src/bitvector.cpp: count bitmaps as in decompressed state only
+	if the m_vec contain some (> 0) bits -- this avoids the invocation
+	of functions xx_c0 that assume the raw pointers can be used
+	directly (in case of an empty m_vec, the raw pointer can not be
+	used because it might be nil)
+	* win/ibis.vcproj: add . to the include directories for the
+	Release build
+
+2008-12-26 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: rename the existing print2DDistribution and
+	print3DDistribution with ones that uses (begin, end, stride) to
+	specify fixed bins -- to exercise the new get2DBins and get3DBins
+
 2008-12-24 John Wu <John.Wu at ACM.org>
 	* src/bitvector.cpp:4093 add statement to delete tmp, add call to
 	compress and copy the resulting bit vector which typically reduces

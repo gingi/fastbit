@@ -1,3 +1,15 @@
+Version ibis1.0.2
+-- add another set of binning functions, get1DBins, get2DBins, and
+   get3DBins, that take (begin, end, stride) to specify the bin
+   boundaries instead choosing bin boundaries by the functions
+   themselves.  A feature requested by Oliver and Probhat.
+-- use the new version of binning functions to debug the existing
+   versions
+-- reduce the memory usage of the two versions of ibis::util::intersect
+   by explicitly compressing the results and copying the compressed ones
+-- make sure a bitvector has its own storage when it is being modified
+
+
 Thu Dec 18 10:47:05 PST 2008
 Version ibis1.0.1
 -- correct errors in two-level indexes that prevented them from actually

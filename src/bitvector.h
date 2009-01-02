@@ -67,18 +67,19 @@ public:
     typedef uint32_t word_t;///< The basic unit of data storage.
 
     // constructors of bitvector class
+    /// Default constructor.  Creates a new empty bitvector.
     bitvector() : nbits(0), nset(0), active(), m_vec() {};
+    /// Destructor.
     ~bitvector() {clear();};
     /// Shallow copy.  Underlying storage is reference counted.
     bitvector(const bitvector& bv) : nbits(bv.nbits), nset(bv.nset),
 	active(bv.active), m_vec(bv.m_vec) {};
     bitvector(const array_t<word_t>& arr);
     bitvector(const char* file); ///< Read the content of the named file.
-    ///@note Deep copy.
     inline const bitvector& operator=(const bitvector& bv);
-    ///@note Deep copy.
     inline bitvector& copy(const bitvector& bv);
     inline bitvector& swap(bitvector& bv);
+
     // use bv to replace part of the existing value, match the ith bit with
     // the first of bv, return reference to self
     //bitvector& copy(const word_t i, const bitvector& bv);

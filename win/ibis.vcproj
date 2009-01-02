@@ -148,7 +148,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
 				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=30"
 				StringPooling="true"
 				RuntimeLibrary="0"

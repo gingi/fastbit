@@ -152,7 +152,7 @@ private:
 	       uint32_t lvl=0) const;
 };
 
-// swap the content of two array_t
+/// Swap the content of two array_t objects.
 template<class T>
 inline void array_t<T>::swap(array_t<T>& rhs) {
     ibis::fileManager::storage *a = rhs.actual;
@@ -166,7 +166,7 @@ inline void array_t<T>::swap(array_t<T>& rhs) {
     m_end = e;
 } // array_t<T>::swap
 
-// add one element from the back
+/// Add one element from the back.
 template<class T> 
 inline void array_t<T>::push_back(const T& elm) {
     if (actual == 0) { // allocate storage
@@ -186,26 +186,26 @@ inline void array_t<T>::push_back(const T& elm) {
 	uint32_t offset = (char*)(m_begin) - actual->begin();
 	uint32_t n = (actual->empty() || m_end<=m_begin ? 0 : m_end - m_begin);
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: ibis::array_t<" << typeid(T).name()
-		<< ">::push_back(0x" << std::hex << elm
-		<< ") actual address before calling enlarge 0x"
-		<< std::setw(8) << std::setfill('0')
-		<< (uint32_t)actual->begin() << std::dec
-		<< " (offset=" << offset
-		<< ", n=" << n << ")";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "DEBUG: ibis::array_t<" << typeid(T).name()
+	    << ">::push_back(0x" << std::hex << elm
+	    << ") actual address before calling enlarge 0x"
+	    << std::setw(8) << std::setfill('0')
+	    << (uint32_t)actual->begin() << std::dec
+	    << " (offset=" << offset
+	    << ", n=" << n << ")";
 #endif
 	actual->enlarge(); // increase the storage
 	m_begin = (T*)(actual->begin() + offset);
 #if defined(DEBUG) && DEBUG + 0 > 1
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: ibis::array_t<" << typeid(T).name()
-		<< ">::push_back(0x" << std::hex << elm
-		<< ") actual address after calling enlarge 0x"
-		<< std::setw(8) << std::setfill('0')
-		<< (uint32_t)actual->begin() << " (m_begin=0x"
-		<< std::setw(8) << std::setfill('0')
-		<< (uint32_t)m_begin << ")" << std::dec;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "DEBUG: ibis::array_t<" << typeid(T).name()
+	    << ">::push_back(0x" << std::hex << elm
+	    << ") actual address after calling enlarge 0x"
+	    << std::setw(8) << std::setfill('0')
+	    << (uint32_t)actual->begin() << " (m_begin=0x"
+	    << std::setw(8) << std::setfill('0')
+	    << (uint32_t)m_begin << ")" << std::dec;
 #endif
 	m_end = m_begin + n;
 	*m_end = elm;

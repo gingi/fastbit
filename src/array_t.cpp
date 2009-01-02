@@ -27,9 +27,10 @@
 /// The default constructor.  It constructs an empty array.
 template<class T>
 array_t<T>::array_t()
-    : actual(new ibis::fileManager::storage),
-      m_begin((T*)(actual != 0 ? actual->begin() : 0)), m_end(m_begin) {
+    : actual(new ibis::fileManager::storage), m_begin(0), m_end(0) {
     if (actual != 0) {
+	m_begin = reinterpret_cast<T*>(actual->begin());
+	m_end = m_begin;
 	actual->beginUse();
     }
     else {
@@ -43,8 +44,10 @@ array_t<T>::array_t()
 template<class T>
 array_t<T>::array_t(uint32_t n)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
-      m_begin((T*)(actual != 0 ? actual->begin() : 0)), m_end(m_begin + n) {
-    if (actual != 0 && m_begin != 0) {
+      m_begin(0), m_end(0) {
+    if (actual != 0) {
+	m_begin = reinterpret_cast<T*>(actual->begin());
+	m_end = m_begin + n;
 	actual->beginUse();
     }
     else {
@@ -59,8 +62,10 @@ array_t<T>::array_t(uint32_t n)
 template<class T>
 array_t<T>::array_t(uint32_t n, const T& val)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
-      m_begin((T*)(actual != 0 ? actual->begin() : 0)), m_end(m_begin + n){
-    if (actual != 0 && m_begin != 0) {
+      m_begin(0), m_end(0){
+    if (actual != 0) {
+	m_begin = reinterpret_cast<T*>(actual->begin());
+	m_end = m_begin + n;
 	actual->beginUse();
 	for (uint32_t i=0; i<n; ++i) {
 	    m_begin[i] = val;

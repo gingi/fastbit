@@ -215,19 +215,47 @@ long ibis::part::count3DBins(const array_t<T1> &vals1,
 			     const double &begin3, const double &end3,
 			     const double &stride3,
 			     std::vector<uint32_t> &counts) const {
+    LOGGER(ibis::gVerbose > 5)
+	<< "ibis::part::count3DBins<" << typeid(T1).name() << ", "
+	<< typeid(T2).name() << ", " << typeid(T3).name() << ">("
+	<< "vals1[" << vals1.size() << "], " << begin1 << ", "
+	<< end1 << ", " << stride1
+	<< ", vals2[" << vals2.size() << "], " << begin2 << ", "
+	<< end2 << ", " << stride2
+	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
+	<< end3 << ", " << stride3 << ", counts[" << counts.size()
+	<< "]) ... ("
+	<< 1 + static_cast<size_t>(std::floor((end1-begin1)/stride1))
+	<< ", "
+	<< 1 + static_cast<size_t>(std::floor((end2-begin2)/stride2))
+	<< ", "
+	<< 1 + static_cast<size_t>(std::floor((end3-begin3)/stride3))
+	<< ")";
     const size_t dim3 = 1 +
-	static_cast<uint32_t>(std::floor((end3 - begin3)/stride3));
+	static_cast<size_t>(std::floor((end3 - begin3)/stride3));
     const size_t dim2 = 1 +
-	static_cast<uint32_t>(std::floor((end2 - begin2)/stride2));
+	static_cast<size_t>(std::floor((end2 - begin2)/stride2));
     const size_t nr = (vals1.size() <= vals2.size() ?
 		       (vals1.size() <= vals3.size() ?
 			vals1.size() : vals3.size()) :
 		       (vals2.size() <= vals3.size() ?
 			vals2.size() : vals3.size()));
     for (size_t ir = 0; ir < nr; ++ ir) {
-	++ counts[(static_cast<uint32_t>((vals1[ir]-begin1)/stride1) * dim2 +
-		   static_cast<uint32_t>((vals2[ir]-begin2)/stride2)) * dim3 +
-		  static_cast<uint32_t>((vals3[ir]-begin3)/stride3)];
+	const size_t pos =
+	    (static_cast<size_t>((vals1[ir]-begin1)/stride1) * dim2 +
+	     static_cast<size_t>((vals2[ir]-begin2)/stride2)) * dim3 +
+	    static_cast<size_t>((vals3[ir]-begin3)/stride3);
+	++ counts[pos];
+#if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
+	LOGGER(ibis::gVerbose > 5)
+	    << "DEBUG: count3DBins -- vals1[" << ir << "]=" << vals1[ir]
+	    << ", vals2[" << ir << "]=" << vals2[ir]
+	    << ", vals3[" << ir << "]=" << vals3[ir]
+	    << " --> bin (" << static_cast<uint32_t>((vals1[ir]-begin1)/stride1)
+	    << ", " << static_cast<uint32_t>((vals2[ir]-begin2)/stride2)
+	    << ", " << static_cast<uint32_t>((vals3[ir]-begin3)/stride3)
+	    << ") counts[" << pos << "]=" << counts[pos];
+#endif
     }
     return counts.size();
 } // ibis::part::count3DBins
@@ -257,8 +285,8 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
-	    << (constraints && *constraints ? " subject to " :
-		" without constraints")
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
 	    << (constraints ? constraints : "");
 	timer.start();
     }
@@ -733,8 +761,8 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    << "]::get3DDistribution attempting to compute a histogram of "
 	    << cname1 << ", " << cname2 << ", and " << cname3
 	    << " with regular binning "
-	    << (constraints && *constraints ? " subject to " :
-		" without constraints")
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
 	    << (constraints ? constraints : "");
 	timer.start();
     }
@@ -825,7 +853,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -838,7 +866,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -862,7 +890,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -911,7 +939,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -924,7 +952,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -948,7 +976,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -996,7 +1024,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1009,7 +1037,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1033,7 +1061,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1080,7 +1108,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1093,7 +1121,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1117,7 +1145,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1164,7 +1192,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1177,7 +1205,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1201,7 +1229,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1271,7 +1299,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1284,7 +1312,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1308,7 +1336,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1357,7 +1385,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1370,7 +1398,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1394,7 +1422,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1442,7 +1470,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1455,7 +1483,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1479,7 +1507,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1526,7 +1554,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1539,7 +1567,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1563,7 +1591,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1610,7 +1638,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1623,7 +1651,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1647,7 +1675,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1716,7 +1744,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1729,7 +1757,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1753,7 +1781,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1802,7 +1830,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1815,7 +1843,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1839,7 +1867,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1887,7 +1915,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1900,7 +1928,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -1924,7 +1952,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -1971,7 +1999,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -1984,7 +2012,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2008,7 +2036,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2055,7 +2083,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2068,7 +2096,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2092,7 +2120,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2160,7 +2188,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2173,7 +2201,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2197,7 +2225,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2246,7 +2274,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2259,7 +2287,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2283,7 +2311,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2331,7 +2359,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2344,7 +2372,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2368,7 +2396,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2415,7 +2443,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2428,7 +2456,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2452,7 +2480,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2499,7 +2527,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2512,7 +2540,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2536,7 +2564,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2604,7 +2632,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2617,7 +2645,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2641,7 +2669,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2690,7 +2718,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2703,7 +2731,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2727,7 +2755,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2775,7 +2803,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2788,7 +2816,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2812,7 +2840,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2859,7 +2887,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2872,7 +2900,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2896,7 +2924,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -2943,7 +2971,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::ULONG:
@@ -2956,7 +2984,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end2, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    case ibis::FLOAT: {
@@ -2980,7 +3008,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		}
 		ierr = count3DBins(*vals1, begin1, end1, stride1,
 				   *vals2, begin2, end2, stride2,
-				   *vals2, begin3, end3, stride3, counts);
+				   *vals3, begin3, end3, stride3, counts);
 		delete vals3;
 		break;}
 	    default: {
@@ -3218,6 +3246,22 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	(end1-begin1) * stride1 < 0.0 || (end2-begin2) * stride2 < 0.0 ||
 	(end3-begin3) * stride3 < 0.0)
 	return -10L;
+    LOGGER(ibis::gVerbose > 5)
+	<< "ibis::part::fill3DBins<" << typeid(T1).name() << ", "
+	<< typeid(T2).name() << ", " << typeid(T3).name() << ">("
+	<< "vals1[" << vals1.size() << "], " << begin1 << ", "
+	<< end1 << ", " << stride1
+	<< ", vals2[" << vals2.size() << "], " << begin2 << ", "
+	<< end2 << ", " << stride2
+	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
+	<< end3 << ", " << stride3 << ", bins[" << bins.size()
+	<< "]) ... ("
+	<< 1 + static_cast<size_t>(std::floor((end1-begin1)/stride1))
+	<< ", "
+	<< 1 + static_cast<size_t>(std::floor((end2-begin2)/stride2))
+	<< ", "
+	<< 1 + static_cast<size_t>(std::floor((end3-begin3)/stride3))
+	<< ")";
     const size_t nbin3 = (1 + static_cast<size_t>((end3-begin3)/stride3));
     const size_t nbin23 = (1 + static_cast<size_t>((end2-begin2)/stride2)) *
 	nbin3;
@@ -3287,6 +3331,17 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 		    const size_t ibin3 =
 			static_cast<size_t>((vals3[ivals]-begin3)/stride3);
 		    bins[ibin1*nbin23+ibin2*nbin3+ibin3].setBit(j, 1);
+#if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
+		    const size_t pos = ibin1*nbin23+ibin2*nbin3+ibin3;
+		    LOGGER(ibis::gVerbose > 5)
+			<< "DEBUG: fill3DBins -- vals1[" << ivals << "]=" << vals1[ivals]
+			<< ", vals2[" << ivals << "]=" << vals2[ivals]
+			<< ", vals3[" << ivals << "]=" << vals3[ivals]
+			<< " --> bin (" << static_cast<uint32_t>((vals1[ivals]-begin1)/stride1)
+			<< ", " << static_cast<uint32_t>((vals2[ivals]-begin2)/stride2)
+			<< ", " << static_cast<uint32_t>((vals3[ivals]-begin3)/stride3)
+			<< ") bins[" << pos << "]=" << bins[pos].cnt();
+#endif
 		}
 	    }
 	}
@@ -3316,8 +3371,8 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get1DBins attempting to compute a histogram of "
 	    << cname << " with regular binning "
-	    << (constraints && *constraints ? " subject to " :
-		" without constraints")
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
 	    << (constraints ? constraints : "");
 	timer.start();
     }
@@ -3803,8 +3858,8 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
-	    << (constraints && *constraints ? " subject to " :
-		" without constraints")
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
 	    << (constraints ? constraints : "");
 	timer.start();
     }
@@ -4244,7 +4299,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 4)
-	    << "ibis::part::get3DBins3 -- unable to "
+	    << "ibis::part::fill3DBins3 -- unable to "
 	    "handle column (" << col3.name() << ") type "
 	    << ibis::TYPESTRING[(int)col3.type()];
 
@@ -4252,7 +4307,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	break;}
     }
     return ierr;
-} // ibis::part::fill2DBins3
+} // ibis::part::fill3DBins3
 
 template <typename T1>
 long ibis::part::fill3DBins2(const ibis::bitvector &mask,
@@ -4460,7 +4515,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 4)
-	    << "ibis::part::get3DBins2 -- unable to "
+	    << "ibis::part::fill3DBins2 -- unable to "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -4468,7 +4523,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	break;}
     }
     return ierr;
-} // ibis::part::fill2DBins2
+} // ibis::part::fill3DBins2
 
 long ibis::part::get3DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
@@ -4498,8 +4553,8 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    << "]::get3DDistribution attempting to compute a histogram of "
 	    << cname1 << ", " << cname2 << ", and " << cname3
 	    << " with regular binning "
-	    << (constraints && *constraints ? " subject to " :
-		" without constraints")
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
 	    << (constraints ? constraints : "");
 	timer.start();
     }
@@ -4739,7 +4794,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	timer.stop();
 	logMessage("get3DBins", "computing the distribution of column "
 		   "%s, %s and %s%s%s took %g sec(CPU), %g sec(elapsed)",
-		   cname1, cname2, cname2,
+		   cname1, cname2, cname3,
 		   (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
 		   timer.CPUTime(), timer.realTime());

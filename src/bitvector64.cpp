@@ -376,6 +376,7 @@ void ibis::bitvector64::setBit(const word_t ind, int val) {
 	<< "-- " << nbits << " bit(s) in m_vec and " << active.nbits
 	<< " bit(s) in the active word";
 #endif
+    m_vec.nosharing(); // make sure the array is not shared
     if (ind >= size()) {
 	word_t diff = ind - size() + 1;
 	if (active.nbits) {
@@ -707,8 +708,8 @@ void ibis::bitvector64::operator&=(const ibis::bitvector64& rhs) {
 			       static_cast<long unsigned>(rhs.size()));
     }
 
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    and_c0(rhs);
@@ -766,8 +767,8 @@ ibis::bitvector64* ibis::bitvector64::operator&(const ibis::bitvector64& rhs)
     }
 
     ibis::bitvector64 *res = new ibis::bitvector64;
-    const bool ca = (m_vec.size()*MAXBITS == nbits);
-    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -826,8 +827,8 @@ void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
 	     static_cast<long unsigned>(rhs.size()));
     }
 
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    or_c0(rhs);
@@ -886,8 +887,8 @@ ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
     }
 
     ibis::bitvector64 *res = new ibis::bitvector64;
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -946,8 +947,8 @@ void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
 	     static_cast<long unsigned>(rhs.size()));
     }
 
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    xor_c0(rhs);
@@ -996,8 +997,8 @@ ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
     }
 
     ibis::bitvector64 *res = new ibis::bitvector64;
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
@@ -1048,8 +1049,8 @@ void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
 	     static_cast<long unsigned>(rhs.size()));
     }
 
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
 	if (cb)
 	    minus_c0(rhs);
@@ -1114,8 +1115,8 @@ ibis::bitvector64* ibis::bitvector64::operator-(const ibis::bitvector64& rhs)
     }
 
     ibis::bitvector64 *res = new ibis::bitvector64;
-    int ca = (m_vec.size()*MAXBITS == nbits);
-    int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
+    const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
+    const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
 	res->m_vec.resize(m_vec.size());
 	array_t<word_t>::iterator i = res->m_vec.begin();
