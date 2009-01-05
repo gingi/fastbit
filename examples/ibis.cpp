@@ -495,19 +495,23 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	stride1 = 1.0;
     }
     else if (cptr1->isFloat()) {
-	stride1 = (ibis::util::incrDouble(amax1) - amin1) / NB1;
+	stride1 = (amax1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/NB1));
     }
     else {
-	stride1 = (amax1 + 1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2((amax1 - amin1) / NB1,
+					    (amax1 + 1 - amin1) / NB1);
     }
     if (amin2 >= amax2) {
 	stride2 = 1.0;
     }
     else if (cptr2->isFloat()) {
-	stride2 = (ibis::util::incrDouble(amax2) - amin2) / NB1;
+	stride2 = (amax2 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2(stride2, stride2*(1.0+0.75/NB1));
     }
     else {
-	stride2 = (amax2 + 1 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2((amax2 - amin2) / NB1,
+					    (amax2 + 1 - amin2) / NB1);
     }
     long ierr;
     std::vector<uint32_t> cnts;
@@ -786,28 +790,34 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	stride1 = 1.0;
     }
     else if (cptr1->isFloat()) {
-	stride1 = (ibis::util::incrDouble(amax1) - amin1) / NB1;
+	stride1 = (amax1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/NB1));
     }
     else {
-	stride1 = (amax1 + 1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2((amax1 - amin1) / NB1,
+					    (amax1 + 1 - amin1) / NB1);
     }
     if (amin2 >= amax2) {
 	stride2 = 1.0;
     }
     else if (cptr2->isFloat()) {
-	stride2 = (ibis::util::incrDouble(amax2) - amin2) / NB1;
+	stride2 = (amax2 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2(stride2, stride2*(1.0+0.75/NB1));
     }
     else {
-	stride2 = (amax2 + 1 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2((amax2 - amin2) / NB1,
+					    (amax2 + 1 - amin2) / NB1);
     }
     if (amin3 >= amax3) {
 	stride3 = 1.0;
     }
     else if (cptr3->isFloat()) {
-	stride3 = (ibis::util::incrDouble(amax3) - amin3) / NB1;
+	stride3 = (amax3 - amin3) / NB1;
+	stride3 = ibis::util::compactValue2(stride3, stride3*(1.0+0.75/NB1));
     }
     else {
-	stride3 = (amax3 + 1 - amin3) / NB1;
+	stride3 = ibis::util::compactValue2((amax3 - amin3) / NB1,
+					    (amax3 + 1 - amin3) / NB1);
     }
     long ierr;
     std::vector<uint32_t> cnts;

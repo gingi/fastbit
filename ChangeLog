@@ -1,3 +1,16 @@
+2008-01-05 John Wu <John.Wu at ACM.org>
+	* src/util.h, src/util.cpp: add ibis::util::compactValue2 to
+	compute the most compact binary value in a given range
+	* examples/ibis.cpp: compute stride values in print2DDistribution
+	and print3DDistribution using compact binary values to make the
+	arithmetic computation less affected by rounding.  This is mostly
+	to avoid visual mismatches, for example, the value 0.1 printed on
+	screen is actually slightly larger than the precise value of 0.1
+	inside the computer.  Given begin=0 and stride=0.1, one may expect
+	the value 1.0 to be in bin 10, but it actually ends up in bin 9.
+	The apparent unexpected placement of values can be hard to problem
+	to diagnose.
+
 2008-01-02 John Wu <John.Wu at ACM.org>
 	* src/array_t.cpp: in constructors assign m_begin to 0 in the
 	initialization lists, assign values to m_begin in the constructor

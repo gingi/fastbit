@@ -625,10 +625,15 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     delete [] cmd;
 }
 
-// compute a compact 64-bit floating-point value in the given range (left,
-// right].  the righ-end is inclusive because the computed value is used to
-// define bins based 'x<compactValue' and those bins are interpreted as
-// [low, upper) as in the typical c notion.
+/// Compute a compact 64-bit floating-point value in the range (left,
+/// right].  The righ-end is inclusive because the computed value is used
+/// to define bins based 'x<compactValue' and those bins are interpreted as
+/// [low, upper) as in the typical c notion.
+///
+/// @note The shortest number is considered to be zero (0.0).
+/// @note If the given start is not in the valid range, the middle point of
+/// the range is used.
+/// @note It returns 0.0 if either left or right is not-a-number.
 double ibis::util::compactValue(double left, double right,
 				double start) {
     if (left == right) return left;
@@ -648,10 +653,10 @@ double ibis::util::compactValue(double left, double right,
 	return 1.0;
     // if the range include -1, return -1
     if (left < -1.0 && right >= -1.0)
-	    return -1.0;
+	return -1.0;
 
     double diff, sep;
-    if (left == 0) { // left == 0, right > 0
+    if (left == 0.0) { // left == 0, right > 0
 	diff = floor(log10(right));
 	sep  = pow(10.0, diff);
 	if (sep > right) {
@@ -707,12 +712,99 @@ double ibis::util::compactValue(double left, double right,
     }
     if (! (sep > left && sep <= right)) {
 	sep = right;
-// 	ibis::util::logMessage("Warning", "util::compactValue produces %g (%g), "
-// 			       "which is out of the specified range (%g, %g]",
-// 			       sep, diff, left, right);
+#if defined(_DEBUG) || defined(DEBUG)
+	ibis::util::logMessage("Warning", "ibis::util::compactValue produced "
+			       "a value, %g (%g) out of range (%g, %g]",
+			       sep, diff, left, right);
+#endif
     }
     return sep;
 } // ibis::util::compactValue
+
+/// This version round the number in binary and tries to use a few binary
+/// digits in the mantissa as possible.  The resulting number should have a
+/// better chance of producing exact results in simple arithmetic
+/// operations.
+///
+/// @sa ibis::util::compactValue
+double ibis::util::compactValue2(double left, double right,
+				 double start) {
+    if (left == right) return left;
+    if (! (left != right)) return 0.0;
+    if (left > right) {
+	double tmp;
+	tmp = left;
+	left = right;
+	right = tmp;
+    }
+
+    // if zero is in the range, return zero
+    if (left < 0 && right >= 0)
+	return 0.0;
+    // if the range include 1, return 1
+    if (left < 1.0 && right >= 1.0)
+	return 1.0;
+    // if the range include -1, return -1
+    if (left < -1.0 && right >= -1.0)
+	return -1.0;
+
+    double diff, sep;
+    if (left == 0.0) { // left == 0, right > 0
+	diff = floor(1.4426950408889633870 * log(right));
+	sep  = pow(2.0, diff);
+	if (sep > right) {
+	    sep *= 0.5;
+	}
+    }
+    else if (right < 0.0 && right + right > left) {
+	// negative numbers with a large difference
+	diff = ceil(1.4426950408889633870 * log(-right));
+	sep  = -pow(2.0, diff);
+	if (sep > right) {
+	    sep += sep;
+	}
+    }
+    else if (left > 0.0 && right > left + left) {
+	// postitive numbers with a large difference
+	diff = ceil(1.4426950408889633870 * log(left));
+	sep  = pow(2.0, diff);
+	if (sep <= left) {
+	    sep += sep;
+	}
+    }
+    else { // two values are within a factor 2
+	diff = pow(2.0, ceil(FLT_EPSILON + 1.4426950408889633870 *
+			     log(right - left)));
+	if (!(start > left && start <= right))
+	    start = 0.5 * (right + left);
+	sep = floor(0.5 + start / diff) * diff;
+	if (!(sep > left && sep <= right)) {
+	    diff *= 0.5;
+	    sep = floor(0.5 + start / diff) * diff;
+	    if (!(sep > left && sep <= right)) {
+		diff *= 0.5;
+		sep = floor(0.5 + start / diff) * diff;
+		if (! (sep > left && sep <= right)) {
+		    diff *= 0.5;
+		    sep = floor(0.5 + start / diff) * diff;
+		    if (! (sep > left && sep <= right)) {
+			diff *= 0.5;
+			sep = floor(0.5 + start / diff) * diff;
+		    }
+		}
+	    }
+	}
+    }
+    if (! (sep > left && sep <= right)) {
+	sep = right;
+#if defined(_DEBUG) || defined(DEBUG)
+	ibis::util::logMessage("Warning", "ibis::util::compactValue2 produced "
+			       "a value, %g (%g) out of range (%g, %g]",
+			       sep, diff, left, right);
+#endif
+    }
+    return sep;
+} // ibis::util::compactValue2
 
 void ibis::util::setNaN(float& val) {
     //static char tmp[5] = "\x7F\xBF\xFF\xFF";

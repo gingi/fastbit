@@ -6864,7 +6864,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     double stride2;
     if (col1.isFloat()) {
 	stride1 = (end1 - begin1) / nb1;
-	stride1 = ibis::util::compactValue(stride1, stride1*(1.0+0.5/nb1));
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/nb1));
     }
     else if (end1 > begin1 + nb1*1.25) {
 	stride1 = (1.0 + end1 - begin1) / nb1;
@@ -6875,7 +6875,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     }
     if (col2.isFloat()) {
 	stride2 = (end2 - begin2) / nb2;
-	stride2 = ibis::util::compactValue(stride2, stride2*(1.0+0.5/nb2));
+	stride2 = ibis::util::compactValue2(stride2, stride2*(1.0+0.75/nb2));
     }
     else if (end2 > begin2 + nb2*1.25) {
 	stride2 = (1.0 + end2 - begin2) / nb2;
@@ -10851,7 +10851,9 @@ void ibis::part::equalWeightBins(const array_t<float> &vals,
     }
     if (nbins <= 1) nbins = 16;
     uint32_t nb2 = nbins * 10;
-    const float stride = ibis::util::incrDouble((amax - amin) / nb2);
+    const float stride =
+	ibis::util::compactValue2((amax - amin) / nb2,
+				  (amax - amin) * (nb2 + 0.75) / nb2);
     array_t<uint32_t> cnts(nb2, 0U);
     for (unsigned i = 0; i < vals.size(); ++ i)
 	++ cnts[(unsigned) ((vals[i]-amin)/stride)];
@@ -10888,7 +10890,9 @@ void ibis::part::equalWeightBins(const array_t<double> &vals,
     }
     if (nbins <= 1) nbins = 16;
     uint32_t nb2 = nbins * 10;
-    const double stride = ibis::util::incrDouble((amax - amin) / nb2);
+    const double stride =
+	ibis::util::compactValue2((amax - amin) / nb2,
+				  (amax - amin) * (nb2 + 0.75) / nb2);
     array_t<uint32_t> cnts(nb2, 0U);
     for (unsigned i = 0; i < vals.size(); ++ i)
 	++ cnts[(unsigned) ((vals[i]-amin)/stride)];

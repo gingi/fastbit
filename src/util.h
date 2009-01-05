@@ -438,10 +438,14 @@ namespace ibis {
 	/// value to specified precision. 
 	inline double coarsen(const double in, const unsigned prec=2);
 	/// Compute a compact 64-bit floating-point value with a short
-	/// decimal representation in the range (@c left, @c right].  The
-	/// shortest number is considered to be zero (0.0).
+	/// decimal representation.
 	double compactValue(double left, double right,
 			    double start=0.0);
+
+	/// Compute a compact 64-bit floating-point value with a short
+	/// binary representation.
+	double compactValue2(double left, double right,
+			     double start=0.0);
 
 	/// Set a double to NaN.
 	void setNaN(double& val);
