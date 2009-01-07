@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2006-2008 the Regents of the University of California
+// Copyright 2006-2009 the Regents of the University of California
 #include "idirekte.h"
 #include "part.h"
 

@@ -1,7 +1,7 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2000-2008 Univeristy of California
+// Copyright 2000-2009 Univeristy of California
 //
 // Purpose:
 // This file contains an implementation of the fileManager used by IBIS.

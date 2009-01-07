@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2008 the Regents of the University of California
+// Copyright 2000-2009 the Regents of the University of California
 //
 // Purpose: implementation of the two version of text fields ibis::category
 // and ibis::text

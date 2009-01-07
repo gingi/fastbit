@@ -1,6 +1,6 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2000-2008 the Regents of the University of California
+// Copyright 2000-2009 the Regents of the University of California
 //
 // Implementation of the ibis::part functions except a few that modify the
 // content of the partition (which are in parti.cpp), or perform self

@@ -1,4 +1,9 @@
-2008-01-05 John Wu <John.Wu at ACM.org>
+2009-01-05 John Wu <John.Wu at ACM.org>
+	* src/parth2d.cpp, src/parth3d.cpp, src/parth.pp: split parth.cpp
+	into three file to reduce the time needed for compilation
+	* src, examples: change copyright year to include 2009
+
+2009-01-05 John Wu <John.Wu at ACM.org>
 	* src/util.h, src/util.cpp: add ibis::util::compactValue2 to
 	compute the most compact binary value in a given range
 	* examples/ibis.cpp: compute stride values in print2DDistribution
@@ -11,7 +16,7 @@
 	The apparent unexpected placement of values can be hard to problem
 	to diagnose.
 
-2008-01-02 John Wu <John.Wu at ACM.org>
+2009-01-02 John Wu <John.Wu at ACM.org>
 	* src/array_t.cpp: in constructors assign m_begin to 0 in the
 	initialization lists, assign values to m_begin in the constructor
 	body after checking the values of actual

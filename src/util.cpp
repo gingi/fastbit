@@ -1,5 +1,5 @@
 // $Id$
-// Copyright 2000-2008 the Regents of the University of California
+// Copyright 2000-2009 the Regents of the University of California
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 //
