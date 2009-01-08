@@ -1,4 +1,16 @@
-2009-01-05 John Wu <John.Wu at ACM.org>
+2009-01-08 John Wu <John.Wu at ACM.org>
+	* win/MinGW.mak: add check-ibis
+	* java/FastBit.java, java/FastBit.c: following a suggestion from
+	Andrey Kolchanov <kolchanov at gmail.com> and placed JNI code in a
+	package named gov.lbl.sdm
+
+2009-01-07 John Wu <John.Wu at ACM.org>
+	* win/MinGW.mak, win/Win.mak: update these make files for the two
+	new source files
+	* win/*.vcproj: include parth2d.cpp and parth3d.cpp in the
+	VisualStudio project files
+
+2009-01-06 John Wu <John.Wu at ACM.org>
 	* src/parth2d.cpp, src/parth3d.cpp, src/parth.pp: split parth.cpp
 	into three file to reduce the time needed for compilation
 	* src, examples: change copyright year to include 2009
@@ -13,8 +25,7 @@
 	screen is actually slightly larger than the precise value of 0.1
 	inside the computer.  Given begin=0 and stride=0.1, one may expect
 	the value 1.0 to be in bin 10, but it actually ends up in bin 9.
-	The apparent unexpected placement of values can be hard to problem
-	to diagnose.
+	The apparent unexpected placement of values can be to diagnose.
 
 2009-01-02 John Wu <John.Wu at ACM.org>
 	* src/array_t.cpp: in constructors assign m_begin to 0 in the

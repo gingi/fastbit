@@ -146,17 +146,17 @@ Known Issues
 (3) The tests in 'make check' do a very minimal amount of testing.  To
     perform more through testing, use 'make more-check' or 'make
     full-check'.  The tests in 'make more-check' may take ~ 15 min,
-    which 'make full-check' make take several hours.  These longer
-    tests writes a large number of files into the test directory, which
-    is default to tests/tmp.  It is a good idea to use a local file
-    system instead of a remoted mounted file system for test directory.
+    while 'make full-check' may make take several hours.  These longer
+    tests write a large number of files into the test directory, which
+    defaults to tests/tmp.  It is a good idea to use a local file
+    system instead of a remotely mounted file system for test directory.
     To change the test directory use variable TESTDIR, e.g.,
 
     make TESTDIR=/tmp/kwu/tests full-check
 
     which will use /tmp/kwu/tests as the test directory.
 
-    Running tests under cygwin seems to take much longer than on a linux
+    Running tests under cygwin takes much longer than on a linux
     machine.  I don't know of any way to speed up the test under cygwin.
     Guess, you basically have to use the native file system on MS
     windows.  Alternatively you may consider MinGW/MinSYS.
@@ -203,6 +203,11 @@ Known Issues
     least on success story of using STLport to replace the STL from
     visual studio and build DLL successfully, see
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
+
+(9) The source file src/parth3d.cpp takes a long time to compile under
+    gcc, presumably because of the extensive use of template.  Because
+    of this file, using more than 10 threads to compile the libraries is
+    not likely to reduce the compile time.
 
 
 ----------

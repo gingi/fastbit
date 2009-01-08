@@ -1,4 +1,4 @@
-// File $Id: parth3d.cpp,v 1.1 2009/01/07 01:37:37 kewu Exp $
+// File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2009 the Regents of the University of California
 //
@@ -2411,6 +2411,11 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 /// array bins in raster scan order, with the 3rd dimension as the fastest
 /// varying dimension and the 1st dimension as the slowest varying dimension.
 ///
+/// @note All bitmaps that are empty are left with size() = 0.  All other
+/// bitmaps have the same size() as mask.size().  When use these returned
+/// bitmaps, please make sure to NOT mix empty bitmaps with non-empty
+/// bitmaps in bitwise logical operations!
+///
 /// @sa ibis::part::fill1DBins, ibis::part::fill2DBins.
 template <typename T1, typename T2, typename T3>
 long ibis::part::fill3DBins(const ibis::bitvector &mask,
@@ -2485,7 +2490,8 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals) {
 	bins.resize(nbins);
@@ -2533,7 +2539,8 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else {
 	return -11L;
@@ -2541,6 +2548,8 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
     return nbins;
 } // ibis::part::fill3DBins
 
+/// Resolve the 3rd column involved in the 3D bins.  The finally binning
+/// work is performed by ibis::part::fill3DBins.
 template <typename T1, typename T2>
 long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 			     const array_t<T1> &val1,
@@ -2757,6 +2766,9 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
     return ierr;
 } // ibis::part::fill3DBins3
 
+/// Resolve the 2nd column of the 3D bins.  It invokes
+/// ibis::part::fill3DBins3 to resolve the 3rd dimension and finally
+/// ibis::part::fill3DBins to perform the actual binning.
 template <typename T1>
 long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 			     const array_t<T1> &val1,
@@ -2973,6 +2985,17 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
     return ierr;
 } // ibis::part::fill3DBins2
 
+/// This function calls ibis::part::fill3DBins and other helper functions
+/// to compute the 3D bins.  On successful completion, it returns the
+/// number of elements in variable bins.  In other word, it returns the
+/// number of bins generated, which should be exactly @code
+/// (1 + floor((end1-begin1)/stride1)) *
+/// (1 + floor((end2-begin2)/stride2)) *
+/// (1 + floor((end3-begin3)/stride3))
+/// @endcode
+/// It returns a negative value to indicate error.  Please refer to the
+/// documentation of ibis::part::fill3DBins for additional information
+/// about the objects returned in bins.
 long ibis::part::get3DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,

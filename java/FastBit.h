@@ -12,7 +12,7 @@ extern "C" {
  * Method:    build_indexes
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_build_1indexes
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_build_1indexes
   (JNIEnv *, jobject, jstring, jstring);
 
 /*
@@ -20,7 +20,7 @@ JNIEXPORT jint JNICALL Java_FastBit_build_1indexes
  * Method:    purge_indexes
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_purge_1indexes
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_purge_1indexes
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -28,7 +28,7 @@ JNIEXPORT jint JNICALL Java_FastBit_purge_1indexes
  * Method:    build_index
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_build_1index
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_build_1index
   (JNIEnv *, jobject, jstring, jstring, jstring);
 
 /*
@@ -36,7 +36,7 @@ JNIEXPORT jint JNICALL Java_FastBit_build_1index
  * Method:    purge_index
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_purge_1index
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_purge_1index
   (JNIEnv *, jobject, jstring, jstring);
 
 /*
@@ -44,7 +44,7 @@ JNIEXPORT jint JNICALL Java_FastBit_purge_1index
  * Method:    build_query
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)LFastBit/QueryHandle;
  */
-JNIEXPORT jobject JNICALL Java_FastBit_build_1query
+JNIEXPORT jobject JNICALL Java_gov_lbl_sdm_FastBit_build_1query
   (JNIEnv *, jobject, jstring, jstring, jstring);
 
 /*
@@ -52,7 +52,7 @@ JNIEXPORT jobject JNICALL Java_FastBit_build_1query
  * Method:    destroy_query
  * Signature: (LFastBit/QueryHandle;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_destroy_1query
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_destroy_1query
   (JNIEnv *, jobject, jobject);
 
 /*
@@ -60,7 +60,7 @@ JNIEXPORT jint JNICALL Java_FastBit_destroy_1query
  * Method:    get_result_size
  * Signature: (LFastBit/QueryHandle;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_get_1result_1size
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_get_1result_1size
   (JNIEnv *, jobject, jobject);
 
 /*
@@ -68,7 +68,7 @@ JNIEXPORT jint JNICALL Java_FastBit_get_1result_1size
  * Method:    get_qualified_bytes
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_FastBit_get_1qualified_1bytes
+JNIEXPORT jbyteArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1bytes
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -76,7 +76,7 @@ JNIEXPORT jbyteArray JNICALL Java_FastBit_get_1qualified_1bytes
  * Method:    get_qualified_shorts
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[S
  */
-JNIEXPORT jshortArray JNICALL Java_FastBit_get_1qualified_1shorts
+JNIEXPORT jshortArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1shorts
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -84,7 +84,7 @@ JNIEXPORT jshortArray JNICALL Java_FastBit_get_1qualified_1shorts
  * Method:    get_qualified_ints
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[I
  */
-JNIEXPORT jintArray JNICALL Java_FastBit_get_1qualified_1ints
+JNIEXPORT jintArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1ints
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -92,7 +92,7 @@ JNIEXPORT jintArray JNICALL Java_FastBit_get_1qualified_1ints
  * Method:    get_qualified_longs
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[J
  */
-JNIEXPORT jlongArray JNICALL Java_FastBit_get_1qualified_1longs
+JNIEXPORT jlongArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1longs
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -100,7 +100,7 @@ JNIEXPORT jlongArray JNICALL Java_FastBit_get_1qualified_1longs
  * Method:    get_qualified_floats
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[F
  */
-JNIEXPORT jfloatArray JNICALL Java_FastBit_get_1qualified_1floats
+JNIEXPORT jfloatArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1floats
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -108,7 +108,7 @@ JNIEXPORT jfloatArray JNICALL Java_FastBit_get_1qualified_1floats
  * Method:    get_qualified_doubles
  * Signature: (LFastBit/QueryHandle;Ljava/lang/String;)[D
  */
-JNIEXPORT jdoubleArray JNICALL Java_FastBit_get_1qualified_1doubles
+JNIEXPORT jdoubleArray JNICALL Java_gov_lbl_sdm_FastBit_get_1qualified_1doubles
   (JNIEnv *, jobject, jobject, jstring);
 
 /*
@@ -116,7 +116,7 @@ JNIEXPORT jdoubleArray JNICALL Java_FastBit_get_1qualified_1doubles
  * Method:    write_buffer
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_write_1buffer
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_write_1buffer
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -124,7 +124,7 @@ JNIEXPORT jint JNICALL Java_FastBit_write_1buffer
  * Method:    add_doubles
  * Signature: (Ljava/lang/String;[D)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1doubles
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1doubles
   (JNIEnv *, jobject, jstring, jdoubleArray);
 
 /*
@@ -132,7 +132,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1doubles
  * Method:    add_floats
  * Signature: (Ljava/lang/String;[F)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1floats
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1floats
   (JNIEnv *, jobject, jstring, jfloatArray);
 
 /*
@@ -140,7 +140,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1floats
  * Method:    add_longs
  * Signature: (Ljava/lang/String;[J)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1longs
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1longs
   (JNIEnv *, jobject, jstring, jlongArray);
 
 /*
@@ -148,7 +148,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1longs
  * Method:    add_ints
  * Signature: (Ljava/lang/String;[I)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1ints
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1ints
   (JNIEnv *, jobject, jstring, jintArray);
 
 /*
@@ -156,7 +156,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1ints
  * Method:    add_shorts
  * Signature: (Ljava/lang/String;[S)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1shorts
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1shorts
   (JNIEnv *, jobject, jstring, jshortArray);
 
 /*
@@ -164,7 +164,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1shorts
  * Method:    add_bytes
  * Signature: (Ljava/lang/String;[B)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_add_1bytes
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_add_1bytes
   (JNIEnv *, jobject, jstring, jbyteArray);
 
 /*
@@ -172,7 +172,7 @@ JNIEXPORT jint JNICALL Java_FastBit_add_1bytes
  * Method:    number_of_rows
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_number_1of_1rows
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_number_1of_1rows
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -180,7 +180,7 @@ JNIEXPORT jint JNICALL Java_FastBit_number_1of_1rows
  * Method:    number_of_columns
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_number_1of_1columns
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_number_1of_1columns
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -188,7 +188,7 @@ JNIEXPORT jint JNICALL Java_FastBit_number_1of_1columns
  * Method:    get_message_level
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_FastBit_get_1message_1level
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_get_1message_1level
   (JNIEnv *, jobject);
 
 /*
@@ -196,7 +196,7 @@ JNIEXPORT jint JNICALL Java_FastBit_get_1message_1level
  * Method:    set_message_level
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_set_1message_1level
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_set_1message_1level
   (JNIEnv *, jobject, jint);
 
 /*
@@ -204,7 +204,7 @@ JNIEXPORT jint JNICALL Java_FastBit_set_1message_1level
  * Method:    set_logfile
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_FastBit_set_1logfile
+JNIEXPORT jint JNICALL Java_gov_lbl_sdm_FastBit_set_1logfile
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -212,7 +212,7 @@ JNIEXPORT jint JNICALL Java_FastBit_set_1logfile
  * Method:    get_logfile
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_FastBit_get_1logfile
+JNIEXPORT jstring JNICALL Java_gov_lbl_sdm_FastBit_get_1logfile
   (JNIEnv *, jobject);
 
 /*
@@ -220,7 +220,7 @@ JNIEXPORT jstring JNICALL Java_FastBit_get_1logfile
  * Method:    init
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_FastBit_init
+JNIEXPORT void JNICALL Java_gov_lbl_sdm_FastBit_init
   (JNIEnv *, jobject, jstring);
 
 /*
@@ -228,7 +228,7 @@ JNIEXPORT void JNICALL Java_FastBit_init
  * Method:    cleanup
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_FastBit_cleanup
+JNIEXPORT void JNICALL Java_gov_lbl_sdm_FastBit_cleanup
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus

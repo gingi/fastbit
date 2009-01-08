@@ -6,10 +6,12 @@ OPT=-g -O0
 INC=-I ../src -I "pthreads-w32-2-8-0-release" -I /mingw/include -I .
 DEF=-DFILEMANAGER_UNLOAD_TIME=3
 LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
+TESTDIR=tmp
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
 #
-OBJ =  array_t.o \
+OBJ =  parth3d.o \
+ array_t.o \
  bitvector.o \
  bitvector64.o \
  bundle.o \
@@ -26,6 +28,7 @@ OBJ =  array_t.o \
  party.o \
  part.o \
  parth.o \
+ parth2d.o \
  parti.o \
  icegale.o \
  icentre.o \
@@ -68,21 +71,23 @@ OBJ =  array_t.o \
 #
 ibis: ibis.exe
 all: ibis.exe ardea.exe thula.exe
+IBISEXE=./ibis.exe
+ARDEAEXE=./ardea.exe
 
 lib: libfastbit.a
 libfastbit.a: $(OBJ)
 	ar ruv libfastbit.a $(OBJ)
 
 ibis.exe: ibis.o libfastbit.a
-	$(CXX) -o $@ ibis.o libfastbit.a $(LIB)
+	$(CXX) $(CCFLAGS) -o $@ ibis.o libfastbit.a $(LIB)
 
 thula: thula.exe
 thula.exe: thula.o libfastbit.a
-	$(CXX) $(LIB) -o $@ thula.o libfastbit.a $(LIB)
+	$(CXX) $(CCFLAGS) -o $@ thula.o libfastbit.a $(LIB)
 
 ardea: ardea.exe
 ardea.exe: ardea.o libfastbit.a
-	$(CXX) $(LIB) -o $@ ardea.o libfastbit.a $(LIB)
+	$(CXX) $(CCFLAGS) -o $@ ardea.o libfastbit.a $(LIB)
 
 dll: fastbit.dll
 fastbit.a: fastbit.dll
@@ -99,6 +104,25 @@ trydll.exe: trydll.cpp fastbit.dll
 tcapi: tcapi.exe
 tcapi.exe: ../examples/tcapi.c ../src/capi.h fastbit.dll
 	$(CXX) $(CCFLAGS) -D_USRDLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
+
+check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
+	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 5; else echo $@ did NOT pass test 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 6; else echo $@ did NOT pass test 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -p -e 's/ in Partition .*//' $(TESTDIR)/hist0 > $(TESTDIR)/hist0-1 && if [ `diff -w ../tests/hist0 $(TESTDIR)/hist0-1 | wc -l` -eq 0 ] ; then echo $@ passed test 7; else echo $@ did NOT pass test 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w ../tests/hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo $@ passed test 8; else echo $@ did NOT pass test 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w ../tests/hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo $@ passed test 9; else echo $@ did NOT pass test 9; fi
+	@echo
+$(TESTDIR)/t1/-part.txt: $(ARDEAEXE) ../tests/test0.csv
+	rm -rf $(TESTDIR)/t1
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:short" -t ../tests/test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:short" -t ../tests/test0.csv
+$(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
+	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 
 clean:
 	rm -f *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
@@ -364,6 +388,16 @@ parth.o: ../src/parth.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
   ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
   ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o parth.o ../src/parth.cpp
+parth2d.o: ../src/parth2d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
+  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth2d.o ../src/parth2d.cpp
+parth3d.o: ../src/parth3d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
+  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth3d.o ../src/parth3d.cpp
 parti.o: ../src/parti.cpp ../src/part.h ../src/column.h ../src/table.h \
   ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h \

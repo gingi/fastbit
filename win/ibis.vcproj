@@ -380,6 +380,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\parth2d.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\parth3d.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\parti.cpp"
 				>
 			</File>

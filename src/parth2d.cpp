@@ -1,4 +1,4 @@
-// File $Id: parth2d.cpp,v 1.1 2009/01/07 01:37:37 kewu Exp $
+// File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2009 the Regents of the University of California
 //
@@ -511,6 +511,11 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 /// into the 1D array bins in raster scan order, with the second dimension
 /// as the faster varying dimensioin.
 ///
+/// @note All bitmaps that are empty are left with size() = 0.  All other
+/// bitmaps have the same size() as mask.size().  When use these returned
+/// bitmaps, please make sure to NOT mix empty bitmaps with non-empty
+/// bitmaps in bitwise logical operations!
+///
 /// @sa ibis::part::file1DBins.
 template <typename T1, typename T2>
 long ibis::part::fill2DBins(const ibis::bitvector &mask,
@@ -554,7 +559,8 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals) {
 	bins.resize(nbins);
@@ -583,7 +589,8 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else {
 	return -11L;
@@ -591,7 +598,8 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
     return (long)nbins;
 } // ibis::part::fill2DBins
 
-///
+/// A template function to resolve the second variable involved in the 2D
+/// bins.  The actual binning work done in ibis::part::fill2DBins.
 template <typename T1>
 long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			     const array_t<T1> &val1,
@@ -795,7 +803,17 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
     return ierr;
 } // ibis::part::fill2DBins2
 
-///
+/// This function only checks the validity of the column names and resolve
+/// the first column involved.  The second column is resolved in function
+/// ibis::part::fill2DBins2, and the finally binning work is performed in
+/// ibis::part::fill2DBins.  Please refer to the documentation for
+/// ibis::part::fill2DBins for more information about the return variable
+/// bins.  The return value of this function is the number of elements in
+/// array bins upon successful completion of this function, which should be
+/// exactly @code
+/// (1 + floor((end1-begin1)/stride1)) * (1 + floor((end2-begin2)/stride2)).
+/// @endcode
+/// This function returns a negative value to indicate errors.
 long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,

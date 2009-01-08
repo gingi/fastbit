@@ -196,6 +196,11 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 /// bins or defines more than 1 billion bins.  Upon successful completion
 /// of this function, the return value is the number of bins,
 /// i.e. bins.size().
+///
+/// @note All bitmaps that are empty are left with size() = 0.  All other
+/// bitmaps have the same size() as mask.size().  When use these returned
+/// bitmaps, please make sure to NOT mix empty bitmaps with non-empty
+/// bitmaps in bitwise logical operations!
 template <typename T1>
 long ibis::part::fill1DBins(const ibis::bitvector &mask,
 			    const array_t<T1> &vals,
@@ -227,7 +232,8 @@ long ibis::part::fill1DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else if (mask.cnt() == vals.size()) {
 	bins.resize(nbins);
@@ -252,7 +258,8 @@ long ibis::part::fill1DBins(const ibis::bitvector &mask,
 	    }
 	}
 	for (size_t i = 0; i < nbins; ++ i)
-	    bins[i].adjustSize(0, mask.size());
+	    if (bins[i].size() > 0)
+		bins[i].adjustSize(0, mask.size());
     }
     else {
 	return -11L;
@@ -260,6 +267,13 @@ long ibis::part::fill1DBins(const ibis::bitvector &mask,
     return (long)nbins;
 } // ibis::part::fill1DBins
 
+/// The actual binning operations are performed in function template
+/// ibis::part::fill1DBins.  The normal return value is the number of
+/// bitmaps stored in bins.  Note that the empty bitmaps in bins all share
+/// the same underlying storage.  The caller should avoid mixing these
+/// empty bitmaps with others.
+///
+/// @sa ibis::part::fill1DBins
 long ibis::part::get1DBins(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
 			   std::vector<ibis::bitvector> &bins) const {
