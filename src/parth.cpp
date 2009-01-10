@@ -3379,3 +3379,9 @@ template long ibis::part::adaptiveFloats
 template long ibis::part::adaptiveFloats
 (const array_t<double> &, const double, const double, uint32_t,
  std::vector<double> &, std::vector<uint32_t> &);
+template long ibis::part::adaptiveInts
+(const array_t<float> &, const float, const float, uint32_t,
+ std::vector<double> &, std::vector<uint32_t> &);
+template long ibis::part::adaptiveInts
+(const array_t<double> &, const double, const double, uint32_t,
+ std::vector<double> &, std::vector<uint32_t> &);

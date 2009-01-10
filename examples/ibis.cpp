@@ -74,6 +74,7 @@
    NOTE: option -t is interpreted as sele-testing if specified alone, if
    any query is also specified, it is interpreted as indicating the number
    of threads to use.
+    @ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -866,6 +867,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	return;
     }
     if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+#if defined(TEST_CONTAINER_OF_OBJECTS)
 	std::vector<ibis::bitvector> bins;
 	ierr = tbl.get3DBins(cond,
 			     col1, amin1, amax1, stride1,
@@ -901,6 +903,44 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	    lg.buffer() << "matching arrays cnts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	}
+#else
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get3DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     col3, amin3, amax3, stride3,
+			     bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint3DDistribution(" << col1 << ", " << col2
+		    << ", " << col3 << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get3DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (cnts.size() != bins.size()) {
+	    lg.buffer() << "get3DDistribution returned " << cnts.size()
+			<< " bin" << (cnts.size() > 1 ? "s" : "")
+			<< ", but get3DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i]->cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i]->cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	}
+	ibis::util::clean(bins);
+#endif
     }
 } // print3DDistribution
 

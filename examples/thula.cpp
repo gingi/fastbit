@@ -10,6 +10,7 @@ one ibis::table.
 Egretta Thula is the Latin name for Snowy Egret, one of John's favorite
 birds, see
 http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
+    @ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters

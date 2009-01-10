@@ -3,14 +3,19 @@
  Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
  Copyright 2006-2009 the Regents of the University of California
+*/
+/**
+   @file tcapi.c
 
- A simple test program for functions defined in capi.h.  The basic command
- line options are
+   A simple test program for functions defined in capi.h.
 
- datadir selection-conditions [<column type> <column type>...]
-
- Types recognized are: i (for integers), u (for unsigned integers), f (for
- floats) and d for (doubles).  Unrecognized types are treated as integers.
+   The basic command line options are
+   @code
+   datadir selection-conditions [<column type> <column type>...]
+   @endcode
+   Types recognized are: i (for integers), u (for unsigned integers), f (for
+   floats) and d for (doubles).  Unrecognized types are treated as integers.
+    @ingroup FastBitExamples
 */
 #include <capi.h>
 #include <ctype.h>

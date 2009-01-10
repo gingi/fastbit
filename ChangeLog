@@ -1,3 +1,20 @@
+2009-01-09 John Wu <John.Wu at ACM.org>
+	* java/FastBit.java: change package name to be gov.lbl.fastbit,
+	add FastBitJNI group to doxygen documentation
+	* src/Doxyfile: add java/FastBit.java and the example files in
+	examples to the list of source files
+	* src/query.cpp:6584 add OPEN_FILEMODE as the 3rd argument to
+	UnixOpen function call (an error spotted by Niklas Bulitta)
+	* src/query.cpp:1712 add local static variable myhostid to cache
+	the host ID instead of making the system call every time
+	(suggested by Niklas Bulitta)
+	* src/parth3d.cpp: add a variantion of get3DBins that returns
+	bitmaps in container std::vector<ibis::bitvector*>.  Based on the
+	timing measurements from Oliver, keeping empty bitmaps as nil
+	pointers might be able to reduce the memory usage reduce overall
+	execution time of get3DBins, especially if the majority of the
+	bins are empty.
+
 2009-01-08 John Wu <John.Wu at ACM.org>
 	* win/MinGW.mak: add check-ibis
 	* java/FastBit.java, java/FastBit.c: following a suggestion from

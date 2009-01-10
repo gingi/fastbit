@@ -364,6 +364,13 @@ public:
 		   const char *cname3,
 		   double begin3, double end3, double stride3,
 		   std::vector<ibis::bitvector> &bins) const;
+    long get3DBins(const char *constraints, const char *cname1,
+		   double begin1, double end1, double stride1,
+		   const char *cname2,
+		   double begin2, double end2, double stride2,
+		   const char *cname3,
+		   double begin3, double end3, double stride3,
+		   std::vector<ibis::bitvector*> &bins) const;
     /// Partition records satisfying specified conditions into bins with
     /// about the same number of records.
     long get1DBins(const char *constraints, const char *cname1, uint32_t nb1,
@@ -755,7 +762,7 @@ protected:
 		    const array_t<T3> &vals3,
 		    const double &begin3, const double &end3,
 		    const double &stride3,
-		    std::vector<bitvector> &bins) const;
+		    std::vector<ibis::bitvector> &bins) const;
     template <typename T1>
     long fill3DBins2(const ibis::bitvector &mask, const array_t<T1> &vals1,
 		     const double &begin1, const double &end1,
@@ -778,6 +785,39 @@ protected:
 		     const double &begin3, const double &end3,
 		     const double &stride3,
 		     std::vector<bitvector> &bins) const;
+    template <typename T1, typename T2, typename T3>
+    long fill3DBins(const ibis::bitvector &mask, const array_t<T1> &vals1,
+		    const double &begin1, const double &end1,
+		    const double &stride1,
+		    const array_t<T2> &vals2,
+		    const double &begin2, const double &end2,
+		    const double &stride2,
+		    const array_t<T3> &vals3,
+		    const double &begin3, const double &end3,
+		    const double &stride3,
+		    std::vector<bitvector*> &bins) const;
+    template <typename T1>
+    long fill3DBins2(const ibis::bitvector &mask, const array_t<T1> &vals1,
+		     const double &begin1, const double &end1,
+		     const double &stride1,
+		     const ibis::column &col2,
+		     const double &begin2, const double &end2,
+		     const double &stride2,
+		     const ibis::column &col3,
+		     const double &begin3, const double &end3,
+		     const double &stride3,
+		     std::vector<ibis::bitvector*> &bins) const;
+    template <typename T1, typename T2>
+    long fill3DBins3(const ibis::bitvector &mask, const array_t<T1> &vals1,
+		     const double &begin1, const double &end1,
+		     const double &stride1,
+		     const array_t<T2> &vals2,
+		     const double &begin2, const double &end2,
+		     const double &stride2,
+		     const ibis::column &col3,
+		     const double &begin3, const double &end3,
+		     const double &stride3,
+		     std::vector<ibis::bitvector*> &bins) const;
 
     /// Compute 1D histogram from raw data.
     long get1DBins_(const ibis::bitvector &mask, const ibis::column &col,

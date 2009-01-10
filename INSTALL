@@ -131,17 +131,17 @@ Known Issues
     we have left this option open to the users, for example, it is
     possible for a user to retrieve the values of a 32-bit integer
     column as floats by calling ibis::table::getColumnAsFloats.  Callers
-    should be aware that such conversion may lose data.  This type of
-    conversion may also occur when comparing two types of columns direct
-    (without indexes), for example if a where clause contains "A < B"
-    and A is a signed integer but B is a unsigned integer.  Users should
-    be aware of this type of problems.
+    should be aware that such conversion may lose precision.  This type
+    of conversion may also occur when comparing two types of columns
+    direct (without indexes), for example if a where clause contains "A
+    < B" and A is a signed integer but B is a unsigned integer.  Users
+    should be aware of such problems.
 
-(2) Under cygwin, some times, the read-write lock may print out error
+(2) Under cygwin, some times, the read-write lock may print out warning
     messages, but the operations seem to carry on without any problem.
     We have not tried to figure out what are the causes of the problems,
     if you have information about them or know how to fix the problem,
-    we would like to hear about it.
+    we would like to hear about them.
 
 (3) The tests in 'make check' do a very minimal amount of testing.  To
     perform more through testing, use 'make more-check' or 'make
@@ -205,9 +205,11 @@ Known Issues
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
 (9) The source file src/parth3d.cpp takes a long time to compile under
-    gcc, presumably because of the extensive use of template.  Because
-    of this file, using more than 10 threads to compile the libraries is
-    not likely to reduce the compile time.
+    gcc, presumably because of the extensive use of template.  If the
+    package is configured with --enable-xopt, compiling this file alone
+    may take up to 30 minutes using g++, which is more time than
+    compiling all other files.  If you have any suggestion on how to
+    reduce the compilation time, please share with us!
 
 
 ----------

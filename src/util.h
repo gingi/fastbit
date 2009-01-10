@@ -499,6 +499,8 @@ namespace ibis {
 		       const std::vector<ibis::bitvector> &bits2,
 		       const std::vector<ibis::bitvector> &bits3,
 		       std::vector<ibis::bitvector> &res);
+	/// Deallocate the bit vectors.
+	void clean(std::vector<ibis::bitvector*> &bv) throw();
 	/// Return the current time in string format as @c asctime_r.
 	/// The argument @c str must have 26 or more bytes and is used to
 	/// carry the time output.

@@ -1709,7 +1709,8 @@ char* ibis::query::newToken(const char *uid) {
     else
 	ta = 0;
 #if (_XOPEN_SOURCE - 0) >= 500
-    ta ^= gethostid();			// the hostid (defined in unistd.h)
+    static uint32_t myhostid(gethostid());	// hostid from unistd.h
+    ta ^= myhostid;
 #endif
     {
 	time_t tmp;
@@ -6581,7 +6582,7 @@ void ibis::query::orderPairs(const char *pfile) const {
     if (pfile == 0 || *pfile == 0)
 	return;
     uint32_t npairs = ibis::util::getFileSize(pfile);
-    int fdes = UnixOpen(pfile, OPEN_READWRITE);
+    int fdes = UnixOpen(pfile, OPEN_READWRITE, OPEN_FILEMODE);
     long ierr;
     if (fdes < 0) {
 	logWarning("orderPairs", "unable to open %s for sorting", pfile);

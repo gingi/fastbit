@@ -1,6 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2007-2009 the Regents of the University of California
+/// @defgroup FastBitExamples FastBit IBIS example programs.
 /** @file ardea.cpp
 
 This is a simple test program for functions defined in ibis::tablex.
@@ -24,6 +25,7 @@ rows with missing values are padded with NULL values.  See @c
 ibis::tablex::appendRow for more information about NULL values.
 
 @note Ardea ibis, the Latin name for <A HREF="http://www.birds.cornell.edu/AllAboutBirds/BirdGuide/Cattle_Egret.html">Cattle Egret</A>.
+    @ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
