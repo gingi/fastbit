@@ -930,10 +930,10 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	else {
 	    ierr = 0;
 	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i]->cnt() != cnts[i]) {
+		if (bins[i] != 0 ? bins[i]->cnt() != cnts[i] : cnts[i] != 0) {
 		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
 				<< ") != bins[" << i << "].cnt() ("
-				<< bins[i]->cnt() << ")\n";
+				<< (bins[i]!=0 ? bins[i]->cnt() : 0) << ")\n";
 		    ++ ierr;
 		}
 	    lg.buffer() << "matching arrays cnts and bins produces "

@@ -14,6 +14,8 @@
 	pointers might be able to reduce the memory usage reduce overall
 	execution time of get3DBins, especially if the majority of the
 	bins are empty.
+	* examples/ibis.cpp: add code in print3DDistributiion to test the
+	new get3DBins that returns std::vector<ibis::bitvector*>
 
 2009-01-08 John Wu <John.Wu at ACM.org>
 	* win/MinGW.mak: add check-ibis
