@@ -2,9 +2,9 @@
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2009 the Regents of the University of California
 //
-// Implementation of the ibis::part functions except a few that modify the
-// content of the partition (which are in parti.cpp), or perform self
-// join (in party.cpp), or histogram functions (in parth.cpp).
+// Implementation of the ibis::part functions except those that modify the
+// content of a partition (which are in parti.cpp), or perform self join
+// (in party.cpp), or histogram functions (in parth.cpp).
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -15,6 +15,7 @@
 #include "query.h"
 #include "part.h"
 #include "iroster.h"
+#include "twister.h"	// ibis::MersenneTwister
 
 #include <fstream>
 #include <sstream>	// std::ostringstream
@@ -40,20 +41,17 @@
 
 extern "C" {
     // a function to start the some test queries
-    static void* ibis_part_startTests(void* arg) {
+    static void* ibis_part_threadedTestFun1(void* arg) {
 	if (arg == 0)
 	    return reinterpret_cast<void*>(-1L);
 	ibis::part::thrArg* myArg = (ibis::part::thrArg*)arg;
 	if (myArg->et == 0)
 	    return reinterpret_cast<void*>(-2L);
 	const ibis::part *et0 = myArg->et;
-	LOGGER(ibis::gVerbose >= 3)
-	    << "INFO: starting a new thread to perform self-test on partition "
-	    << et0->name();
 
 	try {
 	    std::string longtest;
-	    ibis::part::readLock lock(et0, "startTests");
+	    ibis::part::readLock lock(et0, "threadedTestFun1");
 	    if (myArg->pref) {
 		longtest = myArg->pref;
 		longtest += ".longTests";
@@ -71,26 +69,78 @@ extern "C" {
 	    return(reinterpret_cast<void*>(0L));
 	}
 	catch (const std::exception &e) {
-	    et0->logMessage("startTests",
-			    "self test received exception \"%s\"",
-			    e.what());
+	    et0->logMessage("threadedTestFun1",
+			    "received exception \"%s\"", e.what());
 	    return(reinterpret_cast<void*>(-11L));
 	}
 	catch (const char* s) {
-	    et0->logMessage("startTests",
-			    "self test received exception \"%s\"",
-			    s);
+	    et0->logMessage("threadedTestFun1",
+			    "received exception \"%s\"", s);
 	    return(reinterpret_cast<void*>(-12L));
 	}
 	catch (...) {
-	    et0->logMessage("startTests", "self test received an unexpected "
-			    "exception");
+	    et0->logMessage("threadedTestFun1", "received an "
+			    "unexpected exception");
 	    return(reinterpret_cast<void*>(-10L));
 	}
-    } // ibis_part_startTests
+    } // ibis_part_threadedTestFun1
 
-    // the routine wraps around doBackup to allow doBackup being run in a
-    // separated thread
+    static void* ibis_part_threadedTestFun2(void* arg) {
+	if (arg == 0)
+	    return reinterpret_cast<void*>(-1L);
+
+	ibis::part::thrArg *myList = (ibis::part::thrArg*)arg;
+	if (myList->et == 0)
+	    return reinterpret_cast<void*>(-2L);
+	const ibis::part *et0 = myList->et;
+	const time_t myid = ibis::fileManager::instance().iBeat();
+	LOGGER(ibis::gVerbose >= 3)
+	    << "INFO: thread (local id " << myid
+	    << ") start evaluating queries on partition " << et0->name();
+
+	try {
+	    unsigned myerr = 0;
+	    unsigned mycnt = 0;
+	    ibis::query qq(ibis::util::userName(), et0);
+	    for (uint32_t j = myList->cnt(); j < myList->conds.size();
+		 j = myList->cnt()) {
+		++ mycnt;
+		qq.setWhereClause(myList->conds[j].c_str());
+		int ierr = qq.evaluate();
+		if (ierr == 0) {
+		    myList->hits[j] = qq.getNumHits();
+		}
+		else {
+		    ++ myerr;
+		    ++ (*myList->nerrors);
+		}
+	    }
+	    LOGGER(ibis::gVerbose >= 3)
+		<< "INFO: thread " << myid << " completed " << mycnt
+		<< " set" << (mycnt > 1 ? "s" : "")
+		<< " of range conditions and encountered " << myerr << " error"
+		<< (myerr > 1 ? "s" : "") << " during query evaluations";
+	    return(reinterpret_cast<void*>(0L));
+	}
+	catch (const std::exception &e) {
+	    et0->logMessage("threadedTestFun2",
+			    "received exception \"%s\"", e.what());
+	    return(reinterpret_cast<void*>(-11L));
+	}
+	catch (const char* s) {
+	    et0->logMessage("threadedTestFun2",
+			    "received exception \"%s\"", s);
+	    return(reinterpret_cast<void*>(-12L));
+	}
+	catch (...) {
+	    et0->logMessage("threadedTestFun2", "received an "
+			    "unexpected exception");
+	    return(reinterpret_cast<void*>(-10L));
+	}
+    } // ibis_part_threadedTestFun2
+
+    /// This routine wraps around doBackup to allow doBackup being run in a
+    /// separated thread.
     static void* ibis_part_startBackup(void* arg) {
 	if (arg == 0) return reinterpret_cast<void*>(-1L);
 	ibis::part* et = (ibis::part*)arg; // arg is actually a part*
@@ -116,6 +166,7 @@ extern "C" {
 	}
     } // ibis_part_startBackup
 
+    /// The thread function to building indexes.
     static void* ibis_part_build_index(void* arg) {
 	if (arg == 0) return reinterpret_cast<void*>(-1L);
 	ibis::part::indexBuilderPool &pool =
@@ -4643,7 +4694,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 				      (void*)&pool);
 		if (0 != ierr) {
 		    logWarning("buildIndex", "unable to start the thread # "
-			       "%ld to run ibis_part_startTests", i);
+			       "%ld to run ibis_part_build_index", i);
 		}
 	    }
 	}
@@ -4655,7 +4706,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 				      (void*)&pool);
 		if (0 != ierr) {
 		    logWarning("buildIndex", "unable to start the thread # "
-			       "%ld to run ibis_part_startTests", i);
+			       "%ld to run ibis_part_build_index", i);
 		}
 	    }
 	}
@@ -4917,7 +4968,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 	}
 	if (nth > 1) {
 	    // select some attributes for further testing -- do part of the
-	    // work in a new thread
+	    // work in new threads
 	    -- nth;
 	    if (nth > 100)
 		nth = 100;
@@ -4937,7 +4988,10 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 	    arg.nerrors = &nerr;
 	    pthread_attr_t tattr;
 	    int ierr = pthread_attr_init(&tattr);
-	    if (ierr == 0) {
+	    const bool myattr = (ierr == 0);
+
+	    // spawn threads to invoke ibis_part_threadedTestFun1
+	    if (myattr) {
 #if defined(PTHREAD_SCOPE_SYSTEM)
 		ierr = pthread_attr_setscope(&tattr, PTHREAD_SCOPE_SYSTEM);
 		if (ierr != 0
@@ -4951,11 +5005,11 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 #endif
 		for (int i = 0; i < nth; ++i) {
 		    ierr = pthread_create(&(tid[i]), &tattr,
-					  ibis_part_startTests,
+					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
 			logWarning("selfTest", "unable to start the thread "
-				   "# %d to run ibis_part_startTests", i);
+				   "# %d to run ibis_part_threadedTestFun1", i);
 		    }
 		}
 	    }
@@ -4964,11 +5018,11 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 			   "using default attributes", ierr);
 		for (int i = 0; i < nth; ++i) {
 		    ierr = pthread_create(&(tid[i]), 0,
-					  ibis_part_startTests,
+					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
 			logWarning("selfTest", "unable to start the thread "
-				   "# %d to run ibis_part_startTests", i);
+				   "# %d to run ibis_part_threadedTestFun1", i);
 		    }
 		}
 	    }
@@ -4987,9 +5041,47 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 			       "a nonzero code %ld", i,
 			       reinterpret_cast<long int>(j));
 	    }
-	    ierr = pthread_attr_destroy(&tattr);
+
+	    if (nerr == 0 && columns.size() > 1) {
+		// spawn threads to invoke ibis_part_threadedTestFun2
+		const unsigned nc =
+		    (columns.size() > 2 ?
+		     columns.size() - (columns.size() >> 1) : columns.size());
+		unsigned nq = (63 & ibis::fileManager::instance().iBeat()) +
+		    10 * ibis::gVerbose;
+		nq *= (nth + 1);
+		if (nEvents >= 104857600)
+		    nq >>= 1; // reduce number of queries for large partition
+		else if (nEvents <= 1048576)
+		    nq <<= 1; // increase number of queries for small partition
+		buildQueryList(arg, nc, nq);
+		for (int i = 0; i < nth; ++ i) {
+		    ierr = pthread_create(&(tid[i]), &tattr,
+					  ibis_part_threadedTestFun2,
+					  (void*)&arg);
+		    if (0 != ierr) {
+			logWarning("selfTest", "unable to start the thread "
+				   "# %d to run ibis_part_threadedTestFun2", i);
+		    }
+		}
+		ierr = (long) ibis_part_threadedTestFun2((void*)&arg);
+		if (ierr != 0)
+		    ++ nerr;
+		for (int i = 0; i < nth; ++ i) {
+		    void *j;
+		    pthread_join(tid[i], &j);
+		    if (j != 0)
+			logWarning("selfTest", "thread # %d returned "
+				   "a nonzero code %ld", i,
+				   reinterpret_cast<long int>(j));
+		}
+		checkQueryList(arg);
+	    }
+
+	    if (myattr)
+		ierr = pthread_attr_destroy(&tattr);
 	}
-	else if (nth > 0) { // try some queries using this thread
+	else { // try some queries using this thread
 	    if (nEvents < 1048576 || longtest)
 		queryTest(pref, &nerr);
 	    else
@@ -5026,7 +5118,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
     return nerr;
 } // ibis::part::selfTest
 
-// randomly select a column and perform about a set of test recursively
+/// Randomly select a column and perform a set of tests recursively.
 void ibis::part::queryTest(const char* pref, long* nerrors) const {
     if (columns.empty() || nEvents == 0) return;
 
@@ -5126,8 +5218,8 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
     }
 } // ibis::part::queryTest
 
-// randomly select a column from the current list and perform a dozen tests
-// on the column
+/// Randomly select a column from the current list and perform a dozen
+/// tests on the column.
 void ibis::part::quickTest(const char* pref, long* nerrors) const {
     if (columns.empty() || nEvents == 0) return;
 
@@ -5749,6 +5841,240 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
     }
     return cnt0;
 } // ibis::part::recursiveQuery
+
+void ibis::part::composeQueryString
+(std::string &str, const ibis::column* col1, const ibis::column* col2,
+ const double &lower1, const double &upper1,
+ const double &lower2, const double &upper2) const {
+    std::ostringstream oss;
+    oss << lower1 << " <= " << col1->name() << " < " << upper1 << " AND "
+	<< lower2 << " <= " << col2->name() << " < " << upper2;
+    str = oss.str();
+} // ibis::part::composeQueryString
+
+/// Generate a list of random query conditions.  It select nc columns from
+/// the list of all columns and fills the array lst.conds and lst.super.
+/// The array lst.hits is resized to the correct size, but left to be
+/// filled with other functions.  It generates at least nc-1 queries.  When
+/// nq > nc, it may generate one nq+1 queries because it always adds two
+/// subranges as queries together.  This is to ensure that two sub-ranges
+/// of any given range is present together for checkQueryList.
+void ibis::part::buildQueryList(ibis::part::thrArg &lst,
+				unsigned nc, unsigned nq) const {
+    lst.conds.clear();
+    lst.super.clear();
+    lst.hits.clear();
+    if (columns.size() < nc || nc == 0 || nq == 0 || nEvents == 0) return;
+
+    std::vector<const ibis::column*> cols(nc);
+    std::vector<double> lower(nc);
+    std::vector<double> upper(nc);
+    lst.conds.reserve(nq+1);
+    lst.super.reserve(nq+1);
+
+    // select the columns
+    columnList::const_iterator cit = columns.begin();
+    for (int i = static_cast<int>(ibis::util::rand() * (columns.size() - nc));
+	 i > 0; ++ cit, -- i);
+    for (unsigned i = 0; i < nc; ++ i) {
+	cols[i] = (*cit).second;
+	lower[i] = (*cit).second->lowerBound();
+	upper[i] = (*cit).second->upperBound();
+	if (! (lower[i] < upper[i])) {
+	    (*cit).second->computeMinMax();
+	    lower[i] = (*cit).second->lowerBound();
+	    upper[i] = (*cit).second->upperBound();
+	}
+	if (! (lower[i] <= upper[i])) {
+	    lower[i] = 0.0;
+	    upper[i] = 1.0;
+	    ++(*lst.nerrors);
+	}
+	++ cit;
+    }
+    // shuffle the selected columns
+    for (unsigned i = 0; i < nc; ++ i) {
+	unsigned j = static_cast<unsigned>(ibis::util::rand() * nc);
+	if (i != j) {
+	    const ibis::column *ctmp = cols[i];
+	    cols[i] = cols[j];
+	    cols[j] = ctmp;
+	    double dtmp = lower[i];
+	    lower[i] = lower[j];
+	    lower[j] = dtmp;
+	    dtmp = upper[i];
+	    upper[i] = upper[j];
+	    upper[j] = dtmp;
+	}
+    }
+
+    struct group {
+	const ibis::column *col1;
+	const ibis::column *col2;
+	std::vector<unsigned> pos;
+	std::vector<double> lower1, lower2, upper1, upper2;
+    };
+    group *grp = new group[nc-1];
+    ibis::MersenneTwister urand; // a higher quality random number generator
+    for (unsigned i = 0; i < nc-1; ++ i) {
+	grp[i].col1 = cols[i];
+	grp[i].col2 = cols[i+1];
+	const double mid1 = lower[i] + (upper[i] - lower[i]) * urand();
+	const double mid2 = lower[i+1] + (upper[i+1] - lower[i+1]) * urand();
+	grp[i].pos.resize(2);
+	grp[i].lower1.resize(2);
+	grp[i].lower2.resize(2);
+	grp[i].upper1.resize(2);
+	grp[i].upper2.resize(2);
+	grp[i].lower1[0] = lower[i];
+	grp[i].upper1[0] = mid1;
+	grp[i].lower2[0] = lower[i+1];
+	grp[i].upper2[0] = mid2;
+	grp[i].lower1[1] = mid1;
+	grp[i].upper1[1] = upper[i];
+	grp[i].lower2[1] = mid2;
+	grp[i].upper2[1] = upper[i+1];
+
+	std::string cnd1, cnd2;
+	composeQueryString(cnd1, grp[i].col1, grp[i].col2,
+			   grp[i].lower1[0], grp[i].upper1[0],
+			   grp[i].lower2[0], grp[i].upper2[0]);
+	composeQueryString(cnd2, grp[i].col1, grp[i].col2,
+			   grp[i].lower1[1], grp[i].upper1[1],
+			   grp[i].lower2[1], grp[i].upper2[1]);
+
+	grp[i].pos[0] = i + i;
+	grp[i].pos[1] = i + i + 1;
+	lst.conds.push_back(cnd1);
+	lst.conds.push_back(cnd2);
+	lst.super.push_back(grp[i].pos[0]);
+	lst.super.push_back(grp[i].pos[1]);
+    }
+
+    bool more = (lst.conds.size() < nq);
+    bool expand1 = true;
+    while (more) {
+	for (unsigned ig = 0; ig < nc-1 && more; ++ ig) {
+	    std::vector<unsigned> pos;
+	    std::vector<double> lower1, lower2, upper1, upper2;
+	    pos.resize(2*grp[ig].pos.size());
+	    lower1.resize(2*grp[ig].pos.size());
+	    lower2.resize(2*grp[ig].pos.size());
+	    upper1.resize(2*grp[ig].pos.size());
+	    upper2.resize(2*grp[ig].pos.size());
+	    for (unsigned i = 0; i < grp[ig].lower1.size() && more; ++ i) {
+		if (expand1) { // subdivide the range of col1
+		    double mid1 = grp[ig].lower1[i] +
+			(grp[ig].upper1[i]-grp[ig].lower1[i]) * urand();
+		    std::string front, back;
+		    lower1[i+i] = grp[ig].lower1[i];
+		    upper1[i+i] = mid1;
+		    lower1[i+i+1] = mid1;
+		    upper1[i+i+1] = grp[ig].upper1[i];
+		    lower2[i+i] = grp[ig].lower2[i];
+		    upper2[i+i] = grp[ig].upper2[i];
+		    lower2[i+i+1] = grp[ig].lower2[i];
+		    upper2[i+i+1] = grp[ig].upper2[i];
+		    // front half of the range
+		    composeQueryString(front, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i], upper1[i+i],
+				       lower2[i+i], upper2[i+i]);
+		    pos[i+i] = lst.conds.size();
+		    lst.conds.push_back(front);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    // back half of the range
+		    composeQueryString(back, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i+1], upper1[i+i+1],
+				       lower2[i+i+1], upper2[i+i+1]);
+		    pos[i+i+1] = lst.conds.size();
+		    lst.conds.push_back(back);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    more = (lst.conds.size() < nq);
+#if defined(_DEBUG) || defined(DEBUG)
+		    LOGGER(ibis::gVerbose > 5)
+			<< "buildQueryList split (" << grp[ig].col1->name()
+			<< ")\n" << lst.conds[grp[ig].pos[i]]
+			<< "\n into \n" << front << "\n" << back
+			<< "\nlst.super[" << lst.super.size()-2 << "]="
+			<< lst.super[lst.super.size()-2] << ", lst.super["
+			<< lst.super.size()-1 << "]="
+			<< lst.super[lst.super.size()-1];
+#endif
+		}
+		else { // subdivide the range of col2
+		    double mid2 = grp[ig].lower2[i] +
+			(grp[ig].upper2[i]-grp[ig].lower2[i]) * urand();
+		    std::string front, back;
+		    lower1[i+i] = grp[ig].lower1[i];
+		    upper1[i+i] = grp[ig].upper1[i];
+		    lower1[i+i+1] = grp[ig].lower1[i];
+		    upper1[i+i+1] = grp[ig].upper1[i];
+		    lower2[i+i] = grp[ig].lower2[i];
+		    upper2[i+i] = mid2;
+		    lower2[i+i+1] = mid2;
+		    upper2[i+i+1] = grp[ig].upper2[i];
+		    // front half of the range
+		    composeQueryString(front, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i], upper1[i+i],
+				       lower2[i+i], upper2[i+i]);
+		    pos[i+i] = lst.conds.size();
+		    lst.conds.push_back(front);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    // back half of the range
+		    composeQueryString(back, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i+1], upper1[i+i+1],
+				       lower2[i+i+1], upper2[i+i+1]);
+		    pos[i+i+1] = lst.conds.size();
+		    lst.conds.push_back(back);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    more = (lst.conds.size() < nq);
+#if defined(_DEBUG) || defined(DEBUG)
+		    LOGGER(ibis::gVerbose > 5)
+			<< "buildQueryList split (" << grp[ig].col2->name()
+			<< ")\n" << lst.conds[grp[ig].pos[i]]
+			<< "\n into \n" << front << "\n" << back
+			<< "\nlst.super[" << lst.super.size()-2 << "]="
+			<< lst.super[lst.super.size()-2] << ", lst.super["
+			<< lst.super.size()-1 << "]="
+			<< lst.super[lst.super.size()-1];
+#endif
+		}
+	    } // for (unsigned i = 0; ...
+	    if (more) { // update the group with new records
+		grp[ig].pos.swap(pos);
+		grp[ig].lower1.swap(lower1);
+		grp[ig].lower2.swap(lower2);
+		grp[ig].upper1.swap(upper1);
+		grp[ig].upper2.swap(upper2);
+	    }
+	} // for (unsigned ig = 0; ...
+	expand1 = !expand1; // swap the dimension to expand
+    }
+    delete [] grp;
+    lst.hits.resize(lst.conds.size());
+} // ibis::part::buildQueryList
+
+/// Sum up the hits from sub-divisions to verify the hits computing from
+/// the whole range.  Based on the construction of buildQueryList, each
+/// query condition knows which conditions contains it.
+void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
+    std::vector<unsigned> fromChildren(lst.conds.size(), 0U);
+    for(unsigned i = lst.conds.size(); i > 0;) {
+	-- i;
+	if (lst.super[i] < i)
+	    fromChildren[lst.super[i]] += lst.hits[i];
+	if (fromChildren[i] > 0) {
+	    if (fromChildren[i] != lst.hits[i]) {
+		++ (*lst.nerrors);
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- ibis::part::checkQueryList found the "
+		    "number of hits (" << lst.hits[i] << ") for \""
+		    << lst.conds[i] << "\" not matching the sum ("
+		    << fromChildren[i] << ") from its two sub-divisions";
+	    }
+	}
+    }
+} // ibis::part::checkQueryList
 
 // three error logging functions
 void ibis::part::logError(const char* event, const char* fmt, ...) const {

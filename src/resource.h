@@ -13,19 +13,22 @@
 /// A container for name-value pairs.
 ///
 /// It is mostly used for storing the configuration parameters.  The
-/// parameters are in a format as follows: group:group:...:name=value where
-/// the delimiter can be either '*', ':' or '.' and anything following the
-/// first '=' sign is assumed to be part of the value string until the end
-/// of line. The leading and trailing spaces are removed from both the name
-/// and the value.  The specification that appears later in the same
-/// configuration file or read later (through a call to read()) will
-/// overwrite the parameter with the same name.  This include the groups
-/// and individual parameters.  For example if a parameter named 'abcd' is
-/// specified first, but later, the same name is used as a group name, then
-/// the previously specified parameter will be removed from the list and
-/// the new group will be inserted.  If the parameter with name 'abcd'
-/// appeared again, then the group 'abcd' will be removed and the named
-/// parameter will be inserted.
+/// parameters are in a format as follows:
+/// @code
+/// group:group:...:name=value
+/// @endcode
+/// where the delimiter can be either '*', ':' or '.' and anything
+/// following the first '=' sign is assumed to be part of the value string
+/// until the end of line.  The leading and trailing spaces are removed from
+/// both the name and the value.  The specification that appears later in
+/// the same configuration file or read later (through a call to read())
+/// will overwrite the parameter with the same name.  This include the
+/// groups and individual parameters.  For example if a parameter named
+/// 'abcd' is specified first, but later, the same name is used as a group
+/// name, then the previously specified parameter will be removed from the
+/// list and the new group will be inserted.  If the parameter with name
+/// 'abcd' appeared again, then the group 'abcd' will be removed and the
+/// named parameter will be inserted.
 ///
 /// The line length must of no more than MAX_LINE defined in const.h.
 ///
@@ -42,33 +45,26 @@ public:
     typedef std::map< const char*, char*, ibis::lessi > vList;
 
     ~resource() {clear();};
-    explicit resource(const char *fn=0) : prefix(0), context(0) {
-	if (fn != 0 && *fn != 0) read(fn);}
+    /// Default constructor.  Creates an empty object.
+    resource() : prefix(0), context(0) {};
+    /// Read the content of a parameter file.
+    explicit resource(const char *fn) : prefix(0), context(0) {read(fn);}
+    /// Create an empty object with the specified prefix and context.
     resource(const resource* ctx, const char* pfx) :
 	prefix(ibis::util::strnewdup(pfx)), context(ctx) {}
+    /// Copy constructor.  Deep copy.
     resource(const resource& rhs) :
 	groups(rhs.groups), values(rhs.values),
 	prefix(ibis::util::strnewdup(rhs.prefix)), context(rhs.context) {}
     const resource& operator=(const resource& rhs);
 
-    /// This group of functions search through multiple levels of the name
-    /// hierarchy.  The operator[] returns a pointer to the string value,
-    /// @c getNumber returns the string value as a number, and @c isTrue
-    /// returns the string value as boolean.
-    ///
-    /// The incoming name can contain multiple separators.  Each component
-    /// of the name is separated by one separator.  From the left to right,
-    /// the left-most component defines the highest level of the hierarchy.
-    /// A high-level name forms the context for the next level of the name
-    /// hierarchy.  The final component of the name is directly associated
-    /// with a string value.  The search algorithm first descend to the
-    /// lowest level with the matching names and starts to look for a name
-    /// that matches the last component of the specified name.  If a match
-    /// is not found, it will go back one level and perform the same
-    /// search.  This continues until a match is found or it has searched
-    /// all the levels.
+    /// Locate the value of the given parameter name.
     const char* operator[](const char *name) const;
+    /// Locate the value of the given parameter name and return it as a
+    /// number.
     double getNumber(const char* name) const;
+    /// Locate the value of the given parameter name and return it as a
+    /// boolean value.
     bool isTrue(const char *name) const;
 
     /// Insert a new name-value pair.

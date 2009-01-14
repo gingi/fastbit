@@ -639,7 +639,7 @@ namespace ibis {
 	    const writeLock& operator=(const writeLock&);
 	}; // writeLock
 
-	/// A simple global counter.  Each time the operator() is called,
+	/// A simple shared counter.  Each time the operator() is called,
 	/// it is incremented by 1.  Calls from different threads are
 	/// serialized through a mutual exclusion lock.
 	class FASTBIT_CXX_DLLSPEC counter {
@@ -670,7 +670,9 @@ namespace ibis {
 	    const char *mesg_;
 	    uint32_t count_;
 
+	    /// Copy constructor.  Decleared but not implemented.
 	    counter(const counter&);
+	    /// Assignment operator.  Decleared but not implemented.
 	    const counter& operator=(const counter&);
 	}; // counter
 

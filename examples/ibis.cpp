@@ -71,7 +71,7 @@
    exclusive, the one that appears later will overwrite the one that
    appears early on the same command line.
 
-   NOTE: option -t is interpreted as sele-testing if specified alone, if
+   NOTE: option -t is interpreted as self-testing if specified alone, if
    any query is also specified, it is interpreted as indicating the number
    of threads to use.
     @ingroup FastBitExamples
@@ -86,6 +86,8 @@
 // local data types
 typedef std::vector<const char*> stringList;
 
+/// The data structure for holding information about query jobs for
+/// multi-threaded testing.
 struct thArg {
     const char* uid;
     const stringList& qlist;
@@ -1639,7 +1641,7 @@ static void parse_args(int argc, char** argv,
 	    ibis::gParameters().read(confs[i]);
     }
     else if (ibis::gParameters().empty()) {
-	// read default parameter files
+	// try default configuration files
 	ibis::gParameters().read();
     }
 

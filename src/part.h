@@ -520,13 +520,17 @@ public:
     ibis::fileManager::ACCESS_PREFERENCE
     accessHint(const ibis::bitvector &mask, unsigned elemsize=4) const;
 
-    // a struct to pack the arguments to the thread function startTests
+    /// A struct to pack the arguments to function startTests.
     struct thrArg {
 	const part* et;
 	const char* pref;
-	long* nerrors;
+	long* nerrors;	///< Number of errors encountered.
+	ibis::util::counter cnt;
+	std::vector<std::string> conds; ///< List of query conditions.
+	std::vector<unsigned> super;///< The condition encompassing this one.
+	std::vector<unsigned> hits; ///< The number of hits.
     };
-    // a struct to pack argument to the thread function ibis_part_build_index
+    /// A struct to pack argument to the function ibis_part_build_index.
     struct indexBuilderPool {
 	ibis::util::counter cnt;
 	const char* opt;
@@ -535,8 +539,9 @@ public:
 	    : cnt(t.name()), opt(spec), tbl(t) {}
     };
 
-    // two functions to generate random queries for slefTest
+    /// Generate and run random queries for slefTest.
     void queryTest(const char* pref, long* nerrors) const;
+    /// Generate and run random queries for slefTest.
     void quickTest(const char* pref, long* nerrors) const;
 
     // These functions are used classes barrel and vault
@@ -947,6 +952,14 @@ protected:
 			       const T vmin, const T vmax, uint32_t nbins,
 			       std::vector<double> &bounds,
 			       std::vector<ibis::bitvector> &detail);
+
+    void composeQueryString(std::string &str,
+			    const ibis::column* col1, const ibis::column* col2,
+			    const double &lower1, const double &upper1,
+			    const double &lower2, const double &upper2) const;
+    void buildQueryList(ibis::part::thrArg &lst,
+			unsigned nc, unsigned nq) const;
+    void checkQueryList(const ibis::part::thrArg &lst) const;
 
 private:
 

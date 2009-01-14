@@ -106,14 +106,16 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (0 == conf) {
-	LOGGER(ibis::gVerbose >= 4) << "ibis::resource::read -- can not find any of the "
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::resource::read -- can not find any of the "
 	    "following configuration files:\n" << tried.c_str();
 	return;
     }
 
     char *value;
-    LOGGER(ibis::gVerbose >= 1) << "ibis::resource::read -- Reading configuration file \""
-	      << (name?name:"") << "\""; 
+    LOGGER(ibis::gVerbose >= 1)
+	<< "ibis::resource::read -- Reading configuration file \""
+	<< (name?name:"") << "\""; 
     while ( !feof(conf) ) {
 	if (fgets(line, MAX_LINE, conf) == 0) continue; // skip empty line
 
@@ -138,8 +140,9 @@ void ibis::resource::read(const char* fn) {
 	    add(name, ibis::util::trim(value));
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 7) << "ibis::resource::read -- skipping line \""
-		      << line << "\" because it contains no '='";
+	    LOGGER(ibis::gVerbose >= 7)
+		<< "ibis::resource::read -- skipping line \""
+		<< line << "\" because it contains no '='";
 	}
     }
     fclose(conf);
@@ -204,9 +207,17 @@ void ibis::resource::add(const char* name, const char* value) {
     delete [] mname;
 } // ibis::resource::add
 
-// Return a value for the named parameter -- if the name does not appear
-// in the specified context, it will search for the parameter in the
-// lowest level of context containing the named one.
+/// The incoming name can contain multiple separators.  Each component
+/// of the name is separated by one separator.  From the left to right,
+/// the left-most component defines the highest level of the hierarchy.
+/// A high-level name forms the context for the next level of the name
+/// hierarchy.  The final component of the name is directly associated
+/// with a string value.  The search algorithm first descend to the
+/// lowest level with the matching names and starts to look for a name
+/// that matches the last component of the specified name.  If a match
+/// is not found, it will go back one level and perform the same
+/// search.  This continues until a match is found or it has searched
+/// all the levels.
 const char* ibis::resource::operator[](const char* name) const {
     const char* value = static_cast<char*>(0);
     if (name==0) return value;
