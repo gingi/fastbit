@@ -1,3 +1,21 @@
+2009-01-16 John Wu <John.Wu at ACM.org>
+	* src/util.h: change ibis::util::counter to use GCC atomic
+	extension as well
+	* src/util.h: remove the unused member variable mesg from
+	ibis::util::counter, add code to use interlocked variables in
+	ibis::util::counter
+	* src/util.h: change sharedInt template to two versions for
+	uint32_t and uint64_t to take advantage of atomic functions
+	available on windows under visual studio 9
+	* src/fileManger.h, src/fileManager.cpp: remove countMutex,
+	change totalBytes to be ibis::util::sharedInt64, change
+	storage::nref from unsigned to ibis::util::sharedInt32
+	* win/MinGW.mak: add case 10 to check-ibis
+
+2009-01-15 John Wu <John.Wu at ACM.org>
+	* src/util.h: add ibis::util::sharedInt template to make use of
+	GCC extension for atomic operations on integers
+
 2009-01-14 John Wu <John.Wu at ACM.org>
 	* src/resource.h: separate the default constructor from the
 	constructor that takes a string argument based on a suggestion

@@ -536,7 +536,7 @@ public:
 	const char* opt;
 	const part &tbl;
 	indexBuilderPool(const part &t, const char* spec)
-	    : cnt(t.name()), opt(spec), tbl(t) {}
+	    : cnt(), opt(spec), tbl(t) {}
     };
 
     /// Generate and run random queries for slefTest.

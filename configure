@@ -19260,18 +19260,7 @@ done
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-for ac_func in floor getpagesize getpass gettimeofday memset mkdir modf pow select sqrt strchr strdup strerror strpbrk strrchr strspn strstr
+for ac_func in floor getpagesize getpass gettimeofday memset mkdir
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -19807,7 +19796,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 19810 "configure" */
+/* #line 19799 "configure" */
 public class Test {
 }
 EOF
@@ -19942,7 +19931,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 19945: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 19934: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -20023,7 +20012,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 20026 "configure" */
+/* #line 20015 "configure" */
 public class Test {
 }
 EOF
@@ -20060,7 +20049,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 20063 "configure" */
+/* [#]line 20052 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

@@ -116,6 +116,7 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -p -e 's/ in Partition .*//' $(TESTDIR)/hist0 > $(TESTDIR)/hist0-1 && if [ `diff -w ../tests/hist0 $(TESTDIR)/hist0-1 | wc -l` -eq 0 ] ; then echo $@ passed test 7; else echo $@ did NOT pass test 7; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w ../tests/hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo $@ passed test 8; else echo $@ did NOT pass test 8; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w ../tests/hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo $@ passed test 9; else echo $@ did NOT pass test 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 > $(TESTDIR)/check-ibis-10.log 2>&1 && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) ../tests/test0.csv
 	rm -rf $(TESTDIR)/t1

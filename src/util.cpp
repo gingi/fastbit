@@ -1373,7 +1373,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 /// bytes.  The new line character is turned into null.
 void ibis::util::secondsToString(const time_t sec, char *str) {
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock, "secondsToString");
+    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -1394,7 +1394,7 @@ void ibis::util::secondsToString(const time_t sec, char *str) {
 void ibis::util::getLocalTime(char *str) {
     time_t sec = time(0); // current time in seconds
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock, "getLocalTime");
+    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -1413,7 +1413,7 @@ void ibis::util::getLocalTime(char *str) {
 void ibis::util::getGMTime(char *str) {
     time_t sec = time(0); // current time in seconds
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock, "getGMTime");
+    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(gmtime(&sec)));
     str[24] = 0;
 #else
@@ -1429,15 +1429,6 @@ void ibis::util::getGMTime(char *str) {
     }
 #endif
 } // ibis::util::getGMTime
-
-/// Constructor of ibis::util::counter.
-ibis::util::counter::counter(const char *m) : mesg_(m), count_(0) {
-    if (0 != pthread_mutex_init
-	(&lock_, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw ibis::bad_alloc
-	    ("ibis::util::counter unable to initialize the mutex lock");
-    }
-} // ibis::util::counter
 
 /// Constructor.  
 template <typename T>
@@ -1484,6 +1475,7 @@ template class ibis::util::buffer<int32_t>;
 template class ibis::util::buffer<uint32_t>;
 template class ibis::util::buffer<int64_t>;
 template class ibis::util::buffer<uint64_t>;
+
 
 #ifdef IBIS_REPLACEMENT_RWLOCK
 //

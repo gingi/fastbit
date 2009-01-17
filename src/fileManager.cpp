@@ -38,13 +38,10 @@
 #endif
 
 // initialize static varialbes (class members) of fileManager
-volatile unsigned long ibis::fileManager::totalBytes = 0;
-unsigned int ibis::fileManager::maxOpenFiles = 0;
-unsigned long ibis::fileManager::maxBytes = 0;
+uint64_t ibis::fileManager::maxBytes = 0;
 uint32_t ibis::fileManager::pagesize = 8192;
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-pthread_mutex_t ibis::fileManager::countMutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
+unsigned int ibis::fileManager::maxOpenFiles = 0;
+ibis::util::sharedInt64 ibis::fileManager::totalBytes;
 
 // default to about 256 MB
 #define _FASTBIT_DEFAULT_MEMORY_SIZE 256*1024*1024
@@ -356,9 +353,10 @@ void ibis::fileManager::printStatus(std::ostream& out) const {
     out << "\nSince of all files read into memory is " << itot
 	<< std::endl;
     out << "\nSize of all named storages is " << itot + mtot
-	<< "\nSize of all unnamed storages is " << totalBytes - (itot + mtot)
+	<< "\nSize of all unnamed storages is "
+	<< ibis::fileManager::totalBytes() - (itot + mtot)
 	<< "\nThe total size of all named and unnamed storages is "
-	<< totalBytes
+	<< ibis::fileManager::totalBytes()
 	<< "\nThe prescribed maximum size is " << maxBytes
 	<< "\nNumber of pages accessed (recorded so far) is "
 	<< page_count << " (page size = " << pagesize << ")\n"
@@ -487,7 +485,8 @@ void ibis::fileManager::flushDir(const char* name) {
 
 /// Clear the two lists of files.
 void ibis::fileManager::clear() {
-    if (ibis::gVerbose > 12 || (totalBytes > 0 && ibis::gVerbose > 6)) {
+    if (ibis::gVerbose > 12 ||
+	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 6)) {
 	ibis::util::logger lg(2);
 	lg.buffer() << "ibis::fileManager::clear -- starting ...";
 	printStatus(lg.buffer());
@@ -513,9 +512,10 @@ void ibis::fileManager::clear() {
 	 it != tmp.end(); ++ it)
 	delete (*it);
 
-    LOGGER((totalBytes != 0 && ibis::gVerbose > 0) || ibis::gVerbose > 12)
-	<< "fileManager::clear -- There are " << totalBytes
-	<< " byte" << (totalBytes>1 ? "s" : "")
+    LOGGER((ibis::fileManager::totalBytes() != 0 && ibis::gVerbose > 0) ||
+	   ibis::gVerbose > 12)
+	<< "fileManager::clear -- There are " << ibis::fileManager::totalBytes()
+	<< " byte" << (ibis::fileManager::totalBytes()>1 ? "s" : "")
 	<< " of storage remain in memory after removing all managed objects";
 } // ibis::fileManager::clear
 
@@ -709,9 +709,9 @@ ibis::fileManager::fileManager()
 // destructor
 ibis::fileManager::~fileManager() {
     clear();
-    pthread_rwlock_destroy(&lock);
-    pthread_mutex_destroy(&mutex);
-    pthread_cond_destroy(&cond);
+    (void)pthread_rwlock_destroy(&lock);
+    (void)pthread_mutex_destroy(&mutex);
+    (void)pthread_cond_destroy(&cond);
 } // ibis::fileManager::~fileManager
 
 // record a newly allocated storage in the two lists
@@ -874,23 +874,18 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
     // unload enough files to free up space
-    if (bytes + totalBytes > maxBytes) {
-	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("getFile",
-				   "need to unload %lu bytes for \"%s\", "
-				   "maxBytes=%.3G, totalBytes=%.3G",
-				   bytes, name,
-				   static_cast<double>(maxBytes),
-				   static_cast<double>(totalBytes));
+    if (bytes + ibis::fileManager::totalBytes() > maxBytes) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "ibis::fileManager::getFile -- need to unload "
+	    << bytes << " bytes for \"" << name << "\", maxBytes="
+	    << maxBytes << ", totalBytes=" << ibis::fileManager::totalBytes();
 	ierr = unload(bytes);
     }
     else if (mapped.size() >= maxOpenFiles && bytes >= minMapSize) {
-	if (ibis::gVerbose > 7)
-	    ibis::util::logMessage("getFile", "need to unload some files "
-				   "before reading \"%s\", "
-				   "maxBytes=%.3G, totalBytes=%.3G", name,
-				   static_cast<double>(maxBytes),
-				   static_cast<double>(totalBytes));
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::fileManager::getFile -- need to unload some files "
+	    "before reading \"" << name << "\", maxBytes=" << maxBytes
+	    << ", totalBytes=" << ibis::fileManager::totalBytes();
 	ierr = unload(0); // unload whatever can be unload
     }
     if (ierr < 0) {
@@ -1055,7 +1050,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     }
 
     // not enough space to get the file
-    if (bytes + totalBytes > maxBytes) {
+    if (bytes + ibis::fileManager::totalBytes() > maxBytes) {
 	return -106; // not enough space
     }
     if (reading.find(name) != reading.end()) {
@@ -1186,14 +1181,14 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
     // unload enough files to free up space
-    if (bytes + totalBytes > maxBytes) {
+    if (bytes + ibis::fileManager::totalBytes() > maxBytes) {
 	if (ibis::gVerbose > 5)
 	    ibis::util::logMessage("getFileSegment",
 				   "need to unload %lu bytes for \"%s\", "
 				   "maxBytes=%.3G, totalBytes=%.3G",
 				   bytes, name,
 				   static_cast<double>(maxBytes),
-				   static_cast<double>(totalBytes));
+				   static_cast<double>(ibis::fileManager::totalBytes()));
 	ierr = unload(bytes);
     }
     else if (mapped.size() >= maxOpenFiles && bytes >= minMapSize) {
@@ -1202,7 +1197,7 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 				   "files before reading \"%s\", "
 				   "maxBytes=%.3G, totalBytes=%.3G", name,
 				   static_cast<double>(maxBytes),
-				   static_cast<double>(totalBytes));
+				   static_cast<double>(ibis::fileManager::totalBytes()));
 	ierr = unload(0); // unload whatever can be unload
     }
     if (ierr < 0) {
@@ -1311,7 +1306,8 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 // caller must hold a mutex lock to prevent simutaneous invocation of this
 // function.
 int ibis::fileManager::unload(size_t size) {
-    if (size > 0 && maxBytes > totalBytes && size+totalBytes <= maxBytes) {
+    if (size > 0 && maxBytes > ibis::fileManager::totalBytes() &&
+	size+ibis::fileManager::totalBytes() <= maxBytes) {
 	// there is enough space
 	return 0;
     }
@@ -1332,12 +1328,12 @@ int ibis::fileManager::unload(size_t size) {
 				   "need to free up %lu bytes of space"
 				   "(totalBytes=%lu, maxBytes=%lu)",
 				   static_cast<long unsigned>(size),
-				   totalBytes, maxBytes);
+				   ibis::fileManager::totalBytes(), maxBytes);
 	else
 	    ibis::util::logMessage("ibis::fileManager::unload",
 				   "want to free up all unused space"
 				   "(totalBytes=%lu, maxBytes=%lu)",
-				   totalBytes, maxBytes);
+				   ibis::fileManager::totalBytes(), maxBytes);
     }
 
     // collect the list of files that can be unloaded
@@ -1360,7 +1356,8 @@ int ibis::fileManager::unload(size_t size) {
 		sum += (*it).second->size();
 	    }
 	}
-	if (maxBytes <= totalBytes || totalBytes-sum > maxBytes-size)
+	if (maxBytes <= ibis::fileManager::totalBytes() ||
+	    ibis::fileManager::totalBytes()-sum > maxBytes-size)
 	    // invoke the external cleaners and recompute the total
 	    invokeCleaners();
 
@@ -1424,7 +1421,8 @@ int ibis::fileManager::unload(size_t size) {
 	}
 	else if (candidates.size() > 0) {
 	    // note: totalBytes is updated when an object is deleted
-	    while (candidates.size() > 0 && maxBytes-size < totalBytes)  {
+	    while (candidates.size() > 0 &&
+		   maxBytes-size < ibis::fileManager::totalBytes())  {
 		it = candidates.back();
 		roFile *tmp = (*it).second;
 		if (ibis::gVerbose > 4) {
@@ -1446,7 +1444,7 @@ int ibis::fileManager::unload(size_t size) {
 		delete tmp; // remove the target selected
 		candidates.resize(candidates.size()-1);
 	    }
-	    if (maxBytes-size >= totalBytes)
+	    if (maxBytes-size >= ibis::fileManager::totalBytes())
 		return 0;
 	}
 
@@ -1470,8 +1468,8 @@ int ibis::fileManager::unload(size_t size) {
 	    ibis::util::logger lg(3);
 	    lg.buffer() << "ibis::fileManager::unload unable to find " << size
 			<< " bytes of free space (totalBytes="
-			<< totalBytes << ", maxBytes=" << maxBytes
-			<< "), will wait...";
+			<< ibis::fileManager::totalBytes() << ", maxBytes="
+			<< maxBytes << "), will wait...";
 	    if (ibis::gVerbose > 6) {
 		lg.buffer() << "\n";
 		printStatus(lg.buffer());
@@ -1515,10 +1513,10 @@ int ibis::fileManager::unload(size_t size) {
     } // while (...)
 
     // time-out
-    ibis::util::logMessage("Warning", "fileManager::unload unable to free "
-			   "enough space for %lu byte%s (totalBytes=%lu, "
-			   "maxBytes=%lu)", static_cast<long unsigned>(size),
-			   (size>1 ? "s" : ""), totalBytes, maxBytes);
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- fileManager::unload unable to free enough space for "
+	<< size << " byte" <<  (size>1 ? "s" : "") << " (totalBytes="
+	<< ibis::fileManager::totalBytes() << ", maxBytes=" << maxBytes << ")";
     return -109;
 } // ibis::fileManager::unload
 
@@ -1526,24 +1524,22 @@ void ibis::fileManager::invokeCleaners() const {
     if (ibis::gVerbose > 5)
 	ibis::util::logMessage("ibis::fileManager", "invoking registered "
 			       "external cleaners ...");
-    const size_t before = ibis::fileManager::totalBytes;
+    const uint64_t before = ibis::fileManager::totalBytes();
     for (cleanerList::const_iterator it = cleaners.begin();
 	 it != cleaners.end();
 	 ++it)
 	(*it)->operator()();
 
-    if (ibis::fileManager::totalBytes < before) {
-	if (ibis::gVerbose > 7)
-	    ibis::util::logMessage("ibis::fileManager", "external cleaners "
-				   "reduce totalBytes from %lu to %lu",
-				   static_cast<long unsigned>(before),
-				   ibis::fileManager::totalBytes);
+    if (ibis::fileManager::totalBytes() < before) {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::fileManager -- external cleaners reduce totalBytes from "
+	    << before << " to " << ibis::fileManager::totalBytes();
     }
     else if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(5);
 	lg.buffer() << "ibis::fileManager -- external cleaners "
 		    << "did not reduce the total bytes ("
-		    << ibis::fileManager::totalBytes << ")";
+		    << ibis::fileManager::totalBytes() << ")";
 	if (ibis::gVerbose > 10) {
 	    lg.buffer() << "\n";
 	    printStatus(lg.buffer());
@@ -1572,9 +1568,9 @@ void ibis::fileManager::signalMemoryAvailable() const {
 //
 // allocate storage for an array of the specified size
 ibis::fileManager::storage::storage(size_t n)
-    : name(0), m_begin(0), m_end(0), nacc(0), nref(0) {
+    : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (n < 8) n = 8; // at least 8 bytes
-    if (n+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+    if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(n);
@@ -1612,10 +1608,10 @@ ibis::fileManager::storage::storage(size_t n)
 ibis::fileManager::storage::storage(const int fdes,
 				    const off_t begin,
 				    const off_t end)
-    : name(0), m_begin(0), m_end(0), nacc(0), nref(0) {
+    : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (end <= begin) return;
     long nbytes = end - begin;
-    if (nbytes+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+    if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1681,10 +1677,10 @@ ibis::fileManager::storage::storage(const int fdes,
 
 // copy only the part between begin and end [begin, end)
 ibis::fileManager::storage::storage(const char* begin, const char* end)
-    : name(0), m_begin(0), m_end(0), nacc(0), nref(0) {
+    : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (end <= begin) return;
     long nbytes = end - begin;
-    if (nbytes+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+    if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1719,9 +1715,9 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 
 // copy constructor -- make an in-memory copy
 ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
-    : name(0), m_begin(0), m_end(0), nacc(0), nref(0) {
+    : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     unsigned long nbytes = rhs.size();
-    if (nbytes+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+    if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1772,7 +1768,7 @@ void ibis::fileManager::storage::copy
     clear(); // clear the current content
 
     unsigned long nbytes = rhs.size();
-    if (nbytes+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+    if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					 "storage::copy");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1811,7 +1807,7 @@ void ibis::fileManager::storage::copy
 void ibis::fileManager::storage::enlarge(size_t nelm) {
     if (m_begin == 0 || m_begin >= m_end) { // empty storage
 	if (nelm < 8) nelm = 8;
-	if (nelm+ibis::fileManager::totalBytes >
+	if (nelm+ibis::fileManager::totalBytes() >
 	    ibis::fileManager::maxBytes) {
 	    ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					     "storage::enlarge");
@@ -1879,7 +1875,7 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 		    static_cast<size_t>(1.6180339887498948482*oldsize));
 	if (n < 1024)
 	    n += n;
-	if (n+ibis::fileManager::totalBytes > ibis::fileManager::maxBytes) {
+	if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	    ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					     "storage::enlarge");
 	    int ierr = ibis::fileManager::instance().unload(n);
@@ -1971,13 +1967,12 @@ void ibis::fileManager::storage::clear() {
 	    lg.buffer() << "fileManager::storage::clear("
 			<< static_cast<void*>(m_begin) << "):\t";
 	lg.buffer() << "size = " << size() << ", nacc = " << nacc
-		    << ", nref = " << nref;
+		    << ", nref = " << nref();
     }
-    if (nref > 0) {
-	if (ibis::gVerbose > 3)
-	    ibis::util::logMessage("storage::clear", "storage 0x%.8x busy "
-				   "(nref=%lu)", m_begin,
-				   static_cast<long unsigned>(nref));
+    if (nref() > 0) {
+	LOGGER(ibis::gVerbose > 3)
+	    << "storage::clear -- storage 0x" << m_begin << " busy (nref="
+	    << nref() << ")";
 	return;
     }
 
@@ -2002,7 +1997,7 @@ size_t ibis::fileManager::storage::printStatus(std::ostream& out) const {
 	    << ", as double " << *reinterpret_cast<double*>(m_begin);
     out << "\n# of bytes      " << size()
 	<< "\n# of past acc   " << nacc
-	<< "\n# of active acc " << nref
+	<< "\n# of active acc " << nref()
 	<< std::endl;
     return size();
 } // ibis::fileManager::storage::printStatus
@@ -2016,7 +2011,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 
     off_t nbytes = end - begin;
     if (m_begin == 0U) {
-	if (nbytes+ibis::fileManager::totalBytes >
+	if (nbytes+ibis::fileManager::totalBytes() >
 	    ibis::fileManager::maxBytes) {
 	    ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
 					     "storage::read");
@@ -2141,37 +2136,21 @@ void ibis::fileManager::roFile::beginUse() {
     // acquire a read lock
     if (name != 0) {
 	ibis::fileManager::instance().gainReadAccess(name);
-#if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
-				    << " got a read lock on " << name;
-#endif
     }
     lastUse = time(0);
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-    ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "beginUse");
-#endif
     ++ nref;
 } // ibis::fileManager::roFile::beginUse
 
 // done using a file
 void ibis::fileManager::roFile::endUse() {
-    {
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "endUse");
-#endif
-	-- nref; // number of current references
-	++ nacc; // number of past accesses
-    }
+    const uint32_t nr0 = -- nref; // number of current references
+    ++ nacc; // number of past accesses
 
     // relinquish the read lock
     if (name != 0) {
 	ibis::fileManager::instance().releaseAccess(name);
-#if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(ibis::gVerbose >= 0) << "fileManager::roFile " << this
-				    << " released the lock on " << name;
-#endif
 	// signal to ibis::fileManager that this file is ready for deletion
-	if (nref == 0)
+	if (nr0 == 0)
 	    pthread_cond_signal(&(ibis::fileManager::instance().cond));
     }
 } // ibis::fileManager::roFile::endUse
@@ -2187,13 +2166,12 @@ void ibis::fileManager::roFile::clear() {
 	    lg.buffer() << "fileManager::roFile::clear("
 			<< static_cast<void*>(m_begin) << "):\t";
 	lg.buffer() << "size = " << size() << ", nacc = " << nacc
-		    << ", nref = " << nref << ", mapped = " << mapped;
+		    << ", nref = " << nref() << ", mapped = " << mapped;
     }
-    if (nref > 0) {
-	if (ibis::gVerbose > 3)
-	    ibis::util::logMessage("roFile::clear", "storage 0x%.8x is busy "
-				   "(nref=%d) and can't be cleared",
-				   m_begin, nref);
+    if (nref() > 0) {
+	LOGGER(ibis::gVerbose > 3)
+	    << "roFile::clear -- storage 0x" << m_begin << " is busy (nref="
+	    << nref() << ") and can't be cleared";
 	return;
     }
 
@@ -2254,14 +2232,14 @@ size_t ibis::fileManager::roFile::printBody(std::ostream& out) const {
     out << "\nopened at       " << tstr0
 	<< "\nlast used at    " << tstr1
 	<< "\n# of past acc   " << nacc
-	<< "\n# of active acc " << nref
+	<< "\n# of active acc " << nref()
 	<< "\nmapped          " << (mapped?"y\n":"n\n") << std::endl;
     return size();
 } // ibis::fileManager::roFile::printBody
 
 void ibis::fileManager::roFile::read(const char* file) {
     if (file == 0 || *file == 0) return;
-    if (nref == 0) {
+    if (nref() == 0) {
 	if (name) {
 	    ibis::fileManager::instance().flushFile(name);
 	}
@@ -2423,7 +2401,7 @@ ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
 #if defined(HAS_FILE_MAP)
 void ibis::fileManager::roFile::mapFile(const char* file) {
     if (file == 0 || *file == 0) return;
-    if (nref == 0) {
+    if (nref() == 0) {
 	if (name) {
 	    ibis::fileManager::instance().flushFile(name);
 	}

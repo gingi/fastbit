@@ -56,14 +56,8 @@
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
-/* Define to 1 if you have the `modf' function. */
-#undef HAVE_MODF
-
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
-
-/* Define to 1 if you have the `pow' function. */
-#undef HAVE_POW
 
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
@@ -71,12 +65,6 @@
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #undef HAVE_REALLOC
-
-/* Define to 1 if you have the `select' function. */
-#undef HAVE_SELECT
-
-/* Define to 1 if you have the `sqrt' function. */
-#undef HAVE_SQRT
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
@@ -87,32 +75,11 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
-
-/* Define to 1 if you have the `strpbrk' function. */
-#undef HAVE_STRPBRK
-
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
-/* Define to 1 if you have the `strspn' function. */
-#undef HAVE_STRSPN
-
-/* Define to 1 if you have the `strstr' function. */
-#undef HAVE_STRSTR
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */

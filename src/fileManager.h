@@ -5,7 +5,7 @@
 #ifndef IBIS_FILEMANAGER_H
 #define IBIS_FILEMANAGER_H
 /// @file
-/// Defines a simple file Manager.
+/// Defines a simple file manager.
 ///
 /// @note Use malloc and realloc to manage memory when the file content is
 /// actually in memory.  The main reason for doing so is to malloc for
@@ -33,8 +33,8 @@
 #endif
 
 /// @ingroup FastBitIBIS
-/// This fileManager is intended to allow different objects to share the same
-/// open file.  It does not manage writing of files.
+/// This fileManager is intended to allow different objects to share the
+/// same open file.  It does not manage writing of files.
 class ibis::fileManager {
 public:
 
@@ -135,10 +135,12 @@ public:
     };
 
     /// Returns the number of bytes currently on records in the file manager.
-    static long unsigned bytesInUse() {return totalBytes;}
+    static long unsigned bytesInUse() {return ibis::fileManager::totalBytes();}
     /// Return the number of bytes free.
-    static long unsigned bytesFree()
-    {return (maxBytes > totalBytes ? maxBytes - totalBytes : 0);}
+    static long unsigned bytesFree() {
+	return (maxBytes > ibis::fileManager::totalBytes() ?
+		maxBytes - ibis::fileManager::totalBytes() : 0);
+    }
 
 protected:
     fileManager();  // get its input parameter from ibis::gParameters()
@@ -148,8 +150,8 @@ protected:
 
     // parameters for controlling the resource usage
     /// Total bytes of all managed objects.
-    static volatile unsigned long totalBytes;
-    static unsigned long maxBytes;    ///< Maximum number of bytes allowed.
+    static ibis::util::sharedInt64 totalBytes;
+    static uint64_t maxBytes;    ///< Maximum number of bytes allowed.
     static unsigned int maxOpenFiles; ///< Maximum number of files opened.
 
     // not implemented, to prevent compiler from generating these functions
@@ -177,9 +179,6 @@ private:
     /// The conditional variable for reading list.
     pthread_cond_t readCond;
 
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-    static pthread_mutex_t countMutex; // a mutex lock for counters
-#endif
     mutable pthread_rwlock_t lock; // the multiple read single write lock
     mutable pthread_mutex_t mutex; // control access to incore and mapped
     mutable pthread_cond_t cond;   // conditional variable -- unload(), etc..
@@ -243,7 +242,7 @@ private:
 /// and deallocation.
 class ibis::fileManager::storage {
 public:
-    storage() : name(0), m_begin(0), m_end(0), nacc(0), nref(0) {};
+    storage() : name(0), m_begin(0), m_end(0), nacc(0), nref() {};
     explicit storage(size_t n); // allocate n bytes
     virtual ~storage() {clear();}
 
@@ -277,45 +276,19 @@ public:
     const char* end() const {return m_end;}
     const char* begin() const {return m_begin;}
 
-    // functions for recording access statistics
-    // the counters nref and nacc should be modified under the control of
-    // a mutex lock -- however doing so will significantly increase the
-    // execution time of these simple functions.  Currently we do not use
-    // a lock but because they are very simple operations, it is unlikely
-    // to be interrupted by context switching among the thread.  More
-    // importantly, we do not use these variables in anything important.
+    /// Record a new active reference to this object.
     virtual void beginUse() {
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "beginUse");
-#endif
 	++ nref;
-#if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(ibis::gVerbose >= 0)	
-	    << "fileManager::storage(" << (void*)m_begin
-	    << ")::beginUse: nref = " << nref << ", nacc = " << nacc;
-#endif
     }
+    /// Record the termination of an active reference.
     virtual void endUse() {
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "endUse");
-#endif
-	-- nref; ++ nacc;
-#if defined(DEBUG) && defined(SAFE_COUNTS)
-	LOGGER(ibis::gVerbose >= 0)
-	    << "fileManager::storage(" << (void*)m_begin
-	    << ")::endUse: nref = " << nref << ", nacc = " << nacc;
-#endif
+	-- nref;
+	++ nacc;
     }
     unsigned inUse() const { ///< Number of current accesses to this object.
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "inUse");
-#endif
-	return nref;
+	return nref();
     }
     unsigned pastUse() const { ///< Number of past accesses to this object.
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex, "inUse");
-#endif
 	return nacc;
     }
 
@@ -337,11 +310,12 @@ public:
 //      };
 
 protected:
-    char* name;		// name of the file, 0 if no file is involved
-    char* m_begin;	// beginning of the storage
-    char* m_end;	// end of the storage
-    unsigned nacc;	// number of accesses in the past
-    unsigned nref;	// number of (active) references to this storage
+    char* name;		///< Name of the file.  NULL (0) if no file is involved.
+    char* m_begin;	///< Beginning of the storage.
+    char* m_end;	///< End of the storage.
+    unsigned nacc;	///< Number of accesses in the past.
+    /// Number of (active) references to this storage.
+    ibis::util::sharedInt32 nref;
 
     virtual void clear(); // free memory/close file
 }; // class fileManager::storage
@@ -510,35 +484,20 @@ inline void ibis::fileManager::recordPages(off_t start, off_t stop) {
 inline void
 ibis::fileManager::increaseUse(size_t inc, const char* evt) {
     if (inc > 0) {
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	// in case the user want a strict byte count, use a mutex lock
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex,
-				   "fileManager::increaseUse");
-#endif
-	totalBytes += inc;
-	if (evt && ibis::gVerbose > 9)
-	    ibis::util::logMessage(evt, "increased totalBytes to %lu",
-				   totalBytes);
+	ibis::fileManager::totalBytes += inc;
+	LOGGER(evt && ibis::gVerbose > 9)
+	    << evt << " -- increased totalBytes to "
+	    << ibis::fileManager::totalBytes();
     }
 } // ibis::fileManager::increaseUse
 
 inline void
 ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
     if (dec > 0) {
-#if defined(SAFE_COUNTS) || defined(DEBUG)
-	// in case the user want a strict byte count, use a mutex lock
-	ibis::util::mutexLock lock(&ibis::fileManager::countMutex,
-				   "fileManager::decreaseUse");
-#endif
-	if (totalBytes >= dec) {
-	    totalBytes -= dec;
-	}
-	else {
-	    totalBytes = 0;
-	}
-	if (evt && ibis::gVerbose > 9)
-	    ibis::util::logMessage(evt, "decreased totalBytes to %lu",
-				   totalBytes);
+	ibis::fileManager::totalBytes -= dec;
+	LOGGER(evt && ibis::gVerbose > 9)
+	    << evt << " -- decreased totalBytes to "
+	    << ibis::fileManager::totalBytes();
     }
 } // ibis::fileManager::decreaseUse
 
@@ -548,6 +507,6 @@ ibis::fileManager::storage::swap(ibis::fileManager::storage& rhs) throw () {
     {char* tmp = m_begin; m_begin = rhs.m_begin; rhs.m_begin = tmp;}
     {char* tmp = m_end; m_end = rhs.m_end; rhs.m_end = tmp;}
     {unsigned itmp = nacc; nacc = rhs.nacc; rhs.nacc = itmp;}
-    {unsigned itmp = nref; nref = rhs.nref; rhs.nref = itmp;}
+    nref.swap(rhs.nref);
 } // ibis::fileManager::storage::swap
 #endif // IBIS_FILEMANAGER_H

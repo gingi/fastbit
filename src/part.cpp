@@ -6052,12 +6052,16 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
     }
     delete [] grp;
     lst.hits.resize(lst.conds.size());
+    LOGGER(ibis::gVerbose > 3)
+	<< "ibis::part[" << m_name << "]::buildQueryList constructed "
+	<< lst.conds.size() << " sets of 2D range conditions";
 } // ibis::part::buildQueryList
 
 /// Sum up the hits from sub-divisions to verify the hits computing from
 /// the whole range.  Based on the construction of buildQueryList, each
 /// query condition knows which conditions contains it.
 void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
+    unsigned nerr0 = 0;
     std::vector<unsigned> fromChildren(lst.conds.size(), 0U);
     for(unsigned i = lst.conds.size(); i > 0;) {
 	-- i;
@@ -6065,6 +6069,7 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
 	    fromChildren[lst.super[i]] += lst.hits[i];
 	if (fromChildren[i] > 0) {
 	    if (fromChildren[i] != lst.hits[i]) {
+		++ nerr0;
 		++ (*lst.nerrors);
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- ibis::part::checkQueryList found the "
@@ -6074,6 +6079,9 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
 	    }
 	}
     }
+    LOGGER(ibis::gVerbose > 3)
+	<< "ibis::part[" << m_name << "]::checkQueryList found "
+	<< nerr0 << " mismatch" << (nerr0>1 ? "es" : "");
 } // ibis::part::checkQueryList
 
 // three error logging functions

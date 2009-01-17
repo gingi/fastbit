@@ -570,8 +570,7 @@ namespace ibis {
 	/// ibis::util::logMessage.
 	class quietLock {
 	public:
-	    quietLock(pthread_mutex_t* lk, const char* m)
-		: mesg(m), lock(lk) {
+	    quietLock(pthread_mutex_t* lk) : lock(lk) {
 		int ierr = pthread_mutex_lock(lock);
 		if (ierr != 0) {
 		    throw "quietLock failed to obtain a mutex lock";
@@ -582,12 +581,11 @@ namespace ibis {
 	    }
 
 	private:
-	    const char* const mesg;
 	    pthread_mutex_t* const lock;
 
-	    quietLock() : mesg(0), lock(0) {}; // no default constructor
+	    quietLock(); // no default constructor
 	    quietLock(const quietLock&); // can not copy
-	    const quietLock& operator=(const quietLock&);
+	    quietLock& operator=(const quietLock&);
 	}; // quietLock
 
 	/// An wrapper class for perform pthread_rwlock_rdlock/unlock.
@@ -641,40 +639,262 @@ namespace ibis {
 
 	/// A simple shared counter.  Each time the operator() is called,
 	/// it is incremented by 1.  Calls from different threads are
-	/// serialized through a mutual exclusion lock.
+	/// serialized through a mutual exclusion lock if the GCC atomic
+	/// operations are not available.
 	class FASTBIT_CXX_DLLSPEC counter {
 	public:
-	    ~counter() {pthread_mutex_destroy(&lock_);}
-	    counter(const char *m="ibis::util::counter");
+	    ~counter() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		(void)pthread_mutex_destroy(&lock_);
+#endif
+	    }
+	    counter() : count_(0) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		if (0 != pthread_mutex_init(&lock_, 0))
+		    throw ibis::bad_alloc
+			("ibis::util::counter failed to initialize mutex lock");
+#endif
+	    }
 
 	    /// Return the current count and increment the count.
 	    uint32_t operator()() {
-		ibis::util::quietLock lck(&lock_, mesg_);
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		return __sync_fetch_and_add(&count_, 1);
+#elif _MSC_VER+0 >= 1500
+		return InterlockedIncrement((volatile long *)&count_)-1;
+#else
+		ibis::util::quietLock lck(&lock_);
 		uint32_t ret = count_;
 		++ count_;
 		return ret;
+#endif
 	    }
 	    /// Reset count to zero.
 	    void reset() {
-		ibis::util::quietLock lck(&lock_, mesg_);
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		(void) __sync_fetch_and_sub(&count_, count_);
+#elif _MSC_VER+0 >= 1500
+		(void) InterlockedExchange((volatile long *)&count_, 0);
+#else
+		ibis::util::quietLock lck(&lock_);
 		count_ = 0;
+#endif
 	    }
 	    /// Return the current count value.
 	    uint32_t value() const {
-		ibis::util::quietLock lck(&lock_, mesg_);
 		return count_;
 	    }
 
 	private:
-	    mutable pthread_mutex_t lock_; // the mutex lock
-	    const char *mesg_;
-	    uint32_t count_;
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+	    mutable pthread_mutex_t lock_; ///< The mutex lock.
+#endif
+	    volatile uint32_t count_; ///< The counter value.
 
 	    /// Copy constructor.  Decleared but not implemented.
 	    counter(const counter&);
 	    /// Assignment operator.  Decleared but not implemented.
 	    const counter& operator=(const counter&);
 	}; // counter
+
+	/// A shared integer class that attempts to make use of the atomic
+	/// operations provided by GCC extension.  If the atomic extension
+	/// is not available, it falls back on the mutual exclusion lock
+	/// provided by pthread library.
+	/// @note The overhead of using mutual exclusion lock is large.  In
+	/// one test that acquires and release three locks a million time
+	/// each, using the locks took about 10 seconds, while using the
+	/// atomic extension to perform the same arithmetic operations took
+	/// about 0.1 seconds.
+	class sharedInt32 {
+	public:
+	    sharedInt32() : val_(0) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		if (pthread_mutex_init(&mytex, 0) != 0)
+		    throw "pthread_mutex_init failed for sharedInt";
+#endif
+	    }
+
+	    ~sharedInt32() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		(void)pthread_mutex_destroy(&mytex);
+#endif
+	    }
+
+	    /// Read the current value.
+	    const uint32_t operator()() const {return val_;}
+
+	    /// Increment operator.
+	    uint32_t operator++() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		return __sync_add_and_fetch(&val_, 1);
+#elif _MSC_VER+0 >= 1500
+		return InterlockedIncrement((volatile long *)&val_);
+#else
+		ibis::util::quietLock lock(&mytex);
+		++ val_;
+		return val_;
+#endif
+	    }
+
+	    /// Decrement operator.
+	    uint32_t operator--() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		return __sync_add_and_fetch(&val_, -1);
+#elif _MSC_VER+0 >= 1500
+		return InterlockedDecrement((volatile long *)&val_);
+#else
+		ibis::util::quietLock lock(&mytex);
+		-- val_;
+		return val_;
+#endif
+	    }
+
+	    /// In-place addition operator.
+	    void operator+=(const uint32_t rhs) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		(void) __sync_add_and_fetch(&val_, rhs);
+#elif _MSC_VER+0 >= 1500
+		(void) InterlockedExchangeAdd((volatile long *)&val_, rhs);
+#else
+		ibis::util::quietLock lock(&mytex);
+		val_ += rhs;
+#endif
+	    }
+
+	    /// In-place subtraction operator.
+	    void operator-=(const uint32_t rhs) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		(void) __sync_sub_and_fetch(&val_, rhs);
+#elif _MSC_VER+0 >= 1500
+		(void) InterlockedExchangeAdd((volatile long *)&val_, -rhs);
+#else
+		ibis::util::quietLock lock(&mytex);
+		val_ -= rhs;
+#endif
+	    }
+
+	    /// Swap the contents of two integer variables.
+	    void swap(sharedInt32 &rhs) {
+		uint32_t tmp = rhs.val_;
+		rhs.val_ = val_;
+		val_ = tmp;
+	    }
+
+	private:
+	    uint32_t volatile val_; ///< The actual integer value.
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+	    pthread_mutex_t mytex; ///< The mutex for this object.
+#endif
+
+	    sharedInt32(const sharedInt32&); // no copy constructor
+	    sharedInt32& operator=(const sharedInt32&); // no assignment
+	}; // sharedInt32
+
+	class sharedInt64 {
+	public:
+	    sharedInt64() : val_(0) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		if (pthread_mutex_init(&mytex, 0) != 0)
+		    throw "pthread_mutex_init failed for sharedInt";
+#endif
+	    }
+
+	    ~sharedInt64() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+		(void)pthread_mutex_destroy(&mytex);
+#endif
+	    }
+
+	    /// Read the current value.
+	    const uint64_t operator()() const {return val_;}
+
+	    /// Increment operator.
+	    uint64_t operator++() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		return __sync_add_and_fetch(&val_, 1);
+#elif _MSC_VER+0 >= 1500
+		return InterlockedIncrement64((volatile LONGLONG *)&val_);
+#else
+		ibis::util::quietLock lock(&mytex);
+		++ val_;
+		return val_;
+#endif
+	    }
+
+	    /// Decrement operator.
+	    uint64_t operator--() {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		return __sync_add_and_fetch(&val_, -1);
+#elif _MSC_VER+0 >= 1500
+		return InterlockedDecrement64((volatile LONGLONG *)&val_);
+#else
+		ibis::util::quietLock lock(&mytex);
+		-- val_;
+		return val_;
+#endif
+	    }
+
+	    /// In-place addition operator.
+	    void operator+=(const uint64_t rhs) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		(void) __sync_add_and_fetch(&val_, rhs);
+#elif _MSC_VER+0 >= 1500
+		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
+						rhs);
+#else
+		ibis::util::quietLock lock(&mytex);
+		val_ += rhs;
+#endif
+	    }
+
+	    /// In-place subtraction operator.
+	    void operator-=(const uint64_t rhs) {
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+		(void) __sync_sub_and_fetch(&val_, rhs);
+#elif _MSC_VER+0 >= 1500
+		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
+						-rhs);
+#else
+		ibis::util::quietLock lock(&mytex);
+		val_ -= rhs;
+#endif
+	    }
+
+	    /// Swap the contents of two integer variables.
+	    void swap(sharedInt64 &rhs) {
+		uint64_t tmp = rhs.val_;
+		rhs.val_ = val_;
+		val_ = tmp;
+	    }
+
+	private:
+	    uint64_t volatile val_; ///< The actual integer value.
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#elif _MSC_VER+0 >= 1500
+#else
+	    pthread_mutex_t mytex; ///< The mutex for this object.
+#endif
+
+	    sharedInt64(const sharedInt64&); // no copy constructor
+	    sharedInt64& operator=(const sharedInt64&); // no assignment
+	}; // sharedInt64
 
 	/// A buffer is intended to some temporary workspace in memory.
 	/// The constructor allocates a certain amount of memory, default
