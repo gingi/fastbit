@@ -1,3 +1,8 @@
+2009-01-18 John Wu <John.Wu at ACM.org>
+	* src/category.h, src/category.cpp: add ibis::text::selectLongs to
+	extract the starting positions of the selected strings (so that
+	the caller may read the string values directly)
+
 2009-01-16 John Wu <John.Wu at ACM.org>
 	* src/util.h: change ibis::util::counter to use GCC atomic
 	extension as well

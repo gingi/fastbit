@@ -645,14 +645,14 @@ namespace ibis {
 	public:
 	    ~counter() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&lock_);
 #endif
 	    }
 	    counter() : count_(0) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (0 != pthread_mutex_init(&lock_, 0))
 		    throw ibis::bad_alloc
@@ -664,7 +664,7 @@ namespace ibis {
 	    uint32_t operator()() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		return __sync_fetch_and_add(&count_, 1);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement((volatile long *)&count_)-1;
 #else
 		ibis::util::quietLock lck(&lock_);
@@ -677,7 +677,7 @@ namespace ibis {
 	    void reset() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		(void) __sync_fetch_and_sub(&count_, count_);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchange((volatile long *)&count_, 0);
 #else
 		ibis::util::quietLock lck(&lock_);
@@ -691,7 +691,7 @@ namespace ibis {
 
 	private:
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    mutable pthread_mutex_t lock_; ///< The mutex lock.
 #endif
@@ -716,7 +716,7 @@ namespace ibis {
 	public:
 	    sharedInt32() : val_(0) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
 		    throw "pthread_mutex_init failed for sharedInt";
@@ -725,7 +725,7 @@ namespace ibis {
 
 	    ~sharedInt32() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&mytex);
 #endif
@@ -738,7 +738,7 @@ namespace ibis {
 	    uint32_t operator++() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		return __sync_add_and_fetch(&val_, 1);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement((volatile long *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -751,7 +751,7 @@ namespace ibis {
 	    uint32_t operator--() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		return __sync_add_and_fetch(&val_, -1);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedDecrement((volatile long *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -764,7 +764,7 @@ namespace ibis {
 	    void operator+=(const uint32_t rhs) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		(void) __sync_add_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_, rhs);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -776,7 +776,7 @@ namespace ibis {
 	    void operator-=(const uint32_t rhs) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		(void) __sync_sub_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_, -rhs);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -794,7 +794,7 @@ namespace ibis {
 	private:
 	    uint32_t volatile val_; ///< The actual integer value.
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
 #endif
@@ -807,7 +807,7 @@ namespace ibis {
 	public:
 	    sharedInt64() : val_(0) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
 		    throw "pthread_mutex_init failed for sharedInt";
@@ -816,7 +816,7 @@ namespace ibis {
 
 	    ~sharedInt64() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&mytex);
 #endif
@@ -829,7 +829,7 @@ namespace ibis {
 	    uint64_t operator++() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		return __sync_add_and_fetch(&val_, 1);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -842,7 +842,7 @@ namespace ibis {
 	    uint64_t operator--() {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		return __sync_add_and_fetch(&val_, -1);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedDecrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -855,7 +855,7 @@ namespace ibis {
 	    void operator+=(const uint64_t rhs) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		(void) __sync_add_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						rhs);
 #else
@@ -868,7 +868,7 @@ namespace ibis {
 	    void operator-=(const uint64_t rhs) {
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
 		(void) __sync_sub_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						-rhs);
 #else
@@ -887,7 +887,7 @@ namespace ibis {
 	private:
 	    uint64_t volatile val_; ///< The actual integer value.
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
-#elif _MSC_VER+0 >= 1500
+#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
 #endif

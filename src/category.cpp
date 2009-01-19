@@ -296,9 +296,9 @@ ibis::category::category(const part* tbl, const char* name,
 
 array_t<uint32_t>* ibis::category::selectUInts(const ibis::bitvector& mask)
     const {
-    indexLock lock(this, "category::selectUInts");
+    indexLock lock(this, "category::selectInts");
     return static_cast<ibis::relic*>(idx)->keys(mask);
-} // ibis::category::selectUInts
+} // ibis::category::selectInts
 
 /// If the dictionary exists and the size is one, it builds a dummy index.
 /// Otherwise, it reads the primary data file to update the dictionary and
@@ -1537,11 +1537,10 @@ void ibis::text::print(std::ostream& out) const {
     out << m_name << ": " << m_desc << " (STRING)";
 }
 
-/// Return the positions of the bits that are marked 1.  This indicates to
-/// ibis::bundle that every string value is distinct.  It also forces the
-/// sorting procedure to produce an order following the order of the
-/// entries in the table.  This makes the print out of an ibis::text field
-/// quite less useful than others!
+/// This indicates to ibis::bundle that every string value is distinct.  It
+/// also forces the sorting procedure to produce an order following the
+/// order of the entries in the table.  This makes the print out of an
+/// ibis::text field quite less useful than others!
 array_t<uint32_t>* ibis::text::selectUInts(const ibis::bitvector& mask)
     const {
     array_t<uint32_t>* ret = new array_t<uint32_t>;
@@ -1559,6 +1558,40 @@ array_t<uint32_t>* ibis::text::selectUInts(const ibis::bitvector& mask)
     }
     return ret;
 } // ibis::text::selectUInts
+
+/// The starting positions of the selected string values are stored in the
+/// returned array.
+array_t<int64_t>* ibis::text::selectLongs(const ibis::bitvector& mask)
+    const {
+    std::string fnm = thePart->currentDataDir();
+    fnm += DIRSEP;
+    fnm += m_name;
+    fnm += ".sp"; // starting position file
+    array_t<int64_t> sp;
+    int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), sp);
+    if (ierr != 0) return 0; // can not provide starting positions
+
+    array_t<int64_t>* ret = new array_t<int64_t>;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *ind = ix.indices();
+	if (*ind >= sp.size()) {
+	    break;
+	}
+	else if (ix.isRange()) {
+	    const ibis::bitvector::word_t end =
+		(ind[1] <= sp.size() ? ind[1] : sp.size());
+	    for (unsigned i = *ind; i < end; ++ i)
+		ret->push_back(sp[i]);
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices(); ++ i)
+		if (ind[i] < sp.size())
+		    ret->push_back(sp[ind[i]]);
+	}
+    }
+    return ret;
+} // ibis::text::selectLongs
 
 std::vector<std::string>*
 ibis::text::selectStrings(const ibis::bitvector& mask) const {

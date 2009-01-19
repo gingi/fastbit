@@ -79,15 +79,15 @@ libfastbit.a: $(OBJ)
 	ar ruv libfastbit.a $(OBJ)
 
 ibis.exe: ibis.o libfastbit.a
-	$(CXX) $(CCFLAGS) -o $@ ibis.o libfastbit.a $(LIB)
+	$(CXX) $(OPT) -o $@ ibis.o libfastbit.a $(LIB)
 
 thula: thula.exe
 thula.exe: thula.o libfastbit.a
-	$(CXX) $(CCFLAGS) -o $@ thula.o libfastbit.a $(LIB)
+	$(CXX) $(OPT) -o $@ thula.o libfastbit.a $(LIB)
 
 ardea: ardea.exe
 ardea.exe: ardea.o libfastbit.a
-	$(CXX) $(CCFLAGS) -o $@ ardea.o libfastbit.a $(LIB)
+	$(CXX) $(OPT) -o $@ ardea.o libfastbit.a $(LIB)
 
 dll: fastbit.dll
 fastbit.a: fastbit.dll
@@ -99,11 +99,11 @@ fastbit.dll: $(FRC)
 # -Wl,-soname,$@
 trydll: trydll.exe
 trydll.exe: trydll.cpp fastbit.dll
-	$(CXX) $(CCFLAGS) -D_USRDLL -o $@ trydll.cpp fastbit.a $(LIB)
+	$(CXX) $(OPT) -D_USRDLL -o $@ trydll.cpp fastbit.a $(LIB)
 
 tcapi: tcapi.exe
 tcapi.exe: ../examples/tcapi.c ../src/capi.h fastbit.dll
-	$(CXX) $(CCFLAGS) -D_USRDLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
+	$(CXX) $(OPT) -D_USRDLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
@@ -127,6 +127,7 @@ $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 
 clean:
 	rm -f *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
+	rm -rf $(TESTDIR)/t1
 clean-all: clean
 	rm -rf Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
 

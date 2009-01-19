@@ -81,15 +81,15 @@ public class FastBit {
 	into bytes in order for this function to succeed.
     */
     public native byte[] get_qualified_bytes(QueryHandle handle, String col);
-    /** Retrieve values as shorts, @sa get_qualified_bytes. */
+    /** Retrieve values as shorts. @sa get_qualified_bytes. */
     public native short[] get_qualified_shorts(QueryHandle handle, String col);
-    /** Retrieve values as ints, @sa get_qualified_bytes. */
+    /** Retrieve values as ints. @sa get_qualified_bytes. */
     public native int[] get_qualified_ints(QueryHandle handle, String col);
-    /** Retrieve values as longs, @sa get_qualified_bytes. */
+    /** Retrieve values as longs. @sa get_qualified_bytes. */
     public native long[] get_qualified_longs(QueryHandle handle, String col);
-    /** Retrieve values as floats, @sa get_qualified_bytes. */
+    /** Retrieve values as floats. @sa get_qualified_bytes. */
     public native float[] get_qualified_floats(QueryHandle handle, String col);
-    /** Retrieve values as doubles, @sa get_qualified_bytes. */
+    /** Retrieve values as doubles. @sa get_qualified_bytes. */
     public native double[] get_qualified_doubles(QueryHandle handle, String col);
 
     /** Write the buffer to the named directory.  It also flushes the

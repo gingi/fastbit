@@ -55,8 +55,10 @@ public:
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, const uint32_t nbuf, char* buf);
-    /// Return the integer values of the records marked 1 in the mask.
+    /// Return the positions of records marked 1 in the mask.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
+    /// Return the starting positions of strings marked 1 in the mask.
+    virtual array_t<int64_t>* selectLongs(const bitvector& mask) const;
     virtual
     std::vector<std::string>* selectStrings(const bitvector& mask) const;
     virtual const char* findString(const char* str) const;
@@ -165,7 +167,7 @@ public:
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, const uint32_t nbuf, char* buf);
-    /// Return the integer values of the records marked 1 in the mask.
+    /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
 //     virtual
 //     std::vector<std::string>* selectStrings(const bitvector& mask) const;
