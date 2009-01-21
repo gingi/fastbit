@@ -311,13 +311,15 @@ protected:
     friend class softWriteLock;
 
 private:
-    // these are for tracking idx only and are accessed through indexLock
-    // and writeLock
+    /// The actual read-write lock used by readLock, writeLock and
+    /// softWriteLock.
     mutable pthread_rwlock_t rwlock;
+    /// The mutual exclusion lock used by indexLock and others.
     mutable pthread_mutex_t mutex;
-    mutable uint32_t idxcnt; // number of functions who want to use index
+    /// The number of functions using the index.
+    mutable ibis::util::sharedInt32 idxcnt;
 
-    const column& operator=(const column&);
+    const column& operator=(const column&); // no assignment
 }; // ibis::column
 
 /// Some basic information about a column.  Can only be used if the
@@ -348,7 +350,7 @@ public:
 			       (m ? m : "?"));
 #endif
 	// only attempt to build the index if idxcnt is zero and idx is zero
-	if (theColumn->idxcnt == 0 && theColumn->idx == 0)
+	if (theColumn->idxcnt() == 0 && theColumn->idx == 0)
 	    theColumn->loadIndex();
 	if (theColumn->idx != 0) {
 	    ++ theColumn->idxcnt; // increment counter

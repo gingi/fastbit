@@ -1,3 +1,21 @@
+Tue Jan 20 21:14:57 PST 2009
+Version ibis1.0.3
+-- add ibis::text::selectLongs to return the starting positions of the
+   string valued columns (to enable reading of strings for java
+   based applications, a hack in response to Andrey Kolchanov's
+   question)
+-- implement ibis::util::sharedInt32 and ibis::util::sharedInt64 using
+   GCC's atomic operations and Visual Studio's atomic operations.  This
+   should improve the speed of operations and make reference  counting
+   and tracking of memory usage more reliable on multi-threaded
+   applications
+-- add more test cases to ibis::part::selfTests to exercise query
+   evluation function in multi-thread mode
+-- add another set of binning functions, get1DBins, get2DBins, and
+   get3DBins that return std::vector<ibis::bitvector*>.  These functions
+   will return null pointers for empty bins, which can reduce memory
+   usage and execution time in cases there are many empty bins
+
 Mon Jan  5 12:32:07 PST 2009
 Version ibis1.0.2
 -- add another set of binning functions, get1DBins, get2DBins, and

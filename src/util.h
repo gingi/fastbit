@@ -54,6 +54,20 @@ int truncate(const char*, uint32_t);
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
+#if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
+#define FASTBIT_GCC_64 1
+#endif
+#ifndef HAVE_GCC_ATOMIC32
+#if (__GNUC__+0 >= 4 && !defined(__CYGWIN__))
+#define HAVE_GCC_ATOMIC32 2
+#endif
+#endif
+#ifndef HAVE_GCC_ATOMIC64
+#if ((__GNUC__+0 >= 4 && defined(FASTBIT_GCC_64)) && !defined(__CYGWIN__))
+#define HAVE_GCC_ATOMIC64 2
+#endif
+#endif
+
 // mapping the names of the low level IO functions defined in <unistd.h>
 #if defined(_MSC_VER) && defined(_WIN32)
 #define UnixOpen  ::_open
@@ -715,7 +729,7 @@ namespace ibis {
 	class sharedInt32 {
 	public:
 	    sharedInt32() : val_(0) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
@@ -724,7 +738,7 @@ namespace ibis {
 	    }
 
 	    ~sharedInt32() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&mytex);
@@ -736,7 +750,7 @@ namespace ibis {
 
 	    /// Increment operator.
 	    uint32_t operator++() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		return __sync_add_and_fetch(&val_, 1);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement((volatile long *)&val_);
@@ -749,7 +763,7 @@ namespace ibis {
 
 	    /// Decrement operator.
 	    uint32_t operator--() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		return __sync_add_and_fetch(&val_, -1);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedDecrement((volatile long *)&val_);
@@ -762,7 +776,7 @@ namespace ibis {
 
 	    /// In-place addition operator.
 	    void operator+=(const uint32_t rhs) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_add_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_, rhs);
@@ -774,7 +788,7 @@ namespace ibis {
 
 	    /// In-place subtraction operator.
 	    void operator-=(const uint32_t rhs) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_sub_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_, -rhs);
@@ -793,7 +807,7 @@ namespace ibis {
 
 	private:
 	    uint32_t volatile val_; ///< The actual integer value.
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
@@ -806,7 +820,7 @@ namespace ibis {
 	class sharedInt64 {
 	public:
 	    sharedInt64() : val_(0) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
@@ -815,7 +829,7 @@ namespace ibis {
 	    }
 
 	    ~sharedInt64() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&mytex);
@@ -827,7 +841,7 @@ namespace ibis {
 
 	    /// Increment operator.
 	    uint64_t operator++() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, 1);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement64((volatile LONGLONG *)&val_);
@@ -840,7 +854,7 @@ namespace ibis {
 
 	    /// Decrement operator.
 	    uint64_t operator--() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, -1);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedDecrement64((volatile LONGLONG *)&val_);
@@ -853,7 +867,7 @@ namespace ibis {
 
 	    /// In-place addition operator.
 	    void operator+=(const uint64_t rhs) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_add_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
@@ -866,7 +880,7 @@ namespace ibis {
 
 	    /// In-place subtraction operator.
 	    void operator-=(const uint64_t rhs) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_sub_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
@@ -886,7 +900,7 @@ namespace ibis {
 
 	private:
 	    uint64_t volatile val_; ///< The actual integer value.
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC64)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.

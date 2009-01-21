@@ -35,7 +35,6 @@ AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h strings.h sys/time.
 AC_HEADER_STDBOOL
 AC_C_CONST
 AC_C_INLINE
-AC_TYPE_INT64_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
@@ -167,19 +166,6 @@ if test "x$my_check_pthread_ok" = xyes; then
     save_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 
-dnl     # Detect AIX lossage: JOINABLE attribute is called UNDETACHED.
-dnl     AC_MSG_CHECKING([for joinable pthread attribute])
-dnl     attr_name=unknown
-dnl     for attr in PTHREAD_CREATE_JOINABLE PTHREAD_CREATE_UNDETACHED; do
-dnl         AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[int attr=$attr; return attr;]])],[dnl                     attr_name=$attr; break],[])
-dnl     done
-dnl     AC_MSG_RESULT($attr_name)
-dnl     if test "$attr_name" != PTHREAD_CREATE_JOINABLE; then
-dnl         AC_DEFINE_UNQUOTED(PTHREAD_CREATE_JOINABLE, $attr_name,
-dnl                            [Define to necessary symbol if this constant
-dnl                             uses a non-standard name on your system.])
-dnl     fi
-
     AC_MSG_CHECKING([if more special flags are required for pthreads])
     flag=no
     case "${host_cpu}-${host_os}" in
@@ -207,6 +193,72 @@ AC_LANG_POP([])
 ])
 #end AC_DEFUN MY_CHECK_PTHREAD
 MY_CHECK_PTHREAD(, [AC_MSG_ERROR(FastBit requires pthread support)])
+
+# Does this compiler have built-in functions for atomic memory access?
+AC_MSG_CHECKING([if compiler supports __sync_add_and_fetch for 32-bit integers])
+AC_TRY_LINK(,
+[
+  #include <stdint.h>
+  int32_t variable = 1;
+  return (__sync_add_and_fetch(&variable, 1, 2)
+         && __sync_sub_and_fetch(&variable, 1)) ? 1 : 0;
+],
+[
+  AC_MSG_RESULT([yes])
+  AC_DEFINE(HAVE_GCC_ATOMIC32, 1, [Define to 1 if support of __sync_add_and_fetch() on 32-bit integers])
+],
+[
+  # Retry with -march set for x86.
+  old_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -march=i686"
+  AC_TRY_LINK(,
+  [
+    #include <stdint.h>
+    int32_t variable = 1;
+    return (__sync_add_and_fetch(&variable, 1, 2)
+           && __sync_sub_and_fetch(&variable, 1)) ? 1 : 0;
+  ],
+  [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(HAVE_GCC_ATOMIC32, 1, [Define to 1 if support __sync_add_and_fetch() on 32-bit integers])
+  ],
+  [
+    AC_MSG_RESULT([no])
+    CFLAGS="$old_CFLAGS"
+  ])
+])
+AC_MSG_CHECKING([if compiler supports __sync_add_and_fetch for 64-bit integers])
+AC_TRY_LINK(,
+[
+  #include <stdint.h>
+  int64_t variable = 1;
+  return (__sync_add_and_fetch(&variable, 1, 2)
+         && __sync_sub_and_fetch(&variable, 1)) ? 1 : 0;
+],
+[
+  AC_MSG_RESULT([yes])
+  AC_DEFINE(HAVE_GCC_ATOMIC64, 1, [Define to 1 if support __sync_add_and_fetch() on 64-bit integers])
+],
+[
+  # Retry with -march set for x86.
+  old_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS -march=i686"
+  AC_TRY_LINK(,
+  [
+    #include <stdint.h>
+    int64_t variable = 1;
+    return (__sync_add_and_fetch(&variable, 1, 2)
+           && __sync_sub_and_fetch(&variable, 1)) ? 1 : 0;
+  ],
+  [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(HAVE_GCC_ATOMIC64, 1, [Define to 1 if support __sync_add_and_fetch() on 64-bit integers])
+  ],
+  [
+    AC_MSG_RESULT([no])
+    CFLAGS="$old_CFLAGS"
+  ])
+])
 
 #AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug,

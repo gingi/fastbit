@@ -1,7 +1,37 @@
+2009-01-20 John Wu <John.Wu at ACM.org>
+	* src/util.h: use the new macros defined in src/config.h
+	(HAVE_GCC_ATOMIC32 and HAVE_GCC_ATOMIC64) for help
+	determining the presence of atomic operations
+	* src/column.h: change member variable idxcnt from uint32_t to
+	ibis::util::sharedInt32 to provide more consistent tracking of
+	index usage
+	* src/part.h: add get1DBins and get2DBins that return
+	std::vector<ibis::bitvector*> based on the experience of Oliver
+	who observed that using the null pointers instead of allocating
+	empty bitmaps can reduce the execution of his program by about
+	half.  Note that Oliver was using get3DBins which is much more
+	likely to produce empty bins than get2DBins and get1DBins,
+	therefore the benefit of returning null pointers might be less.
+
+2009-01-19 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: update the messages printed out from
+	fileManager::getFile that actually does the reading, to enable the
+	printing of the address of the allocated memory
+	* src/util.h: add conditions to prevent the use of
+	__sync_add_and_fetch and friends on 8-byte integers under GCC
+	4.1.x (need to find a better way to detect when to use this GCC
+	extension)
+	* configure.ac: add two sections to figure out whether
+	__sync_add_and_fetch is supported, regenerate src/config.h.in with
+	autoheader
+
 2009-01-18 John Wu <John.Wu at ACM.org>
 	* src/category.h, src/category.cpp: add ibis::text::selectLongs to
 	extract the starting positions of the selected strings (so that
-	the caller may read the string values directly)
+	the caller may read the string values directly, a hack for Andrey
+	Kolchanov)
+	* src/fileManager.cpp: simplify the print logic in
+	storage::enlarge, ensure all memory allocations are recorded
 
 2009-01-16 John Wu <John.Wu at ACM.org>
 	* src/util.h: change ibis::util::counter to use GCC atomic

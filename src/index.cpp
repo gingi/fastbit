@@ -4916,10 +4916,10 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 #endif
 } // ibis::index::addBins
 
-/// Sum up <code>bits[ib:ie-1]</code> and place the result in res.  This is
-/// a member function of ibis::index class.  It uses the combined
-/// strategy that was determined in previous tests.  The basic rule is as
-/// follows.
+/// Sum up <code>bits[ib:ie-1]</code> and place the result in res.  The
+/// bitmaps (bits) are held by this index object and may be regenerated as
+/// needed.  It uses the combined strategy that was determined in previous
+/// tests.  The basic rule is as follows.
 /// - If there are two or less bit vectors, use |= operator directly.
 /// - Compute the total size of the bitmaps involved.
 /// - If the total size times log(number of bitvectors involved) is less

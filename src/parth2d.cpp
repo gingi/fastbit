@@ -793,7 +793,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 4)
-	    << "ibis::part::get2DBins2 -- unable to "
+	    << "ibis::part::fill2DBins2 -- unable to "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -819,6 +819,564 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   const char *cname2,
 			   double begin2, double end2, double stride2,
 			   std::vector<ibis::bitvector> &bins) const {
+    if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && !(stride1 < 0.0)) ||
+	(begin1 <= end1 && !(stride1 > 0.0)) ||
+	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && !(stride2 < 0.0)) ||
+	(begin2 <= end2 && !(stride2 > 0.0)))
+	return -1L;
+
+    const ibis::column* col1 = getColumn(cname1);
+    const ibis::column* col2 = getColumn(cname2);
+    if (col1 == 0 || col2 == 0)
+	return -2L;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(ibis::gVerbose >= 3)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get2DDistribution attempting to compute a histogram of "
+	    << cname1 << " and " << cname2 << " with regular binning "
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
+	    << (constraints ? constraints : "");
+	timer.start();
+    }
+
+    long ierr;
+    ibis::bitvector mask;
+    {
+	ibis::query qq(ibis::util::userName(), this);
+	std::string sel = cname1;
+	sel += ',';
+	sel += cname2;
+	qq.setSelectClause(sel.c_str());
+
+	// add constraints on the two selected variables
+	std::ostringstream oss;
+	if (constraints != 0 && *constraints != 0)
+	    oss << "(" << constraints << ") AND ";
+	oss << cname1 << " between " << std::setprecision(18) << begin1
+	    << " and " << std::setprecision(18) << end1 << " AND " << cname2
+	    << std::setprecision(18) << " between " << std::setprecision(18)
+	    << begin2 << " and " << std::setprecision(18) << end2;
+	qq.setWhereClause(oss.str().c_str());
+
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = qq.getNumHits();
+	if (ierr <= 0)
+	    return ierr;
+	mask.copy(*(qq.getHitVector()));
+    }
+
+    switch (col1->type()) {
+    case ibis::BYTE: {
+	array_t<char>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<char>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectBytes(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<unsigned char>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectUBytes(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<int16_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectShorts(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<uint16_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectUShorts(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::INT: {
+	array_t<int32_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<int32_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectInts(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<uint32_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectUInts(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1, 
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<int64_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectLongs(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<uint64_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectULongs(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::FLOAT: {
+	array_t<float>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<float>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectFloats(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<double>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectDoubles(mask);
+	}
+	if (val1 == 0) return -4;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::part::get2DBins -- unable to "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
+
+	ierr = -3;
+	break;}
+    }
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get2DBins", "computing the distribution of column "
+		   "%s and %s%s%s took %g sec(CPU), %g sec(elapsed)",
+		   cname1, cname2, (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return ierr;
+} // ibis::part::get2DBins
+
+/// This version returns a vector of pointers to bitmaps.  Because the
+/// empty bitmaps are left as null pointers, it can reduce the memory usage
+/// and the execution time if the majority of the bins are empty.
+template <typename T1, typename T2>
+long ibis::part::fill2DBins(const ibis::bitvector &mask,
+			    const array_t<T1> &vals1,
+			    const double &begin1, const double &end1,
+			    const double &stride1,
+			    const array_t<T2> &vals2,
+			    const double &begin2, const double &end2,
+			    const double &stride2,
+			    std::vector<ibis::bitvector*> &bins) const {
+    if ((end1-begin1) * (end2-begin2) > 1e9 * stride1 * stride2 ||
+	(end1-begin1) * stride1 < 0.0 || (end2-begin2) * stride2 < 0.0)
+	return -10L;
+    const size_t nbin2 = (1 + static_cast<size_t>((end2-begin2)/stride2));
+    const size_t nbins = (1 + static_cast<size_t>((end1-begin1)/stride1)) *
+	nbin2;
+    size_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
+    if (mask.size() == nvals) {
+	bins.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    bins[i] = 0;
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *idx = is.indices();
+	    if (is.isRange()) {
+		for (uint32_t j = *idx; j < idx[1]; ++ j) {
+		    const size_t ibin =
+			nbin2 * static_cast<size_t>((vals1[j]-begin1)/stride1) +
+			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		}
+	    }
+	    else {
+		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
+		    const ibis::bitvector::word_t j = idx[k];
+		    const size_t ibin =
+			nbin2*static_cast<size_t>((vals1[j]-begin1)/stride1)+
+			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		}
+	    }
+	}
+	for (size_t i = 0; i < nbins; ++ i)
+	    if (bins[i] != 0)
+		bins[i]->adjustSize(0, mask.size());
+    }
+    else if (mask.cnt() == nvals) {
+	bins.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    bins[i] = 0;
+	size_t ivals = 0;
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *idx = is.indices();
+	    if (is.isRange()) {
+		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
+		    const size_t ibin =	nbin2 * 
+			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		}
+	    }
+	    else {
+		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
+		    const ibis::bitvector::word_t j = idx[k];
+		    const size_t ibin = nbin2 *
+			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		}
+	    }
+	}
+	for (size_t i = 0; i < nbins; ++ i)
+	    if (bins[i] != 0)
+		bins[i]->adjustSize(0, mask.size());
+    }
+    else {
+	return -11L;
+    }
+    return (long)nbins;
+} // ibis::part::fill2DBins
+
+/// This version returns a vector of pointers to bitmaps.  Because the
+/// empty bitmaps are left as null pointers, it can reduce the memory usage
+/// and the execution time if the majority of the bins are empty.
+template <typename T1>
+long ibis::part::fill2DBins2(const ibis::bitvector &mask,
+			     const array_t<T1> &val1,
+			     const double &begin1, const double &end1,
+			     const double &stride1,
+			     const ibis::column &col2,
+			     const double &begin2, const double &end2,
+			     const double &stride2,
+			     std::vector<ibis::bitvector*> &bins) const {
+    long ierr = 0;
+    switch (col2.type()) {
+    case ibis::BYTE: {
+	array_t<char>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<char>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectBytes(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<unsigned char>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectUBytes(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<int16_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectShorts(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<uint16_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectUShorts(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::INT: {
+	array_t<int32_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<int32_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectInts(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<uint32_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectUInts(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1, 
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<int64_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectLongs(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<uint64_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectULongs(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::FLOAT: {
+	array_t<float>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<float>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectFloats(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<double>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectDoubles(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose >= 4)
+	    << "ibis::part::fill2DBins2 -- unable to "
+	    "handle column (" << col2.name() << ") type "
+	    << ibis::TYPESTRING[(int)col2.type()];
+
+	ierr = -5;
+	break;}
+    }
+    return ierr;
+} // ibis::part::fill2DBins2
+
+/// This version returns a vector of pointers to bitmaps.  Because the
+/// empty bitmaps are left as null pointers, it can reduce the memory usage
+/// and the execution time if the majority of the bins are empty.
+long ibis::part::get2DBins(const char *constraints, const char *cname1,
+			   double begin1, double end1, double stride1,
+			   const char *cname2,
+			   double begin2, double end2, double stride2,
+			   std::vector<ibis::bitvector*> &bins) const {
     if (cname1 == 0 || *cname1 == 0 || (begin1 >= end1 && !(stride1 < 0.0)) ||
 	(begin1 <= end1 && !(stride1 > 0.0)) ||
 	cname2 == 0 || *cname2 == 0 || (begin2 >= end2 && !(stride2 < 0.0)) ||

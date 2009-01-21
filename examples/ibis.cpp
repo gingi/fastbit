@@ -558,6 +558,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	return;
     }
     if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+#if defined(TEST_CONTAINER_OF_OBJECTS)
 	std::vector<ibis::bitvector> bins;
 	ierr = tbl.get2DBins(cond,
 			     col1, amin1, amax1, stride1,
@@ -592,6 +593,47 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	    lg.buffer() << "matching arrays cnts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	}
+#else
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get2DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\nprint2DDistribution(" << col1 << ", " << col2
+		    << ") -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg.buffer() << "get2DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (cnts.size() != bins.size()) {
+	    lg.buffer() << "get2DDistribution returned " << cnts.size()
+			<< " bin" << (cnts.size() > 1 ? "s" : "")
+			<< ", but get2DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i] != 0 && bins[i]->cnt() != cnts[i]) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "].cnt() ("
+				<< bins[i]->cnt() << ")\n";
+		    ++ ierr;
+		}
+		else if (bins[i] == 0 && cnts[i] != 0) {
+		    lg.buffer() << "cnts[" << i << "] (" << cnts[i]
+				<< ") != bins[" << i << "] (0)\n";
+		    ++ ierr;
+		}
+	    lg.buffer() << "matching arrays cnts and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "");
+	}
+#endif
     }
 } // print2DDistribution
 

@@ -38,7 +38,7 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 		     const char* name, const char* desc,
 		     double low, double high) :
     thePart(tbl), m_type(t), m_name(name), m_desc(desc), m_bins(""),
-    lower(low), upper(high), idx(0), idxcnt(0) {
+    lower(low), upper(high), idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
 	throw "ibis::column::ctor unable to initialize the rwlock";
     }
@@ -56,7 +56,7 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 /// A well-formed column must have a valid name, i.e., ! m_name.empty().
 ibis::column::column(const part* tbl, FILE* file)
     : thePart(tbl), m_type(UINT), lower(DBL_MAX), upper(-DBL_MAX),
-      idx(0), idxcnt(0) {
+      idx(0), idxcnt() {
     char buf[MAX_LINE];
     char *s1;
     char *s2;
@@ -260,7 +260,7 @@ ibis::column::column(const part* tbl, FILE* file)
 ibis::column::column(const ibis::column& rhs) :
     thePart(rhs.thePart), m_type(rhs.m_type), m_name(rhs.m_name),
     m_desc(rhs.m_desc), m_bins(rhs.m_bins), lower(rhs.lower),
-    upper(rhs.upper), idx(0), idxcnt(0) {
+    upper(rhs.upper), idx(0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
 	throw "ibis::column::ctor unable to initialize the rwlock";
     }
@@ -4463,72 +4463,72 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 	return;
 
     writeLock lock(this, "loadIndex");
-    if (idx == 0 && thePart->nRows() > 0) {
-	try { // if an index is not available, create one
-	    if (ibis::gVerbose > 7)
-		logMessage("loadIndex", "loading the index from %s",
-			   thePart->currentDataDir());
-	    if (idx == 0) {
-		idx = ibis::index::create(this, thePart->currentDataDir(),
-					  opt);
-	    }
-	    if (idx == 0) {
-		purgeIndexFile(); // remove any left over index file
-		const_cast<column*>(this)->m_bins = "noindex";
-		std::string key = thePart->name();
-		key += '.';
-		key += m_name;
-		key += ".disableIndexOnFailure";
-		if (ibis::gParameters().isTrue(key.c_str())) {
-		    // don't try to build index any more
-		    thePart->updateTDC();
-		}
-		return;
-	    }
-	    if (idx == 0) return;
+    if (idx != 0 || thePart->nRows() == 0)
+	return;
 
-	    if (idx->getNRows()
+    try { // if an index is not available, create one
+	if (ibis::gVerbose > 7)
+	    logMessage("loadIndex", "loading the index from %s",
+		       thePart->currentDataDir());
+	if (idx == 0) {
+	    idx = ibis::index::create(this, thePart->currentDataDir(), opt);
+	}
+	if (idx == 0) { // failed to create index, try again
+	    purgeIndexFile(); // remove any left over index file
+	    const_cast<column*>(this)->m_bins = "noindex";
+	    std::string key = thePart->name();
+	    key += '.';
+	    key += m_name;
+	    key += ".disableIndexOnFailure";
+	    if (ibis::gParameters().isTrue(key.c_str())) {
+		// don't try to build index any more
+		thePart->updateTDC();
+	    }
+	    return;
+	}
+	if (idx == 0) return; // failed twice
+
+	if (idx->getNRows()
 #if defined(DELETE_INDEX_ON_SIZE_MISMATCH)
-		!=
+	    !=
 #else
-		>
+	    >
 #endif
-		thePart->nRows()) {
-		if (ibis::gVerbose > 2)
-		    logMessage("loadIndex", "found an index with nRows=%lu, "
-			       "but the data partition nRows=%lu, try to "
-			       "recreate the index",
+	    thePart->nRows()) {
+	    if (ibis::gVerbose > 2)
+		logMessage("loadIndex", "found an index with nRows=%lu, "
+			   "but the data partition nRows=%lu, try to "
+			   "recreate the index",
+			   static_cast<unsigned long>(idx->getNRows()),
+			   static_cast<unsigned long>(thePart->nRows()));
+	    delete idx;
+	    // create a brand new index from data in the current working
+	    // directory
+	    idx = ibis::index::create(this, static_cast<const char*>(0), opt);
+	    if (idx->getNRows() != thePart->nRows()) {
+		if (ibis::gVerbose > 0)
+		    logWarning("loadIndex",
+			       "created an index with nRows=%lu, "
+			       "but the data partition nRows=%lu, "
+			       "failed on retry!",
 			       static_cast<unsigned long>(idx->getNRows()),
-			       static_cast<unsigned long>(thePart->nRows()));
+			       static_cast<unsigned long>
+			       (thePart->nRows()));
 		delete idx;
-		// create a brand new index from data in the current
-		// working directory
-		idx = ibis::index::create(this, static_cast<const char*>(0),
-					  opt);
-		if (idx->getNRows() != thePart->nRows()) {
-		    if (ibis::gVerbose > 0)
-			logWarning("loadIndex",
-				   "created an index with nRows=%lu, "
-				   "but the data partition nRows=%lu, "
-				   "failed on retry!",
-				   static_cast<unsigned long>(idx->getNRows()),
-				   static_cast<unsigned long>
-				   (thePart->nRows()));
-		    delete idx;
-		    idx = 0;
-		    purgeIndexFile();
-		}
-	    }
-	    if (idx != 0 && ibis::gVerbose > 10) {
-		ibis::util::logger lg(10);
-		idx->print(lg.buffer());
+		idx = 0;
+		purgeIndexFile();
 	    }
 	}
-	catch (const char* s) {
-	    logWarning("loadIndex", "ibis::index::ceate(%s) throw "
-		       "the following exception\n%s", name(), s);
-	    delete idx;
-	    idx = 0;
+	if (idx != 0 && ibis::gVerbose > 10) {
+	    ibis::util::logger lg(10);
+	    idx->print(lg.buffer());
+	}
+    }
+    catch (const char* s) {
+	logWarning("loadIndex", "ibis::index::ceate(%s) throw "
+		   "the following exception\n%s", name(), s);
+	delete idx;
+	idx = 0;
 // 	    std::string key = thePart->name();
 // 	    key += '.';
 // 	    key += m_name;
@@ -4539,40 +4539,19 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 // 		thePart->updateTDC();
 // 	    }
 // 	    purgeIndexFile();
-	}
-	catch (const std::exception& e) {
-	    logWarning("loadIndex", "ibis::index::create(%s) failed "
-		       "to create a new index -- %s", name(), e.what());
-	    delete idx;
-	    idx = 0;
-// 	    std::string key = thePart->name();
-// 	    key += '.';
-// 	    key += m_name;
-// 	    key += ".disableIndexOnFailure";
-// 	    if (ibis::gParameters().isTrue(key.c_str())) {
-// 		// don't try to build index any more
-// 		const_cast<column*>(this)->m_bins = "noindex";
-// 		thePart->updateTDC();
-// 	    }
-// 	    purgeIndexFile();
-	}
-	catch (...) {
-	    logWarning("loadIndex", "ibis::index::create(%s) failed "
-		       "to create a new index -- unexpected exception",
-		       name());
-	    delete idx;
-	    idx = 0;
-// 	    std::string key = thePart->name();
-// 	    key += '.';
-// 	    key += m_name;
-// 	    key += ".disableIndexOnFailure";
-// 	    if (ibis::gParameters().isTrue(key.c_str())) {
-// 		// don't try to build index any more
-// 		const_cast<column*>(this)->m_bins = "noindex";
-// 		thePart->updateTDC();
-// 	    }
-// 	    purgeIndexFile();
-	}
+    }
+    catch (const std::exception& e) {
+	logWarning("loadIndex", "ibis::index::create(%s) failed "
+		   "to create a new index -- %s", name(), e.what());
+	delete idx;
+	idx = 0;
+    }
+    catch (...) {
+	logWarning("loadIndex", "ibis::index::create(%s) failed "
+		   "to create a new index -- unexpected exception",
+		   name());
+	delete idx;
+	idx = 0;
     }
 } // ibis::column::loadIndex
 
@@ -4581,7 +4560,8 @@ void ibis::column::unloadIndex() const {
     if (0 != idx) {
 	softWriteLock lock(this, "unloadIndex");
 	if (lock.isLocked() && 0 != idx) {
-	    if (0 == idxcnt) {
+	    const uint32_t idxc = idxcnt();
+	    if (0 == idxc) {
 		delete idx;
 		idx = 0;
 		if (ibis::gVerbose > 7)
@@ -4591,7 +4571,7 @@ void ibis::column::unloadIndex() const {
 		LOGGER(ibis::gVerbose >= 1)
 		    << "Warning -- ibis::column[" << thePart->name()
 		    << "." << name() << "]::unloadIndex failed because "
-		    "idxcnt (" << idxcnt << ") is not zero";
+		    "idxcnt (" << idxc << ") is not zero";
 	    }
 	}
     }

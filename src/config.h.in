@@ -19,6 +19,12 @@
 /* Define to 1 if you have the `floor' function. */
 #undef HAVE_FLOOR
 
+/* Define to 1 if support __sync_add_and_fetch() on 32-bit integers */
+#undef HAVE_GCC_ATOMIC32
+
+/* Define to 1 if support __sync_add_and_fetch() on 64-bit integers */
+#undef HAVE_GCC_ATOMIC64
+
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
