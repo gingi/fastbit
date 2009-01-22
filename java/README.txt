@@ -30,6 +30,11 @@ To compile it, type
 
 javac FastBit.java milky.java
 
+Two class files are generated from FastBit.java, FastBit.class and
+FastBit$QueryHandle.class.  These two class files need to be in a
+directory named gov/lbl/fastbit in the current working directory or some
+directory named in the environment variable named CLASSPATH.
+
 To run
 
 java milky data-dir "query conditions"
