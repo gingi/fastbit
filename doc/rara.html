@@ -1,0 +1,195 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<META name="AUTHOR" content="John Wu">
+<META name="KEYWORDS" content="FastBit, IBIS, data distribution, API">
+<LINK REL="StyleSheet" href="http://lbl.gov/%7Ekwu/fastbit/style.css"
+ type="text/css">
+<LINK REV="made" href="mailto:John.Wu@acm.org">
+<LINK REL="SHORTCUT ICON" HREF="http://crd.lbl.gov/~kewu/fastbit/favicon.ico">
+<title>FastBit Quick Start</title>
+</head>
+
+<body>
+<table cellspacing=0 border="0px" cellpadding=2 width="100%" align=center>
+<tr>
+<td colspan=7 align=right border=0><A href="http://lbl.gov/~kwu/fastbit"><img class=noborder
+src="http://lbl.gov/~kwu/fastbit/fastbit.gif" alt="FastBit"></A>
+</td></tr>
+<tr><td colspan=7 bgcolor=#009900 height=5></td></tr>
+<tr>
+<td class=other>&nbsp;</td>
+<td class=other><A href="http://lbl.gov/~kwu/fastbit/">FastBit Front Page</A></td>
+<td class=other><A href="http://lbl.gov/~kwu/fastbit/publications.html">Research Publications</A></td>
+<td class=current><A href="index.html">Software Documentation</A></td>
+<td class=other><A href="http://lbl.gov/~kwu/fastbit/src/">Software Download</A></td>
+<td class=other><A href="http://lbl.gov/~kwu/fastbit/src/license.txt">Software License</A></td>
+<td class=other>&nbsp;</td>
+</tr>
+</table>
+<p class=small>
+<B>Organization</B>: <A HREF="http://www.lbl.gov/">LBNL</A> &raquo;
+<A HREF="http://crd.lbl.gov/">CRD</A> &raquo;
+<A HREF="http://sdm.lbl.gov/">SDM</A> &raquo;
+<A HREF="http://lbl.gov/%7Ekwu/fastbit">FastBit</A> &raquo;
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc">Documentation</A> &raquo;
+Example </p>
+
+<H1>FastBit Example Code: rara.cpp</H1>
+
+<DIV style="width: 18em; float: right; align: right; border-width: 0px; margin: 1em;">
+<form action="http://google.lbl.gov/search" method="GET" name="gs">
+<table cellspacing="0" cellpadding="0">
+<tr>
+<td valign="middle"><font size="-1">
+<input type="text" name="q" size="30" maxlength="256" value=""></font></td>
+<td valign="middle">&nbsp;
+<input value="xml_no_dtd" name="output" type="hidden"></input>
+<input value="date:AD:L:d1" name="sort" type="hidden"></input>
+<input value="UTF-8" name="ie" type="hidden"></input>
+<input value="" name="lr" type="hidden"></input>
+<input value="default_frontend" name="client" type="hidden"></input>
+<input value="UTF-8" name="oe" type="hidden"></input>
+<input type="hidden" name="numgm" value="5"></input>
+<input value="default_frontend" name="proxystylesheet" type="hidden"></input>
+<input type="hidden" name="site" value="ALL"></input>
+<input type="hidden" name="num" value="40"></input>
+<input value="Search" name="btnG" type="submit"></input></td>
+</tr>
+</table>
+</form>
+</DIV>
+
+<p>
+This page explains the small example in file examples/rara.cpp.
+</p>
+
+<A name="usage"></A><H2>Command line arguments</H2>
+<p>
+The program rara.cpp accepts the following command line arguments (in
+fixed order)
+<pre>
+examples/rara data-dir query-conditions [column-to-print [column-to-print ...]]
+</pre>
+
+For example, after running 'make check', one can issue the following command
+</p>
+<pre>
+examples/rara tests/tmp/t1 "c between 10 and 20"
+</pre>
+and see the following output
+<pre>
+SELECT count(*) FROM tests/tmp/t1 WHERE c between 10 and 20
+--> 22
+</pre>
+
+The next command
+<pre>
+examples/rara tests/tmp/t1 "c between 10 and 20" c
+</pre>
+produces the following output
+<pre>
+SELECT c FROM tests/tmp/t1 WHERE c between 10 and 20
+--> c (with counts)
+10,     2
+11,     2
+12,     2
+13,     2
+14,     2
+15,     2
+16,     2
+17,     2
+18,     2
+19,     2
+20,     2
+</pre>
+
+<H2>Annotated Code</H2>
+<pre>
+    // construct a data partition from the given data directory.
+    ibis::part apart(argv[1], static_cast<const char*>(0));
+</pre>
+This statement creates an
+<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
+object that encapsulates a data partition.  The second nil pointer is
+required because there is another constructor that takes a single string
+but performs a very different function.
+<p>
+<pre>
+    // create a query object with the current user name.
+    ibis::query aquery(ibis::util::userName(), &apart);
+</pre>
+This statement creates an
+<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1query.html">ibis::query</A>
+object which represent our query.  A FastBit query is always associated
+with a data partition.
+
+<p>
+<pre>
+    // assign the query conditions as the where clause.
+    int ierr = aquery.setWhereClause(argv[2]);
+</pre>
+A query object is required to have a where clause (query conditions)
+before being evaluated.  This function returns 0 to indicate success and
+a negative number to indicate error.  This is often the case when an
+integer is returned from a FastBit function.
+<p>
+<pre>
+	ierr = aquery.setSelectClause(sel.c_str());
+</pre>
+If any column to print is specified on the command line, they are
+concatenated together into a single string (named sel in rara.cpp).  The
+pointer to the characters is passed to setSelectClause to be recorded
+as a part of the query.
+<p>
+<pre>
+	ierr = aquery.evaluate(); // evaluate the query
+</pre>
+The primary function to evaluate a query is 
+<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1query.html#4786930adc9cd6773a0c0486468b7503">ibis::query::evaluate</A>.
+This function evaluate the query conditions and identify the records
+that satisfy the conditions.  In some cases, it may be faster to use
+ibis::query::estimate to get an approximate answer first.
+<p>
+<pre>
+	    std::cout << aquery.getNumHits();
+</pre>
+After the function ibis::query::evalaute is called, one may find out how
+many records satisfy the query conditions by calling
+ibis::query::getNumHits.
+<p>
+<pre>
+	    aquery.printSelected(std::cout);
+</pre>
+If a select clause was successfully set, the function
+ibis::query::printSelected will print the columns of the selected
+records to standard output.
+<p>
+
+<H2>Note</H2>
+<p>
+The file examples/rara.cpp contains additional code for error checking
+and optional command-line arguments.
+<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/rara_8cpp.html">The
+Doxygen documentation of the file is available on-line</A>.
+</p>
+
+<div class=footer>
+<a href="http://www.lbl.gov/Disclaimers.html">Disclaimers</a><br>
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/">FastBit web site</A><br>
+<A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing
+list</A><br>
+<SCRIPT language=JavaScript>
+        document.write(document.lastModified)
+</SCRIPT>
+</div>
+
+<script src="http://www.google-analytics.com/urchin.js"
+type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-812953-1";
+urchinTracker();
+</script>
+</body>
+</html>

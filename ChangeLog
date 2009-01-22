@@ -1,3 +1,8 @@
+2009-01-22 John Wu <John.Wu at ACM.org>
+	* src/rara.cpp: add a small test program named after the smallest
+	ibis
+	* doc/rara.html: add annotation for the small example rara.cpp
+
 2009-01-21 John Wu <John.Wu at ACM.org>
 	* win/trydll.cpp: update the call to constructor of
 	util::quietLock and util::counter to the new argument lists
@@ -8,7 +13,9 @@
 	explicitly
 	* src/ibis.h: add conditional code to increase the verbose level
 	if DEBUG or _DEBUG is defined
-	
+	* java/README.txt: update instructions related to the new package
+	name gov.lbl.fastbit
+
 2009-01-20 John Wu <John.Wu at ACM.org>
 	* src/util.h: use the new macros defined in src/config.h
 	(HAVE_GCC_ATOMIC32 and HAVE_GCC_ATOMIC64) for help

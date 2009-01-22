@@ -33,7 +33,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = ibis$(EXEEXT) tcapi$(EXEEXT) thula$(EXEEXT) \
-	ardea$(EXEEXT)
+	ardea$(EXEEXT) rara$(EXEEXT)
 subdir = examples
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -55,6 +55,8 @@ am_ardea_OBJECTS = ardea.$(OBJEXT)
 ardea_OBJECTS = $(am_ardea_OBJECTS)
 am_ibis_OBJECTS = ibis.$(OBJEXT)
 ibis_OBJECTS = $(am_ibis_OBJECTS)
+am_rara_OBJECTS = rara.$(OBJEXT)
+rara_OBJECTS = $(am_rara_OBJECTS)
 am_tcapi_OBJECTS = tcapi.$(OBJEXT)
 tcapi_OBJECTS = $(am_tcapi_OBJECTS)
 am_thula_OBJECTS = thula.$(OBJEXT)
@@ -80,10 +82,10 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(tcapi_SOURCES) \
-	$(thula_SOURCES)
-DIST_SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(tcapi_SOURCES) \
-	$(thula_SOURCES)
+SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
+	$(tcapi_SOURCES) $(thula_SOURCES)
+DIST_SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
+	$(tcapi_SOURCES) $(thula_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -215,6 +217,9 @@ AUTOMAKE_OPTIONS = gnu
 ibis_SOURCES = ibis.cpp
 ibis_DEPENDENCIES = ../src/libfastbit.la
 ibis_LDADD = ../src/libfastbit.la
+rara_SOURCES = rara.cpp
+rara_DEPENDENCIES = ../src/libfastbit.la
+rara_LDADD = ../src/libfastbit.la
 thula_SOURCES = thula.cpp
 thula_DEPENDENCIES = ../src/libfastbit.la
 thula_LDADD = ../src/libfastbit.la
@@ -291,6 +296,9 @@ ardea$(EXEEXT): $(ardea_OBJECTS) $(ardea_DEPENDENCIES)
 ibis$(EXEEXT): $(ibis_OBJECTS) $(ibis_DEPENDENCIES) 
 	@rm -f ibis$(EXEEXT)
 	$(CXXLINK) $(ibis_OBJECTS) $(ibis_LDADD) $(LIBS)
+rara$(EXEEXT): $(rara_OBJECTS) $(rara_DEPENDENCIES) 
+	@rm -f rara$(EXEEXT)
+	$(CXXLINK) $(rara_OBJECTS) $(rara_LDADD) $(LIBS)
 thula$(EXEEXT): $(thula_OBJECTS) $(thula_DEPENDENCIES) 
 	@rm -f thula$(EXEEXT)
 	$(CXXLINK) $(thula_OBJECTS) $(thula_LDADD) $(LIBS)
@@ -303,6 +311,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ardea.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibis.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rara.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thula.Po@am__quote@
 

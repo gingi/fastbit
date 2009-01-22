@@ -1,9 +1,12 @@
 AUTOMAKE_OPTIONS=gnu
-bin_PROGRAMS = ibis tcapi thula ardea
+bin_PROGRAMS = ibis tcapi thula ardea rara
 #EXTRA_PROGRAMS =
 ibis_SOURCES = ibis.cpp
 ibis_DEPENDENCIES = ../src/libfastbit.la
 ibis_LDADD = ../src/libfastbit.la
+rara_SOURCES = rara.cpp
+rara_DEPENDENCIES = ../src/libfastbit.la
+rara_LDADD = ../src/libfastbit.la
 thula_SOURCES = thula.cpp
 thula_DEPENDENCIES = ../src/libfastbit.la
 thula_LDADD = ../src/libfastbit.la
