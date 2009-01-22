@@ -726,7 +726,7 @@ namespace ibis {
 	/// each, using the locks took about 10 seconds, while using the
 	/// atomic extension to perform the same arithmetic operations took
 	/// about 0.1 seconds.
-	class sharedInt32 {
+	class FASTBIT_CXX_DLLSPEC sharedInt32 {
 	public:
 	    sharedInt32() : val_(0) {
 #if defined(HAVE_GCC_ATOMIC32)
@@ -791,7 +791,8 @@ namespace ibis {
 #if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_sub_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
-		(void) InterlockedExchangeAdd((volatile long *)&val_, -rhs);
+		(void) InterlockedExchangeAdd((volatile long *)&val_,
+					      -(long)rhs);
 #else
 		ibis::util::quietLock lock(&mytex);
 		val_ -= rhs;
@@ -884,7 +885,7 @@ namespace ibis {
 		(void) __sync_sub_and_fetch(&val_, rhs);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
-						-rhs);
+						-(long)rhs);
 #else
 		ibis::util::quietLock lock(&mytex);
 		val_ -= rhs;

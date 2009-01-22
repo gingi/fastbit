@@ -321,9 +321,6 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    }
 		    else {
 			ind = new ibis::relic(c, file.c_str());
-			// 			ind = new ibis::relic(0);
-			// 			ind->col = c;
-			// 			ind->read(file.c_str());
 		    }
 		    break;
 		case ibis::index::SLICE: // the bit-sliced index
@@ -633,15 +630,21 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			    t = SLICE;
 			}
 		    }
+		    else if (stricmp(spec, "index=simple") == 0 ||
+			     stricmp(spec, "index=basic") == 0 ||
+			     strstr(spec, "relic") != 0) {
+			t = RELIC;
+		    }
 		    else if (strstr(spec, "slice") != 0 ||
 			     strstr(spec, "bitslice") != 0 ||
 			     strstr(spec, "binary") != 0) {
 			t = SLICE;
 		    }
 		    else {
-			t = RELIC;
+			t = SAPID;
 		    }
 		    switch (t) {
+		    default:
 		    case SAPID:
 			if (ncomp > 1)
 			    ind = new ibis::sapid(c, file.c_str(), ncomp);
@@ -656,23 +659,14 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			else
 			    ind = new ibis::relic(c, file.c_str());
 			break;
+		    case RELIC:
+			ind = new ibis::relic(c, file.c_str());
+			break;
 		    case FADE:
 			ind = new ibis::fade(c, file.c_str(), ncomp);
 			break;
 		    case SBIAD:
 			ind = new ibis::sbiad(c, file.c_str(), ncomp);
-			break;
-		    default:
-		    case RELIC:
-			if ((c->type() != ibis::FLOAT &&
-			     c->type() != ibis::DOUBLE &&
-			     c->type() != ibis::TEXT) &&
-			    c->lowerBound() >= 0.0 &&
-			    c->lowerBound() <= ceil(c->upperBound()*0.01) &&
-			    c->upperBound() <= c->partition()->nRows())
-			    ind = new ibis::direkte(c, file.c_str());
-			else
-			    ind = new ibis::relic(c, file.c_str());
 			break;
 		    case SLICE:
 			ind = new ibis::slice(c, file.c_str());
@@ -946,27 +940,21 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			t = SLICE;
 		    }
 		}
+		else if (stricmp(spec, "index=simple") == 0 ||
+			 stricmp(spec, "index=basic") == 0 ||
+			 strstr(spec, "relic") != 0) {
+		    t = RELIC;
+		}
 		else if (strstr(spec, "slice") != 0 ||
 			 strstr(spec, "bitslice") != 0 ||
 			 strstr(spec, "binary") != 0) {
 		    t = SLICE;
 		}
 		else {
-		    t = RELIC;
+		    t = SAPID;
 		}
 		switch (t) {
 		default:
-		case RELIC:
-		    if ((c->type() != ibis::FLOAT &&
-			 c->type() != ibis::DOUBLE &&
-			 c->type() != ibis::TEXT) &&
-			c->lowerBound() >= 0.0 &&
-			c->lowerBound() <= ceil(c->upperBound()*0.01) &&
-			c->upperBound() <= c->partition()->nRows())
-			ind = new ibis::direkte(c);
-		    else
-			ind = new ibis::relic(c);
-		    break;
 		case SAPID:
 		    if (ncomp > 1)
 			ind = new ibis::sapid(c, static_cast<const char*>(0),
@@ -980,6 +968,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			ind = new ibis::direkte(c);
 		    else
 			ind = new ibis::relic(c);
+		    break;
+		case RELIC:
+		    ind = new ibis::relic(c);
 		    break;
 		case FADE:
 		    ind = new ibis::fade(c, static_cast<const char*>(0),

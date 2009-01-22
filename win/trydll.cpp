@@ -2041,7 +2041,7 @@ static void readInput(std::string& str) {
 
 static void clean_up(ibis::partList& tlist, bool sane=true) {
     { // use envLock to make sure only one thread is deleting the partitions
-	ibis::util::quietLock lock(&ibis::util::envLock, "clean_up");
+	ibis::util::quietLock lock(&ibis::util::envLock);
 	if (tlist.empty())
 	    return;
 
@@ -2195,7 +2195,7 @@ int main(int argc, char** argv) {
 	    // process queries in a thread pool
 	    const int nth =
 		(threading < qlist.size() ? threading : qlist.size()-1);
-	    ibis::util::counter taskpool(*argv);
+	    ibis::util::counter taskpool;
 	    thArg args(uid, qlist, tlist, taskpool);
 	    std::vector<pthread_t> tid(nth);
 	    for (int i =0; i < nth; ++ i) { // 

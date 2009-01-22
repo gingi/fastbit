@@ -54,7 +54,7 @@ public class milky {
 	    }
 	}
 
-	FastBit fb = new FastBit(conffile);
+	gov.lbl.fastbit.FastBit fb = new gov.lbl.fastbit.FastBit(conffile);
 	exitCode = fb.set_message_level(msglvl);
 	if (msglvl > 1)
 	    System.out.println("FastBit.set_messsage_level(" + msglvl
@@ -73,7 +73,8 @@ public class milky {
 	    return;
 	}
 
-	FastBit.QueryHandle h = fb.build_query(null, args[iarg], args[iarg+1]);
+	gov.lbl.fastbit.FastBit.QueryHandle h =
+	    fb.build_query(null, args[iarg], args[iarg+1]);
 	if (h == null) {
 	    System.out.println("failed to process query \"" + args[iarg+1]
 			       + "\" on data in " + args[iarg]);
@@ -161,7 +162,7 @@ public class milky {
 	     "java milky dir 'c1 = 15 and c2 > 23' c1 i c3 d\n");
     }
 
-    private static void buildin(FastBit fb) {
+    private static void buildin(gov.lbl.fastbit.FastBit fb) {
 	int nerrors = 0;
 	int mult;
 	int[] ivals = new int[100];
@@ -193,7 +194,8 @@ public class milky {
 
 	mult /= 100;
 	for (int i = 0; i < counts.length; ++ i) {
-	    FastBit.QueryHandle h = fb.build_query(null, dir, conditions[i]);
+	    gov.lbl.fastbit.FastBit.QueryHandle h =
+		fb.build_query(null, dir, conditions[i]);
 	    int nhits = fb.get_result_size(h);
 	    if (nhits != mult * counts[i]) {
 		++ nerrors;

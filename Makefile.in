@@ -720,7 +720,7 @@ full-check:
 	cd tests && $(MAKE) full-check
 
 clean: clean-recursive
-	-rm -f win/*.suo win/*.ncb win/fastbit.def win/*.obj win/*.exe win/*.exe.*
+	-rm -f win/*.suo win/*.ncb win/fastbit.def win/*.obj win/*.lib win/*.exe win/*.exe.*
 	-rm -fr doc/html doc/latex win/Debug win/Release win/dll win/*.vcproj.*
 
 distclean: distclean-recursive

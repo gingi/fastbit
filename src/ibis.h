@@ -246,6 +246,17 @@ namespace ibis {
     inline void init(const int verbose=0, const char* rcfile=0,
 		     const char* mesgfile=0) {
 	gVerbose = verbose;
+#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+	gVerbose = INT_MAX;
+#elif DEBUG + 0 > 0
+	gVerbose += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+	gVerbose += 5 * _DEBUG;
+#else
+	gVerbose += 3;
+#endif
+#endif
 	if (rcfile != 0 && *rcfile != 0)
 	    gParameters().read(rcfile);
 	if (mesgfile != 0 && *mesgfile != 0)

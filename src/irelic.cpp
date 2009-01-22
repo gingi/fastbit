@@ -359,9 +359,16 @@ int ibis::relic::read(const char* f) {
     if (false == (header[0] == '#' && header[1] == 'I' &&
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
+		  (header[5] == RELIC || header[5] == BYLT ||
+		   header[5] == FADE || header[5] == SBIAD ||
+		   header[5] == SAPID || header[5] == FUZZ ||
+		   header[5] == SLICE || header[5] == ZONA) &&
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
 	UnixClose(fdes);
+	if (ibis::gVerbose > 1)
+	    col->logWarning("relic::read", "file %s does not contain an "
+			    "expected header", fnm.c_str());
 	return -3;
     }
 

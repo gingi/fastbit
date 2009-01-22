@@ -1,3 +1,14 @@
+2009-01-21 John Wu <John.Wu at ACM.org>
+	* win/trydll.cpp: update the call to constructor of
+	util::quietLock and util::counter to the new argument lists
+	* src/index.cpp: restore the use of ibis::relic when the index
+	specification is "relic" -- existing code attempts to use
+	ibis::direkte in some cases when "relic" is requested
+	* src/irelic.cpp: in ibis::relic::read check for valid type codes
+	explicitly
+	* src/ibis.h: add conditional code to increase the verbose level
+	if DEBUG or _DEBUG is defined
+	
 2009-01-20 John Wu <John.Wu at ACM.org>
 	* src/util.h: use the new macros defined in src/config.h
 	(HAVE_GCC_ATOMIC32 and HAVE_GCC_ATOMIC64) for help
@@ -929,7 +940,7 @@
 	* src/util.h: delete getBuffer, add ibis::util::buffer, replace
 	all calls to getBuffer to a buffer object.  This should provide
 	better buffer management than using raw pointer.
-	* src/mensa.h:271 explicitly case col to use ibis::text::getString
+	* src/mensa.h:271 explicitly cast col to use ibis::text::getString
 	(same problem as reported by Ross Bates <rbates@gmail.com>)
 	* src/idirekte.cpp: use mask to limit the number of elements
 	examined in function ibis::direkte::construct
