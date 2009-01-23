@@ -101,8 +101,8 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -126,8 +126,8 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -149,8 +149,8 @@ int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu chars from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu chars from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -172,8 +172,8 @@ int ibis::fileManager::getFile(const char* name,
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu unsigned chars from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu unsigned chars from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -195,8 +195,8 @@ int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -217,8 +217,8 @@ int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
     }
 
     if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile", "got "
-			       "%lu unsigned ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu unsigned ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     }
     return ierr;
@@ -239,8 +239,8 @@ int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
     }
 
     if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile", "got %lu long "
-			       "ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu long ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     return ierr;
 } // ibis::fileManager::getFile
@@ -260,8 +260,8 @@ int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
     }
 
     if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile", "got %lu long "
-			       "unsigned ints from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu long unsigned ints from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     return ierr;
 } // ibis::fileManager::getFile
@@ -281,8 +281,8 @@ int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
     }
 
     if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile", "got %lu "
-			       "floats  from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu floats  from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     return ierr;
 } // ibis::fileManager::getFile
@@ -302,8 +302,8 @@ int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
     }
 
     if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile", "got %lu "
-			       "doubles from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu doubles from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     return ierr;
 } // ibis::fileManager::getFile
@@ -323,8 +323,8 @@ int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
     }
 
     if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile", "got %lu RIDs "
-			       "from %s",
+	ibis::util::logMessage("ibis::fileManager::getFile",
+			       "got %lu RIDs from %s",
 			       static_cast<long unsigned>(arr.size()), name);
     return ierr;
 } // ibis::fileManager::getFile

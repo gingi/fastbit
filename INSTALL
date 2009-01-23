@@ -209,7 +209,16 @@ Known Issues
     package is configured with --enable-xopt, compiling this file alone
     may take up to 30 minutes using g++, which is more time than
     compiling all other files.  If you have any suggestion on how to
-    reduce the compilation time, please share with us!
+    reduce the compilation time, please email them to
+    <fastbit-users@hpcrdm.lbl.gov>.
+
+(10) The test 10 of check-ibis fails when the PGI compiler is used.
+    However, the location of segmentation violation seems to jump
+    randomly, making it hard to pingpoint the problem.  As of January
+    2009, this problem is only observed under PGI compiler version 8.0.2
+    with linux 2.6.18.  If you have any clue as what is going on, please
+    send your suggestions or corrections to
+    <fastbit-users@hpcrdm.lbl.gov>.
 
 
 ----------

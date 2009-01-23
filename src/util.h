@@ -54,17 +54,16 @@ int truncate(const char*, uint32_t);
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
-#if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
-#define FASTBIT_GCC_64 1
-#endif
-#ifndef HAVE_GCC_ATOMIC32
-#if (__GNUC__+0 >= 4 && !defined(__CYGWIN__))
+#if !defined(HAVE_GCC_ATOMIC32) && !defined(HAVE_CONFIG_H)
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__)
 #define HAVE_GCC_ATOMIC32 2
 #endif
 #endif
-#ifndef HAVE_GCC_ATOMIC64
-#if ((__GNUC__+0 >= 4 && defined(FASTBIT_GCC_64)) && !defined(__CYGWIN__))
+#if !defined(HAVE_GCC_ATOMIC64) && !defined(HAVE_CONFIG_H)
+#if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__)
 #define HAVE_GCC_ATOMIC64 2
+#endif
 #endif
 #endif
 
@@ -746,7 +745,7 @@ namespace ibis {
 	    }
 
 	    /// Read the current value.
-	    const uint32_t operator()() const {return val_;}
+	    uint32_t operator()() const {return val_;}
 
 	    /// Increment operator.
 	    uint32_t operator++() {
@@ -838,7 +837,7 @@ namespace ibis {
 	    }
 
 	    /// Read the current value.
-	    const uint64_t operator()() const {return val_;}
+	    uint64_t operator()() const {return val_;}
 
 	    /// Increment operator.
 	    uint64_t operator++() {

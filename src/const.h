@@ -68,18 +68,18 @@
 // common headers needed
 #include <errno.h>	// errno
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include "config.h"	// existence of headers
-#  if HAVE_STRING_H
+#  ifdef HAVE_STRING_H
 #    if !STDC_HEADERS && HAVE_MEMORY_H
 #      include <memory.h>
 #    endif
 #    include <string.h>	// strerr, strcasecmp, strcmp, memcpy
 #  endif
-#  if HAVE_SYS_TYPES_H
+#  ifdef HAVE_SYS_TYPES_H
 #    include <sys/types.h>	// timespec, etc
 #  endif
-#  if HAVE_STDINT_H
+#  ifdef HAVE_STDINT_H
 #    include <stdint.h>
 #  endif
 #else

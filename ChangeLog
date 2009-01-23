@@ -2,6 +2,9 @@
 	* src/rara.cpp: add a small test program named after the smallest
 	ibis
 	* doc/rara.html: add annotation for the small example rara.cpp
+	* src/util.h: remove const qualifier from the return type of
+	operator() for sharedInt32 and sharedInt64, change the definition
+	of HAVE_GCC_ATOMIC[32|64] to trust the definition from config.h
 
 2009-01-21 John Wu <John.Wu at ACM.org>
 	* win/trydll.cpp: update the call to constructor of
