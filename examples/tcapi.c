@@ -24,7 +24,10 @@
 
 void usage(const char *name) {
     fprintf(stdout, "A simple tester for the C API of FastBit\n\nusage\n"
-	    "%s [-c conffile] [-l logfile] [-v [verboseness-level]] "
+	    "%s [-c conffile] [-v [verboseness-level]] "
+#ifdef TCAPI_USE_LOGFILE
+	    " [-l logfile]"
+#endif
 	    "datadir [conditions] [<column type> ...]\n"
             "In SQL this is equivalent to\n\tFROM datadir "
             "[WHERE conditions [SELECT column type ...]]\n\n"
@@ -33,8 +36,8 @@ void usage(const char *name) {
 	    "If conditions are provided without columns to print, "
 	    "%s will print the number of hits.\n"
 	    "If any variable is to be printed, it must be specified as "
-            "a <name type> pair, where only i, u, f, and d are recognized.\n\n"
-	    "NOTE: option -l is only available of this program is compiled with TCAPI_USE_LOGFILE\n"
+            "a <name type> pair, where only i, u, f, and d are recognized.\n"
+	    "NOTE: the option -l is only available if this program is compiled with TCAPI_USE_LOGFILE\n\n"
 	    "Example:\n"
 	    "%s dir 'c1 = 15 and c2 > 23' c1 i c3 u\n\n",
             name, name, name, name);

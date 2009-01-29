@@ -179,6 +179,16 @@
 #  endif
 
 #elif defined(_WIN32)
+// don't need too many things from Windows header files
+#  define WIN32_LEAN_AND_MEAN 
+// if WINVER is not define, pretend to be on windows vista
+#  ifndef WINVER
+#    ifdef _WIN32_WINNT
+#      define WINVER _WIN32_WINNT
+#    else
+#      define WINVER 0x0600
+#    endif
+#  endif
 #  include <limits.h>	// PATH_MAX, OPEN_MAX
 #  include <windows.h>
 #  include <direct.h>	// _mkdir
@@ -263,10 +273,12 @@
 #  define DIRSEP '/'
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
-#  if defined(CXX_USE_DLL) && defined(DLL_EXPORTS)
-#    define FASTBIT_CXX_DLLSPEC __declspec(dllexport)
-#  elif defined(CXX_USE_DLL)
-#    define FASTBIT_CXX_DLLSPEC __declspec(dllimport)
+#  if defined(_USRDLL) || defined(CXX_USE_DLL)
+#    if defined(DLL_EXPORT)
+#      define FASTBIT_CXX_DLLSPEC __declspec(dllexport)
+#    else
+#      define FASTBIT_CXX_DLLSPEC __declspec(dllimport)
+#    endif
 #  else
 #    define FASTBIT_CXX_DLLSPEC
 #  endif

@@ -46,6 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src"
+				AdditionalUsingDirectories=""
 				PreprocessorDefinitions="FILEMANAGER_UNLOAD_TIME=10;WIN32;_DEBUG;_CONSOLE;CXX_USE_DLL"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"

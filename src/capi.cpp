@@ -38,7 +38,7 @@ public:
     ibis::part* find(const char* dir);
 
 private:
-    ibis::partList parts;
+    ibis::partAssoc parts;
     pthread_mutex_t mutex;
 
     void clear();
@@ -62,7 +62,7 @@ fastbit_part_list::fastbit_part_list() {
 
 void fastbit_part_list::clear() {
     ibis::util::mutexLock lock(&mutex, "~fastbit_part_list");
-    for (ibis::partList::iterator it = parts.begin();
+    for (ibis::partAssoc::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	char* name = const_cast<char*>((*it).first);
 	ibis::part* tbl = (*it).second;
@@ -79,7 +79,7 @@ fastbit_part_list::~fastbit_part_list() {
 
 ibis::part* fastbit_part_list::find(const char* dir) {
     ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
-    ibis::partList::const_iterator it = parts.find(dir);
+    ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
 	return (*it).second;
     }

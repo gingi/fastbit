@@ -52,7 +52,7 @@
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
 #  if defined(_USRDLL) || defined(CXX_USE_DLL)
-#    if defined(DLL_EXPORTS)
+#    if defined(DLL_EXPORT)
 #      define FASTBIT_DLLSPEC __declspec(dllexport)
 #    else
 #      define FASTBIT_DLLSPEC __declspec(dllimport)

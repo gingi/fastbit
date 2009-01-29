@@ -92,18 +92,18 @@ ardea.exe: ardea.o libfastbit.a
 dll: fastbit.dll
 fastbit.a: fastbit.dll
 fastbit.dll: $(FRC)
-	make -f MinGW.mak DEF="$(DEF) -D_USRDLL -DDLL_EXPORTS" $(OBJ)
+	make -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
 	$(CXX) -shared -o $@ $(OBJ) $(LIB)
 	dlltool -z fastbit.def $(OBJ)
 	dlltool -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
 # -Wl,-soname,$@
 trydll: trydll.exe
 trydll.exe: trydll.cpp fastbit.dll
-	$(CXX) $(OPT) -D_USRDLL -o $@ trydll.cpp fastbit.a $(LIB)
+	$(CXX) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
 
 tcapi: tcapi.exe
 tcapi.exe: ../examples/tcapi.c ../src/capi.h fastbit.dll
-	$(CXX) $(OPT) -D_USRDLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
+	$(CXX) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2

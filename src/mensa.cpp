@@ -29,14 +29,14 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
 	ibis::util::tablesFromResources(parts, ibis::gParameters());
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it).second->combineNames(naty);
-	nrows += (*it).second->nRows();
+	(*it)->combineNames(naty);
+	nrows += (*it)->nRows();
     }
     if (name_.empty() && ! parts.empty()) {
 	// take on the name of the first partition
 	ibis::partList::const_iterator it = parts.begin();
 	name_ = "T-";
-	name_ += (*it).first;
+	name_ += (*it)->name();
 	if (desc_.empty()) {
 	    if (dir != 0 && *dir != 0)
 		desc_ = dir;
@@ -72,14 +72,14 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
 	ibis::util::tablesFromResources(parts, ibis::gParameters());
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it).second->combineNames(naty);
-	nrows += (*it).second->nRows();
+	(*it)->combineNames(naty);
+	nrows += (*it)->nRows();
     }
     if (name_.empty() && ! parts.empty()) {
 	// take on the name of the first partition
 	ibis::partList::const_iterator it = parts.begin();
 	name_ = "T-";
-	name_ += (*it).first;
+	name_ += (*it)->name();
 	if (desc_.empty()) {
 	    if (dir1 != 0 && *dir1 != 0) {
 		desc_ = dir1;
@@ -134,15 +134,15 @@ int ibis::mensa::addPartition(const char* dir) {
     nrows = 0;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it).second->combineNames(naty);
-	nrows += (*it).second->nRows();
+	(*it)->combineNames(naty);
+	nrows += (*it)->nRows();
     }
 
     if (name_.empty() && ! parts.empty()) {
 	// take on the name of the first partition
 	ibis::partList::const_iterator it = parts.begin();
 	name_ = "T-";
-	name_ += (*it).first;
+	name_ += (*it)->name();
 	if (desc_.empty()) {
 	    if (dir != 0 && *dir != 0)
 		desc_ = dir;
@@ -172,12 +172,9 @@ void ibis::mensa::clear() {
     naty.clear();
     name_.erase();
     desc_.erase();
-    while (! parts.empty()) {
-	ibis::partList::iterator it = parts.begin();
-	ibis::part *tmp = (*it).second;
-	parts.erase(it);
-	delete tmp;
-    }
+    size_t np = parts.size();
+    for (size_t j = 0; j < np; ++ j)
+	delete parts[j];
 } // ibis::mensa::clear
 
 ibis::table::stringList ibis::mensa::columnNames() const {
@@ -223,17 +220,16 @@ const char* ibis::mensa::indexSpec(const char* colname) const {
 	return 0;
     }
     else if (colname == 0 || *colname == 0) {
-	ibis::partList::const_iterator it = parts.begin();
-	return (*it).second->indexSpec();
+	return parts[0]->indexSpec();
     }
     else {
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::column* col = (*it).second->getColumn(colname);
+	    const ibis::column* col = (*it)->getColumn(colname);
 	    if (col != 0)
 		return col->indexSpec();
 	}
-	return (*(parts.begin())).second->indexSpec();
+	return parts[0]->indexSpec();
     }
 } // ibis::mensa::indexSpec
 
@@ -241,10 +237,10 @@ void ibis::mensa::indexSpec(const char* opt, const char* colname) {
     for (ibis::partList::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	if (colname == 0 || *colname == 0) {
-	    (*it).second->indexSpec(opt);
+	    (*it)->indexSpec(opt);
 	}
 	else {
-	    ibis::column* col = (*it).second->getColumn(colname);
+	    ibis::column* col = (*it)->getColumn(colname);
 	    if (col != 0)
 		col->indexSpec(opt);
 	}
@@ -257,7 +253,7 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
     int ierr = 0;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	const ibis::column* col = (*it).second->getColumn(colname);
+	const ibis::column* col = (*it)->getColumn(colname);
 	if (col != 0) {
 	    ibis::index* ind = ibis::index::create(col, 0, option);
 	    if (ind != 0) {
@@ -284,8 +280,8 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 int ibis::mensa::buildIndexes(const char* opt) {
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it).second->loadIndex(opt);
-	(*it).second->unloadIndex();
+	(*it)->loadIndex(opt);
+	(*it)->unloadIndex();
     }
     return 0;
 } // ibis::mensa::buildIndexes
@@ -299,7 +295,7 @@ void ibis::mensa::estimate(const char* cond,
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	if (ierr >= 0) {
-	    ierr = q.setPartition((*it).second);
+	    ierr = q.setPartition(*it);
 	    if (ierr >= 0) {
 		ierr = q.estimate();
 		if (ierr >= 0) {
@@ -307,16 +303,16 @@ void ibis::mensa::estimate(const char* cond,
 		    nmax += q.getMaxNumHits();
 		}
 		else {
-		    nmax += (*it).second->nRows();
+		    nmax += (*it)->nRows();
 		}
 	    }
 	    else {
-		nmax += (*it).second->nRows();
+		nmax += (*it)->nRows();
 	    }
 	    ierr = 0;
 	}
 	else {
-	    nmax += (*it).second->nRows();
+	    nmax += (*it)->nRows();
 	}
     }
 } // ibis::mensa::estimate
@@ -375,21 +371,16 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
     }
 
     ibis::partList mylist;
-    for (unsigned j = 0; j < patterns.size(); ++ j) {
-	const char* pat = patterns[j];
-	ibis::partList::const_iterator pit = parts.find(pat);
-	if (pit != parts.end()) {
-	    ibis::partList::const_iterator qit = mylist.find(pat);
-	    if (qit == mylist.end())
-		mylist[(*pit).first] = (*pit).second;
-	}
-	else {
-	    for (pit = parts.begin(); pit != parts.end(); ++ pit) {
-		if (ibis::util::strMatch((*pit).first, pat)) {
-		    ibis::partList::const_iterator qit = mylist.find(pat);
-		    if (qit == mylist.end())
-			mylist[(*pit).first] = (*pit).second;
-		}
+    for (unsigned k = 0; k < parts.size(); ++ k) {
+	for (unsigned j = 0; j < patterns.size(); ++ j) {
+	    const char* pat = patterns[j];
+	    if (stricmp(pat, parts[k]->name()) == 0) {
+		mylist.push_back(parts[k]);
+		break;
+	    }
+	    else if (ibis::util::strMatch(parts[k]->name(), pat)) {
+		mylist.push_back(parts[k]);
+		break;
 	    }
 	}
     }
@@ -484,7 +475,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	    for (ibis::partList::const_iterator it = mylist.begin();
 		 it != mylist.end(); ++ it) {
 		des += " ";
-		des += it->second->name();
+		des += (*it)->name();
 	    }
 	    return new ibis::tabula(cond, des.c_str(), nhits);
 	}
@@ -520,20 +511,20 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     // main loop through each data partition
     for (ibis::partList::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
-	ierr = qq.setPartition((*it).second);
+	ierr = qq.setPartition(*it);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- query[" << cond << "].setPartition("
-		<< it->second->name() << ") failed with error " << ierr;
+		<< (*it)->name() << ") failed with error " << ierr;
 	    continue;
 	}
 
-	ierr = tms.verify(*(it->second));
+	ierr = tms.verify(**it);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- select clause (" << sel
 		<< ") contains variables that are not in data partition "
-		<< it->second->name();
+		<< (*it)->name();
 	    continue;
 	}
 
@@ -541,7 +532,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- failed to evaluate conditions ("
-		<< cond << ") on data partition " << it->second->name();
+		<< cond << ") on data partition " << (*it)->name();
 	    continue;
 	}
 
@@ -562,18 +553,18 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 			tls[i] = ibis::DOUBLE;
 
 		    array_t<double> tmp;
-		    ierr = it->second->calculate(*aterm, *hits, tmp);
+		    ierr = (*it)->calculate(*aterm, *hits, tmp);
 		    addIncoreData(buff[i], tmp, nh,
 				  std::numeric_limits<double>::quiet_NaN());
 		}
 		continue;
 	    }
 
-	    const ibis::column* col = (*it).second->getColumn(tms.getName(i));
+	    const ibis::column* col = (*it)->getColumn(tms.getName(i));
 	    if (col == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << mesg << " -- \"" << tms.getName(i)
-		    << "\" is not a column of partition " << it->second->name();
+		    << "\" is not a column of partition " << (*it)->name();
 		continue;
 	    }
 
@@ -690,10 +681,10 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     de += " FROM ";
     if (mylist.size() > 0) {
 	ibis::partList::const_iterator it = mylist.begin();
-	de += (*it).second->name();
+	de += (*it)->name();
 	for (++ it; it != mylist.end(); ++ it) {
 	    de += ", ";
-	    de += (*it).second->name();
+	    de += (*it)->name();
 	}
     }
     else {
@@ -772,7 +763,7 @@ int64_t ibis::mensa::computeHits(const char* cond, const ibis::partList& pts) {
 
     for (ibis::partList::const_iterator it = pts.begin();
 	 it != pts.end(); ++ it) {
-	ierr = qq.setPartition((*it).second);
+	ierr = qq.setPartition(*it);
 	if (ierr < 0) continue;
 	ierr = qq.evaluate();
 	if (ierr == 0)
@@ -786,11 +777,11 @@ int64_t ibis::mensa::computeHits(const char* cond, const ibis::partList& pts) {
 void ibis::mensa::orderby(const ibis::table::stringList& names) {
     for (ibis::partList::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	long ierr = (*it).second->reorder(names);
+	long ierr = (*it)->reorder(names);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::orderby -- reordering partition "
-		<< (*it).first << " encountered error " << ierr;
+		<< (*it)->name() << " encountered error " << ierr;
 	}
     }
 } // ibis::mensa::orderby
@@ -809,7 +800,7 @@ int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals) const {
     array_t<char> tmp;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	const ibis::part& dp = *((*it).second);
+	const ibis::part& dp = **it;
 	if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::getColumnAsBytes encounters an "
@@ -841,7 +832,7 @@ int64_t ibis::mensa::getColumnAsUBytes(const char* cn,
     array_t<unsigned char> tmp;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	const ibis::part& dp = *((*it).second);
+	const ibis::part& dp = **it;
 	if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "ibis::mensa::getColumnAsUBytes encounters an "
@@ -870,7 +861,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsShorts encounters an "
@@ -892,7 +883,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsShorts encounters an "
@@ -925,7 +916,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUShorts encounters an "
@@ -947,7 +938,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUShorts encounters an "
@@ -979,7 +970,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1000,7 +991,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1021,7 +1012,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1042,7 +1033,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1064,7 +1055,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	array_t<int32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1097,7 +1088,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsInts encounters an "
@@ -1119,7 +1110,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUInts encounters an "
@@ -1141,7 +1132,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	array_t<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsUInts encounters an "
@@ -1176,7 +1167,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1197,7 +1188,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1218,7 +1209,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1239,7 +1230,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1260,7 +1251,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<int32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1281,7 +1272,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1303,7 +1294,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	array_t<int64_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsLongs encounters an "
@@ -1338,7 +1329,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
@@ -1360,7 +1351,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
@@ -1382,7 +1373,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	array_t<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
@@ -1404,7 +1395,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	array_t<uint64_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsULongs encounters an "
@@ -1438,7 +1429,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
@@ -1459,7 +1450,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
@@ -1480,7 +1471,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
@@ -1501,7 +1492,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
@@ -1522,7 +1513,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	array_t<float> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsFloats encounters an "
@@ -1556,7 +1547,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1577,7 +1568,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1598,7 +1589,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1619,7 +1610,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1640,7 +1631,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<int32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1661,7 +1652,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1682,7 +1673,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<float> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1703,7 +1694,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	array_t<double> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsDoubles encounters an "
@@ -1738,7 +1729,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1762,7 +1753,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<unsigned char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1786,7 +1777,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<int16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1810,7 +1801,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<uint16_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1834,7 +1825,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<int32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1858,7 +1849,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1882,7 +1873,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<int64_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1906,7 +1897,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<uint64_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1930,7 +1921,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<float> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1954,7 +1945,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	array_t<double> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -1979,7 +1970,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	std::string tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    const ibis::part& dp = *((*it).second);
+	    const ibis::part& dp = **it;
 	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::mensa::getColumnAsStrings encounters an "
@@ -2015,7 +2006,7 @@ long ibis::mensa::getHistogram(const char* constraints,
 	counts.clear();
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get1DDistribution
+	    ierr = (*it)->get1DDistribution
 		(constraints, cname, begin, end, stride,
 		 reinterpret_cast<std::vector<uint32_t>&>(counts));
 	    if (ierr < 0) return ierr;
@@ -2032,8 +2023,8 @@ long ibis::mensa::getHistogram(const char* constraints,
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    tmp.clear();
-	    ierr = (*it).second->get1DDistribution(constraints, cname, begin,
-						   end, stride, tmp);
+	    ierr = (*it)->get1DDistribution(constraints, cname, begin,
+					    end, stride, tmp);
 	    if (ierr < 0) return ierr;
 	    for (size_t i = 0; i < nbins; ++ i)
 		counts[i] += tmp[i];
@@ -2059,7 +2050,7 @@ long ibis::mensa::getHistogram2D(const char* constraints,
 
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get2DDistribution
+	    ierr = (*it)->get2DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
 		 end2, stride2,
 		 reinterpret_cast<std::vector<uint32_t>&>(counts));
@@ -2077,7 +2068,7 @@ long ibis::mensa::getHistogram2D(const char* constraints,
 	std::vector<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get2DDistribution
+	    ierr = (*it)->get2DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
 		 end2, stride2, tmp);
 	    if (ierr < 0) return ierr;
@@ -2112,7 +2103,7 @@ long ibis::mensa::getHistogram3D(const char* constraints,
 
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get3DDistribution
+	    ierr = (*it)->get3DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
 		 end2, stride2, cname3, begin3, end3, stride3,
 		 reinterpret_cast<std::vector<uint32_t>&>(counts));
@@ -2131,7 +2122,7 @@ long ibis::mensa::getHistogram3D(const char* constraints,
 	std::vector<uint32_t> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
-	    ierr = (*it).second->get3DDistribution
+	    ierr = (*it)->get3DDistribution
 		(constraints, cname1, begin1, end1, stride1, cname2, begin2,
 		 end2, stride2, cname3, begin3, end3, stride3, tmp);
 	    if (ierr < 0) return ierr;
@@ -2163,9 +2154,9 @@ ibis::table::cursor* ibis::mensa::createCursor() const {
 /// Constructure a cursor object for row-wise data access to a @c
 /// ibis::mensa object.
 ibis::mensa::cursor::cursor(const ibis::mensa& t)
-    : buffer(t.nColumns()), tab(t), curPart(t.parts.begin()), pBegin(0),
-      bBegin(0), bEnd(0), curRow(-1) {
-    if (curPart == t.parts.end()) return; // no data partition
+    : buffer(t.nColumns()), tab(t), curPart(0), pBegin(0), bBegin(0),
+      bEnd(0), curRow(-1) {
+    if (curPart >= t.parts.size()) return; // no data partition
     if (buffer.empty()) return;
 
     // linearize the t.naty to buffer, build a mapping between column names
@@ -2243,8 +2234,8 @@ int ibis::mensa::cursor::getSelected
 /// function @c getString.
 int ibis::mensa::cursor::fillBuffer(size_t i) const {
     if (buffer[i].cval != 0) return 0; // already filled
-    if (curPart == tab.parts.end() || curPart->second == 0) return -1;
-    const ibis::part& apart = *(curPart->second);
+    if (curPart >= tab.parts.size() || tab.parts[curPart] == 0) return -1;
+    const ibis::part& apart = *(tab.parts[curPart]);
     // has to do a look up based on the column name, becaus the ith column
     // of the data partition may not be the correct one (some columns may
     // be missing)
@@ -2334,7 +2325,7 @@ int ibis::mensa::cursor::fillBuffers() const {
 		<< "ibis::mensa[" << tab.name() << "]::cursor::fillBuffers "
 		"failed to fill buffer for column " << i << "("
 		<< buffer[i].cname << ", " << ibis::TYPESTRING[buffer[i].ctype]
-		<< ") of partition " << curPart->second->name()
+		<< ") of partition " << tab.parts[curPart]->name()
 		<< " with pBegin " << pBegin << ", bBegin " << bBegin
 		<< ", and bEnd " << bEnd << ", ierr = " << ierr;
 	    return ierr;
@@ -2356,25 +2347,25 @@ void ibis::mensa::cursor::clearBuffers() {
 } // ibis::mensa::cursor::clearBuffers
 
 int ibis::mensa::cursor::fetch() {
-    if (curPart == tab.parts.end()) return -1;
+    if (curPart >= tab.parts.size()) return -1;
 
     ++ curRow;
     if (static_cast<uint64_t>(curRow) >= bEnd) { // reach end of the block
 	clearBuffers();
-	if (bEnd >= pBegin + (*curPart).second->nRows()) {
-	    pBegin += (*curPart).second->nRows();
+	if (bEnd >= pBegin + tab.parts[curPart]->nRows()) {
+	    pBegin += tab.parts[curPart]->nRows();
 	    ++ curPart;
-	    if (curPart == tab.parts.end()) return -1;
+	    if (curPart >= tab.parts.size()) return -1;
 
 	    bBegin = pBegin;
 	    bEnd = pBegin +
-		(preferred_block_size <= (*curPart).second->nRows() ?
-		 preferred_block_size : (*curPart).second->nRows());
+		(preferred_block_size <= tab.parts[curPart]->nRows() ?
+		 preferred_block_size : tab.parts[curPart]->nRows());
 	}
 	else {
 	    bBegin = bEnd;
 	    bEnd += preferred_block_size;
-	    const uint64_t pEnd = pBegin + (*curPart).second->nRows();
+	    const uint64_t pEnd = pBegin + tab.parts[curPart]->nRows();
 	    if (bEnd > pEnd)
 		bEnd = pEnd;
 	}
@@ -2383,21 +2374,21 @@ int ibis::mensa::cursor::fetch() {
 } // ibis::mensa::cursor::fetch
 
 int ibis::mensa::cursor::fetch(uint64_t irow) {
-    if (curPart == tab.parts.end()) return -1;
+    if (curPart >= tab.parts.size()) return -1;
     if (bEnd <= irow)
 	clearBuffers();
 
-    while (pBegin + (*curPart).second->nRows() <= irow &&
-	   curPart != tab.parts.end()) {
-	pBegin += (*curPart).second->nRows();
+    while (pBegin + tab.parts[curPart]->nRows() <= irow &&
+	   curPart < tab.parts.size()) {
+	pBegin += tab.parts[curPart]->nRows();
 	++ curPart;
     }
-    if (curPart != tab.parts.end()) {
+    if (curPart < tab.parts.size()) {
 	curRow = irow;
 	bBegin = irow;
 	bEnd = irow + preferred_block_size;
-	if (bEnd > pBegin + (*curPart).second->nRows())
-	    bEnd = pBegin + (*curPart).second->nRows();
+	if (bEnd > pBegin + tab.parts[curPart]->nRows())
+	    bEnd = pBegin + tab.parts[curPart]->nRows();
 	return 0;
     }
     else {
@@ -2591,7 +2582,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
  */
 int ibis::mensa::cursor::dump(std::ostream& out, const char* del) const {
     if (tab.nColumns() == 0) return 0;
-    if (curRow < 0 || curPart == tab.parts.end())
+    if (curRow < 0 || curPart >= tab.parts.size())
 	return -1;
     int ierr;
     if (static_cast<uint64_t>(curRow) == bBegin) {
@@ -2601,7 +2592,7 @@ int ibis::mensa::cursor::dump(std::ostream& out, const char* del) const {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::mensa[" << tab.name() << "]::cursor::dump "
 		"call to fillBuffers() failed with ierr = " << ierr
-		<< " at partition " << curPart->second->name()
+		<< " at partition " << tab.parts[curPart]->name()
 		<< ", pBegin " << pBegin << ", bBegin " << bBegin
 		<< ", bEnd " << bEnd;
 	    return -2;
@@ -2628,7 +2619,7 @@ int ibis::mensa::cursor::dump(std::ostream& out, const char* del) const {
 /// the last row of the block.
 int ibis::mensa::cursor::dumpBlock(std::ostream& out, const char* del) {
     if (tab.nColumns() == 0) return 0;
-    if (curPart == tab.parts.end()) return 0;
+    if (curPart >= tab.parts.size()) return 0;
     if (curRow < 0) // not initialized
 	return -1;
     int ierr;
@@ -2639,7 +2630,7 @@ int ibis::mensa::cursor::dumpBlock(std::ostream& out, const char* del) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::mensa[" << tab.name() << "]::cursor::dumpBlock "
 		"call to fillBuffers() failed with ierr = " << ierr
-		<< " at partition " << curPart->second->name()
+		<< " at partition " << tab.parts[curPart]->name()
 		<< ", pBegin " << pBegin << ", bBegin " << bBegin
 		<< ", bEnd " << bEnd;
 	    return -2;
@@ -2687,7 +2678,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::mensa[" << tab.name() << "]::cursor::dumpSome "
 		"call to fetch(of the block) failed with ierr = " << ierr
-		<< " at partition " << curPart->second->name()
+		<< " at partition " << tab.parts[curPart]->name()
 		<< ", pBegin " << pBegin << ", bBegin " << bBegin
 		<< ", bEnd " << bEnd;
 	    return -1;
@@ -2707,7 +2698,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 		LOGGER(ibis::gVerbose > 1)
 		    << "ibis::mensa[" << tab.name() << "]::cursor::dumpSome "
 		    "call to fillBlock() failed with ierr = " << ierr
-		    << " at partition " << curPart->second->name()
+		    << " at partition " << tab.parts[curPart]->name()
 		    << ", pBegin " << pBegin << ", bBegin " << bBegin
 		    << ", bEnd " << bEnd;
 		return -3;
@@ -2722,7 +2713,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 			<< "ibis::mensa[" << tab.name()
 			<< "]::cursor::dumpSome call to dump() "
 			"failed with ierr = " << ierr
-			<< " at partition " << curPart->second->name()
+			<< " at partition " << tab.parts[curPart]->name()
 			<< ", pBegin " << pBegin << ", bBegin " << bBegin
 			<< ", bEnd " << bEnd;
 		    return -4;
@@ -2733,7 +2724,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 			<< "ibis::mensa[" << tab.name()
 			<< "]::cursor::dumpSome call to fetch(row " << curRow
 			<< ") failed with ierr = " << ierr
-			<< " at partition " << curPart->second->name()
+			<< " at partition " << tab.parts[curPart]->name()
 			<< ", pBegin " << pBegin << ", bBegin " << bBegin
 			<< ", bEnd " << bEnd;
 		    return -5;
@@ -2817,13 +2808,13 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {
-	if (curPart != tab.parts.end()) {
+	if (curPart < tab.parts.size()) {
 	    const ibis::column* col = 0;
 	    if (buffer[j].cval != 0) {
 		col = reinterpret_cast<const ibis::column*>(buffer[j].cval);
 	    }
 	    else {
-		col = (*curPart).second->getColumn(buffer[j].cname);
+		col = tab.parts[curPart]->getColumn(buffer[j].cname);
 	    }
 	    if (col != 0) {
 		std::string val;
@@ -2839,7 +2830,7 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
 } // ibis::mensa::cursor::dumpIJ
 
 int ibis::mensa::cursor::getColumnAsByte(size_t j, char* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -2861,7 +2852,7 @@ int ibis::mensa::cursor::getColumnAsByte(size_t j, char* val) const {
 } // ibis::mensa::cursor::getColumnAsByte
 
 int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -2884,7 +2875,7 @@ int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char* val) const {
 } // ibis::mensa::cursor::getColumnAsUByte
 
 int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -2916,7 +2907,7 @@ int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t* val) const {
 } // ibis::mensa::cursor::getColumnAsShort
 
 int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -2945,7 +2936,7 @@ int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t* val) const {
 } // ibis::mensa::cursor::getColumnAsUShort
 
 int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -2987,7 +2978,7 @@ int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t* val) const {
 } // ibis::mensa::cursor::getColumnAsInt
 
 int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3022,7 +3013,7 @@ int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t* val) const {
 } // ibis::mensa::cursor::getColumnAsUInt
 
 int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3074,7 +3065,7 @@ int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t* val) const {
 } // ibis::mensa::cursor::getColumnAsLong
 
 int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3115,7 +3106,7 @@ int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t* val) const {
 } // ibis::mensa::cursor::getColumnAsULong
 
 int ibis::mensa::cursor::getColumnAsFloat(size_t j, float* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3156,7 +3147,7 @@ int ibis::mensa::cursor::getColumnAsFloat(size_t j, float* val) const {
 } // ibis::mensa::cursor::getColumnAsFloat
 
 int ibis::mensa::cursor::getColumnAsDouble(size_t j, double* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3207,7 +3198,7 @@ int ibis::mensa::cursor::getColumnAsDouble(size_t j, double* val) const {
 } // ibis::mensa::cursor::getColumnAsDouble
 
 int ibis::mensa::cursor::getColumnAsString(size_t j, std::string& val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || j > tab.nColumns())
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
     if (static_cast<uint64_t>(curRow) == bBegin)
@@ -3272,7 +3263,7 @@ int ibis::mensa::cursor::getColumnAsString(size_t j, std::string& val) const {
     case ibis::CATEGORY:
     case ibis::TEXT: {
 	const ibis::column* col =
-	    (*curPart).second->getColumn(buffer[j].cname);
+	    tab.parts[curPart]->getColumn(buffer[j].cname);
 	if (col != 0) {
 	    col->getString(static_cast<uint32_t>(curRow-pBegin), val);
 	    ierr = 0;

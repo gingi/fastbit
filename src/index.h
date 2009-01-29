@@ -117,61 +117,8 @@ public:
     };
 
     /// @brief Index factory.
-    ///
-    /// It creates a specific concrete index object.  If this function
-    /// failed to read a specified index file, it will attempt to create a
-    /// new index based on the current data file and index specification.
-    /// The new index will be written under the old name.
-    ///
-    /// This function returns nil if it fails to create an index.
-    ///
-    /// @param c a pointer to a ibis::column object.  This argument must be
-    /// present.
-    ///
-    /// @param name a name, it can be the name of the index file, the data
-    /// file, or the directory containing the data file.  If the name ends
-    /// with '.idx' is treated as an index file and the content of the file
-    /// is read.  If the name does not end with '.idx', it is assumed to be
-    /// the data file name unless it is determined to be directory name.  If
-    /// it is a directory name, the data file is assumed to be in the
-    /// directory with the file name same as the column name.  Once a data
-    /// file is found, the content of the data file is read to construct a
-    /// new index according to the return value of function indexSpec.  The
-    /// argument name can be nil, in which case, the data file name is
-    /// constructed by concatenate the return of
-    /// partition()->currentDataDir() and the column name.
-    ///
-    /// @note Set @c name to null to build a brand new index and discard
-    /// the existing index.
-    ///
-    /// @param spec the index specification.  This string contains the
-    /// parameters for how to create an index.  The most general form is
-    ///\verbatim
-    /// <binning .../> <encoding .../> <compression .../>.
-    ///\endverbatim
-    /// Here is one example (it is the default for some integer columns)
-    ///\verbatim
-    /// <binning none /> <encoding equality />
-    ///\endverbatim
-    /// FastBit always compresses every bitmap it ever generates.  The
-    /// compression option is to instruct it to uncompress some bitmaps or
-    /// not compress indices at all.  The compress option is usually not
-    /// used.
-    ///
-    /// If the argument @c spec is not specified, this function checks the
-    /// specification in the following order.
-    /// <ol>
-    /// <li> use the index specification for the column being indexed;
-    /// <li> use the index specification for the table containing the
-    /// column being indexed;
-    /// <li> use the most specific index specification relates to the
-    /// column be indexed in the global resources (gParameters).
-    /// </ol>
-    /// It stops looking as soon as it finds the first non-empty string.
-    /// To override any general index specification, one must provide a
-    /// complete index specification string.
     static index* create(const column* c, const char* name=0,
-			 const char* spec=0);
+			 const char* spec=0, int inEntirety=0);
     /// Read the header of the named file to determine if it contains an
     /// index of the specified type.  Returns true if the correct header is
     /// found, else return false.

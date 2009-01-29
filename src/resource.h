@@ -58,13 +58,11 @@ public:
 	prefix(ibis::util::strnewdup(rhs.prefix)), context(rhs.context) {}
     const resource& operator=(const resource& rhs);
 
-    /// Locate the value of the given parameter name.
+    /// Locate the named parameter and return its value in raw string form.
     const char* operator[](const char *name) const;
-    /// Locate the value of the given parameter name and return it as a
-    /// number.
+    /// Locate the named parameter and return its value as a number.
     double getNumber(const char* name) const;
-    /// Locate the value of the given parameter name and return it as a
-    /// boolean value.
+    /// Locate the named parameter and return its value as true or false.
     bool isTrue(const char *name) const;
 
     /// Insert a new name-value pair.
@@ -155,12 +153,12 @@ inline std::string ibis::resource::getPrefix() const {
 } // ibis::resource::getPrefix
 
 /// Returns @c true is the string value should be interpreted as logical
-/// truth.  The string values of "true", "yes", "on", "t", and "1" are
-/// interpreted as true.
+/// truth.  The string values string with 'y', 't', and '1' (the number
+/// one), and the string "on" are interpreted as true.  All other strings
+/// are interpreted as false.
 inline bool ibis::resource::isStringTrue(const char *val) {
     return(val != 0 && *val != 0 &&
-	   ((stricmp(val, "true") == 0) || (stricmp(val, "yes") == 0) ||
-	    (stricmp(val, "on") == 0) || (stricmp(val, "1") == 0) ||
-	    (stricmp(val, "t") == 0)));
+	   ((*val == '1') || (*val == 't') || (*val == 'y') ||
+	    (*val == 'T') || (*val == 'Y') || (stricmp(val, "on") == 0)));
 } // ibis::resource::isStringTrue
 #endif // IBIS_RESOURCE_H

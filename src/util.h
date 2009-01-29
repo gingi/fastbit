@@ -335,8 +335,11 @@ namespace ibis {
 	const selected& operator=(const selected&);
     }; // class selected
 
-    // an associative array for data partitions
-    typedef std::map< const char*, part*, lessi > partList;
+    /// An associative array for data partitions.  Only used internally for
+    /// sorting data partitions.
+    typedef std::map< const char*, part*, lessi > partAssoc;
+    /// A simple list of data partitions.
+    typedef FASTBIT_CXX_DLLSPEC std::vector< part* > partList;
 
     /// A specialization of std::bad_alloc.
     class bad_alloc : public std::bad_alloc {
@@ -491,7 +494,7 @@ namespace ibis {
 	/// Match the string @c str against a simple pattern @c pat.  The
 	/// pattern may use two wild characters defined for SQL function
 	/// LIKE, '_' and '%'.
-	bool strMatch(const char* str, const char* pat);
+	FASTBIT_CXX_DLLSPEC bool strMatch(const char* str, const char* pat);
 
 	/// Compute the outer product of @c a and @c b, add the result to @c c.
 	const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
@@ -817,11 +820,15 @@ namespace ibis {
 	    sharedInt32& operator=(const sharedInt32&); // no assignment
 	}; // sharedInt32
 
+	/// A 64-bit shared integer class that attempts to make use of the
+	/// atomic operations provided by GCC extension.  If the atomic
+	/// extension is not available, it falls back on the mutual
+	/// exclusion lock provided by pthread library.
 	class sharedInt64 {
 	public:
 	    sharedInt64() : val_(0) {
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
 		    throw "pthread_mutex_init failed for sharedInt";
@@ -830,7 +837,7 @@ namespace ibis {
 
 	    ~sharedInt64() {
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 #else
 		(void)pthread_mutex_destroy(&mytex);
 #endif
@@ -843,7 +850,7 @@ namespace ibis {
 	    uint64_t operator++() {
 #if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, 1);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 		return InterlockedIncrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -856,7 +863,7 @@ namespace ibis {
 	    uint64_t operator--() {
 #if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, -1);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 		return InterlockedDecrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -869,7 +876,7 @@ namespace ibis {
 	    void operator+=(const uint64_t rhs) {
 #if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_add_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						rhs);
 #else
@@ -882,7 +889,7 @@ namespace ibis {
 	    void operator-=(const uint64_t rhs) {
 #if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_sub_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						-(long)rhs);
 #else
@@ -901,7 +908,7 @@ namespace ibis {
 	private:
 	    uint64_t volatile val_; ///< The actual integer value.
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
 #endif

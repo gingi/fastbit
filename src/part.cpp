@@ -4497,6 +4497,12 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
+/// The arithmetic expression is applied to each row that are marked 1 in
+/// the mask, msk, with names in the arithmetic expression interpretted as
+/// column names.  The resulting values packed into array res as doubles.
+/// Upon successful completion of this function, the return value should be
+/// the number of records examined, which should be same as msk.cnt() and
+/// res.size().
 long ibis::part::calculate(const ibis::math::term &trm,
 			   const ibis::bitvector &msk,
 			   array_t<double> &res) const {
@@ -4588,7 +4594,7 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 } // ibis::part::matchAny
 
 /// Perform exact match operation for an AnyAny query.  The bulk of the
-/// work is performed as range query.
+/// work is performed as range queries.
 long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 			  const ibis::bitvector &mask,
 			  ibis::bitvector &hits) const {
@@ -4641,8 +4647,8 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
     return hits.cnt();
 } // ibis::part::matchAny
 
-// actually compute the min and max of each attribute and write out a new
-// TDC file
+/// Actually compute the min and max of each attribute and write out a new
+/// metadata file for the data partition.
 void ibis::part::computeMinMax() {
     writeLock lock(this, "computeMinMax");
     for (columnList::iterator it=columns.begin(); it!=columns.end(); ++it) {
@@ -4661,7 +4667,9 @@ void ibis::part::computeMinMax() {
     }
 } // ibis::part::computeMinMax
 
-/// May use @c nthr threads to build indices.
+/// May use @c nthr threads to build indexes.  The argument opt is used to
+/// build new indexes if the corresponding columns do not already have
+/// indexes.
 /// @sa ibis::part::loadIndex
 void ibis::part::buildIndex(int nthr, const char* opt) {
     writeLock lock(this, "buildIndex");
@@ -4754,14 +4762,15 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
     }
 } // ibis::part::buildIndex
 
-/// Load the metadata about indexes to memory.  This function iterates
-/// through all columns and load the index associated with each one of
-/// them.  If an index for a column does not exist, the index is built in
-/// memory and written to disk.
-///
-/// @note An index can not be built correctly if it is too large to fit in
-/// memory!
-void ibis::part::loadIndex(const char* opt) const {
+/// This function iterates through all columns and load the index
+/// associated with each one of them.  If an index for a column does not
+/// exist, the index is built in memory and written to disk.  The argument
+/// opt is used as the index specification is a new index is to be built.
+/// If opt is nil, the index specifications for the individual columns or
+/// the data partition are used.  If the argument readall is greater than
+/// 0, the existing index will be read into memory in one-shot.  The pros
+/// and cons of doing so is explained in function ibis::index::create.
+void ibis::part::loadIndex(const char* opt, int readall) const {
     if (activeDir == 0) return;
 
     if (ibis::gVerbose > 5)
@@ -4769,7 +4778,7 @@ void ibis::part::loadIndex(const char* opt) const {
 		   "start to load indexes of this data partition");
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
-	(*it).second->loadIndex(opt);
+	(*it).second->loadIndex(opt, readall);
     }
 
     const char* expf = ibis::gParameters()["exportBitmapAsCsr"];
@@ -9491,20 +9500,29 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 
     try {
 	ibis::part* tmp = new ibis::part(dir1, 0);
-	if (tmp) {
-	    if (tmp->name() && tmp->nRows()) {
+	if (tmp != 0) {
+	    if (tmp->name() != 0 && tmp->nRows() > 0) {
 		++ cnt;
 		ibis::util::mutexLock
 		    lock(&ibis::util::envLock, "tablesFromDir");
-		ibis::partList::iterator it = tlist.find(tmp->name());
-		if (it != tlist.end()) { // deallocate the old table
+		ibis::partAssoc sorted;
+		for (ibis::partList::iterator it = tlist.begin();
+		     it != tlist.end(); ++ it) {
+		    sorted[(*it)->name()] = *it;
+		}
+		ibis::partAssoc::iterator it = sorted.find(tmp->name());
+		if (it != sorted.end()) { // deallocate the old table
 		    logMessage("tablesFromDir", "replacing the old partition "
 			       "named %s with new data from %s",
 			       (*it).first, dir1);
 		    delete (*it).second;
-		    tlist.erase(it);
+		    sorted.erase(it);
 		}
-		tlist[tmp->name()] = tmp;
+		sorted[tmp->name()] = tmp;
+
+		tlist.clear();
+		for (it = sorted.begin(); it != sorted.end(); ++ it)
+		    tlist.push_back(it->second);
 	    }
 	    else {
 		if (ibis::gVerbose > 4)
@@ -9564,7 +9582,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 /// Read the two directories, if there are matching subdirs, construct an
 /// ibis::part from them.  Will descend into the subdirectories when run on
 /// unix systems to look for matching subdirectories.
-unsigned ibis::util::tablesFromDir(ibis::partList &tables,
+unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 				   const char* adir, const char* bdir) {
     if (adir == 0 || *adir == 0) return 0;
     unsigned int cnt = 0;
@@ -9574,14 +9592,19 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tables,
 
     try {
 	part* tbl = new ibis::part(adir, bdir);
-	if (tbl->name() && tbl->nRows()>0 && tbl->nColumns()>0) {
+	if (tbl != 0 && tbl->name() != 0 && tbl->nRows() > 0 &&
+	    tbl->nColumns()>0) {
 	    ++ cnt;
 	    ibis::util::mutexLock
 		lock(&ibis::util::envLock, "tablesFromDir");
-	    ibis::partList::const_iterator it =
-		tables.find(tbl->name());
-	    if (it == tables.end()) { // a new name
-		tables[tbl->name()] = tbl;
+	    ibis::partAssoc sorted;
+	    for (ibis::partList::iterator it = tlist.begin();
+		 it != tlist.end(); ++ it) {
+		sorted[(*it)->name()] = *it;
+	    }
+	    ibis::partAssoc::iterator it = sorted.find(tbl->name());
+	    if (it == sorted.end()) { // a new name
+		sorted[tbl->name()] = tbl;
 		if (ibis::gVerbose > 1)
 		    logMessage("tablesFromDir",
 			       "add new partition \"%s\"", tbl->name());
@@ -9591,12 +9614,19 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tables,
 		    logMessage("tablesFromDir", "there "
 			       "is already an ibis::part with name of "
 			       "\"%s\"(%s) in the list of tables "
-			       "-- will discard the current "
+			       "-- will discard the previous "
 			       "data partition from %s", tbl->name(),
 			       (*it).second->currentDataDir(),
 			       tbl->currentDataDir());
-		delete tbl;
+		delete (*it).second;
+		sorted.erase(it);
+		sorted[tbl->name()] = tbl;
 	    }
+
+	    tlist.clear();
+	    for (ibis::partAssoc::iterator it = sorted.begin();
+		 it != sorted.end(); ++ it)
+		tlist.push_back(it->second);
 	}
 	else {
 	    if (ibis::gVerbose > 4)
@@ -9656,7 +9686,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tables,
 	if (stat(nm1, &st1)==0 && stat(nm2, &st2)==0) {
 	    if (((st1.st_mode  &S_IFDIR) == S_IFDIR) &&
 		((st2.st_mode  &S_IFDIR) == S_IFDIR)) {
-		cnt += tablesFromDir(tables, nm1, nm2);
+		cnt += tablesFromDir(tlist, nm1, nm2);
 	    }
 	}
     }

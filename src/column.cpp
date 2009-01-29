@@ -4454,10 +4454,16 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
     fflush(fptr);
 } // ibis::column::logMessage
 
-/// @note Only the meta data about the index is loaded into memory.
-/// Bitmaps associated with the index are read into memory as needed.
-// This function requires a write lock on the column.
-void ibis::column::loadIndex(const char* opt) const throw () {
+/// @param opt This option is passed to ibis::index::create to be used if a
+/// new index is to be created.
+/// @param readall If this argument is greater than zero, all metadata and
+/// bitmaps associated with an index is read into memory; otherwise only
+/// the metadata about the index is loaded into memory.  The bitmaps
+/// associated with an index can be read into memory as needed.
+///
+/// @note Accesses to this function are serialized through a write lock on
+/// the column.
+void ibis::column::loadIndex(const char* opt, int readall) const throw () {
     if (idx != 0 || thePart == 0 || thePart->nRows() == 0 ||
 	thePart->currentDataDir() == 0)
 	return;
@@ -4471,7 +4477,8 @@ void ibis::column::loadIndex(const char* opt) const throw () {
 	    logMessage("loadIndex", "loading the index from %s",
 		       thePart->currentDataDir());
 	if (idx == 0) {
-	    idx = ibis::index::create(this, thePart->currentDataDir(), opt);
+	    idx = ibis::index::create(this, thePart->currentDataDir(),
+				      opt, readall);
 	}
 	if (idx == 0) { // failed to create index, try again
 	    purgeIndexFile(); // remove any left over index file

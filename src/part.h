@@ -61,7 +61,7 @@ public:
     /// Load and immediately unload indexes.
     void buildIndex(int nthr=1, const char* opt=0);
     /// Load indexes of all columns.
-    void loadIndex(const char* opt=0) const;
+    void loadIndex(const char* opt=0, int readall=0) const;
     /// Unload indexes of all columns.
     void unloadIndex() const;
     /// Remove existing index files!

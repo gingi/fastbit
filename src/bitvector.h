@@ -13,11 +13,11 @@
 #include <limits.h>	// INT_MAX
 #include <iomanip>	// setw()
 
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) && defined(CXX_USE_DLL) && !defined(DLL_EXPORTS)
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && defined(_WIN32)
 //disable warnings on extern before template instantiation
 #pragma warning (disable : 4231)
 #endif
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) && defined(CXX_USE_DLL) && !defined(DLL_EXPORT)
 extern template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
 #endif
 

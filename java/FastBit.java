@@ -78,14 +78,25 @@ public class FastBit {
 	select clause when building the query.
 
 	@note The original data type of the column must be able to fit
-	into bytes in order for this function to succeed.
+	into bytes in order for this function to succeed, except
+	get_qualified_longs may be invoked on a string-valued column to
+	retrieve the starting positions of the strings satisfying the
+	query conditions.
     */
     public native byte[] get_qualified_bytes(QueryHandle handle, String col);
     /** Retrieve values as shorts. @sa get_qualified_bytes. */
     public native short[] get_qualified_shorts(QueryHandle handle, String col);
     /** Retrieve values as ints. @sa get_qualified_bytes. */
     public native int[] get_qualified_ints(QueryHandle handle, String col);
-    /** Retrieve values as longs. @sa get_qualified_bytes. */
+    /** Retrieve values as longs.
+	@sa get_qualified_bytes.
+	@note The values of any integer-valued column may be retrieved
+	with this function.  In addition, one may invoke this function
+	with the name of a string-valued column to retrieve the starting
+	positions (byte offsets) to read the strings from the data file
+	containing the strings.  Note that the string values in the data
+	files are null-terminated.
+    */
     public native long[] get_qualified_longs(QueryHandle handle, String col);
     /** Retrieve values as floats. @sa get_qualified_bytes. */
     public native float[] get_qualified_floats(QueryHandle handle, String col);
@@ -95,13 +106,12 @@ public class FastBit {
     /** Write the buffer to the named directory.  It also flushes the
 	current buffer.  All functions calls to various add functions
 	are assumed to be adding to a single FastBit data partition.
-	This set of functions are intended for adding a number of rows
-	to a data partition.  Considerable overhead is involved in
-	creating the files when the function write_buffer is invoked,
-	therefore it is not recommended to write a single row.
-	Additionally, since all data values are stored in a memory
-	buffer, one can not write a large number of records in one
-	short.
+	This set of functions are intended for adding rows to a data
+	partition.  Considerable overhead is involved in creating the
+	files when the function write_buffer is invoked, therefore it is
+	not recommended for writing a single row.  Additionally, since
+	all data values are stored in a memory buffer, one can not write
+	a large number of records in one shot.
     */
     public native int write_buffer(String dir);
     /** Add the name column containing double values.  Note that if the

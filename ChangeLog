@@ -1,3 +1,26 @@
+2009-01-29 John Wu <John.Wu at ACM.org>
+	* src/index.h: add the 4th argument to index::create to determine
+	whether to load an index in its entirety, previously, this option
+	is available through a undocumented global variable (a feature
+	requested by Jochen Schlosser)
+	* src/column.h, src/part.h: add the 2nd argument to the function
+	loadIndex to make use of the new argument in ibis::index::create
+	* src/resource.h: update documentation to a couple of functions
+
+2009-01-28 John Wu <John.Wu at ACM.org>
+	* src/FastBit.java: update internal documentation about the
+	functions.
+	* src/util.h: add checks on WINVER to avoid invokding 64-bit
+	atomic functions on non-64-bit machines under windows (in
+	ibis::util::sharedInt64)
+	* src/mensa.h, mensa.cpp: change curPart to be an integer
+	* src/util.h, src/mensa.cpp, src/capi.cpp, src/part.cpp,
+	src/query.cpp: change ibis::partList into a std::vector, rename
+	the old associative array into partAssoc -- only use it within the
+	scope of individual functions.  A unsuccessfull attempt to figure
+	out why win/trydll.cpp fails to clean up the variable tlist --
+	probably the same old problem with dll export.
+
 2009-01-22 John Wu <John.Wu at ACM.org>
 	* src/rara.cpp: add a small test program named after the smallest
 	ibis

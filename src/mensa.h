@@ -195,7 +195,7 @@ protected:
     std::vector<bufferElement> buffer;
     bufferMap bufmap;
     const ibis::mensa& tab;
-    ibis::partList::const_iterator curPart;
+    unsigned curPart;
     unsigned preferred_block_size;
     uint64_t pBegin; // the first row number of the current partition
     uint64_t bBegin; // the first row number of the current block
@@ -219,7 +219,7 @@ private:
 
 inline int
 ibis::mensa::cursor::getColumnAsByte(const char* cn, char* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -231,7 +231,7 @@ ibis::mensa::cursor::getColumnAsByte(const char* cn, char* val) const {
 inline int
 ibis::mensa::cursor::getColumnAsUByte(const char* cn,
 				      unsigned char* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -242,7 +242,7 @@ ibis::mensa::cursor::getColumnAsUByte(const char* cn,
 
 inline int
 ibis::mensa::cursor::getColumnAsShort(const char* cn, int16_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -253,7 +253,7 @@ ibis::mensa::cursor::getColumnAsShort(const char* cn, int16_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsUShort(const char* cn, uint16_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -264,7 +264,7 @@ ibis::mensa::cursor::getColumnAsUShort(const char* cn, uint16_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsInt(const char* cn, int32_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -275,7 +275,7 @@ ibis::mensa::cursor::getColumnAsInt(const char* cn, int32_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsUInt(const char* cn, uint32_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -286,7 +286,7 @@ ibis::mensa::cursor::getColumnAsUInt(const char* cn, uint32_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsLong(const char* cn, int64_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -297,7 +297,7 @@ ibis::mensa::cursor::getColumnAsLong(const char* cn, int64_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsULong(const char* cn, uint64_t* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -308,7 +308,7 @@ ibis::mensa::cursor::getColumnAsULong(const char* cn, uint64_t* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsFloat(const char* cn, float* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -319,7 +319,7 @@ ibis::mensa::cursor::getColumnAsFloat(const char* cn, float* val) const {
 
 inline int
 ibis::mensa::cursor::getColumnAsDouble(const char* cn, double* val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())
@@ -331,7 +331,7 @@ ibis::mensa::cursor::getColumnAsDouble(const char* cn, double* val) const {
 inline int
 ibis::mensa::cursor::getColumnAsString(const char* cn,
 				       std::string& val) const {
-    if (curRow < 0 || curPart == tab.parts.end() || cn == 0 || *cn == 0)
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
     if (it != bufmap.end())

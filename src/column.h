@@ -90,7 +90,7 @@ public:
 			       double& min, double &max) const;
 
     /// Load the index associated with the column.
-    virtual void loadIndex(const char* opt=0) const throw ();
+    virtual void loadIndex(const char* opt=0, int readall=0) const throw ();
     /// Unload the index associated with the column.
     void unloadIndex() const;
     /// Compute the index size (in bytes).

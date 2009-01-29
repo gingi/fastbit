@@ -30,7 +30,6 @@ namespace ibis {
     //a temporary variable for testing the various options in sumBits
     extern int _sumBits_option;
 #endif
-    int accessIndexInWhole = 0;
 }
 
 namespace std { // specialize the std::less struct
@@ -52,19 +51,80 @@ namespace std { // specialize the std::less struct
 
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::index
-//
-// This function either creates a new index from the property values or
-// restores the index previously written to a file.  The index is form
-// column 'c'.  The @c dfname may be null, a directory name or a file name.
-// If it is null, a new index will be created from the current content in
-// currentDataDir() of the data table and the resulting index is also
-// written back to the same location.  If it is the name of a directory (if
-// the directory does not exist yet, it will be created) or a file, this
-// function will first check to see if a file with {c->name()}.idx exists.
-// If the file exists, its content is use as the current index, otherwise a
-// new one is created from scratch.
+
+/// It creates a specific concrete index object.  If this function
+/// fails to read the specified index file, it attempts to create a
+/// new index based on the current data file and index specification.
+/// The new index will be written under the old name.
+///
+/// This function returns nil if it fails to create an index.  It captures
+/// and absorbs exceptions in most cases.
+///
+/// @param c a pointer to a ibis::column object.  This argument must be
+/// present.
+///
+/// @param name a name, it can be the name of the index file, the data
+/// file, or the directory containing the data file.  If the name ends with
+/// '.idx' is treated as an index file and the content of the file is read.
+/// If the name does not end with '.idx', it is assumed to be the data file
+/// name unless it is determined to be a directory name.  If it is a
+/// directory name, the data file is assumed to be in the specified
+/// directory with a file name that is same as the column name.  Once a
+/// data file is found, the content of the data file is read to construct a
+/// new index according to the return value of function indexSpec.  The
+/// argument name can be nil, in which case, the data file name is
+/// constructed by concatenate the return of partition()->currentDataDir()
+/// and the column name.
+///
+/// @note Set @c name to null to build a brand new index and discard
+/// the existing index.
+///
+/// @param spec the index specification.  This string contains the
+/// parameters for how to create an index.  The most general form is
+///\verbatim
+/// <binning .../> <encoding .../> <compression .../>.
+///\endverbatim
+/// Here is one example (it is the default for some integer columns)
+///\verbatim
+/// <binning none /> <encoding equality />
+///\endverbatim
+/// FastBit always compresses every bitmap it ever generates.  The
+/// compression option is to instruct it to uncompress some bitmaps or
+/// not compress indices at all.  The compress option is usually not
+/// used.
+///
+/// If the argument @c spec is not specified, this function checks the
+/// specification in the following order.
+/// <ol>
+/// <li> use the index specification for the column being indexed;
+/// <li> use the index specification for the table containing the
+/// column being indexed;
+/// <li> use the most specific index specification relates to the
+/// column be indexed in the global resources (gParameters).
+/// </ol>
+/// It stops looking as soon as it finds the first non-empty string.
+/// To override any general index specification, one must provide a
+/// complete index specification string.
+///
+/// @param inEntirety If this value is greater than zero, this function
+/// will attempt to read the whole index file in one shot.  In cases where
+/// there is enough memory to hold all indexes in-memory, this option
+/// may reduce I/O overhead.  Additionally, it places all bitmaps in an
+/// index consecutively in memory, which may also speed up memory accesses
+/// when the bitmaps are used to answer queries.  Of course, the drawback
+/// is that this option requires more memory than necessary and may
+/// actually take more time to read the data files since many of the
+/// bitmaps may not be actually needed.  The default value of this argument
+/// is 0, which allows bitmaps to be read into memory as needed.
+///
+/// @note An index can not be built correctly if it does not fit in memory!
+/// This is the most likely reason for failure in this function.  If this
+/// does happen, try to build indexes one at a time, use a machine with
+/// more memory, or break up a large partition into a number of smaller
+/// ones.  Normally, we recommand one to not put much more than 100 million
+/// rows in a data partition.
 ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
-				 const char* spec) {
+				 const char* spec, int inEntirety) {
     ibis::index* ind = 0;
     if (c == 0) // can not procede
 	return ind;
@@ -184,7 +244,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    char buf[12];
 	    const char* header = 0;
 	    {
-		bool useGetFile = (accessIndexInWhole != 0);
+		bool useGetFile = (inEntirety != 0);
 		if (! useGetFile) {
 		    std::string key(c->partition()->name());
 		    key += ".";
@@ -196,9 +256,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    // manage the index file as a whole
 		    ierr = ibis::fileManager::instance().tryGetFile
 			(file.c_str(), &st,
-			 accessIndexInWhole>0 ?
-			 ibis::fileManager::PREFER_READ :
-			 ibis::fileManager::MMAP_LARGE_FILES);
+			 (inEntirety > 0 ?
+			  ibis::fileManager::PREFER_READ :
+			  ibis::fileManager::MMAP_LARGE_FILES));
 		    if (ierr != 0) {
 			if (ibis::gVerbose > 7 || errno != ENOENT)
 			    c->logWarning("readIndex",

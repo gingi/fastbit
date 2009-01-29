@@ -3581,11 +3581,13 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	*ptr = 0;
 	-- ptr;
     }
-    ibis::partList::const_iterator it = tl.find(fn);
-    if (it != tl.end()) { // found the partition
-	mypart = (*it).second;
+    for (size_t j = 0; j < tl.size(); ++ j) {
+	if (stricmp(fn, tl[j]->name()) == 0) {
+	    mypart = tl[j];
+	    break;
+	}
     }
-    else { // partition name is not valid
+    if (mypart == 0) { // partition name is not valid
 	state = UNINITIALIZED;
 	delete [] user;
 	user = 0;
