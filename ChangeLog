@@ -6,6 +6,9 @@
 	* src/column.h, src/part.h: add the 2nd argument to the function
 	loadIndex to make use of the new argument in ibis::index::create
 	* src/resource.h: update documentation to a couple of functions
+	* doc/index.html, doc/rara.html: refer to the new html file
+	rara.html in index.html, change < and > to &lt; and &gt; in
+	rara.html
 
 2009-01-28 John Wu <John.Wu at ACM.org>
 	* src/FastBit.java: update internal documentation about the

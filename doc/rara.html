@@ -7,7 +7,7 @@
  type="text/css">
 <LINK REV="made" href="mailto:John.Wu@acm.org">
 <LINK REL="SHORTCUT ICON" HREF="http://crd.lbl.gov/~kewu/fastbit/favicon.ico">
-<title>FastBit Quick Start</title>
+<title>FastBit Example Code: rara.cpp</title>
 </head>
 
 <body>
@@ -107,7 +107,7 @@ SELECT c FROM tests/tmp/t1 WHERE c between 10 and 20
 <H2>Annotated Code</H2>
 <pre>
     // construct a data partition from the given data directory.
-    ibis::part apart(argv[1], static_cast<const char*>(0));
+    ibis::part apart(argv[1], static_cast&lt;const char*&gt;(0));
 </pre>
 This statement creates an
 <A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
