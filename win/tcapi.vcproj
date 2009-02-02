@@ -24,6 +24,7 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\BuildTCAPI.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -123,6 +124,7 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\BuildTCAPI.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"

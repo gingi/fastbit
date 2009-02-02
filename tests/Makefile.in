@@ -185,7 +185,6 @@ localstatedir = @localstatedir@
 lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
-my_check_pthread_config = @my_check_pthread_config@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
 prefix = @prefix@
@@ -200,6 +199,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 uudecode = @uudecode@
+z_check_pthread_config = @z_check_pthread_config@
 UTOMAKE_OPTIONS = gnu
 readcsv_SOURCES = readcsv.cpp
 check_SCRIPTS = scripts/matchCounts.pl
@@ -515,9 +515,10 @@ check-thula: $(TESTDIR)/t1/-part.txt $(THULAEXE)
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 > /dev/null 2>&1 && if [ `diff -w thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 > /dev/null 2>&1 && if [ `diff -w thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
 	@echo
-check-tcapi: $(TESTDIR)/t1/-part.txt $(TCAPIEXE)
+check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
+	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 - > $(TESTDIR)/tcapi-3 ; if [ `diff -w tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 	@echo
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2

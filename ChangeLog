@@ -1,3 +1,16 @@
+2009-02-01 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add check-tcapi test 3 to confirm the output
+	from text::selectLongs
+
+2009-01-30 John Wu <John.Wu at ACM.org>
+	* src/capi.cpp:632 add ibis::TEXT and ibis::CATEGORY as acceptable
+	column types for fastbit_get_qualified_longs (bug found by Andrey
+	Kolchanov)
+	* java/milky.java, examples/tcapi.c: add a case for retrieving
+	values as 64-bit integers
+	* configure.ac: change the code used for testing atomic function,
+	change how the CFLAGS is carried through the configure script
+
 2009-01-29 John Wu <John.Wu at ACM.org>
 	* src/index.h: add the 4th argument to index::create to determine
 	whether to load an index in its entirety, previously, this option

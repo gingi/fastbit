@@ -13,8 +13,11 @@
    @code
    datadir selection-conditions [<column type> <column type>...]
    @endcode
-   Types recognized are: i (for integers), u (for unsigned integers), f (for
-   floats) and d for (doubles).  Unrecognized types are treated as integers.
+
+   Types recognized are: i (for integers), u (for unsigned integers), l
+   (for long integers), f (for floats) and d for (doubles).  Unrecognized
+   types are treated as integers.
+
     @ingroup FastBitExamples
 */
 #include <capi.h>
@@ -36,7 +39,7 @@ void usage(const char *name) {
 	    "If conditions are provided without columns to print, "
 	    "%s will print the number of hits.\n"
 	    "If any variable is to be printed, it must be specified as "
-            "a <name type> pair, where only i, u, f, and d are recognized.\n"
+            "a <name type> pair, where only i, u, l, f, and d are recognized.\n"
 	    "NOTE: the option -l is only available if this program is compiled with TCAPI_USE_LOGFILE\n\n"
 	    "Example:\n"
 	    "%s dir 'c1 = 15 and c2 > 23' c1 i c3 u\n\n",
@@ -244,6 +247,22 @@ int main(int argc, char **argv) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
 			fprintf(output, "%u ", tmp[j]);
+		    fprintf(output, "\n");
+		}
+		else {
+		    fprintf(output, "%s: failed to retrieve value for "
+			    "column %s (requested type %c)\n",
+			    argv[0], argv[i], t);
+		}
+		break;}
+	    case 'l':
+	    case 'L': {
+		const uint64_t *const tmp =
+		    fastbit_get_qualified_longs(qh, argv[i]);
+		if (tmp != 0) {
+		    fprintf(output, "%s[%d]=", argv[i], nhits);
+		    for (j = 0; j < nhits; ++ j)
+			fprintf(output, "%ld ", tmp[j]);
 		    fprintf(output, "\n");
 		}
 		else {

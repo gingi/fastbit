@@ -23,6 +23,7 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\BuildThula.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -121,6 +122,7 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\BuildThula.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"

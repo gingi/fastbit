@@ -426,7 +426,7 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_bytes -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need BYTE";
+	    << ", expect type BYTE";
 	return ret;
     }
 
@@ -494,7 +494,7 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_shorts -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need SHORT";
+	    << ", expect type SHORT or BYTE";
 	return ret;
     }
 
@@ -563,7 +563,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_ints -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need INT";
+	    << ", expect type INT or shorter integer types";
 	return ret;
     }
 
@@ -635,11 +635,13 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	c->type() != ibis::BYTE &&
 	c->type() != ibis::UBYTE &&
 	c->type() != ibis::SHORT &&
-	c->type() != ibis::USHORT) {
+	c->type() != ibis::USHORT &&
+	c->type() != ibis::TEXT &&
+	c->type() != ibis::CATEGORY) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_longs -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need LONG";
+	    << ", expect type LONG or a compatible type";
 	return ret;
     }
 
@@ -704,7 +706,7 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_ubytes -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need UBYTE";
+	    << ", expect type UBYTE";
 	return ret;
     }
 
@@ -773,7 +775,7 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_ushorts -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need USHORT";
+	    << ", expect type USHORT or BYTE";
 	return ret;
     }
 
@@ -843,7 +845,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_uints -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need UINT";
+	    << ", expect type UINT or shoter integer types";
 	return ret;
     }
 
@@ -914,7 +916,7 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_ulongs -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need ULONG";
+	    << ", expect type ULONG or shorter integer types";
 	return ret;
     }
 
@@ -979,7 +981,7 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_floats -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need FLOAT";
+	    << ", expect type FLOAT or short integer types";
 	return ret;
     }
 
@@ -1042,7 +1044,7 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	LOGGER(ibis::gVerbose >= 1)
 	    << "fastbit_get_qualified_doubles -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", need DOUBLE";
+	    << ", expect type DOUBLE or shorter numerical values";
 	return ret;
     }
 

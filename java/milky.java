@@ -1,8 +1,18 @@
 // $Id$
 /** This is a simple java program that tests the querying feature of the
-    JNI interface.  It replicates the functionality of tcapi.c.
+    JNI interface.  It approximately replicates the functionality of
+    ../example/tcapi.c.
 
-Milky Stork (Mycteria cinerea)
+   The basic command line options are
+   @code
+   datadir selection-conditions [<column type> <column type>...]
+   @endcode
+
+   Types recognized are: i (for integers), l (for long integers), f (for
+   floats) and d for (doubles).  Unrecognized types are treated as
+   integers.
+
+   @note Milky Stork (Mycteria cinerea)
 A endangered white stork that was common in Java, Indonesia.
 @see http://www.birdlife.org/datazone/sites/index.html?action=SpcHTMDetails.asp&sid=3825
 
@@ -93,6 +103,21 @@ public class milky {
 	    case 'i':
 	    case 'I': {
 		int tmp[] = fb.get_qualified_ints(h, args[i]);
+		if (tmp != null) {
+		    System.out.print(args[i] + "[" + nhits + "]:");
+		    for (int j = 0; j < nhits; ++ j)
+			System.out.print(" " + tmp[j]);
+		    System.out.println();
+		}
+		else {
+		    System.out.println("** failed to retrieve values for "
+				       + "column " + args[i]
+				       + " (requested type i)");
+		}
+		break;}
+	    case 'l':
+	    case 'L': {
+		long tmp[] = fb.get_qualified_longs(h, args[i]);
 		if (tmp != null) {
 		    System.out.print(args[i] + "[" + nhits + "]:");
 		    for (int j = 0; j < nhits; ++ j)
