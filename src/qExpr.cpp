@@ -38,6 +38,8 @@ const char* ibis::math::stdfun2_name[] = {"atan2", "fmod", "ldexp", "pow"};
 // simplify the arithmetic expression to use ibis::qRange as much as possible
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
+    LOGGER(ibis::gVerbose > 4)
+	<< "ibis::qExpr::simplify --  input expression " << *expr;
 
     switch (expr->getType()) {
     default:
@@ -735,6 +737,8 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	}
 	break;}
     } // switch(...
+    LOGGER(ibis::gVerbose > 4)
+	<< "ibis::qExpr::simplify -- output expression " << *expr;
 } // ibis::qExpr::simplify
 
 void ibis::qExpr::print(std::ostream& out) const {
@@ -1582,6 +1586,24 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	ibis::math::stdFunction1 *tmp =
 	    reinterpret_cast<ibis::math::stdFunction1*>(lhs);
 	if (tmp->ftype == ATAN) {
+	    ret = static_cast<ibis::math::term*>(tmp->getLeft());
+	    tmp->getLeft() = 0;
+	}
+    }
+    else if (ftype == EXP && lhs->termType() ==
+	     ibis::math::STDFUNCTION1) {
+	ibis::math::stdFunction1 *tmp =
+	    reinterpret_cast<ibis::math::stdFunction1*>(lhs);
+	if (tmp->ftype == LOG) {
+	    ret = static_cast<ibis::math::term*>(tmp->getLeft());
+	    tmp->getLeft() = 0;
+	}
+    }
+    else if (ftype == LOG && lhs->termType() ==
+	     ibis::math::STDFUNCTION1) {
+	ibis::math::stdFunction1 *tmp =
+	    reinterpret_cast<ibis::math::stdFunction1*>(lhs);
+	if (tmp->ftype == EXP) {
 	    ret = static_cast<ibis::math::term*>(tmp->getLeft());
 	    tmp->getLeft() = 0;
 	}

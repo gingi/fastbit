@@ -1578,8 +1578,10 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-debug          turn on debugging [default:], [disabled]
-  --enable-xopt           turn on extra optimization [default:], [disabled]
+  --enable-debug          turn on debugging
+                          [default:], [set], [by], [autoconf]
+  --enable-xopt           turn on extra optimization
+                          [default:], [set], [by], [autoconf]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4836,13 +4838,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:4839: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4841: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4842: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4844: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4845: output\"" >&5)
+  (eval echo "\"\$as_me:4847: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6048,7 +6050,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6051 "configure"' > conftest.$ac_ext
+  echo '#line 6053 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8624,11 +8626,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8627: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8629: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8631: \$? = $ac_status" >&5
+   echo "$as_me:8633: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8963,11 +8965,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8966: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8968: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8970: \$? = $ac_status" >&5
+   echo "$as_me:8972: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9068,11 +9070,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9071: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9073: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9075: \$? = $ac_status" >&5
+   echo "$as_me:9077: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9123,11 +9125,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9126: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9128: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9130: \$? = $ac_status" >&5
+   echo "$as_me:9132: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11924,7 +11926,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11927 "configure"
+#line 11929 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12020,7 +12022,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12023 "configure"
+#line 12025 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14040,11 +14042,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14043: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14045: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14047: \$? = $ac_status" >&5
+   echo "$as_me:14049: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14139,11 +14141,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14142: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14144: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14146: \$? = $ac_status" >&5
+   echo "$as_me:14148: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14191,11 +14193,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14194: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14196: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14198: \$? = $ac_status" >&5
+   echo "$as_me:14200: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19250,9 +19252,9 @@ done
 $as_echo_n "checking whether to enable debugging... " >&6; }
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then
-  enableval=$enable_debug; if test "$enableval"="yes" ; then debug="yes" ; else debug="no" ; fi
+  enableval=$enable_debug; if test "$enableval" = "yes" ; then debug="yes" ; else debug="no" ; fi
 else
-  debug="no"
+  debug=""
 fi
 
 { $as_echo "$as_me:$LINENO: result: $debug" >&5
@@ -19261,25 +19263,27 @@ $as_echo "$debug" >&6; }
 $as_echo_n "checking whether to enable extra optimization... " >&6; }
 # Check whether --enable-xopt was given.
 if test "${enable_xopt+set}" = set; then
-  enableval=$enable_xopt; if test "$enableval"="yes" ; then xopt="yes" ; else xopt="no" ; fi
+  enableval=$enable_xopt; if test "$enableval" = "yes" ; then xopt="yes" ; else xopt="no" ; fi
 else
-  xopt="no"
+  xopt=""
 fi
 
 { $as_echo "$as_me:$LINENO: result: $xopt" >&5
 $as_echo "$xopt" >&6; }
-if test "x$debug"="xyes" ; then
-  if test "x$xopt"="xyes" ; then
+if test "x$debug" = "xyes" ; then
+  if test "x$xopt" = "xyes" ; then
     CFLAGS="-g -O3"
-  elif test "x$xopt"="xno" ; then
+  elif test "x$xopt" = "xno" ; then
     CFLAGS="-g -O0"
-  else
-    CFLAGS="-g"
   fi
-elif test "x$xopt"="xyes" ; then
-  CFLAGS="-O5"
-else
-  CFLAGS="-O"
+elif test "x$debug" = "xno" ; then
+  if test "x$xopt" = "xyes" ; then
+    CFLAGS="-O5"
+  elif test "x$xopt" = "xno" ; then
+    CFLAGS="-O2"
+  else
+    CFLAGS="-O"
+  fi
 fi
 { $as_echo "$as_me:$LINENO: result: $CFLAGS" >&5
 $as_echo "$CFLAGS" >&6; }
@@ -19367,7 +19371,7 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
    { $as_echo "$as_me:$LINENO: result: $z_check_pthread_ok" >&5
 $as_echo "$z_check_pthread_ok" >&6; }
-   if test x"$z_check_pthread_ok"=xno; then
+   if test x"$z_check_pthread_ok" = xno; then
        PTHREAD_LIBS=""
        PTHREAD_CFLAGS=""
    fi
@@ -19400,7 +19404,7 @@ case "${host_cpu}-${host_os}" in
         ;;
 esac
 
-if test x"$z_check_pthread_ok"=xno; then
+if test x"$z_check_pthread_ok" = xno; then
 for flag in $z_check_pthread_flags; do
 
     case $flag in
@@ -19454,7 +19458,7 @@ $as_echo "no" >&6; }
 fi
 
 
-        if test x"$z_check_pthread_config"=xno; then continue; fi
+        if test x"$z_check_pthread_config" = xno; then continue; fi
         PTHREAD_CFLAGS="`pthread-config --cflags`"
         PTHREAD_LIBS="`pthread-config --ldflags` `pthread-config --libs`"
         ;;
@@ -19531,7 +19535,7 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 
     { $as_echo "$as_me:$LINENO: result: $z_check_pthread_ok" >&5
 $as_echo "$z_check_pthread_ok" >&6; }
-    if test "x$z_check_pthread_ok"=xyes; then
+    if test "x$z_check_pthread_ok" = xyes; then
         break;
     fi
 
@@ -19541,7 +19545,7 @@ done
 fi
 
 # Various other checks:
-if test "x$z_check_pthread_ok"=xyes; then
+if test "x$z_check_pthread_ok" = xyes; then
     LIBS="$PTHREAD_LIBS $LIBS"
     save_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
@@ -19564,7 +19568,7 @@ fi
 
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
-if test x"$z_check_pthread_ok"=xyes; then
+if test x"$z_check_pthread_ok" = xyes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_PTHREAD 1
@@ -19881,14 +19885,14 @@ fi
     esac
   fi
 
-  if test ! "x$JAVA_HOME"="x"
+  if test ! "x$JAVA_HOME" = "x"
   then
     JAVAPREFIX="${JAVA_HOME}/bin"
     # Check for Java programs. Order here is important: check first
     # for the compiler.
 
 
-		if test "x$JAVAPREFIX"=x; then
+		if test "x$JAVAPREFIX" = x; then
         test "x$JAVAC"=x && for ac_prog in "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -19948,7 +19952,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 19951 "configure" */
+/* #line 19955 "configure" */
 public class Test {
 }
 EOF
@@ -19974,8 +19978,8 @@ $as_echo "$ac_cv_prog_javac_works" >&6; }
 
 
 
-		if test x$JAVAPREFIX=x; then
-        test x$JAVA=x && for ac_prog in kaffe$EXEEXT java$EXEEXT
+		if test "x$JAVAPREFIX" = x; then
+        test "x$JAVA" = x && for ac_prog in kaffe$EXEEXT java$EXEEXT
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -20018,7 +20022,7 @@ fi
 done
 
 	else
-        #test x$JAVA=x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX/java$EXEEXT)
+        #test "x$JAVA" = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX/java$EXEEXT)
 	JAVA=$JAVAPREFIX/java$EXEEXT
 	fi
 	test x$JAVA=x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java virtual machine found in \$PATH" >&5
@@ -20062,7 +20066,7 @@ $as_echo "no" >&6; }
 fi
 
 
-if test x$uudecode=xyes; then
+if test "x$uudecode" = xyes; then
 { $as_echo "$as_me:$LINENO: checking if uudecode can decode base 64 file" >&5
 $as_echo_n "checking if uudecode can decode base 64 file... " >&6; }
 if test "${ac_cv_prog_uudecode_base64+set}" = set; then
@@ -20083,7 +20087,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 20086: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 20090: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -20093,18 +20097,18 @@ fi
 { $as_echo "$as_me:$LINENO: result: $ac_cv_prog_uudecode_base64" >&5
 $as_echo "$ac_cv_prog_uudecode_base64" >&6; }
 fi
-if test x$ac_cv_prog_uudecode_base64 != xyes; then
+if test "x$ac_cv_prog_uudecode_base64" != xyes; then
         rm -f Test.class
         { $as_echo "$as_me:$LINENO: WARNING: I have to compile Test.class from scratch" >&5
 $as_echo "$as_me: WARNING: I have to compile Test.class from scratch" >&2;}
-        if test x$ac_cv_prog_javac_works=xno; then
+        if test "x$ac_cv_prog_javac_works" = xno; then
                 { { $as_echo "$as_me:$LINENO: error: Cannot compile java source. $JAVAC does not work properly" >&5
 $as_echo "$as_me: error: Cannot compile java source. $JAVAC does not work properly" >&2;}
    { (exit 1); exit 1; }; }
         fi
-        if test x$ac_cv_prog_javac_works=x; then
+        if test "x$ac_cv_prog_javac_works" = x; then
 
-		if test "x$JAVAPREFIX"=x; then
+		if test "x$JAVAPREFIX" = x; then
         test "x$JAVAC"=x && for ac_prog in "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -20164,7 +20168,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 20167 "configure" */
+/* #line 20171 "configure" */
 public class Test {
 }
 EOF
@@ -20201,13 +20205,13 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 20204 "configure" */
+/* [#]line 20208 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
 } }
 EOF
-if test x$ac_cv_prog_uudecode_base64 != xyes; then
+if test "x$ac_cv_prog_uudecode_base64" != xyes; then
         if { ac_try='$JAVAC $JAVACFLAGS $JAVA_TEST'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
@@ -20246,7 +20250,7 @@ $as_echo "$ac_cv_prog_java_works" >&6; }
 
 
 
-    if test ! "x$JAVAC"="xno"
+    if test ! "x$JAVAC" = "xno"
     then
 
 
@@ -20438,7 +20442,7 @@ fi
   fi
 fi
 # build java test program if java and javac exist
- if test ! "x$JAVA"="xno" &&  test ! "x$ac_cv_javac_supports_enums"="xno"; then
+ if test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_javac_supports_enums" = "xno"; then
   BUILD_JAVA_TEST_TRUE=
   BUILD_JAVA_TEST_FALSE='#'
 else
@@ -20446,7 +20450,7 @@ else
   BUILD_JAVA_TEST_FALSE=
 fi
 
- if test ! "x$JAVAC"="xno" &&  test "x$HAS_JNI"="xyes"; then
+ if test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes"; then
   BUILD_JAVA_INTERFACE_TRUE=
   BUILD_JAVA_INTERFACE_FALSE='#'
 else

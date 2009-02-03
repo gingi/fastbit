@@ -117,7 +117,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     return token::NOUNSTR;
 }
 
-\({WS}*{NUMBER}({SEP}+{NUMBER})*{WS}*\) { /* a number series */
+\({WS}*{NUMBER}{SEP}+{NUMBER}({SEP}+{NUMBER})+{WS}*\) { /* a number series */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number sequence: " << yytext;
@@ -126,7 +126,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     return token::NUMSEQ;
 }
 
-\({WS}*({QUOTED}|{NAME}){WS}*({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {
+\({WS}*({QUOTED}|{NAME}){SEP}+({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a string sequence: " << yytext;

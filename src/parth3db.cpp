@@ -1,4 +1,4 @@
-// File $Id: parth3db.cpp,v 1.1 2009/02/03 01:19:31 kewu Exp $
+// File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2009-2009 the Regents of the University of California
 //

@@ -116,7 +116,7 @@ public:
     /// arguments.
     virtual table* groupby(const stringList&) const=0;
     /// Perform group-by operation.  The column names and operations are
-    /// separated by comma.
+    /// separated by commas.
     virtual table* groupby(const char*) const;
     /// Reorder the rows.  Sort the rows in ascending order of the columns
     /// specified in the list of column names.  This function is not
@@ -126,7 +126,7 @@ public:
     /// rows using all columns with the column having the smallest number
     /// of distinct values first.
     virtual void orderby(const stringList&)=0;
-    /// Reorder the rows.  The column names are separated by comma.
+    /// Reorder the rows.  The column names are separated by commas.
     virtual void orderby(const char*);
     /// Reverse the order of the rows.
     virtual void reverseRows()=0;
@@ -294,7 +294,7 @@ protected:
     table(const char* na, const char* de) : name_(na), desc_(de) {};
     /// Parse a string into a set of names.  Some bytes may be turned into
     /// 0 to mark the end of names or functions.
-    void parseNames(char* in, stringList& out) const;
+    static void parseNames(char* in, stringList& out);
 
 private:
     // re-enforce the prohibitions on copying and assignment.
@@ -608,29 +608,4 @@ inline void ibis::table::row::clearValues() {
     catsvalues.clear();
     textsvalues.clear();
 } // ibis::table::row::clearValues
-
-inline ibis::table* ibis::table::groupby(const char* str) const {
-    stringList lst;
-    char* buf = 0;
-    if (str != 0 && *str != 0) {
-	buf = new char[strlen(str)+1];
-	strcpy(buf, str);
-	parseNames(buf, lst);
-    }
-    ibis::table* res = groupby(lst);
-    delete [] buf;
-    return res;
-} // ibis::table::groupby
-
-inline void ibis::table::orderby(const char* str) {
-    stringList lst;
-    char* buf = 0;
-    if (str != 0 && *str != 0) {
-	buf = new char[strlen(str)+1];
-	strcpy(buf, str);
-	parseNames(buf, lst);
-    }
-    orderby(lst);
-    delete [] buf;
-} // ibis::table::orderby
 #endif // IBIS_TABLE_H

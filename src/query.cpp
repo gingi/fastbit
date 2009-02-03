@@ -478,9 +478,12 @@ int ibis::query::setWhereClause(const char* str) {
     }
 
     if (ibis::gVerbose > 0) {
-	logMessage("setWhereClause", "WHERE \"%s\"", str);
-	LOGGER(ibis::gVerbose >= 4)
-	    << "  Translated the WHERE clause into: " << *conds.getExpr();
+	ibis::util::logger lg(0);
+	lg.buffer() << "query[" << myID << "]::setWhereClause -- WHERE \""
+		    << str << "\"";
+	if (ibis::gVerbose >= 4)
+	    lg.buffer() << "\n  Translated the WHERE clause into: "
+			<< *conds.getExpr();
     }
     return 0;
 } // ibis::query::setWhereClause

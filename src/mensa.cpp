@@ -3295,7 +3295,7 @@ ibis::table* ibis::table::create(const char* dir1, const char* dir2) {
 	return new ibis::mensa(dir1, dir2);
 } // ibis::table::create
 
-void ibis::table::parseNames(char* in, ibis::table::stringList& out) const {
+void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
     char* ptr1 = in;
     char* ptr2;
     while (*ptr1 != 0 && isspace(*ptr1) != 0) ++ ptr1; // leading space
@@ -3349,3 +3349,28 @@ void ibis::table::parseNames(char* in, ibis::table::stringList& out) const {
 	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
     }
 } // ibis::table::parseNames
+
+ibis::table* ibis::table::groupby(const char* str) const {
+    stringList lst;
+    char* buf = 0;
+    if (str != 0 && *str != 0) {
+	buf = new char[strlen(str)+1];
+	strcpy(buf, str);
+	parseNames(buf, lst);
+    }
+    ibis::table* res = groupby(lst);
+    delete [] buf;
+    return res;
+} // ibis::table::groupby
+
+void ibis::table::orderby(const char* str) {
+    stringList lst;
+    char* buf = 0;
+    if (str != 0 && *str != 0) {
+	buf = new char[strlen(str)+1];
+	strcpy(buf, str);
+	parseNames(buf, lst);
+    }
+    orderby(lst);
+    delete [] buf;
+} // ibis::table::orderby

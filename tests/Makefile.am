@@ -44,7 +44,7 @@ check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < 10" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < exp(log(9.5))" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 5; else echo $@ did NOT pass test 5; fi

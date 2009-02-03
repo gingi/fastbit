@@ -162,14 +162,25 @@ NOUNSTR INOP NUMSEQ {
     delete $3;
     delete $1;
 }
-| NOUNSTR INOP STRSEQ {
+| NOUNSTR INOP '(' NUMBER ',' NUMBER ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
-	<< *$3 << ")";
+	<< $4 << ", " << $6 << ")";
 #endif
-    $$ = new ibis::qMultiString($1->c_str(), $3->c_str());
-    delete $3;
+    std::vector<double> vals(2);
+    vals[0] = $4;
+    vals[1] = $6;
+    $$ = new ibis::qDiscreteRange($1->c_str(), vals);
+    delete $1;
+}
+| NOUNSTR INOP '(' NUMBER ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
+	<< $4 << ")";
+#endif
+    $$ = new ibis::qContinuousRange($1->c_str(), ibis::qExpr::OP_EQ, $4);
     delete $1;
 }
 | NOUNSTR NOTOP INOP NUMSEQ {
@@ -183,6 +194,70 @@ NOUNSTR INOP NUMSEQ {
     delete $4;
     delete $1;
 }
+| NOUNSTR NOTOP INOP '(' NUMBER ',' NUMBER ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " NOT IN ("
+	<< $5 << ", " << $7 << ")";
+#endif
+    std::vector<double> vals(2);
+    vals[0] = $5;
+    vals[1] = $7;
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qDiscreteRange($1->c_str(), vals));
+    delete $1;
+}
+| NOUNSTR NOTOP INOP '(' NUMBER ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " NOT IN ("
+	<< $5 << ")";
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qContinuousRange($1->c_str(), ibis::qExpr::OP_EQ, $5));
+    delete $1;
+}
+| NOUNSTR INOP STRSEQ {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
+	<< *$3 << ")";
+#endif
+    $$ = new ibis::qMultiString($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| NOUNSTR INOP '(' NOUNSTR ',' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
+	<< *$4 << ", " << *$6 << ")";
+#endif
+    std::string val;
+    val = '"'; /* add quote to keep strings intact */
+    val += *$4;
+    val += "\", \"";
+    val += *$6;
+    val += '"';
+    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    delete $6;
+    delete $4;
+    delete $1;
+}
+| NOUNSTR INOP '(' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
+	<< *$4 << ")";
+#endif
+    std::string val;
+    val = '"'; /* add quote to keep strings intact */
+    val += *$4;
+    val += '"';
+    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    delete $4;
+    delete $1;
+}
 | NOUNSTR NOTOP INOP STRSEQ {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -192,6 +267,39 @@ NOUNSTR INOP NUMSEQ {
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
     $$->setLeft(new ibis::qMultiString($1->c_str(), $4->c_str()));
     delete $4;
+    delete $1;
+}
+| NOUNSTR NOTOP INOP '(' NOUNSTR ',' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " NOT IN ("
+	<< *$5 << ", " << *$7 << ")";
+#endif
+    std::string val;
+    val = '"'; /* add quote to keep strings intact */
+    val += *$5;
+    val += "\", \"";
+    val += *$7;
+    val += '"';
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    delete $7;
+    delete $5;
+    delete $1;
+}
+| NOUNSTR NOTOP INOP '(' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " NOT IN ("
+	<< *$5 << ")";
+#endif
+    std::string val;
+    val = '"'; /* add quote to keep strings intact */
+    val += *$5;
+    val += '"';
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    delete $5;
     delete $1;
 }
 | JOINOP '(' NOUNSTR ',' NOUNSTR ')' {

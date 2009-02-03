@@ -1,3 +1,21 @@
+2009-02-03 John Wu <John.Wu at ACM.org>
+	* src/table.h: move two inlined functions ibis::table::groupby and
+	ibis::table::orderby to mensa.cpp to make the header file more
+	self contained.  Those two function requires
+	ibis::table::parseNames, which is already in mensa.cpp, change
+	parseNames to be class function
+	* src/whereLexer.ll: change a number sequence to require at least
+	three numbers, change {WS}* after the first string in the
+	definition of string sequence to be {SEP}+ -- to address a problem
+	reported by David Marks <marksdb at cox.net>
+	* src/whereParser.yy: add special cases for IN predicate with one-
+	and two-number sequences on the right-hand side
+	* tests/Makefile.am, win/MinGW.mak: change case 2 of check-ibis to
+	test for a simplified version of problem reported to cause problem
+	for David Mark
+	* src/qExpr.cpp: in math::stdFunction1::reduce, add special case
+	to absorb pairs of consecutive log and exp functions
+
 2009-02-02 John Wu <John.Wu at ACM.org>
 	* src/parth3d.cpp: add macro FASTBIT_EXPAND_ALL_TYPES to control
 	whether the BYTE, UBYTE, SHORT, USHORT and ULONG are handled
@@ -15,6 +33,10 @@
 	functions from src/parth3d.cpp to reduce compilation time
 	* tests/Makefile.am: remove 2>&1, it somehow cause errors on
 	cygwin during 'make check'
+	* configure.ac: move the block for handling --enable-debug and
+	--enable-xopt to the beginning of the custome code in configure.ac
+	to set the initial value of CFLAGS, let the default CFLAGS pass
+	through when neither debug nor xopt is set
 
 2009-02-01 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add check-tcapi test 3 to confirm the output
