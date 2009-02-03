@@ -212,7 +212,7 @@ ARDEAEXE = $(EXDIR)/ardea$(EXEEXT)
 THULAEXE = $(EXDIR)/thula$(EXEEXT)
 TCAPIEXE = $(EXDIR)/tcapi$(EXEEXT)
 #
-dist_data_DATA = test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 \
+dist_data_DATA = test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 tcapi-3 \
 	scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
 
 #
@@ -512,8 +512,8 @@ check-thula: $(TESTDIR)/t1/-part.txt $(THULAEXE)
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 > /dev/null 2>&1 && if [ `diff -w thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 > /dev/null 2>&1 && if [ `diff -w thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 > /dev/null && if [ `diff -w thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 > /dev/null && if [ `diff -w thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
 	@echo
 check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
@@ -531,7 +531,7 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then echo $@ passed test 7; else echo $@ did NOT pass test 7; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo $@ passed test 8; else echo $@ did NOT pass test 8; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo $@ passed test 9; else echo $@ did NOT pass test 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-10.log 2>&1 && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-10.log && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
 	@echo
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0 > /dev/null
@@ -554,9 +554,9 @@ $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 sanity-check: $(IBISEXE) ${TESTDIR}/append.log
 	@echo
 	@if [ -f ${TESTDIR}/append.rc ] ; then \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 > ${TESTDIR}/sanity-check.log 2>&1; \
+	$(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 > ${TESTDIR}/sanity-check.log; \
 	else \
-	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 > ${TESTDIR}/sanity-check.log 2>&1; \
+	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 > ${TESTDIR}/sanity-check.log; \
 	fi
 	@if [ `fgrep 'self tests' ${TESTDIR}/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 ]; then echo Errors found during internal sanity checks.  Please look through ${TESTDIR}/sanity-check.log.; else echo Passed internal sanity checks.; fi
 	@echo
@@ -579,27 +579,27 @@ large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
 	for b in $(BINNINGS) ; do \
 	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" ${TESTDIR}/?/*/-part.txt; \
 	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
-	echo >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	echo >> ${TESTDIR}/large-sanity-check.log; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b -z >> ${TESTDIR}/large-sanity-check.log 2>&1; \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b -z >> ${TESTDIR}/large-sanity-check.log; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log; \
 	else \
-	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log; \
 	fi; \
 	done; \
 	done
 	for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" ${TESTDIR}/?/*/-part.txt; \
 	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
-	echo >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	echo >> ${TESTDIR}/large-sanity-check.log; \
 	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log; \
 	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log; \
 	else \
-	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log; \
 	fi; \
 	done;
 	@if [ `fgrep 'self tests' ${TESTDIR}/large-sanity-check.log | fgrep 'found no error' | wc -l` -lt 370 ]; then echo Errors found during internal sanity checks.  Please look through ${TESTDIR}/large-sanity-check.log.; else echo Passed large internal sanity checks.; fi
@@ -671,8 +671,8 @@ do-small-append: ${TESTDIR}/append.rc ${TESTDIR}/0/test0/-part.txt ${TESTDIR}/0/
 	@/bin/date > ${TESTDIR}/append.log
 	@echo Append the test data 10 times >> ${TESTDIR}/append.log
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test0 appendTest0 >> ${TESTDIR}/append.log 2>&1; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test1 appendTest1 >> ${TESTDIR}/append.log 2>&1; \
+	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test0 appendTest0 >> ${TESTDIR}/append.log; \
+	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test1 appendTest1 >> ${TESTDIR}/append.log; \
 	done
 #
 # take the results of do-small-append, double them 10 times
@@ -687,8 +687,8 @@ do-large-append: do-small-append ${TESTDIR}/at0 ${TESTDIR}/at1
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
 	/bin/cp -pr ${TESTDIR}/2/appendTest0/* ${TESTDIR}/at0; \
 	/bin/cp -pr ${TESTDIR}/2/appendTest1/* ${TESTDIR}/at1; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at0 appendTest0 >> ${TESTDIR}/append.log 2>&1; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at1 appendTest1 >> ${TESTDIR}/append.log 2>&1; \
+	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at0 appendTest0 >> ${TESTDIR}/append.log; \
+	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at1 appendTest1 >> ${TESTDIR}/append.log; \
 	done
 #
 $(IBISEXE):

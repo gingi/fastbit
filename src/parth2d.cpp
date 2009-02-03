@@ -611,6 +611,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			     std::vector<ibis::bitvector> &bins) const {
     long ierr = 0;
     switch (col2.type()) {
+#ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
 	array_t<char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -683,9 +684,18 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+#endif
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::BYTE:
+    case ibis::SHORT:
+#endif
     case ibis::INT: {
 	array_t<int32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col2.type() == ibis::INT
+#endif
+	    ) {
 	    val2 = new array_t<int32_t>;
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
@@ -701,9 +711,17 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::UBYTE:
+    case ibis::USHORT:
+#endif
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col2.type() == ibis::UINT
+#endif
+	    ) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
@@ -719,6 +737,27 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+    case ibis::ULONG:
+#ifdef FASTBIT_EXPAND_ALL_TYPES
+	{
+	array_t<uint64_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<uint64_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectULongs(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+#endif
     case ibis::LONG: {
 	array_t<int64_t>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -731,24 +770,6 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	}
 	else {
 	    val2 = col2.selectLongs(mask);
-	}
-	if (val2 == 0) return -6L;
-	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
-			  *val2, begin2, end2, stride2, bins);
-	delete val2;
-	break;}
-    case ibis::ULONG: {
-	array_t<uint64_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<uint64_t>;
-	    ierr = col2.getRawData(*val2);
-	    if (ierr < 0) {
-		delete val2;
-		val2 = 0;
-	    }
-	}
-	else {
-	    val2 = col2.selectULongs(mask);
 	}
 	if (val2 == 0) return -6L;
 	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
@@ -871,6 +892,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     }
 
     switch (col1->type()) {
+#ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
 	array_t<char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -943,9 +965,18 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+#endif
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::BYTE:
+    case ibis::SHORT:
+#endif
     case ibis::INT: {
 	array_t<int32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col1->type() == ibis::INT
+#endif
+	    ) {
 	    val1 = new array_t<int32_t>;
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
@@ -961,9 +992,17 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::UBYTE:
+    case ibis::USHORT:
+#endif
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col1->type() == ibis::UINT
+#endif
+	    ) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
@@ -979,6 +1018,27 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+    case ibis::ULONG:
+#ifdef FASTBIT_EXPAND_ALL_TYPES
+	{
+	array_t<uint64_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<uint64_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectULongs(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+#endif
     case ibis::LONG: {
 	array_t<int64_t>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -991,24 +1051,6 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	}
 	else {
 	    val1 = col1->selectLongs(mask);
-	}
-	if (val1 == 0) return -4L;
-	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
-			   *col2, begin2, end2, stride2, bins);
-	delete val1;
-	break;}
-    case ibis::ULONG: {
-	array_t<uint64_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<uint64_t>;
-	    ierr = col1->getRawData(*val1);
-	    if (ierr < 0) {
-		delete val1;
-		val1 = 0;
-	    }
-	}
-	else {
-	    val1 = col1->selectULongs(mask);
 	}
 	if (val1 == 0) return -4L;
 	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
@@ -1177,6 +1219,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			     std::vector<ibis::bitvector*> &bins) const {
     long ierr = 0;
     switch (col2.type()) {
+#ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
 	array_t<char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -1249,9 +1292,18 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+#endif
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::BYTE:
+    case ibis::SHORT:
+#endif
     case ibis::INT: {
 	array_t<int32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col2.type() == ibis::INT
+#endif
+	    ) {
 	    val2 = new array_t<int32_t>;
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
@@ -1267,9 +1319,17 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::UBYTE:
+    case ibis::USHORT:
+#endif
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col2.type() == ibis::UINT
+#endif
+	    ) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
@@ -1285,6 +1345,27 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 			  *val2, begin2, end2, stride2, bins);
 	delete val2;
 	break;}
+    case ibis::ULONG:
+#ifdef FASTBIT_EXPAND_ALL_TYPES
+	{
+	array_t<uint64_t>* val2;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val2 = new array_t<uint64_t>;
+	    ierr = col2.getRawData(*val2);
+	    if (ierr < 0) {
+		delete val2;
+		val2 = 0;
+	    }
+	}
+	else {
+	    val2 = col2.selectULongs(mask);
+	}
+	if (val2 == 0) return -6L;
+	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
+			  *val2, begin2, end2, stride2, bins);
+	delete val2;
+	break;}
+#endif
     case ibis::LONG: {
 	array_t<int64_t>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -1297,24 +1378,6 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	}
 	else {
 	    val2 = col2.selectLongs(mask);
-	}
-	if (val2 == 0) return -6L;
-	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
-			  *val2, begin2, end2, stride2, bins);
-	delete val2;
-	break;}
-    case ibis::ULONG: {
-	array_t<uint64_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<uint64_t>;
-	    ierr = col2.getRawData(*val2);
-	    if (ierr < 0) {
-		delete val2;
-		val2 = 0;
-	    }
-	}
-	else {
-	    val2 = col2.selectULongs(mask);
 	}
 	if (val2 == 0) return -6L;
 	ierr = fill2DBins(mask, val1, begin1, end1, stride1,
@@ -1429,6 +1492,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     }
 
     switch (col1->type()) {
+#ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
 	array_t<char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -1501,9 +1565,18 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+#endif
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::BYTE:
+    case ibis::SHORT:
+#endif
     case ibis::INT: {
 	array_t<int32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col1->type() == ibis::INT
+#endif
+	    ) {
 	    val1 = new array_t<int32_t>;
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
@@ -1519,9 +1592,17 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+    case ibis::UBYTE:
+    case ibis::USHORT:
+#endif
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (mask.cnt() > (nEvents >> 4)
+#ifndef FASTBIT_EXPAND_ALL_TYPES
+	    && col1->type() == ibis::UINT
+#endif
+	    ) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
@@ -1537,6 +1618,27 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   *col2, begin2, end2, stride2, bins);
 	delete val1;
 	break;}
+    case ibis::ULONG:
+#ifdef FASTBIT_EXPAND_ALL_TYPES
+	{
+	array_t<uint64_t>* val1;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    val1 = new array_t<uint64_t>;
+	    ierr = col1->getRawData(*val1);
+	    if (ierr < 0) {
+		delete val1;
+		val1 = 0;
+	    }
+	}
+	else {
+	    val1 = col1->selectULongs(mask);
+	}
+	if (val1 == 0) return -4L;
+	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
+			   *col2, begin2, end2, stride2, bins);
+	delete val1;
+	break;}
+#endif
     case ibis::LONG: {
 	array_t<int64_t>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
@@ -1549,24 +1651,6 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	}
 	else {
 	    val1 = col1->selectLongs(mask);
-	}
-	if (val1 == 0) return -4L;
-	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,
-			   *col2, begin2, end2, stride2, bins);
-	delete val1;
-	break;}
-    case ibis::ULONG: {
-	array_t<uint64_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<uint64_t>;
-	    ierr = col1->getRawData(*val1);
-	    if (ierr < 0) {
-		delete val1;
-		val1 = 0;
-	    }
-	}
-	else {
-	    val1 = col1->selectULongs(mask);
 	}
 	if (val1 == 0) return -4L;
 	ierr = fill2DBins2(mask, *val1, begin1, end1, stride1,

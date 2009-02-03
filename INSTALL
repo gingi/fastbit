@@ -120,6 +120,20 @@ ALWAYS_READ_BITVECTOR0
   turning this option "on" may resolve them.  Please report such cases
   to fastbit-users@hpcrdm.lbl.gov.
 
+FASTBIT_EXPAND_ALL_TYPES
+
+  The macro FASTBIT_EXPAND_ALL_TYPES controlls whether all ten different
+  columns will have its own template instance function.  By default,
+  with FASTBIT_EXPAND_ALL_TYPES not defined, only five instances are
+  generated.  The columns of type BYTE and SHORT are converted to INT
+  and passed to the function that handles INT.  The columns of type
+  UBYTE and USHORT are converted to UINT.  Similarly, the type ULONG is
+  converted LONG and handled as LONG.  The first two convertions may
+  only increase run time, but will not affect the correctness of the
+  program.  However, the last convertion may cause correctness issues if
+  the unsigned 64-bit integers actually have the sign bit set to 1,
+  i.e., > 8x2^63 ~ 8x10^18.
+
 
 ----------
 Known Issues
@@ -204,15 +218,7 @@ Known Issues
     visual studio and build DLL successfully, see
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
-(9) The source file src/parth3d.cpp takes a long time to compile under
-    gcc, presumably because of the extensive use of template.  If the
-    package is configured with --enable-xopt, compiling this file alone
-    may take up to 30 minutes using g++, which is more time than
-    compiling all other files.  If you have any suggestion on how to
-    reduce the compilation time, please email them to
-    <fastbit-users@hpcrdm.lbl.gov>.
-
-(10) The test 10 of check-ibis fails when the PGI compiler is used.
+(9) The test 10 of check-ibis fails when the PGI compiler is used.
     However, the location of segmentation violation seems to jump
     randomly, making it hard to pingpoint the problem.  As of January
     2009, this problem is only observed under PGI compiler version 8.0.2

@@ -1,6 +1,24 @@
+2009-02-02 John Wu <John.Wu at ACM.org>
+	* src/parth3d.cpp: add macro FASTBIT_EXPAND_ALL_TYPES to control
+	whether the BYTE, UBYTE, SHORT, USHORT and ULONG are handled
+	separately with different template instances.  If
+	FASTBIT_EXPAND_ALL_TYPES is defined, all ten fixed-size column
+	types are expanded to have their own instances of the template
+	functions.  However, with three levels of expansion, it creates
+	thousands of instances of the template function and takes a very
+	long time to compile.  If the macro is not defined, the default
+	behavior, only five template instances are created at each level.
+	Overall, this should reduce the number of template instances by a
+	factor eight.  Should improve the compile time without sacrifice
+	too much run-time performance.
+	* src/parth3da.cpp, src/parth3db.cpp: split the two get3DBins
+	functions from src/parth3d.cpp to reduce compilation time
+	* tests/Makefile.am: remove 2>&1, it somehow cause errors on
+	cygwin during 'make check'
+
 2009-02-01 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add check-tcapi test 3 to confirm the output
-	from text::selectLongs
+	from text::selectLongs, add tcapi-3 to the list dist_data_DATA
 
 2009-01-30 John Wu <John.Wu at ACM.org>
 	* src/capi.cpp:632 add ibis::TEXT and ibis::CATEGORY as acceptable

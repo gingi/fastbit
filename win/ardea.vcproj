@@ -393,6 +393,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\parth3da.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\parth3db.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\parti.cpp"
 				>
 			</File>
