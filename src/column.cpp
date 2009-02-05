@@ -5469,12 +5469,12 @@ long ibis::column::append(const char* dt, const char* df,
     return ret;
 } // ibis::column::append
 
-// convert string values in the opened file to a list of integers with the
-// aid of a dictionary
-// - return 0 if there is no more elements in file
-// - return a positive value if more bytes remain in the file
-// - return a negative value if an error is encountered during the read
-// operation
+/// Convert string values in the opened file to a list of integers with the
+/// aid of a dictionary.
+/// - return 0 if there is no more elements in file.
+/// - return a positive value if more bytes remain in the file.
+/// - return a negative value if an error is encountered during the read
+///   operation.
 long ibis::column::string2int(int fptr, dictionary& dic,
 			      uint32_t nbuf, char* buf,
 			      array_t<uint32_t>& out) const {
@@ -5536,13 +5536,14 @@ long ibis::column::string2int(int fptr, dictionary& dic,
     return ierr;
 } // ibis::column::string2int
 
-// normally: record the content in array va1 to the directory dir
-// special 1: the OID column writes the second array va2
-// special 2: for string values, va2 is recasted to be the number of bytes
-// in va1
-// return the number of entries actually written to file.  If writing was
-// completely successful, the return value should match nnew.
-// Extend the mask.  Write out the mask if not all the bits are set.
+/// - Normally: record the content in array va1 to the directory dir.
+/// - Special case 1: the OID column writes the second array va2 only.
+/// - Special case 2: for string values, va2 is recasted to be the number
+///   of bytes in va1.
+///
+/// Return the number of entries actually written to file.  If writing was
+/// completely successful, the return value should match nnew.  It also
+/// extends the mask.  Write out the mask if not all the bits are set.
 long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 			     ibis::bitvector& mask, const void *va1,
 			     const void *va2) {

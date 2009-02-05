@@ -1267,13 +1267,13 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    logWarning("search", "can not open data file \"%s\" for reading",
 		       data.c_str());
 	}
-	return -1;
+	return -1L;
     }
 
     ibis::util::buffer<char> mybuf;
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
-    if (buf == 0 || nbuf == 0) return -2;
+    if (buf == 0 || nbuf == 0) return -2L;
 
     std::string sp = data;
     sp += ".sp";
@@ -1286,7 +1286,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		logWarning("search", "can not create or open file \"%s\"",
 			   sp.c_str());
 	    fclose(fdata);
-	    return -3;
+	    return -3L;
 	}
     }
 
@@ -1305,7 +1305,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		logWarning("search", "can not create, open or read file "
 			   "\"%s\"", sp.c_str());
 	    fclose(fdata);
-	    return -4;
+	    return -4L;
 	}
     }
     if (str == 0 || *str == 0) { // only match empty strings
@@ -1313,11 +1313,14 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    bool moresp = true;
 	    fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
-		if (ibis::gVerbose > -1)
-		    logWarning("search", "string %lu in file \"%s\" is longer "
-			       "than internal buffer (size %ld), skipping %ld "
-			       "bytes", static_cast<long unsigned>(irow),
-			       data.c_str(), jbuf, jbuf);
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- text[" << thePart->name() << '.' << m_name
+		    << "]::search -- string # " << irow << " in file \""
+		    << data << "\" is expected to be " << (next-begin)
+		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
+					      "the internal buffer is only ")
+		    << jbuf << ", skipping " << jbuf
+		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
 	    }
 	    while (begin + jbuf >= next) {
@@ -1346,11 +1349,14 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    bool moresp = true;
 	    fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
-		if (ibis::gVerbose > -1)
-		    logWarning("search", "string %lu in file \"%s\" is longer "
-			       "than internal buffer (size %ld), skipping %ld "
-			       "bytes", static_cast<long unsigned>(irow),
-			       data.c_str(), jbuf, jbuf);
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- text[" << thePart->name() << '.' << m_name
+		    << "]::search -- string # " << irow << " in file \""
+		    << data << "\" is expected to be " << (next-begin)
+		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
+					      "the internal buffer is only ")
+		    << jbuf << ", skipping " << jbuf
+		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
 	    }
 	    while (begin+jbuf >= next) {

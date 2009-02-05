@@ -113,8 +113,8 @@ public:
     /// Is the given string in the dictionary?  Return a null pointer if not.
     inline const char* find(const char* str) const;
 
-    void read(const char* name);	//< Read the content of a file.
-    void write(const char* name) const; //< Write out the dictionary.
+    void read(const char* name);	///< Read the content of a file.
+    void write(const char* name) const; ///< Write out the dictionary.
     void clear();
 
 protected:
@@ -122,10 +122,10 @@ protected:
     void copy(const dictionary& rhs);	// replace the current content
 
 private:
-    // svec contains pointers to the location of the strings and is
-    // considered the owner of the memory allocated
-    // s2i is a std::map that maps string to its index in svec
+    /// svec contains pointers to the location of the strings and is
+    /// considered the owner of the memory allocated.
     std::vector<char*> svec;
+    /// s2i is a std::map that maps string to its index in svec.
     wordList s2i;
     uint32_t newentry;
 

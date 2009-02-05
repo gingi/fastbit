@@ -1,3 +1,8 @@
+2009-02-04 John Wu <John.Wu at ACM.org>
+	* src/column.cpp, src/category.cpp: updated documentations while
+	looking for clues to the problem reported by Alessandro Capucci
+	<alessandro at totalwire.it>
+
 2009-02-03 John Wu <John.Wu at ACM.org>
 	* src/table.h: move two inlined functions ibis::table::groupby and
 	ibis::table::orderby to mensa.cpp to make the header file more

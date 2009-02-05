@@ -121,7 +121,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 } // ibis::part::loopJoin
 
 int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
-			      const ibis::bitvector& mask) const {
+			     const ibis::bitvector& mask) const {
     unsigned nvar = 0; // number of variables involved in @c cmp.
     if (cmp.getRange()) { // use a ibis::math::barrel to count variables
 	ibis::math::barrel bar;
@@ -1965,7 +1965,7 @@ int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
 } // ibis::part::equiJoinLoop2
 
 int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
-				   const ibis::bitvector& mask) const {
+				  const ibis::bitvector& mask) const {
     int64_t cnt = 0;
     ibis::horometer timer;
     timer.start();
