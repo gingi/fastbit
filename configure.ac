@@ -82,6 +82,8 @@ elif test "x$debug" = "xno" ; then
   else
     CFLAGS="-O"
   fi
+elif test "x$xopt" = "xyes" ; then
+    CFLAGS="-O3"
 fi
 AC_MSG_RESULT($CFLAGS)
 

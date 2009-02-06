@@ -1982,9 +1982,9 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
 
 // Execute a query using the new ibis::table interface
 static void tableSelect(const ibis::partList &pl, const char* uid,
-		       const char* wstr, const char* sstr,
-		       const char* ordkeys, int direction,
-		       uint32_t limit) {
+			const char* wstr, const char* sstr,
+			const char* ordkeys, int direction,
+			uint32_t limit) {
     ibis::mensa2 tbl(pl); // construct a temporary ibis::table object
     std::string sqlstring; //
     {
@@ -2041,10 +2041,10 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	return;
     }
 
-    LOGGER(ibis::gVerbose > 0)
+    LOGGER(ibis::gVerbose >= 0)
 	<< "tableSelect -- select(" << sstr << ", " << wstr
 	<< ") on table " << tbl.name() << " produced " << sel1->nRows()
-	<< " row" << (sel1->nRows() > 1 ? "s" : "");
+	<< " hit" << (sel1->nRows() > 1 ? "s" : "");
     if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
 	sel1->orderby(ordkeys);
 	if (direction < 0)
@@ -2068,12 +2068,17 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	if (limit == 0 && sel1->nColumns() > 0) {
 	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
 		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
-	    lg.buffer() << "tableSelect -- the first " << limit << " rows of "
-			<< sqlstring << "\n";
+	    lg.buffer() << "tableSelect -- the first ";
+	    if (limit > 1)
+		lg.buffer() << limit << " rows ";
+	    else
+		lg.buffer() << " row ";
+	    lg.buffer() << "of " << sel1->nColumns() << " produced for \""
+			<< sqlstring << "\"\n";
 	}
 	else {
-	    lg.buffer() << "tableSelect -- the results of " << sqlstring
-			<< "\n";
+	    lg.buffer() << "tableSelect -- the results (" << sel1->nRows()
+			<< ") of " << sqlstring << "\n";
 	}
 	if (outputnamestoo)
 	    sel1->dumpNames(lg.buffer(), ", ");

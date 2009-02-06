@@ -19284,6 +19284,8 @@ elif test "x$debug" = "xno" ; then
   else
     CFLAGS="-O"
   fi
+elif test "x$xopt" = "xyes" ; then
+    CFLAGS="-O3"
 fi
 { $as_echo "$as_me:$LINENO: result: $CFLAGS" >&5
 $as_echo "$CFLAGS" >&6; }
@@ -19952,7 +19954,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 19955 "configure" */
+/* #line 19957 "configure" */
 public class Test {
 }
 EOF
@@ -20087,7 +20089,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 20090: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 20092: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -20168,7 +20170,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 20171 "configure" */
+/* #line 20173 "configure" */
 public class Test {
 }
 EOF
@@ -20205,7 +20207,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 20208 "configure" */
+/* [#]line 20210 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

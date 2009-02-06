@@ -171,7 +171,7 @@ int ibis::range::read(const char* f) {
 	return -5;
     }
     bool trymmap = false;
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     trymmap = (nobs > ibis::fileManager::pageSize());
 #endif
     begin = 8 + 2 * sizeof(uint32_t);
@@ -307,7 +307,7 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
 	return -4;
     }
     bool trymmap = false;
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     trymmap = (nobs > ibis::fileManager::pageSize()) && (fname != 0);
 #endif
     begin = start + 2 * sizeof(uint32_t);

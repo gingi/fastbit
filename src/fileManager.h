@@ -29,7 +29,7 @@
 #endif
 
 #if (HAVE_MMAP+0>0) || (defined(_WIN32) && defined(_MSC_VER))
-#define HAS_FILE_MAP
+#define HAVE_FILE_MAP
 #endif
 
 /// @ingroup FastBitIBIS
@@ -105,7 +105,7 @@ public:
 
     class roFile; // forward declaration of fileManager::roFile
     class storage; // forward declaration of fileManager::storage
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     class rofSegment; // forward declaration of fileManager::rofSegment
 #endif
     friend class roFile;
@@ -344,7 +344,7 @@ public:
     // IO functions
     virtual size_t printStatus(std::ostream& out) const;
     void read(const char* file);
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     void mapFile(const char* file);
 #endif
 
@@ -380,7 +380,7 @@ protected:
     void doRead(const char* file);
     // Read the specified segment of the file into memory.
     void doRead(const char* file, off_t b, off_t e);
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     void doMap(const char* file, off_t b, off_t e, int opt=0);
 #endif
 
@@ -409,7 +409,7 @@ private:
     const roFile& operator=(const roFile&);
 }; // class fileManager::roFile
 
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
 /// This class is used to store information a memory mapped portion of a
 /// file.  The main reason this is a derived class of roFile is to make
 /// this one not shareable.

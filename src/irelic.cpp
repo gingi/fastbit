@@ -388,7 +388,7 @@ int ibis::relic::read(const char* f) {
 
     nrows = dim[0];
     bool trymmap = false;
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     trymmap = (dim[2] > ibis::fileManager::pageSize());
 #endif
     // read vals

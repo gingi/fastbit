@@ -296,7 +296,7 @@ int ibis::egale::read(const char* f) {
     }
 
     bool trymmap = false;
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     trymmap = (nobs > ibis::fileManager::pageSize());
 #endif
     // read bounds

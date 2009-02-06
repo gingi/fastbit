@@ -518,7 +518,7 @@ check-thula: $(TESTDIR)/t1/-part.txt $(THULAEXE)
 check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
-	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 - > $(TESTDIR)/tcapi-3 ; if [ `diff -w tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
+	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 	@echo
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2

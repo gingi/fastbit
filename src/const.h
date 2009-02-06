@@ -49,19 +49,19 @@
 #endif
 // // require every compiler to support mutable keyword
 // #if __cplusplus >= 199711L
-// #  define HAS_MUTABLE 1
+// #  define HAVE_MUTABLE 1
 // #elif defined(__GNUC__)
-// #  define HAS_MUTABLE (__GNUC__>2 || (__GNUC__>1 && __GNUC_MINOR__-0>=95))
+// #  define HAVE_MUTABLE (__GNUC__>2 || (__GNUC__>1 && __GNUC_MINOR__-0>=95))
 // #elif defined(__SUNPROC_CC)
-// #  define HAS_MUTABLE (__SUNPRO_CC >= 0x500)
+// #  define HAVE_MUTABLE (__SUNPRO_CC >= 0x500)
 // #elif defined(_MSC_VER)
-// #  define HAS_MUTABLE (_MSC_VER >= 1200)
+// #  define HAVE_MUTABLE (_MSC_VER >= 1200)
 // #elif defined(__PGI)
-// #  define HAS_MUTABLE 1
+// #  define HAVE_MUTABLE 1
 // #elif defined(__sgi)
-// #  define HAS_MUTABLE (_COMPILER_VERSION > 600)
+// #  define HAVE_MUTABLE (_COMPILER_VERSION > 600)
 // #else
-// #  define HAS_MUTABLE 0
+// #  define HAVE_MUTABLE 0
 // #endif
 
 //

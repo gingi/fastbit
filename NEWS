@@ -1,3 +1,23 @@
+Fri Feb  6 12:00:26 PST 2009
+Version ibis1.0.4
+-- add example program rara.cpp as a minimalistic client code
+-- refine the macros for controlling the use of 64-bit atomic operations
+   on windows platforms
+-- add arguement to ibis::part::loadIndex to allow all bitmaps to be
+   read into memory in one-shot
+-- change the semantics of fastbit_get_qualified_longs to return the
+   starting positions of strings when it is called with the name of a
+   string-valued column (to address a request from Andrey Kolchanov)
+-- split src/parth3d.cpp into three files (one for each function that
+   requires massive number of instances of template function) and limit
+   the number of template instances.  The is to reduce the compilation
+   time under gcc.  The full slew of instances can still be generated if
+   the macro FASTBIT_EXPAND_ALL_TYPES is defined.
+-- update the parser to accept functions with a single number as the
+   argument (a bug reported by David Marks)
+-- add calls to free up memory after encountering failure to retrieve
+   file content (to address a problem encountered by Alessandro Capucci)
+
 Tue Jan 20 21:14:57 PST 2009
 Version ibis1.0.3
 -- add ibis::text::selectLongs to return the starting positions of the

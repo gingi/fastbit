@@ -1,3 +1,18 @@
+2009-02-06 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: add calls to unload in mapFile and doRead
+	after they fail for the first time (to address a problem reported
+	by Alessandro Capucci)
+	* tests/Makefile.am: remove - from test 3 of check-tcapi, the sh
+	on a BSD machine does not like it
+
+2009-02-05 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add indications of total number of hits in
+	addition to how many are printed in function tableSelect (to
+	address a problem encountered by Alessandro Capucci)
+	* configure.ac: if --enable-xopt is specified by nothing is
+	specified for debug, use -O3, which is more widely supported than
+	-O5
+
 2009-02-04 John Wu <John.Wu at ACM.org>
 	* src/column.cpp, src/category.cpp: updated documentations while
 	looking for clues to the problem reported by Alessandro Capucci

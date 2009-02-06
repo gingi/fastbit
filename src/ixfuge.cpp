@@ -221,7 +221,7 @@ int ibis::fuge::read(const char* f) {
 	return -5;
     }
     bool trymmap = false;
-#if defined(HAS_FILE_MAP)
+#if defined(HAVE_FILE_MAP)
     trymmap = (nobs > ibis::fileManager::pageSize());
 #endif
     begin = 8+2*sizeof(uint32_t);
