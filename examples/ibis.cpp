@@ -74,7 +74,14 @@
    NOTE: option -t is interpreted as self-testing if specified alone, if
    any query is also specified, it is interpreted as indicating the number
    of threads to use.
-    @ingroup FastBitExamples
+
+   NOTE: the select clause of "count(*)" will produce a result table with
+   one row and one column to hold the content of "count(*)" following the
+   SQL standard.  This may take some getting used too since one might have
+   expect the number of hits to be printed directly as in the case of
+   omitting the select clause.
+
+   @ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -2043,8 +2050,10 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
     LOGGER(ibis::gVerbose >= 0)
 	<< "tableSelect -- select(" << sstr << ", " << wstr
-	<< ") on table " << tbl.name() << " produced " << sel1->nRows()
-	<< " hit" << (sel1->nRows() > 1 ? "s" : "");
+	<< ") on table " << tbl.name() << " produced a table with "
+	<< sel1->nRows() << " row" << (sel1->nRows() > 1 ? "s" : "")
+	<< " and " << sel1->nColumns() << " column"
+	<< (sel1->nColumns() > 1 ? "s" : "");
     if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
 	sel1->orderby(ordkeys);
 	if (direction < 0)
@@ -2068,17 +2077,21 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	if (limit == 0 && sel1->nColumns() > 0) {
 	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
 		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
+	}
+	if (limit < sel1->nRows()) {
 	    lg.buffer() << "tableSelect -- the first ";
 	    if (limit > 1)
 		lg.buffer() << limit << " rows ";
 	    else
 		lg.buffer() << " row ";
-	    lg.buffer() << "of " << sel1->nColumns() << " produced for \""
+	    lg.buffer() << "(out of " << sel1->nRows()
+			<< ") from the result table for \""
 			<< sqlstring << "\"\n";
 	}
 	else {
-	    lg.buffer() << "tableSelect -- the results (" << sel1->nRows()
-			<< ") of " << sqlstring << "\n";
+	    lg.buffer() << "tableSelect -- the result table (" << sel1->nRows()
+			<< " x " << sel1->nColumns() << ") for \""
+			<< sqlstring << "\"\n";
 	}
 	if (outputnamestoo)
 	    sel1->dumpNames(lg.buffer(), ", ");

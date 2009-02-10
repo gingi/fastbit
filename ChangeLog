@@ -1,3 +1,13 @@
+2009-02-10 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp: use an integer array to sort the incoming values
+	instead of a std::set (at the suggestion of Alesandro Capucci)
+	* examples/ibis.cpp, doc/ibisCommandLine.html: change the print
+	out to indicate that tableSelect is producing another table as
+	output and the "count(*)" will produce a table of one row and one
+	column, update the documentation about the ibis command line to
+	reflect this fact (not a new feature but a clarification of
+	behavior)
+
 2009-02-06 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: add calls to unload in mapFile and doRead
 	after they fail for the first time (to address a problem reported

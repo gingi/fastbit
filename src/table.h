@@ -139,20 +139,20 @@ public:
     /// subdirectories.
     virtual int addPartition(const char* dir) {return -1;}
 
+    /// The following functions deal with auxillary data for accelerating
+    /// query processing, primarily for building indexes.
     /// @{
-
     /// Create the index for the named column.  The existing index will be
     /// replaced.  If an indexing option is not specified, it will use the
     /// internally recorded option for the named column or the table
     /// containing the column.
     ///
-    /// @note Unless any there is a specific instruction to not index a
-    /// column, the querying functions will automatically build indices as
-    /// necessary.  However, as building an index is relatively expensive
-    /// process, building an index on a column is on average about four or
-    /// five times as expensive as reading the column from disk, this
-    /// function is provided so that it is possible to build indexes
-    /// beforehand.
+    /// @note Unless there is a specific instruction to not index a column,
+    /// the querying functions will automatically build indexes as
+    /// necessary.  However, as building an index is relatively expensive,
+    /// building an index on a column is on average about four or five
+    /// times as expensive as reading the column from disk, this function
+    /// is provided to build indexes beforehand.
     virtual int buildIndex(const char* colname, const char* option=0) =0;
     /// Create indexes for every column of the table.  Existing indexes
     /// will be replaced.  If an indexing option is not specified, the

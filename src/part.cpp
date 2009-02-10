@@ -1725,11 +1725,7 @@ void ibis::part::fillRIDs(const char* fn) const {
     }
 } // ibis::part::fillRIDs
 
-// generate a sorted version of the RIDs and stored the result in rids.srt
-// NOTE on locking -- it should be run only once.
-// since one of the caller to this function may hold a read lock on the
-// ibis::part object, it will cause a dead lock if this function also
-// attempt to acquire the mutex lock on the partition.
+/// Generate a sorted version of the RIDs and stored the result in rids.srt.
 void ibis::part::sortRIDs() const {
     if (activeDir == 0) return;
 
@@ -1799,8 +1795,8 @@ void ibis::part::sortRIDs() const {
 		   timer.CPUTime(), timer.realTime(), name);
 } // ibis::part::sortRIDs
 
-// It tries the sorted RID list first.  If that fails, it uses the brute
-// force searching algorithm
+/// It tries the sorted RID list first.  If that fails, it uses the brute
+/// force searching algorithm.
 uint32_t ibis::part::getRowNumber(const ibis::rid_t &rid) const {
     uint32_t ind = searchSortedRIDs(rid);
     if (ind >= nEvents)
@@ -1808,7 +1804,7 @@ uint32_t ibis::part::getRowNumber(const ibis::rid_t &rid) const {
     return ind;
 } // ibis::part::getRowNumber
 
-// use file rids.srt to search for the rid
+/// Use file rids.srt to search for the rid.
 uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     uint32_t ind = nEvents;
     if (activeDir == 0) return ind;
@@ -1876,7 +1872,7 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     return ind;
 } // ibis::part::searchSortedRIDs
 
-// brute-force search on rids
+/// A brute-force search for the rid.
 uint32_t ibis::part::searchRIDs(const ibis::rid_t &rid) const {
     uint32_t i = nEvents;
     for (i=0; i<nEvents; ++i) {
@@ -1898,8 +1894,8 @@ uint32_t ibis::part::searchRIDs(const ibis::rid_t &rid) const {
     return i;
 } // ibis::part::searchRIDs
 
-// use file rids.srt to search for the rid
-// assume the incoming RIDs are sorted
+/// Use file rids.srt to search for the rid.
+/// Assume the incoming RIDs are sorted.
 void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
 				  ibis::bitvector &res) const {
     if (activeDir == 0) return;
@@ -1969,8 +1965,8 @@ void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
     res.adjustSize(0, nEvents);
 } // ibis::part::searchSortedRIDs
 
-// brute-force search on rids
-// assume the incoming RIDs are sorted
+/// A brute-force search for the rids.
+/// Assume the incoming RIDs are sorted.
 void ibis::part::searchRIDs(const ibis::RIDSet &in,
 			    ibis::bitvector &res) const {
     uint32_t i = nEvents, cnt = 0;
@@ -1998,7 +1994,7 @@ void ibis::part::searchRIDs(const ibis::RIDSet &in,
     res.adjustSize(0, nEvents);
 } // ibis::part::searchRIDs
 
-// retrieve only the RIDs corresponding to mask[i] == 1
+/// Retrieve the RIDs corresponding to mask[i] == 1.
 array_t<ibis::rid_t>* ibis::part::getRIDs(const ibis::bitvector &mask)
     const {
     const uint32_t cnt = mask.cnt();
@@ -2095,6 +2091,7 @@ array_t<ibis::rid_t>* ibis::part::getRIDs(const ibis::bitvector &mask)
     return ret;
 } // ibis::part::getRIDs
 
+/// Assumes the pages are packed with values.
 uint32_t ibis::part::countPages(const ibis::bitvector &mask,
 				unsigned wordsize) {
     uint32_t res = 0;

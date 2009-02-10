@@ -139,7 +139,8 @@ int ibis::ridHandler::read(ibis::RIDSet& rids, const char* fname) {
 	    ibis::rid_t tmp;
 	    from >> tmp;
 	    rids.push_back(tmp);
-	    LOGGER(ibis::gVerbose >= 3) << rids.size()-1 << ":\t" << rids.back();
+	    LOGGER(ibis::gVerbose >= 3)
+		<< rids.size()-1 << ":\t" << rids.back();
 	}
     }
     from.close();

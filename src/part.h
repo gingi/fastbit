@@ -527,7 +527,7 @@ public:
     /// Given a @c bitvector, compute the number of pages would be accessed.
     static uint32_t countPages(const ibis::bitvector &mask,
 			       unsigned elemsize=4);
-    /// Evaluate the strategy to access a data file.
+    /// Evaluate the strategy for accessing a data file.
     ibis::fileManager::ACCESS_PREFERENCE
     accessHint(const ibis::bitvector &mask, unsigned elemsize=4) const;
 
@@ -1013,8 +1013,8 @@ private:
     uint32_t recursiveQuery(const char* pref, const column* att,
 			    double low, double high, long* nerr) const;
 
-    void   fillRIDs(const char* fn) const; //< Generate new RIDs.
-    void   sortRIDs() const; //< Sort current list of RIDs and write rids.srt.
+    void   fillRIDs(const char* fn) const; ///< Generate new RIDs.
+    void   sortRIDs() const; ///< Sort current list of RIDs.
     uint32_t searchSortedRIDs(const ibis::rid_t &rid) const;
     uint32_t searchRIDs(const ibis::rid_t &rid) const;
     void   searchSortedRIDs(const ibis::RIDSet&, ibis::bitvector&) const;

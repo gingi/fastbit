@@ -363,6 +363,13 @@ The select clause may also contain arithmetic expressions, e.g.,
 -q "select pressure, sqrt(vx*vx+vy*vy+vz*vz) where temperature > 1000"
 </pre>
 
+<p>
+A select clause of "count(*)" will produce a result table of exactly one
+row and one column as dictacted by the SQL standard.  One would have to
+examine the content of this trivial table to find out eactly how many
+hits for the query.  To bypass this extra step, simply omitting the
+select clause in this case.
+
 <h2><A name="output">Sample output</A></h2>
 Here is a sample output produced on June 13, 2005 using the sample
 command shown above.

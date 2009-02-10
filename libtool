@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.0.4
+# Generated automatically by config.status (fastbit) ibis1.0.5
 # Libtool was configured on host bit:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
@@ -132,7 +132,7 @@ old_postuninstall_cmds=""
 LTCC="gcc"
 
 # LTCC compiler flags.
-LTCFLAGS="-O3  -I /home/John/src/fastbit/win"
+LTCFLAGS="-g -O2  -I /home/John/src/fastbit/win"
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[	 ][	 ]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p'"

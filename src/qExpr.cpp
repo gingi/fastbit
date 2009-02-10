@@ -2276,19 +2276,39 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	return;
     }
 
-    // use a std::set to temporarily hold the values and eliminate
-    // duplicates
-    std::set<uint32_t> dset;
-    for (std::vector<uint32_t>::const_iterator it = val.begin();
-	 it != val.end(); ++ it)
-	dset.insert(*it);
 
-    if (! dset.empty()) {
-	values.reserve(dset.size());
-	for (std::set<uint32_t>::const_iterator it = dset.begin();
-	     it != dset.end(); ++ it)
-	    values.push_back(*it);
+#if 0
+    { // use a std::set to temporarily hold the values and eliminate
+      // duplicates
+	std::set<uint32_t> dset;
+	for (std::vector<uint32_t>::const_iterator it = val.begin();
+	     it != val.end(); ++ it)
+	    dset.insert(*it);
+
+	if (! dset.empty()) {
+	    values.reserve(dset.size());
+	    for (std::set<uint32_t>::const_iterator it = dset.begin();
+		 it != dset.end(); ++ it)
+		values.push_back(*it);
+	}
     }
+#else
+    { // copy the incoming numbers into array tmp and sort them before
+      // passing them to values
+	std::vector<uint32_t> tmp(val);
+	std::sort(tmp.begin(), tmp.end());
+	size_t j = 0;
+	for (size_t i = 1; i < tmp.size(); ++ i) {
+	    if (tmp[i] > tmp[j]) {
+		++ j;
+		tmp[j] = tmp[i];
+	    }
+	}
+	tmp.resize(j+1);
+	values.reserve(tmp.size());
+	std::copy(tmp.begin(), tmp.end(), values.begin());
+    }
+#endif
     if (values.size() < val.size()) {
 	unsigned j = val.size() - values.size();
 	LOGGER(ibis::gVerbose >= 2)
