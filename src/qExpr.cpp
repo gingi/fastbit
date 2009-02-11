@@ -2305,7 +2305,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	    }
 	}
 	tmp.resize(j+1);
-	values.reserve(tmp.size());
+	values.resize(tmp.size());
 	std::copy(tmp.begin(), tmp.end(), values.begin());
     }
 #endif
