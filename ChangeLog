@@ -7,6 +7,9 @@
 	column, update the documentation about the ibis command line to
 	reflect this fact (not a new feature but a clarification of
 	behavior)
+	* src/category.cpp: the computation to carry the leftover bytes in
+	function startPositions had an extra accumulation of offset, a
+	problem first reported by Andrey Kolchanov
 
 2009-02-06 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: add calls to unload in mapFile and doRead
