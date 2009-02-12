@@ -129,9 +129,9 @@ int ibis::util::makeDir(const char* dir) {
     return 0;
 } // ibis::util::makeDir
 
-/// Extract a string from given buf, remove leading and trailing spaces and
-/// surrounding quotes.  Returns a copy of the string allocated with the
-/// @c new operator.
+/// Extract a string from the given buf, remove leading and trailing spaces
+/// and surrounding quotes.  Returns a copy of the string allocated with
+/// the @c new operator.
 char* ibis::util::getString(const char* buf) {
     char* s2 = 0;
     if (buf == 0)
@@ -191,16 +191,19 @@ char* ibis::util::getString(const char* buf) {
     return s2;
 } // ibis::util::getString
 
-/// Copy the next string to the output variable str.
-/// Leading blank spaces are skipped.  In addition to blank space,
-/// extra delimiters may be supplied at the third argument.  The
-/// content of str will be empty if buf is nil or an empty string.
+/// Copy the next string to the output variable str.  Leading blank spaces
+/// are skipped.  In addition to blank space, delimiters supplied by the
+/// third argument will also be skipped.  The content of str will be empty
+/// if buf is nil or an empty string.  If the string is quoted, only spaces
+/// before the quote is skipped, and the content of the string will be
+/// everything after the first quote to the last character before the
+/// matching quote or end of buffer.
 void ibis::util::getString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
     if (buf == 0 || *buf == 0) return;
 
-    while (*buf && isspace(*buf)) ++ buf;
+    while (*buf && isspace(*buf)) ++ buf; // skip leading space
     if (*buf == '\'') { // single quoted string
 	++ buf; // skip the openning quote
 	while (*buf) {
@@ -230,15 +233,50 @@ void ibis::util::getString(std::string& str, const char *&buf,
 	} // while (*buf)
     }
     else { // space separated string
-	while (*buf) {
-	    if (! isspace(*buf) && (delim == 0 || 0 == strchr(delim, *buf)))
-		str += *buf;
-	    else if (str[str.size()-1] == '\\')
-		str[str.size()-1] = *buf;
-	    else
-		return;
-	    ++ buf;
-	} // while (*buf)
+	if (delim == 0 || *delim == 0) {
+	    while (*buf) {
+		if (!isspace(*buf))
+		    str += *buf;
+		else if (str[str.size()-1] == '\\')
+		    str[str.size()-1] = *buf;
+		else
+		    return;
+		++ buf;
+	    } // while (*buf)
+	}
+	else if (delim[1] == 0) {
+	    while (*buf) {
+		if (!isspace(*buf) && *delim != *buf)
+		    str += *buf;
+		else if (str[str.size()-1] == '\\')
+		    str[str.size()-1] = *buf;
+		else
+		    return;
+		++ buf;
+	    } // while (*buf)
+	}
+	else if (delim[2] == 0) {
+	    while (*buf) {
+		if (!isspace(*buf) && *delim != *buf && delim[1] != *buf)
+		    str += *buf;
+		else if (str[str.size()-1] == '\\')
+		    str[str.size()-1] = *buf;
+		else
+		    return;
+		++ buf;
+	    } // while (*buf)
+	}
+	else {
+	    while (*buf) {
+		if (!isspace(*buf) && (delim == 0 || 0 == strchr(delim, *buf)))
+		    str += *buf;
+		else if (str[str.size()-1] == '\\')
+		    str[str.size()-1] = *buf;
+		else
+		    return;
+		++ buf;
+	    } // while (*buf)
+	}
     }
 } // ibis::util::getString
 

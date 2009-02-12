@@ -19287,8 +19287,6 @@ elif test "x$debug" = "xno" ; then
 elif test "x$xopt" = "xyes" ; then
     CFLAGS="-O3"
 fi
-{ $as_echo "$as_me:$LINENO: result: $CFLAGS" >&5
-$as_echo "$CFLAGS" >&6; }
 
 
 #end AC_DEFUN Z_CHECK_PTHREAD
@@ -19867,12 +19865,11 @@ CXXFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 # Check whether --with-java was given.
 if test "${with_java+set}" = set; then
   withval=$with_java; if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi
-else
-  with_java="no"; JAVA_HOME="";
 fi
 
-  if test ! "x$with_java"="xno" ; then
-    if test "x$JAVA_HOME"="x" ; then
+#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
+if test ! "x$with_java" = "xno" ; then
+  if test "x$JAVA_HOME" = "x" ; then
     case "${host_os}" in
     # On Darwin the JDK, if present, is installed in /Library/Java/Home .
     darwin*)
@@ -19938,10 +19935,10 @@ fi
 done
 
 	else
-        #test "x$JAVAC"=x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
+        #test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
 	JAVAC=$JAVAPREFIX/javac$EXEEXT
 	fi
-	test "x$JAVAC"=x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java compiler found in \$PATH" >&5
+	test "x$JAVAC" = x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java compiler found in \$PATH" >&5
 $as_echo "$as_me: error: no acceptable Java compiler found in \$PATH" >&2;}
    { (exit 1); exit 1; }; }
 
@@ -19954,7 +19951,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 19957 "configure" */
+/* #line 19954 "configure" */
 public class Test {
 }
 EOF
@@ -20027,7 +20024,7 @@ done
         #test "x$JAVA" = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX/java$EXEEXT)
 	JAVA=$JAVAPREFIX/java$EXEEXT
 	fi
-	test x$JAVA=x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java virtual machine found in \$PATH" >&5
+	test x$JAVA = x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java virtual machine found in \$PATH" >&5
 $as_echo "$as_me: error: no acceptable Java virtual machine found in \$PATH" >&2;}
    { (exit 1); exit 1; }; }
 
@@ -20089,7 +20086,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 20092: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 20089: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -20154,10 +20151,10 @@ fi
 done
 
 	else
-        #test "x$JAVAC"=x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
+        #test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
 	JAVAC=$JAVAPREFIX/javac$EXEEXT
 	fi
-	test "x$JAVAC"=x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java compiler found in \$PATH" >&5
+	test "x$JAVAC" = x && { { $as_echo "$as_me:$LINENO: error: no acceptable Java compiler found in \$PATH" >&5
 $as_echo "$as_me: error: no acceptable Java compiler found in \$PATH" >&2;}
    { (exit 1); exit 1; }; }
 
@@ -20170,7 +20167,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 20173 "configure" */
+/* #line 20170 "configure" */
 public class Test {
 }
 EOF
@@ -20207,7 +20204,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 20210 "configure" */
+/* [#]line 20207 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -20460,6 +20457,15 @@ else
   BUILD_JAVA_INTERFACE_FALSE=
 fi
 
+{ $as_echo "$as_me:$LINENO: checking whether to build java native interface" >&5
+$as_echo_n "checking whether to build java native interface... " >&6; }
+if test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes"; then
+{ $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
 
 
 # make sure FlexLexer.h is accessible

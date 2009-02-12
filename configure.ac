@@ -85,7 +85,6 @@ elif test "x$debug" = "xno" ; then
 elif test "x$xopt" = "xyes" ; then
     CFLAGS="-O3"
 fi
-AC_MSG_RESULT($CFLAGS)
 
 AC_DEFUN([Z_CHECK_PTHREAD], [
 AC_REQUIRE([AC_CANONICAL_HOST])
@@ -438,10 +437,10 @@ AC_DEFUN([AC_PROG_JAVAC],[
 	if test "x$JAVAPREFIX" = x; then
         test "x$JAVAC"=x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT)
 	else
-        #test "x$JAVAC"=x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
+        #test "x$JAVAC" = x && AC_CHECK_PROGS(JAVAC, "gcj$EXEEXT -C" guavac$EXEEXT jikes$EXEEXT javac$EXEEXT, $JAVAPREFIX/javac$EXEEXT)
 	JAVAC=$JAVAPREFIX/javac$EXEEXT
 	fi
-	test "x$JAVAC"=x && AC_MSG_ERROR([no acceptable Java compiler found in \$PATH])
+	test "x$JAVAC" = x && AC_MSG_ERROR([no acceptable Java compiler found in \$PATH])
 	AC_PROG_JAVAC_WORKS
 	AC_PROVIDE([$0])dnl
 	])
@@ -453,7 +452,7 @@ AC_DEFUN([AC_PROG_JAVA],[
         #test "x$JAVA" = x && AC_CHECK_PROGS(JAVA, kaffe$EXEEXT java$EXEEXT, $JAVAPREFIX/java$EXEEXT)
 	JAVA=$JAVAPREFIX/java$EXEEXT
 	fi
-	test x$JAVA=x && AC_MSG_ERROR([no acceptable Java virtual machine found in \$PATH])
+	test x$JAVA = x && AC_MSG_ERROR([no acceptable Java virtual machine found in \$PATH])
 	AC_PROG_JAVA_WORKS
 	AC_PROVIDE([$0])dnl
 	])
@@ -461,10 +460,10 @@ AC_DEFUN([AC_PROG_JAVA],[
 # Set the optional Java SDK directory.
 AC_ARG_WITH(java,
 	    AS_HELP_STRING([--with-java=dir],[use dir as Java SDK root directory]),
-            [if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi],
-	    [with_java="no"; JAVA_HOME="";])
-  if test ! "x$with_java"="xno" ; then
-    if test "x$JAVA_HOME"="x" ; then
+            [if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi])
+#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
+if test ! "x$with_java" = "xno" ; then
+  if test "x$JAVA_HOME" = "x" ; then
     case "${host_os}" in
     # On Darwin the JDK, if present, is installed in /Library/Java/Home .
     darwin*)
@@ -503,6 +502,12 @@ fi
 # build java test program if java and javac exist
 AM_CONDITIONAL(BUILD_JAVA_TEST, test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_javac_supports_enums" = "xno")
 AM_CONDITIONAL(BUILD_JAVA_INTERFACE, test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes")
+AC_MSG_CHECKING([whether to build java native interface])
+if test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes"; then
+AC_MSG_RESULT([yes])
+else
+AC_MSG_RESULT([no])
+fi
 AC_SUBST(BUILD_JAVA_INTERFACE)
 
 # make sure FlexLexer.h is accessible

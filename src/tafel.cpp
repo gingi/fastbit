@@ -1337,7 +1337,7 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     std::string id = "string ";
     id.append(line, 10);
     id += " ...";
-    std::string delimiters = (del != 0 && *del != 0 ? del : ", ");
+    std::string delimiters = (del != 0 && *del != 0 ? del : ",");
 
     normalize();
     int ierr = parseLine(line, delimiters.c_str(), id.c_str());
@@ -1349,7 +1349,7 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
 int ibis::tafel::readCSV(const char* filename, const char* del) {
     if (filename == 0 || *filename == 0) return -1;
     if (colorder.empty()) return -2;
-    std::string delimiters = (del != 0 && *del != 0 ? del : ", ");
+    std::string delimiters = (del != 0 && *del != 0 ? del : ",");
 
     char linebuf[MAX_LINE];
     std::ifstream csv(filename);
@@ -1375,6 +1375,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 	if (cnt != ncol)
 	    normalize();
 
+	cnt = 0; // initialize cnt to zero!
 	for (size_t i = 0; i < ncol; ++ i) {
 	    column& col = *(colorder[i]);
 	    switch (col.type) {
@@ -1621,8 +1622,8 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 	    default:
 		break;
 	    }
-	
-	    if (*str != 0) { // skip trailing sapace and one delimeter
+
+	    if (*str != 0) { // skip trailing spaces and one delimiter
 		while (*str != 0 && isspace(*str)) ++ str; // trailing space
 		if (*str != 0 && strchr(delimiters.c_str(), *str) != 0) ++ str;
 	    }

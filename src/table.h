@@ -380,10 +380,10 @@ public:
     /// @sa appendRow
     virtual int appendRows(const std::vector<ibis::table::row>&) =0;
 
-    /// Read the content of the specified as comma-separated values.
-    /// Append the records to this table.  By default the records are
-    /// delimited by comma (,) and blank space.  One may specify additional
-    /// delimiters using the second argument.
+    /// Read the content of the file named filename as comma-separated
+    /// values.  Append the records to this table.  By default the records
+    /// are delimited by comma (,) and blank space.  One may specify
+    /// alternative delimiters using the second argument.
     virtual int readCSV(const char* filename, const char* delimiters=0) =0;
 
     /// Write the in-memory data records to the specified directory on

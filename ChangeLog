@@ -1,3 +1,12 @@
+2009-02-12 John Wu <John.Wu at ACM.org>
+	* configure.ac: added space surrounding expression of the form
+	"test a=b"
+	* src/tafel.cpp: variable cnt needs to be set to zero forevery
+	line of input text in ibis::tafel::readCSV, change all default
+	delimiter string from ", " to ","
+	* src/util.cpp: add special cases in ibis::util::getString
+	(3-argument version) to avoid calls to strchr
+
 2009-02-10 John Wu <John.Wu at ACM.org>
 	* src/qExpr.cpp: use an integer array to sort the incoming values
 	instead of a std::set (at the suggestion of Alesandro Capucci)
