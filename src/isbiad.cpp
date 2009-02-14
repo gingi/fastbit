@@ -39,7 +39,7 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::sbiad::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -267,7 +267,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column::[" << col->name()
 	    << "]::construct1 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";
@@ -901,7 +901,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column::[" << col->name()
 	    << "]::construct2 encountered an exception while converting "
 	    "to inverval encoding, cleaning up ...";

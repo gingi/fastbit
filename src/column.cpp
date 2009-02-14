@@ -4575,7 +4575,7 @@ void ibis::column::unloadIndex() const {
 		    logMessage("unloadIndex", "successfully removed the index");
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 1)
+		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- ibis::column[" << thePart->name()
 		    << "." << name() << "]::unloadIndex failed because "
 		    "idxcnt (" << idxc << ") is not zero";
@@ -4681,6 +4681,15 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     getNullMask(mymask);
     mymask &= mask;
     low.clear(); // clear the existing content
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << "." << m_name
+	    << "]::evaluateRange(" << cmp
+	    << ") -- the range condition is not applicable on the column type "
+	    << TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
 
     try {
 	ibis::bitvector high;
@@ -4720,7 +4729,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = 0;
 	}
 
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::column[" << thePart->name() << "." << name()
 	    << "]::evaluateRange(" << cmp
 	    << ") completed with low.size() = " << low.size()
@@ -4748,7 +4757,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(ibis::gVerbose >= 2)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::column[" << thePart->name() << "." << name()
 		<< "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
@@ -4758,10 +4767,13 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	}
     }
     else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << m_name
+	    << "] does not belong to a data partition, but need one";
 	ierr = -3;
     }
 
-    LOGGER(ibis::gVerbose >= 4)
+    LOGGER(ibis::gVerbose > 3)
 	<< "ibis::column[" << thePart->name() << "." << name()
 	<< "]::evaluateRange(" << cmp
 	<< ") completed the fallback option with low.size() = "
@@ -4777,6 +4789,15 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     ibis::bitvector mymask;
     getNullMask(mymask);
     mymask &= mask;
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << "." << m_name
+	    << "]::evaluateRange(" << cmp
+	    << ") -- the range condition is not applicable on the column type "
+	    << TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
 
     try {
 	indexLock lock(this, "evaluateRange");
@@ -4796,7 +4817,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::column[" << thePart->name()
 		    << "." << name() << "]::evaluateRange(" << cmp
 		    << ") -- idx(" << idx->name()
@@ -4837,7 +4858,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::column[" << thePart->name() << "." << name()
 	    << "]::evaluateRange(" << cmp
 	    << ") completed with low.size() = " << low.size()
@@ -4865,7 +4886,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	catch (...) {
-	    LOGGER(ibis::gVerbose >= 2)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::column[" << thePart->name() << "." << name()
 		<< "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
@@ -4878,7 +4899,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	ierr = -3;
     }
 
-    LOGGER(ibis::gVerbose >= 4)
+    LOGGER(ibis::gVerbose > 3)
 	<< "ibis::column[" << thePart->name() << "." << name()
 	<< "]::evaluateRange(" << cmp
 	<< ") completed the fallback option with low.size() = "
@@ -4915,7 +4936,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	    ierr = -1;
 	}
 
-	LOGGER(ibis::gVerbose >= 5)
+	LOGGER(ibis::gVerbose > 4)
 	    << "ibis::column[" << thePart->name() << "." << name()
 	    << "]::estimateRange(" << cmp
 	    << ") completed with low.size() = " << low.size()
@@ -6655,7 +6676,7 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
-    LOGGER(ibis::gVerbose >= 6)
+    LOGGER(ibis::gVerbose > 5)
 	<< "ibis::column["
 	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 	<< "]::actualMinMax -- vals.size() = "
@@ -6765,7 +6786,7 @@ double ibis::column::computeSum(const array_t<T>& vals,
 	}
     }
 
-    LOGGER(ibis::gVerbose >= 6)
+    LOGGER(ibis::gVerbose > 5)
 	<< "ibis::column["
 	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 	<< "]::computeSum -- vals.size() = "

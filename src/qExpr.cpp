@@ -2311,7 +2311,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 #endif
     if (values.size() < val.size()) {
 	unsigned j = val.size() - values.size();
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
@@ -2343,7 +2343,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     values.resize(j);
     if (j < val.size()) {
 	j = val.size() - j;
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");

@@ -96,8 +96,9 @@ ibis::part* fastbit_part_list::find(const char* dir) {
 	}
 	if (tmp != 0 && (tmp->name() == 0 || tmp->nRows() == 0 ||
 			 tmp->nColumns() == 0)) {
-	    LOGGER(ibis::gVerbose >= 2) << "Warning -- directory " << dir
-		      << " contains an empty data partition";
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- directory " << dir
+		<< " contains an empty data partition";
 	    delete tmp;
 	    tmp = 0;
 	}
@@ -124,7 +125,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 	t->buildIndex(1, opt);
     }
     else {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_build_indexes -- data directory \"" << dir
 	    << "\" contains no data";
 	ierr = 1;
@@ -162,7 +163,7 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
 
     t = _capi_tlist->find(dir);
     if (t->nRows() == 0 || t->nColumns() == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_build_index -- data directory \"" << dir
 	    << "\" contains no data";
 	ierr = 1;
@@ -171,7 +172,7 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
 
     ibis::column *c = t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_build_index -- can not find column \"" << att
 	    << "\"in data directory \"" << dir << "\"";
 	ierr = -2;
@@ -198,7 +199,7 @@ fastbit_purge_index(const char *dir, const char *att) {
 
     t = _capi_tlist->find(dir);
     if (t->nRows() == 0 || t->nColumns() == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_purge_index -- data directory \"" << dir
 	    << "\" contains no data";
 	ierr = 1;
@@ -260,7 +261,7 @@ fastbit_build_query(const char *select, const char *from, const char *where) {
     if (select != 0 && *select != 0) {
 	ierr = h->q.setSelectClause(select);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose >= 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_build_query -- failed to assign a select "
 		<< "clause (" << select << ") to a query";
 	}
@@ -409,7 +410,7 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_bytes -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -417,13 +418,13 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_bytes -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
     }
     if (c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_bytes -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type BYTE";
@@ -438,7 +439,7 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::UBYTE);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_bytes -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<char>*>((*tvit).second)->begin();
@@ -475,7 +476,7 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_shorts -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -483,7 +484,7 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_shorts -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -491,7 +492,7 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
     if (c->type() != ibis::BYTE &&
 	c->type() != ibis::UBYTE &&
 	c->type() != ibis::SHORT) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_shorts -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type SHORT or BYTE";
@@ -506,7 +507,7 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::USHORT);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_shorts -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<int16_t>*>((*tvit).second)->begin();
@@ -542,7 +543,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ints -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -550,7 +551,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ints -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -560,7 +561,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	c->type() != ibis::UBYTE &&
 	c->type() != ibis::SHORT &&
 	c->type() != ibis::USHORT) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ints -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type INT or shorter integer types";
@@ -575,7 +576,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::UINT);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ints -- found column \"" << att
 		<< "\" in the existing list";
 	    ret = static_cast<array_t<int32_t>*>((*tvit).second)->begin();
@@ -587,7 +588,7 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ints -- retrieved "
 		<< tmp->size() << " value" << (tmp->size()>1 ? "s" : "")
 		<< " of " << att << " from "
@@ -616,7 +617,7 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_longs -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -624,7 +625,7 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_longs -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -638,7 +639,7 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	c->type() != ibis::USHORT &&
 	c->type() != ibis::TEXT &&
 	c->type() != ibis::CATEGORY) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_longs -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type LONG or a compatible type";
@@ -653,7 +654,7 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::ULONG);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_longs -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<int64_t>*>((*tvit).second)->begin();
@@ -689,7 +690,7 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ubytes -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -697,13 +698,13 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ubytes -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
     }
     if (c->type() != ibis::UBYTE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ubytes -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type UBYTE";
@@ -718,7 +719,7 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::BYTE);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ubytes -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<unsigned char>*>
@@ -756,7 +757,7 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ushorts -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -764,7 +765,7 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ushorts -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -772,7 +773,7 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
     if (c->type() != ibis::USHORT &&
 	c->type() != ibis::BYTE &&
 	c->type() != ibis::UBYTE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ushorts -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type USHORT or BYTE";
@@ -787,7 +788,7 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::SHORT);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ushorts -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<uint16_t>*>((*tvit).second)->begin();
@@ -824,7 +825,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_uints -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -832,7 +833,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_uints -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -842,7 +843,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	c->type() != ibis::UBYTE &&
 	c->type() != ibis::SHORT &&
 	c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_uints -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type UINT or shoter integer types";
@@ -857,7 +858,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::INT);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_uints -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<uint32_t>*>((*tvit).second)->begin();
@@ -893,7 +894,7 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ulongs -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -901,7 +902,7 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ulongs -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
@@ -913,7 +914,7 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	c->type() != ibis::INT &&
 	c->type() != ibis::SHORT &&
 	c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_ulongs -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type ULONG or shorter integer types";
@@ -928,7 +929,7 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	if (tvit == tv->end())
 	    tvit = tv->find((int) ibis::LONG);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<uint64_t>*>((*tvit).second)->begin();
@@ -964,7 +965,7 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_floats -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -972,13 +973,13 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_floats -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
     }
     if (c->type() != ibis::FLOAT) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_floats -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type FLOAT or short integer types";
@@ -991,7 +992,7 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	FastBitQuery::typeValues::const_iterator tvit =
 	    tv->find((int) ibis::FLOAT);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<float>*>((*tvit).second)->begin();
@@ -1027,7 +1028,7 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_doubles -- invalid query handle ("
 	    << qhandle << ")";
 	return ret;
@@ -1035,13 +1036,13 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 
     const ibis::column *c = qhandle->t->getColumn(att);
     if (c == 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_doubles -- can not find a column "
 	    << "named \"" << att << "\"";
 	return ret;
     }
     if (c->type() == ibis::CATEGORY || c->type() == ibis::TEXT) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_get_qualified_doubles -- column \"" << att
 	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
 	    << ", expect type DOUBLE or shorter numerical values";
@@ -1054,7 +1055,7 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	FastBitQuery::typeValues::const_iterator tvit =
 	    tv->find((int) ibis::DOUBLE);
 	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<array_t<double>*>((*tvit).second)->begin();
@@ -1109,7 +1110,7 @@ extern "C" void fastbit_cleanup(void) {
 	ibis::util::closeLogFile();
     }
     if (_capi_tablex != 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "fastbit_cleanup is removing a non-empty data buffer "
 	    "for new records";
 	delete _capi_tablex;

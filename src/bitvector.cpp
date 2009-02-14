@@ -258,7 +258,7 @@ void ibis::bitvector::decompress() {
     array_t<word_t> tmp;
     tmp.resize(nbits/MAXBITS);
     if (nbits != tmp.size()*MAXBITS) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bitvector::decompress(nbits=" << nbits
 	    << ") failed to allocate a temp array of "
 	    << nbits/MAXBITS << "-word";

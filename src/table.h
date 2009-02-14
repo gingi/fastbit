@@ -381,10 +381,22 @@ public:
     virtual int appendRows(const std::vector<ibis::table::row>&) =0;
 
     /// Read the content of the file named filename as comma-separated
-    /// values.  Append the records to this table.  By default the records
-    /// are delimited by comma (,) and blank space.  One may specify
-    /// alternative delimiters using the second argument.
-    virtual int readCSV(const char* filename, const char* delimiters=0) =0;
+    /// values.  Append the records to this table.  If the argument maxrows
+    /// is greater than 0, this function will reserve space to read this
+    /// many records.  If the file does contain more records, then
+    /// additional memory will be allocated as needed.  It is safe to leave
+    /// this argument as 0, but setting the correct number will likely
+    /// reduce the amount of time needed by this function.  By default the
+    /// records are delimited by comma (,) and blank space.  One may
+    /// specify alternative delimiters using the second argument.
+    /// @note This function attempts to read everything in the named file
+    /// into memory in one-shot, therefore it may not be able to handle
+    /// very large files.  Because the dynamic memory allocation may
+    /// fragment the memory address space, the amount of memory available
+    /// to this function may be significantly less than the amount of
+    /// physical memory.
+    virtual int readCSV(const char* filename, const int maxrows=0,
+			const char* delimiters=0) =0;
 
     /// Write the in-memory data records to the specified directory on
     /// disk.  If the table name (@c tname) is a null string or an empty,

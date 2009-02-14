@@ -45,10 +45,10 @@ static std::string metadata;
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
-	"[-r a-row-in-ASCII-form] [-t text-file-to-read] [-b break/delimiters-in-text-file]"
-	"[-m name:type[,name:type,...]] [-s select-clause]"
-	"[-w where-clause] [-v[=| ]verbose_level]\n\n"
-	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values\n"
+	"[-r a-row-in-ASCII] [-t text-file-to-read] [-b break/delimiters-in-text-file]"
+	"[-m name:type[,name:type,...]] [-m max-rows-per-file] "
+	"[-s select-clause] [-w where-clause] [-v[=| ]verbose_level]\n\n"
+	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
 	"\tbyte, short, int, long, float, double, key, and text\n"
 	"\tIt only checks the first character of the types.\n"
@@ -68,10 +68,29 @@ static void usage(const char* name) {
 // } // addTables
 
 // function to parse the command line arguments
+// output arguments are:
+// qcnd --   list of query conditions, i.e., where clauses
+// sel  --   select clause (only one of this, all query conditions share the
+//           same select clause)
+// outdir -- The output directory name, where to output the data read into
+//           memory
+// dsname -- the name of the data set just in case the directory does not
+//           contain an existing dataset, if not specified, the directory
+//           name will be used
+// del    -- the delimiters used to parse the ASCII data, if not specified,
+//           coma is assumed.  Blank spaces are always skipped except insie
+//           quotes.
+// nrpf   -- the number of rows per file.  This parameter is used to
+//           reserve space for dynamic data structures such as
+//           std::vector.  Reserving a correct amount of space can reduce
+//           the need for dynamic memory allocation and reduce execution
+//           time.  However, if not specified or specified in correctly,
+//           the program should still function correctly.
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		       const char*& outdir, const char*& dsname,
-		       const char*& del) {
+		       const char*& del, int& nrpf) {
     sel = 0;
+    nrpf = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
 	    switch (argv[i][1]) {
@@ -105,16 +124,30 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	    case 'M':
 		if (i+1 < argc) {
 		    ++ i;
-		    if (! metadata.empty())
-			metadata += ", ";
-		    metadata += argv[i];
+		    if (isdigit(*argv[i])) {
+			int nn = atoi(argv[i]);
+			if (nn > nrpf)
+			    nrpf = nn;
+		    }
+		    else {
+			if (! metadata.empty())
+			    metadata += ", ";
+			metadata += argv[i];
+		    }
 		}
 		break;
 	    case 'n':
 	    case 'N':
 		if (i+1 < argc) {
 		    ++ i;
-		    dsname = argv[i];
+		    if (isdigit(*argv[i])) {
+			int nn = atoi(argv[i]);
+			if (nn > nrpf)
+			    nrpf = nn;
+		    }
+		    else {
+			dsname = argv[i];
+		    }
 		}
 		break;
 	    case 'r':
@@ -712,10 +745,10 @@ int main(int argc, char** argv) {
     const char* sel;
     const char* dsn = 0;
     const char* del = 0; // delimiters
-    int ierr;
+    int ierr, nrpf;
     qList qcnd;
 
-    parse_args(argc, argv, qcnd, sel, outdir, dsn, del);
+    parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
     bool usersupplied = (! metadata.empty() &&
 			 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
@@ -726,7 +759,7 @@ int main(int argc, char** argv) {
 	    if (ibis::gVerbose >= 0)
 		std::cout << *argv << " to read CSV file " << csvfiles[i]
 			  << " ..." << std::endl;
-	    ierr = ta->readCSV(csvfiles[i], del);
+	    ierr = ta->readCSV(csvfiles[i], nrpf, del);
 	    if (ierr < 0)
 		std::clog << *argv << " failed to parse file \""
 			  << csvfiles[i] << "\", readCSV returned "

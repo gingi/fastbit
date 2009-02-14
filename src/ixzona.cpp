@@ -186,7 +186,7 @@ void ibis::zona::activateCoarse() const {
 			"can not regenerate the bitvectors");
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9)
+	LOGGER(ibis::gVerbose > 8)
 	    << "ibis::column[" << col->name()
 	    << "]::zona::activateCoarse(all) "
 	    << "retrieving data from ibis::fileManager::storage(0x"
@@ -213,7 +213,7 @@ void ibis::zona::activateCoarse() const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9)
+	    LOGGER(ibis::gVerbose > 8)
 		<< "ibis::column[" << col->name()
 		<< "]::zona::activateCoarse(all) "
 		<< "retrieving data from file \"" << fname << "\"";
@@ -287,7 +287,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	return;
     }
     if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9)
+	LOGGER(ibis::gVerbose > 8)
 	    << "ibis::column[" << col->name()
 	    << "]::zona::activateCoarse(" << i
 	    << ") retrieving data from ibis::fileManager::storage(0x"
@@ -309,7 +309,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose >= 9)
+	    LOGGER(ibis::gVerbose > 8)
 		<< "ibis::column[" << col->name()
 		<< "]::zona::activateCoarse(" << i
 		<< ") retrieving data from file \"" << fname << "\"";
@@ -360,7 +360,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 			static_cast<long unsigned>(j));
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose >= 9)
+	LOGGER(ibis::gVerbose > 8)
 	    << "ibis::column[" << col->name()
 	    << "]::zona::activateCoarse(" << i << ", " << j
 	    << ") retrieving data from ibis::fileManager::storage(0x"
@@ -389,7 +389,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 	if (coffsets[j] > coffsets[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose >= 9)
+		LOGGER(ibis::gVerbose > 8)
 		    << "ibis::column[" << col->name()
 		    << "]::zona::activateCoarse(" << i << ", " << j
 		    << ") retrieving data from file \"" << fname << "\"";
@@ -866,7 +866,7 @@ int ibis::zona::writeCoarse(int fdes) const {
     array_t<int32_t> offs(nc+1);
     int ierr = UnixWrite(fdes, &nc, sizeof(nc));
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::zona::writeCoarse(" << fdes << ") failed to write "
 	    << "an integer";
 	return -5;

@@ -54,7 +54,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	for (uint32_t i = 0; i < nobs; ++ i) {
@@ -104,7 +104,7 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -159,7 +159,7 @@ int ibis::mesa::write(const char* dt) const {
     offs[0] = ((sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+15)/8)*8;
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::mesa::write(" << fnm << ") failed to seek to " << offs[0];
 	UnixClose(fdes);
 	remove(fnm.c_str());
@@ -210,7 +210,7 @@ int ibis::mesa::write(int fdes) const {
     offs[0] = ((start+sizeof(int32_t)*(nobs+1) + 2*sizeof(uint32_t)+7)/8) * 8;
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::mesa::write(" << fdes << ") failed to seek to "
 	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);

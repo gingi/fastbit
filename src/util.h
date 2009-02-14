@@ -917,9 +917,10 @@ namespace ibis {
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
 
-	/// A buffer is intended to some temporary workspace in memory.
+	/// A buffer is intended to be a temporary workspace in memory.
 	/// The constructor allocates a certain amount of memory, default
-	/// 16 MB; the destructor release the memory.
+	/// 16 MB; the destructor release the memory.  Its size can not be
+	/// changed.
 	template <typename T>
 	class buffer {
 	public:
@@ -928,12 +929,14 @@ namespace ibis {
 
 	    T& operator[](uint32_t i) {return buf[i];}
 	    const T& operator[](uint32_t i) const {return buf[i];}
+	    /// Address of the buffer allocated.
 	    T* address() const {return buf;}
+	    /// The number of elements in the buffer.
 	    uint32_t size() const {return nbuf;}
 
 	private:
-	    T* buf;
-	    uint32_t nbuf;
+	    T* buf; ///< The address of the buffer.
+	    uint32_t nbuf; ///< The number of elements in the buffer.
 	}; // buffer
 
 	/// A class for logging error messages.  The caller can use the

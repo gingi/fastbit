@@ -94,7 +94,7 @@ extern "C" {
 	    return reinterpret_cast<void*>(-2L);
 	const ibis::part *et0 = myList->et;
 	const time_t myid = ibis::fileManager::instance().iBeat();
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "INFO: thread (local id " << myid
 	    << ") start evaluating queries on partition " << et0->name();
 
@@ -115,7 +115,7 @@ extern "C" {
 		    ++ (*myList->nerrors);
 		}
 	    }
-	    LOGGER(ibis::gVerbose >= 3)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "INFO: thread " << myid << " completed " << mycnt
 		<< " set" << (mycnt > 1 ? "s" : "")
 		<< " of range conditions and encountered " << myerr << " error"
@@ -873,7 +873,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
 				   "encountered a line that has more than "
 				   "%d characters.", MAX_LINE);
 	}
-	LOGGER(ibis::gVerbose >= 15) << buf;
+	LOGGER(ibis::gVerbose > 14) << buf;
 
 	if (strnicmp(buf, "END HEADER", 10) == 0) {
 	    break;
@@ -953,7 +953,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 				   "encountered a line that has more than "
 				   "%d characters.", MAX_LINE);
 	}
-	LOGGER(ibis::gVerbose >= 15) << buf;
+	LOGGER(ibis::gVerbose > 14) << buf;
 
 	if (strnicmp(buf, "END HEADER", 10) == 0) {
 	    break;
@@ -1040,7 +1040,7 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 				   "a line that has more than %d characters",
 				   MAX_LINE);
 	}
-	LOGGER(ibis::gVerbose >= 7) << buf;
+	LOGGER(ibis::gVerbose > 6) << buf;
 
 	// s1 points to the value come after = sign
 	s1 = strchr(buf, '=');
@@ -2230,7 +2230,7 @@ array_t<int32_t>* ibis::part::selectInts
 	}
     }
     catch (const std::exception &e) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2239,7 +2239,7 @@ array_t<int32_t>* ibis::part::selectInts
 	res = 0;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2248,7 +2248,7 @@ array_t<int32_t>* ibis::part::selectInts
 	res = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2273,7 +2273,7 @@ array_t<uint32_t>* ibis::part::selectUInts
 	}
     }
     catch (const std::exception &e) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2282,7 +2282,7 @@ array_t<uint32_t>* ibis::part::selectUInts
 	res = 0;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2291,7 +2291,7 @@ array_t<uint32_t>* ibis::part::selectUInts
 	res = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2316,7 +2316,7 @@ array_t<int64_t>* ibis::part::selectLongs
 	}
     }
     catch (const std::exception &e) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2325,7 +2325,7 @@ array_t<int64_t>* ibis::part::selectLongs
 	res = 0;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2334,7 +2334,7 @@ array_t<int64_t>* ibis::part::selectLongs
 	res = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
@@ -2359,7 +2359,7 @@ array_t<float>* ibis::part::selectFloats
 	}
     }
     catch (const std::exception &e) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2368,7 +2368,7 @@ array_t<float>* ibis::part::selectFloats
 	res = 0;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2377,7 +2377,7 @@ array_t<float>* ibis::part::selectFloats
 	res = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2402,7 +2402,7 @@ array_t<double>* ibis::part::selectDoubles
 	}
     }
     catch (const std::exception &e) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2411,7 +2411,7 @@ array_t<double>* ibis::part::selectDoubles
 	res = 0;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2420,7 +2420,7 @@ array_t<double>* ibis::part::selectDoubles
 	res = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
@@ -2630,7 +2630,7 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
 		   "column named %s", cmp.colName());
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::estimateRange("
 	<< cmp << ") <= " << ret;
     return ret;
@@ -2652,7 +2652,7 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
 		   "named %s", cmp.colName());
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::estimateRange(" << cmp << ") <= "
 	<< ret;
     return ret;
@@ -2680,7 +2680,7 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	}
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::evaluateRange("
 	<< cmp << "), ierr = " << ierr;
     return ierr;
@@ -2707,7 +2707,7 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	}
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::evaluateRange("
 	<< cmp << "), ierr = " << ierr;
     return ierr;
@@ -2745,12 +2745,12 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
     }
 
     if (high.size() == low.size() && high.cnt() > low.cnt()) {
-	LOGGER(ibis::gVerbose >= 8)
+	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
 	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
     }
     else {
-	LOGGER(ibis::gVerbose >= 8)
+	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
 	    << cmp << ") = " << low.cnt();
     }
@@ -2786,12 +2786,12 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
     }
 
     if (high.size() == low.size() && high.cnt() > low.cnt()) {
-	LOGGER(ibis::gVerbose >= 8)
+	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
 	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
     }
     else {
-	LOGGER(ibis::gVerbose >= 8)
+	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
 	    << cmp << ") = " << low.cnt();
     }
@@ -3030,6 +3030,11 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	}
     }
     else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::doScan(" << cmp
+	    << ") can not process the condition on column type "
+	    << ibis::TYPESTRING[(int)(*it).second->type()];
 	return -4;
     }
 
@@ -3383,7 +3388,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		       static_cast<long unsigned>(nEvents));
 	hits.adjustSize(0, nEvents); // append 0 bits or remove extra bits
     }
-    LOGGER(ibis::gVerbose >= 12)
+    LOGGER(ibis::gVerbose > 11)
 	<< "ibis::part[" << name() << "]: comparison " << cmp
 	<< " is evaluated to have " << hits.cnt()
 	<< " hits out of " << mask.cnt() << " candidates";
@@ -3593,7 +3598,7 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		 static_cast<long unsigned>(nEvents));
 	// hits.adjustSize(0, nEvents); // append 0 bits or remove extra bits
     }
-    LOGGER(ibis::gVerbose >= 12)
+    LOGGER(ibis::gVerbose > 11)
 	<< "ibis::part[" << name() << "]: negative comparison "
 	<< cmp << " is evaluated to have " << hits.cnt()
 	<< " hits out of " << mask.cnt() << " candidates";
@@ -3620,7 +3625,7 @@ float ibis::part::getUndecidable(const ibis::qContinuousRange &cmp,
 		   cmp.colName());
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::getUndecidable("
 	<< cmp << ") get a bitvector with " << iffy.cnt()
 	<< " nonzeros, " << ret*100
@@ -3643,7 +3648,7 @@ float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
 		   cmp.colName());
     }
 
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::getUndecidable("
 	<< cmp << ") get a bitvector with " << iffy.cnt()
 	<< " nonzeros, " << ret*100
@@ -3701,7 +3706,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	return 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::part[" << m_name
 	    << "]::doScan - starting scaning data for \"" << cmp
 	    << "\" with mask (" << mask.cnt() << " out of "
@@ -3804,7 +3809,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			tmp2 = cols[i]->elementSize() * iix[1];
 			ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
 			if (ierr < 0) {
-			    LOGGER(ibis::gVerbose >= 1)
+			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
 				<< "]::doScan(" << cmp
@@ -3834,7 +3839,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -3862,7 +3867,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -3892,7 +3897,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -3920,7 +3925,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -3948,7 +3953,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -3976,7 +3981,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4004,7 +4009,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4032,7 +4037,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4060,7 +4065,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4088,7 +4093,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4133,7 +4138,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    unsigned tmp1 = cols[i]->elementSize() * iix[j];
 			    ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
 			    if (ierr < 0) {
-				LOGGER(ibis::gVerbose >= 1)
+				LOGGER(ibis::gVerbose > 0)
 				    << "Warning -- ibis::part["
 				    << (m_name ? m_name : "?")
 				    << "]::doScan(" << cmp
@@ -4160,7 +4165,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4188,7 +4193,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4218,7 +4223,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4246,7 +4251,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4274,7 +4279,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4302,7 +4307,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4330,7 +4335,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4358,7 +4363,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4386,7 +4391,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4414,7 +4419,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    else {
 				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
 				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose >= 1)
+				    LOGGER(ibis::gVerbose > 0)
 					<< "Warning -- ibis::part["
 					<< (m_name ? m_name : "?")
 					<< "]::doScan(" << cmp
@@ -4533,7 +4538,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
     long ierr = 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::part[" << m_name
 	    << "]::calculate - starting to evaluate \"" << trm
 	    << "\" with mask (" << msk.cnt() << " out of "
@@ -5707,7 +5712,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    ++(*nerrors);
 	}
 
-	LOGGER(ibis::gVerbose >= 5)
+	LOGGER(ibis::gVerbose > 4)
 	    << "ibis::part::queryTest(" << att->name() << ") found "
 	    << cnt0 << " hit" << (cnt0<2?"":"s") << " in ["
 	    << low << ", " << high << ")";
@@ -6350,7 +6355,7 @@ long ibis::part::doCompare(const char* file,
 		diff = *ii * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "ibis::part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
@@ -6386,7 +6391,7 @@ long ibis::part::doCompare(const char* file,
 		if (static_cast<uint32_t>(diff) < nbuf) {
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != *ii * elem) {
-			LOGGER(ibis::gVerbose >= 1)
+			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file << ", " << cmp
@@ -6418,7 +6423,7 @@ long ibis::part::doCompare(const char* file,
 			diff = j * elem;
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
-			    LOGGER(ibis::gVerbose >= 1)
+			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file << ", "
@@ -6434,7 +6439,7 @@ long ibis::part::doCompare(const char* file,
 			    }
 			}
 			else {
-			    LOGGER(ibis::gVerbose >= 1)
+			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file << ", " << cmp
@@ -6450,7 +6455,7 @@ long ibis::part::doCompare(const char* file,
 		diff = j * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
 			<< "]::doCompare(" << file << ", "
@@ -6467,7 +6472,7 @@ long ibis::part::doCompare(const char* file,
 		    }
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file << ", "
 			<< cmp << ") failed to read a value at " << diff;
@@ -6485,7 +6490,7 @@ long ibis::part::doCompare(const char* file,
 		diff = *ii * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file << ", "
 			<< cmp << ") failed to seek to " << diff;
@@ -6509,7 +6514,7 @@ long ibis::part::doCompare(const char* file,
 		    diff = j * elem;
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
-			LOGGER(ibis::gVerbose >= 1)
+			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file << ", "
@@ -6684,7 +6689,7 @@ long ibis::part::negativeCompare(const char* file,
 		diff = *ii * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file << ", " << cmp
 			<< ") failed to seek to " << diff;
@@ -6723,7 +6728,7 @@ long ibis::part::negativeCompare(const char* file,
 		if (static_cast<uint32_t>(diff) < nbuf) {
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != *ii * elem) {
-			LOGGER(ibis::gVerbose >= 1)
+			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file << ", "
@@ -6739,7 +6744,7 @@ long ibis::part::negativeCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			LOGGER(ibis::gVerbose >= 1)
+			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file << ", "
@@ -6760,7 +6765,7 @@ long ibis::part::negativeCompare(const char* file,
 			diff = j * elem;
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
-			    LOGGER(ibis::gVerbose >= 1)
+			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
 				<< "]::negativeCompare(" << file << ", "
@@ -6785,7 +6790,7 @@ long ibis::part::negativeCompare(const char* file,
 		diff = j * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file << ", "
@@ -6814,7 +6819,7 @@ long ibis::part::negativeCompare(const char* file,
 		diff = *ii * elem;
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file << ", "
@@ -6840,7 +6845,7 @@ long ibis::part::negativeCompare(const char* file,
 		    diff = j * elem;
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
-			LOGGER(ibis::gVerbose >= 1)
+			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file << ", "
@@ -8570,10 +8575,10 @@ void ibis::part::doBackup() {
 	FILE* fptr = popen(cmd, "r");
 	if (fptr) {
 	    char* buf = new char[MAX_LINE];
-	    LOGGER(ibis::gVerbose >= 5) << "output from command " << cmd;
+	    LOGGER(ibis::gVerbose > 4) << "output from command " << cmd;
 
 	    while (fgets(buf, MAX_LINE, fptr))
-		LOGGER(ibis::gVerbose >= 5) << buf;
+		LOGGER(ibis::gVerbose > 4) << buf;
 
 	    delete [] buf;
 

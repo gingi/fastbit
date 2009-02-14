@@ -323,7 +323,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
     if (terms.empty()) // no join terms to use
 	return;
 
-    LOGGER(ibis::gVerbose >= 7)
+    LOGGER(ibis::gVerbose > 6)
 	<< "ibis::whereClause::amplify -- current query expression\n" << *expr_;
 
     for (uint32_t i = 0; i < terms.size(); ++ i) {
@@ -404,7 +404,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
 
     ibis::qExpr::simplify(expr_);
     if (expr_ != 0) // may become nil pointer after simplify
-	LOGGER(ibis::gVerbose >= 7)
+	LOGGER(ibis::gVerbose > 6)
 	    << "ibis::whereClause::amplify -- "
 	    "query expression with additional constraints\n" << *expr_;
 } // ibis::whereClause::amplify

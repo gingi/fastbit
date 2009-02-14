@@ -160,7 +160,7 @@ int ibis::mensa::addPartition(const char* dir) {
 } // ibis::mensa::addPartition
 
 void ibis::mensa::clear() {
-    LOGGER(ibis::gVerbose >= 3)
+    LOGGER(ibis::gVerbose > 2)
 	<< "ibis::mensa::clear -- clearing the existing content of "
 	<< parts.size() << " partition"
 	<< (parts.size()>1 ? "s" : "") << " with "
@@ -261,7 +261,7 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 		delete ind;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 2)
+		LOGGER(ibis::gVerbose > 1)
 		    << "ibis::mensa::buildIndex(" << colname << ", "
 		    << (option != 0 ? option : col->indexSpec()) << ") failed";
 	    }
@@ -667,7 +667,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 		}
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 2)
+		LOGGER(ibis::gVerbose > 1)
 		    << mesg << " -- unable to process column " << tms[i]
 		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
 		break;}
@@ -2188,6 +2188,7 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
 	    break;
 	}
     }
+    if (row_width == 0) row_width = 1024 * t.naty.size();
     row_width = ibis::fileManager::bytesFree() / row_width;
     j = 0;
     while (row_width > 0) {

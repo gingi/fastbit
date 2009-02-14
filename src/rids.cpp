@@ -132,23 +132,24 @@ int ibis::ridHandler::read(ibis::RIDSet& rids, const char* fname) {
     while (0 == readRidCount(from, nr)) {
 	if (nr <= 0)
 	    break;
-	LOGGER(ibis::gVerbose >= 2) << "ridHandler to read " << nr
-		  << (nr>1 ? " rids" : " rid") << " from " << fname;
+	LOGGER(ibis::gVerbose > 1)
+	    << "ridHandler to read " << nr << (nr>1 ? " rids" : " rid")
+	    << " from " << fname;
 	rids.reserve(rids.size()+nr);
 	for (int i = 0; i < nr && !from.fail(); ++i) {
 	    ibis::rid_t tmp;
 	    from >> tmp;
 	    rids.push_back(tmp);
-	    LOGGER(ibis::gVerbose >= 3)
+	    LOGGER(ibis::gVerbose > 2)
 		<< rids.size()-1 << ":\t" << rids.back();
 	}
     }
     from.close();
 
     nr = rids.size();
-    LOGGER(ibis::gVerbose >= 1) << "ridHandler read " << nr
-	      << (nr > 1 ? " rids" : " rid") << " from " << _dbName
-	      << " in file " << fname;
+    LOGGER(ibis::gVerbose > 0)
+	<< "ridHandler read " << nr << (nr > 1 ? " rids" : " rid")
+	<< " from " << _dbName << " in file " << fname;
     return nr;
 } // ibis::ridHandler::read
 

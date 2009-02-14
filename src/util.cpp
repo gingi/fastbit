@@ -1468,7 +1468,13 @@ void ibis::util::getGMTime(char *str) {
 #endif
 } // ibis::util::getGMTime
 
-/// Constructor.  
+/// Constructor.  The incoming argument is the numbre of elements to be
+/// allocated.  If it is zero, it defaults to use 16 MB of space, and the
+/// number of elements 16 million divided by the size of the element.  If
+/// it fails to allocate the requested memory, it will reduce the number of
+/// elements by a half and then by a quarter for a total of seven times.
+/// If it failed all eight tries, it will set the buffer address to nil and
+/// the number of elements to zero.
 template <typename T>
 ibis::util::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
     if (nbuf == 0)
@@ -1672,7 +1678,7 @@ int truncate(const char* name, uint32_t bytes) {
     int ierr = 0;
     int fh = _open(name, _O_RDWR | _O_CREAT, _S_IREAD | _S_IWRITE );
     if (fh >= 0) { // open successful
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "file \"" << name
 	    << "\" length before truncation is " << _filelength(fh);
 	ierr = _chsize(fh, bytes);
@@ -1682,7 +1688,7 @@ int truncate(const char* name, uint32_t bytes) {
 		<< ") returned " << ierr;
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "file \"" << name
 		<< "\" length after truncation is " << _filelength(fh);
 	}

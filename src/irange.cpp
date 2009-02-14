@@ -52,7 +52,7 @@ ibis::range::range(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning - ibis::column[" << col->name()
 	    << "]::range::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -103,7 +103,7 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning - ibis::column[" << col->name()
 	    << "]::range::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -224,7 +224,7 @@ int ibis::range::read(const char* f) {
     if (ierr != static_cast<int>(end)) {
 	UnixClose(fdes);
 	remove(fnm.c_str());
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::range::read(" << fnm << ") failed to seek to " << end;
 	return -6;
     }

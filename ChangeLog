@@ -1,3 +1,19 @@
+2009-02-13 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tafel.h, src/tafel.cpp, examples/ardea.cpp: add
+	an optional argument to readCSV for user to specify the maximum
+	number of rows expected from the input file, add user to specify
+	the maximum number of rows on the command line of ardea (a
+	suggestion from Norbert Heusser <heusser at online.de>)
+	* src/category.cpp: add a buffer to store starting positions in
+	text::startPosition to reduce the numbre of calls to fwrite
+	* src/mensa.cpp: the constructor is cursor may divide by zero is
+	the table contains only string-valued data, in this case, assume
+	each value takes no more than 1024 bytes
+	* src/category.cpp: add a buffer to store the starting positions
+	in text::search to reduce the number of read operations, unroll
+	the loop for matching strings, make the comparisons
+	case-insensitive
+
 2009-02-12 John Wu <John.Wu at ACM.org>
 	* configure.ac: added space surrounding expression of the form
 	"test a=b"

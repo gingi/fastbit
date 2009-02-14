@@ -45,7 +45,7 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::fade::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -178,7 +178,7 @@ int ibis::fade::write(int fdes) const {
     offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::fade::write(" << fdes << ") failed to seek to" << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
 	return -3;
@@ -266,7 +266,7 @@ int ibis::fade::read(const char* f) {
     uint32_t nb;
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != end) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::fade::read(" << fnm << ") failed to seek to " << end;
 	UnixClose(fdes);
 	clear();
@@ -541,7 +541,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	}
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose >= 6)
+    LOGGER(ibis::gVerbose > 5)
 	<< "DEBUG: fade::constructor " << vals.size()
 	<< "... convert to range encoding ...";
 #endif
@@ -555,7 +555,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	nobs += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose >= 6) << "DEBUG: fade::constructor DONE";
+    LOGGER(ibis::gVerbose > 5) << "DEBUG: fade::constructor DONE";
 #endif
 
     optionalUnpack(bits, col->indexSpec());

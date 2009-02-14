@@ -32,7 +32,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -67,7 +67,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::slice::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -139,7 +139,7 @@ int ibis::slice::write(int fdes) const {
     offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::slice::write(" << fdes << ") failed to seek to "
 	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);

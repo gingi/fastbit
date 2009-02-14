@@ -84,7 +84,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 
     std::ifstream tdf(f);
     if (! tdf) {
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::keywords::readTermDocFile -- failed to open \""
 	    << f << "\" for reading";
 	return -1;
@@ -94,7 +94,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     uint32_t nbuf = mybuf.size();
     char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::keywords::readTermDocFile(" << f
 	    << ") -- failed to acquire a buffer to reading";
 	return -2;
@@ -194,7 +194,7 @@ int ibis::keywords::readLine(std::istream &in,
     str1 = linebuf;
     char c = readKeyword(const_cast<const char*&>(str1), key);
     if (c != ':') { // failed to find the required delimiter after keyword
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::keywords::readLine -- failed to find the "
 	    "required delimiter ':' after the keyword \"" << key
 	    << "\".  Skip the line";

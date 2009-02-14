@@ -106,14 +106,14 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (0 == conf) {
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::resource::read -- can not find any of the "
 	    "following configuration files:\n" << tried.c_str();
 	return;
     }
 
     char *value;
-    LOGGER(ibis::gVerbose >= 1)
+    LOGGER(ibis::gVerbose > 0)
 	<< "ibis::resource::read -- Reading configuration file \""
 	<< (name?name:"") << "\""; 
     while ( !feof(conf) ) {
@@ -140,7 +140,7 @@ void ibis::resource::read(const char* fn) {
 	    add(name, ibis::util::trim(value));
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 7)
+	    LOGGER(ibis::gVerbose > 6)
 		<< "ibis::resource::read -- skipping line \""
 		<< line << "\" because it contains no '='";
 	}

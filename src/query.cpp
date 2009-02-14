@@ -481,7 +481,7 @@ int ibis::query::setWhereClause(const char* str) {
 	ibis::util::logger lg(0);
 	lg.buffer() << "query[" << myID << "]::setWhereClause -- WHERE \""
 		    << str << "\"";
-	if (ibis::gVerbose >= 4)
+	if (ibis::gVerbose > 3)
 	    lg.buffer() << "\n  Translated the WHERE clause into: "
 			<< *conds.getExpr();
     }
@@ -603,7 +603,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(ibis::gVerbose >= 2)
+    LOGGER(ibis::gVerbose > 1)
 	<< "query[" << myID << "]::setWhereClause converted three arrays to \""
 	<< *(conds.getExpr()) << "\"";
     return 0;
@@ -653,7 +653,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     else {
 	state = SET_PREDICATE;
     }
-    LOGGER(ibis::gVerbose >= 2)
+    LOGGER(ibis::gVerbose > 1)
 	<< "query[" << myID
 	<< "]::setWhereClause accepted new query conditions \""
 	<< *conds.getExpr() << "\"";
@@ -858,7 +858,7 @@ int ibis::query::estimate() {
 			   pcnt);
 	}
 	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
-	    (ibis::gVerbose >= 30 ||
+	    (ibis::gVerbose > 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= (hits?hits->bytes():0)+
 	      (sup?sup->bytes():0)))) {
@@ -1111,10 +1111,10 @@ int ibis::query::evaluate(const bool evalSelect) {
 			   pcnt);
 	}
  	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
-	    (ibis::gVerbose >= 30 ||
+	    (ibis::gVerbose > 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= hits->bytes()))) {
-	    LOGGER(ibis::gVerbose >= 9) << "The hit vector" << *hits;
+	    LOGGER(ibis::gVerbose > 8) << "The hit vector" << *hits;
 	}
     }
     return 0;
@@ -1549,7 +1549,7 @@ std::string ibis::query::removeComplexConditions() {
 	std::ostringstream oss0, oss1;
 	simple->print(oss0);
 	tail->print(oss1);
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::query::removeComplexConditions split \""
 	    << (conds.getString() ? conds.getString() : "<long expression>")
 	    << "\" into \"" << *simple << "\" ("
@@ -2220,7 +2220,7 @@ void ibis::query::reorderExpr() {
 
     // call qExpr::reorder to do the actual work
     double ret = conds->reorder(wt);
-    LOGGER(ibis::gVerbose >= 6)
+    LOGGER(ibis::gVerbose > 5)
 	<< "query[" << myID << "]:reorderExpr returns " << ret
 	<< ".  The new query expression is \n" << *conds.getExpr();
 } // ibis::query::reorderExpr
@@ -2299,7 +2299,7 @@ void ibis::query::getBounds() {
 void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 			     ibis::bitvector& high) const {
     if (term == 0) return;
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "query[" << myID << "]::doEstimate -- starting to estimate "
 	<< *term;
 
@@ -2497,14 +2497,14 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
     LOGGER(ibis::gVerbose >= 0) << "low \n" << low
 			   << "\nhigh \n" << high;
 #else
-    if (ibis::gVerbose >= 30 ||
+    if (ibis::gVerbose > 30 ||
 	((low.bytes()+high.bytes()) < (2U << ibis::gVerbose))) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "low \n" << low << "\nhigh \n" << high;
     }
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5)
+    LOGGER(ibis::gVerbose > 4)
 	<< "ibis::query[" << myID << "]::doEstimate(" << *term
 	<< ") --> [" << low.cnt() << ", "
 	<< (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
@@ -2599,7 +2599,7 @@ int ibis::query::computeHits() {
     }
 
     if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
-	(ibis::gVerbose >= 30 || (ibis::gVerbose > 4 &&
+	(ibis::gVerbose > 30 || (ibis::gVerbose > 4 &&
 				  (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "ibis::query::computeHits() hit vector" << *hits
@@ -2747,7 +2747,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ht.set(0, mypart->nRows());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "query::[" << myID
 	<< "]::doScan -- reading data entries to resolve " << *term;
 
@@ -2843,7 +2843,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "query::[" << myID << "]::doScan -- reading data to resolve "
 	<< *term << " with mask.size() = " << mask.size()
 	<< " and mask.cnt() = " << mask.cnt();
@@ -3181,11 +3181,11 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 #if DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
-    if (ibis::gVerbose >= 30 || (ht.bytes() < (2 << ibis::gVerbose)))
+    if (ibis::gVerbose > 30 || (ht.bytes() < (2 << ibis::gVerbose)))
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5)
+    LOGGER(ibis::gVerbose > 4)
 	<< "ibis::query[" << myID << "]::doScan(" << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
@@ -3199,7 +3199,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mypart->nRows());
 	return 0;
     }
-    LOGGER(ibis::gVerbose >= 6)
+    LOGGER(ibis::gVerbose > 5)
 	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
 	<< *term;
 
@@ -3338,11 +3338,11 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #if DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
-    if (ibis::gVerbose >= 30 || (ht.bytes() < (2 << ibis::gVerbose)))
+    if (ibis::gVerbose > 30 || (ht.bytes() < (2 << ibis::gVerbose)))
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 5)
+    LOGGER(ibis::gVerbose > 4)
 	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
@@ -3362,7 +3362,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose >= 8)
+    LOGGER(ibis::gVerbose > 7)
 	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
 	<< *term;
 
@@ -3525,11 +3525,11 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #if DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
-    if (ibis::gVerbose >= 30 || (ht.bytes() < (2U << ibis::gVerbose)))
+    if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))
 	lg.buffer() << "ht \n" << ht;
 #endif
 #else
-    LOGGER(ibis::gVerbose >= 4)
+    LOGGER(ibis::gVerbose > 3)
 	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
 	<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 	<< ", ierr = " << ierr;

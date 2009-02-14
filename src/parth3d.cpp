@@ -106,7 +106,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
-	LOGGER(ibis::gVerbose >= 3)
+	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get3DDistribution attempting to compute a histogram of "
 	    << cname1 << ", " << cname2 << ", and " << cname3
@@ -244,7 +244,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -330,7 +330,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -415,7 +415,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -499,7 +499,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -583,7 +583,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -594,7 +594,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "ibis::part::get3DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
@@ -690,7 +690,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -776,7 +776,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -861,7 +861,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -945,7 +945,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1029,7 +1029,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1040,7 +1040,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "ibis::part::get3DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
@@ -1135,7 +1135,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1221,7 +1221,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1306,7 +1306,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1390,7 +1390,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1474,7 +1474,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1485,7 +1485,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "ibis::part::get3DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
@@ -1579,7 +1579,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1665,7 +1665,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1750,7 +1750,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1834,7 +1834,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1918,7 +1918,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -1929,7 +1929,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "ibis::part::get3DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
@@ -2023,7 +2023,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -2109,7 +2109,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -2194,7 +2194,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -2278,7 +2278,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -2362,7 +2362,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		delete vals3;
 		break;}
 	    default: {
-		LOGGER(ibis::gVerbose >= 4)
+		LOGGER(ibis::gVerbose > 3)
 		    << "ibis::part::get3DDistribution -- unable to "
 		    "handle column (" << cname3 << ") type "
 		    << ibis::TYPESTRING[(int)col3->type()];
@@ -2373,7 +2373,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    delete vals2;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose >= 4)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "ibis::part::get3DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
@@ -2384,7 +2384,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	delete vals1;
 	break;}
     default: {
-	LOGGER(ibis::gVerbose >= 4)
+	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::part::get3DDistribution -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
@@ -2635,7 +2635,7 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
     bnds3[0] = 0;
     bounds3[0] = vmin3;
 #if defined(_DEBUG) || defined(DEBUG)
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg.buffer() << "DEBUG -- " << mesg
 		    << " scale1 = " << std::setprecision(18) << scale1
@@ -2809,7 +2809,7 @@ long ibis::part::get3DDistribution(const char *constraints,
 	}
 
 	mask.copy(*(qq.getHitVector()));
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::part[" << (m_name ? m_name : "") << "]::get3DDistribution"
 	    << " -- the constraints \"" << constraints << "\" selects "
 	    << mask.cnt() << " record" << (mask.cnt() > 1 ? "s" : "")
@@ -2846,7 +2846,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
     long ierr = -1;
     switch (col1.type()) {
     default: {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get3DDistributionA -- does not suport column type "
 	    << ibis::TYPESTRING[(int)col1.type()] << " for column "
@@ -3014,7 +3014,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
     long ierr = -20;
     switch (col2.type()) {
     default:
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get3DDistributionA -- does not suport column type "
 	    << ibis::TYPESTRING[(int)col2.type()] << " for column "
@@ -3182,7 +3182,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
     long ierr = -40;
     switch (col3.type()) {
     default:
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get3DDistributionA -- does not suport column type "
 	    << ibis::TYPESTRING[(int)col3.type()] << " for column "
@@ -3447,7 +3447,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    return 0L;
 	}
 	mask.copy(*(qq.getHitVector()));
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << mesg << " -- constraints \"" << constraints << "\" select "
 	    << mask.cnt() << " record" << (mask.cnt() > 1 ? "s" : "")
 	    << " out of " << nEvents;

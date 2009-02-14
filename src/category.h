@@ -76,8 +76,8 @@ protected:
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;
     /// Read the string value of <code>i</code>th row.
     void readString(uint32_t i, std::string &val) const;
-    int readString(std::string&, int, long, long, char*, uint32_t,
-		   uint32_t&, off_t&) const;
+    int  readString(std::string&, int, long, long, char*, uint32_t,
+		    uint32_t&, off_t&) const;
 
 private:
     const text& operator=(const text&);

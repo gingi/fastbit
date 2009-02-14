@@ -715,7 +715,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		    << " contains conflicting type specifications";
 		return -2;
 	    }
-	    else LOGGER(ibis::gVerbose >= 3) 
+	    else LOGGER(ibis::gVerbose > 2) 
 		<< "ibis::tafel::write(" << dir
 		<< ") found existing data partition named "
 		<< tmp.name() << " with " << tmp.nRows()
@@ -915,7 +915,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::tafel::write completed writing partition " 
 	    << tname << " (" << tdesc << ") with "
 	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
@@ -1055,6 +1055,53 @@ void ibis::tafel::clearData() {
     } // for
 } // ibis::tafel::clearData
 
+/// Reserve space for maxr records in memory.
+void ibis::tafel::reserveSpace(unsigned maxr) {
+    nrows = 0;
+    for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
+	column& col = *((*it).second);
+	col.mask.clear();
+	switch (col.type) {
+	case ibis::BYTE:
+	    static_cast<array_t<signed char>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::UBYTE:
+	    static_cast<array_t<unsigned char>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::SHORT:
+	    static_cast<array_t<int16_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::USHORT:
+	    static_cast<array_t<uint16_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::INT:
+	    static_cast<array_t<int32_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::UINT:
+	    static_cast<array_t<uint32_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::LONG:
+	    static_cast<array_t<int64_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::ULONG:
+	    static_cast<array_t<uint64_t>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::FLOAT:
+	    static_cast<array_t<float>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::DOUBLE:
+	    static_cast<array_t<double>*>(col.values)->reserve(maxr);
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    static_cast<std::vector<std::string>*>(col.values)->reserve(maxr);
+	    break;
+	default:
+	    break;
+	} // switch
+    } // for
+} // ibis::tafel::reserveSpace
+
 void ibis::tafel::clear() {
     nrows = 0;
     colorder.clear();
@@ -1081,7 +1128,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		signed char tmp = static_cast<signed char>(itmp);
 		if (tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine "
 			<< "column " << i+1 << " in "
 			<< id << " (" << itmp << ") "
@@ -1094,7 +1141,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine column " << i+1
 		    << " in " << id << " can not be parsed "
 		    "correctly as an integer";
@@ -1106,7 +1153,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		unsigned char tmp = static_cast<unsigned char>(itmp);
 		if ((int64_t)tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine column " << i+1
 			<< " in " << id << " (" << itmp << ") "
 			<< "can not fit into a byte";
@@ -1118,7 +1165,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine column " << i+1
 		    << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1130,7 +1177,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		int16_t tmp = static_cast<int16_t>(itmp);
 		if (tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine "
 			<< "column " << i+1 << " in "
 			<< id << " (" << itmp << ") "
@@ -1144,7 +1191,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1157,7 +1204,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		uint16_t tmp = static_cast<uint16_t>(itmp);
 		if ((int64_t)tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine "
 			<< "column " << i+1 << " in "
 			<< id << " (" << itmp << ") "
@@ -1171,7 +1218,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1184,7 +1231,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		int32_t tmp = static_cast<int32_t>(itmp);
 		if (tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine "
 			<< "column " << i+1 << " in "
 			<< id << " (" << itmp << ") "
@@ -1198,7 +1245,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1211,7 +1258,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    if (ierr == 0) {
 		uint32_t tmp = static_cast<uint32_t>(itmp);
 		if ((int64_t)tmp != itmp) {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::parseLine "
 			<< "column " << i+1 << " in "
 			<< id << " (" << itmp << ") "
@@ -1225,7 +1272,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1242,7 +1289,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1259,7 +1306,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as an integer";
@@ -1276,7 +1323,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as a "
@@ -1294,7 +1341,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 		++ cnt;
 	    }
 	    else {
-		LOGGER(ibis::gVerbose >= 3)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- ibis::tafel::parseLine "
 		    << "column " << i+1 << " in " << id
 		    << " can not be parsed correctly as a "
@@ -1346,14 +1393,29 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     return ierr;
 } // ibis::tafel::appendRow
 
-int ibis::tafel::readCSV(const char* filename, const char* del) {
+int ibis::tafel::readCSV(const char* filename, const int maxrows,
+			 const char* del) {
     if (filename == 0 || *filename == 0) return -1;
     if (colorder.empty()) return -2;
     std::string delimiters = (del != 0 && *del != 0 ? del : ",");
+    ibis::horometer timer;
+    timer.start();
 
     char linebuf[MAX_LINE];
     std::ifstream csv(filename);
     if (! csv) return -2; // failed to open the specified data file
+    if (maxrows > 1) {
+	try { // try to reserve request amount of space
+	    reserveSpace(maxrows);
+	}
+	catch (...) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "tafel::readCSV(" << filename << ", " << maxrows << ", "
+		<< delimiters << ") -- failed to reserve space for "
+		<< maxrows << " rows from the named file";
+	    return -3;
+	}
+    }
 
     int ierr;
     int64_t itmp;
@@ -1361,6 +1423,9 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
     std::string stmp;
     size_t cnt = 0;
     size_t iline = 0;
+    const size_t pline = (ibis::gVerbose < 3 ? 1000000 :
+			  ibis::gVerbose < 5 ? 100000 :
+			  ibis::gVerbose < 7 ? 10000 : 1000);
     char* str; // pointer to next character to be processed
     const size_t ncol = colorder.size();
     while (csv.getline(linebuf, MAX_LINE)) {
@@ -1385,7 +1450,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    signed char tmp = static_cast<signed char>(itmp);
 		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1399,7 +1464,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1 
 			<< " can not be parsed correctly as an integer";
@@ -1412,7 +1477,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    unsigned char tmp = static_cast<unsigned char>(itmp);
 		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1425,7 +1490,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1438,7 +1503,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    int16_t tmp = static_cast<int16_t>(itmp);
 		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1451,7 +1516,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1464,7 +1529,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    uint16_t tmp = static_cast<uint16_t>(itmp);
 		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1477,7 +1542,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1490,7 +1555,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    int32_t tmp = static_cast<int32_t>(itmp);
 		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1503,7 +1568,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1516,7 +1581,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		if (ierr == 0) {
 		    uint32_t tmp = static_cast<uint32_t>(itmp);
 		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose >= 3)
+			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- ibis::tafel::readCSV "
 			    << "column " << i+1 << " in row "
 			    << iline+1 << " (" << itmp << ") "
@@ -1529,7 +1594,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1546,7 +1611,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1563,7 +1628,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as an integer";
@@ -1581,7 +1646,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as a "
@@ -1600,7 +1665,7 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 		    ++ cnt;
 		}
 		else {
-		    LOGGER(ibis::gVerbose >= 3)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- ibis::tafel::readCSV "
 			<< "column " << i+1 << " in row " << iline+1
 			<< " can not be parsed correctly as a "
@@ -1633,15 +1698,17 @@ int ibis::tafel::readCSV(const char* filename, const char* del) {
 	}
 	nrows += (cnt > 0);
 	++ iline;
-	LOGGER(ibis::gVerbose > 1 && (iline % 1000000) == 0)
-	    << "ibis::tafel::readCSV(" << filename << ") processed " << iline
-	    << " ...";
+	LOGGER(ibis::gVerbose > 0 && (iline % pline) == 0)
+	    << "ibis::tafel::readCSV(" << filename << ") processed line "
+	    << iline << " ...";
     }
 
-    LOGGER(ibis::gVerbose > 1)
+    timer.stop();
+    LOGGER(ibis::gVerbose > 0)
 	<< "ibis::tafel::readCSV(" << filename << ") processed " << iline
 	<< (iline>1 ? " lines":" line") << " of text and extracted " << nrows
-	<< (nrows>1?" records":" record") << std::endl;
+	<< (nrows>1?" records":" record") << " using " << timer.CPUTime()
+	<< " sec(CPU), " << timer.realTime() << " sec(elapsed)";
     return 0;
 } // ibis::tafel::readCSV
 

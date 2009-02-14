@@ -209,7 +209,7 @@ int ibis::egale::write(int fdes) const {
     array_t<int32_t> offs(nbits+1);
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::egale::write(" << fdes << ") failed to compute "
 	    "the current file pointer position, must be an invalid file";
 	return -1;
@@ -220,7 +220,7 @@ int ibis::egale::write(int fdes) const {
     offs[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offs[0], SEEK_SET);
     if (ierr != offs[0]) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::egale::write(" << fdes << ") failed to seek to "
 	    << offs[0];
 	UnixSeek(fdes, start, SEEK_SET);
@@ -361,7 +361,7 @@ int ibis::egale::read(const char* f) {
     if (ierr != end) {
 	clear();
 	UnixClose(fdes);
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::egale::read(" << fnm << ") failed to seek to " << end;
 	return -7;
     }

@@ -118,7 +118,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear(); // need to call clear before rethrow the exception
@@ -151,7 +151,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -183,7 +183,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
@@ -217,7 +217,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 	}
     }
     catch (...) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();

@@ -32,7 +32,8 @@ public:
     virtual int appendRow(const ibis::table::row&);
     virtual int appendRow(const char*, const char*);
     virtual int appendRows(const std::vector<ibis::table::row>&);
-    virtual int readCSV(const char* filename, const char* delimiters);
+    virtual int readCSV(const char* filename, const int maxrows=0,
+			const char* delimiters=0);
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc) const;
     virtual void clearData();
@@ -100,6 +101,7 @@ protected:
 		    const std::vector<std::string>& vals,
 		    ibis::bitvector& totmask,
 		    const ibis::bitvector& newmask) const;
+    void reserveSpace(unsigned);
 
 private:
     tafel(const tafel&);
