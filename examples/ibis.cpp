@@ -1275,12 +1275,13 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv,
 		       int& mode, ibis::partList& tlist,
-		       stringList& qlist, stringList& alist,
+		       stringList& qlist, stringList& alist, stringList& slist,
 		       std::vector<std::string> &queff, ibis::joinlist& joins) {
     mode = -1;
-    tlist.clear();
-    qlist.clear();
-    alist.clear();
+    alist.clear(); // list of append operations
+    qlist.clear(); // list of query strings
+    slist.clear(); // list of sort request
+    tlist.clear(); // list of data partitions
 
     int accessIndexInWhole = 0;
     std::vector<const char*> confs; // name of the configuration files
@@ -1532,6 +1533,10 @@ static void parse_args(int argc, char** argv,
 			ibis::_scan_option = atoi(argv[i+1]);
 			i = i + 1;
 		    }
+		    else if (isalpha(*argv[i+1])) {
+			slist.push_back(argv[i+1]);
+			i = i + 1;
+		    }
 		    else {
 			sequential_scan = true;
 		    }
@@ -1540,7 +1545,18 @@ static void parse_args(int argc, char** argv,
 		    sequential_scan = true;
 		}
 #else
-		sequential_scan = true;
+		if (i+1 < argc) {
+		    if (isalpha(*argv[i+1])) {
+			slist.push_back(argv[i+1]);
+			i = i + 1;
+		    }
+		    else {
+			sequential_scan = true;
+		    }
+		}
+		else {
+		    sequential_scan = true;
+		}
 #endif
 		break;
 	    case 't':
@@ -1624,8 +1640,9 @@ static void parse_args(int argc, char** argv,
     }
     if (mode < 0) {
 	mode = (qlist.empty() && testing <= 0 && build_index <= 0 &&
-		alist.empty() && printcmds.empty() && joins.empty() &&
-		rdirs.empty() && yankstring == 0 && keepstring == 0);
+		alist.empty() && slist.empty() && printcmds.empty() &&
+		rdirs.empty() && joins.empty() &&
+		yankstring == 0 && keepstring == 0);
     }
     if (qlist.size() > 1U) {
 	if (testing > 0) {
@@ -3410,8 +3427,7 @@ int main(int argc, char** argv) {
 
     try {
 	int interactive;
-	stringList qlist;
-	stringList alist;
+	stringList alist, qlist, slist;
 	ibis::joinlist joins;
 	std::vector<std::string> queff; // queries read from files (-f)
 	const char* uid = ibis::util::userName();
@@ -3419,7 +3435,8 @@ int main(int argc, char** argv) {
 	timer.start();
 
 	// parse the command line arguments
-	parse_args(argc, argv, interactive, tlist, qlist, alist, queff, joins);
+	parse_args(argc, argv, interactive, tlist, qlist, alist, slist,
+		   queff, joins);
 
 	// add new data if any
 	for (stringList::const_iterator it = alist.begin();
@@ -3459,10 +3476,27 @@ int main(int argc, char** argv) {
 	    timer1.stop();
 	    LOGGER(ibis::gVerbose >= 0)
 		<< *argv << ": building indexes for " << tlist.size()
-		<< " data partition"
-		<< (tlist.size()>1 ? "s" : "") << " took "
+		<< " data partition" << (tlist.size()>1 ? "s" : "") << " took "
 		<< timer1.CPUTime() << " CPU seconds, "
 		<< timer1.realTime() << " elapsed seconds\n";
+	}
+	// sort the specified columns
+	if (slist.size() > 0) {
+	    ibis::horometer timer2;
+	    timer2.start();
+	    for (ibis::partList::const_iterator it = tlist.begin();
+		 it != tlist.end(); ++ it) {
+		for (size_t j = 0; j < slist.size(); ++ j)
+		    (*it)->buildSorted(slist[j]);
+	    }
+	    timer2.stop();
+	    LOGGER(ibis::gVerbose >= 0)
+		<< *argv << ": building sorted versions of " << slist.size()
+		<< " column" << (slist.size()>1 ? "s" : "") << tlist.size()
+		<< " data partition" << (tlist.size()>1 ? "s" : "") << " took "
+		<< timer2.CPUTime() << " CPU seconds, "
+		<< timer2.realTime() << " elapsed seconds\n";
+	    slist.clear(); // no longer needed
 	}
 
 	// performing self test

@@ -2229,7 +2229,7 @@ void ibis::query::getBounds() {
     if (ibis::gVerbose > 7)
 	logMessage("getBounds", "compute upper and lower bounds of hits");
 
-    ibis::bitvector mask(mypart->getMask());
+    ibis::bitvector mask(mypart->getNullMask());
     if (mask.size() != mypart->nRows())
 	mask.adjustSize(mypart->nRows(), mypart->nRows());
     if (comps.size() > 0) {
@@ -2534,7 +2534,7 @@ int ibis::query::computeHits() {
 #endif
 	    delete sup;
 	    sup = 0;
-	    ierr = doEvaluate(conds.getExpr(), mypart->getMask(), *hits);
+	    ierr = doEvaluate(conds.getExpr(), mypart->getNullMask(), *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();
@@ -2571,7 +2571,7 @@ int ibis::query::computeHits() {
 	}
     }
     else { // need to actually examine the data files involved
-	const ibis::bitvector& msk = mypart->getMask();
+	const ibis::bitvector& msk = mypart->getNullMask();
 	ibis::bitvector delta;
 	(*sup) -= (*hits);
 
@@ -2636,7 +2636,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     if (ibis::gVerbose > 2)
 	timer.start();
     try {
-	ierr = doScan(conds.getExpr(), mypart->getMask(), res);
+	ierr = doScan(conds.getExpr(), mypart->getNullMask(), res);
 	if (ierr < 0)
 	    return ierr - 20;
     }
@@ -3275,7 +3275,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::DRANGE: { // call evalauteRange, use doScan on failure
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
-	     mypart->getMask(), ht);
+	     mypart->getNullMask(), ht);
 	if (ierr < 0) { // revert to estimate and scan
 	    ibis::bitvector tmp;
 	    ierr = mypart->estimateRange

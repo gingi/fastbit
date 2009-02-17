@@ -142,6 +142,28 @@ public:
 		maxBytes - ibis::fileManager::totalBytes() : 0);
     }
 
+    /// A buffer is intended to be a temporary workspace in memory.
+    /// The constructor allocates a certain amount of memory, default
+    /// 16 MB; the destructor release the memory.  Its size can not be
+    /// changed.
+    template <typename T>
+    class buffer {
+    public:
+	buffer(uint32_t sz=0);
+	~buffer();
+
+	T& operator[](uint32_t i) {return buf[i];}
+	const T& operator[](uint32_t i) const {return buf[i];}
+	/// Address of the buffer allocated.
+	T* address() const {return buf;}
+	/// The number of elements in the buffer.
+	uint32_t size() const {return nbuf;}
+
+    private:
+	T* buf; ///< The address of the buffer.
+	uint32_t nbuf; ///< The number of elements in the buffer.
+    }; // buffer
+
 protected:
     fileManager();  // get its input parameter from ibis::gParameters()
     ~fileManager(); // it exists forever

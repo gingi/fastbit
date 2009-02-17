@@ -8,66 +8,51 @@
 ///@file
 /// Defines a pseudo-index.  Used in some performance comparisons.
 
-/// @ingroup FastBitIBIS
-/// A roster list is a list of indices for ordering the values in the
-/// ascending order.  It can use external sort if the data and indices can
-/// not fit into memory.  The indices will be written to a file with .ind
-/// extension and if the external sorting procedure is used a file with
-/// .srt extension is also generated to store a sorted version of the
-/// values.  If the indices can not be loaded into memory as a whole, the
-/// .ind file will be opened for future operations.
+/// @ingroup FastBitIBIS A roster list is a list of indices for ordering
+/// the values in the ascending order.  It can use external sort if the
+/// data and indices can not fit into memory.  The indices will be written
+/// to a file with extension .ind and the sorted values in a file with
+/// extension .srt.  If the indices can not be loaded into memory as a
+/// whole, the .ind file will be opened for future read operations.
 class ibis::roster {
 public:
     ~roster() {clear();};
-    /// Sort all data elements in the named file (default to the one in the
-    /// current working directory).
-    roster(const ibis::column* c, const char* f = 0);
-    /// For reconstructing the data structure from raw bytes stored in @c
-    /// st.
+    roster(const ibis::column* c, const char* dir = 0);
     roster(const ibis::column* c, ibis::fileManager::storage* st,
 	   uint32_t offset = 8);
-    /// Select the values that are marked 1 in @c mask and sort them.
-    roster(const ibis::column* c, const ibis::bitvector& mask,
-	   const char* f=0);
+//     roster(const ibis::column* c, const ibis::bitvector& mask,
+// 	   const char* dir = 0);
 
     const char* name() const {return "roster list";}
     const ibis::column* getColumn() const {return col;}
     uint32_t size() const;
 
-    void read(const char* idxfile);
-    void read(ibis::fileManager::storage* st);
+    int read(const char* idxfile);
+    int read(ibis::fileManager::storage* st);
 
-    /// Output minimal information about the roster list.
+    /// Output a minimal information about the roster list.
     void print(std::ostream& out) const;
     /// Write two files, .ind for indices and .srt to the sorted values.
-    void write(const char* dt) const;
+    int write(const char* dt) const;
     /// Write the sorted version of the attribute values to a .srt file.
-    void writeSorted(const char* dt) const;
+    int writeSorted(const char* dt) const;
 
     const array_t<uint32_t>& array() const {return ind;}
     inline uint32_t operator[](uint32_t i) const;
 
-    /// Locate the the values and set their positions in the bitvector.
+    /// Locate the values and set their positions in the bitvector.
+    /// Return the positions of the matching entries as a bitvector.
     /// Return a negative value for error, zero or a positive value for in
     /// case of success.
     /// The input values are assumed to be sorted in ascending order.
-    int locate(const std::vector<int32_t>& vals,
+    template <typename T>
+    int locate(const std::vector<T>& vals,
 	       ibis::bitvector& positions) const;
-    int locate(const std::vector<uint32_t>& vals,
-	       ibis::bitvector& positions) const;
-    int locate(const std::vector<float>& vals,
-	       ibis::bitvector& positions) const;
-    int locate(const std::vector<double>& vals,
-	       ibis::bitvector& positions) const;
-
-    template <typename T> void
-    icSearch(const std::vector<T>& vals, std::vector<uint32_t>& pos) const;
-    template <typename T> void
-    oocSearch(const std::vector<T>& vals, std::vector<uint32_t>& pos) const;
-//     void estimate(const ibis::qContinuousRange& expr,
-//     		  ibis::bitvector& lower,
-//     		  ibis::bitvector& upper) const;
-//     uint32_t estimate(const ibis::qContinuousRange& expr) const;
+    /// Locate the values and set their positions in the bitvector.
+    /// Return the positions as a list of 32-bit integers.
+    template <typename T>
+    int locate(const std::vector<T>& vals,
+	       std::vector<uint32_t>& positions) const;
 
     /// A two-way merge algorithm.  Uses std::less<T> for comparisons.
     /// Assumes the sorted segment size is @c segment elements of type T.
@@ -95,6 +80,15 @@ protected:
 //     static int diskSortMerge(const char *from, const char *to,
 // 			     uint32_t segment);
 
+    uint32_t locate(const double& val) const;
+
+    template <typename T> int
+    icSearch(const std::vector<T>& vals, std::vector<uint32_t>& pos) const;
+    template <typename T> int
+    oocSearch(const std::vector<T>& vals, std::vector<uint32_t>& pos) const;
+    template <typename inT, typename myT> int
+    locate2(const std::vector<inT>&, std::vector<uint32_t>&) const;
+
 private:
     // private member variables
     const ibis::column* col;    ///< Each roster is for one column.
@@ -103,7 +97,7 @@ private:
 
     // private member functions
     void clear() {ind.clear(); if (inddes>=0) UnixClose(inddes);};
-    void write(FILE* fptr) const;
+    int write(FILE* fptr) const;
 
     /// The in-core sorting function to build the roster list.
     void icSort(const char* f = 0);
@@ -122,15 +116,17 @@ private:
 			array_t<uint32_t>& ibuf1,
 			array_t<uint32_t>& ibuf2) const;
 
-    uint32_t locate(const double& val) const;
-//     void locate(const ibis::qContinuousRange& expr,
-// 		uint32_t& hit0, uint32_t& hit1) const;
-
-    roster();
-    roster(const roster&);
-    const roster& operator=(const roster&);
+    roster(); // not implemented
+    roster(const roster&); // not implemented
+    const roster& operator=(const roster&); // not implemented
 }; // ibis::roster
 
+namespace ibis {
+    template <> int
+    roster::locate(const std::vector<double>&, ibis::bitvector&) const;
+}
+
+/// Return the row number of the ith smallest value.
 inline uint32_t ibis::roster::operator[](uint32_t i) const {
     uint32_t tmp = UINT_MAX;
     if (i < ind.size()) {
@@ -141,9 +137,10 @@ inline uint32_t ibis::roster::operator[](uint32_t i) const {
 	UnixRead(inddes, &tmp, sizeof(uint32_t));
     }
     else {
-	ibis::util::logMessage("Error", "roster object (ind[%u], inddes=%d) "
-			       "index i (%u) is out of range", ind.size(),
-			       inddes, i);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster(ind[" << ind.size() << "], inddes="
+	    << inddes << ")::operator[]: index i (" << i
+	    << ") is out of range";
     }
     return tmp;
 } // ibis::roster::operator[]

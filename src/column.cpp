@@ -4,15 +4,17 @@
 //
 // This file contains implementatioin of the functions defined in column.h
 //
-#include "resource.h"	// class resource
-#include "category.h"
-#include "column.h"
-#include "part.h"
+#include "resource.h"	// ibis::resource, ibis::gParameters()
+#include "category.h"	// ibis::text, ibis::category
+#include "column.h"	// ibis::column
+#include "part.h"	// ibis::part
+#include "iroster.h"	// ibis::roster
 
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// tolower
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
+#include <cmath>	// std::log
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -4785,10 +4787,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				 const ibis::bitvector& mask,
 				 ibis::bitvector& low) const {
-    long ierr = 0;
-    ibis::bitvector mymask;
-    getNullMask(mymask);
-    mymask &= mask;
+    long ierr = -1;
+    if (cmp.getValues().empty()) {
+	low.set(0, mask.size());
+	return 0;
+    }
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << thePart->name() << "." << m_name
@@ -4798,10 +4801,37 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	ierr = -4;
 	return ierr;
     }
+    if (m_type != ibis::FLOAT && m_type != ibis::DOUBLE &&
+	cmp.getValues().size() ==
+	1+(cmp.getValues().back()-cmp.getValues().front())) {
+	// a special case -- actually a continuous range
+	ibis::qContinuousRange cr(cmp.getValues().front(), ibis::qExpr::OP_LE,
+				  cmp.colName(), ibis::qExpr::OP_LE,
+				  cmp.getValues().back());
+	return evaluateRange(cr, mask, low);
+    }
 
+    ibis::bitvector mymask;
+    getNullMask(mymask);
+    mymask &= mask;
     try {
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
+	    if (thePart != 0 &&
+		idx->estimateCost(cmp)*std::log((double)cmp.getValues().size())
+		> (elementSize()+4.0)*thePart->nRows()) {
+		// using a sorted list may be faster
+		ibis::roster ros(this);
+		if (ros.size() == thePart->nRows()) {
+		    ierr = ros.locate(cmp.getValues(), low);
+		    if (ierr >= 0) {
+			low &= mymask;
+			return 0L;
+		    }
+		}
+	    }
+
+	    // fall back to the normal indexing option
 	    ierr = idx->evaluate(cmp, low);
 	    if (ierr >= 0) {
 		if (low.size() < mymask.size()) { // short index, scan
@@ -4852,6 +4882,14 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    }
 	}
 	else if (thePart != 0) {
+	    ibis::roster ros(this);
+	    if (ros.size() == thePart->nRows()) {
+		ierr = ros.locate(cmp.getValues(), low);
+		if (ierr >= 0) {
+		    low &= mymask;
+		    return 0L;
+		}
+	    }
 	    ierr = thePart->doScan(cmp, mymask, low);
 	}
 	else {
@@ -4996,6 +5034,15 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
     return ret;
 } // ibis::column::estimateRange
 
+/// Estimating hits for a discrete range is actually done with
+/// evaluateRange.
+long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
+				 ibis::bitvector& low,
+				 ibis::bitvector& high) const {
+    high.clear();
+    return evaluateRange(cmp, thePart->getNullMask(), low);
+} // ibis::column::estimateRange
+
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
     double ret;
     indexLock lock(this, "estimateCost");
@@ -5054,59 +5101,6 @@ float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
     getNullMask(iffy);
     return ret;
 } // ibis::column::getUndecidable
-
-// use the index to generate the hit list and the candidate list
-long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
-				 ibis::bitvector& low,
-				 ibis::bitvector& high) const {
-    long ierr = 0;
-    try {
-	indexLock lock(this, "estimateRange");
-	if (idx != 0) {
-	    idx->estimate(cmp, low, high);
-	    if (low.size() > 0 && low.size() != thePart->nRows()) {
-		if (high.size() == low.size()) {
-		    high.adjustSize(thePart->nRows(), thePart->nRows());
-		}
-		else if (high.size() == 0) {
-		    high.copy(low);
-		    high.adjustSize(thePart->nRows(), thePart->nRows());
-		}
-		low.adjustSize(0, thePart->nRows());
-	    }
-	}
-	else if (thePart != 0) {
-	    low.set(0, thePart->nRows());
-	    getNullMask(high);
-	}
-	else {
-	    ierr = -1;
-	}
-	return ierr;
-    }
-    catch (std::exception &se) {
-	logWarning("estimateRange", "received a std::exception -- %s",
-		   se.what());
-    }
-    catch (const char* str) {
-	logWarning("estimateRange", "received a string exception -- %s",
-		   str);
-    }
-    catch (...) {
-	logWarning("estimateRange", "received a unanticipated excetpion");
-    }
-
-    unloadIndex();
-    //purgeIndexFile();
-    if (thePart != 0) {
-	low.set(0, thePart->nRows());
-	getNullMask(high);
-    }
-    else {
-	ierr = -2;
-    }
-    return ierr;
-} // ibis::column::estimateRange
 
 // use the index to compute a upper bound on the number of hits
 long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp) const {
@@ -6198,7 +6192,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
     if (elm <= 0) return -1;
 
     long ierr;
-    ibis::util::buffer<char> mybuf(buf != 0);
+    ibis::fileManager::buffer<char> mybuf(buf != 0);
     if (buf == 0) {
 	nbuf = mybuf.size();
 	buf = mybuf.address();

@@ -52,14 +52,11 @@ public:
     /// Return the current state of data partition.
     TABLE_STATE getState() const;
     TABLE_STATE getStateNoLocking() const {return state;}
-    /// Perform predefined set of tests and return the number of failures.
-    virtual long selfTest(int nth=1, const char* pref=0) const;
-    /// Go through all the values to compute the min and max for each
-    /// column.
-    void computeMinMax();
 
-    /// Load and immediately unload indexes.
+    /// Make sure indexes for all columns are available.
     void buildIndex(int nthr=1, const char* opt=0);
+    /// Build a sorted version of the specified column.
+    void buildSorted(const char* colname) const;
     /// Load indexes of all columns.
     void loadIndex(const char* opt=0, int readall=0) const;
     /// Unload indexes of all columns.
@@ -105,6 +102,12 @@ public:
     bool matchMetaTags(const ibis::resource::vList &mtags) const;
     /// Return the value of the meta tag with the specified name.
     inline const char* getMetaTag(const char*) const;
+
+    /// Perform predefined set of tests and return the number of failures.
+    virtual long selfTest(int nth=1, const char* pref=0) const;
+    /// Go through all the values to compute the min and max for each
+    /// column.
+    void computeMinMax();
 
     /******************************************************************/
     // The following functions need to hold a read lock on the partition,
@@ -514,7 +517,7 @@ public:
     /// error code.
     long purgeInactive();
     /// Return a reference to the mask of active rows.
-    const ibis::bitvector &getMask() const {return amask;}
+    const ibis::bitvector &getNullMask() const {return amask;}
 
     /// A class function to read the meta tags in the tdc file.
     static char* readMetaTags(const char* const dir);

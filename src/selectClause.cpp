@@ -289,7 +289,7 @@ int ibis::selectClause::_verify(const ibis::part& part0,
 
 void ibis::selectClause::getNullMask(const ibis::part& part0,
 				     ibis::bitvector& mask) const {
-    mask.copy(part0.getMask());
+    mask.copy(part0.getNullMask());
     if (terms_.size() > 0) {
 	ibis::part::barrel bar(&part0);
 	for (size_t j = 0; j < terms_.size(); ++ j)

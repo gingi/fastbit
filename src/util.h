@@ -917,28 +917,6 @@ namespace ibis {
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
 
-	/// A buffer is intended to be a temporary workspace in memory.
-	/// The constructor allocates a certain amount of memory, default
-	/// 16 MB; the destructor release the memory.  Its size can not be
-	/// changed.
-	template <typename T>
-	class buffer {
-	public:
-	    buffer(uint32_t sz=0);
-	    ~buffer() {delete [] buf;}
-
-	    T& operator[](uint32_t i) {return buf[i];}
-	    const T& operator[](uint32_t i) const {return buf[i];}
-	    /// Address of the buffer allocated.
-	    T* address() const {return buf;}
-	    /// The number of elements in the buffer.
-	    uint32_t size() const {return nbuf;}
-
-	private:
-	    T* buf; ///< The address of the buffer.
-	    uint32_t nbuf; ///< The number of elements in the buffer.
-	}; // buffer
-
 	/// A class for logging error messages.  The caller can use the
 	/// function buffer to get a reference to std::ostream and write
 	/// error messages to it.  Note that the message is formed in this

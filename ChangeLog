@@ -1,3 +1,24 @@
+2009-02-17 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: add codes to evaluateRange to answer
+	qDiscreteRange queries with sorted list of data if they are
+	present
+	* examples/ibis.cpp: add option '-sort column-name' to allow the
+	user to sort selected columns of a data partition
+	* src/part.cpp: prevent the use of categorical values in either
+	queryTest or quickTest (both of which may invoke doScan
+	which are not available on string valued columns)
+	* src/part.cpp: recursiveQuery checks against nEvents, but should
+	have used the number of ones in the column mask
+	* src/part.h: getMask --> getNullMask, to be consistent with the
+	function names elsewhere
+
+2009-02-16 John Wu <John.Wu at ACM.org>
+	* src/iroster.h, src/iroster.cpp: reorganize ibis::roster
+
+2009-02-15 John Wu <John.Wu at ACM.org>
+	* src/util.h, src/fileManager.h, etc: move util::buffer to
+	fileManager::buffer and add code to track to its memory usage
+
 2009-02-13 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.h, src/tafel.cpp, examples/ardea.cpp: add
 	an optional argument to readCSV for user to specify the maximum

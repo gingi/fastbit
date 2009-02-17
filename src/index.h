@@ -224,9 +224,9 @@ public:
 
     /// Estimate the code of evaluate a range condition.
     virtual double estimateCost(const ibis::qContinuousRange& expr) const {
-	return (offsets.empty() ? nrows : offsets.back());}
+	return (offsets.empty() ? (nrows<<3) : offsets.back());}
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const {
-	return (offsets.empty() ? nrows : offsets.back());}
+	return (offsets.empty() ? (nrows<<3) : offsets.back());}
 
     /// Prints human readable information.  Outputs information about the
     /// index as text to the specified output stream.

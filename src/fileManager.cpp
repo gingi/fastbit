@@ -19,6 +19,7 @@
 #include "resource.h"
 #include "array_t.h"
 
+#include <typeinfo>	// typeid
 #include <string>	// std::string
 #include <stdio.h>	// fopen, fread, remove
 #include <stdlib.h>	// malloc, realloc, free
@@ -1565,6 +1566,91 @@ void ibis::fileManager::signalMemoryAvailable() const {
 	}
     }
 } // ibis::fileManager::signalMemoryAvailable
+
+//////////////////////////////////////////////////////////////////////
+// functions for the buffer template
+//
+/// Constructor.  The incoming argument is the numbre of elements to be
+/// allocated.  If it is zero, it defaults to use 16 MB of space, and the
+/// number of elements 16 million divided by the size of the element.  If
+/// it fails to allocate the requested memory, it will reduce the number of
+/// elements by a half and then by a quarter for a total of seven times.
+/// If it failed all eight tries, it will set the buffer address to nil and
+/// the number of elements to zero.
+template <typename T>
+ibis::fileManager::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
+    if (nbuf == 0)
+	nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
+
+    try {buf = new T[nbuf];}
+    catch (const std::bad_alloc&) {
+	nbuf >>= 1; // reduce the size by half and try again
+	try {buf = new T[nbuf];}
+	catch (const std::bad_alloc&) {
+	    nbuf >>= 2; // reduce the size by a quarter and try again
+	    try {buf = new T[nbuf];}
+	    catch (const std::bad_alloc&) {
+		nbuf >>= 2; // reduce the size by a quarter and try again
+		try {buf = new T[nbuf];}
+		catch (const std::bad_alloc&) {
+		    nbuf >>= 2;
+		    try {buf = new T[nbuf];}
+		    catch (const std::bad_alloc&) {
+			nbuf >>= 2;
+			try {buf = new T[nbuf];}
+			catch (const std::bad_alloc&) {
+			    nbuf = 0;
+			    buf = 0;
+			}
+		    }
+		}
+	    }
+	}
+    }
+    if (nbuf > 0) {
+	std::string evt = "fileManager::buffer";
+	if (ibis::gVerbose > 8) {
+	    evt += '<';
+	    evt += typeid(T).name();
+	    evt += '>';
+	    std::ostringstream oss;
+	    oss << "(" << static_cast<void*>(buf) << ")";
+	    evt += oss.str();
+	}
+	ibis::fileManager::increaseUse(nbuf, evt.c_str());
+    }
+} // ibis::fileManager::buffer::ctor
+
+template<typename T>
+ibis::fileManager::buffer<T>::~buffer() {
+    if (buf != 0) {
+	delete [] buf;
+
+	std::string evt = "fileManager::buffer";
+	if (ibis::gVerbose > 8) {
+	    evt += '<';
+	    evt += typeid(T).name();
+	    evt += '>';
+	    std::ostringstream oss;
+	    oss << "(" << static_cast<void*>(buf) << ")";
+	    evt += oss.str();
+	}
+	ibis::fileManager::decreaseUse(nbuf, evt.c_str());
+    }
+} // ibis::fileManager::buffer::dtor
+
+// explicit template instantiation required
+template class ibis::fileManager::buffer<char>;
+template class ibis::fileManager::buffer<signed char>;
+template class ibis::fileManager::buffer<unsigned char>;
+template class ibis::fileManager::buffer<float>;
+template class ibis::fileManager::buffer<double>;
+template class ibis::fileManager::buffer<int16_t>;
+template class ibis::fileManager::buffer<uint16_t>;
+template class ibis::fileManager::buffer<int32_t>;
+template class ibis::fileManager::buffer<uint32_t>;
+template class ibis::fileManager::buffer<int64_t>;
+template class ibis::fileManager::buffer<uint64_t>;
 
 //////////////////////////////////////////////////////////////////////
 // functions for the storage class

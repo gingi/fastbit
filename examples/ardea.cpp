@@ -650,7 +650,7 @@ static void doQuery(const ibis::table& tbl, const char* wstr,
 
 	if (ibis::gVerbose > 0 && n0 > 0 && selected->nColumns() > 0)
 	    printValues(*selected);
-	std::cout << "--  end  printing the table of results --\n";
+	std::cout << "-- end  printing the table of results --\n";
     }
     std::cout << std::endl;
     delete selected;

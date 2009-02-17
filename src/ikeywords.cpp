@@ -90,7 +90,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 	return -1;
     }
 
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     uint32_t nbuf = mybuf.size();
     char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {

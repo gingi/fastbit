@@ -950,8 +950,8 @@ long ibis::part::get1DDistribution(const ibis::column &col, uint32_t nbin,
 
     if (static_cast<unsigned>(ierr) > nbin*3/2) {
 	// too many bins returned, combine some of them
-	ibis::util::buffer<double> bbs(nbin+1);
-	ibis::util::buffer<uint32_t> cts(nbin+1);
+	ibis::fileManager::buffer<double> bbs(nbin+1);
+	ibis::fileManager::buffer<uint32_t> cts(nbin+1);
 	double* pbbs = bbs.address();
 	uint32_t* pcts = cts.address();
 	if (pbbs != 0 && pcts != 0) {

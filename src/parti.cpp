@@ -1131,7 +1131,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	    lg.buffer() << *((*cit).second) << "\n";
     }
 
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     char* buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     // ibis::fileManager::increaseUse(nbuf, "appendToBackup");
@@ -1290,7 +1290,7 @@ long ibis::part::purgeInactive() {
     mutexLock lock(this, "purgeInactive");
     if (amask.cnt() == amask.size()) return nEvents;
 
-    ibis::util::buffer<char> buf_;
+    ibis::fileManager::buffer<char> buf_;
     char *mybuf = buf_.address();
     uint32_t nbuf = buf_.size();
 

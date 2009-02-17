@@ -1468,58 +1468,6 @@ void ibis::util::getGMTime(char *str) {
 #endif
 } // ibis::util::getGMTime
 
-/// Constructor.  The incoming argument is the numbre of elements to be
-/// allocated.  If it is zero, it defaults to use 16 MB of space, and the
-/// number of elements 16 million divided by the size of the element.  If
-/// it fails to allocate the requested memory, it will reduce the number of
-/// elements by a half and then by a quarter for a total of seven times.
-/// If it failed all eight tries, it will set the buffer address to nil and
-/// the number of elements to zero.
-template <typename T>
-ibis::util::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
-    if (nbuf == 0)
-	nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
-
-    try {buf = new T[nbuf];}
-    catch (const std::bad_alloc&) {
-	nbuf >>= 1; // reduce the size by half and try again
-	try {buf = new T[nbuf];}
-	catch (const std::bad_alloc&) {
-	    nbuf >>= 2; // reduce the size by a quarter and try again
-	    try {buf = new T[nbuf];}
-	    catch (const std::bad_alloc&) {
-		nbuf >>= 2; // reduce the size by a quarter and try again
-		try {buf = new T[nbuf];}
-		catch (const std::bad_alloc&) {
-		    nbuf >>= 2;
-		    try {buf = new T[nbuf];}
-		    catch (const std::bad_alloc&) {
-			nbuf >>= 2;
-			try {buf = new T[nbuf];}
-			catch (const std::bad_alloc&) {
-			    nbuf = 0;
-			    buf = 0;
-			}
-		    }
-		}
-	    }
-	}
-    }
-} // ibis::util::buffer::ctor
-
-// explicit template instantiation required
-template class ibis::util::buffer<char>;
-template class ibis::util::buffer<signed char>;
-template class ibis::util::buffer<unsigned char>;
-template class ibis::util::buffer<float>;
-template class ibis::util::buffer<double>;
-template class ibis::util::buffer<int16_t>;
-template class ibis::util::buffer<uint16_t>;
-template class ibis::util::buffer<int32_t>;
-template class ibis::util::buffer<uint32_t>;
-template class ibis::util::buffer<int64_t>;
-template class ibis::util::buffer<uint64_t>;
-
 
 #ifdef IBIS_REPLACEMENT_RWLOCK
 //

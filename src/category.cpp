@@ -327,7 +327,7 @@ void ibis::category::fillIndex(const char *dir) {
 	}
 
 	int ret;
-	ibis::util::buffer<char> mybuf;
+	ibis::fileManager::buffer<char> mybuf;
 	char *buf = mybuf.address();
 	uint32_t nbuf = mybuf.size();
 	const bool iscurrent =
@@ -1045,7 +1045,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	return;
     }
 
-    ibis::util::buffer<char> mybuf(nbuf != 0);
+    ibis::fileManager::buffer<char> mybuf(nbuf != 0);
     if (nbuf == 0) {
 	nbuf = mybuf.size();
 	buf = mybuf.address();
@@ -1091,7 +1091,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	pos = 0;
     }
 
-    ibis::util::buffer<int64_t> sps;
+    ibis::fileManager::buffer<int64_t> sps;
     int64_t last = pos;
     int64_t offset = 0;
     uint32_t nnew = 0;
@@ -1322,7 +1322,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	return -1L;
     }
 
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) return -2L;
@@ -1342,7 +1342,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	}
     }
 
-    ibis::util::buffer<int64_t> spbuf;
+    ibis::fileManager::buffer<int64_t> spbuf;
     uint32_t irow = 0; // row index
     long jbuf = 0; // number of bytes in buffer
     int64_t begin = 0; // beginning position (file offset) of the bytes in buf
@@ -1703,7 +1703,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	return -1L;
     }
 
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) return -2L;
@@ -1742,7 +1742,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	}
     }
 
-    ibis::util::buffer<int64_t> spbuf;
+    ibis::fileManager::buffer<int64_t> spbuf;
     if (spbuf.size() > 1) { // try to use the spbuf for starting positions
 	size_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
@@ -1975,7 +1975,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     std::string tmp;
     off_t boffset = 0;
     uint32_t inbuf = 0;
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     char* buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) {
@@ -2184,7 +2184,7 @@ const char* ibis::text::findString(const char *str) const {
 	return 0;
     }
 
-    ibis::util::buffer<char> mybuf;
+    ibis::fileManager::buffer<char> mybuf;
     char *buf = mybuf.address();
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) {

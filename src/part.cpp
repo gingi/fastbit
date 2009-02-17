@@ -4669,6 +4669,29 @@ void ibis::part::computeMinMax() {
     }
 } // ibis::part::computeMinMax
 
+/// Will build the sorted version of the base data for the named column if
+/// it does not already exist.
+void ibis::part::buildSorted(const char* cname) const {
+    readLock lock(this, "buildSorted");
+    if (cname == 0 || *cname == 0) return;
+
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::buildSorted(";
+    evt += cname;
+    evt += ')';
+    const ibis::column *col = getColumn(cname);
+    if (col == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " failed to find the named column in the data partition";
+	return;
+    }
+
+    ibis::util::timer mytime(evt.c_str(), 3);
+    ibis::roster(col, activeDir);  // don't need a variable name
+} // ibis::part::buildSorted
+
 /// May use @c nthr threads to build indexes.  The argument opt is used to
 /// build new indexes if the corresponding columns do not already have
 /// indexes.
@@ -5139,7 +5162,8 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
     columnList::const_iterator it = columns.begin();
     while (i > 0) {++it; --i;}
     for (i = 0; static_cast<unsigned>(i) < columns.size() &&
-	     (*it).second->type() == ibis::TEXT; ++ i) {
+	     ((*it).second->type() == ibis::TEXT ||
+	      (*it).second->type() == ibis::CATEGORY); ++ i) {
 	// skip over string attributes
 	++ it;
 	if (it == columns.end()) // wrap around
@@ -5242,7 +5266,8 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 		 ibis::fileManager::instance().iBeat()) % columns.size();
 	while (i) {++it; --i;};
 	for (i = 0; static_cast<unsigned>(i) < columns.size() &&
-		 (*it).second->type() == ibis::TEXT; ++ i) {
+		 ((*it).second->type() == ibis::TEXT ||
+		  (*it).second->type() == ibis::CATEGORY); ++ i) {
 	    // skip over string attributes
 	    ++ it;
 	    if (it == columns.end()) // wrap around
@@ -5784,7 +5809,14 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 		cnt2 = 0;
 		++ (*nerrors);
 	    }
-	    if (cnt0+cnt1+cnt2 != nEvents) {
+
+	    uint32_t nev = nEvents;
+	    {
+		ibis::bitvector tmp;
+		att->getNullMask(tmp);
+		nev = tmp.cnt();
+	    }
+	    if (cnt0+cnt1+cnt2 != nev) {
 		logWarning("queryTest", "The total of %lu %s entries "
 			   "(%lu |%g| %lu |%g| %lu) is different from the "
 			   "expected %lu",
@@ -6329,7 +6361,7 @@ long ibis::part::doCompare(const char* file,
 
     const unsigned elem = sizeof(T);
     // attempt to allocate a decent sized buffer for operations
-    ibis::util::buffer<T> mybuf;
+    ibis::fileManager::buffer<T> mybuf;
     uint32_t nbuf = mybuf.size();
     T *buf = mybuf.address();
 
@@ -6663,7 +6695,7 @@ long ibis::part::negativeCompare(const char* file,
 
     const unsigned elem = sizeof(T);
     // attempt to allocate a decent size buffer for operations
-    ibis::util::buffer<T> mybuf;
+    ibis::fileManager::buffer<T> mybuf;
     uint32_t nbuf = mybuf.size();
     T *buf = mybuf.address();
 
@@ -8720,7 +8752,7 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     if (_tbl == 0) return; // can not do anything
 
     for (uint32_t i = 0; i < size(); ++ i) {
-	ibis::bitvector tmp(_tbl->getMask());
+	ibis::bitvector tmp(_tbl->getNullMask());
 	if (cols.size()<=i || cols[i]==0) {
 	    const ibis::column* col = _tbl->getColumn(name(i));
 	    if (col)
