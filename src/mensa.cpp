@@ -10,7 +10,7 @@
 #include "bord.h"	// ibis::bord
 #include "mensa.h"	// ibis::mensa
 #include "part.h"	// ibis::part
-#include "query.h"	// ibis::query
+#include "countQuery.h"	// ibis::countQuery
 #include "index.h"	// ibis::index
 #include "category.h"	// ibis::text
 #include "selectClause.h"//ibis::selectClause
@@ -290,17 +290,17 @@ void ibis::mensa::estimate(const char* cond,
 			   uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
     nmax = 0;
-    ibis::query q(ibis::util::userName());
-    int ierr = q.setWhereClause(cond);
+    ibis::countQuery qq;
+    int ierr = qq.setWhereClause(cond);
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	if (ierr >= 0) {
-	    ierr = q.setPartition(*it);
+	    ierr = qq.setPartition(*it);
 	    if (ierr >= 0) {
-		ierr = q.estimate();
+		ierr = qq.estimate();
 		if (ierr >= 0) {
-		    nmin += q.getMinNumHits();
-		    nmax += q.getMaxNumHits();
+		    nmin += qq.getMinNumHits();
+		    nmax += qq.getMaxNumHits();
 		}
 		else {
 		    nmax += (*it)->nRows();
@@ -457,8 +457,8 @@ void ibis::mensa::addStrings(void*& to, const std::vector<std::string>& from,
 } // ibis::mensa::addStrings
 
 /// This function expects the first two arguments to be valid and
-/// non-trivial.  If will not produce the correct answer if those arguments
-/// are nil pointers or empty strings or blank spaces.
+/// non-trivial.  It will return a nil pointer if those arguments are nil
+/// pointers or empty strings or blank spaces.
 ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 				   const ibis::partList& mylist) {
     if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
@@ -482,11 +482,11 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     }
 
     // a single query object is used for different data partitions
-    ibis::query qq(ibis::util::userName());
+    ibis::countQuery qq;
     std::string mesg = "ibis::mensa::doSelect(\"";
     mesg += sel;
     mesg += "\", ";
-    mesg += qq.id();
+    mesg += cond;
     mesg += ")";
     ibis::util::timer atimer(mesg.c_str(), 2);
     long int ierr = qq.setWhereClause(cond);
@@ -511,20 +511,28 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     // main loop through each data partition
     for (ibis::partList::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
-	ierr = qq.setPartition(*it);
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- query[" << cond << "].setPartition("
-		<< (*it)->name() << ") failed with error " << ierr;
-	    continue;
-	}
-
 	ierr = tms.verify(**it);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- select clause (" << sel
 		<< ") contains variables that are not in data partition "
 		<< (*it)->name();
+	    continue;
+	}
+	ierr = qq.setSelectClause(&tms);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to modify the select clause of "
+		<< "the countQuery object (" << qq.getWhereClause()
+		<< ") on data partition " << (*it)->name();
+	    continue;
+	}
+
+	ierr = qq.setPartition(*it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- query[" << cond << "].setPartition("
+		<< (*it)->name() << ") failed with error " << ierr;
 	    continue;
 	}
 
@@ -756,7 +764,7 @@ int64_t ibis::mensa::computeHits(const char* cond, const ibis::partList& pts) {
 
     int ierr;
     uint64_t nhits = 0;
-    ibis::query qq(ibis::util::userName());
+    ibis::countQuery qq;
     ierr = qq.setWhereClause(cond);
     if (ierr < 0)
 	return ierr;

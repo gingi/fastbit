@@ -2,15 +2,18 @@
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2000-2009 the Regents of the University of California
 //
-// implementation of the ibis::part functions that modify a partition
+// Implement the ibis::part functions that modify a partition.
 ////////////////////////////////////////////////////////////////////////
-// all functions in this file can only be run one at a time (through mutex
-// lock)
+// Because these functions modifies a partition, they may require mutex
+// locks to function correctly!
 ////////////////////////////////////////////////////////////////////////
 #include "part.h"	// ibis::part definition, ibis header files
 #include "category.h"
+#include "selectClause.h"	// for parsing arithmetic expressions
 
 #include <sstream>	// std::ostringstream
+#include <typeinfo>	// typeid
+#include <limits>	// std::numeric_limits
 
 /// Reorder all columns of a partition.  The lowest cardinality column is
 /// ordered first.  Only integral valued columns are used in sorting.
@@ -1429,3 +1432,119 @@ long ibis::part::purgeInactive() {
 
     return ierr;
 } // ibis::part::purgeInactive
+
+/// The arithmetic expression is evaluated in double and casted to the
+/// specified type.
+long ibis::part::addColumn(const char* aexpr, const char* cname,
+			   ibis::TYPE_T ctype) {
+    if (aexpr == 0 || cname == 0 || *aexpr == 0 || *cname == 0)
+	return -1L;
+
+    ibis::selectClause xpr(aexpr);
+    if (xpr.size() != 1) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::part[" << m_name
+	    << "]::addColumn expects to parse \"" << aexpr
+	    << "\" into a single arithmetic expression, but it got "
+	    << xpr.size();
+	return -2L;
+    }
+
+    ibis::bitvector mask;
+    xpr.getNullMask(*this, mask);
+    return addColumn(xpr[0], mask, cname, ctype);
+} // ibis::part::addColumn
+
+long ibis::part::addColumn(const ibis::math::term* xpr,
+			   ibis::bitvector& mask, const char* cname,
+			   ibis::TYPE_T ctype) {
+    if (xpr == 0 || cname == 0 || *cname == 0) return -1L;
+
+    array_t<double> vals;
+    long ierr = calculate(*xpr, mask, vals);
+    if (ierr <= 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::part[" << m_name << "]::addColumn(" << xpr
+	    << ") failed to evaluate the arithmetic expression, ierr = "
+	    << ierr;
+	return -3L;
+    }
+    else if (static_cast<unsigned long>(ierr) != mask.cnt()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << m_name << "]::addColumn(" << xpr
+	    << ") expected to receive " << mask.cnt() << " values, but got "
+	    << ierr;
+	return -4L;
+    }
+
+    std::ostringstream oss;
+    oss << "Select " << *xpr << " From " << m_name;
+    ibis::column *xcol =
+	new ibis::column(this, ctype, cname, oss.str().c_str());
+    switch (ctype) {
+    default:
+    case ibis::DOUBLE: {
+	if (vals.size() == mask.size()) {
+	    ierr = xcol->writeData(activeDir, 0U, mask.size(), mask,
+				   vals.begin(), 0);
+	}
+	else {
+	    ierr = xcol->castAndWrite(vals, mask,
+				      std::numeric_limits<double>::quiet_NaN());
+	}
+	break;}
+    case ibis::FLOAT: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  std::numeric_limits<float>::quiet_NaN());
+	break;}
+    case ibis::ULONG: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<uint64_t>(0xFFFFFFFFFFFFFFFFLL));
+	break;}
+    case ibis::LONG: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<int64_t>(0x7FFFFFFFFFFFFFFFLL));
+	break;}
+    case ibis::UINT: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<uint32_t>(0xFFFFFFFFL));
+	break;}
+    case ibis::INT: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<int32_t>(0x7FFFFFFFL));
+	break;}
+    case ibis::USHORT: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<uint16_t>(0xFFFF));
+	break;}
+    case ibis::SHORT: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<int16_t>(0x7FFF));
+	break;}
+    case ibis::UBYTE: {
+	ierr = xcol->castAndWrite(vals, mask,
+				  static_cast<unsigned char>(0));
+	break;}
+    case ibis::BYTE: {
+	ierr = xcol->castAndWrite(vals, mask, static_cast<char>(0));
+	break;}
+    } // switch
+    if (ierr == static_cast<long>(mask.size())) { // success
+	LOGGER(ibis::gVerbose > 2)
+	    << "ibis::part[" << m_name << "]::addColumn successfully wrote "
+	    << ierr << " value" << (ierr > 1 ? "s" : "") << " for "
+	    << cname << "(" << oss.str() << ")";
+	mutexLock lock(this, "addColumn");
+	columns[xcol->name()] = xcol;
+	ierr = 0;
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::part[" << m_name
+	    << "]::addColumn failed to write" << mask.size() << " values for "
+	    << cname << ", only wrote " << ierr;
+	delete xcol;
+	ierr = -5;
+    }
+    return ierr;
+} // ibis::part::addColumn

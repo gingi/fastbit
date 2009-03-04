@@ -6639,6 +6639,55 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
 } // ibis::column::truncateData
 
 template <typename T>
+long ibis::column::castAndWrite(const array_t<double>& vals,
+				ibis::bitvector& mask, const T special) {
+    array_t<T> tmp(mask.size());
+    ibis::bitvector::word_t jtmp = 0;
+    ibis::bitvector::word_t jvals = 0;
+    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	 is.nIndices() > 0; ++ is) {
+	const ibis::bitvector::word_t *idx = is.indices();
+	while (jtmp < *idx) {
+	    tmp[jtmp] = special;
+	    ++ jtmp;
+	}
+	if (is.isRange()) {
+	    while (jtmp < idx[1]) {
+		if (lower > vals[jvals])
+		    lower = vals[jvals];
+		if (upper < vals[jvals])
+		    upper = vals[jvals];
+		tmp[jtmp] = vals[jvals];
+		++ jvals;
+		++ jtmp;
+	    }
+	}
+	else {
+	    for (unsigned i = 0; i < is.nIndices(); ++ i) {
+		while (jtmp < idx[i]) {
+		    tmp[jtmp] = special;
+		    ++ jtmp;
+		}
+		if (lower > vals[jvals])
+		    lower = vals[jvals];
+		if (upper < vals[jvals])
+		    upper = vals[jvals];
+		tmp[jtmp] = vals[jvals];
+		++ jvals;
+		++ jtmp;
+	    }
+	}
+    }
+    while (jtmp < mask.size()) {
+	tmp[jtmp] = special;
+	++ jtmp;
+    }
+    long ierr = writeData(thePart->currentDataDir(), 0, mask.size(), mask,
+			  tmp.begin(), 0);
+    return ierr;
+} // ibis::column::castAndWrite
+			      
+template <typename T>
 void ibis::column::actualMinMax(const array_t<T>& vals,
 				const ibis::bitvector& mask,
 				double& min, double& max) const {
@@ -7262,3 +7311,25 @@ template int ibis::column::getRawData(array_t<int64_t>&) const;
 template int ibis::column::getRawData(array_t<uint64_t>&) const;
 template int ibis::column::getRawData(array_t<float>&) const;
 template int ibis::column::getRawData(array_t<double>&) const;
+
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const char special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask,
+ const unsigned char special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const int16_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const uint16_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const int32_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const uint32_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const int64_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const uint64_t special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const float special);
+template long ibis::column::castAndWrite
+(const array_t<double>& vals, ibis::bitvector& mask, const double special);

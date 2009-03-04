@@ -328,9 +328,9 @@ public:
     ///
     /// The expected types of values are "const std::vector<std::string>*"
     /// for string valued columns, and "const T*" for a fix-sized column of
-    /// type T.  More specifically, if the column type is float, the type
-    /// of values is "const float*"; if the column type is category, the
-    /// type of values is "const std::vector<std::string>*".
+    /// type T.  For example, if the column type is float, the type of
+    /// values is "const float*"; if the column type is category, the type
+    /// of values is "const std::vector<std::string>*".
     ///
     /// @note Since each column may have different number of rows filled,
     /// the number of rows in the table is considered to be the maximum

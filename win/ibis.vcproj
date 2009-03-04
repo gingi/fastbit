@@ -370,6 +370,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\meshQuery.cpp"
 				>
 			</File>
@@ -552,6 +556,14 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\meshQuery.h"
 				>
 			</File>
 			<File

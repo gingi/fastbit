@@ -8,6 +8,7 @@
 #include "qExpr.h"
 
 namespace ibis {
+    class selectClause;
     class whereClause;
     class whereLexer;
     class whereParser;
@@ -119,7 +120,7 @@ public:
     /// Simplify the query expression.
     void simplify() {ibis::qExpr::simplify(expr_);}
     /// Verify the names exist in the data partition p0.
-    int verify(const ibis::part& p0);
+    int verify(const ibis::part& p0, const ibis::selectClause *sel=0);
 
     /// Member access operator redefined to point to ibis::qExpr.
     ibis::qExpr* operator->() {return expr_;}
@@ -142,11 +143,21 @@ protected:
 
     /// Add conditions implied by self-join conditions.
     void amplify(const ibis::part&);
-    int _verify(const ibis::part&, ibis::qExpr*&);
+    int _verify(const ibis::part&, ibis::qExpr*&, const ibis::selectClause *);
 
 private:
     ibis::whereLexer *lexer;	// hold a pointer for the parser
 
     friend class ibis::whereParser;
-};
+}; // class ibis::whereClause
+
+namespace std {
+    inline ostream& operator<<(ostream&, const ibis::whereClause&);
+}
+
+inline std::ostream& std::operator<<(std::ostream &out,
+				     const ibis::whereClause& wc) {
+    wc->print(out);
+    return out;
+} // std::operator<<
 #endif

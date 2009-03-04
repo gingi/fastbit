@@ -160,7 +160,13 @@ void ibis::selectClause::fillNames() {
     }
 } // ibis::selectClause::fillNames
 
-/// Given a name find the term in the select clause.
+/// Locate the position of the string.  Upon successful completion, it
+/// returns the position of the term with the matching name, otherwise, it
+/// returns -1.  The incoming argument may be an alias, a column name, or
+/// the exact form of the arithmetic expression.  In case, it is the whole
+/// arithmetic expression, it must be exactly the same as the original term
+/// passed to the constructor of this class.  The comparison is done with
+/// case-insensitive string comparison.
 int ibis::selectClause::find(const char* key) const {
     int ret = -1;
     if (key != 0 && *key != 0) {
@@ -211,6 +217,7 @@ int ibis::selectClause::find(const char* key) const {
     return ret;
 } // ibis::selectClause::find
 
+/// Write a string version of the select clause to the specified output stream.
 void ibis::selectClause::print(std::ostream& out) const {
     std::vector<const std::string*> aliases(terms_.size(), 0);
     for (StringToInt::const_iterator it = alias_.begin();
@@ -248,8 +255,9 @@ void ibis::selectClause::print(std::ostream& out) const {
 
 int ibis::selectClause::verify(const ibis::part& part0) const {
     int ierr = 0;
-    for (size_t j = 0; j < terms_.size(); ++ j)
+    for (size_t j = 0; j < terms_.size(); ++ j) {
 	ierr += ibis::selectClause::_verify(part0, *(terms_[j]));
+    }
     return ierr;
 } // ibis::selectClause::verify
 
@@ -277,7 +285,7 @@ int ibis::selectClause::_verify(const ibis::part& part0,
     }
     else {
 	if (xp0.getLeft() != 0)
-	    ierr = _verify(part0, *static_cast<const ibis::math::term*>
+	    ierr += _verify(part0, *static_cast<const ibis::math::term*>
 			   (xp0.getLeft()));
 	if (xp0.getRight() != 0)
 	    ierr += _verify(part0, *static_cast<const ibis::math::term*>

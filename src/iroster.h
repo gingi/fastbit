@@ -8,12 +8,14 @@
 ///@file
 /// Defines a pseudo-index.  Used in some performance comparisons.
 
-/// @ingroup FastBitIBIS A roster list is a list of indices for ordering
-/// the values in the ascending order.  It can use external sort if the
-/// data and indices can not fit into memory.  The indices will be written
-/// to a file with extension .ind and the sorted values in a file with
-/// extension .srt.  If the indices can not be loaded into memory as a
-/// whole, the .ind file will be opened for future read operations.
+/// A roster list is a list of indices for ordering the values in ascending
+/// order.  It can use an external sort if the data and indices can not fit
+/// into memory.  The indices will be written to a file with extension .ind
+/// and the sorted values in a file with extension .srt.  If the indices
+/// can not be loaded into memory as a whole, the .ind file will be opened
+/// for future read operations.
+///
+/// @ingroup FastBitIBIS
 class ibis::roster {
 public:
     ~roster() {clear();};

@@ -284,6 +284,7 @@ public:
     {ibis::gParameters().add("query.purgeTempFiles", "false");}
 
     class result; // Forward declaration only
+    class weight;
 
 protected:
     char* user; 	///< Name of the user who specified the query
@@ -441,16 +442,6 @@ protected:
     friend class readLock;
     friend class writeLock;
 
-    // a class to be used for reordering the terms in the where clauses
-    class weight : public ibis::qExpr::weight {
-    public:
-	virtual double operator()(const ibis::qExpr* ex) const;
-	weight(const ibis::part* ds) : dataset(ds) {}
-
-    private:
-	const ibis::part* dataset;
-    };
-
 private:
     char* myID; 	// The unique ID of this query object
     char* myDir;	// Name of the directory containing the query record
@@ -518,4 +509,14 @@ namespace ibis {
 				    const char *pairfile) const;
     ///@}
 }
+
+/// A class to be used for reordering the terms in the where clauses.
+class ibis::query::weight : public ibis::qExpr::weight {
+public:
+    virtual double operator()(const ibis::qExpr* ex) const;
+    weight(const ibis::part* ds) : dataset(ds) {}
+
+private:
+    const ibis::part* dataset;
+};
 #endif // IBIS_QUERY_H

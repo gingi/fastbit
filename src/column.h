@@ -217,10 +217,12 @@ public:
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
 
-    /// truncate the number of data entries in the named dir to @c nent.
-    /// Adjust the null mask accordingly.
+    /// Truncate the number of data entries in the named dir to @c nent.
     long truncateData(const char* dir, uint32_t nent,
 		      ibis::bitvector& mask) const;
+    template <typename T>
+    long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
+		      const T special);
 
     // A group of functions to compute some basic statistics for the
     // attribute values.

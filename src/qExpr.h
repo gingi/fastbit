@@ -546,6 +546,7 @@ namespace ibis {
 	    virtual literal* dup() const {return new literal(str);}
 	    virtual double eval() const {return 0.0;}
 	    virtual void print(std::ostream& out) const {out << str;}
+	    operator char* () const {return str;}
 
 	private:
 	    char* str;
@@ -633,7 +634,6 @@ namespace ibis {
 /// comparisons involving nontrivial arithmetic expression.
 class ibis::compRange : public ibis::qExpr {
 public:
-
 
     // construct the range from strings
     compRange() : qExpr(ibis::qExpr::COMPRANGE), expr3(0),
@@ -900,29 +900,36 @@ inline bool ibis::qContinuousRange::operator<
 	return false;
 } // ibis::qContinuousRange::operator<
 
-// incorrect implementation !! still need to decide how to fill the values
+/// It returns false in case of error.
 inline bool ibis::compRange::inRange() const {
-    volatile bool res = false;
-    volatile double tm1 =
-	static_cast<const ibis::math::term*>(getLeft())->eval();
-    volatile double tm2 =
+    if (getRight() == 0) return false;
+
+    const double tm2 =
 	static_cast<const ibis::math::term*>(getRight())->eval();
-    switch (op12) {
-    case OP_LT: res = (tm1 < tm2); break;
-    case OP_LE: res = (tm1 <= tm2); break;
-    case OP_GT: res = (tm1 > tm2); break;
-    case OP_GE: res = (tm1 >= tm2); break;
-    case OP_EQ: res = (tm1 == tm2); break;
-    default:    break;
+    if (op12 == OP_UNDEFINED && op23 == OP_UNDEFINED)
+	return (tm2 != 0.0);
+
+    bool res = true;
+    if (getLeft() != 0 && op12 != OP_UNDEFINED) {
+	const double tm1 =
+	    static_cast<const ibis::math::term*>(getLeft())->eval();
+	switch (op12) {
+	case OP_LT: res = (tm1 < tm2);  break;
+	case OP_LE: res = (tm1 <= tm2); break;
+	case OP_GT: res = (tm1 > tm2);  break;
+	case OP_GE: res = (tm1 >= tm2); break;
+	case OP_EQ: res = (tm1 == tm2); break;
+	default:    break;
+	}
     }
-    if (expr3) {
-	tm1 = expr3->eval();
+    if (expr3 != 0 && op23 != OP_UNDEFINED && res == true) {
+	const double tm3 = expr3->eval();
 	switch (op23) {
-	case OP_LT: res = res && (tm2 < tm1); break;
-	case OP_LE: res = res && (tm2 <= tm1); break;
-	case OP_GT: res = res && (tm2 > tm1); break;
-	case OP_GE: res = res && (tm2 >= tm1); break;
-	case OP_EQ: res = res && (tm2 == tm1); break;
+	case OP_LT: res = (tm2 < tm3);  break;
+	case OP_LE: res = (tm2 <= tm3); break;
+	case OP_GT: res = (tm2 > tm3);  break;
+	case OP_GE: res = (tm2 >= tm3); break;
+	case OP_EQ: res = (tm2 == tm3); break;
 	default:    break;
 	}
     }
@@ -931,7 +938,7 @@ inline bool ibis::compRange::inRange() const {
 
 inline bool ibis::compRange::isSimpleRange() const {
     bool res = false;
-    if (expr3==0)
+    if (expr3 == 0 && getLeft() != 0)
 	res = ((static_cast<const ibis::math::term*>(getLeft())->
 		termType()==ibis::math::VARIABLE &&
 		static_cast<const ibis::math::term*>(getRight())->
@@ -940,20 +947,27 @@ inline bool ibis::compRange::isSimpleRange() const {
 		termType()==ibis::math::NUMBER &&
 		static_cast<const ibis::math::term*>(getRight())->
 		termType()==ibis::math::VARIABLE));
-    else if (expr3->termType()==ibis::math::NUMBER)
-	res = (static_cast<const ibis::math::term*>(getLeft())->
-	       termType()==ibis::math::NUMBER &&
-	       static_cast<const ibis::math::term*>(getRight())->
-	       termType()==ibis::math::VARIABLE);
+    else if (expr3 != 0 && expr3->termType()==ibis::math::NUMBER)
+	res = (getLeft() == 0 &&
+	       static_cast<const ibis::math::term*>(getRight())->termType()
+	       == ibis::math::VARIABLE) || 
+	    (static_cast<const ibis::math::term*>(getLeft())->
+	     termType()==ibis::math::NUMBER &&
+	     static_cast<const ibis::math::term*>(getRight())->
+	     termType()==ibis::math::VARIABLE);
     return res;
 } // ibis::compRange::isSimpleRange
 
 inline bool ibis::compRange::maybeStringCompare() const {
-    return (expr3 == 0 && op12==OP_EQ &&
-	    static_cast<const ibis::math::term*>(getLeft())->termType()
-	    ==ibis::math::VARIABLE &&
-	    static_cast<const ibis::math::term*>(getRight())->termType()
-	    ==ibis::math::VARIABLE);
+    return (expr3 == 0 && op12==OP_EQ && getLeft() != 0 && getRight() != 0 &&
+	    (static_cast<const ibis::math::term*>(getLeft())->termType()
+	     ==ibis::math::VARIABLE ||
+	     static_cast<const ibis::math::term*>(getLeft())->termType()
+	     ==ibis::math::STRING) &&
+	    (static_cast<const ibis::math::term*>(getRight())->termType()
+	     ==ibis::math::VARIABLE ||
+	     static_cast<const ibis::math::term*>(getRight())->termType()
+	     ==ibis::math::STRING));
 } // ibis::compRange::maybeStringCompare
 
 /// Is the argument @a val one of the values stored ?  Return true or

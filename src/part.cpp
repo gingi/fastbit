@@ -3781,7 +3781,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	}
 
 	for (uint32_t i = 0; i < vlist->size(); ++i) {
-	    if (stores[i])
+	    if (stores[i] != 0)
 		stores[i]->beginUse();
 	}
 
@@ -4501,10 +4501,10 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 
 /// The arithmetic expression is applied to each row that are marked 1 in
 /// the mask, msk, with names in the arithmetic expression interpretted as
-/// column names.  The resulting values packed into array res as doubles.
-/// Upon successful completion of this function, the return value should be
-/// the number of records examined, which should be same as msk.cnt() and
-/// res.size().
+/// column names.  The resulting values are packed into the array res as
+/// doubles.  Upon the successful completion of this function, the return
+/// value should be the number of records examined, which should be same as
+/// msk.cnt() and res.size().
 long ibis::part::calculate(const ibis::math::term &trm,
 			   const ibis::bitvector &msk,
 			   array_t<double> &res) const {

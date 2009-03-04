@@ -94,5 +94,15 @@ protected:
 
     void fillNames();
     static int _verify(const ibis::part&, const ibis::math::term&);
-};
+}; // class ibis::selectClause
+
+namespace std {
+    inline ostream& operator<<(ostream&, const ibis::selectClause&);
+}
+
+inline std::ostream& std::operator<<(std::ostream& out,
+				     const ibis::selectClause &sel) {
+    sel.print(out);
+    return out;
+} // std::operator<<
 #endif

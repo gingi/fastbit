@@ -33,7 +33,8 @@ Key features
  arbitrary location.  It also supports an iterator, a const_iterator and an
  indexSet.
 
-Encoding format
+Encoding format <http://lbl.gov/~kwu/ps/LBNL-49626.html>
+<http://portal.acm.org/citation.cfm?doid=1132863.1132864>
 
  Incoming bits are organized into words (bitvector::word_t).  A word is a
  literal word if its Most Significant Bit (MSB) is 0, it is a fill word if

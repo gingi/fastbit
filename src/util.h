@@ -211,7 +211,7 @@ namespace std { // extend namespace std slightly
 } // namespace std
 
 namespace ibis {
-    /// @defgroup FastBitIBIS FastBit IBIS key implementation objects.
+    /// @defgroup FastBitIBIS FastBit IBIS implementation core objects.
     /// @{
     class resource;	///< To store configuration parameters.
     class bitvector;	///< To store one bit sequence/bitmap.

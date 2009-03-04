@@ -1,3 +1,33 @@
+2009-03-03 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: add calls to countQuery::setSelectClause in
+	mensa::doSelect to make use of the capability to handle aliases
+	* src/whereClause.cpp: on line 123 and 210, tm->getType() should
+	be tmp->termType()
+	* src/qExpr.cpp: change compRange::print to avoid print unknown
+	operators
+	* src/qExpr.h: ibis::compRange::inRange() neglected to check for
+	nil pointers
+	* src/qExpr.cpp: ibis::bediener::reduce mishandles a number of
+	different cases, ibis::stdFunction1::reduce neglect to set ret to
+	nil where it should have set it to this
+
+2009-03-02 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/parti.cpp: add two variants of addColumn to
+	evaluate an arithmetic expression and produce a new column
+	* src/column.h, src/column.cpp: add castAndWrite to support
+	addColumn
+	* src/whereClause.cpp: change _verify to take a selectClause as an
+	argument and check for aliases in column names for simple
+	expressions
+	* src/countQuery.h, src/countQuery.cpp: add new class
+	ibis::countQuery
+	* src/mensa.cpp: change all references to ibis::query to
+	ibis::countQuery
+
+2009-02-18 John Wu <John.Wu at ACM.org>
+        * src/index.cpp: in doxygen documentation for index::create
+        update the parameter name to dfname
+
 2009-02-17 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: add codes to evaluateRange to answer
 	qDiscreteRange queries with sorted list of data if they are

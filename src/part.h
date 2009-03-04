@@ -494,6 +494,12 @@ public:
     /// Rollback the append operation.  This function can only be called
     /// before calling @c commit.
     long rollback();
+    /// Add a column computed with the given arithmetic expression.
+    long addColumn(const char* aexpr, const char* cname,
+		   ibis::TYPE_T ctype=ibis::DOUBLE);
+    /// Add a column computed with the given arithmetic expression.
+    long addColumn(const ibis::math::term* xpr, ibis::bitvector& mask,
+		   const char* cname, ibis::TYPE_T ctype=ibis::DOUBLE);
 
     /******************************************************************/
     /// Sort rows with the lowest cardinality attribute first.
@@ -544,7 +550,7 @@ public:
 	std::vector<unsigned> super;///< The condition encompassing this one.
 	std::vector<unsigned> hits; ///< The number of hits.
     };
-    /// A struct to pack argument to the function ibis_part_build_index.
+    /// A struct to pack arguments to the function ibis_part_build_index.
     struct indexBuilderPool {
 	ibis::util::counter cnt;
 	const char* opt;
@@ -558,7 +564,7 @@ public:
     /// Generate and run random queries for slefTest.
     void quickTest(const char* pref, long* nerrors) const;
 
-    // These functions are used classes barrel and vault
+    // These functions are in used classes barrel and vault
     void logWarning(const char* event, const char* fmt, ...) const;
     void logMessage(const char* event, const char* fmt, ...) const;
 
@@ -566,7 +572,7 @@ public:
 
     class barrel;
     class vault;
-    // an associative array for columns of data
+    /// An associative array for columns of data.
     typedef std::map< const char*, column*, lessi > columnList;
 
 protected:

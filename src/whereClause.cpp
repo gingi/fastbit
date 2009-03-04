@@ -5,6 +5,7 @@
 #include "part.h"	// ibis::part, used by verify and amplify
 #include "whereLexer.h"
 #include "whereClause.h"
+#include "selectClause.h"
 
 ibis::whereClause::~whereClause() {
     delete expr_;
@@ -87,11 +88,12 @@ void ibis::whereClause::clear() throw () {
     expr_ = 0;
 } // ibis::whereClause::clear
 
-int ibis::whereClause::verify(const ibis::part& part0) {
+int ibis::whereClause::verify(const ibis::part& part0,
+			      const ibis::selectClause *sel) {
     if (expr_ != 0) {
 	ibis::qExpr::simplify(expr_);
 	amplify(part0);
-	return _verify(part0, expr_);
+	return _verify(part0, expr_, sel);
     }
     else {
 	return 0;
@@ -104,7 +106,8 @@ int ibis::whereClause::verify(const ibis::part& part0) {
 /// the number of names NOT in the data partition.  It is also the function
 /// that converts expressions of the form "string1 = string2" to string
 /// lookups when one of the strings is a name of a string-valued column.
-int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
+int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
+			       const ibis::selectClause *sel) {
     int ierr = 0;
 
     switch (xp0->getType()) {
@@ -113,6 +116,79 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 	    static_cast<ibis::qContinuousRange*>(xp0);
 	if (range->colName()) { // allow name to be NULL
 	    const ibis::column* col = part0.getColumn(range->colName());
+	    if (col == 0 && sel != 0) {
+		int isel = sel->find(range->colName());
+		if (isel >= 0 && isel < sel->size()) {
+		    const ibis::math::term *tm = sel->at(isel);
+		    switch (tm->termType()) {
+		    default: break; // can not do anything
+		    case ibis::math::VARIABLE: {
+			const ibis::math::variable &var =
+			    *static_cast<const ibis::math::variable*>(tm);
+			col = part0.getColumn(var.variableName());
+			if (col != 0) { // use the real name
+			    range = new ibis::qContinuousRange
+				(range->leftBound(), range->leftOperator(),
+				 var.variableName(),
+				 range->rightOperator(), range->rightBound());
+			    delete xp0;
+			    xp0 = range;
+			    ierr += _verify(part0, xp0, sel);
+			}
+			break;}
+		    case ibis::math::NUMBER: {
+			col = part0.getColumn((uint32_t)0);
+			break;}
+		    case ibis::math::STRING: {
+			const char *sval =
+			    *static_cast<const ibis::math::literal*>(tm);
+			col = part0.getColumn(sval);
+			if (col != 0) { // use the real name
+			    range = new ibis::qContinuousRange
+				(range->leftBound(), range->leftOperator(),
+				 sval,
+				 range->rightOperator(), range->rightBound());
+			    delete xp0;
+			    xp0 = range;
+			}
+			break;}
+		    case ibis::math::OPERATOR:
+		    case ibis::math::STDFUNCTION1:
+		    case ibis::math::STDFUNCTION2:
+		    case ibis::math::CUSTOMFUNCTION1:
+		    case ibis::math::CUSTOMFUNCTION2: {
+			ibis::math::number *num1;
+			ibis::math::number *num2;
+			if (range->leftOperator() !=
+			    ibis::qExpr::OP_UNDEFINED) {
+			    num1 =
+				new ibis::math::number(range->leftBound());
+			}
+			else {
+			    num1 = 0;
+			}
+			if (range->rightOperator() !=
+			    ibis::qExpr::OP_UNDEFINED) {
+			    num2 =
+				new ibis::math::number(range->rightBound());
+			}
+			else {
+			    num2 = 0;
+			}
+			if (num1 != 0 || num2 != 0) {
+			    ibis::math::term *myterm = tm->dup();
+			    ibis::compRange *tmp = new ibis::compRange
+				(num1, range->leftOperator(), myterm,
+				 range->rightOperator(), num2);
+			    delete xp0;
+			    xp0 = tmp;
+			    ierr += _verify(part0, xp0, sel);
+			    col = part0.getColumn((uint32_t)0);
+			}
+			break;}
+		    } // switch (tm->termType())
+		}
+	    }
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
@@ -120,21 +196,13 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
-	    else if (col->type() == ibis::FLOAT) {
-		// reduce the precision of the bounds
-		range->leftBound() =
-		    static_cast<float>(range->leftBound());
-		range->rightBound() =
-		    static_cast<float>(range->rightBound());
-	    }
 	}
 	break;}
     case ibis::qExpr::STRING: {
 	const ibis::qString* str =
 	    static_cast<const ibis::qString*>(xp0);
 	if (str->leftString()) { // allow name to be NULL
-	    const ibis::column* col =
-		part0.getColumn(str->leftString());
+	    const ibis::column* col = part0.getColumn(str->leftString());
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
@@ -152,6 +220,49 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 		static_cast<const ibis::math::variable*>(math);
 	    const ibis::column* col =
 		part0.getColumn(var->variableName());
+	    if (col == 0 && sel != 0) {
+		int isel = sel->find(var->variableName());
+		if (isel >= 0 && isel < sel->size()) {
+		    const ibis::math::term *tm = sel->at(isel);
+		    switch (tm->termType()) {
+		    default: break; // can not do anything
+		    case ibis::math::VARIABLE: {
+			const ibis::math::variable &var2 =
+			    *static_cast<const ibis::math::variable*>(tm);
+			col = part0.getColumn(var2.variableName());
+			if (col != 0) { // use the real name
+			    delete xp0;
+			    xp0 = var2.dup();
+			}
+			break;}
+		    case ibis::math::NUMBER: {
+			delete xp0;
+			xp0 = tm->dup();
+			col = part0.getColumn((uint32_t)0);
+			break;}
+		    case ibis::math::STRING: {
+			const char *sval =
+			    *static_cast<const ibis::math::literal*>(tm);
+			col = part0.getColumn(sval);
+			if (col != 0) { // use the real name
+			    ibis::math::variable *tmp =
+				new ibis::math::variable(sval);
+			    delete xp0;
+			    xp0 = tmp;
+			}
+			break;}
+		    case ibis::math::OPERATOR:
+		    case ibis::math::STDFUNCTION1:
+		    case ibis::math::STDFUNCTION2:
+		    case ibis::math::CUSTOMFUNCTION1:
+		    case ibis::math::CUSTOMFUNCTION2: {
+			delete xp0;
+			xp0 = tm->dup();
+			col = part0.getColumn((uint32_t)0);
+			break;}
+		    } // switch (tm->termType())
+		}
+	    }
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
@@ -162,10 +273,10 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 	}
 	ibis::qExpr *tmp = math->getLeft();
 	if (tmp != 0)
-	    ierr += _verify(part0, tmp);
+	    ierr += _verify(part0, tmp, sel);
 	tmp = math->getRight();
 	if (tmp != 0)
-	    ierr += _verify(part0, tmp);
+	    ierr += _verify(part0, tmp, sel);
 	break;}
     case ibis::qExpr::COMPRANGE: {
 	// compRange have three terms rather than two
@@ -238,13 +349,13 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 	}
 	else {
 	    if (xp0->getLeft() != 0)
-		ierr = _verify(part0, xp0->getLeft());
+		ierr += _verify(part0, xp0->getLeft(), sel);
 	    if (xp0->getRight() != 0)
-		ierr += _verify(part0, xp0->getRight());
+		ierr += _verify(part0, xp0->getRight(), sel);
 	    if (reinterpret_cast<ibis::compRange*>(xp0)->getTerm3() != 0) {
 		ibis::qExpr *cr = reinterpret_cast<ibis::compRange*>
 		    (xp0)->getTerm3();
-		ierr += _verify(part0, cr);
+		ierr += _verify(part0, cr, sel);
 	    }
 	}
 	break;}
@@ -302,13 +413,13 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0) {
 		<< rj->getName2();
 	}
 	ibis::qExpr *t = rj->getRange();
-	ierr += _verify(part0, t);
+	ierr += _verify(part0, t, sel);
 	break;}
     default: {
 	if (xp0->getLeft() != 0)
-	    ierr = _verify(part0, xp0->getLeft());
+	    ierr += _verify(part0, xp0->getLeft(), sel);
 	if (xp0->getRight() != 0)
-	    ierr += _verify(part0, xp0->getRight());
+	    ierr += _verify(part0, xp0->getRight(), sel);
 	break;}
     } // end switch
 

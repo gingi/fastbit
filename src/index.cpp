@@ -63,18 +63,17 @@ namespace std { // specialize the std::less struct
 /// @param c a pointer to a ibis::column object.  This argument must be
 /// present.
 ///
-/// @param name a name, it can be the name of the index file, the data
-/// file, or the directory containing the data file.  If the name ends with
-/// '.idx' is treated as an index file and the content of the file is read.
-/// If the name does not end with '.idx', it is assumed to be the data file
-/// name unless it is determined to be a directory name.  If it is a
-/// directory name, the data file is assumed to be in the specified
-/// directory with a file name that is same as the column name.  Once a
-/// data file is found, the content of the data file is read to construct a
-/// new index according to the return value of function indexSpec.  The
-/// argument name can be nil, in which case, the data file name is
-/// constructed by concatenate the return of partition()->currentDataDir()
-/// and the column name.
+/// @param dfname data file name, may also be the name of the index file,
+/// or the directory containing the data file.  If the name ends with
+/// '.idx' is treated as an index file, and the content of the file is
+/// read.  If the name does not end with '.idx', it is assumed to be the
+/// data file name, unless it is determined to be a directory name.  If it
+/// is a directory name, the data file is assumed to be in the specified
+/// directory with the same name as the column.  Once a data file is found,
+/// the content of the data file is read to construct a new index according
+/// to the return value of function indexSpec.  The argument dfname can be
+/// nil, in which case, the data file name is constructed by concatenate
+/// the return of partition()->currentDataDir() and the column name.
 ///
 /// @note Set @c name to null to build a brand new index and discard
 /// the existing index.

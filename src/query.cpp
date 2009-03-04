@@ -2259,6 +2259,8 @@ void ibis::query::getBounds() {
 	sup = new ibis::bitvector;
 	hits = new ibis::bitvector;
 	doEstimate(conds.getExpr(), *hits, *sup);
+	if (sup->size() == hits->size())
+	    sup->adjustSize(mypart->nRows(), mypart->nRows());
 	if (hits->size() != mypart->nRows()) {
 	    logWarning("getBounds", "hits.size(%lu) differ from expected "
 		       "value(%lu)", static_cast<long unsigned>(hits->size()),
@@ -2268,14 +2270,6 @@ void ibis::query::getBounds() {
 	*hits &= mask;
 	hits->compress();
 
-	if (sup->size() != mypart->nRows() && sup->size() > 0) {
-	    if (sup->size() && ibis::gVerbose > 3)
-		logMessage("getBounds", "sup.size(%lu) differ from expected "
-			   "value(%lu)",
-			   static_cast<long unsigned>(sup->size()),
-			   static_cast<long unsigned>(mypart->nRows()));
-	    sup->clear(); // assume hits is accruate
-	}
 	if (sup->size() == hits->size()) {
 	    *sup &= mask;
 	    sup->compress();
