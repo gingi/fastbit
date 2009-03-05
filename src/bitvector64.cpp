@@ -1068,6 +1068,7 @@ void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
     else if (rhs.all1s()) { // zero out m_vec
 	nset = 0;
 	nbits = 0;
+	m_vec.nosharing();
 	m_vec.clear();
 	active.val &= ~(rhs.active.val);
 	append_counter(0, rhs.m_vec[0]&ALLONES);

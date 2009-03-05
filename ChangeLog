@@ -1,3 +1,11 @@
+2009-03-05 John Wu <John.Wu at ACM.org>
+	* src/bitvector64.cpp:1070 same problem at Norbert found in
+	bitvector.cpp
+
+2009-03-05 Norbert Heusser <heusser at online.de>
+	* src/bitvector.cpp:1353 add call to nosharing() before modifying
+	m_vec
+
 2009-03-04 John Wu <John.Wu at ACM.org>
 	* configure.ac: add AC_LAN(C++) to make the default language to be
 	C++, fix the problem with header file FlexLexer.h
