@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
-AC_PREREQ(2.63)
+AC_PREREQ(2.59)
 
 AC_INIT([FastBit],[ibis1.0.5],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
@@ -16,10 +16,11 @@ LIB_VERSION_INFO=0:9:0
 #AC_PROG_LEX
 AC_PROG_CC
 AC_PROG_CXX
-LT_INIT
-
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AC_PROG_LIBTOOL
+LT_INIT
+AC_LANG(C++)
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [log10])

@@ -11,7 +11,7 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-dist_data_DATA=test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 tcapi-3 \
+EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 tcapi-3 \
 	scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
 #
 # tests with different levels of thoroughness

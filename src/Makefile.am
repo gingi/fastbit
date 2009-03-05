@@ -6,7 +6,7 @@ libfastbit_la_LDFLAGS = -version-info $(LIB_VERSION_INFO)
 
 include_HEADERS = config.h array_t.h bitvector.h bitvector64.h bord.h bundle.h capi.h category.h colValues.h column.h const.h countQuery.h fileManager.h horometer.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h join.h joinin.h mensa.h meshQuery.h part.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh
 
-dist_data_DATA=whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy Doxyfile
+EXTRA_DIST=whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy Doxyfile
 
 # use a useless print statement to prevent the use of implicit rule
 # to generating executable named predicate

@@ -1,3 +1,22 @@
+2009-03-04 John Wu <John.Wu at ACM.org>
+	* configure.ac: add AC_LAN(C++) to make the default language to be
+	C++, fix the problem with header file FlexLexer.h
+	* INSTALL: add note 10 about java compilation problem
+	* Makefile.am, src/Makefile.am, java/Makefile.am,
+	tests/Makefile.am: use EXTRA_DIST to replace dist_data...
+	* java/README: update to reflect the new files from Andrey
+	* AUTHORS: update list of contributors to include Andrey
+
+2009-03-04 Andrey Kolchanov <kolchanov at gmail.com>
+	* java/build.xml, java/tests,
+	java/gov/lbl/fastbit/FastBitStringReader.java,
+	java/gov/lbl/fastbit/FastBitStringReaderException.java,
+	java/gov/lbl/fastbit/FastBitStringWriter.java,
+	java/gov/lbl/fastbit/FastBitStringWriterException.java:
+	add java unit test function and string handling functions.  This
+	set of files require Apache ant to build.  Additional dependencies
+	are distributed under tests/lib as jar files.
+
 2009-03-03 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: add calls to countQuery::setSelectClause in
 	mensa::doSelect to make use of the capability to handle aliases
@@ -1428,7 +1447,7 @@
 	* src/array_t.cpp: -- add checks for uninitialized m_begin
 	* renamed all dataTable() to partition(), theTable to thePart
 
-2007-10-07 matthias Vallentin <vallentin at icsi.berkeley.edu>
+2007-10-07 Matthias Vallentin <vallentin at icsi.berkeley.edu>
 	* src/parti.cpp:1261 -- change deactivate to reactivate
 
 2007-10-07 John Wu <John.Wu at ACM.org>

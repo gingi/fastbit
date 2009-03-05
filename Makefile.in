@@ -34,17 +34,11 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(dist_doc_DATA) \
-	$(dist_java_DATA) $(dist_win_DATA) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
+	config.guess config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/tests/m4/libtool.m4 \
-	$(top_srcdir)/tests/m4/ltoptions.m4 \
-	$(top_srcdir)/tests/m4/ltsugar.m4 \
-	$(top_srcdir)/tests/m4/ltversion.m4 \
-	$(top_srcdir)/tests/m4/lt~obsolete.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -67,12 +61,9 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(docdir)" "$(DESTDIR)$(javadir)" \
-	"$(DESTDIR)$(windir)"
+am__installdirs = "$(DESTDIR)$(docdir)"
 dist_docDATA_INSTALL = $(INSTALL_DATA)
-dist_javaDATA_INSTALL = $(INSTALL_DATA)
-dist_winDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(dist_doc_DATA) $(dist_java_DATA) $(dist_win_DATA)
+DATA = $(dist_doc_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
@@ -110,13 +101,14 @@ CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DSYMUTIL = @DSYMUTIL@
-DUMPBIN = @DUMPBIN@
+ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FGREP = @FGREP@
+F77 = @F77@
+FFLAGS = @FFLAGS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -125,23 +117,17 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
 JAVAC = @JAVAC@
-LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIB_VERSION_INFO = @LIB_VERSION_INFO@
-LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-NM = @NM@
 NMEDIT = @NMEDIT@
-OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
-OTOOL = @OTOOL@
-OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -163,7 +149,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
-ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+ac_ct_F77 = @ac_ct_F77@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -194,7 +180,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -207,7 +192,6 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 uudecode = @uudecode@
@@ -215,9 +199,7 @@ z_check_pthread_config = @z_check_pthread_config@
 AUTOMAKE_OPTIONS = gnu
 ACLOCAL_AMFLAGS = -I tests/m4
 SUBDIRS = src examples java tests
-windir = $(prefix)/share/win
-javadir = $(prefix)/share/java
-dist_win_DATA = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
+EXTRA_DIST = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/FlexLexer.h
@@ -226,7 +208,6 @@ dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html
 
-dist_java_DATA = java/FastBit.java java/milky.java
 all: all-recursive
 
 .SUFFIXES:
@@ -271,7 +252,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 
 distclean-libtool:
-	-rm -f libtool config.lt
+	-rm -f libtool
 install-dist_docDATA: $(dist_doc_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(docdir)" || $(MKDIR_P) "$(DESTDIR)$(docdir)"
@@ -288,40 +269,6 @@ uninstall-dist_docDATA:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(docdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(docdir)/$$f"; \
-	done
-install-dist_javaDATA: $(dist_java_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(javadir)" || $(MKDIR_P) "$(DESTDIR)$(javadir)"
-	@list='$(dist_java_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_javaDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(javadir)/$$f'"; \
-	  $(dist_javaDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(javadir)/$$f"; \
-	done
-
-uninstall-dist_javaDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(dist_java_DATA)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(javadir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(javadir)/$$f"; \
-	done
-install-dist_winDATA: $(dist_win_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(windir)" || $(MKDIR_P) "$(DESTDIR)$(windir)"
-	@list='$(dist_win_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_winDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(windir)/$$f'"; \
-	  $(dist_winDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(windir)/$$f"; \
-	done
-
-uninstall-dist_winDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(dist_win_DATA)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(windir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(windir)/$$f"; \
 	done
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -499,6 +446,9 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
@@ -607,7 +557,7 @@ check: check-recursive
 all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(docdir)" "$(DESTDIR)$(javadir)" "$(DESTDIR)$(windir)"; do \
+	for dir in "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -649,8 +599,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-dist_docDATA install-dist_javaDATA \
-	install-dist_winDATA
+install-data-am: install-dist_docDATA
 
 install-dvi: install-dvi-recursive
 
@@ -682,8 +631,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-dist_docDATA uninstall-dist_javaDATA \
-	uninstall-dist_winDATA
+uninstall-am: uninstall-dist_docDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
 	install-strip
@@ -691,20 +639,19 @@ uninstall-am: uninstall-dist_docDATA uninstall-dist_javaDATA \
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-am clean clean-generic \
 	clean-libtool ctags ctags-recursive dist dist-all dist-bzip2 \
-	dist-gzip dist-lzma dist-shar dist-tarZ dist-zip distcheck \
-	distclean distclean-generic distclean-libtool distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dist_docDATA install-dist_javaDATA \
-	install-dist_winDATA install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-dist_docDATA \
-	uninstall-dist_javaDATA uninstall-dist_winDATA
+	dist-gzip dist-hook dist-lzma dist-shar dist-tarZ dist-zip \
+	distcheck distclean distclean-generic distclean-libtool \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dist_docDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am tags tags-recursive uninstall uninstall-am \
+	uninstall-dist_docDATA
 
 
 docs:
@@ -730,6 +677,9 @@ distclean: distclean-recursive
 maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
+
+dist-hook:
+	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
 
 .PHONY: docs more-check full-check
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

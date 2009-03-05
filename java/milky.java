@@ -13,9 +13,10 @@
    integers.
 
    @note Milky Stork (Mycteria cinerea)
-A endangered white stork that was common in Java, Indonesia.
-@see http://www.birdlife.org/datazone/sites/index.html?action=SpcHTMDetails.asp&sid=3825
+   A endangered white stork that was common in Java, Indonesia.
+   @see http://www.birdlife.org/datazone/sites/index.html?action=SpcHTMDetails.asp&sid=3825
 
+   @author John Wu
  */
 
 public class milky {

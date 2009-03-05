@@ -226,6 +226,31 @@ Known Issues
     send your suggestions or corrections to
     <fastbit-users@hpcrdm.lbl.gov>.
 
+(10) If the configure script finds a working version of javac, but fails
+     to find a working version of java, it is likely that CLASSPATH is
+     not set correctly.  One common problem on a unix/linux machine is
+     that the current directory is not in CLASSPATH.  One way to fix
+     such a problem is to prepend the dot in front of CLASSPATH,
+     e.g. (in boune shell)
+
+     CLASSPATH=.:$CLASSPATH
+
+(11) If you encounter a "libtool: Version mismatch error," you should be
+     able to overwrite the file libtool with a copy from your current
+     system, e.g., /usr/bin/libtool.
+
+(12) The header file FlexLexer.h in /usr/include directory could be too
+     old to work with the files selectLexer.cc and whereLexer.cc.  This
+     will cause compiler failure of some sort.  Here is an example:
+
+whereLexer.cc: In member function 'virtual ibis::whereParser::token::yytokentype ibis::whereLexer::lex(ibis::whereParser::semantic_type*, ibis::location*)':
+whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
+
+     In this case, explicitly add '-I ${PWD}/win' to CXXFLAGS can force
+     the FlexLexer.h in directory win to be included, e.g.,
+
+     make -j 4 CXXFLAGS="-O3 -I ${PWD}/win" all
+
 
 ----------
 Trouble Shooting

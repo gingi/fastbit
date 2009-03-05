@@ -1,16 +1,15 @@
 AUTOMAKE_OPTIONS=gnu
 ACLOCAL_AMFLAGS=-I tests/m4
 SUBDIRS = src examples java tests
-windir = $(prefix)/share/win
-javadir = $(prefix)/share/java
-dist_win_DATA = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
+
+EXTRA_DIST = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/FlexLexer.h
+
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html
-dist_java_DATA = java/FastBit.java java/milky.java
 
 docs:
 	cd src && $(MAKE) docs
@@ -35,5 +34,8 @@ distclean: distclean-recursive
 maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
+
+dist-hook:
+	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
 
 .PHONY: docs more-check full-check

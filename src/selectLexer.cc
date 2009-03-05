@@ -9,7 +9,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_SUBMINOR_VERSION 34
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -187,6 +187,13 @@ extern int yyleng;
 	while ( 0 )
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
+
+/* The following is because we cannot portably get our hands on size_t
+ * (without autoconf's help, which isn't available because we want
+ * flex-generated scanners to compile on their own).
+ * Given that the standard has decreed that size_t exists since 1989,
+ * I guess we can afford to depend on it. Manoj.
+ */
 
 #ifndef YY_TYPEDEF_YY_SIZE_T
 #define YY_TYPEDEF_YY_SIZE_T
@@ -476,7 +483,7 @@ typedef ibis::selectParser::token_type token_type;
 #define YY_NO_UNISTD_H 1
 /* regular expressions used to shorten the definitions 
 */
-#line 480 "selectLexer.cc"
+#line 487 "selectLexer.cc"
 
 #define INITIAL 0
 
@@ -582,7 +589,7 @@ YY_DECL
     yylloc->step();
 
 		   /* section defining the tokens */
-#line 586 "selectLexer.cc"
+#line 593 "selectLexer.cc"
 
 	if ( !(yy_init) )
 		{
@@ -791,7 +798,7 @@ YY_RULE_SETUP
 #line 89 "selectLexer.ll"
 ECHO;
 	YY_BREAK
-#line 795 "selectLexer.cc"
+#line 802 "selectLexer.cc"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
