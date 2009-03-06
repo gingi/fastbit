@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-//Copyright 2006-2009 the Regents of the University of California
+// Copyright 2006-2009 the Regents of the University of California
 //
 #include "capi.h"
 #include "part.h"	// ibis::part, ibis::column, ibis::tablex
@@ -451,8 +451,8 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_bytes");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_bytes");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -519,8 +519,8 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_shorts");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_shorts");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -593,8 +593,8 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 		<< tmp->size() << " value" << (tmp->size()>1 ? "s" : "")
 		<< " of " << att << " from "
 		<< c->partition()->currentDataDir();
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_ints");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_ints");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -666,8 +666,8 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_longs");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_longs");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -733,8 +733,8 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_ubytes");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_ubytes");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -801,8 +801,8 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_ushorts");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_ushorts");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -870,8 +870,8 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_uints");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_uints");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -941,8 +941,8 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_ulongs");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_ulongs");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -1004,8 +1004,8 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_floats");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_floats");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
@@ -1067,8 +1067,8 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	    delete tmp;
 	}
 	else {
-	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "fastbit_get_qualified_doubles");
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_doubles");
 	    it = qhandle->vlist.find(att);
 	    if (it == qhandle->vlist.end()) {
 		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;

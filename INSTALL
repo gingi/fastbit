@@ -237,11 +237,14 @@ Known Issues
 
 (11) If you encounter a "libtool: Version mismatch error," you should be
      able to overwrite the file libtool with a copy from your current
-     system, e.g., /usr/bin/libtool.
+     system, e.g., /usr/bin/libtool.  Alternatively, run the following
+     before trying to run configure script again
+
+     aclocal && automake && autoconf
 
 (12) The header file FlexLexer.h in /usr/include directory could be too
      old to work with the files selectLexer.cc and whereLexer.cc.  This
-     will cause compiler failure of some sort.  Here is an example:
+     will cause a compiler error of some sort.  Here is an example:
 
 whereLexer.cc: In member function 'virtual ibis::whereParser::token::yytokentype ibis::whereLexer::lex(ibis::whereParser::semantic_type*, ibis::location*)':
 whereLexer.cc:1244: error: 'yywrap' was not declared in this scope

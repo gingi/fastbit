@@ -25,6 +25,7 @@ OBJ =  parth3d.obj parth3da.obj parth3db.obj \
  capi.obj \
  category.obj \
  colValues.obj \
+ countQuery.obj \
  column.obj \
  fileManager.obj \
  ibin.obj \
@@ -185,6 +186,12 @@ column.obj: ../src/column.cpp ../src/resource.h ../src/util.h \
   ../src/horometer.h ../src/column.h ../src/table.h ../src/part.h \
   ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c ../src/column.cpp
+countQuery.obj: ../src/countQuery.cpp ../src/countQuery.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/const.h ../src/fileManager.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
+  ../src/selectClause.h ../src/query.h
+	$(CXX) $(CCFLAGS) -c ../src/countQuery.cpp
 fileManager.obj: ../src/fileManager.cpp ../src/fileManager.h ../src/util.h \
   ../src/const.h ../src/resource.h ../src/array_t.h ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c ../src/fileManager.cpp
@@ -327,7 +334,7 @@ mensa.obj: ../src/mensa.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/mensa.h \
   ../src/query.h ../src/whereClause.h ../src/index.h ../src/category.h \
-  ../src/irelic.h ../src/selectClause.h
+  ../src/irelic.h ../src/selectClause.h ../src/countQuery.h
 	$(CXX) $(CCFLAGS) -c ../src/mensa.cpp
 meshQuery.obj: ../src/meshQuery.cpp ../src/meshQuery.h ../src/query.h \
   ../src/part.h ../src/column.h ../src/table.h ../src/const.h \

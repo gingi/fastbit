@@ -362,20 +362,20 @@ namespace ibis {
 	extern const short unsigned charIndex[];
 	/// Delimiters used to separate a string of names. @sa ibis::nameList
 	extern const char* delimiters;
-	/// A mutex intended to be used for ensuring there is only one
-	/// function that modifies the environment and other conditions.
-	/// Currently used by the functions that generating user name,
-	/// asking for password, backing up active tables, cleaning up the
-	/// list of tables and optionally used to lock the variable
-	/// ibis::fileManager::totalBytes.
+	/// A mutex for serialize operations FastBit wide.  Currently it is
+	/// used by the functions that generating user name, asking for
+	/// password, backing up active tables, cleaning up the list of
+	/// tables.  It is also used extensively in the implementation of C
+	/// API functions to ensure the cache maintained for C users are
+	/// manipulated by one user at a time.
 	extern FASTBIT_CXX_DLLSPEC pthread_mutex_t envLock;
 
-	/// Remove leading and trailing blank space
+	/// Remove leading and trailing blank space.
 	inline char* trim(char* str);
-	/// duplicate string content with C++ default new operator
+	/// duplicate string content with C++ default new operator.
 	inline char* strnewdup(const char* s);
 	inline char* strnewdup(const char* s, const uint32_t n);
-	/// Remove trailing character 'tail' from str
+	/// Remove trailing character 'tail' from str.
 	inline void removeTail(char* str, char tail);
 	/// Treat all bytes in buf as the string.
 	FASTBIT_CXX_DLLSPEC char* getString(const char* buf);

@@ -285,6 +285,10 @@ public:
 
     class result; // Forward declaration only
     class weight;
+    class readLock;
+    class writeLock;
+    friend class readLock;
+    friend class writeLock;
 
 protected:
     char* user; 	///< Name of the user who specified the query
@@ -407,41 +411,6 @@ protected:
 		       mesg);
     }
 
-    // these two simple class are needed in order to ensure locks are
-    // properly released even if the functions using them do not properly
-    // terminate in particular, if the caller encounters an exception, the
-    // destructor will be called automatically to ensure the locks are
-    // released.
-    class readLock {
-    public:
-	readLock(const query* q, const char* m) : theQuery(q), mesg(m) {
-	    theQuery->gainReadAccess(m);
-	};
-	~readLock() {theQuery->releaseAccess(mesg);}
-    private:
-	const query* theQuery;
-	const char* mesg;
-
-	readLock() {}; // no default constructor
-	readLock(const readLock&) {}; // can not copy
-    };
-
-    class writeLock {
-    public:
-	writeLock(const query* q, const char* m) : theQuery(q), mesg(m) {
-	    theQuery->gainWriteAccess(m);
-	};
-	~writeLock() {theQuery->releaseAccess(mesg);}
-    private:
-	const query* theQuery;
-	const char* mesg;
-
-	writeLock() {}; // no default constructor
-	writeLock(const writeLock&) {}; // can not copy
-    };
-    friend class readLock;
-    friend class writeLock;
-
 private:
     char* myID; 	// The unique ID of this query object
     char* myDir;	// Name of the directory containing the query record
@@ -519,4 +488,40 @@ public:
 private:
     const ibis::part* dataset;
 };
+
+/// A read lock on a query object.  To take advantage of the automatic
+/// clean up feature guaranteed by the C++ language, use this lock as
+/// an automatic variable with a limited scope to ensure the release of
+/// lock.
+class ibis::query::readLock {
+public:
+    readLock(const query* q, const char* m) : theQuery(q), mesg(m) {
+	theQuery->gainReadAccess(m);
+    };
+    ~readLock() {theQuery->releaseAccess(mesg);}
+private:
+    const query* theQuery;
+    const char* mesg;
+
+    readLock() {}; // no default constructor
+    readLock(const readLock&) {}; // can not copy
+}; // class ibis::query::readLock
+
+/// A write lock on a query object.  To take advantage of the automatic
+/// clean up feature guaranteed by the C++ language, use this lock as
+/// an automatic variable with a limited scope to ensure the release of
+/// lock.
+class ibis::query::writeLock {
+public:
+    writeLock(const query* q, const char* m) : theQuery(q), mesg(m) {
+	theQuery->gainWriteAccess(m);
+    };
+    ~writeLock() {theQuery->releaseAccess(mesg);}
+private:
+    const query* theQuery;
+    const char* mesg;
+
+    writeLock() {}; // no default constructor
+    writeLock(const writeLock&) {}; // can not copy
+}; // ibis::query::writeLock
 #endif // IBIS_QUERY_H

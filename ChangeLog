@@ -1,3 +1,17 @@
+2009-03-06 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp:922 remove mit and reuse variable it,
+	statements 924 and 925 mistakenly used it instead of mit and was
+	causing problems (a problem reported by Andrey Kolchanov)
+	* src/util.h: clean up the documentation about envLock
+	* src/query.h: change readLock and writeLock to from protected to
+	public
+	* src/capi.cpp: make use of the ibis::query::writeLock instead of
+	ibis::util::envLock when manipulating the content cached for each
+	query
+	* src/resource.cpp: in resource::add remove the statements that
+	delete the group with the same name as a value being added
+	* win/Win.mak, win/MinGW.mak: include the new file countQuery.cpp
+
 2009-03-05 John Wu <John.Wu at ACM.org>
 	* src/bitvector64.cpp:1070 same problem at Norbert found in
 	bitvector.cpp

@@ -848,10 +848,9 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     // is the file being read by another thread?
     if (reading.find(name) != reading.end()) {
 	do {
-	    if (ibis::gVerbose > 5)
-		ibis::util::logMessage
-		    (evt.c_str(), "waiting for another thread "
-		     "to read \"%s\"", name);
+	    LOGGER(ibis::gVerbose > 5)
+		<< evt << " -- waiting for another thread to read \""
+		<< name << "\"";
 	    ierr = pthread_cond_wait(&readCond, &mutex);
 	    if (ierr != 0) {
 		ierr = -112;
@@ -873,9 +872,9 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	return ierr;
     }
     reading.insert(name); // add to the reading list
-    if (ibis::gVerbose > 5)
-	ibis::util::logMessage(evt.c_str(), "attempting to read %s "
-			       "(%lu bytes)", name, bytes);
+    LOGGER(ibis::gVerbose > 5)
+	<< evt << " -- attempting to read " << name << " ("
+	<< bytes << " bytes)";
 
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
@@ -920,8 +919,8 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     size_t sz = minMapSize;
     if (mapped.size() > (maxOpenFiles >> 1)) {
 	// compute the maximum size of the first ten files
-	fileList::const_iterator mit = mapped.begin();
-	for (int cnt = 0; cnt < 10 && mit != mapped.end(); ++ cnt, ++ mit)
+	it = mapped.begin();
+	for (int cnt = 0; cnt < 10 && it != mapped.end(); ++ cnt, ++ it)
 	    if (sz < (*it).second->size())
 		sz = (*it).second->size();
 	if (sz < MIN_DOMAP_SIZE)

@@ -1,7 +1,7 @@
-//$Id$
-//Author: John Wu <John.Wu at ACM.org>
+// $Id$
+// Author: John Wu <John.Wu at ACM.org>
 //        Lawrence Berkeley National Laboratory
-//Copyright 2000-2009 the Regents of the University of California
+// Copyright 2000-2009 the Regents of the University of California
 //
 // Purpose: The implementation of class ibis::resource
 //
@@ -172,13 +172,13 @@ void ibis::resource::add(const char* name, const char* value) {
 	    values[ibis::util::strnewdup(tname)] =
 		ibis::util::strnewdup(value);
 	}
-	ibis::resource::gList::iterator it = groups.find(tname);
-	if (it != groups.end()) { // erase the group with the same name
-	    delete (*it).second;
-	    groups.erase(it);
-	}
+// 	ibis::resource::gList::iterator it = groups.find(tname);
+// 	if (it != groups.end()) { // erase the group with the same name
+// 	    delete (*it).second;
+// 	    groups.erase(it);
+// 	}
     }
-    else { // involving another level ?
+    else { // involving another level (tname.tmp) ?
 	*tmp = static_cast<char>(0); ++ tmp;
 	tname = ibis::util::trim(tname);
 	if (*tname == 0 || (context == 0 &&
@@ -187,12 +187,12 @@ void ibis::resource::add(const char* name, const char* value) {
 	    add(tmp, value); // add to this level
 	}
 	else { // need to look for the named group
-	    ibis::resource::vList::iterator vit = values.find(tname);
-	    if (vit != values.end()) {// erase the named parameter
-		delete [] (char*)((*vit).first);
-		delete [] (*vit).second;
-		values.erase(vit);
-	    }
+// 	    ibis::resource::vList::iterator vit = values.find(tname);
+// 	    if (vit != values.end()) {// erase the named parameter
+// 		delete [] (char*)((*vit).first);
+// 		delete [] (*vit).second;
+// 		values.erase(vit);
+// 	    }
 	    ibis::resource::gList::iterator it = groups.find(tname);
 	    if (it != groups.end()) { // add it to the group
 		(*it).second->add(tmp, value);
@@ -286,15 +286,16 @@ bool ibis::resource::isTrue(const char* name) const {
 void ibis::resource::clear() {
     delete [] (char*)prefix;
     for (vList::const_iterator it = values.begin();
-	 it != values.end(); ++it) {
+	 it != values.end(); ++ it) {
 	delete[] (char*)((*it).first);
 	delete[] (*it).second;
     }
     values.clear();
 
     for (gList::const_iterator git = groups.begin();
-	 git != groups.end(); ++git)
+	 git != groups.end(); ++ git) {
 	delete (*git).second;
+    }
     groups.clear();
 } // ibis::resource::clear
 
@@ -309,7 +310,7 @@ void ibis::resource::clear(ibis::resource::vList &vl) {
 } // ibis::resource::clear
 
 /// Parse a string of the form "name=vale, name=value, ..." into a simple
-/// list of name-value pairs.  Add the new ones to the existing list.
+/// list of name-value pairs.  Add the new ones to the incoming list, lst.
 void ibis::resource::parseNameValuePairs(const char *in,
 					 ibis::resource::vList &lst) {
     if (in == 0) return;
