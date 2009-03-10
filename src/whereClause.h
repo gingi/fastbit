@@ -143,7 +143,8 @@ protected:
 
     /// Add conditions implied by self-join conditions.
     void amplify(const ibis::part&);
-    int _verify(const ibis::part&, ibis::qExpr*&, const ibis::selectClause *);
+    int _verify(const ibis::part&, ibis::qExpr*&,
+		const ibis::selectClause *) const;
 
 private:
     ibis::whereLexer *lexer;	// hold a pointer for the parser

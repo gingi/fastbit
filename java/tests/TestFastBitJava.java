@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
  * @author Andrey Kolchanov
  */
 public class TestFastBitJava {
-
     protected static Log l = LogFactory.getLog("TestFastBitJava");
     static int [] intArray = null;
     static String [] strArray = null;
@@ -49,8 +48,7 @@ public class TestFastBitJava {
      * Prepare simple test data
      * @throws Exception
      */
-    public static void prepareData() throws Exception{
-
+    public static void prepareData() throws Exception {
 	String [] ar = {"a0","a1","a2","a3","a4","a5","a6","a7","a8","a9"};
 	intArray = new int[ROW_COUNT];			
 	strArray = new String[ROW_COUNT];
@@ -58,10 +56,10 @@ public class TestFastBitJava {
 	    intArray[i] = i;
 	    strArray[i] = ar[i % 9];
 	}
-    }	
+    }
 
-    public void touchDir(String name){
-	File f = new File (name);		
+    public void touchDir(String name) {
+	File f = new File (name);	
 	if (!f.exists()){
 	    l.info("Trying to create dir "+name);
 	    f.mkdir();
@@ -79,15 +77,15 @@ public class TestFastBitJava {
 	Date d1 = new Date();
 
 	FastBit fb = new FastBit(null);
-
-	if (!new File(partName).exists()){
+	if (!new File(partName).exists()) {
 	    fb.add_ints("i", intArray);
 	    fb.write_buffer(partName);			
-	}else{
+	} else {
 	    l.info("Directory "+partName+" already exists");
 	}
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }
 
     @Test
@@ -107,15 +105,18 @@ public class TestFastBitJava {
 
 	assertEquals(ROW_COUNT, count);
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }	
 
 
     @Test
     /**
-     * Test raw fastbit java writer. Add metadata to existing index header -part.txt 
+     * Test raw fastbit java writer.  Add metadata to existing index
+     * header -part.txt.
      */
-	public void testFastBitJavaAddArrayText() throws FastBitStringWriterException{
+	public void testFastBitJavaAddArrayText()
+	throws FastBitStringWriterException {
 	String testName = "testFastBitJavaAddArrayText";
 	String partName = TDIR+"/testFastBitAddJavaText";
 	l.info(testName+" started with "+ ROW_COUNT + " rows");
@@ -123,12 +124,11 @@ public class TestFastBitJava {
 
 	FastBit fb = new FastBit(null);
 
-	if (!new File(partName).exists()){
+	if (!new File(partName).exists()) {
 	    fb.add_ints("i", intArray);
 	    fb.write_buffer(partName);
 
 	    FastBitStringWriter writer = new FastBitStringWriter();
-
 	    // Add text data
 	    writer.addText(partName, "t", strArray, "UTF-8");
 	    writer.addStringColumnToMetadata(partName, "t", "text");
@@ -136,31 +136,30 @@ public class TestFastBitJava {
 	    // Add category data			
 	    writer.addCategories(partName, "k", strArray, "UTF-8");
 	    writer.addStringColumnToMetadata(partName, "k", "key");
-
-	}else{
+	} else {
 	    l.info("Directory "+partName+" already exists");
 	}
 
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+               + " ms.");
     }
 
     @Test
     /**
      * Test raw fastbit java writer. Create a new -part.txt 
      */	
-	public void testFastBitJavaCreateArrayText() throws FastBitStringWriterException{
+	public void testFastBitJavaCreateArrayText()
+	throws FastBitStringWriterException {
 	String testName = "testFastBitJavaCreateArrayText";
 	String partName = TDIR+"/testFastBitCreateJavaText";
 	l.info(testName+" started with "+ ROW_COUNT + " rows");
 	Date d1 = new Date();
 
-
-	if (!new File(partName).exists()){
+	if (!new File(partName).exists()) {
 	    touchDir(partName);
 
 	    FastBitStringWriter writer = new FastBitStringWriter();
-
 	    // Add text data
 	    writer.addText(partName, "t", strArray, "UTF-8");
 	    writer.createMetadata(partName, "t", "text", strArray.length);
@@ -168,27 +167,27 @@ public class TestFastBitJava {
 	    // Add category data			
 	    writer.addCategories(partName, "k", strArray, "UTF-8");
 	    writer.addStringColumnToMetadata(partName, "k", "key");
-
-	}else{
+	} else {
 	    l.info("Directory "+partName+" already exists");
 	}
 
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }
 
     @Test
     /**
      * Test raw fastbit java writer in a row by row manner.  
      */		
-	public void testFastBitJavaCreateRowByRowText() throws FastBitStringWriterException{
+	public void testFastBitJavaCreateRowByRowText()
+	throws FastBitStringWriterException {
 	String testName = "testFastBitJavaCreateRowByRowText";
 	String partName = TDIR+"/testFastBitJavaCreateRowByRowText";
 	l.info(testName+" started with "+ ROW_COUNT + " rows");
 	Date d1 = new Date();
 
-
-	if (!new File(partName).exists()){
+	if (!new File(partName).exists()) {
 	    touchDir(partName);
 
 	    FastBitStringWriter writer = new FastBitStringWriter();
@@ -201,19 +200,20 @@ public class TestFastBitJava {
 	    handle.close();			
 
 	    writer.createMetadata(partName, "t", "text", strArray.length);
-
-	}else{
+	} else {
 	    l.info("Directory "+partName+" already exists");
 	}
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }	
 
     @Test
     /**
      * Test java fastbit reader.
      */	
-	public void testFastBitJavaReadText() throws FastBitStringReaderException{
+	public void testFastBitJavaReadText()
+	throws FastBitStringReaderException {
 	String testName = "testFastBitJavaReadText";
 	String partName = TDIR+"/testFastBitCreateJavaText";
 	l.info(testName+" started with "+ ROW_COUNT + " rows");
@@ -221,23 +221,27 @@ public class TestFastBitJava {
 
 	FastBit fb = new FastBit(null);
 	//fb.set_message_level(9);
-	QueryHandle fbHandle = fb.build_query("k", partName, " k= 'a7' and t = 'a7'");
+	QueryHandle fbHandle = fb.build_query("k", partName,
+					      "k= 'a7' and t = 'a7'");
 
 	FastBitStringReader reader =  new FastBitStringReader();
-	FastBitStringReader.ReadHandle handle = reader.getHandle(fb, fbHandle, partName, "UTF-8");
+	FastBitStringReader.ReadHandle handle =
+	    reader.getHandle(fb, fbHandle, partName, "UTF-8");
 	String[] res = reader.getQualifiedStrings(handle, "k");
 
-	assertNotNull("Result String array is null",res);
+	assertNotNull("Result String array is null", res);
 	assertEquals("a7", res[0]);
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }
 
     @Test
     /**
      * Read text data from existing FileChannel
      */
-	public void testFastBitJavaReadFileChannelText() throws FastBitStringReaderException, IOException{
+	public void testFastBitJavaReadFileChannelText()
+	throws FastBitStringReaderException, IOException {
 	String testName = "testFastBitJavaReadFileChannelText";
 	String partName = TDIR+"/testFastBitJavaCreateRowByRowText";
 	l.info(testName+" started with "+ ROW_COUNT + " rows");
@@ -245,18 +249,20 @@ public class TestFastBitJava {
 
 	FastBit fb = new FastBit(null);
 	//fb.set_message_level(9);
-	QueryHandle fbHandle = fb.build_query("t", partName, " t = 'a7'");
+	QueryHandle fbHandle = fb.build_query("t", partName, "t = 'a7'");
 
 	FastBitStringReader reader =  new FastBitStringReader();
-	FastBitStringReader.ReadHandle handle = reader.getHandle(fb, fbHandle, partName, "UTF-8");
+	FastBitStringReader.ReadHandle handle =
+	    reader.getHandle(fb, fbHandle, partName, "UTF-8");
 
-	FileChannel ch = new RandomAccessFile(partName+"/t","r").getChannel();		
+	FileChannel ch = new RandomAccessFile(partName+"/t","r").getChannel();
 	String[] res = reader.getQualifiedStrings(ch, handle, "t");
 	ch.close();
 
 	assertNotNull("Result String array is null",res);
 	assertEquals("a7", res[0]);
 
-	l.info(testName+" passed in "+(new Date().getTime() - d1.getTime())+" ms.");
+	l.info(testName + " passed in " + (new Date().getTime() - d1.getTime())
+	       + " ms.");
     }
 }

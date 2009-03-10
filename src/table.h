@@ -13,7 +13,7 @@
    querying functions.  The class @c tablex is for users to add new records
    to a table and it does not support any querying operations.
  */
-#include <ostream>	// std::ostream
+#include <iostream>	// std::ostream
 #include <vector>	// std::vector
 #include <map>		// std::map
 #include <string>	// std::string

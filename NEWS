@@ -1,3 +1,22 @@
+Mon Mar  9 17:03:43 PDT 2009
+Version ibis1.0.5
+-- add FastBitStringReader, FastBitStringWriter and their assocaited
+   unite test function contributed by Andrey Kolchanov
+-- add new test cases 'check-marksdb' to 'make check'.  These tests make
+   use of data and queries contributed by David B. Marks
+-- fix a bug in the computation of the starting positions in function
+   ibis::text::startPositions (a problem reported by Andrey Kolchanov)
+-- sort incoming values using an array instead of std::set at the
+   sugestion of Alesandro Capucci
+-- update configuration scripts
+-- add an option to specify the maximum number of rows to expect to
+   ibis::tafel::readCSV to reduce the number of dynamic memory
+   allocations (a suggestion from Norbert Heusser)
+-- add code to produce sorted list of values for any column with
+   fixed-sized values
+-- make it possible to use aliases defined in select clause inside where
+   clauses (to address a case raised by David Marks)
+
 Fri Feb  6 12:00:26 PST 2009
 Version ibis1.0.4
 -- add example program rara.cpp as a minimalistic client code

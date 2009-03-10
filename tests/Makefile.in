@@ -203,6 +203,7 @@ THULAEXE = $(EXDIR)/thula$(EXEEXT)
 TCAPIEXE = $(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST = test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 tcapi-3 \
+	marksdb.csv marksdb-1 marksdb-3 \
 	scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
 
 #
@@ -464,7 +465,7 @@ uninstall-am:
 #
 # tests with different levels of thoroughness
 check: clean check-am
-	${MAKE} check-ibis && ${MAKE} check-thula && ${MAKE} check-tcapi && ${MAKE} check-text
+	$(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) check-text && $(MAKE) check-ibis && $(MAKE) check-marksdb
 more-check: check small-tests
 full-check: more-check large-tests
 #
@@ -475,7 +476,7 @@ small-tests: append-test sanity-check match-counts
 # obselete index options
 # the tests run on the same set of data files and can not be run in parallel
 large-tests: large-append-test
-	 ${MAKE} multilevel && ${MAKE} large-sanity-check
+	 $(MAKE) multilevel && $(MAKE) large-sanity-check
 #
 check-thula: $(TESTDIR)/t1/-part.txt $(THULAEXE)
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
@@ -510,6 +511,13 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 > /dev/null
 	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep 88 - | wc -l` -eq 1 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 	@echo
+check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d,lon limit 180" -o $(TESTDIR)/marksdb-1 > /dev/null
+	@if [ `diff -w marksdb-1 $(TESTDIR)/marksdb-1 | wc -l` -eq 0 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 and d <= 15 order by d,lon" -o $(TESTDIR)/marksdb-2 > /dev/null
+	@if [ `diff -w $(TESTDIR)/marksdb-1 $(TESTDIR)/marksdb-2 | wc -l` -eq 0 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon where time = 77328 and 3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) <= 15 order by lat,lon" -o $(TESTDIR)/marksdb-3 > /dev/null
+	@if [ `diff -w marksdb-3 $(TESTDIR)/marksdb-3 | wc -l` -eq 0 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:short" -t test0.csv
@@ -520,107 +528,110 @@ $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 # a simple internal sanity check
-sanity-check: $(IBISEXE) ${TESTDIR}/append.log
+sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	@echo
-	@if [ -f ${TESTDIR}/append.rc ] ; then \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 > ${TESTDIR}/sanity-check.log; \
+	@if [ -f $(TESTDIR)/append.rc ] ; then \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log; \
 	else \
-	$(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 > ${TESTDIR}/sanity-check.log; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 > $(TESTDIR)/sanity-check.log; \
 	fi
-	@if [ `fgrep 'self tests' ${TESTDIR}/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 ]; then echo Errors found during internal sanity checks.  Please look through ${TESTDIR}/sanity-check.log.; else echo Passed internal sanity checks.; fi
+	@if [ `fgrep 'self tests' $(TESTDIR)/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 ]; then echo Errors found during internal sanity checks.  Please look through $(TESTDIR)/sanity-check.log.; else echo Passed internal sanity checks.; fi
 	@echo
 # a test of append operations, 10 copies of data in test0 and test1
-append-test: ${TESTDIR}/append.log
+append-test: $(TESTDIR)/append.log
 	@echo
-	@if [ `fgrep ' 0 error' ${TESTDIR}/append.log | fgrep appendTest | wc -l` -lt 20 ]; then echo Errors found during test of append operations.  Please look through ${TESTDIR}/append.log.; else echo Passed append tests.; fi
-${TESTDIR}/append.log:
+	@if [ `fgrep ' 0 error' $(TESTDIR)/append.log | fgrep appendTest | wc -l` -lt 20 ]; then echo Errors found during test of append operations.  Please look through $(TESTDIR)/append.log.; else echo Passed append tests.; fi
+$(TESTDIR)/append.log:
 	$(MAKE) do-small-append
 # make 1024 copies of the results of append-test
 large-append-test: do-large-append
-	rm -rf ${TESTDIR}/at0 ${TESTDIR}/at1
+	rm -rf $(TESTDIR)/at0 $(TESTDIR)/at1
 	@echo
-	@if [ `fgrep ' 0 error' ${TESTDIR}/append.log | fgrep appendTest | wc -l` -lt 40 ]; then echo Errors found during test of append operations.  Please look through ${TESTDIR}/append.log.; else echo Passed large append tests.; fi
+	@if [ `fgrep ' 0 error' $(TESTDIR)/append.log | fgrep appendTest | wc -l` -lt 40 ]; then echo Errors found during test of append operations.  Please look through $(TESTDIR)/append.log.; else echo Passed large append tests.; fi
 	@echo
 #
-large-sanity-check: $(IBISEXE) ${TESTDIR}/append.log ${TESTDIR}/smallmem.rc
-	@echo > ${TESTDIR}/large-sanity-check.log
+large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem.rc
+	@echo > $(TESTDIR)/large-sanity-check.log
 	for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
-	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" ${TESTDIR}/?/*/-part.txt; \
-	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
-	echo >> ${TESTDIR}/large-sanity-check.log; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log; \
-	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -b -z >> ${TESTDIR}/large-sanity-check.log; \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -c ${TESTDIR}/smallmem.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log; \
+	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/?/*/-part.txt; \
+	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
+	echo >> $(TESTDIR)/large-sanity-check.log; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	if [ -f $(TESTDIR)/append.rc ] ; then \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b -z >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
 	else \
-	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log; \
 	fi; \
 	done; \
 	done
 	for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
-	perl -pi -e "s#index = .*#index = $$i#" ${TESTDIR}/?/*/-part.txt; \
-	rm -f ${TESTDIR}/?/*/*.idx ${TESTDIR}/?/*/*.bin; \
-	echo >> ${TESTDIR}/large-sanity-check.log; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt >> ${TESTDIR}/large-sanity-check.log; \
-	if [ -f ${TESTDIR}/append.rc ] ; then \
-	 $(IBISEXE) -c ${TESTDIR}/append.rc -v -t 2 >> ${TESTDIR}/large-sanity-check.log; \
+	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
+	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
+	echo >> $(TESTDIR)/large-sanity-check.log; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	if [ -f $(TESTDIR)/append.rc ] ; then \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
 	else \
-	 $(IBISEXE) -c ${TESTDIR}/test.rc -v -t 5 >> ${TESTDIR}/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log; \
 	fi; \
 	done;
-	@if [ `fgrep 'self tests' ${TESTDIR}/large-sanity-check.log | fgrep 'found no error' | wc -l` -lt 370 ]; then echo Errors found during internal sanity checks.  Please look through ${TESTDIR}/large-sanity-check.log.; else echo Passed large internal sanity checks.; fi
+	@if [ `fgrep 'self tests' $(TESTDIR)/large-sanity-check.log | fgrep 'found no error' | wc -l` -lt 370 ]; then echo Errors found during internal sanity checks.  Please look through $(TESTDIR)/large-sanity-check.log.; else echo Passed large internal sanity checks.; fi
 	@echo
 #
-match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTDIR}/test.rc
+match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
 	ncases=0; npassed=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
-	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" ${TESTDIR}/0/test?/-part.txt; \
-	rm -f ${TESTDIR}/0/test?/*.idx ${TESTDIR}/0/test?/*.bin; \
+	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/0/test?/-part.txt; \
+	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	ncases=`expr 1 + $$ncases`; echo; echo "test case # $${ncases}"; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
 	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
-	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 2" scripts/query-count.list ${TESTDIR} && npassed=`expr 1 + $$npassed`; \
+	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	echo; echo $@: passed $${npassed} out of $${ncases} test cases; echo
 	@echo
 #
-multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) ${TESTDIR}/test.rc
+multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
 	for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
-	perl -pi -e "s#index = .*#index = $$i#" ${TESTDIR}/0/test?/-part.txt; \
-	rm -f ${TESTDIR}/0/test?/*.idx ${TESTDIR}/0/test?/*.bin; \
+	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
+	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	echo; \
-	fgrep 'index = ' ${TESTDIR}/0/test1/-part.txt; \
-	scripts/matchCounts.pl "$(IBISEXE) -c ${TESTDIR}/test.rc -v 2" scripts/query-count.list ${TESTDIR}; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
+	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
 #
-${TESTDIR}:
-	@test -d ${TESTDIR} || mkdir -p ${TESTDIR}
-${TESTDIR}/0: ${TESTDIR}
-	@test -d ${TESTDIR}/0 || mkdir ${TESTDIR}/0
-${TESTDIR}/1: ${TESTDIR}
-	@test -d ${TESTDIR}/1 || mkdir ${TESTDIR}/1
-${TESTDIR}/2: ${TESTDIR}
-	@test -d ${TESTDIR}/2 || mkdir ${TESTDIR}/2
-${TESTDIR}/0/test0/-part.txt: ${TESTDIR}/0 test0.csv readcsv
-	./readcsv test0.csv ${TESTDIR}/0/test0
-${TESTDIR}/0/test1/-part.txt: ${TESTDIR}/0 test1.csv readcsv
-	./readcsv test1.csv ${TESTDIR}/0/test1
-${TESTDIR}/test.rc: ${TESTDIR}/0/test0/-part.txt ${TESTDIR}/0/test1/-part.txt
-	@echo "activeDir=${TESTDIR}/0" > ${TESTDIR}/test.rc
-	@echo "CacheDir=${TESTDIR}/queryCache" >> ${TESTDIR}/test.rc
-${TESTDIR}/append.rc: ${TESTDIR}
-	@echo "activeDir=${TESTDIR}/1" > ${TESTDIR}/append.rc
-	@echo "backupDir=${TESTDIR}/2" >> ${TESTDIR}/append.rc
-	@echo "CacheDir=${TESTDIR}/queryCache" >> ${TESTDIR}/append.rc
-	@echo "useBackupDir=1" >> ${TESTDIR}/append.rc
-	@echo "preferMMapIndex=1" >> ${TESTDIR}/append.rc
-${TESTDIR}/smallmem.rc: ${TESTDIR}
-#	@echo "fileManager.maxBytes=1.3GB" > ${TESTDIR}/smallmem.rc
-	@echo "fileManager.maxBytes=160MB" > ${TESTDIR}/smallmem.rc
+$(TESTDIR):
+	@test -d $(TESTDIR) || mkdir -p $(TESTDIR)
+$(TESTDIR)/0: $(TESTDIR)
+	@test -d $(TESTDIR)/0 || mkdir $(TESTDIR)/0
+$(TESTDIR)/1: $(TESTDIR)
+	@test -d $(TESTDIR)/1 || mkdir $(TESTDIR)/1
+$(TESTDIR)/2: $(TESTDIR)
+	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
+$(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv
+	rm -rf $(TESTDIR)/marksdb
+	./readcsv marksdb.csv $(TESTDIR)/marksdb
+$(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
+	./readcsv test0.csv $(TESTDIR)/0/test0
+$(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)
+	./readcsv test1.csv $(TESTDIR)/0/test1
+$(TESTDIR)/test.rc: $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
+	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
+	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc
+$(TESTDIR)/append.rc: $(TESTDIR)
+	@echo "activeDir=$(TESTDIR)/1" > $(TESTDIR)/append.rc
+	@echo "backupDir=$(TESTDIR)/2" >> $(TESTDIR)/append.rc
+	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/append.rc
+	@echo "useBackupDir=1" >> $(TESTDIR)/append.rc
+	@echo "preferMMapIndex=1" >> $(TESTDIR)/append.rc
+$(TESTDIR)/smallmem.rc: $(TESTDIR)
+#	@echo "fileManager.maxBytes=1.3GB" > $(TESTDIR)/smallmem.rc
+	@echo "fileManager.maxBytes=160MB" > $(TESTDIR)/smallmem.rc
 # the above configuration statement instructs ibis to limit the amount
 # of memory used to 160MB, which is not sufficient for many of the
 # operations such index building.  However, it has been useful to test
@@ -629,35 +640,35 @@ ${TESTDIR}/smallmem.rc: ${TESTDIR}
 #
 clean: clean-am
 	rm -f *\\~ core core.[0-9]*
-	rm -rf ${TESTDIR} .ibis readcsv$(EXEEXT) star2002*
+	rm -rf $(TESTDIR) .ibis readcsv$(EXEEXT) star2002*
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) ${TESTDIR} .ibis readcsv$(EXEEXT)
+	-rm -rf ./$(DEPDIR) $(TESTDIR) .ibis readcsv$(EXEEXT)
 	-rm -f Makefile
 #
 # append the data in test0.csv and test1.csv 10 times
-do-small-append: ${TESTDIR}/append.rc ${TESTDIR}/0/test0/-part.txt ${TESTDIR}/0/test1/-part.txt $(IBISEXE)
-	@rm -rf ${TESTDIR}/append.log ${TESTDIR}/1 ${TESTDIR}/2
-	@/bin/date > ${TESTDIR}/append.log
-	@echo Append the test data 10 times >> ${TESTDIR}/append.log
+do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt $(IBISEXE)
+	@rm -rf $(TESTDIR)/append.log $(TESTDIR)/1 $(TESTDIR)/2
+	@/bin/date > $(TESTDIR)/append.log
+	@echo Append the test data 10 times >> $(TESTDIR)/append.log
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test0 appendTest0 >> ${TESTDIR}/append.log; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/0/test1 appendTest1 >> ${TESTDIR}/append.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test0 appendTest0 >> $(TESTDIR)/append.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test1 appendTest1 >> $(TESTDIR)/append.log; \
 	done
 #
 # take the results of do-small-append, double them 10 times
-${TESTDIR}/at0: ${TESTDIR}
-	test -d ${TESTDIR}/at0 || mkdir ${TESTDIR}/at0
-${TESTDIR}/at1: ${TESTDIR}
-	test -d ${TESTDIR}/at1 || mkdir ${TESTDIR}/at1
-do-large-append: do-small-append ${TESTDIR}/at0 ${TESTDIR}/at1
-	@echo >> ${TESTDIR}/append.log
-	@/bin/date >> ${TESTDIR}/append.log
-	@echo Double the test data 10 times >> ${TESTDIR}/append.log
+$(TESTDIR)/at0: $(TESTDIR)
+	test -d $(TESTDIR)/at0 || mkdir $(TESTDIR)/at0
+$(TESTDIR)/at1: $(TESTDIR)
+	test -d $(TESTDIR)/at1 || mkdir $(TESTDIR)/at1
+do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
+	@echo >> $(TESTDIR)/append.log
+	@/bin/date >> $(TESTDIR)/append.log
+	@echo Double the test data 10 times >> $(TESTDIR)/append.log
 	for i in 0 1 2 3 4 5 6 7 8 9 ; do \
-	/bin/cp -pr ${TESTDIR}/2/appendTest0/* ${TESTDIR}/at0; \
-	/bin/cp -pr ${TESTDIR}/2/appendTest1/* ${TESTDIR}/at1; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at0 appendTest0 >> ${TESTDIR}/append.log; \
-	$(IBISEXE) -c ${TESTDIR}/append.rc -v -append ${TESTDIR}/at1 appendTest1 >> ${TESTDIR}/append.log; \
+	/bin/cp -pr $(TESTDIR)/2/appendTest0/* $(TESTDIR)/at0; \
+	/bin/cp -pr $(TESTDIR)/2/appendTest1/* $(TESTDIR)/at1; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at0 appendTest0 >> $(TESTDIR)/append.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at1 appendTest1 >> $(TESTDIR)/append.log; \
 	done
 #
 $(IBISEXE):

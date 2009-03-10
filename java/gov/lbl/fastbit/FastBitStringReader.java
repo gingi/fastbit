@@ -19,8 +19,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Java StringReader for FastBit
+ * Java StringReader for FastBit.  It converts the values retured from
+ * FastBit into strings that can be accessed from a Java program.  See
+ * java/tests/TestFastBitJava.java for an example of use.
+ *
  * @author Andrey Kolchanov
+ * @ingroup FastBitJava
  */
 public class FastBitStringReader {
     private Log l = LogFactory.getLog(getClass());
@@ -34,7 +38,7 @@ public class FastBitStringReader {
     /**
      * FastBitStringReader constructor with default buffer length
      */
-    public FastBitStringReader (){
+    public FastBitStringReader () {
 	this.bufferSize = DEFAULT_BUFFER_LENGTH;
     }
 
@@ -42,13 +46,13 @@ public class FastBitStringReader {
      * FastBitStringReader constructor
      * @param bufferSize
      */
-    public FastBitStringReader (long bufferSize)
-    {
+    public FastBitStringReader (long bufferSize) {
 	this.bufferSize = bufferSize;
     }
 
     /**
-     * Thread-safe FastBit String[] getter. This function does not open and lock file.
+     * Thread-safe FastBit String[] getter. This function does not open
+     * and lock file.
      * @param fc
      * @param handle
      * @param column
@@ -56,20 +60,22 @@ public class FastBitStringReader {
      * @throws FastBitStringReaderException
      */
 
-    public String[] getQualifiedStrings (final FileChannel fc, final FastBitStringReader.ReadHandle handle, String column) throws FastBitStringReaderException{
+    public String[]
+	getQualifiedStrings (final FileChannel fc,
+			     final FastBitStringReader.ReadHandle handle,
+			     String column)
+	throws FastBitStringReaderException {
 
 	ArrayList<String> ret = new ArrayList<String>();
 
-	try{
-
+	try {
 	    getStringArrayList(fc, handle, column, ret);
 
 	    return ret.toArray(new String[0]);
-	}catch (IOException ex){
+	} catch (IOException ex) {
 	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringReaderException (ex.getMessage());
 	}
-
     }
 
     /**
@@ -81,27 +87,27 @@ public class FastBitStringReader {
      */
     public String[]
 	getQualifiedStrings (final FastBitStringReader.ReadHandle handle,
-			     String column) throws FastBitStringReaderException{
+			     String column)
+	throws FastBitStringReaderException {
 
 	ArrayList<String> ret = new ArrayList<String>();
 	StringBuffer sb =
 	    new StringBuffer(handle.getPartition()).append("/").append(column);
 
 	FileChannel ch = null;
-
-	try{
+	try {
 	    ch = new RandomAccessFile(new String(sb),"r").getChannel();
 
 	    getStringArrayList(ch, handle, column, ret);
 
 	    return ret.toArray(new String[0]);
-	}catch (IOException ex){
+	} catch (IOException ex) {
 	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringReaderException (ex.getMessage());
-	} finally{
-	    try{
+	} finally {
+	    try {
 		ch.close();
-	    }catch (IOException ex){
+	    } catch (IOException ex) {
 		l.error(ex.getMessage(), ex.fillInStackTrace());
 	    }
 	}
@@ -114,27 +120,27 @@ public class FastBitStringReader {
 				    ArrayList<String> ret)
 	throws FastBitStringReaderException,
 	       IOException, UnsupportedEncodingException {
-
-	long[] offsets = handle.getFb().get_qualified_longs(handle.getFbHandle(), column);
-	if (offsets == null ){
+	long[] offsets =
+	    handle.getFb().get_qualified_longs(handle.getFbHandle(), column);
+	if (offsets == null ) {
 	    l.error("get_qualified_longs result is null");
-	    throw new FastBitStringReaderException("get_qualified_longs result is null");
+	    throw new FastBitStringReaderException
+		("get_qualified_longs result is null");
 	}
 
-	for (int i=0; i<offsets.length; i++){
+	for (int i=0; i<offsets.length; i++) {
 	    StringBuffer buf = new StringBuffer();
 
 	    boolean eobuf = false;
 	    long offset = offsets[i];
-
 	    do {
 		long size = Math.min(bufferSize, fc.size() - offset);
-		if (l.isErrorEnabled()){
+		if (l.isErrorEnabled()) {
 		    l.debug("offsets value: "+offset);
 		    l.debug("FileChannel size: "+fc.size());
 		    l.debug("buffer size: "+size);
 		}
-		if (size <= 0){
+		if (size <= 0) {
 		    throw new FastBitStringReaderException
 			("Buffer size "+size+ " < 0" );
 		}
@@ -145,11 +151,10 @@ public class FastBitStringReader {
 
 		bb.get (buffer);
 
-
 		int stringLength=0;
-		for (int j=0; j<buffer.length; j++){
+		for (int j=0; j<buffer.length; j++) {
 		    if (buffer[j] == 0) {
-			if (l.isDebugEnabled()){
+			if (l.isDebugEnabled()) {
 			    l.debug("End of null terminated string at "+
 				    (offset+j));
 			}
@@ -161,7 +166,7 @@ public class FastBitStringReader {
 		buf.append (new String(Arrays.copyOf(buffer, stringLength+1),
 				       handle.getCharsetName()));
 		offset +=size;
-	    }while (!eobuf);
+	    } while (!eobuf);
 
 	    ret.add(new String(buf));
 	}
@@ -169,7 +174,9 @@ public class FastBitStringReader {
 
 
     /**
-     * Create FastBitStringReader.ReadHandle. Currently FastBit.QueryHandle has not methods to get FastBit and partition.
+     * Create FastBitStringReader.ReadHandle. Currently
+     * FastBit.QueryHandle has not methods to get FastBit and
+     * partition.
      * @param fb
      * @param fbHandle
      * @param partition
@@ -188,14 +195,14 @@ public class FastBitStringReader {
      * @author Andrey Kolchanov
      *
      */
-    public class ReadHandle{
+    public class ReadHandle {
 	final private FastBit fb;
 	final private FastBit.QueryHandle fbHandle;
 	final private String partition;
 	final private String charsetName;
 
 	public ReadHandle (FastBit fb, FastBit.QueryHandle fbHandle,
-			   String partition, String charsetName){
+			   String partition, String charsetName) {
 	    this.fb = fb;
 	    this.fbHandle = fbHandle;
 	    this.partition = partition;

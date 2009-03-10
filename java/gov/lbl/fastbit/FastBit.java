@@ -1,8 +1,8 @@
-//$Id$
-//Authors: John Wu and Aaron Hong, Lawrence Berkeley National Laboratory
-//Copyright 2006-2009 the Regents of the University of California
+// $Id$
+// Authors: John Wu and Aaron Hong, Lawrence Berkeley National Laboratory
+// Copyright 2006-2009 the Regents of the University of California
 
-/// @defgroup FastBitJNI FastBit Java API.
+/// @defgroup FastBitJava FastBit Java API.
 /// @{
 /**
    A package to contain functions related to FastBit.
@@ -10,14 +10,17 @@
 package gov.lbl.fastbit;
 
 /**
-A facade for accessing some FastBit functions from java.
+   A facade for accessing some FastBit functions from java.
 
-This class exports some functions from @c ibis::part and @c
-ibis::query classes to java.
+   This class exports some functions from @c ibis::part and @c
+   ibis::query classes to java.  A very small example is available in
+   java/milky.java.
 
-@note Only a limited number of functions are provided at this time.
-To inquire about possible extensions, please contact John Wu at
-<John.Wu at ACM.org>.
+   @note Only a limited number of functions are provided at this time.
+   To inquire about possible extensions, please contact John Wu at
+   <John.Wu at ACM.org>.
+
+   @author John Wu and Aaron Hong
 */
 public class FastBit {
 
@@ -62,7 +65,8 @@ public class FastBit {
 	conditions joined together by logical operators, @sa
 	ibis::query::setWhereClause.
     */
-    public native QueryHandle build_query(String select, String from, String where);
+    public native QueryHandle build_query(String select, String from,
+					  String where);
     /** Destroy a query object.  Reclaims all resources associated with
 	the query object.
     */

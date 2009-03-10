@@ -354,7 +354,7 @@ namespace ibis {
 	const char *mesg_;
     }; // bad_alloc
 
-    // Organize the miscellaneous functions under the name util.
+    /// Organize the miscellaneous functions under the name util.
     namespace util {
 	/// charTable lists the 64 printable characters to be used for names
 	extern const char* charTable;
@@ -917,14 +917,14 @@ namespace ibis {
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
 
-	/// A class for logging error messages.  The caller can use the
-	/// function buffer to get a reference to std::ostream and write
-	/// error messages to it.  Note that the message is formed in this
-	/// buffer and written out in the destructor of this class.  There
-	/// is a macro LOGGER that can simplify some of the routine stuff.
-	/// Use function ibis::util::setLogFile to explicit name of the
-	/// log file or use RC file entry logfile to specify a file name.
-	/// By default all messages are dump to stdout.
+	/// A class for logging messages.  The caller writes message to a
+	/// std::ostream returned by the function buffer as if to
+	/// std::cout.  Note that messages are stored in this buffer and
+	/// written out in the destructor of this class.  There is a macro
+	/// LOGGER that can simplify some of the routine stuff.  Use
+	/// function ibis::util::setLogFile to explicit name of the log
+	/// file or use RC file entry logfile to specify a file name.  By
+	/// default all messages are dump to stdout.
 	class FASTBIT_CXX_DLLSPEC logger {
 	public:
 	    /// Constructor.  The argument to this constructor is taken to

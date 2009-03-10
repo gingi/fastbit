@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu@NERSC.gov> Lawrence Berkeley National Laboratory
-// Copyright 2002-2006 the Regents of the University of California
+// Copyright 2002-2009 the Regents of the University of California
 /**   Read Comma-Separated Values.
 
    This program takes one mandatory argument and one optional
@@ -20,16 +20,19 @@
    The values are outputed as raw binary into a set of files, one per
    column.  The type of the columns are determined as follows.
 
-   - The first ten lines are read into memory to determine the types of the
-   columns.
+   - As each line is read into memory, the type of each column is
+     determined.
    - Three types are recognized, int, double and string.  The type checking
-   follows the order of int, double and string.
+     follows the order of int, double and string.
    - An int must contain only decimal digits with an optional leading +/-
-   sign.
+     sign.
    - A double contain decimal digits and either a decimal point
-   ('.') or one of 'e' or 'E' followed by an integer.
+     ('.') or one of 'e' or 'E' followed by an integer.
    - Any column that is not recognized as an int or a double is treated as
-   an string.
+     a string.
+   - Comment lines starting with '#' (shell style comment) or '--'
+     (SQL style comment) may be included in the input CSV file.  These
+     comment lines are skipped.
 */
 #include <stdio.h>	// fopen, fgets
 #include <stdlib.h>	// exit
@@ -241,37 +244,75 @@ int readString(char *&tmp, std::string &str) {
     return 0;
 } // readString
 
-// read the first line of the input file to retrieve the names of the
-// columns.
-void readColumnNames(FILE *fptr, char*& buf, unsigned& lbuf) {
+// Read a line of the input CSV file.
+int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
+    long start = ftell(fptr); // start position
+    int retry = 0;
     if (buf == 0) { // allocate a buffer of 1024 characters
 	buf = new char[1024];
 	lbuf = 1024;
     }
     else if (lbuf < 128) { // buffer too small, enlarge to 1024
-	delete buf;
+	delete [] buf;
 	buf = new char[1024];
 	lbuf = 1024;
     }
-    buf[lbuf-1] = 0; // make sure a null character is present
 
-    rewind(fptr);	// start from the beginning of the input file
-    char *tmp = fgets(buf, lbuf, fptr);
-    if (tmp != buf) {
-	std::cerr << "readColumnNames failed to read any bytes\n" << std::endl;
-	exit(-1);
-    }
+    do {
+	char *tmp = fgets(buf, lbuf, fptr);
+	if (feof(fptr)) {
+	    buf[0] = 0;
+	    return -1;
+	}
+	if (tmp != buf) {
+	    std::cerr << "readALine failed to read the next line at position "
+		      << start << "\n" << std::endl;
+	    buf[0] = 0;
+	    return -2;
+	}
+	if (ferror(fptr) != 0) {
+	    std::cerr << "readALine encountered an error while reading "
+		"the next line at position "
+		      << start << "\n" << std::endl;
+	    buf[0] = 0;
+	    return -3;
+	}
 
-    while (feof(fptr) == 0 && ferror(fptr) == 0 && strchr(buf, '\n') == 0) {
-	// not the whole line yet, double the buffer size
-	lbuf <<= 1;
-	delete buf;
-	rewind(fptr);
-	buf = new char[lbuf];
-	tmp = fgets(buf, lbuf, fptr);
 	buf[lbuf-1] = 0;
-    }
+	int len = strlen(buf);
+	if (len+1 < lbuf) {
+	    buf[len-1] = 0;
+	    if (buf[0] == '#' || (buf[0] == '-' && buf[1] == '-')) {
+		// comment line, try the next line
+		retry = 1;
+	    }
+	    else {
+		return len;
+	    }
+	}
+	else if (buf[len-1] != '\n' && feof(fptr) == 0 && ferror(fptr) == 0) {
+	    // did not read the while line, double the buffer space
+	    lbuf <<= 1;
+	    delete [] buf;
+	    buf = new char[lbuf];
+	    fseek(fptr, start, SEEK_SET);
+	    retry = 1;
+	}
+	else { // got a line of text in buf
+	    buf[len-1] = 0;
+	    return len;
+	}
+    } while (retry != 0);
+    return 0;
+} // readALine
 
+// read the first line of the input file to retrieve the names of the
+// columns.
+void readColumnNames(FILE *fptr, char*& buf, unsigned& lbuf) {
+    int ierr = readALine(fptr, buf, lbuf);
+    if (ierr <= 0) return;
+
+    char* tmp = buf;
     columns.clear();	// clear the list of columns
     while (*tmp != 0) {
 	std::string str;
@@ -291,43 +332,11 @@ void readColumnNames(FILE *fptr, char*& buf, unsigned& lbuf) {
 
 // read a line from the input file and write out the values 
 int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
-    long start = ftell(fptr); // start position
-    char *tmp = fgets(buf, lbuf, fptr);
-    int ierr = 0;
-    if (feof(fptr)) return 0;
-    if (tmp != buf) {
-	std::cerr << "readValues failed to read the next line at position "
-		  << start << "\n" << std::endl;
-	exit(-2);
-    }
+    int ierr = readALine(fptr, buf, lbuf);
+    if (ierr <= 0) return ierr;
 
-    if (feof(fptr) != 0) {
-	ierr = -1;
-	return ierr;
-    }
-
-    buf[lbuf-1] = 0;
-    size_t len = strlen(buf);
-    while (buf[len-1] != '\n' && feof(fptr) == 0 && ferror(fptr) == 0) {
-	// did not read the while line, double the buffer space
-	lbuf <<= 1;
-	delete buf;
-	buf = new char[lbuf];
-	fseek(fptr, start, SEEK_SET);
-	tmp = fgets(buf, lbuf, fptr);
-	buf[lbuf-1] = 0;
-	len = strlen(buf);
-    }
-
-    if (ferror(fptr) != 0) {
-	ierr = -2;
-	return ierr;
-    }
-    if (tmp != buf) {
-	ierr = -3;
-	return ierr;
-    }
-
+    ierr = 0;
+    char *tmp = buf;
     for (unsigned i = 0; i < columns.size(); ++ i) {
 	switch (columns[i].type) {
 	default:
@@ -412,6 +421,9 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 	    ++ tmp;
     } // for (unsigned i = 0;...
 
+#ifdef DEBUG
+    std::clog << "DEBUG -- readValues parsed: " << buf << std::endl;
+#endif
     return ierr;
 } // readValues
 
@@ -498,12 +510,14 @@ int main(int argc, char** argv) {
 	    }
 	    ierr = 0;
 	}
-	else if (ierr == 0 && feof(fptr) == 0) {
+	else if (ierr == 0) {
 	    ++ cnt;
+	    if ((cnt % 10000) == 0)
+		std::cout << "... " << cnt << "\n";
 	}
-    } while (ierr == 0 && feof(fptr) == 0);
+    } while (ierr == 0);
 
-    if (ierr < 0)
+    if (ierr < -1)
 	std::cerr << *argv << " encountered an error (" << ierr
 		  << ") after reading " << cnt << " rows from file "
 		  << argv[1] << std::endl;

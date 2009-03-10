@@ -88,6 +88,14 @@ void ibis::whereClause::clear() throw () {
     expr_ = 0;
 } // ibis::whereClause::clear
 
+/// This function also simplifies the arithmetic expression if
+/// ibis::term::preserveInputExpression is not set and augment the
+/// expressions with implied conditions.
+/// @note The select clause is provided to make the aliases defined there
+/// available to the where clause.
+/// @note Simplifying the arithmetic expressions typically reduces the time
+/// needed for evaluations, but may introduces a different set of round-off
+/// erros in the evaluation process than the original expression.
 int ibis::whereClause::verify(const ibis::part& part0,
 			      const ibis::selectClause *sel) {
     if (expr_ != 0) {
@@ -107,7 +115,7 @@ int ibis::whereClause::verify(const ibis::part& part0,
 /// that converts expressions of the form "string1 = string2" to string
 /// lookups when one of the strings is a name of a string-valued column.
 int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
-			       const ibis::selectClause *sel) {
+			       const ibis::selectClause *sel) const {
     int ierr = 0;
 
     switch (xp0->getType()) {

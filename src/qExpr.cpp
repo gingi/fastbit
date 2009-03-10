@@ -34,8 +34,22 @@ const char* ibis::math::stdfun1_name[] =
      "floor", "frexp", "log10", "log", "modf", "sin", "sinh", "sqrt",
      "tan", "tanh"};
 const char* ibis::math::stdfun2_name[] = {"atan2", "fmod", "ldexp", "pow"};
+bool ibis::math::preserveInputExpressions = false;
 
-// simplify the arithmetic expression to use ibis::qRange as much as possible
+/// Operations performed include converting compRanges into qRanges,
+/// qDiscreteRange into qContinuousRange, perform constant evaluations,
+/// combining pairs of inverse functions.  This is necessary because the
+/// parser always generates compRange instead of qRange.  The goal of
+/// simplifying arithmetic expressions is to reduce the number of accesses
+/// to the variable values (potentially reducing the number of disk
+/// accesses).
+///
+/// @note Be aware that rearranging the arithmetic expressions may affect
+/// the round-off perperties of these expressions, and therefore affect
+/// their computed results.  Even though the typical differences might be
+/// small (after ten significant digits), however, the differences could
+/// accumulated and became noticeable.  To turn off this optimization, set
+/// ibis::math::preserveInputExpressions to true.
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
     LOGGER(ibis::gVerbose > 4)
@@ -425,21 +439,21 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	ibis::compRange* cr = reinterpret_cast<ibis::compRange*>(expr);
 	ibis::math::term *t1, *t2;
 	t1 = reinterpret_cast<ibis::math::term*>(cr->getLeft());
-	if (t1 != 0) {
+	if (t1 != 0 && ibis::math::preserveInputExpressions == false) {
 	    t2 = t1->reduce();
 	    if (t2 != t1)
 		cr->setLeft(t2);
 	}
 
 	t1 = reinterpret_cast<ibis::math::term*>(cr->getRight());
-	if (t1 != 0) {
+	if (t1 != 0 && ibis::math::preserveInputExpressions == false) {
 	    t2 = t1->reduce();
 	    if (t2 != t1)
 		cr->setRight(t2);
 	}
 
 	t1 = reinterpret_cast<ibis::math::term*>(cr->getTerm3());
-	if (t1 != 0) {
+	if (t1 != 0 && ibis::math::preserveInputExpressions == false) {
 	    t2 = t1->reduce();
 	    if (t2 != t1)
 		cr->setTerm3(t2);
@@ -730,7 +744,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     case ibis::qExpr::JOIN: {
 	ibis::math::term *range =
 	    reinterpret_cast<ibis::rangeJoin*>(expr)->getRange();
-	if (range != 0) {
+	if (range != 0 && ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = range->reduce();
 	    if (tmp != range)
 		reinterpret_cast<ibis::rangeJoin*>(expr)->setRange(tmp);

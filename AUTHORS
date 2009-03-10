@@ -2,14 +2,17 @@ John Wu <John.Wu@ACM.org>
 With support from Kurt Stockinger, Ekow Otoo and Arie Shoshani
 
 
-With contributions in the form of files and patches from
+With contributions in the form of sources code, patches, data file and
+test queries from:
+Aaron Hong
 Mark Sordo
 Jochen Schlosser
 David Kantowitz
 Matthias Vallentin
 Andrey Kolchanov
 Norbert Heusser
+David B. Marks
 
 
-Many users have identified bugs and suggested fixes,
-their names are mentioned in ChangeLog
+Many users have identified bugs and suggested fixes, their names are
+mentioned in ChangeLog together with the bugs and suggestions.

@@ -60,9 +60,9 @@ public:
     enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM};
     AGREGADO getAggregator(size_t i) const {return aggr_[i];}
 
-    /// Make sure all the variables are present in the specified data
-    /// partition.  Returns the number of variables that are not. 
-    int verify(const ibis::part&) const;
+    /// Are all the variables are present in the specified data
+    /// partition?  Returns the number of variables that are not. 
+    int verify(const ibis::part&);
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Assignment operator.
@@ -93,7 +93,7 @@ protected:
     friend class ibis::selectParser;
 
     void fillNames();
-    static int _verify(const ibis::part&, const ibis::math::term&);
+    int _verify(const ibis::part&, const ibis::math::term&) const;
 }; // class ibis::selectClause
 
 namespace std {

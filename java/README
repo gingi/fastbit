@@ -1,6 +1,9 @@
 This directory contains the Java Native Interface (JNI) code for FastBit
-functions, a simple test program milky.java, and a set of java unit tests
-(contributed by Andrey Kolchanov).
+functions, java FastBitStringReader and FastBit StringWriter classes for
+operations on string, a simple test program milky.java, and a set of
+java unit tests.  The JNI code was developed by John Wu and Aaron Hong;
+the code for string operations and the unit tests was contributed by
+Andrey Kolchanov.
 
 
 -- build JNI --

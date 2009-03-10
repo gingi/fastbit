@@ -2,7 +2,8 @@
 # Makefile for mingw32-make on windows using MinGW g++ port
 #
 CXX=g++.exe
-OPT=-g -O0
+#OPT=-g -O0
+OPT=-O5
 INC=-I ../src -I "pthreads-w32-2-8-0-release" -I /mingw/include -I .
 DEF=-DFILEMANAGER_UNLOAD_TIME=3
 LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm

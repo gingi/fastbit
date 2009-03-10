@@ -132,9 +132,7 @@ public:
     /// Find the first range condition involving the named variable.
     qRange* findRange(const char* vname);
 
-    /// Attempt to convert simple compRanges into qRanges.  This is
-    /// necessary because the parser always generates compRange instead of
-    /// qRange.
+    /// Attempt to convert simplify the query expressions.
     static void simplify(ibis::qExpr*&);
 
     const qExpr& operator=(const qExpr& rhs) {
@@ -391,22 +389,41 @@ private:
 }; // ibis::qMultiString
 
 namespace ibis {
+    /// A namespace for arithmetic expressions.
     namespace math {
-	// types of terms allowed in the mathematical expression
+	/// Types of terms allowed in the mathematical expressions.
 	enum TERM_TYPE {UNDEFINED, VARIABLE, NUMBER, STRING, OPERATOR,
 			STDFUNCTION1, STDFUNCTION2,
 			CUSTOMFUNCTION1, CUSTOMFUNCTION2};
-	// all arithmetic operators (operador is Spainish for operator)
+	/// All supported arithmetic operators.  The word operador is
+	/// Spainish for operator.
 	enum OPERADOR {UNKNOWN=0, BITOR, BITAND,
 		       PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER, NEGATE, POWER};
-	// list standard 1-argument and 2-argument functions
+	/// List standard 1-argument and 2-argument functions.
 	enum STDFUN1 {ACOS=0, ASIN, ATAN, CEIL, COS, COSH, EXP, FABS, FLOOR,
 		      FREXP, LOG10, LOG, MODF, SIN, SINH, SQRT, TAN, TANH};
 	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, POW};
 
+	/// String form of the operators.
 	extern const char* operator_name[];
+	/// String form of the one-argument standard functions.
 	extern const char* stdfun1_name[];
+	/// String form of the two-argument standard functions.
 	extern const char* stdfun2_name[];
+	/// Whether to keep arithmetic expression as user inputed them.
+	/// - If it is true, FastBit will not consolidate constant
+	/// expressions nor perform other simply optimizations.
+	/// - If it is false, the software will attempt to minimize the
+	/// number of actual operations needed to apply them on data
+	/// records.
+	///
+	///  Keep the arithmetic expressions unaltered will preserve its
+	/// round-off properties and produce exactly the same numeric
+	/// results as one might expect.  However, this is normally not the
+	/// most important consideration as the differences are typically
+	/// quite small.  Therefore, the default value of this variable is
+	/// false.
+	extern bool preserveInputExpressions;
 
 	/// All types of terms allowed in a compRange.
 	class term : public ibis::qExpr { // abstract term class
@@ -415,15 +432,15 @@ namespace ibis {
 
 	    virtual TERM_TYPE termType() const = 0;
 
-	    // Evaluate the term.
+	    /// Evaluate the term.
 	    virtual double eval() const = 0;
-	    // Make a duplicate copy of the term.
+	    /// Make a duplicate copy of the term.
 	    virtual term* dup() const = 0;
-	    // Print a human readable version of the expression.
+	    /// Print a human readable version of the expression.
 	    virtual void print(std::ostream& out) const = 0;
-	    // Shorten the expression by evaluating the constants.  Return a
-	    // new pointer if the expression is changed, otherwise return the
-	    // pointer this.
+	    /// Shorten the expression by evaluating the constants.  Return
+	    /// a new pointer if the expression is changed, otherwise
+	    /// return the pointer this.
 	    virtual term* reduce() {return this;};
 
 	protected:
@@ -630,6 +647,7 @@ namespace ibis {
 	}; // stdFunction2
     } // namespace ibis::math
 } // namespace ibis
+
 /// The class compRange stores computed ranges.  It is for those
 /// comparisons involving nontrivial arithmetic expression.
 class ibis::compRange : public ibis::qExpr {

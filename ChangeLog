@@ -1,3 +1,21 @@
+2009-03-09 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add check-marksdb to run through the three
+	queries provided by David B. Marks <marksdb @ cox.net>
+	* src/qExpr.h, src/qExpr.cpp: add
+	ibis::math::preserveInputExpressions to make it possible to bypass
+	optimization of arithmetic expressions
+
+2009-03-08 John Wu <John.Wu at ACM.org>
+	* src/Doxyfile: include directory java/gov/lbl/fastbit
+	* java/README: add mention of FastBitStringWriter and
+	FastBitStringReader
+	* java/gov/lbl/fastbit/*.java: update in-line documentation
+
+2009-03-07 John Wu <John.Wu at ACM.org>
+	* tests/readcsv.cpp: add new function readALine to handle comment
+	lines started with # and --, to match the comments accepted by
+	ibis::tafel::readCSV
+
 2009-03-06 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:922 remove mit and reuse variable it,
 	statements 924 and 925 mistakenly used it instead of mit and was
@@ -109,7 +127,7 @@
 2009-02-12 John Wu <John.Wu at ACM.org>
 	* configure.ac: added space surrounding expression of the form
 	"test a=b"
-	* src/tafel.cpp: variable cnt needs to be set to zero forevery
+	* src/tafel.cpp: variable cnt needs to be set to zero for every
 	line of input text in ibis::tafel::readCSV, change all default
 	delimiter string from ", " to ","
 	* src/util.cpp: add special cases in ibis::util::getString

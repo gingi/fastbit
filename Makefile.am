@@ -35,7 +35,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
 
-dist-hook:
-	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
+#dist-hook:
+#	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
 
 .PHONY: docs more-check full-check

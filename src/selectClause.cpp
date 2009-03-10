@@ -253,16 +253,28 @@ void ibis::selectClause::print(std::ostream& out) const {
     }
 } // ibis::selectClause::print
 
-int ibis::selectClause::verify(const ibis::part& part0) const {
+/// This function also simplifies the arithmetic expression if
+/// ibis::term::preserveInputExpression is not set.
+/// @note Simplifying the arithmetic expressions typically reduces the time
+/// needed for evaluations, but may introduces a different set of round-off
+/// erros in the evaluation process than the original expression.
+int ibis::selectClause::verify(const ibis::part& part0) {
     int ierr = 0;
     for (size_t j = 0; j < terms_.size(); ++ j) {
+	if (ibis::math::preserveInputExpressions == false) {
+	    ibis::math::term *tmp = terms_[j]->reduce();
+	    if (tmp != terms_[j]) {
+		delete terms_[j];
+		terms_[j] = tmp;
+	    }
+	}
 	ierr += ibis::selectClause::_verify(part0, *(terms_[j]));
     }
     return ierr;
 } // ibis::selectClause::verify
 
 int ibis::selectClause::_verify(const ibis::part& part0,
-				const ibis::math::term& xp0) {
+				const ibis::math::term& xp0) const {
     int ierr = 0;
 
     if (xp0.termType() == ibis::math::VARIABLE) {
