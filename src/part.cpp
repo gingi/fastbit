@@ -9775,6 +9775,13 @@ unsigned ibis::util::tablesFromResources(ibis::partList &tables,
     return cnt;
 } // ibis::util::tablesFromResources
 
+void ibis::util::clean(ibis::partList &pl) throw() {
+    const size_t npl = pl.size();
+    for (size_t j = 0; j < npl; ++ j)
+	delete pl[j];
+    pl.clear();
+} // ibis::util::clean
+
 // explicit instantiations of the templated functions
 template long
 ibis::part::doScan(const array_t<char>&,

@@ -1,12 +1,12 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.0.5
+# Generated automatically by config.lt (fastbit) ibis1.0.5
 # Libtool was configured on host bit:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
-#                 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+#                 2006, 2007, 2008 Free Software Foundation, Inc.
 #   Written by Gordon Matzigkeit, 1996
 #
 #   This file is part of GNU Libtool.
@@ -39,8 +39,8 @@ available_tags="CXX "
 # ### BEGIN LIBTOOL CONFIG
 
 # Which release of libtool.m4 was used?
-macro_version=2.2.7a
-macro_revision=1.3087
+macro_version=2.2.6
+macro_revision=1.3012
 
 # Whether or not to build shared libraries.
 build_libtool_libs=yes
@@ -53,12 +53,6 @@ pic_mode=default
 
 # Whether or not to optimize for fast installation.
 fast_install=needless
-
-# Shell to use when invoking shell scripts.
-SHELL="/bin/sh"
-
-# An echo program that protects backslashes.
-ECHO="printf %s\\n"
 
 # The host system.
 host_alias=
@@ -109,12 +103,6 @@ SP2NL="tr \\040 \\012"
 # turn newlines into spaces.
 NL2SP="tr \\015\\012 \\040\\040"
 
-# convert $build paths to $host format.
-to_host_path_cmd=func_noop_path_convert
-
-# convert $build paths to toolchain format.
-to_tool_path_cmd=func_noop_path_convert
-
 # How to create reloadable object files.
 reload_flag=" -r"
 reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
@@ -128,38 +116,9 @@ deplibs_check_method="file_magic ^x86 archive import|^x86 DLL"
 # Command to use when deplibs_check_method == "file_magic".
 file_magic_cmd="func_win32_libid"
 
-# DLL creation program.
-DLLTOOL="dlltool"
-
-# Command to associate shared and link libraries.
-sharedlib_from_linklib_cmd="func_cygming_dll_for_implib_fallback"
-
 # The archiver.
 AR="ar"
-
-# Flags to create an archive.
 AR_FLAGS="cru"
-
-# Flags to list archive content.
-AR_TFLAGS="t"
-
-# Flags to extract an archive.
-AR_XFLAGS="x"
-
-# Separator between AR flags and AR files.
-AR_SEP=" "
-
-# The portable archiver.
-LT_AR=$AR
-
-# Flags to portably create an archive.
-LT_ARFLAGS=$AR_FLAGS
-
-# Extract archive members one by one.
-ar_extract_one_by_one="no"
-
-# How to feed a file listing to the archiver.
-archiver_list_spec=""
 
 # A symbol stripping program.
 STRIP="strip"
@@ -173,7 +132,7 @@ old_postuninstall_cmds=""
 LTCC="gcc"
 
 # LTCC compiler flags.
-LTCFLAGS="-O "
+LTCFLAGS="-g -O2"
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[	 ][	 ]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p'"
@@ -182,13 +141,19 @@ global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[	 ][	 ]*
 global_symbol_to_cdecl="sed -n -e 's/^T .* \\(.*\\)\$/extern int \\1();/p' -e 's/^[ABCDGIRSTW]* .* \\(.*\\)\$/extern char \\1;/p'"
 
 # Transform the output of nm in a C name address pair.
-global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\)[ ]*\$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p'"
+global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p'"
 
 # Transform the output of nm in a C name address pair when lib prefix is needed.
-global_symbol_to_c_name_address_lib_prefix="sed -n -e 's/^: \\(lib[^ ]*\\)[ ]*\$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^: \\([^ ]*\\)[ ]*\$/  {\\\"lib\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\(lib[^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"lib\\2\", (void *) \\&\\2},/p'"
+global_symbol_to_c_name_address_lib_prefix="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\(lib[^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"lib\\2\", (void *) \\&\\2},/p'"
 
 # The name of the directory that contains temporary libtool files.
 objdir=.libs
+
+# Shell to use when invoking shell scripts.
+SHELL="/bin/sh"
+
+# An echo program that does not interpret backslashes.
+ECHO="echo"
 
 # Used to examine libraries when file_magic_cmd begins with "file".
 MAGIC_CMD=file
@@ -252,9 +217,6 @@ library_names_spec="\$libname.dll.a"
 # The coded name of the library, if different from the real name.
 soname_spec="\`echo \${libname} | sed -e s/^lib/cyg/\`\`echo \${release} | \$SED -e s/[.]/-/g\`\${versuffix}\${shared_ext}"
 
-# Permission mode override for installation of shared libraries.
-install_override_mode=""
-
 # Command to use after installation of a shared archive.
 postinstall_cmds="base_file=\\\`basename \\\${file}\\\`~
       dlpath=\\\`\$SHELL 2>&1 -c '. \$dir/'\\\${base_file}'i; echo \\\$dlname'\\\`~
@@ -305,7 +267,7 @@ striplib="strip --strip-unneeded"
 LD="/usr/i686-pc-cygwin/bin/ld.exe"
 
 # Commands used to build an old-style archive.
-old_archive_cmds="\$LT_AR \$LT_ARFLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
+old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 
 # A language specific compiler.
 CC="gcc"
@@ -421,10 +383,10 @@ fix_srcfile_path=""
 always_export_symbols=no
 
 # The commands to list exported symbols.
-export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
+export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
 
 # Symbols that should not be listed in the preloaded symbols.
-exclude_expsyms="[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
+exclude_expsyms="_head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
 
 # Symbols that must always be exported.
 include_expsyms=""
@@ -9842,7 +9804,7 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 LD="/usr/i686-pc-cygwin/bin/ld.exe"
 
 # Commands used to build an old-style archive.
-old_archive_cmds="\$LT_AR \$LT_ARFLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
+old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 
 # A language specific compiler.
 CC="g++"
@@ -9958,10 +9920,10 @@ fix_srcfile_path=""
 always_export_symbols=no
 
 # The commands to list exported symbols.
-export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
+export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
 
 # Symbols that should not be listed in the preloaded symbols.
-exclude_expsyms="[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
+exclude_expsyms="_head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
 
 # Symbols that must always be exported.
 include_expsyms=""

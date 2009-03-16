@@ -13,6 +13,7 @@
 /// ibis::init.
 ///
 /// @see ibis::init
+#include "countQuery.h"		// ibis::countQuery
 #include "meshQuery.h"		// ibis::meshQuery
 #include "resource.h"		// ibis::gParameters
 #include "bundle.h"		// ibis::bundle

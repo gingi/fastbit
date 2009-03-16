@@ -1,3 +1,7 @@
+2009-03-11 John Wu <John.Wu at ACM.org>
+	* src/ibis.h: add countQuery.h
+	* src/utl.h, src/part.cpp: add ibis::util::clean for ibis::partList
+
 2009-03-09 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add check-marksdb to run through the three
 	queries provided by David B. Marks <marksdb @ cox.net>
