@@ -1,3 +1,10 @@
+2009-03-17 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: change all calls to util::logMessage to
+	LOGGER to avoid casting the integers
+
+2009-03-16 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add m4 files in tests/m4 to EXTRA_DIST
+
 2009-03-11 John Wu <John.Wu at ACM.org>
 	* src/ibis.h: add countQuery.h
 	* src/utl.h, src/part.cpp: add ibis::util::clean for ibis::partList

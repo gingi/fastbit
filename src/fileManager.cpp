@@ -101,11 +101,9 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " ints from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -126,11 +124,9 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " ints from " << name;
     return ierr;
 } // ibis::fileManager::tryGetFile
 
@@ -149,11 +145,9 @@ int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu chars from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size() 
+	<< " chars from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -172,11 +166,9 @@ int ibis::fileManager::getFile(const char* name,
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu unsigned chars from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size() 
+	<< " unsigned chars from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -195,11 +187,9 @@ int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " ints from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -217,11 +207,9 @@ int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12) {
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu unsigned ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
-    }
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " unsigned ints from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -239,10 +227,9 @@ int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu long ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " long ints from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -260,10 +247,9 @@ int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu long unsigned ints from %s",
-			       static_cast<long unsigned>(arr.size()), name);
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " long unsigned ints from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -281,10 +267,9 @@ int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu floats  from %s",
-			       static_cast<long unsigned>(arr.size()), name);
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " floats  from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -302,10 +287,9 @@ int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu doubles from %s",
-			       static_cast<long unsigned>(arr.size()), name);
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " doubles from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -323,10 +307,9 @@ int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
 	}
     }
 
-    if (ibis::gVerbose > 12)
-	ibis::util::logMessage("ibis::fileManager::getFile",
-			       "got %lu RIDs from %s",
-			       static_cast<long unsigned>(arr.size()), name);
+    LOGGER(ibis::gVerbose > 12)
+	<< "ibis::fileManager::getFile -- got " << arr.size()
+	<< " RIDs from " << name;
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -370,29 +353,31 @@ void ibis::fileManager::flushFile(const char* name) {
     mutexLock lck(*this, "flushFile");
     fileList::iterator it = mapped.find(name);
     if (it != mapped.end()) {
-	if (ibis::gVerbose > 11)
-	    ibis::util::logMessage("flushFile", "removing file \"%s\" from "
-				   "the list of mapped files", (*it).first);
+	LOGGER(ibis::gVerbose > 11)
+	    << "fileManager::flushFile -- removing file \"" << (*it).first
+	    << "\" from the list of mapped files";
 	if ((*it).second->inUse() == 0) {
 	    delete (*it).second;
 	    mapped.erase(it);
 	}
-	else if (ibis::gVerbose > 2) {
-	    ibis::util::logMessage("flushFile", "can not remove \"%s\" "
-				   "because it is in use", (*it).first);
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "fileManager::flushFile -- can not remove \"" << (*it).first
+		<< "\" because it is in use";
 	}
     }
     else if (incore.end() != (it = incore.find(name))) {
-	if (ibis::gVerbose > 11)
-	    ibis::util::logMessage("flushFile", "removing file \"%s\" from "
-				   "the list of incore files", (*it).first);
+	LOGGER(ibis::gVerbose > 11)
+	    << "fileManager::flushFile -- removing file \"" << (*it).first
+	    << "\" from the list of incore files";
 	if ((*it).second->inUse() == 0) {
 	    delete (*it).second;
 	    incore.erase(it);
 	}
-	else if (ibis::gVerbose > 2) {
-	    ibis::util::logMessage("flushFile", "can not remove \"%s\" "
-				   "because it is in use", (*it).first);
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "fileManager::flushFile -- can not remove \"" << (*it).first
+		<< "\" because it is in use";
 	}
     }
 } // ibis::fileManager::flushFile
@@ -402,9 +387,8 @@ void ibis::fileManager::flushFile(const char* name) {
 void ibis::fileManager::flushDir(const char* name) {
     if (name == 0 || *name == 0) return;
     mutexLock lck(*this, "flushDir");
-    if (ibis::gVerbose > 5)
-	ibis::util::logMessage("flushDir",
-			       "removing records of all files in %s", name);
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager::flushDir -- removing records of all files in " << name;
 
     size_t deleted = 0;
     const size_t len = strlen(name);
@@ -420,11 +404,12 @@ void ibis::fileManager::flushDir(const char* name) {
 		if (strchr((*it).first+offset, DIRSEP) == 0) {
 		    if ((*it).second->inUse() > 0) {
 			++ cnt;
-			ibis::util::logMessage
-			    ("Warning", "flushDir can not remove mapped "
-			     "file (%s).  It is in use", (*it).first);
+			ibis::util::logger lg(3);
+			lg.buffer() << "Warning -- fileManager::flushDir "
+				    << "can not remove mapped file ("
+				    << (*it).first << ").  It is in use";
 			if (ibis::gVerbose > 3) {
-			    ibis::util::logger lg(3);
+			    lg.buffer() << "\n";
 			    (*it).second->printStatus(lg.buffer());
 			}
 		    }
@@ -446,11 +431,12 @@ void ibis::fileManager::flushDir(const char* name) {
 		if (strchr((*it).first+offset, DIRSEP) == 0) {
 		    if ((*it).second->inUse()) {
 			++ cnt;
-			ibis::util::logMessage
-			    ("Warning", "flushDir can not remove in-memory "
-			     "file (%s).  It is in use", (*it).first);
+			ibis::util::logger lg(3);
+			lg.buffer() << "Warning -- fileManager::flushDir "
+				    << "can not remove in-memory file ("
+				    << (*it).first << ").  It is in use";
 			if (ibis::gVerbose > 3) {
-			    ibis::util::logger lg(3);
+			    lg.buffer() << "\n";
 			    (*it).second->printStatus(lg.buffer());
 			}
 		    }
@@ -466,19 +452,17 @@ void ibis::fileManager::flushDir(const char* name) {
 	}
 
 	if (cnt) {// there are files in use, wait for them to be released
-	    ibis::util::logMessage("Warning", "flushDir(%s) finishes with "
-				   "%lu file%s still in memory", name,
-				   static_cast<long unsigned>(cnt),
-				   (cnt>1?"s":""));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::flushDir(" << name
+		<< ") finishes with " << cnt << " file"
+		<< (cnt>1?"s":"") << " still in memory";
 	    return;
 	    //	    pthread_cond_wait(&cond, &mutex);
 	}
 	else {
-	    if (ibis::gVerbose > 11)
-		ibis::util::logMessage("flushDir",
-				       "removed %lu file%s from %s",
-				       static_cast<long unsigned>(deleted),
-				       (deleted>1?"s":""), name);
+	    LOGGER(ibis::gVerbose > 11)
+		<< "fileManager::flushDir -- removed " << deleted
+		<< " file" << (deleted>1?"s":"") << " from " << name;
 	    return;
 	}
     }
@@ -648,9 +632,9 @@ ibis::fileManager::fileManager()
 			  MAKELANGID(LANG_NEUTRAL,
 				     SUBLANG_DEFAULT),
 			  (LPTSTR) &lpMsgBuf, 0, NULL);
-	    ibis::util::logMessage("fileManager::ctor", "failed to "
-				   "determine the physical memory size "
-				   "-- %s", lpMsgBuf);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "fileManager::ctor -- failed to determine the physical "
+		<< "memory size -- " << lpMsgBuf;
 	    LocalFree(lpMsgBuf);	// Free the buffer.
 	}
 	pagesize = pi.PageSize;
@@ -659,10 +643,9 @@ ibis::fileManager::fileManager()
 // 	pagesize = sysinfo.dwPageSize;
 #else
 	maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
-	if (ibis::gVerbose > 2)
-	    ibis::util::logMessage("fileManager::ctor",
-				   "using a default value of %lu bytes",
-				   maxBytes);
+	LOGGER(ibis::gVerbose > 2)
+	    << "fileManager::ctor -- using a default value of " << maxBytes
+	    << " bytes";
 #endif
     }
     //     if (maxBytes < 100*1024*1024)
@@ -701,10 +684,9 @@ ibis::fileManager::fileManager()
     if (pthread_cond_init(&readCond, 0) != 0)
 	throw ibis::bad_alloc("pthread_cond_init(readCond) failed in "
 			      "fileManager ctor");
-    if (ibis::gVerbose > 1) {
-	ibis::util::logMessage("fileManager::ctor", "maxBytes=%lu, "
-			       "maxOpenFiles=%u", maxBytes, maxOpenFiles);
-    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "fileManager initialization complete -- maxBytes=" << maxBytes
+	<< ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
 
 // destructor
@@ -729,8 +711,8 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 	evt += oss.str();
     }
 
-    if (ibis::gVerbose > 10)
-	ibis::util::logMessage(evt.c_str(), "record storage 0x%x", st);
+    LOGGER(ibis::gVerbose > 10)
+	<< evt << "-- record storage 0x" << (void*)st;
     increaseUse(st->bytes(), evt.c_str());
     if (st->filename() == 0)
 	return;
@@ -904,8 +886,9 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 
     ibis::fileManager::roFile* tmp = new ibis::fileManager::roFile();
     if (tmp == 0) {
-	ibis::util::logMessage(evt.c_str(), "unable to allocate a new "
-			       "roFile object for \"%s\"", name);
+	LOGGER(ibis::gVerbose >= 0)
+	    << evt << "-- unable to allocate a new roFile object for \""
+	    << name << "\"";
 	reading.erase(name);
 	ierr = -103;
 	return ierr;
@@ -958,12 +941,11 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     incore[tmp->filename()] = tmp;
 #endif
     if (tmp->size() == bytes) {
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logMessage
-		(evt.c_str(), "completed %s %lu bytes", name,
-		 (tmp->isFileMap()?"mmapping":"retrieving"),
-		 static_cast<long unsigned>(tmp->size()));
-	}
+	LOGGER(ibis::gVerbose > 5)
+	    << evt << "-- completed "
+	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
+	    << tmp->size() << " bytes from " << name;
+
 	if (ibis::gVerbose > 7) {
 	    timer.stop();
 	    double tcpu = timer.CPUTime();
@@ -992,10 +974,10 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	ierr = 0;
     }
     else {
-	ibis::util::logMessage
-	    ("Warning", "ibis::fileManager::getFile(%s) "
-	     "failed retrieving %lu bytes (actual size %lu)",
-	     name, bytes, static_cast<long unsigned>(tmp->size()));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::fileManager::getFile(" << name
+	    << ") failed retrieving " << bytes << " bytes (actually retrieved "
+	    << tmp->size() << ")";
 	delete tmp;
 	ierr = -104;
     }
@@ -1010,11 +992,10 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 int ibis::fileManager::tryGetFile(const char* name, storage** st,
 				  ACCESS_PREFERENCE pref) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    ibis::util::logMessage("tryGetFile", "attempt to retrieve \"%s\", "
-			   "currently there are %lu in mapped files and %lu "
-			   "incore files",
-			   name, static_cast<long unsigned>(mapped.size()),
-			   static_cast<long unsigned>(incore.size()));
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager::tryGetFile -- attempt to retrieve \"" << name
+	<< "\", currently there are " << mapped.size() << " mapped files and "
+	<< incore.size() << " incore files";
 #endif
     int ierr = 0;
     unsigned long bytes = 0; // the file size in bytes
@@ -1066,9 +1047,9 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	return ierr;
     }
     reading.insert(name); // record the name
-    if (ibis::gVerbose > 5)
-	ibis::util::logMessage("tryGetFile", "attempting to read %s "
-			       "(%lu bytes)", name, bytes);
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager::tryGetFile -- attempting to read " << name
+	<< "(" << bytes << " bytes)";
 
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
@@ -1121,12 +1102,11 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 #endif
     if (tmp->size() == bytes) {
 	increaseUse(tmp->size(), "ibis::fileManager::tryGetFile");
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logMessage
-		("ibis::fileManager", "tryGetFile(%s) completed %s %lu "
-		 "bytes", name, (tmp->isFileMap()?"mmapping":"retrieving"),
-		 static_cast<long unsigned>(tmp->size()));
-	}
+	LOGGER(ibis::gVerbose > 5)
+	    << "fileManager::tryGetFile(" << name << ") completed "
+	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
+	    << tmp->size() << " bytes";
+
 	if (ibis::gVerbose > 7) {
 	    timer.stop();
 	    double tcpu = timer.CPUTime();
@@ -1149,10 +1129,10 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	*st = tmp; // pass tmp to the caller
     }
     else {
-	ibis::util::logMessage
-	    ("Warning", "ibis::fileManager::tryGetFile(%s) "
-	     "failed retrieving %lu bytes (actual size %lu)",
-	     name, bytes, static_cast<long unsigned>(tmp->size()));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::tryGetFile(" << name
+	    << ") failed retrieving " << bytes << " bytes (actually retrieved "
+	    << tmp->size() << ")";
 	delete tmp;
 	ierr = -107;
     }
@@ -1168,11 +1148,10 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 ibis::fileManager::storage*
 ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-    ibis::util::logMessage("getFileSegment", "attempt to retrieve \"%s\", "
-			   "currently there are %lu in mapped files and "
-			   "%lu incore files",
-			   name, static_cast<long unsigned>(mapped.size()),
-			   static_cast<long unsigned>(incore.size()));
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager::getFileSegment -- attempt to retrieve \"" << name
+	<< "\", currently there are " << mapped.size() << " mapped files and "
+	<< incore.size() << " incore files";
 #endif
     int ierr = 0;
     ibis::fileManager::storage *st = 0;
@@ -1182,9 +1161,9 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
     unsigned long bytes = e - b; // the size (in bytes) of the file segment
     mutexLock lck(*this, "getFileSegment");
     readLock rock("getFileSegment");
-    if (ibis::gVerbose > 5)
-	ibis::util::logMessage("getFileSegment", "attempting to read %s "
-			       "(%lu bytes [%lu, %lu))", name, bytes, b, e);
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager::getFileSegment -- attempting to read " << name
+	<< "(" << bytes << " bytes [" << b << ", " << e << "))";
 
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
@@ -1204,9 +1183,9 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	ierr = unload(0); // unload whatever can be unload
     }
     if (ierr < 0) {
-	ibis::util::logMessage("getFileSegment", "unable to free up %lu "
-			       "bytes to read the file %s",
-			       bytes, name);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "fileManager::getFileSegment -- unable to free up " << bytes
+	    << "bytes to read the file " << name;
 	ierr = -108;
 	return st;
     }
@@ -1245,11 +1224,10 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	    st = new ibis::fileManager::storage(fdes, b, e);
 	    UnixClose(fdes);
 	}
-	else if (ibis::gVerbose >= 0) {
-	    ibis::util::logMessage("Warning", "ibis::file::getFileSegment"
-				   "(%s, %lu, %lu) failed to open the file",
-				   name, static_cast<long unsigned>(b),
-				   static_cast<long unsigned>(e));
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- ibis::file::getFileSegment(" << name
+		<< ", " << b << ", " << e << ") failed to open the file";
 	}
     }
 #else
@@ -1261,22 +1239,21 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	st = new ibis::fileManager::storage(fdes, b, e);
 	UnixClose(fdes);
     }
-    else if (ibis::gVerbose >= 0) {
-	ibis::util::logMessage("Warning", "ibis::file::getFileSegment"
-			       "(%s, %lu, %lu) failed to open the file",
-			       name, static_cast<long unsigned>(b),
-			       static_cast<long unsigned>(e));
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::file::getFileSegment(" << name << ", "
+	    << b << ", " << e << ") failed to open the file";
     }
 #endif
     if (st)
 	increaseUse(st->size(), "ibis::fileManager::getFileSegment");
     if (st->size() == bytes) {
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logMessage("ibis::fileManager", "getFileSegment(%s) "
-				   "completed %s %lu bytes", name,
-				   (st->isFileMap()?"mmapping":"reading"),
-				   static_cast<long unsigned>(st->size()));
-	}
+	LOGGER(ibis::gVerbose > 5)
+	    << "ibis::fileManager -- getFileSegment(" << name << ", "
+	    << b << ", " << e <<") completed "
+	    << (st->isFileMap()?"mmapping":"reading") << " " << st->size()
+	    << " bytes";
+
 	if (ibis::gVerbose > 7) {
 	    timer.stop();
 	    double tcpu = timer.CPUTime();
@@ -1296,11 +1273,11 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	    }
 	}
     }
-    else if (ibis::gVerbose >= 0) {
-	ibis::util::logMessage
-	    ("Warning", "ibis::fileManager::getFileSegment(%s) "
-	     "failed retrieving %lu bytes (actual size %lu)",
-	     name, bytes, static_cast<long unsigned>(st ? st->size() : 0U));
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::fileManager::getFileSegment("<< name << ", "
+	    << b << ", " << e << ") failed retrieving " << bytes
+	    << " bytes (actually retrieved " << (st ? st->size() : 0U) << ")";
     }
     return st;
 } // ibis::fileManager::getFileSegment
@@ -1315,28 +1292,30 @@ int ibis::fileManager::unload(size_t size) {
 	return 0;
     }
     if (size > maxBytes) {
-	ibis::util::logMessage("Warning", "request of %lu bytes can not "
-			       "be honered, maxBytes=%.3G",
-			       static_cast<long unsigned>(size),
-			       static_cast<double>(maxBytes));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- request fileManager::unload(" << size
+	    << ") can not be honered, maxBytes=" << std::setprecision(3)
+	    << static_cast<double>(maxBytes);
 	return -113;
     }
     if (ibis::gVerbose > 4) {
+	ibis::util::logger lg(4);
 	if (ibis::gVerbose > 8) {
-	    ibis::util::logger lg(8);
 	    printStatus(lg.buffer());
 	}
 	if (size > 0)
-	    ibis::util::logMessage("ibis::fileManager::unload",
-				   "need to free up %lu bytes of space"
-				   "(totalBytes=%lu, maxBytes=%lu)",
-				   static_cast<long unsigned>(size),
-				   ibis::fileManager::totalBytes(), maxBytes);
+	    lg.buffer()
+		<< "\nibis::fileManager::unload(" << size
+		<< ") to free up " << size << " bytes of space (totalBytes="
+		<< ibis::fileManager::totalBytes() << ", maxBytes="
+		<< std::setprecision(3) << static_cast<double>(maxBytes)
+		<< ")";
 	else
-	    ibis::util::logMessage("ibis::fileManager::unload",
-				   "want to free up all unused space"
-				   "(totalBytes=%lu, maxBytes=%lu)",
-				   ibis::fileManager::totalBytes(), maxBytes);
+	    lg.buffer()
+		<< "\nibis::fileManager::unload to free up all unused "
+		<< "space (totalBytes=" << ibis::fileManager::totalBytes()
+		<< ", maxBytes=" << std::setprecision(3)
+		<< static_cast<double>(maxBytes) << ")";
     }
 
     // collect the list of files that can be unloaded
@@ -1400,12 +1379,11 @@ int ibis::fileManager::unload(size_t size) {
 	}
 	if (size == 0) {
 	    if (ibis::gVerbose > 4 && candidates.size() > 0) {
-		ibis::util::logMessage
-		    ("ibis::fileManager::unload",
-		     "unloading all inactive files (%lu)",
-		     static_cast<long unsigned>(candidates.size()));
+		ibis::util::logger lg(4);
+		lg.buffer() << "ibis::fileManager::unload -- unloading all ("
+			    << candidates.size() << ") inactive files";
 		if (ibis::gVerbose > 6) {
-		    ibis::util::logger lg(6);
+		    lg.buffer() << "\n";
 		    (*it).second->printStatus(lg.buffer());
 		}
 	    }
@@ -1459,10 +1437,9 @@ int ibis::fileManager::unload(size_t size) {
 	if (nwaiting > 0) {
 	    // a primitive strategy: only one thread can wait for any
 	    // positive amount of space
-	    if (ibis::gVerbose >= 0)
-		ibis::util::logMessage("Warning", "ibis::fileManager: "
-				       "Another thread is waiting for "
-				       "memory already, yield ...");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::unload yields to another thread "
+		<< "already waiting for memory ...";
 	    return -108;
 	}
 
@@ -1507,9 +1484,9 @@ int ibis::fileManager::unload(size_t size) {
 #endif
 	-- nwaiting;
 	if (ierr != 0 && ierr != ETIMEDOUT) {
-	    ibis::util::logMessage("Warning", "fileManager::unload unable "
-				   "to wait for release of memory ... %s",
-				   strerror(ierr));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::unload unable to wait for release "
+		"of memory ... " << strerror(ierr);
 	    break; // get out of the while loop
 	}
 	current = time(0);
@@ -1524,9 +1501,8 @@ int ibis::fileManager::unload(size_t size) {
 } // ibis::fileManager::unload
 
 void ibis::fileManager::invokeCleaners() const {
-    if (ibis::gVerbose > 5)
-	ibis::util::logMessage("ibis::fileManager", "invoking registered "
-			       "external cleaners ...");
+    LOGGER(ibis::gVerbose > 5)
+	<< "fileManager invoking registered external cleaners ...";
     const uint64_t before = ibis::fileManager::totalBytes();
     for (cleanerList::const_iterator it = cleaners.begin();
 	 it != cleaners.end();
@@ -1558,11 +1534,9 @@ void ibis::fileManager::signalMemoryAvailable() const {
     if (nwaiting > 0) {
 	int ierr =
 	    pthread_cond_signal(&(ibis::fileManager::instance().cond));
-	if (ierr != 0 && ibis::gVerbose >= 0) {
-	    ibis::util::logMessage("Warning", "signalMemoryAvailable call "
-				   "to pthread_cond_signal with return "
-				   "code %d", ierr);
-	}
+	LOGGER(ierr != 0 && ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::signalMemoryAvailable received code "
+	    << ierr << " from pthread_cond_signal";
     }
 } // ibis::fileManager::signalMemoryAvailable
 
@@ -1663,9 +1637,9 @@ ibis::fileManager::storage::storage(size_t n)
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(n);
 	if (ierr < 0) {
-	    ibis::util::logMessage("Warning", "storage::ctor unable to find "
-				   "%lu bytes of space in memory",
-				   static_cast<long unsigned>(n));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::storage::ctor unable to find "
+		<< n << " bytes of space in memory";
 	    throw ibis::bad_alloc("storage::ctor(memory) failed");
 	}
     }
@@ -1706,15 +1680,16 @@ ibis::fileManager::storage::storage(const int fdes,
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
-	    ibis::util::logMessage("Warning", "storage is unable to find "
-				   "%ld bytes of space to read file file "
-				   "descriptor %d", nbytes, fdes);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::storage is unable to find "
+		<< nbytes << " bytes of space to read file descriptor "
+		<< fdes;
 	    throw ibis::bad_alloc("storage::ctor(read file) failed");
 	}
-	else if (ibis::gVerbose > 10) {
-	    ibis::util::logMessage("storage::read",
-				   "allocated %ld bytes at 0x%lx",
-				   nbytes, m_begin);
+	else {
+	    LOGGER(ibis::gVerbose > 10)
+		<< "storage::read -- allocated " << nbytes << " bytes at 0x"
+		<< (void*)m_begin;
 	}
     }
     m_begin = static_cast<char*>(malloc(nbytes));
@@ -1734,20 +1709,18 @@ ibis::fileManager::storage::storage(const int fdes,
 		double treal = timer.realTime();
 		double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
 		double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-		ibis::util::logMessage("storage::ctor", "read %lu bytes "
-				       "from file descriptor %d, "
-				       "took %g sec(elapsed) [%g sec(CPU)] to "
-				       "read at a speed of %g MB/s [%g]",
-				       static_cast<long unsigned>(nbytes),
-				       fdes, treal, tcpu, rt2, rt1);
+		LOGGER(ibis::gVerbose >= 8)
+		    << "storage::ctor -- read " << nbytes
+		    << " bytes from file descriptor " << fdes
+		    << ", took " << treal << " sec(elapsed) [" << tcpu
+		    << " sec(CPU)] at a speed of " << std::setprecision(3)
+		    << rt2 << " MB/s [" << std::setprecision(3) << rt1 << "]";
 	    }
 	}
-	if (nread != nbytes) {
-	    ibis::util::logMessage("Warning", "ibis::fileManager::storage "
-				   "reading (fdes=%i) expected %ld bytes "
-				   "at 0x%lx but only read %ld", fdes,
-				   nbytes, m_begin, nread);
-	}
+	LOGGER(nread != nbytes && ibis::gVerbose >= 0)
+	    << "Warning -- ibis::fileManager::storage -- expected to read "
+	    << nbytes << " bytes from fdes " << fdes << " at 0x"
+	    << (void*)m_begin << ", but only read " << nread;
 
 	m_end = m_begin + nread;
 	ibis::fileManager::instance().recordPages(begin, end);
@@ -1782,10 +1755,10 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
-	    ibis::util::logMessage("Warning", "storage is unable to find "
-				   "%ld bytes of space to copy from 0x%.8lx",
-				   nbytes,
-				   reinterpret_cast<long unsigned>(begin));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::storage is unable to find "
+		<< nbytes << " bytes of space to copy from 0x"
+		<< static_cast<const void*>(begin);
 	    throw ibis::bad_alloc("storage::ctor(copy memory) failed");
 	}
     }
@@ -1823,9 +1796,9 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 					 "storage::ctor");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
-	    ibis::util::logMessage("Warning", "storage is unable to find "
-				   "%lu bytes of space to make an "
-				   "in-memory copy", nbytes);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::storage is unable to find "
+		<< nbytes << " bytes of space to make an in-memory copy";
 	    throw ibis::bad_alloc("storage::ctor(copy) failed");
 	}
     }
@@ -1875,9 +1848,9 @@ void ibis::fileManager::storage::copy
 					 "storage::copy");
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
-	    ibis::util::logMessage("Warning", "storage is unable to find "
-				   "%lu bytes of space to make an "
-				   "in-memory copy", nbytes);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- storage is unable to find "
+		<< nbytes << " bytes of space to make an in-memory copy";
 	    throw ibis::bad_alloc("storage::ctor(copy) failed");
 	}
     }
@@ -1924,10 +1897,9 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 					     evt.c_str());
 	    int ierr = ibis::fileManager::instance().unload(nelm);
 	    if (ierr < 0) {
-		ibis::util::logMessage("Warning", "%s is "
-				       "unable to find %lu bytes of space "
-				       "in memory", evt.c_str(),
-				       static_cast<long unsigned>(nelm));
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " is unable to find "
+		    << nelm << " bytes of space in memory";
 		throw ibis::bad_alloc("storage::enlarge failed");
 	    }
 	}
@@ -1944,10 +1916,9 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    }
 	    if (ierr < 0) {
 		m_end = m_begin;
-		ibis::util::logMessage("Warning", "%s is "
-				       "unable to find %lu bytes of space "
-				       "in memory", evt.c_str(),
-				       static_cast<long unsigned>(nelm));
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " is unable to find "
+		    << nelm << " bytes of space in memory";
 		throw ibis::bad_alloc("storage::enlarge (retry) failed");
 	    }
 	    m_begin = static_cast<char*>(malloc(nelm));
@@ -1980,10 +1951,9 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 					     evt.c_str());
 	    int ierr = ibis::fileManager::instance().unload(n);
 	    if (ierr < 0) {
-		ibis::util::logMessage("Warning", "%s is "
-				       "unable to find %lu bytes of space "
-				       "in memory", evt.c_str(),
-				       static_cast<long unsigned>(n));
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " is unable to find "
+		    << n << " bytes of space in memory";
 		throw ibis::bad_alloc("storage::enlarge failed");
 	    }
 	}
@@ -2108,10 +2078,9 @@ off_t ibis::fileManager::storage::read(const int fdes,
 					     evt.c_str());
 	    int ierr = ibis::fileManager::instance().unload(nbytes);
 	    if (ierr < 0) {
-		ibis::util::logMessage("Warning", "%s is "
-				       "unable to find %lu bytes of space "
-				       "in memory", evt.c_str(),
-				       static_cast<long unsigned>(nbytes));
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " is unable to find "
+		    << nbytes << " bytes of space in memory";
 		throw ibis::bad_alloc("storage::read failed");
 	    }
 	}
@@ -2127,11 +2096,10 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	    }
 	    throw ibis::bad_alloc("failed to allocate space for reading");
 	}
-	else if (ibis::gVerbose > 10) {
-	    ibis::util::logMessage(evt.c_str(),
-				   "allocated %lu bytes at 0x%lx",
-				   static_cast<long unsigned>(nbytes),
-				   m_begin);
+	else {
+	    LOGGER(ibis::gVerbose > 10)
+		<< evt.c_str() << " -- allocated " << nbytes << " bytes at 0x"
+		<< (void*) m_begin;
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
 	m_end = m_begin + nbytes;
@@ -2142,10 +2110,10 @@ off_t ibis::fileManager::storage::read(const int fdes,
 
     nread = UnixSeek(fdes, begin, SEEK_SET);
     if (nread != begin) {
-	ibis::util::logMessage("Warning", "ibis::fileManager::storage"
-			       "read(fdes=%d) failed to seek to %lu ... %s",
-			       fdes, static_cast<long unsigned>(begin),
-			       (errno!=0 ? strerror(errno) : "???"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::fileManager::storage read(fdes="
+	    << fdes << ") failed to seek to " << begin << " ... "
+	    << (errno!=0 ? strerror(errno) : "???");
 	return 0;
     }
 
@@ -2153,13 +2121,11 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	nread = UnixRead(fdes, m_begin, nbytes);
 
 	ibis::fileManager::instance().recordPages(begin, end);
-	if (nread != nbytes) {
-	    ibis::util::logMessage("Warning", "ibis::fileManager::storage "
-				   "read(fdes=%i) allocated %ld bytes "
-				   "at 0x%lx but only read %lu", fdes,
-				   static_cast<long unsigned>(nbytes),
-				   m_begin, static_cast<long unsigned>(nread));
-	}
+	LOGGER(nread != nbytes && ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::storage read(fdes=" << fdes
+	    << ") allocated " << nbytes << " bytes at 0x"
+	    << static_cast<const void*>(m_begin)
+	    << ", but only read " << nread;
     }
     else {
 	ibis::horometer timer;
@@ -2173,19 +2139,20 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	    double treal = timer.realTime();
 	    double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
 	    double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-	    ibis::util::logMessage("storage::read", "read %lu bytes from "
-				   "file descriptor %d, "
-				   "took %g sec(elapsed) [%g sec(CPU)] to "
-				   "read at a speed of %g MB/s [%g]",
-				   static_cast<long unsigned>(nbytes),
-				   fdes, treal, tcpu, rt2, rt1);
+	    LOGGER(ibis::gVerbose >= 8)
+		<< "storage::read -- read " << nbytes << " bytes from file "
+		<< "descriptor " << fdes << ", took "
+		<< treal << " sec(elapsed) [" << tcpu
+		<< " sec(CPU)] at a speed of "
+		<< std::setprecision(3) << rt2 << " MB/s ["
+		<< std::setprecision(3) << rt1 << "]";
 	}
 	else {
-	    ibis::util::logMessage("Warning", "ibis::fileManager::storage "
-				   "read(fdes=%i) allocated %ld bytes "
-				   "at 0x%lx but only read %lu", fdes,
-				   static_cast<long unsigned>(nbytes),
-				   m_begin, static_cast<long unsigned>(nread));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::storage::read(fdes=" << fdes
+		<< ") allocated " << nbytes << " bytes at 0x"
+		<< static_cast<const void*>(m_begin) << ", but only read "
+		<< nread;
 	}
     }
     return nread;
@@ -2195,10 +2162,10 @@ void ibis::fileManager::storage::write(const char* file) const {
     size_t n, i;
     FILE *in = fopen(file, "wb");
     if (in == 0) {
-	ibis::util::logMessage("Warning", "storage::write() is unable open "
-			       "file \"%s\" ... %s", file,
-			       (errno!=0 ? strerror(errno) :
-				"no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- storage::write is unable open file \""
+	    << file << "\" ... "
+	    << (errno!=0 ? strerror(errno) : "no free stdio stream");
 	return;
     }
 
@@ -2206,10 +2173,9 @@ void ibis::fileManager::storage::write(const char* file) const {
     i = fwrite(static_cast<void*>(m_begin), 1, n, in);
     fclose(in); // close the file
     if (i != n) {
-	ibis::util::logMessage("Warning", "storage::write() expects to write "
-			       "%lu bytes to \"%s\", but only wrote %lu",
-			       static_cast<long unsigned>(n),
-			       file, static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- storage::write expects to write "
+	    << n << " bytes to \"" << file << "\", but only wrote " << i;
 	remove(file); // remove the file
     }
 } // ibis::fileManager::storage::write
@@ -2337,8 +2303,9 @@ void ibis::fileManager::roFile::read(const char* file) {
 	}
     }
     else {
-	ibis::util::logMessage("Warning", "ibis::fileManager::roFile is busy "
-			       "and cann't read new content");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::roFile is busy and cann't read "
+	    << "new content";
 	return;
     }
     doRead(file);
@@ -2346,8 +2313,9 @@ void ibis::fileManager::roFile::read(const char* file) {
 	ibis::fileManager::instance().recordFile(this);
     }
     else {
-	ibis::util::logMessage("ibis::fileManager::roFile", "did NOT "
-			       "read anything from file \"%s\"", file);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::roFile did NOT read anything "
+	    << "from file \"" << file << "\"";
 	clear();
     }
 } // ibis::fileManager::roFile::read
@@ -2361,17 +2329,17 @@ void ibis::fileManager::roFile::doRead(const char* file) {
 	n = tmp.st_size;
     }
     else {
-	ibis::util::logMessage("Warning", "roFile::read() is unable find out "
-			       "the size of \"%s\"", file);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::read is unable find out the size of \""
+	    << file << "\"";
 	return;
     }
 
     int in = UnixOpen(file, OPEN_READONLY);
     if (in < 0) {
-	ibis::util::logMessage("Warning", "roFile::read() is unable open "
-			       "file \"%s\" ... %s", file,
-			       (errno ? strerror(errno) :
-				"no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::read is unable open file \"" << file
+	    << "\" ... " << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
 
@@ -2415,10 +2383,10 @@ void ibis::fileManager::roFile::doRead(const char* file) {
 	    << "Warning -- roFile::read(" << file << ") expects to read "
 	    << n << " bytes from, but only got " << i;
     }
-    else if (ibis::gVerbose > 6) {
-	ibis::util::logMessage("roFile::doRead", "read %lu bytes from "
-			       "file \"%s\" to 0x%lx",
-			       static_cast<long unsigned>(n), file, m_begin);
+    else {
+	LOGGER(ibis::gVerbose > 6)
+	    <<"roFile::doRead -- read " << n << " bytes from file \""
+	    << file << "\" to 0x" << static_cast<const void*>(m_begin);
     }
     name = ibis::util::strnewdup(file);
     m_end = m_begin + i;
@@ -2428,18 +2396,17 @@ void ibis::fileManager::roFile::doRead(const char* file) {
 /// Read a portion of a file into memory.
 /// Do NOT record the name of the file.  This is different from the one that
 /// read the whole file which automatically records the name of the file.
-void
-ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
+void ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
     if (file == 0 || *file == 0 || b >= e)
 	return;
 
     long i, n = e - b;
     int in = UnixOpen(file, OPEN_READONLY);
     if (in < 0) {
-	ibis::util::logMessage("Warning", "roFile::read() is unable open "
-			       "file \"%s\" ... %s", file,
-			       (errno ? strerror(errno) :
-				"no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::read is unable open file \""
+	    << file << "\" ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
 
@@ -2470,34 +2437,25 @@ ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
     ibis::fileManager::instance().recordPages(b, e);
     UnixClose(in); // close the file
     if (i == -1L) {
-	if (ibis::gVerbose >= 0)
-	    ibis::util::logMessage("Warning", "roFile::read(%s, %lu, %lu) "
-				   "encountered an error (errno=%d) "
-				   "calling function read ... %s",
-				   file, static_cast<long unsigned>(b),
-				   static_cast<long unsigned>(e),
-				   errno, strerror(errno));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::read(" << file << ", " << b
+	    << ", %" << e << ") encountered an error (errno=" << errno 
+	    << ") calling function read ... " << strerror(errno);
 	free(m_begin);
 	m_begin = 0;
 	m_end = 0;
 	return;
     }
     else if (i != n) {
-	if (ibis::gVerbose >= 0)
-	    ibis::util::logMessage("Warning", "roFile::read(%s, %lu, %lu) "
-				   "expects to read %lu bytes, but only "
-				   "got %lu", file,
-				   static_cast<long unsigned>(b),
-				   static_cast<long unsigned>(e),
-				   static_cast<long unsigned>(n),
-				   static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::read(" << file << ", " << b << ", " << e
+	    << ") expects to read " << n << " bytes, but only got " << i;
     }
-    else if (ibis::gVerbose > 6) {
-	ibis::util::logMessage("roFile::doRead", "read %lu bytes from "
-			       "file \"%s\"[%lu, %lu) to 0x%lx",
-			       static_cast<long unsigned>(n), file,
-			       static_cast<long unsigned>(b),
-			       static_cast<long unsigned>(e), m_begin);
+    else {
+	LOGGER(ibis::gVerbose > 6)
+	    << "roFile::doRead -- read " << n << " bytes from file \""
+	    << file << "\"[" << b << ", " << e << ") to 0x"
+	    << static_cast<const void*>(m_begin);
     }
     m_end = m_begin + i;
     opened = time(0);
@@ -2522,22 +2480,24 @@ void ibis::fileManager::roFile::mapFile(const char* file) {
 	clear();
     }
     else {
-	ibis::util::logMessage("Warning", "ibis::fileManager::roFile is busy "
-			       "and cann't read new content");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::fileManager::roFile is busy and cann't "
+	    "read new content";
 	return;
     }
     Stat_T tmp;
     if (0 != UnixStat(file, &tmp)) { // get stat correctly
-	ibis::util::logMessage("Warning", "roFile::mapFile is unable find "
-			       "out the size of \"%s\"", file);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::mapFile is unable find out the size of \""
+	    << file << "\"";
 	return;
     }
     if (tmp.st_size > 0) {
 	doMap(file, 0, tmp.st_size, 0);
     }
-    else if (ibis::gVerbose > 3) {
-	ibis::util::logMessage("ibis::fileManager::roFile::mapFile",
-			       "file %s exists but is empty", file);
+    else {
+	LOGGER (ibis::gVerbose > 3)
+	    << "roFile::mapFile -- file " << file << " exists but is empty";
 	return;
     }
     if (m_end >= m_begin + tmp.st_size) {
@@ -2665,12 +2625,9 @@ void ibis::fileManager::roFile::doMap(const char *file, off_t b, off_t e,
 		opened  = time(0);
 		m_begin = reinterpret_cast<char*>(map_begin) + offset;
 		m_end   = m_begin + (e - b);
-		if (ibis::gVerbose > 6)
-		    ibis::util::logMessage("roFile::doMap",
-					   "map %lu bytes of file "
-					   "\"%s\" to 0x%lx",
-					   static_cast<long unsigned>(e-b),
-					   file, m_begin);
+		LOGGER(ibis::gVerbose > 6)
+		    << "roFile::doMap map " << (e-b) << " bytes of file \""
+		    << file << "\" to 0x%" << static_cast<const void*>(m_begin);
 	    }
 	    else {
 		if (ibis::gVerbose >= 0) {
@@ -2682,7 +2639,8 @@ void ibis::fileManager::roFile::doMap(const char *file, off_t b, off_t e,
 				  MAKELANGID(LANG_NEUTRAL,
 					     SUBLANG_DEFAULT),
 				  (LPTSTR) &lpMsgBuf, 0, NULL);
-		    ibis::util::logMessage("Warning", "%s %s", lpMsgBuf, file);
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- " << lpMsgBuf << " " << file;
 		    LocalFree(lpMsgBuf);	// Free the buffer.
 		}
 		m_begin = 0; m_end = 0; mapped = 0;
@@ -2698,7 +2656,8 @@ void ibis::fileManager::roFile::doMap(const char *file, off_t b, off_t e,
 			      MAKELANGID(LANG_NEUTRAL,
 					 SUBLANG_DEFAULT),
 			      (LPTSTR) &lpMsgBuf, 0, NULL);
-		ibis::util::logMessage("Warning", "%s %s", lpMsgBuf, file);
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << lpMsgBuf << " " << file;
 		LocalFree(lpMsgBuf);	// Free the buffer.
 	    }
 	    m_begin = 0; m_end = 0; mapped = 0;
@@ -2714,7 +2673,8 @@ void ibis::fileManager::roFile::doMap(const char *file, off_t b, off_t e,
 			  MAKELANGID(LANG_NEUTRAL,
 				     SUBLANG_DEFAULT),
 			  (LPTSTR) &lpMsgBuf, 0, NULL);
-	    ibis::util::logMessage("Warning", "%s %s", lpMsgBuf, file);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << lpMsgBuf << " " << file;
 	    LocalFree(lpMsgBuf);	// Free the buffer.
 	}
 	m_begin = 0; m_end = 0; mapped = 0;
@@ -2733,11 +2693,10 @@ void ibis::fileManager::roFile::doMap(const char* file, off_t b, off_t e,
 	fdescriptor = open(file, O_RDWR);
     }
     if (fdescriptor < 0) {
-	if (ibis::gVerbose >= 0)
-	    ibis::util::logMessage("Warning", "roFile::doMap is unable "
-				   "open file \"%s\" ... %s", file,
-				   (errno ? strerror(errno) :
-				    "no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::doMap is unable open file \""
+	    << file << "\" ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	m_begin = 0; m_end = 0; mapped = 0;
 	return;
     }
@@ -2760,19 +2719,16 @@ void ibis::fileManager::roFile::doMap(const char* file, off_t b, off_t e,
 	opened  = time(0);
 	m_begin = reinterpret_cast<char*>(map_begin) + offset;
 	m_end   = reinterpret_cast<char*>(map_begin) + fsize;
-	if (ibis::gVerbose > 6)
-	    ibis::util::logMessage("roFile::doMap", "map %lu bytes of "
-				   "file \"%s\" to 0x%lx",
-				   static_cast<long unsigned>(fsize), file,
-				   map_begin);
+	LOGGER(ibis::gVerbose > 6)
+	    << "roFile::doMap -- map " << fsize << " bytes of file \""
+	    << file << "\" to 0x%" << static_cast<const void*>(map_begin);
     }
     else {
 	close(fdescriptor);
-	if (ibis::gVerbose >= 0)
-	    ibis::util::logMessage("Warning", "roFile::doMap failed to "
-				   "map file \"%s\" on file descriptor "
-				   "%d ... %s",
-				   file, fdescriptor, strerror(errno));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- roFile::doMap failed to map file \""
+	    << file << "\" on file descriptor " << fdescriptor << " ... "
+	    << strerror(errno);
 	m_begin = 0; m_end = 0; mapped = 0;
 	fdescriptor = -1;
     }
