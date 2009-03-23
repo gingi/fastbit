@@ -50,6 +50,8 @@ public:
     virtual int64_t getColumnAsULongs(const char*, uint64_t*) const;
     virtual int64_t getColumnAsFloats(const char*, float*) const;
     virtual int64_t getColumnAsDoubles(const char*, double*) const;
+    virtual int64_t getColumnAsDoubles(const char*,
+				       std::vector<double>&) const;
     virtual int64_t getColumnAsStrings(const char*,
 				       std::vector<std::string>&) const;
 

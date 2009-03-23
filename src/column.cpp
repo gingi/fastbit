@@ -40,7 +40,7 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 		     const char* name, const char* desc,
 		     double low, double high) :
     thePart(tbl), m_type(t), m_name(name), m_desc(desc), m_bins(""),
-    lower(low), upper(high), idx(0), idxcnt() {
+    m_sorted(false), lower(low), upper(high), idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
 	throw "ibis::column::ctor unable to initialize the rwlock";
     }
@@ -57,8 +57,8 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 ///@note
 /// A well-formed column must have a valid name, i.e., ! m_name.empty().
 ibis::column::column(const part* tbl, FILE* file)
-    : thePart(tbl), m_type(UINT), lower(DBL_MAX), upper(-DBL_MAX),
-      idx(0), idxcnt() {
+    : thePart(tbl), m_type(UINT), m_sorted(false), lower(DBL_MAX),
+      upper(-DBL_MAX), idx(0), idxcnt() {
     char buf[MAX_LINE];
     char *s1;
     char *s2;
@@ -77,12 +77,12 @@ ibis::column::column(const part* tbl, FILE* file)
     do {
 	s1 = fgets(buf, MAX_LINE, file);
 	if (s1 == 0) {
-	    ibis::util::logMessage("ERROR", "ibis::column::column() reached "
+	    ibis::util::logMessage("Warning", "ibis::column::ctor reached "
 				   "end-of-file while reading a column");
 	    return;
 	}
 	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("ERROR", "ibis::column::column() may "
+	    ibis::util::logMessage("Warning", "ibis::column::ctor may "
 				   "have encountered a line that has more "
 				   "than %d characters", MAX_LINE);
 	}
@@ -235,7 +235,7 @@ ibis::column::column(const part* tbl, FILE* file)
 		break;}
 	    default: {
 		ibis::util::logMessage("Warning",
-				       "ibis::column::column() encountered "
+				       "ibis::column::ctor encountered "
 				       "unknown data type \'%s\'", s1);
 		badType = true;
 		break;}
@@ -248,7 +248,7 @@ ibis::column::column(const part* tbl, FILE* file)
     } while (strnicmp(buf, "End", 3));
 
     if (m_name.empty() || badType) {
-	ibis::util::logMessage("ERROR",
+	ibis::util::logMessage("Warning",
 			       "ibis::column specification does not have a "
 			       "valid name or type");
 	m_name.erase(); // make sure the name is empty
@@ -261,7 +261,7 @@ ibis::column::column(const part* tbl, FILE* file)
 /// difficulties.
 ibis::column::column(const ibis::column& rhs) :
     thePart(rhs.thePart), m_type(rhs.m_type), m_name(rhs.m_name),
-    m_desc(rhs.m_desc), m_bins(rhs.m_bins), lower(rhs.lower),
+    m_desc(rhs.m_desc), m_bins(rhs.m_bins), m_sorted(false), lower(rhs.lower),
     upper(rhs.upper), idx(0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
 	throw "ibis::column::ctor unable to initialize the rwlock";

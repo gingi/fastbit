@@ -1723,6 +1723,199 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
     return ierr;
 } // ibis::mensa::getColumnAsDoubles
 
+int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
+					std::vector<double>& vals) const {
+    ibis::table::namesTypes::const_iterator nit = naty.find(cn);
+    if (nit == naty.end())
+	return -1;
+    try {
+	vals.resize(nrows);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::mensa::getColumnAsDoubles failed to "
+	    "allocate the output std::vector<double>";
+	return -3;
+    }
+
+    size_t ierr = 0;
+    switch ((*nit).second) {
+    case ibis::BYTE: {
+	array_t<char> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0) {
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    }
+	    ierr += dp.nRows();
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> tmp;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end(); ++ it) {
+	    const ibis::part& dp = **it;
+	    if (ierr + static_cast<int64_t>(dp.nRows()) < ierr) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "ibis::mensa::getColumnAsDoubles encounters an "
+		    "integer overflow problem (number of elements assigned "
+		    "so far is " << ierr << ")";
+		break;
+	    }
+
+	    const ibis::column* col = dp.getColumn(cn);
+	    if (col != 0 && col->getRawData(tmp) >= 0)
+		for (size_t i=0; i < tmp.size(); ++ i)
+		    vals[ierr+i] = tmp[i];
+	    ierr += dp.nRows();
+	}
+	break;}
+    default:
+	return -2;
+    }
+    if (ierr >= 0) {
+	vals.resize(ierr);
+    }
+    return ierr;
+} // ibis::mensa::getColumnAsDoubles
+
 /// @note Any data type can be converted to strings, however, the
 /// conversion may take a significant amount of time.
 int64_t ibis::mensa::getColumnAsStrings(const char* cn,

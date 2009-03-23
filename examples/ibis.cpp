@@ -1358,7 +1358,7 @@ static void parse_args(int argc, char** argv,
 		    i = i + 1;
 		}
 		else {
-		    std::clog << "Warning: argument -d must be followed by "
+		    std::clog << "Warning -- argument -d must be followed by "
 			      << "a directory name" << std::endl;
 		}
 		break;
@@ -2114,6 +2114,57 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    sel1->dumpNames(lg.buffer(), ", ");
 	sel1->dump(lg.buffer(), limit, ", ");
     }
+
+    if (verify_rid && sel1->nRows() > 1 && sel1->nColumns() > 0) {
+	// query the list of values selected by the 1st column
+	std::vector<double> svals;
+	const ibis::table::stringList cnames = sel1->columnNames();
+	int64_t ierr = sel1->getColumnAsDoubles(cnames[0], svals);
+	if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tableSelect -- can not verify the answers returned for "
+		<< sqlstring << ", because of failure to retrieve values "
+		"from an intermediate table object named " << sel1->name()
+		<< ", ierr = " << ierr;
+	}
+	else {
+	    ibis::qDiscreteRange dr(cnames[0], svals);
+	    ibis::query qq(uid);
+	    ierr = qq.setWhereClause(&dr);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "tableSelect -- failed to set where clause expressed as "
+		    << "a qDiscreteRange(" << cnames[0] << ", double["
+		    << sel1->nRows() << "])";
+	    }
+	    else {
+		uint64_t cnt = 0;
+		for (ibis::partList::const_iterator it = pl.begin();
+		     it != pl.end(); ++ it) {
+		    ierr = qq.setPartition(*it);
+		    if (ierr == 0) {
+			ierr = qq.evaluate();
+			if (ierr == 0) {
+			    cnt += qq.getNumHits();
+			}
+		    }
+		}
+		if (cnt != sel1->nRows()) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- tableSelect -- qDiscreteRange("
+			<< cnames[0] << ", double[" << sel1->nRows()
+			<< "]) has " << cnt << " hit" << (cnt > 1 ? "s" : "")
+			<< ", but should have " << sel1->nRows();
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "tableSelect -- qDiscreteRange(" << cnames[0]
+			<< ", double[" << sel1->nRows() << "]) has " << cnt
+			<< " hits as expected";
+		}
+	    }
+	}
+    }
     delete sel1;
     timer.stop();
     LOGGER(ibis::gVerbose > 0)
@@ -2410,7 +2461,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		}
 	    }
 	    if (cnt > 0)
-		lg.buffer() << "Warning: " << cnt
+		lg.buffer() << "Warning -- " << cnt
 			    << " mismatches out of a total of "
 			    << rid1->size();
 	    else
@@ -2471,7 +2522,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		}
 	    }
 	    if (cnt > 0)
-		lg.buffer() << "Warning: " << cnt
+		lg.buffer() << "Warning -- " << cnt
 			    << " mismatches out of a total of "
 			    << rid1->size();
 	    else

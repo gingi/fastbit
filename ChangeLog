@@ -1,3 +1,11 @@
+2009-03-23 John Wu <John.Wu at ACM.org>
+	* src/table.h: add function getColumnAsDouble that returns the
+	values in std::vector<double>
+	* examples/ibis.cpp: add code in tableSelect to directly generate
+	ibis::qDiscreteRange query expression (reuse the verify_rid flag
+	-r)
+	* src/column.h: add protected member m_sorted (default false)
+
 2009-03-17 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: change all calls to util::logMessage to
 	LOGGER to avoid casting the integers

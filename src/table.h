@@ -72,14 +72,19 @@ public:
     /// Destructor.
     virtual ~table() {};
 
-    /// Name of the table object.
+    /// Name of the table.  A valid table shall not return a null pointer
+    /// nor an empty string.
     virtual const char* name() const {return name_.c_str();}
-    /// Free text description.
+    /// Free text description.  May return a null pointer.
     virtual const char* description() const {return desc_.c_str();}
+    /// The number of rows in this table.
     virtual uint64_t nRows() const=0;
+    /// The number of columns in this table.
     virtual size_t nColumns() const=0;
 
     /// A list of strings.
+    /// @note The pointers are expected to point to names stored internally.
+    /// The caller should not attempt to free these pointers.
     typedef std::vector<const char*> stringList;
     /// A list of data types.
     typedef std::vector<ibis::TYPE_T> typeList;
@@ -193,6 +198,8 @@ public:
 				      float* vals) const=0;
     virtual int64_t getColumnAsDoubles(const char* cname,
 				       double* vals) const=0;
+    virtual int64_t getColumnAsDoubles(const char* cname,
+				       std::vector<double>& vals) const=0;
     /// Retrieve the null-terminated strings as a vector of std::string
     /// objects.  Both ibis::CATEGORY and ibis::TEXT types can be retrieved
     /// using this function.

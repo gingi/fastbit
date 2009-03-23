@@ -59,6 +59,8 @@ public:
 				      uint64_t*) const {return -1;}
     virtual int64_t getColumnAsFloats(const char*, float*) const {return -1;}
     virtual int64_t getColumnAsDoubles(const char*, double*) const {return -1;}
+    virtual int64_t getColumnAsDoubles(const char*,
+				       std::vector<double>&) const {return -1;}
     virtual int64_t getColumnAsStrings(const char*,
 				       std::vector<std::string>&) const {
 	return -1;}
@@ -162,6 +164,8 @@ public:
 	}}
     virtual int64_t getColumnAsFloats(const char*, float*) const {return -1;}
     virtual int64_t getColumnAsDoubles(const char*, double*) const {return -1;}
+    virtual int64_t getColumnAsDoubles(const char*,
+				       std::vector<double>&) const {return -1;}
     virtual int64_t getColumnAsStrings(const char*,
 				       std::vector<std::string>&) const {
 	return -1;}
