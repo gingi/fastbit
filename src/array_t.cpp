@@ -276,6 +276,36 @@ uint32_t array_t<T>::find(const T& val) const {
     return j;
 } // find
 
+/// Find the first position where the value is greater than @c val.
+/// Assuming the array is already sorted in ascending order,
+/// it returns the smallest i such that @c operator[](i) > @c val.
+///
+/// @note The word upper is used in the same sense as in the STL function
+/// std::upper_bound.
+template<class T>
+uint32_t array_t<T>::find_upper(const T& val) const {
+    if (m_end <= m_begin) return 0; // empty array
+    else if (*m_begin > val) return 0; // 1st value is larger than val
+
+    uint32_t i = 0, j = size();
+    if (j < QSORT_MIN) { // linear search
+	for (i = 0; i < j; ++ i)
+	    if (m_begin[i] > val) return i;
+    }
+    else {
+	uint32_t m = (i + j) / 2;
+	while (i < m) { // m_begin[j] > val
+	    if (m_begin[m] <= val)
+		i = m;
+	    else
+		j = m;
+
+	    m = (i + j) / 2;
+	}
+    }
+    return j;
+} // find_upper
+
 /// Merge sort algorithm.  This array is sorted.  The argument @c tmp is
 /// only used as temporary storage.
 template<class T>

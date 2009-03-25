@@ -625,6 +625,10 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	    return -6;
 	}
     }
+    if (ibis::gVerbose > 0 &&
+	wc.getExpr()->nItems() <= static_cast<unsigned>(ibis::gVerbose)) {
+	wc.resetString(); // regenerate the string form of the query expression
+    }
 
     writeLock lck(this, "setWhereClause");
     wc.swap(conds);

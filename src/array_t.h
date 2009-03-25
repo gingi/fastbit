@@ -78,9 +78,10 @@ public:
     void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
     /// Return the smallest i such that [ind[i]] >= val.
     uint32_t find(const array_t<uint32_t>& ind, const T& val) const;
-    /// Return the smallest i such that [i] >= val.  Assume the array is
-    /// sorted in ascending order.
+    /// Return the smallest i such that [i] >= val.
     uint32_t find(const T& val) const;
+    /// Return the smallest i such that [i] > val.
+    uint32_t find_upper(const T& val) const;
     /// A stable sort using the provided workspace.  The current content is
     /// modified to be in ascending order.  The argument @c tmp is only
     /// used as temporary storage.

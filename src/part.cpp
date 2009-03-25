@@ -2665,8 +2665,11 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
     long ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
-    if (cmp.colName() == 0) { // no hit
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
 	hits.set(0, nEvents);
+	ierr = -7;
     }
     else {
 	columnList::const_iterator it = columns.find(cmp.colName());
@@ -2694,6 +2697,7 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 
     if (cmp.colName() == 0) { // no hit
 	hits.set(0, nEvents);
+	ierr = -7;
     }
     else {
 	columnList::const_iterator it = columns.find(cmp.colName());
@@ -2722,9 +2726,12 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
     long ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
-    if (cmp.colName() == 0) { // no hit
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
 	low.set(0, nEvents);
 	high.set(0, nEvents);
+	ierr = -7;
     }
     else {
 	columnList::const_iterator it = columns.find(cmp.colName());
@@ -2766,6 +2773,7 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
     if (cmp.colName() == 0) { // no hit
 	low.set(0, nEvents);
 	high.set(0, nEvents);
+	ierr = -7;
     }
     else {
 	columnList::const_iterator it = columns.find(cmp.colName());
@@ -2802,7 +2810,9 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
     double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
-    if (cmp.colName() == 0)
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
 	return ret;
 
     columnList::const_iterator it = columns.find(cmp.colName());
@@ -3050,9 +3060,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::CATEGORY: {
 	// NOTE that there should not be any qRange query on columns of
-	// type KEY or STRING.  However, they are implemented here to
-	// make the selfTest code a little simpler!  This should be
-	// corrected in the future.
+	// type KEY or STRING.  However, they are implemented here to make
+	// the rest of the code a little simpler!
 	ibis::bitvector tmp;
 	if (cmp.getType() == ibis::qExpr::RANGE)
 	    (*it).second->estimateRange
@@ -4961,6 +4970,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 			       "expected.", (*it).first,
 			       static_cast<long unsigned>(nEvents));
 		}
+
+		if ((*it).second->isSorted())
+		    testRangeOperators(pref, (*it).second, &nerr);
 	    }
 	    else if (elm < 0) { // a bad element size
 		++ nerr;
@@ -5686,9 +5698,81 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     }
 } // ibis::part::quickTest
 
-// issues query and then subdivided the range into three to check the total
-// hits of the three sub queries matches the hits of the single query allow
-// a maximum of 6 levels of recursion, no more than 80 queries
+/// Loop through all valid operators for a continuous range expression,
+/// check to see if the number of hits computed from evaluating a count
+/// query matches that returned from ibis::part::countHits.
+void ibis::part::testRangeOperators(const char* pref, const ibis::column* col,
+				    long* nerrors) const {
+    if (col == 0 || nEvents <= 1) return;
+
+    ibis::qExpr::COMPARE ops[] =
+	{ibis::qExpr::OP_UNDEFINED, ibis::qExpr::OP_LT, ibis::qExpr::OP_LE,
+	 ibis::qExpr::OP_GT, ibis::qExpr::OP_GE, ibis::qExpr::OP_EQ};
+    double b1 = col->lowerBound();
+    double b2 = col->upperBound();
+    if (b2 <= b1)
+	col->computeMinMax(currentDataDir(), b1, b2);
+    if (b2 <= b1) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name ? m_name : "?")
+	    << "]::testRangeOperators(" << col->name()
+	    << ") unable to determine the min/max values";
+	++ (*nerrors);
+	return;
+    }
+    b2 -= b1;
+    for (size_t i1 = 0; i1 < 6; ++ i1) {
+	for (size_t i2 = 0; i2 < 6; ++ i2) {
+	    double r1 = ibis::util::rand();
+
+	    ibis::qContinuousRange rng(b1, ops[i1], col->name(), ops[i2],
+				       b1 + b2 * r1);
+	    ibis::query cq(ibis::util::userName(), this, pref);
+	    long ierr = cq.setWhereClause(&rng);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- part[" << (m_name ? m_name : "?")
+		    << "]::testRangeOperators failed to assign " << rng
+		    << " as a where clause to query " << cq.id();
+		++ (*nerrors);
+		continue;
+	    }
+	    ierr = cq.evaluate();
+	    if (ierr == 0) {
+		ierr = countHits(rng);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- part[" << (m_name ? m_name : "?")
+			<< "]::testRangeOperators failed to count hits for "
+			<< rng << ", ierr = " << ierr;
+		    ++ (*nerrors);
+		}
+		else if (ierr != cq.getNumHits()) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- part[" << (m_name ? m_name : "?")
+			<< "]::testRangeOperators mismatching number of hits, "
+			"countHits(" << rng << ") returns " << ierr
+			<< ", but countQuery::getNumHits returns "
+			<< cq.getNumHits();
+		    ++ (*nerrors);
+		}
+	    }
+	    else if (ops[i1] != ibis::qExpr::OP_UNDEFINED ||
+		     ops[i2] != ibis::qExpr::OP_UNDEFINED) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- part[" << (m_name ? m_name : "?")
+		    << "]::testRangeOperators failed to evaluate expression "
+		    << rng << ", ierr = " << ierr;
+		++ (*nerrors);
+	    }
+	}
+    }
+} // ibis::part::testRangeOperators
+
+/// Issues a query and then subdivided the range into three to check the
+/// total hits of the three sub queries matches the hits of the single
+/// query.  It allows a maximum of 6 levels of recursion, no more than 80
+/// queries.
 uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 				    double low, double high,
 				    long *nerrors) const {
@@ -7979,7 +8063,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 		    << cmp << " on " << nEvents << " records took "
 		    << timer.realTime()
 		    << " sec elapsed time and produced "
-		    << ierr << (ierr > 1 ? " hits" : "hit") << "\n";
+		    << ierr << (ierr > 1 ? " hits" : " hit") << "\n";
     }
     return ierr;
 } // ibis::part::countHits

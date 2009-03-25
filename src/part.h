@@ -563,6 +563,10 @@ public:
     void queryTest(const char* pref, long* nerrors) const;
     /// Generate and run random queries for slefTest.
     void quickTest(const char* pref, long* nerrors) const;
+    /// Try a set of range conditions with different combinations of
+    /// operators.
+    void testRangeOperators(const char* pref, const ibis::column* col,
+			    long* nerrors) const;
 
     // These functions are in used classes barrel and vault
     void logWarning(const char* event, const char* fmt, ...) const;

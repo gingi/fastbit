@@ -32,6 +32,8 @@ public:
 
     /// Specify the where clause in string form.
     int setWhereClause(const char *str);
+    /// Specify the where clause in the form of a qExpr object.
+    int setWhereClause(const ibis::qExpr*);
     /// Return the where clause string.
     const char* getWhereClause() const {return conds.getString();}
     /// Resets the data partition used to evaluate the query conditions to

@@ -465,8 +465,8 @@ void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
 	    sort_radix(keys, vals);
 	}
 	catch (...) {
-	    // the main reason radix sort might fails is out of memory,
-	    // since quick sort does not need extra memory, give it a try
+	    // the main reason that the radix sort might fails is out of memory,
+	    // since quick sort does not need any extra memory, give it a try
 	    sort_quick(keys, vals, 0);
 	}
     }

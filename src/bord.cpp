@@ -1283,6 +1283,11 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
     long ierr = 0;
     if (nRows() == 0 || nColumns() == 0) return ierr;
+
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::reorder";
+    writeLock lock(this, evt.c_str()); // can't process other operations
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
@@ -1386,12 +1391,13 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
     }
     if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-	oss << keys[0]->name();
+	oss << evt << '(' << keys[0]->name();
 	for (unsigned i = 1; i < keys.size(); ++ i)
 	    oss << ", " << keys[i]->name();
-	logMessage("reorder", "reordering the rows according to "
-		   "values of \"%s\"", oss.str().c_str());
+	oss << ')';
+	evt = oss.str();
     }
+    ibis::util::timer mytimer(evt.c_str(), 1);
 
     ierr = nEvents;
     array_t<uint32_t> ind1;
@@ -1485,6 +1491,11 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	    lg.buffer() << "array ind is NOT a permutation\n";
     }
 #endif
+    for (ibis::part::columnList::const_iterator it = columns.begin();
+	 it != columns.end();
+	 ++ it) { // update the m_sorted flag of each column
+	(*it).second->isSorted((*it).second == keys[0]);
+    }
 
     for (uint32_t i = 0; i < load.size(); ++ i) {
 	ibis::bord::column* col = dynamic_cast<ibis::bord::column*>(load[i]);
@@ -1773,6 +1784,7 @@ ibis::bord::column::column(const ibis::bord::column &c)
 	     c.name(), ibis::TYPESTRING[(int)c.type()]);
 	break;}
     }
+    m_sorted = c.m_sorted;
 } // ibis::bord::column::column
 
 ibis::bord::column::~column() {

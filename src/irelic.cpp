@@ -1436,6 +1436,8 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 	case ibis::qExpr::OP_UNDEFINED:
 	    col->logWarning("relic::locate", "operators for the range not "
 			    "specified");
+	    hit0 = 0;
+	    hit1 = 0;
 	    return;
 	case ibis::qExpr::OP_LT:
 	    hit0 = 0;

@@ -75,6 +75,10 @@ public:
     /// Return true is there is a term with join operation, false otherwise.
     bool hasJoin() const;
 
+    /// Count the number of items in the query expression.
+    virtual size_t nItems() const {
+	return 1 + (left != 0 ? left->nItems() : 0) +
+	    (right != 0 ? right->nItems() : 0);}
     /// Print out the node in the string form.
     virtual void print(std::ostream&) const;
 
@@ -317,6 +321,7 @@ public:
     virtual bool empty() const {return values.empty();}
     virtual const double& leftBound() const {return values.front();}
     virtual const double& rightBound() const {return values.back();}
+    virtual size_t nItems() const {return values.size();}
 
     /// Convert to a sequence of qContinuousRange.
     ibis::qExpr* convert() const;
@@ -514,6 +519,8 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return VARIABLE;}
 	    virtual variable* dup() const {return new variable(*this);}
 	    virtual double eval() const {return myBar->getValue(varind);}
+
+	    virtual size_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << name;}
 	    const char* variableName() const {return name;}
 
@@ -540,6 +547,8 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return NUMBER;}
 	    virtual number* dup() const {return new number(val);}
 	    virtual double eval() const {return val;}
+
+	    virtual size_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << val;}
 
 	    // to negate the value
@@ -562,6 +571,8 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return ibis::math::STRING;}
 	    virtual literal* dup() const {return new literal(str);}
 	    virtual double eval() const {return 0.0;}
+
+	    virtual size_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << str;}
 	    operator char* () const {return str;}
 
@@ -683,6 +694,10 @@ public:
     virtual qExpr* dup() const {return new compRange(*this);}
     /// Evaluate the logical expression.
     inline bool inRange() const;
+
+    virtual size_t nItems() const {
+	return ibis::qExpr::nItems() +
+	    (expr3 != 0 ? expr3->nItems() : 0);}
     /// Print the query expression.
     virtual void print(std::ostream&) const;
 
@@ -723,6 +738,10 @@ public:
     ibis::math::term* getRange() {return expr;}
     const ibis::math::term* getRange() const {return expr;}
     void setRange(ibis::math::term *t) {delete expr; expr = t;}
+
+    virtual size_t nItems() const {
+	return ibis::qExpr::nItems() +
+	    (expr != 0 ? expr->nItems() : 0);}
 
 private:
     std::string name1;

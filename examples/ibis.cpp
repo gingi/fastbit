@@ -65,7 +65,8 @@
         [-ou[tput-file] filename] [-l logfilename] [-i[nteractive]]
         [-b[uild-indexes]] [-k[eep-tempory-files]]
  	[-n[o-estimation]] [-e[stimation-only]] [-s[quential-scan]]
-        [-r[id-check] [filename]] [-v[=n]] [-t[est]] [-h[elp]]
+        [-r[id-check] [filename]] [-reorder data_dir]
+        [-v[=n]] [-t[est]] [-h[elp]]
 
    NOTE: options -one-step-evaluation and -estimation-only are mutually
    exclusive, the one that appears later will overwrite the one that
@@ -174,7 +175,7 @@ static void usage(const char* name) {
 	"[-ou[tput-file] filename] [-l logfilename] "
 	"[-s[quential-scan]] [-r[id-check] [filename]]\n"
 	"[-n[o-estimation]] [-e[stimation-only]] [-k[eep-temporary-files]]"
-	"[-a[ppend] data_dir [partition_name]]\n"
+	"[-a[ppend] data_dir [partition_name]] [-reorder data_dir]\n"
 	"[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]\n"
 	"[-v[=n]] [-t[=n]] [-h[elp]] [-y[ank] filename|conditions]\n\n"
 	"NOTE: multiple -c -d -q and -v options may be specified.  "
@@ -1716,10 +1717,25 @@ static void parse_args(int argc, char** argv,
 	ibis::gParameters().add("all.preferMMapIndex", "T");
     }
 
-    // reorder the data directories first
+    // reorder the data directories first, a data directory may be followed
+    // by ':' and column names
     for (unsigned i = 0; i < rdirs.size(); ++ i) {
-	ibis::part tbl(rdirs[i], static_cast<const char*>(0));
-	tbl.reorder();
+	char* str = const_cast<char*>(strrchr(rdirs[i], ':'));
+	if (str != 0 && str > rdirs[i] && str[1] != '/' && str[1] != '\\') {
+	    std::string dir;
+	    for (const char* tmp = rdirs[i]; tmp < str; ++ tmp)
+		dir += *tmp;
+	    str = ibis::util::strnewdup(str+1);
+	    ibis::table::stringList slist;
+	    ibis::table::parseNames(str, slist);
+	    delete [] str;
+	    ibis::part tbl(dir.c_str(), static_cast<const char*>(0));
+	    tbl.reorder(slist);
+	}
+	else {
+	    ibis::part tbl(rdirs[i], static_cast<const char*>(0));
+	    tbl.reorder();
+	}
     }
 
     // construct the paritions using both the command line arguments and
@@ -2395,7 +2411,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << timer.realTime() << " elapsed seconds";
     }
 
-    if (testing > 1) {
+    if (ibis::gVerbose > 5 || verify_rid) {
 	ibis::bitvector btmp;
 	num2 = aQuery.sequentialScan(btmp);
 	if (num2 < 0) {

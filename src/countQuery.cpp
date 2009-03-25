@@ -57,6 +57,17 @@ int ibis::countQuery::setPartition(const part* tbl) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::countQuery assigned data partition " << tbl->name();
     mypart = tbl;
+    if (hits == cand) {
+	delete hits;
+	hits = 0;
+	cand = 0;
+    }
+    else {
+	delete hits;
+	delete cand;
+	hits = 0;
+	cand = 0;
+    }
     return 0;
 } // ibis::countQuery::setPartition
 
@@ -90,7 +101,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	    }
 	}
 	
-	if (ibis::gVerbose > 2) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(0);
 	    lg.buffer() << "ibis::countQuery::setWhereClause -- ";
 	    if (conds.getString() != 0)
@@ -100,6 +111,17 @@ int ibis::countQuery::setWhereClause(const char* str) {
 		lg.buffer() << "add a new where clause \"" << tmp << "\"";
 	}
 	conds.swap(tmp);
+	if (hits == cand) {
+	    delete hits;
+	    hits = 0;
+	    cand = 0;
+	}
+	else {
+	    delete hits;
+	    delete cand;
+	    hits = 0;
+	    cand = 0;
+	}
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -107,6 +129,48 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	    << str << "\"";
 	return -5;
     }
+    return 0;
+} // ibis::countQuery::setWhereClause
+
+/// This function accepts a user constructed query expression object.  It
+/// can be used to bypass the parsing of where clause string.
+int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
+    if (qx == 0) return -4;
+
+    ibis::whereClause wc;
+    wc.setExpr(qx);
+    if (mypart != 0) {
+	int ierr = wc.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- countQuery::setWhereClause(" << *qx
+		<< ") found the qExpr object with " << ierr << " incorrect name"
+		<< (ierr > 1 ? "s" : "")
+		<< ".  Keeping the existing where clause ";
+	    return -6;
+	}
+    }
+    if (ibis::gVerbose > 0 &&
+	wc.getExpr()->nItems() <= static_cast<unsigned>(ibis::gVerbose)) {
+	wc.resetString(); // regenerate the string form of the query expression
+    }
+
+    wc.swap(conds);
+
+    if (hits == cand) {
+	delete hits;
+	hits = 0;
+	cand = 0;
+    }
+    else {
+	delete hits;
+	delete cand;
+	hits = 0;
+	cand = 0;
+    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "countQuery::setWhereClause accepted new query conditions \""
+	<< *conds.getExpr() << "\"";
     return 0;
 } // ibis::countQuery::setWhereClause
 

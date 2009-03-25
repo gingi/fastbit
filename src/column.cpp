@@ -143,6 +143,12 @@ ibis::column::column(const part* tbl, FILE* file)
 	    m_bins = s1;
 	    delete [] s1;
 	}
+	else if (strnicmp(buf, "sorted", 6) == 0 && s1 != 0 && *s1 != 0) {
+	    while (s1 != 0 && *s1 != 0 && isspace(*s1))
+		++ s1;
+	    if (s1 != 0 && *s1 != 0)
+		m_sorted = ibis::resource::isStringTrue(s1);
+	}
 	else if (strnicmp(buf, "Property_data_type", 18) == 0 ||
 		 strnicmp(buf, "data_type", 9) == 0 ||
 		 strnicmp(buf, "type", 4) == 0) {
@@ -315,7 +321,9 @@ void ibis::column::write(FILE* file) const {
 	}
     }
     if (! m_bins.empty())
-	fprintf(file, "index=%s\n", m_bins.c_str());
+	fprintf(file, "index = %s\n", m_bins.c_str());
+    if (m_sorted)
+	fprintf(file, "sorted = true\n");
     fputs("End Column\n", file);
 } // ibis::column::write
 
@@ -512,8 +520,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
-/// In normal case, the pointer returned is fname.c_str(), there is no need
-/// for the caller to free this pointer.  In case of error, it returns a
+/// There is no need for the caller to free this pointer.  In normal case,
+/// the pointer returned is fname.c_str(); otherwise, the return value is a
 /// nil pointer.
 const char*
 ibis::column::dataFileName(std::string& fname, const char *dir) const {
@@ -534,7 +542,7 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
 } // ibis::column::dataFileName
 
 /// On successful completion of this function, the return value is the
-/// result of fname.c_str(), otherwise a nil pointer is returned to
+/// result of fname.c_str(); otherwise the return value is a nil pointer to
 /// indicate error.
 const char* ibis::column::nullMaskName(std::string& fname) const {
     if (thePart == 0 || thePart->currentDataDir() == 0) return 0;
@@ -546,10 +554,11 @@ const char* ibis::column::nullMaskName(std::string& fname) const {
     return fname.c_str();
 } // ibis::column::nullMaskName
 
-// find out the size of the data file first, if the actual content of the
-// null mask file has less bits, assume the mask is for the leading portion
-// of the data file and the remaining portion of the data file is valid (not
-// null).
+/// If there is a null mask stored already, return a shallow copy of it in
+/// mask.  Otherwise, find out the size of the data file first, if the
+/// actual content of the null mask file has less bits, assume the mask is
+/// for the leading portion of the data file and the remaining portion of
+/// the data file is valid (not null).
 void ibis::column::getNullMask(ibis::bitvector& mask) const {
     if (thePart == 0) return;
 
@@ -4701,8 +4710,13 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		double cost = idx->estimateCost(cmp);
 		// use index only if the cost of using its estimate cost is
 		// less than N bytes
-		if (cost < thePart->nRows())
+		if (cost < thePart->nRows() * 0.5)
 		    idx->estimate(cmp, low, high);
+		else if (m_sorted)
+		    ierr = searchSorted(cmp, low);
+	    }
+	    else if (m_sorted) {
+		ierr = searchSorted(cmp, low);
 	    }
 	}
 	if (low.size() != mymask.size()) { // short index
@@ -4817,9 +4831,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     try {
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
-	    if (thePart != 0 &&
-		idx->estimateCost(cmp)*std::log((double)cmp.getValues().size())
-		> (elementSize()+4.0)*thePart->nRows()) {
+	    if (idx->estimateCost(cmp)*std::log((double)cmp.getValues().size())
+		> (elementSize()+4.0) * mymask.size()) {
 		// using a sorted list may be faster
 		ibis::roster ros(this);
 		if (ros.size() == thePart->nRows()) {
@@ -4880,6 +4893,9 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    }
 		}
 	    }
+	}
+	else if (m_sorted) {
+	    ierr = searchSorted(cmp, low);
 	}
 	else if (thePart != 0) {
 	    ibis::roster ros(this);
@@ -5169,7 +5185,7 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
 ///@note
 /// Since this function does not compute the mininimum and the maximum of
 /// the new values, it is important the minimum and the maximum is present
-/// in the corresponding table.tdc file.  For new data without minimum and
+/// in the corresponding -part.txt file.  For new data without minimum and
 /// maximum, some test functions may fail.
 long ibis::column::append(const char* dt, const char* df,
 			  const uint32_t nold, const uint32_t nnew,
@@ -5257,6 +5273,7 @@ long ibis::column::append(const char* dt, const char* df,
 	if (ibis::gVerbose > 10)
 	    logMessage("append", "copied the content of \"%s\" to \"%s\"",
 		       from, to);
+	m_sorted = false; // assume no longer sorted
     }
     else if (ibis::gVerbose > 0) { // can not open source file, write 0
 	logWarning("append", "unable to open file \"%s\" for reading ... "
@@ -5496,6 +5513,7 @@ long ibis::column::string2int(int fptr, dictionary& dic,
     out.clear(); // clear the current integer list
     long ierr = 1;
     int32_t nread = UnixRead(fptr, buf, nbuf);
+    ibis::fileManager::instance().recordPages(0, nread);
     if (nread <= 0) { // nothing is read, end-of-file or error ?
 	if (nread == 0) {
 	    ierr = 0;
@@ -7276,6 +7294,1757 @@ long ibis::column::getDistribution
     }
     return ierr;
 } // ibis::column::getDistribution
+
+/// Change the m_sorted flag.  If the flag m_sorted is set to true, the
+/// caller should have sorted the data file.  Incorrect flag will lead to
+/// wrong answers to queries.  This operation invokes a write lock on the
+/// column object.
+void ibis::column::isSorted(bool iss) {
+    writeLock lock(this, "isSorted");
+    m_sorted = iss;
+} // ibis::column::isSorted
+
+int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
+			       ibis::bitvector& hits) const {
+    std::string dfname;
+    if (dataFileName(dfname) == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng
+	    << ") failed to determine the data file name";
+	return -4;
+    }
+
+    int ierr;
+    switch (m_type) {
+    case ibis::BYTE: {
+	array_t<char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<unsigned char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<float>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<double>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng
+	    << ") does not yet support column type " << TYPESTRING[(int)m_type];
+	ierr = -5;
+	break;}
+    } // switch (m_type)
+    return (ierr < 0 ? ierr : 0);
+} // ibis::column::searchSorted
+
+int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
+			       ibis::bitvector& hits) const {
+    std::string dfname;
+    if (dataFileName(dfname) == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng
+	    << ") failed to determine the data file name";
+	return -4;
+    }
+
+    int ierr;
+    switch (m_type) {
+    case ibis::BYTE: {
+	array_t<char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<unsigned char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<int64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<uint64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<float>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedIC(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOC<double>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng
+	    << ") does not yet support column type " << TYPESTRING[(int)m_type];
+	ierr = -5;
+	break;}
+    } // switch (m_type)
+    return (ierr < 0 ? ierr : 0);
+} // ibis::column::searchSorted
+
+template<typename T>
+int ibis::column::searchSortedIC(const array_t<T>& vals,
+				 const ibis::qContinuousRange& rng,
+				 ibis::bitvector& hits) const {
+    hits.clear();
+    uint32_t iloc, jloc;
+    const T ival = static_cast<T>(rng.leftBound());
+    const T jval = static_cast<T>(rng.rightBound());
+    switch (rng.leftOperator()) {
+    case ibis::qExpr::OP_LT: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = vals.find_upper(ival);
+		jloc = vals.find(jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival < jval) {
+		iloc = vals.find_upper(ival);
+		jloc = vals.find_upper(jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (ival >= jval) {
+		iloc = vals.find_upper(ival);
+		if (iloc < vals.size()) {
+		    hits.appendFill(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find_upper(jval);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (ival >= jval) {
+		iloc = vals.find_upper(ival);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find(jval);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() > rng.leftBound()) {
+		iloc = vals.find(jval);
+		if (iloc < vals.size() && vals[iloc] == rng.rightBound()) {
+		    for (jloc = iloc+1;
+			 jloc < vals.size() && vals[jloc] == vals[iloc];
+			 ++ jloc);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = vals.find_upper(ival);
+	    if (iloc < vals.size()) {
+		hits.set(0, iloc);
+		hits.adjustSize(vals.size(), vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = vals.find(ival);
+		jloc = vals.find(jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival <= jval) {
+		iloc = vals.find(ival);
+		jloc = vals.find_upper(jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (ival > jval) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size()) {
+		    hits.appendFill(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find_upper(jval);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (ival >= jval) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find(jval);
+		if (iloc < vals.size()) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(vals.size(), vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() >= rng.leftBound()) {
+		iloc = vals.find(jval);
+		if (iloc < vals.size() && vals[iloc] == rng.rightBound()) {
+		    for (jloc = iloc+1;
+			 jloc < vals.size() && vals[jloc] == vals[iloc];
+			 ++ jloc);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = vals.find(ival);
+	    if (iloc < vals.size()) {
+		hits.set(0, iloc);
+		hits.adjustSize(vals.size(), vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival <= jval) {
+		iloc = vals.find(ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find(jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival < jval) {
+		iloc = vals.find(ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find_upper(jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (jval < ival) {
+		iloc = vals.find_upper(jval);
+		jloc = vals.find(ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (jval < ival) {
+		iloc = vals.find(jval);
+		jloc = vals.find(ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() > rng.leftBound()) {
+		iloc = vals.find(jval);
+		if (iloc < vals.size() && vals[iloc] == rng.rightBound()) {
+		    jloc = vals.find_upper(jval);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = vals.find(ival);
+	    hits.adjustSize(iloc, vals.size());
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = vals.find_upper(ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find(jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival <= jval) {
+		iloc = vals.find_upper(ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		iloc = vals.find_upper(jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (jval < ival) {
+		iloc = vals.find_upper(jval);
+		jloc = vals.find_upper(ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (jval <= ival) {
+		iloc = vals.find(jval);
+		jloc = vals.find_upper(ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() >= rng.leftBound()) {
+		iloc = vals.find(jval);
+		if (iloc < vals.size() && vals[iloc] == rng.rightBound()) {
+		    jloc = vals.find_upper(jval);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = vals.find_upper(ival);
+	    hits.adjustSize(iloc, vals.size());
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (rng.leftBound() < rng.rightBound()) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		    jloc = vals.find_upper(ival);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (rng.leftBound() <= rng.rightBound()) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		    jloc = vals.find_upper(ival);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (rng.leftBound() > rng.rightBound()) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		    jloc = vals.find_upper(ival);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (rng.leftBound() >= rng.rightBound()) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		    jloc = vals.find_upper(ival);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.leftBound() == rng.rightBound()) {
+		iloc = vals.find(ival);
+		if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		    jloc = vals.find_upper(ival);
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, vals.size());
+		}
+		else {
+		    hits.set(0, vals.size());
+		}
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = vals.find(ival);
+	    if (iloc < vals.size() && vals[iloc] == rng.leftBound()) {
+		jloc = vals.find_upper(ival);
+		hits.set(0, iloc);
+		hits.adjustSize(jloc, vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_UNDEFINED:
+    default: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    jloc = vals.find(jval);
+	    hits.adjustSize(jloc, vals.size());
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    jloc = vals.find_upper(jval);
+	    hits.adjustSize(jloc, vals.size());
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    jloc = vals.find_upper(jval);
+	    if (jloc < vals.size()) {
+		hits.set(0, jloc);
+		hits.adjustSize(vals.size(), vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    jloc = vals.find(jval);
+	    if (jloc < vals.size()) {
+		hits.set(0, jloc);
+		hits.adjustSize(vals.size(), vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    iloc = vals.find(jval);
+	    if (iloc < vals.size() && vals[iloc] == rng.rightBound()) {
+		jloc = vals.find_upper(jval);
+		hits.set(0, iloc);
+		hits.adjustSize(jloc, vals.size());
+	    }
+	    else {
+		hits.set(0, vals.size());
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    hits.set(0, vals.size());
+	    return -8;
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    } // switch (rng.leftOperator())
+    return 0;
+} // ibis::column::searchSortedIC
+
+/// The backup option for searchSortedIC.  This function opens the named
+/// file and reads its content one word at a time, which is likely to be
+/// very slow.  It does assume the content of the file is sorted in
+/// ascending order and perform binary searches.
+template<typename T>
+int ibis::column::searchSortedOOC(const char* fname,
+				  const ibis::qContinuousRange& rng,
+				  ibis::bitvector& hits) const {
+    int fdes = UnixOpen(fname, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
+	    << fname << ", " << rng
+	    << ") failed to open the named data file, errno = " << errno
+	    << strerror(errno);
+	return -1;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    int ierr = UnixSeek(fdes, 0, SEEK_END);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
+	    << fname << ", " << rng << ") failed to seek to the end of file";
+	(void) UnixClose(fdes);
+	return -2;
+    }
+    const uint32_t nrows = ierr / sizeof(T);
+    const uint32_t sz = sizeof(T);
+    hits.clear();
+    uint32_t iloc, jloc;
+    const T ival = static_cast<T>(rng.leftBound());
+    const T jval = static_cast<T>(rng.rightBound());
+    switch (rng.leftOperator()) {
+    case ibis::qExpr::OP_LT: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		jloc = findLower<T>(fdes, nrows, jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival < jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		jloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (ival >= jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		if (iloc < nrows) {
+		    hits.appendFill(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (ival >= jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findLower<T>(fdes, nrows, jval);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() > rng.leftBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, jval);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int) sz &&
+		    tmp == rng.rightBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != jval) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = findUpper<T>(fdes, nrows, ival);
+	    if (iloc < nrows) {
+		hits.set(0, iloc);
+		hits.adjustSize(nrows, nrows);
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		jloc = findLower<T>(fdes, nrows, jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival <= jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		jloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc < jloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (ival > jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		if (iloc < nrows) {
+		    hits.appendFill(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (ival >= jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findLower<T>(fdes, nrows, jval);
+		if (iloc < nrows) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(nrows, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() >= rng.leftBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, jval);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.rightBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int) sz || tmp != jval) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = findLower<T>(fdes, nrows, ival);
+	    if (iloc < nrows) {
+		hits.set(0, iloc);
+		hits.adjustSize(nrows, nrows);
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival <= jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findLower<T>(fdes, nrows, jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival < jval) {
+		iloc = findLower<T>(fdes, nrows, ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (jval < ival) {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		jloc = findLower<T>(fdes, nrows, ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (jval < ival) {
+		iloc = findLower<T>(fdes, nrows, jval);
+		jloc = findLower<T>(fdes, nrows, ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() > rng.leftBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, jval);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.rightBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != jval) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = findLower<T>(fdes, nrows, ival);
+	    hits.adjustSize(iloc, nrows);
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (ival < jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findLower<T>(fdes, nrows, jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (ival <= jval) {
+		iloc = findUpper<T>(fdes, nrows, ival);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		if (iloc > 0) {
+		    hits.adjustSize(iloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (jval < ival) {
+		iloc = findUpper<T>(fdes, nrows, jval);
+		jloc = findUpper<T>(fdes, nrows, ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (jval <= ival) {
+		iloc = findLower<T>(fdes, nrows, jval);
+		jloc = findUpper<T>(fdes, nrows, ival);
+		if (jloc > iloc) {
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		}
+		else {
+		    hits.set(0, nrows);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.rightBound() >= rng.leftBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, jval);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.rightBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != jval) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    iloc = findUpper<T>(fdes, nrows, ival);
+	    hits.adjustSize(iloc, nrows);
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    if (rng.leftBound() < rng.rightBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, ival);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.leftBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != ival) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (rng.leftBound() <= rng.rightBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, ival);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.leftBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != ival) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (rng.leftBound() > rng.rightBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, ival);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int) sz &&
+		    tmp == rng.leftBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != ival) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (rng.leftBound() >= rng.rightBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, ival);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.leftBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != ival) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rng.leftBound() == rng.rightBound()) {
+		T tmp;
+		iloc = findLower<T>(fdes, nrows, ival);
+		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+		ierr = UnixRead(fdes, &tmp, sz);
+		if (iloc < nrows && ierr == (int)sz &&
+		    tmp == rng.leftBound()) {
+		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+			ierr = UnixRead(fdes, &tmp, sz);
+			if (ierr < (int)sz || tmp != ival) break;
+		    }
+		    hits.set(0, iloc);
+		    hits.adjustSize(jloc, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      jloc*sz+sz);
+		}
+		else {
+		    hits.set(0, nrows);
+		    ibis::fileManager::instance().recordPages(iloc*sz,
+							      iloc*sz+sz);
+		}
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    T tmp;
+	    iloc = findLower<T>(fdes, nrows, ival);
+	    ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+	    ierr = UnixRead(fdes, &tmp, sz);
+	    if (iloc < nrows && ierr == (int)sz &&
+		tmp == rng.leftBound()) {
+		for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+		    ierr = UnixRead(fdes, &tmp, sz);
+		    if (ierr < (int)sz || tmp != ival) break;
+		}
+		hits.set(0, iloc);
+		hits.adjustSize(jloc, nrows);
+		ibis::fileManager::instance().recordPages(iloc*sz, jloc*sz+sz);
+	    }
+	    else {
+		hits.set(0, nrows);
+		ibis::fileManager::instance().recordPages(iloc*sz, iloc*sz+sz);
+	    }
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    case ibis::qExpr::OP_UNDEFINED:
+    default: {
+	switch (rng.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    jloc = findLower<T>(fdes, nrows, jval);
+	    hits.adjustSize(jloc, nrows);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    jloc = findUpper<T>(fdes, nrows, jval);
+	    hits.adjustSize(jloc, nrows);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    jloc = findUpper<T>(fdes, nrows, jval);
+	    if (jloc < nrows) {
+		hits.set(0, jloc);
+		hits.adjustSize(nrows, nrows);
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    jloc = findLower<T>(fdes, nrows, jval);
+	    if (jloc < nrows) {
+		hits.set(0, jloc);
+		hits.adjustSize(nrows, nrows);
+	    }
+	    else {
+		hits.set(0, nrows);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    T tmp;
+	    iloc = findLower<T>(fdes, nrows, jval);
+	    ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
+	    ierr = UnixRead(fdes, &tmp, sz);
+	    if (iloc < nrows && ierr == (int)sz &&
+		tmp == rng.rightBound()) {
+		for (jloc = iloc+1; jloc < nrows; ++ jloc) {
+		    ierr = UnixRead(fdes, &tmp, sz);
+		    if (ierr < (int)sz || tmp != jval) break;
+		}
+		hits.set(0, iloc);
+		hits.adjustSize(jloc, nrows);
+		ibis::fileManager::instance().recordPages(iloc*sz, jloc*sz+sz);
+	    }
+	    else {
+		hits.set(0, nrows);
+		ibis::fileManager::instance().recordPages(iloc*sz, iloc*sz+sz);
+	    }
+	    break;}
+	case ibis::qExpr::OP_UNDEFINED:
+	default: {
+	    hits.set(0, nrows);
+	    return -8;
+	    break;}
+	} // switch (rng.rightOperator())
+	break;}
+    } // switch (rng.leftOperator())
+
+    (void) UnixClose(fdes);
+    return 0;
+} // ibis::column::searchSortedOOC
+
+/// An equivalent of array_t<T>::find.  It reads the open file one word at
+/// a time and therefore is likely to be very slow.
+template<typename T> uint32_t
+ibis::column::findLower(int fdes, const uint32_t nr, const T tgt) const {
+    int ierr;
+    const uint32_t sz = sizeof(T);
+    uint32_t left = 0, right = nr;
+    uint32_t mid = ((left + right) >> 1);
+    while (mid > left) {
+	off_t pos = mid * sz;
+	ierr = UnixSeek(fdes, pos, SEEK_SET);
+	if (ierr != pos) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to seek to " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	T tmp;
+	ierr = UnixRead(fdes, &tmp, sz);
+	ibis::fileManager::instance().recordPages(pos, pos+sz);
+	if (ierr != (int) sz) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to read a word of type " << typeid(T).name()
+		<< " at " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	if (tmp < tgt)
+	    left = mid;
+	else
+	    right = mid;
+	mid = ((left + right) >> 1);
+    }
+
+    if (mid < nr) { // read the value at mid
+	off_t pos = mid * sz;
+	ierr = UnixSeek(fdes, pos, SEEK_SET);
+	if (ierr != pos) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to seek to " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	T tmp;
+	ierr = UnixRead(fdes, &tmp, sz);
+	ibis::fileManager::instance().recordPages(pos, pos+sz);
+	if (ierr != (int) sz) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to read a word of type " << typeid(T).name()
+		<< " at " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+	if (tmp < tgt)
+	    ++ mid;
+    }
+    return mid;
+} // ibis::column::findLower
+
+/// An equivalent of array_t<T>::find_upper.  It reads the open file one
+/// word at a time and therefore is likely to be very slow.
+template<typename T> uint32_t
+ibis::column::findUpper(int fdes, const uint32_t nr, const T tgt) const {
+    int ierr;
+    const uint32_t sz = sizeof(T);
+    uint32_t left = 0, right = nr;
+    uint32_t mid = ((left + right) >> 1);
+    while (mid > left) {
+	off_t pos = mid * sz;
+	ierr = UnixSeek(fdes, pos, SEEK_SET);
+	if (ierr != pos) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findUpper(" << fdes << ", " << tgt
+		<< ") failed to seek to " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	T tmp;
+	ierr = UnixRead(fdes, &tmp, sz);
+	ibis::fileManager::instance().recordPages(pos, pos+sz);
+	if (ierr != (int) sz) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findUpper(" << fdes << ", " << tgt
+		<< ") failed to read a word of type " << typeid(T).name()
+		<< " at " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	if (tgt < tmp)
+	    right = mid;
+	else
+	    left = mid;
+	mid = ((left + right) >> 1);
+    }
+
+    if (mid < nr) { // read the value at mid
+	off_t pos = mid * sz;
+	ierr = UnixSeek(fdes, pos, SEEK_SET);
+	if (ierr != pos) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to seek to " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+
+	T tmp;
+	ierr = UnixRead(fdes, &tmp, sz);
+	ibis::fileManager::instance().recordPages(pos, pos+sz);
+	if (ierr != (int) sz) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << (thePart ? thePart->name() : "?")
+		<< "." << m_name << "]::findLower(" << fdes << ", " << tgt
+		<< ") failed to read a word of type " << typeid(T).name()
+		<< " at " << pos << ", ierr = " << ierr;
+	    return nr;
+	}
+	if (! (tgt < tmp))
+	    ++ mid;
+    }
+    return mid;
+} // ibis::column::findUpper
+
+template<typename T>
+int ibis::column::searchSortedIC(const array_t<T>& vals,
+				 const ibis::qDiscreteRange& rng,
+				 ibis::bitvector& hits) const {
+    const std::vector<double>& u = rng.getValues();
+    if (0.25 * u.size() * std::log((double)vals.size()) >= vals.size()) {
+	// go through the two lists to find matches
+	size_t ju = 0;
+	size_t jv = 0;
+	hits.set(0, vals.size());
+	hits.decompress();
+	while (ju < u.size() && jv < vals.size()) {
+	    while (u[ju] < vals[jv]) ++ ju;
+	    while (u[ju] > vals[jv]) ++ jv;
+	    if (u[ju] == vals[jv]) {
+		hits.setBit(jv, 1);
+		++ jv;
+	    }
+	}
+    }
+    else {
+	// do binary search for each value in u
+	for (size_t j = 0; j < u.size(); ++ j) {
+	    uint32_t jloc = vals.find(static_cast<T>(u[j]));
+	    if (vals[jloc] == u[j]) {
+		hits.setBit(jloc, 1);
+	    }
+	}
+	hits.adjustSize(0, vals.size());
+    }
+    return 0;
+} // ibis::column::searchSortedIC
+
+/// This version of search function reads the content of data file through
+/// explicit read operations.  It sequentially reads the content of the
+/// data file.  Note the content of the data file is assumed to be sorted
+/// in ascending order as elementary data type T.
+template<typename T>
+int ibis::column::searchSortedOOC(const char* fname,
+				  const ibis::qDiscreteRange& rng,
+				  ibis::bitvector& hits) const {
+    int fdes = UnixOpen(fname, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
+	    << fname << ", " << rng
+	    << ") failed to open the named data file, errno = " << errno
+	    << strerror(errno);
+	return -1;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    const uint32_t sz = sizeof(T);
+    int ierr = UnixSeek(fdes, 0, SEEK_END);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
+	    << fname << ", " << rng << ") failed to seek to the end of file";
+	(void) UnixClose(fdes);
+	return -2;
+    }
+    ibis::fileManager::instance().recordPages(0, ierr);
+    const uint32_t nrows = ierr / sz;
+    const std::vector<double>& u = rng.getValues();
+    ibis::fileManager::buffer<T> buf;
+    ierr = UnixSeek(fdes, 0, SEEK_SET); // point to the beginning of file
+    if (buf.size() > 0) { // has a buffer to use
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz))
+	       > 0) {
+	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
+		while (ju < u.size() && u[ju] < buf[j]) ++ ju;
+		if (buf[j] == u[ju]) {
+		    hits.setBit(jv+j, 1);
+		}
+	    }
+	    jv += ierr / sz;
+	}
+    }
+    else { // read one value at a time
+	T tmp;
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, &tmp, sizeof(tmp))) > 0) {
+	    while (ju < u.size() && u[ju] < tmp) ++ ju;
+	    if (u[ju] == tmp)
+		hits.setBit(jv, 1);
+	    ++ jv;
+	}
+    }
+    (void) UnixClose(fdes);
+    hits.adjustSize(0, nrows);
+    return (ierr > 0 ? 0 : -3);
+} // ibis::column::searchSortedOOC
 
 // explicit template instantiation
 template long ibis::column::selectValues

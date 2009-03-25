@@ -6150,6 +6150,8 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 	case ibis::qExpr::OP_UNDEFINED:
 	    col->logWarning("bin::locate", "operators for the range not "
 			    "specified");
+	    cand0 = 0;
+	    cand1 = 0;
 	    return;
 	case ibis::qExpr::OP_LT:
 	    cand0 = 0;

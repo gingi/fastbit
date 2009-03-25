@@ -290,6 +290,10 @@ public:
     /// Create a @c cursor object to perform row-wise data access.
     virtual cursor* createCursor() const=0;
 
+    /// Parse a string into a set of names.  Some bytes may be turned into
+    /// 0 to mark the end of names or functions.
+    static void parseNames(char* in, stringList& out);
+
 protected:
 
     std::string name_;	///< Name of the table.
@@ -299,9 +303,6 @@ protected:
     table() {};
     /// Copy constructor.
     table(const char* na, const char* de) : name_(na), desc_(de) {};
-    /// Parse a string into a set of names.  Some bytes may be turned into
-    /// 0 to mark the end of names or functions.
-    static void parseNames(char* in, stringList& out);
 
 private:
     // re-enforce the prohibitions on copying and assignment.

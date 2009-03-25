@@ -566,7 +566,11 @@ ibis::fileManager::fileManager()
 	if (sz != 0)
 	    minMapSize = sz;
     }
-    if (maxBytes < 10*1024*1024) {
+    if (maxBytes < MIN_DOMAP_SIZE) {
+	LOGGER(ibis::gVerbose > 3 && maxBytes > 0)
+	    << "user input parameter fileManager.maxBytes (" << maxBytes
+	    << ") is too small, trying to determine the physical memory "
+	    "size and use half of it";
 #ifdef _SC_PHYS_PAGES
 	// most *nix flavors defines this for physical number of pages
 	uint64_t mem = 0;
@@ -1294,8 +1298,8 @@ int ibis::fileManager::unload(size_t size) {
     if (size > maxBytes) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- request fileManager::unload(" << size
-	    << ") can not be honered, maxBytes=" << std::setprecision(3)
-	    << static_cast<double>(maxBytes);
+	    << ") can not be honered, maxBytes (" << std::setprecision(3)
+	    << static_cast<double>(maxBytes) << ") too small";
 	return -113;
     }
     if (ibis::gVerbose > 4) {
@@ -1545,15 +1549,28 @@ void ibis::fileManager::signalMemoryAvailable() const {
 //
 /// Constructor.  The incoming argument is the numbre of elements to be
 /// allocated.  If it is zero, it defaults to use 16 MB of space, and the
-/// number of elements 16 million divided by the size of the element.  If
-/// it fails to allocate the requested memory, it will reduce the number of
-/// elements by a half and then by a quarter for a total of seven times.
+/// number of elements is 16 million divided by the size of the element.
+/// If it fails to allocate the requested memory, it will reduce the number
+/// of elements by a half and then by a quarter for a total of seven times.
 /// If it failed all eight tries, it will set the buffer address to nil and
-/// the number of elements to zero.
+/// the number of elements to zero.  It also check to make sure it does not
+/// use more than 1/4th of free memory.  The buffer may contain no elements
+/// at all if there is insufficient amount of memory to use.  The caller
+/// should always check that buffer.size() > 0 and buffer.address() != 0.
 template <typename T>
 ibis::fileManager::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
+    const long unsigned nfree = ibis::fileManager::bytesFree();
+    if (nfree == 0) {
+	nbuf = 0;
+	return;
+    }
     if (nbuf == 0)
 	nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
+    if (nbuf*sizeof(T) > (nfree >> 2)) {
+	nbuf = (nfree >> 2) / sizeof(T);
+	if (nbuf == 0)
+	    return;
+    }
 
     try {buf = new T[nbuf];}
     catch (const std::bad_alloc&) {
@@ -1590,7 +1607,7 @@ ibis::fileManager::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
 	    oss << "(" << static_cast<void*>(buf) << ")";
 	    evt += oss.str();
 	}
-	ibis::fileManager::increaseUse(nbuf, evt.c_str());
+	ibis::fileManager::increaseUse(nbuf*sizeof(T), evt.c_str());
     }
 } // ibis::fileManager::buffer::ctor
 

@@ -82,12 +82,13 @@ public:
 
     /// Parse a new string.
     int parse(const char *cl);
-    /// Set a new set of conditions directly.
+    /// Assign a new set of conditions directly.
     void setExpr(const ibis::qExpr *ex) {
 	clause_.clear();
 	delete expr_;
 	expr_ = ex->dup();
     }
+    /// Regenerate the string version of the query conditions.
     void resetString() {
 	if (expr_ != 0) {
 	    std::ostringstream oss;

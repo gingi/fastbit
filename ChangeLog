@@ -1,3 +1,37 @@
+2009-03-25 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: reduce the threshold for invoking default
+	maxBytes computation to MIN_DOMAP_SIZE from 10 MB, to allow for
+	maxBytes to be very small so that we can test the out-of-core
+	functions in column.cpp
+	* src/fileManager.cpp: change the constructor of
+	ibis::fileManager::buffer to check the amount of free memory
+	before allocating anything, make sure no more than 1/4th of the
+	free memory is given to a new buffer
+	* src/column.cpp:5276 add statement to indicate the data is no
+	longer sorted after an append operation
+
+2009-03-24 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: add statements to read and write field named
+	"sorted", add functions searchSorted, searchSortedIC,
+	searchSortedOOC, isSorted, findLower and findUpper
+	* src/parti.cpp: add calls to ibis::column::isSorted to indicated
+	that some columns are completely sorted
+	* src/bord.cpp: add code to update m_sorted when reordering
+	columns
+	* src/countQuery.h, src/countQuery.cpp: add setWhereClause that
+	takes an ibis::qExpr object, add code to delete hits and cand after
+	modifying the query expression or data partition
+	* src/part.h, src/part.cpp: add function part::testRangeOperators
+	* src/ibin.cpp, src/irelic.cpp: set return values to indicate an
+	empty range in case of an ill-formed range expression
+	* src/qExpr.h: add virtual function nItems to ibis::qExpr to count
+	the number of items in a query expression tree
+	* examples/ibis.cpp: expand the handling of reordering option to
+	allow column names to be specified after a directory name
+	* src/array_t.h, src/array_t.cpp: add function find_upper to find
+	the upper bound (as in STL function upper_bound), the existing
+	function find is similar to STL function lower_bound
+
 2009-03-23 John Wu <John.Wu at ACM.org>
 	* src/table.h: add function getColumnAsDouble that returns the
 	values in std::vector<double>

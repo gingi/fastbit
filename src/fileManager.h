@@ -50,7 +50,7 @@ public:
     /// Given a file name, place the content in an array_t<T>.
     /// The return value is zero (0) if the function is successful, otherwise
     /// returns a non-zero value.
-    // template member function not supported by Sun compiler C++ 4.2 or 5.0
+    /// @{
     int getFile(const char* name, array_t<char>& arr);
     int getFile(const char* name, array_t<unsigned char>& arr);
     int getFile(const char* name, array_t<int32_t>& arr);
@@ -67,6 +67,7 @@ public:
     int tryGetFile(const char* name, array_t<T>& arr,
 		   ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
     /* int getFile(const char* name, array_t<FID_T>& arr); */
+    /// @}
 
     /// Prints status information about the file manager.
     void printStatus(std::ostream& out) const;
@@ -142,21 +143,24 @@ public:
 		maxBytes - ibis::fileManager::totalBytes() : 0);
     }
 
-    /// A buffer is intended to be a temporary workspace in memory.
-    /// The constructor allocates a certain amount of memory, default
-    /// 16 MB; the destructor release the memory.  Its size can not be
-    /// changed.
+    /// A buffer is intended to be a temporary workspace in memory.  The
+    /// constructor allocates a certain amount of memory, default to 16 MB;
+    /// the destructor release the memory.  Its size can not be changed.
     template <typename T>
     class buffer {
     public:
+	/// Constructor.  Default size is 16 MB.
 	buffer(uint32_t sz=0);
+	/// Destructor.  Release the memory allocated.
 	~buffer();
 
+	/// Return the ith value.  It does not perform array bounds check!
 	T& operator[](uint32_t i) {return buf[i];}
+	/// Return the ith value.  It does not perform array bounds check!
 	const T& operator[](uint32_t i) const {return buf[i];}
 	/// Address of the buffer allocated.
 	T* address() const {return buf;}
-	/// The number of elements in the buffer.
+	/// The number of elements in the buffer.  NOT the number of bytes.
 	uint32_t size() const {return nbuf;}
 
     private:
