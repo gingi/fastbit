@@ -4809,8 +4809,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "]::evaluateRange(" << cmp
-	    << ") -- the range condition is not applicable on the column type "
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
+	    << "the range condition is not applicable on the column type "
 	    << TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -4831,8 +4831,16 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     try {
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
-	    if (idx->estimateCost(cmp)*std::log((double)cmp.getValues().size())
-		> (elementSize()+4.0) * mymask.size()) {
+	    double idxcost =
+		idx->estimateCost(cmp)*std::log((double)cmp.getValues().size());
+	    if (m_sorted && idxcost > mymask.size()) {
+		ierr = searchSorted(cmp, low);
+		if (ierr == 0) {
+		    low &= mymask;
+		    return 0L;
+		}
+	    }
+	    if (idxcost > (elementSize()+4.0) * mymask.size()) {
 		// using a sorted list may be faster
 		ibis::roster ros(this);
 		if (ros.size() == thePart->nRows()) {
@@ -4860,12 +4868,21 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else {
+#if defined(DEBUG) || defined(_DEBUG)
 		LOGGER(ibis::gVerbose > 2)
-		    << "Warning -- ibis::column[" << thePart->name()
-		    << "." << name() << "]::evaluateRange(" << cmp
-		    << ") -- idx(" << idx->name()
+		    << "INFO -- ibis::column[" << thePart->name()
+		    << "." << name() << "]::evaluateRange(" << cmp.colName()
+		    << " IN ...) -- idx(" << idx->name()
 		    << ")->evaluate returned " << ierr
-		    << ", attempt to use idx->estimate";
+		    << ", attempting other alternatives";
+#endif
+		if (m_sorted) {
+		    ierr = searchSorted(cmp, low);
+		    if (ierr == 0) {
+			low &= mymask;
+			return 0L;
+		    }
+		}
 
 		ibis::bitvector high;
 		idx->estimate(cmp, low, high);
@@ -4914,8 +4931,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 
 	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp
-	    << ") completed with low.size() = " << low.size()
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
     }
@@ -4942,8 +4959,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "ibis::column[" << thePart->name() << "." << name()
-		<< "]::evaluateRange(" << cmp << ") receied an "
-		"exception from doScan in the exception handling code, "
+		<< "]::evaluateRange(" << cmp.colName() << "IN ...) receied "
+		"an exception from doScan in the exception handling code, "
 		"giving up...";
 	    low.clear();
 	    ierr = -2;
@@ -4955,8 +4972,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 
     LOGGER(ibis::gVerbose > 3)
 	<< "ibis::column[" << thePart->name() << "." << name()
-	<< "]::evaluateRange(" << cmp
-	<< ") completed the fallback option with low.size() = "
+	<< "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	<< "completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
 	<< ", and ierr = " << ierr;
     return ierr;
@@ -7434,8 +7451,8 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
     if (dataFileName(dfname) == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
-	    << m_name << "]::searchSorted(" << rng
-	    << ") failed to determine the data file name";
+	    << m_name << "]::searchSorted(" << rng.colName()
+	    << "IN ...) failed to determine the data file name";
 	return -4;
     }
 
@@ -7544,8 +7561,8 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
     default: {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
-	    << m_name << "]::searchSorted(" << rng
-	    << ") does not yet support column type " << TYPESTRING[(int)m_type];
+	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
+	    << "does not yet support column type " << TYPESTRING[(int)m_type];
 	ierr = -5;
 	break;}
     } // switch (m_type)
@@ -8990,8 +9007,8 @@ int ibis::column::searchSortedOOC(const char* fname,
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
-	    << fname << ", " << rng
-	    << ") failed to open the named data file, errno = " << errno
+	    << fname << ", " << rng.colName() << " IN ...) failed to "
+	    << "open the named data file, errno = " << errno
 	    << strerror(errno);
 	return -1;
     }
@@ -9005,7 +9022,8 @@ int ibis::column::searchSortedOOC(const char* fname,
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOC<" << typeid(T).name() << ">("
-	    << fname << ", " << rng << ") failed to seek to the end of file";
+	    << fname << ", " << rng.colName()
+	    << " IN ...) failed to seek to the end of file";
 	(void) UnixClose(fdes);
 	return -2;
     }

@@ -67,7 +67,7 @@ public:
     /// Return the name of the partition.
     const char* name()		const {return m_name;}
     /// Return a text description of the partition.
-    const char* description()	const {return m_desc;}
+    const char* description()	const {return m_desc.c_str();}
     /// Return the current index specification.
     const char* indexSpec()	const {return idxstr;}
     /// Replace existing index specification with a new one.
@@ -596,7 +596,7 @@ protected:
     // protected member variables
     //
     char* m_name;		///< Name of the data partition.
-    char* m_desc;		///< Free form description of the partition.
+    std::string m_desc;		///< Free form description of the partition.
     ibis::resource::vList metaList;	///< Meta tags as name-value pairs.
     mutable array_t<rid_t>* rids;	///< The object IDs (row id).
     columnList columns;		///< List of the columns.
@@ -1213,19 +1213,19 @@ public:
 	    tbl->logMessage("gainExclusiveAccess",
 			    "pthread_mutex_lock for %s", m);
 	int ierr = pthread_mutex_lock(&(tbl->mutex));
-	if (ierr)
-	    tbl->logWarning("gainExclusiveAccess", "pthread_mutex_lock() "
-			    "for %s returned %d", m, ierr);
+	if (0 != ierr)
+	    tbl->logWarning("gainExclusiveAccess", "pthread_mutex_lock for %s "
+			    "returned %d (%s)", m, ierr, strerror(ierr));
     }
     ~mutexLock() {
 	if (ibis::gVerbose > 9)
 	    thePart->logMessage("releaseExclusiveAccess",
 				 "pthread_mutex_unlock for %s", mesg);
 	int ierr = pthread_mutex_unlock(&(thePart->mutex));
-	if (ierr)
+	if (0 != ierr)
 	    thePart->logWarning("releaseExclusiveAccess",
-				 "pthread_mutex_unlock() for %s "
-				 "returned %d", mesg, ierr);
+				"pthread_mutex_unlock for %s returned %d (%s)",
+				mesg, ierr, strerror(ierr));
     }
 
 private:
@@ -1362,8 +1362,8 @@ inline void ibis::part::releaseAccess(const char* mesg) const {
 	logMessage("releaseAccess", "releasing rwlock from %s", mesg);
     int ierr = pthread_rwlock_unlock(&rwlock);
     if (0 != ierr) {
-	logWarning("releaseAccess", "pthread_rwlock_unlock() for %s "
-		   "returned %d", mesg, ierr);
+	logWarning("releaseAccess", "pthread_rwlock_unlock for %s "
+		   "returned %d (%s)", mesg, ierr, strerror(ierr));
     }
 } // ibis::part::releaseAccess
 
@@ -1372,8 +1372,8 @@ inline void ibis::part::gainReadAccess(const char* mesg) const {
 	logMessage("gainReadAccess", "acquiring read lock for %s", mesg);
     int ierr = pthread_rwlock_rdlock(&rwlock);
     if (0 != ierr) {
-	logWarning("gainReadAccess", "pthread_rwlock_rdlock() for %s "
-		   "returned %d", mesg, ierr);
+	logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
+		   "returned %d (%s)", mesg, ierr, strerror(ierr));
     }
 } // ibis::part::gainReadAccess
 
@@ -1381,9 +1381,9 @@ inline void ibis::part::gainWriteAccess(const char* mesg) const {
     if (ibis::gVerbose > 9)
 	logMessage("gainWriteAccess", "acquiring write access for %s", mesg);
     int ierr = pthread_rwlock_wrlock(&rwlock);
-    if (ierr)
-	logWarning("gainWriteAccess", "pthread_rwlock_wrlock() for "
-		   "%s returned %d", mesg, ierr);
+    if (0 != ierr)
+	logWarning("gainWriteAccess", "pthread_rwlock_wrlock for "
+		   "%s returned %d (%s)", mesg, ierr, strerror(ierr));
 } // ibis::part::gainWriteAccess
 
 inline ibis::column* ibis::part::getColumn(const char* prop) const {

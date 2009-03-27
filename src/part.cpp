@@ -210,7 +210,7 @@ extern "C" {
 /// specified, it looks for data directory names under
 /// 'prefix.dataDir1=aaaa' and 'prefix.dataDir2=bbbb'.
 ibis::part::part(const char* prefix) :
-    m_name(0), m_desc(0), rids(0), nEvents(0), activeDir(0),
+    m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
     myCleaner(0) {
     // initialize the locks
@@ -232,7 +232,7 @@ ibis::part::part(const char* prefix) :
 /// The meta tags are specified as a list of name-value strings, where each
 /// string in one name-value pair.
 ibis::part::part(const std::vector<const char*> &mtags) :
-    m_name(0), m_desc(0), rids(0), nEvents(0), activeDir(0),
+    m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
     myCleaner(0) {
     // initialize the locks
@@ -254,7 +254,7 @@ ibis::part::part(const std::vector<const char*> &mtags) :
 
 /// The name-value pairs are specified in a structured form.
 ibis::part::part(const ibis::resource::vList &mtags) :
-    m_name(0), m_desc(0), rids(0), nEvents(0), activeDir(0),
+    m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
     myCleaner(0) {
     // initialize the locks
@@ -279,7 +279,7 @@ ibis::part::part(const ibis::resource::vList &mtags) :
 /// Normally, data is stored only in one directory, specify the directory
 /// as @c adir and leave @c bdir as null.
 ibis::part::part(const char* adir, const char* bdir) :
-    m_name(0), m_desc(0), rids(0), nEvents(0), activeDir(0),
+    m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
     myCleaner(0) {
     (void) ibis::fileManager::instance(); // initialize the file manager
@@ -445,7 +445,7 @@ ibis::part::part(const char* adir, const char* bdir) :
 	    lg.buffer() << "empty ";
 	lg.buffer() << "ibis::part named "
 		    << (m_name?m_name:"<NULL>");
-	if (m_desc != 0 && *m_desc != 0)
+	if (! m_desc.empty())
 	    lg.buffer() << " (" << m_desc << ")";
 	lg.buffer() << "\n";
 	if (ibis::gVerbose > 1) {
@@ -497,7 +497,6 @@ ibis::part::~part() {
     delete [] activeDir;
     delete [] backupDir;
     delete [] idxstr;
-    delete [] m_desc;
     delete [] m_name;
 
     pthread_mutex_destroy(&mutex);
@@ -1147,7 +1146,6 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 		     strnicmp(buf, "DataSet.Description", 19) == 0 ||
 		     strnicmp(buf, "Partition.Description", 21) == 0 ||
 		     strnicmp(buf, "Part.Description", 16) == 0) {
-		delete [] m_desc;
 		m_desc = ibis::util::getString(s1);
 	    }
 	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
@@ -1360,8 +1358,8 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
 	    nm[0] = 'A' + (nm[0] % 26);
 	fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", nm.c_str());
     }
-    if (m_desc != 0 && (isActive || isBackup)) {
-	fprintf(fptr, "Description = \"%s\"\n", m_desc);
+    if (!m_desc.empty() && (isActive || isBackup)) {
+	fprintf(fptr, "Description = \"%s\"\n", m_desc.c_str());
     }
     else {
 	fprintf(fptr, "Description = \"This table was created "
@@ -1608,7 +1606,7 @@ void ibis::part::print(std::ostream &out) const {
     //    readLock lock(this, "print");
     if (m_name == 0) return;
     out << "ibis::part: " << m_name << "\n";
-    if (m_desc != 0) out << m_desc << "\n";
+    if (! m_desc.empty()) out << m_desc << "\n";
     if (rids != 0 && rids->size() > 0)
 	out << "There are " << rids->size() << " RIDs/rows, "
 	    << columns.size() << " columns" << std::endl;
@@ -2653,8 +2651,8 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
     }
 
     LOGGER(ibis::gVerbose > 7)
-	<< "ibis::part[" << name() << "]::estimateRange(" << cmp << ") <= "
-	<< ret;
+	<< "ibis::part[" << name() << "]::estimateRange(" << cmp.colName()
+	<< " IN ...) <= " << ret;
     return ret;
 } // ibis::part::estimateRange
 
@@ -2713,7 +2711,7 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 
     LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::evaluateRange("
-	<< cmp << "), ierr = " << ierr;
+	<< cmp.colName() << " IN ...), ierr = " << ierr;
     return ierr;
 } // ibis::part::evaluateRange
 
@@ -2796,12 +2794,13 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
     if (high.size() == low.size() && high.cnt() > low.cnt()) {
 	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
-	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
+	    << cmp.colName() << " IN ...) --> [" << low.cnt() << ", "
+	    << high.cnt() << "]";
     }
     else {
 	LOGGER(ibis::gVerbose > 7)
 	    << "ibis::part[" << name() << "]::estimateRange("
-	    << cmp << ") = " << low.cnt();
+	    << cmp.colName() << " IN ...) = " << low.cnt();
     }
     return ierr;
 } // ibis::part::estimateRange
@@ -3659,7 +3658,7 @@ float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
 
     LOGGER(ibis::gVerbose > 7)
 	<< "ibis::part[" << name() << "]::getUndecidable("
-	<< cmp << ") get a bitvector with " << iffy.cnt()
+	<< cmp.colName() << " IN ...) get a bitvector with " << iffy.cnt()
 	<< " nonzeros, " << ret*100
 	<< " per cent of them might be in the range";
     return ret;
@@ -4736,7 +4735,8 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 				      (void*)&pool);
 		if (0 != ierr) {
 		    logWarning("buildIndex", "unable to start the thread # "
-			       "%ld to run ibis_part_build_index", i);
+			       "%ld to run ibis_part_build_index (%s)",
+			       i, strerror(ierr));
 		}
 	    }
 	}
@@ -4748,7 +4748,8 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 				      (void*)&pool);
 		if (0 != ierr) {
 		    logWarning("buildIndex", "unable to start the thread # "
-			       "%ld to run ibis_part_build_index", i);
+			       "%ld to run ibis_part_build_index (%s)",
+			       i, strerror(ierr));
 		}
 	    }
 	}
@@ -5054,8 +5055,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread "
-				   "# %d to run ibis_part_threadedTestFun1", i);
+			logWarning("selfTest", "unable to start the thread # "
+				   "%d to run ibis_part_threadedTestFun1 (%s)",
+				   i, strerror(ierr));
 		    }
 		}
 	    }
@@ -5067,8 +5069,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread "
-				   "# %d to run ibis_part_threadedTestFun1", i);
+			logWarning("selfTest", "unable to start the thread # "
+				   "%d to run ibis_part_threadedTestFun1 (%s)",
+				   i, strerror(ierr));
 		    }
 		}
 	    }
@@ -5106,8 +5109,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun2,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread "
-				   "# %d to run ibis_part_threadedTestFun2", i);
+			logWarning("selfTest", "unable to start the thread # "
+				   "%d to run ibis_part_threadedTestFun2 (%s)",
+				   i, strerror(ierr));
 		    }
 		}
 		ierr = (long) ibis_part_threadedTestFun2((void*)&arg);
@@ -6410,8 +6414,8 @@ long ibis::part::doCompare(const array_t<T> &array,
 	timer.stop();
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << " element"
+		    << "]::doCompare -- performing comparison with column "
+		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
 		    << typeid(T).name() << "-array[" << array.size()
 		    << "] took " << timer.realTime()
@@ -6510,7 +6514,7 @@ long ibis::part::doCompare(const char* file,
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file << ", " << cmp
+			    << "]::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			UnixClose(fdes);
 			hits.clear();
@@ -6542,8 +6546,8 @@ long ibis::part::doCompare(const char* file,
 			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file << ", "
-				<< cmp << ") failed to seek to " << diff;
+				<< "]::doCompare(" << file
+				<< ") failed to seek to " << diff;
 			    UnixClose(fdes);
 			    hits.clear();
 			    return -4;
@@ -6558,7 +6562,7 @@ long ibis::part::doCompare(const char* file,
 			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file << ", " << cmp
+				<< "]::doCompare(" << file
 				<< ") failed to read a value at " << diff;
 			}
 		    }
@@ -6574,8 +6578,8 @@ long ibis::part::doCompare(const char* file,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
-			<< "]::doCompare(" << file << ", "
-			<< cmp << ") failed to seek to " << diff;
+			<< "]::doCompare(" << file
+			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
 		    hits.clear();
 		    return -4;
@@ -6590,8 +6594,8 @@ long ibis::part::doCompare(const char* file,
 		else {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file << ", "
-			<< cmp << ") failed to read a value at " << diff;
+			<< "]::doCompare(" << file
+			<< ") failed to read a value at " << diff;
 		}
 	    }
 
@@ -6608,8 +6612,8 @@ long ibis::part::doCompare(const char* file,
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file << ", "
-			<< cmp << ") failed to seek to " << diff;
+			<< "]::doCompare(" << file
+			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
 		    hits.clear();
 		    return -5;
@@ -6633,8 +6637,8 @@ long ibis::part::doCompare(const char* file,
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file << ", "
-			    << cmp << ") failed to seek to " << diff;
+			    << "]::doCompare(" << file
+			    << ") failed to seek to " << diff;
 			UnixClose(fdes);
 			hits.clear();
 			return -6;
@@ -6663,8 +6667,8 @@ long ibis::part::doCompare(const char* file,
 	timer.stop();
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::doCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << " element"
+		    << "]::doCompare -- performing comparison with column "
+		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
 		    << " from file \"" << file << "\" took "
 		    << timer.realTime() << " sec elapsed time and produced "
@@ -6742,8 +6746,8 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 	timer.stop();
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt()<< " element"
+		    << "]::negativeCompare -- performing comparison with column "
+		    << cmp.colName() << " on " << mask.cnt()<< " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
 		    << typeid(T).name() << "-array[" << array.size()
 		    << "] took " << timer.realTime()
@@ -6807,7 +6811,7 @@ long ibis::part::negativeCompare(const char* file,
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file << ", " << cmp
+			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
 		    hits.clear();
@@ -6847,8 +6851,8 @@ long ibis::part::negativeCompare(const char* file,
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file << ", "
-			    << cmp << ") failed to seek to " << *ii *elem;
+			    << "]::negativeCompare(" << file
+			    << ") failed to seek to " << *ii *elem;
 			UnixClose(fdes);
 			hits.clear();
 			return -4;
@@ -6863,8 +6867,8 @@ long ibis::part::negativeCompare(const char* file,
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file << ", "
-			    << cmp << ") expected to read " << diff
+			    << "]::negativeCompare(" << file
+			    << ") expected to read " << diff
 			    << " elements of " << elem << "-byte each, "
 			    << "but got " << ierr;
 		    }
@@ -6884,8 +6888,8 @@ long ibis::part::negativeCompare(const char* file,
 			    LOGGER(ibis::gVerbose > 0)
 				<< "Warning -- ibis::part["
 				<< (m_name ? m_name : "?")
-				<< "]::negativeCompare(" << file << ", "
-				<< cmp << ") failed to seek to " << diff;
+				<< "]::negativeCompare(" << file
+				<< ") failed to seek to " << diff;
 			    UnixClose(fdes);
 			    hits.clear();
 			    return -5;
@@ -6909,8 +6913,8 @@ long ibis::part::negativeCompare(const char* file,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file << ", "
-			<< cmp << ") failed to seek to " << diff;
+			<< "]::negativeCompare(" << file
+			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
 		    hits.clear();
 		    return -6;
@@ -6938,8 +6942,8 @@ long ibis::part::negativeCompare(const char* file,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- ibis::part["
 			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file << ", "
-			<< cmp << ") failed to seek to " << diff;
+			<< "]::negativeCompare(" << file
+			<< ") failed to seek to " << diff;
 		    UnixClose(fdes);
 		    hits.clear();
 		    return -7;
@@ -6964,8 +6968,8 @@ long ibis::part::negativeCompare(const char* file,
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file << ", "
-			    << cmp << ") failed to seek to " << diff;
+			    << "]::negativeCompare(" << file
+			    << ") failed to seek to " << diff;
 			UnixClose(fdes);
 			hits.clear();
 			return -8;
@@ -6995,10 +6999,11 @@ long ibis::part::negativeCompare(const char* file,
 	timer.stop();
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::negativeCompare -- performing comparison "
-		    << cmp << " on " << mask.cnt() << ' ' << typeid(T).name()
-		    << "s from file \"" << file << "\" took "
-		    << timer.realTime() << " sec elapsed time and produced "
+		    << "]::negativeCompare -- performing comparison with column "
+		    << cmp.colName() << " on " << mask.cnt() << ' '
+		    << typeid(T).name() << "s from file \"" << file
+		    << "\" took " << timer.realTime()
+		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
@@ -8059,8 +8064,8 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 	timer.stop();
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::countHits -- evaluating "
-		    << cmp << " on " << nEvents << " records took "
+		    << "]::countHits -- evaluating a condition involving "
+		    << cmp.colName() << " on " << nEvents << " records took "
 		    << timer.realTime()
 		    << " sec elapsed time and produced "
 		    << ierr << (ierr > 1 ? " hits" : " hit") << "\n";

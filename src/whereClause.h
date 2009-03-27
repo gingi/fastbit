@@ -107,10 +107,10 @@ public:
 
     /// Return a pointer to the string form of the where clause.
     const char* getString(void) const {
-	if (clause_.size() > 0)
-	    return clause_.c_str();
-	else
+	if (clause_.empty())
 	    return 0;
+	else
+	    return clause_.c_str();
     }
     /// Return a pointer to the root of the expression tree for the where
     /// clause.

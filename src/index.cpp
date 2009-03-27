@@ -7268,7 +7268,7 @@ uint32_t ibis::index::estimate(const ibis::qDiscreteRange& expr) const {
 
 float ibis::index::undecidable(const ibis::qDiscreteRange& expr,
 			       ibis::bitvector& iffy) const {
-    LOGGER(ibis::gVerbose > 1)
+    LOGGER(ibis::gVerbose > 2)
 	<< "Note -- using a dummy version of ibis::index::undecidable to "
 	"evaluate a qDiscreteRange on column " << expr.colName();
     if (col && col->partition())
@@ -7285,7 +7285,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
 
-    LOGGER(ibis::gVerbose > 1)
+    LOGGER(ibis::gVerbose > 2)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
 
@@ -7303,7 +7303,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
 
-    LOGGER(ibis::gVerbose > 1)
+    LOGGER(ibis::gVerbose > 2)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
 

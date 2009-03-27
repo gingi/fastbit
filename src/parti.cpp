@@ -66,7 +66,16 @@ long ibis::part::reorder() {
 	    ranges.push_back(width);
 	}
 	else {
-	    load.push_back((*it).second);
+	    (*it).second->computeMinMax();
+	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		uint64_t width = static_cast<uint64_t>
+		    ((*it).second->upperBound() - (*it).second->lowerBound());
+		keys.push_back((*it).second);
+		ranges.push_back(width);
+	    }
+	    else {
+		load.push_back((*it).second);
+	    }
 	}
     }
 
@@ -219,6 +228,15 @@ long ibis::part::reorder() {
 	    break;
 	}
     }
+
+    m_desc += " -- ";
+    m_desc += evt;
+    if (ibis::gVerbose >= 0) {
+	char currtime[30];
+	ibis::util::getLocalTime(currtime);
+	m_desc += " on ";
+	m_desc += currtime;
+    }
     writeTDC(nEvents, columns, activeDir);
     return ierr;
 } // ibis::part::reorder
@@ -245,7 +263,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     colVector keys, load; // sort according to the keys
     for (ibis::table::stringList::const_iterator nit = names.begin();
 	 nit != names.end(); ++ nit) {
-	ibis::part::columnList::const_iterator it = columns.find(*nit);
+	ibis::part::columnList::iterator it = columns.find(*nit);
 	if (it != columns.end()) {
 	    used.insert((*it).first);
 	    if (! (*it).second->isNumeric()) {
@@ -255,7 +273,13 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 		keys.push_back((*it).second);
 	    }
 	    else {
-		load.push_back((*it).second);
+		(*it).second->computeMinMax();
+		if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		    keys.push_back((*it).second);
+		}
+		else {
+		     load.push_back((*it).second);
+		}
 	    }
 	}
     }
@@ -425,6 +449,15 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	    break;
 	}
     }
+
+    m_desc += " -- ";
+    m_desc += evt;
+    if (ibis::gVerbose >= 0) {
+	char currtime[30];
+	ibis::util::getLocalTime(currtime);
+	m_desc += " on ";
+	m_desc += currtime;
+    }
     writeTDC(nEvents, columns, activeDir);
     return ierr;
 } // ibis::part::reorder
@@ -489,20 +522,25 @@ long ibis::part::reorderValues(const char *fname,
     if (ibis::gVerbose > 2)
 	timer.start();
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::reorderValues<";
+    evt += typeid(T).name();
+    evt += ">(";
+    evt += fname;
+    evt += ')';
     int fdes = UnixOpen(fname, OPEN_READWRITE, OPEN_FILEMODE);
     if (fdes < 0) {
-	if (ibis::gVerbose > 1)
-	    logWarning("reorderValues", "failed to open %s for writing "
-		       "reordered values", fname);
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- failed to open file " << fname
+	    << " for writing reordered values";
 	return -1; // couldn't open file for writing
     }
     long pos = UnixSeek(fdes, 0L, SEEK_END);
     if (pos != static_cast<long>(nrows * sizeof(T))) {
-	if (ibis::gVerbose > 1)
-	    logMessage("reorderValues", "expected size of %s is %ld, "
-		       "actual size is %ld", fname,
-		       static_cast<long>(nrows * sizeof(T)),
-		       pos);
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- expected size of " << fname << " is "
+	    << nrows * sizeof(T) << ", actual size is " << pos;
 	UnixClose(fdes);
 	return -2;
     }
@@ -514,10 +552,9 @@ long ibis::part::reorderValues(const char *fname,
     vals.read(fdes, 0, pos);
     if (vals.size() != nrows || (indin.size() != vals.size() &&
 				 ! indin.empty())) {
-	if (ibis::gVerbose > 1)
-	    logMessage("reorderValues", "failed to read %lu elements from %s, "
-		       "actually read %lu", nrows, fname,
-		       static_cast<long unsigned>(vals.size()));
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- failed to read " << nrows << " elements from "
+	    << fname << ", actually read " << vals.size();
 	UnixClose(fdes);
 	return -3;
     }
@@ -526,9 +563,9 @@ long ibis::part::reorderValues(const char *fname,
 	starts.resize(2);
 	starts[0] = 0;
 	starts[1] = vals.size();
-	if (ibis::gVerbose > 1)
-	    logMessage("reorderValues", "(re)set array starts to contain "
-		       "[0, %lu]", static_cast<long unsigned>(vals.size()));
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- (re)set array starts to contain [0, " << vals.size()
+	    << "]";
     }
 
     // sort vals one segment at a time
@@ -599,11 +636,11 @@ long ibis::part::reorderValues(const char *fname,
     UnixClose(fdes);
     if (ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("reorderValues", "wrote %lu reordered value%s (# seg %lu) "
-		   "to %s in %g sec(CPU), %g sec(elapsed)",
-		   static_cast<long unsigned>(nrows), (nrows>1 ? "s" : ""),
-		   static_cast<long unsigned>(starts.size()-1),
-		   fname, timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 2)
+	    << evt << " -- wrote " << nrows << " reordered value"
+	    << (nrows>1 ? "s" : "") << " (# seg " << (starts.size()-1)
+	    << ") to " << fname << " in " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
     }
     return nrows;
 } // ibis::part::reorderValues

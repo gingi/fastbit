@@ -1427,6 +1427,9 @@ void ibis::util::secondsToString(const time_t sec, char *str) {
 #endif
 } // ibis::util::secondsToString
 
+/// The argument @c str must have 26 or more bytes and is used to
+/// carry the time output.
+///
 /// The new line character in position 24 is turned into a null character.
 /// Therefore the returned string contains only 24 characters.
 void ibis::util::getLocalTime(char *str) {
@@ -1448,6 +1451,8 @@ void ibis::util::getLocalTime(char *str) {
 #endif
 } // ibis::util::getLocalTime
 
+/// The argument @c str must have 26 or more bytes and is used to
+/// carry the time output.
 void ibis::util::getGMTime(char *str) {
     time_t sec = time(0); // current time in seconds
 #if defined(_MSC_VER) && defined(_WIN32)

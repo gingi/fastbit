@@ -15,7 +15,7 @@
 /// inside a name space.
 
 /// Template array_t implements a replacement of std::vector.  The main
-/// difference is that the underlying memory may be managed by
+/// difference is that the underlying memory of this object is managed by
 /// ibis::fileManager.  In addition, it also implements read and write
 /// functions that are not present in std::vector.
 #ifdef __GNUC__

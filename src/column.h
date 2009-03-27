@@ -392,9 +392,9 @@ public:
 	    ++ theColumn->idxcnt; // increment counter
 
 	    int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-	    if (ierr)
-		col->logWarning("gainReadAccess", "pthread_rwlock_rdlock() "
-				"for %s returned %d", m, ierr);
+	    if (0 != ierr)
+		col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for "
+				"%s returned %d (%s)", m, ierr, strerror(ierr));
 	    else if (ibis::gVerbose > 9)
 		col->logMessage("gainReadAccess",
 				"pthread_rwlock_rdlock for %s", m);
@@ -410,8 +410,8 @@ public:
 	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
 	    if (ierr)
 		theColumn->logWarning("releaseReadAccess",
-				      "pthread_rwlock_unlock() for %s "
-				      "returned %d", mesg, ierr);
+				      "pthread_rwlock_unlock for %s returned "
+				      "%d (%s)", mesg, ierr, strerror(ierr));
 	    else if (ibis::gVerbose > 9)
 		theColumn->logMessage("releaseReadAccess",
 				      "pthread_rwlock_unlock for %s", mesg);
@@ -440,19 +440,19 @@ public:
 	    col->logMessage("gainExclusiveAccess",
 			    "pthread_mutex_lock for %s", m);
 	int ierr = pthread_mutex_lock(&(col->mutex));
-	if (ierr)
-	    col->logWarning("gainExclusiveAccess", "pthread_mutex_lock() "
-			    "for %s returned %d", m, ierr);
+	if (0 != ierr)
+	    col->logWarning("gainExclusiveAccess", "pthread_mutex_lock for %s "
+			    "returned %d (%s)", m, ierr, strerror(ierr));
     }
     ~mutexLock() {
 	if (ibis::gVerbose > 9)
 	    theColumn->logMessage("releaseExclusiveAccess",
-				 "pthread_mutex_unlock for %s", mesg);
+				  "pthread_mutex_unlock for %s", mesg);
 	int ierr = pthread_mutex_unlock(&(theColumn->mutex));
-	if (ierr)
+	if (0 != ierr)
 	    theColumn->logWarning("releaseExclusiveAccess",
-				 "pthread_mutex_unlock() for %s "
-				 "returned %d", mesg, ierr);
+				  "pthread_mutex_unlock for %s returned %d "
+				  "(%s)", mesg, ierr, strerror(ierr));
     }
 
 private:
@@ -475,9 +475,9 @@ public:
 			       (m ? m : "?"));
 #endif
 	int ierr = pthread_rwlock_wrlock(&(col->rwlock));
-	if (ierr)
-	    col->logWarning("gainWriteAccess", "pthread_rwlock_wrlock() "
-			    "for %s returned %d", m, ierr);
+	if (0 != ierr)
+	    col->logWarning("gainWriteAccess", "pthread_rwlock_wrlock for %s "
+			    "returned %d (%s)", m, ierr, strerror(ierr));
 	else if (ibis::gVerbose > 9)
 	    col->logMessage("gainWriteAccess",
 			    "pthread_rwlock_wrlock for %s", m);
@@ -489,10 +489,10 @@ public:
 			       (mesg ? mesg : "?"));
 #endif
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (ierr)
+	if (0 != ierr)
 	    theColumn->logWarning("releaseWriteAccess",
-				  "pthread_rwlock_unlock() for %s "
-				  "returned %d", mesg, ierr);
+				  "pthread_rwlock_unlock() for %s returned %d "
+				  "(%s)", mesg, ierr, strerror(ierr));
 	else if (ibis::gVerbose > 9)
 	    theColumn->logMessage("releaseWriteAccess",
 				  "pthread_rwlock_unlock for %s", mesg);
@@ -530,10 +530,10 @@ public:
 #endif
 	if (locked) {
 	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	    if (ierr)
+	    if (0 != ierr)
 		theColumn->logWarning("releaseWriteAccess",
-				      "pthread_rwlock_unlock() for %s "
-				      "returned %d", mesg, ierr);
+				      "pthread_rwlock_unlock for %s returned "
+				      "%d (%s)", mesg, ierr, strerror(ierr));
 	    else if (ibis::gVerbose > 9)
 		theColumn->logMessage("releaseWriteAccess",
 				      "pthread_rwlock_unlock for %s", mesg);
@@ -562,9 +562,9 @@ public:
 			       (m ? m : "?"));
 #endif
 	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-	if (ierr)
-	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock() "
-			    "for %s returned %d", m, ierr);
+	if (0 != ierr)
+	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
+			    "returned %d (%s)", m, ierr, strerror(ierr));
 	else if (ibis::gVerbose > 9)
 	    col->logMessage("gainReadAccess",
 			    "pthread_rwlock_rdlock for %s", m);
@@ -576,10 +576,10 @@ public:
 			       (mesg ? mesg : "?"));
 #endif
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (ierr)
+	if (0 != ierr)
 	    theColumn->logWarning("releaseReadAccess",
-				  "pthread_rwlock_unlock() for %s "
-				  "returned %d", mesg, ierr);
+				  "pthread_rwlock_unlock for %s returned %d "
+				  "(%s)", mesg, ierr, strerror(ierr));
 	else if (ibis::gVerbose > 9)
 	    theColumn->logMessage("releaseReadAccess",
 				  "pthread_rwlock_unlock for %s", mesg);

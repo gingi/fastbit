@@ -960,7 +960,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList *cdesc)
     : ibis::part("incore") {
     m_name = ibis::util::strnewdup(tn);
-    m_desc = ibis::util::strnewdup(td);
+    m_desc = td;
     nEvents = static_cast<size_t>(nr);
     if (nEvents != nr) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -985,8 +985,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 
     LOGGER(ibis::gVerbose > 0)
 	<< "ibis::bord::part::part(" << (m_name != 0 ? m_name : "<unnamed>")
-	<< ", " << (m_desc != 0 ? m_desc : "")
-	<< ") completed allocating memory for "
+	<< ", " << m_desc << ") completed allocating memory for "
 	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "")
 	<< " with " << nr << " row" << (nr > 1U ? "s" : "");
 } // ibis::bord::part::part

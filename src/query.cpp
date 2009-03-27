@@ -660,7 +660,8 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     LOGGER(ibis::gVerbose > 1)
 	<< "query[" << myID
 	<< "]::setWhereClause accepted new query conditions \""
-	<< *conds.getExpr() << "\"";
+	<< (conds.getString() ? conds.getString() : "<long expression>")
+	<< "\"";
     return 0;
 } // ibis::query::setWhereClause
 

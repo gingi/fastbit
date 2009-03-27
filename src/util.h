@@ -520,9 +520,8 @@ namespace ibis {
 	/// Deallocate the list of data partitions.
 	void clean(ibis::partList &pl) throw();
 	/// Return the current time in string format as @c asctime_r.
-	/// The argument @c str must have 26 or more bytes and is used to
-	/// carry the time output.
 	void getLocalTime(char *str);
+	/// Return the current GMT time in string format.
 	void getGMTime(char *str);
 	void secondsToString(const time_t, char *str);
 
@@ -564,7 +563,7 @@ namespace ibis {
 			       lock, mesg);
 		int ierr = pthread_mutex_lock(lock);
 		if (ierr != 0) {
-		    throw "mutexLock failed to obtain a mutex lock";
+		    throw "mutexLock failed to obtain a lock";
 		}
 	    }
 	    ~mutexLock() {

@@ -90,6 +90,7 @@
 #include <ibis.h>
 #include <mensa.h>	// ibis::mensa
 #include <sstream>	// std::ostringstream
+#include <algorithm>	// std::sort
 
 // local data types
 typedef std::vector<const char*> stringList;
@@ -1728,9 +1729,9 @@ static void parse_args(int argc, char** argv,
 	    str = ibis::util::strnewdup(str+1);
 	    ibis::table::stringList slist;
 	    ibis::table::parseNames(str, slist);
-	    delete [] str;
 	    ibis::part tbl(dir.c_str(), static_cast<const char*>(0));
 	    tbl.reorder(slist);
+	    delete [] str;
 	}
 	else {
 	    ibis::part tbl(rdirs[i], static_cast<const char*>(0));
@@ -2020,6 +2021,125 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
     }
 } // printQueryResults
 
+template<typename T>
+void findMissingValuesT(const ibis::column &col,
+			const ibis::bitvector &ht0,
+			const ibis::bitvector &ht1) {
+    array_t<T> vals0, vals1;
+    long ierr = col.selectValues(ht0, vals0);
+    if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht0.cnt()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- findMissingValues did received expected number "
+	    "of values for query 0, expected " << ht0.cnt()
+	    << ", received " << ierr;
+	return;
+    }
+    ierr = col.selectValues(ht1, vals1);
+    if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht1.cnt()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- findMissingValues did received expected number "
+	    "of values for query 1, expected " << ht1.cnt()
+	    << ", received " << ierr;
+	return;
+    }
+
+    std::sort(vals0.begin(), vals0.end());
+    std::sort(vals1.begin(), vals1.end());
+    size_t j0 = 0;
+    size_t j1 = 0;
+    const int prec = 1 + 2*sizeof(T);
+    const size_t n0 = vals0.size();
+    const size_t n1 = vals1.size();
+    while (j0 < n0 && j1 < n1) {
+	while (j0 < n0 && vals0[j0] < vals1[j1]) {
+	    size_t cnt = 1;
+	    const T tgt = vals0[j0];
+	    for (++ j0; j0 < n0 && vals0[j0] == tgt; ++ j0, ++ cnt);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< std::setprecision(prec) << tgt << " appeared " << cnt
+		<< " times in query 0, but not in query 1";
+	}
+	while (j0 < n0 && j1 < n1 && vals1[j1] < vals0[j0]) {
+	    size_t cnt = 1;
+	    const T tgt = vals1[j1];
+	    for (++ j1; j1 < n1 && vals1[j1] == tgt; ++ j1, ++ cnt);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< std::setprecision(prec) << tgt << " appeared " << cnt
+		<< " times in query 1, but not in query 0";
+	}
+	while (j0 < n0 && j1 < n1 && vals0[j0] == vals1[j1]) {
+	    ++ j0; ++ j1;
+	}
+    }
+
+    while (j0 < n0) {
+	size_t cnt = 1;
+	const T tgt = vals0[j0];
+	for (++ j0; j0 < n0 && vals0[j0] == tgt; ++ j0, ++ cnt);
+	LOGGER(ibis::gVerbose >= 0)
+	    << std::setprecision(prec) << tgt << " appeared " << cnt
+	    << " times in query 0, but not in query 1";
+    }
+    while (j1 < n1) {
+	size_t cnt = 1;
+	const T tgt = vals1[j1];
+	for (++ j1; j1 < n1 && vals1[j1] == tgt; ++ j1, ++ cnt);
+	LOGGER(ibis::gVerbose >= 0)
+	    << std::setprecision(prec) << tgt << " appeared " << cnt
+	    << " times in query 1, but not in query 0";
+    }
+} // findMissingValuesT
+
+static void findMissingValues(const ibis::part &pt, const char *cnm,
+			      const ibis::bitvector &ht0,
+			      const ibis::bitvector &ht1) {
+    const ibis::column *col = pt.getColumn(cnm);
+    if (col == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- findMissingValues can not procede because " << cnm
+	    << " is not a column of data partition " << pt.name();
+	return;
+    }
+
+    switch (col->type()) {
+    default: {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- findMissingValues can not handle column type "
+	    << col->type() << '(' << ibis::TYPESTRING[col->type()] << ')';
+	break;}
+    case ibis::BYTE: {
+	findMissingValuesT<char>(*col, ht0, ht1);
+	break;}
+    case ibis::UBYTE: {
+	findMissingValuesT<unsigned char>(*col, ht0, ht1);
+	break;}
+    case ibis::SHORT: {
+	findMissingValuesT<int16_t>(*col, ht0, ht1);
+	break;}
+    case ibis::USHORT: {
+	findMissingValuesT<uint16_t>(*col, ht0, ht1);
+	break;}
+    case ibis::INT: {
+	findMissingValuesT<int32_t>(*col, ht0, ht1);
+	break;}
+    case ibis::UINT: {
+	findMissingValuesT<uint32_t>(*col, ht0, ht1);
+	break;}
+    case ibis::LONG: {
+	findMissingValuesT<int64_t>(*col, ht0, ht1);
+	break;}
+    case ibis::ULONG: {
+	findMissingValuesT<uint64_t>(*col, ht0, ht1);
+	break;}
+    case ibis::FLOAT: {
+	findMissingValuesT<float>(*col, ht0, ht1);
+	break;}
+    case ibis::DOUBLE: {
+	findMissingValuesT<double>(*col, ht0, ht1);
+	break;}
+    }
+} // findMissingValues
+
 // Execute a query using the new ibis::table interface
 static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* wstr, const char* sstr,
@@ -2145,8 +2265,9 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
 	else {
 	    ibis::qDiscreteRange dr(cnames[0], svals);
-	    ibis::query qq(uid);
-	    ierr = qq.setWhereClause(&dr);
+	    ibis::query qq0(uid), qq1(uid);
+	    ierr = qq0.setWhereClause(wstr);
+	    ierr = qq1.setWhereClause(&dr);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "tableSelect -- failed to set where clause expressed as "
@@ -2157,11 +2278,30 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		uint64_t cnt = 0;
 		for (ibis::partList::const_iterator it = pl.begin();
 		     it != pl.end(); ++ it) {
-		    ierr = qq.setPartition(*it);
-		    if (ierr == 0) {
-			ierr = qq.evaluate();
-			if (ierr == 0) {
-			    cnt += qq.getNumHits();
+		    if (0 == qq0.setPartition(*it) &&
+			0 == qq1.setPartition(*it)) {
+			if (0 == qq0.evaluate() && 0 == qq1.evaluate()) {
+			    if (qq0.getNumHits() > qq1.getNumHits()) {
+				// not expecting this -- find out which
+				// value is not present
+				const ibis::bitvector *ht0 = qq0.getHitVector();
+				const ibis::bitvector *ht1 = qq1.getHitVector();
+				LOGGER(ibis::gVerbose >= 0)
+				    << "Warning -- query 1 (" << qq1.id()
+				    << ": " << cnames[0] << " IN ...) is "
+				    "expected to produce no less hits than "
+				    "query 0 (" << qq0.id() << ": "
+				    << qq0.getWhereClause()
+				    << ") on data partition " << (*it)->name()
+				    << ", but query 1 has " << qq1.getNumHits()
+				    << ", while query 0 has "
+				    << qq0.getNumHits();
+				if (ht0 != 0 && ht1 != 0) {
+				    findMissingValues(*(*it), cnames[0],
+						      *ht0, *ht1);
+				}
+			    }
+			    cnt += qq1.getNumHits();
 			}
 		    }
 		}

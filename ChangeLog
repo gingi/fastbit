@@ -1,3 +1,21 @@
+2009-03-26 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: in the loop to handle reordering of data
+	partitions, delete str at the end (instead of in the middle)
+	* src/part.h, src/part.cpp: change m_desc from char* to
+	std::string
+	* src/parti.cpp: add note to m_desc to indicate the data has been
+	reordered, add call to computeMinMax if the min/max are not set
+	when deciding whether to use the column as a key for sorting (in
+	ibis::part::reorder)
+	* src/column.h, src/part.h: add call to strerror to explain errors
+	from pthread functions
+	* src/query.cpp:660 avoid print extremely long query expressions
+	* src/column.cpp, src/part.cpp: change the print out of the column
+	name only (no the list of values, which can be awfully long)
+	* examples/ibis.cpp: add code to chech the values returned by qq0
+	and qq1 in tableSelect (function findMissingValues and
+	findMissingValuesT actually does the work)
+
 2009-03-25 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: reduce the threshold for invoking default
 	maxBytes computation to MIN_DOMAP_SIZE from 10 MB, to allow for
