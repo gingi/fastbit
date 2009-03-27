@@ -1146,7 +1146,9 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 		     strnicmp(buf, "DataSet.Description", 19) == 0 ||
 		     strnicmp(buf, "Partition.Description", 21) == 0 ||
 		     strnicmp(buf, "Part.Description", 16) == 0) {
-		m_desc = ibis::util::getString(s1);
+		char *s2 = ibis::util::getString(s1);
+		m_desc = s2;
+		delete [] s2;
 	    }
 	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
 		     strnicmp(buf, "Table.metaTags", 14) == 0 ||

@@ -1,3 +1,12 @@
+2009-03-27 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h: update the binary search procedure in
+	qDiscreteRange::inRange to check the last values[m]
+	* examples/ibis.cpp: in findMissingValues, count the values that
+	match and report if query 1 found less instances than query 0,
+	print all values if more than half will be printed
+	* tests/Makefile.am: add a new test case to exercise the new test
+	implemented in tableSelect of examples/ibis.cpp (with option -r)
+
 2009-03-26 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: in the loop to handle reordering of data
 	partitions, delete str at the end (instead of in the middle)

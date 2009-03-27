@@ -1509,7 +1509,7 @@ static void parse_args(int argc, char** argv,
 		}
 		break;
 	    case 'r':
-	    case 'R': // RID check or reorder
+	    case 'R': // RID/result check or reorder
 		if (argv[i][2] == 'i' || argv[i][2] == 'I') {
 		    verify_rid = true;
 		    if (i+1 < argc) { // there is one more argument
@@ -2056,7 +2056,7 @@ void findMissingValuesT(const ibis::column &col,
 	    const T tgt = vals0[j0];
 	    for (++ j0; j0 < n0 && vals0[j0] == tgt; ++ j0, ++ cnt);
 	    LOGGER(ibis::gVerbose >= 0)
-		<< std::setprecision(prec) << tgt << " appeared " << cnt
+		<< "  " << std::setprecision(prec) << tgt << " appeared " << cnt
 		<< " times in query 0, but not in query 1";
 	}
 	while (j0 < n0 && j1 < n1 && vals1[j1] < vals0[j0]) {
@@ -2064,11 +2064,18 @@ void findMissingValuesT(const ibis::column &col,
 	    const T tgt = vals1[j1];
 	    for (++ j1; j1 < n1 && vals1[j1] == tgt; ++ j1, ++ cnt);
 	    LOGGER(ibis::gVerbose >= 0)
-		<< std::setprecision(prec) << tgt << " appeared " << cnt
+		<< "  " << std::setprecision(prec) << tgt << " appeared " << cnt
 		<< " times in query 1, but not in query 0";
 	}
 	while (j0 < n0 && j1 < n1 && vals0[j0] == vals1[j1]) {
-	    ++ j0; ++ j1;
+	    const T tgt = vals0[j0];
+	    size_t cnt0 = 1, cnt1 = 1;
+	    for (++ j0; j0 < n0 && vals0[j0] == tgt; ++ j0, ++ cnt0);
+	    for (++ j1; j1 < n1 && vals1[j1] == tgt; ++ j1, ++ cnt1);
+	    LOGGER(ibis::gVerbose >= 0 && cnt1 < cnt0)
+		<< "  " << std::setprecision(prec) << tgt << " appeared "
+		<< cnt1 << " times in query 1, but appeared " << cnt0
+		<< " times in query 0";
 	}
     }
 
@@ -2077,7 +2084,7 @@ void findMissingValuesT(const ibis::column &col,
 	const T tgt = vals0[j0];
 	for (++ j0; j0 < n0 && vals0[j0] == tgt; ++ j0, ++ cnt);
 	LOGGER(ibis::gVerbose >= 0)
-	    << std::setprecision(prec) << tgt << " appeared " << cnt
+	    << "  " << std::setprecision(prec) << tgt << " appeared " << cnt
 	    << " times in query 0, but not in query 1";
     }
     while (j1 < n1) {
@@ -2085,7 +2092,7 @@ void findMissingValuesT(const ibis::column &col,
 	const T tgt = vals1[j1];
 	for (++ j1; j1 < n1 && vals1[j1] == tgt; ++ j1, ++ cnt);
 	LOGGER(ibis::gVerbose >= 0)
-	    << std::setprecision(prec) << tgt << " appeared " << cnt
+	    << "  " << std::setprecision(prec) << tgt << " appeared " << cnt
 	    << " times in query 1, but not in query 0";
     }
 } // findMissingValuesT
@@ -2230,6 +2237,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	if (limit == 0 && sel1->nColumns() > 0) {
 	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
 		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
+	    if (limit > (sel1->nRows() >> 1))
+		limit = sel1->nRows();
 	}
 	if (limit < sel1->nRows()) {
 	    lg.buffer() << "tableSelect -- the first ";

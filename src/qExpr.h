@@ -1021,6 +1021,7 @@ inline bool ibis::qDiscreteRange::inRange(double val) const {
 	// more efficient for fairly large range.
 	for (i = 0; i < j; ++ i)
 	    if (values[i] == val) return true;
+	return false;
     }
     else { // binary search
 	uint32_t m = (i + j) / 2;
@@ -1032,10 +1033,8 @@ inline bool ibis::qDiscreteRange::inRange(double val) const {
 		j = m;
 	    m = (i + j) / 2;
 	}
-	// upon exiting the while loop, values[i] < val and values[j] > val
-	// if values[j] exist.
+	return (values[m] == val);
     }
-    return false;
 } // ibis::qDiscreteRange::inRange
 
 /// Record a variable name and return its position in the list of variables
