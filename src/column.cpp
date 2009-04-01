@@ -4840,7 +4840,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    return 0L;
 		}
 	    }
-	    if (idxcost > (elementSize()+4.0) * mymask.size()) {
+	    if (idxcost > (elementSize()+4.0) * mymask.size() &&
+		thePart->currentDataDir() != 0) {
 		// using a sorted list may be faster
 		ibis::roster ros(this);
 		if (ros.size() == thePart->nRows()) {

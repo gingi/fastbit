@@ -468,7 +468,45 @@ void ibis::fileManager::flushDir(const char* name) {
     }
 } // ibis::fileManager::flushDir
 
-/// Clear the two lists of files.
+/// Change the class variable maxBytes to the newsize.  Return 0 if
+/// successful, a negative number otherwise.
+///
+/// This function simply changes the maximum bytes allowed, without
+/// enforcing this limit.  Future operations that require more memory will
+/// be subject to the new cache size limit.
+///
+/// Reducing the cache size while there are on-going operations can have
+/// very undesirable effect, therefore this function will not accept a new
+/// size if it is less than the current number of bytes in memory.  It
+/// might be helpful to call ibis::fileManager::clear to reduce the memory
+/// usage before changing the cache size.
+int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
+    ibis::util::mutexLock lock(&(ibis::util::envLock),
+			       "fileManager::adjustCacheSize");
+    if (newsize > ibis::fileManager::totalBytes()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "fileManager::adjustCacheSize(" << newsize
+	    << ") changes cache size from " << maxBytes << " to " << newsize;
+	maxBytes = newsize;
+	return 0;
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::adjustCacheSize(" << newsize
+	    << ") can not proceed because the new size is not larger than "
+	    "the current memory used (" << ibis::fileManager::totalBytes()
+	    << ")";
+	return -1;
+    }
+} // ibis::fileManager::adjustCacheSize
+
+/// The function cleans the memory cache used by FastBit file manager by
+/// clearing the two lists of files it holds.  However, the actual
+/// underlying memory may still be present if they are being actively used.
+/// This function is effective if used after all other operations have
+/// ceased.  To force an individual file to be unloaded use
+/// ibis::fileManager::flushFile.  To force all files in a directory to be
+/// unloaded used ibis::fileManager::flushDir.
 void ibis::fileManager::clear() {
     if (ibis::gVerbose > 12 ||
 	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 6)) {
@@ -2205,7 +2243,7 @@ void ibis::fileManager::storage::write(const char* file) const {
 // time of these simple functions.  Currently we do not use this approach
 // but rely on the fact that we should get the access counts correctly.
 //
-// starting to use a file
+/// Start using a file.  Increments the active reference.
 void ibis::fileManager::roFile::beginUse() {
     // acquire a read lock
     if (name != 0) {
@@ -2215,7 +2253,7 @@ void ibis::fileManager::roFile::beginUse() {
     ++ nref;
 } // ibis::fileManager::roFile::beginUse
 
-// done using a file
+/// Stop using a file.  Decrement the active reference count.
 void ibis::fileManager::roFile::endUse() {
     const uint32_t nr0 = -- nref; // number of current references
     ++ nacc; // number of past accesses
@@ -2229,7 +2267,8 @@ void ibis::fileManager::roFile::endUse() {
     }
 } // ibis::fileManager::roFile::endUse
 
-// actually freeing the storage allocated
+/// Freeing the storage allocated.  It will only proceed if there is no
+/// active reference to it.
 void ibis::fileManager::roFile::clear() {
     std::string evt = "fileManager::roFile::clear";
     if (ibis::gVerbose > 8) {

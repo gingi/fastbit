@@ -11,7 +11,7 @@ TESTDIR=tmp
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
 #
-OBJ =  parth3d.o parth3da.o parth3db.o \
+OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  array_t.o \
  bitvector.o \
  bitvector64.o \
@@ -418,6 +418,11 @@ parth3db.o: ../src/parth3db.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
   ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
   ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o parth3db.o ../src/parth3db.cpp
+parth3dw.o: ../src/parth3dw.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
+  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth3dw.o ../src/parth3dw.cpp
 parti.o: ../src/parti.cpp ../src/part.h ../src/column.h ../src/table.h \
   ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h \

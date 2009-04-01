@@ -1,3 +1,25 @@
+2009-03-31 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h, src/fileManager.cpp: add functions
+	adjustCacheSize and currentCacheSize at the request of Jochen
+	Schlosser, update in-line documentation of some functions
+	* src/part.h: add weighted versions of get1DBins, get2DBins, and
+	get3DBins
+	* src/parth3dw.cpp: add separate file for an implementation of
+	get3DBins with weighting
+	* src/column.cpp: avoid ibis::roster if currentDataDir() returns
+	nil, a problem encountered in HDF5_FastQuery reported by Oliver
+	Ruebel
+	* examples/ibis.cpp: add a new print weighted command to test the
+	new weighted histogram functions, add calls to ibis::util::clean
+	to free vector<bitvector*> allocated with get1DBins, get2DBins,
+	and get3DBins.
+	* src/parth.cpp: get1DDistribution returns the number of rows
+	selected instead of the number of bins
+
+2009-03-30 John Wu <John.Wu at ACM.org>
+	* src/part.h: start implementing functions to compute weighted
+	histograms at the request of Oliver Ruebel
+
 2009-03-27 John Wu <John.Wu at ACM.org>
 	* src/qExpr.h: update the binary search procedure in
 	qDiscreteRange::inRange to check the last values[m]
@@ -501,7 +523,7 @@
 2008-12-23 John Wu <John.Wu at ACM.org>
 	* src/part.h: add get1DBins, get2DBins and get3DBins that takes
 	(begin, end, stride) triples to define exact bin boundaries (a
-	feature requested by Prabhat and Oliver Rubel)
+	feature requested by Prabhat and Oliver Ruebel)
 
 2008-12-18 John Wu <John.Wu at ACM.org>
 	* src/mensa.h, src/mensa.cpp, src/bord.cpp: add function dumpNames

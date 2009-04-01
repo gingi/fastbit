@@ -18,7 +18,7 @@
 #undef min
 
 /// Count the number of records falling in the regular bins defined by the
-/// <tt>begin:end:stride</tt> triplet.  The triplets defines
+/// <tt>begin:end:stride</tt> triplet.  The triplet defines
 /// <tt> 1 + floor((end-begin)/stride) </tt> bins:
 /// @code
 /// [begin, begin+stride)
@@ -26,6 +26,8 @@
 /// ...
 /// [begin+stride*floor((end-begin)/stride), end].
 /// @endcode
+/// Note that the bins all have closed ends on the left, and open ends on
+/// the right, except the last bin where both ends are closed.
 ///
 /// When this function completes successfully, the array @c counts shall
 /// have <tt> 1+floor((end-begin)/stride) </tt> elements, one for each bin.
@@ -40,6 +42,10 @@
 /// This function proceeds by first evaluate the constraints, then retrieve
 /// the selected values, and finally count the number of records in each
 /// bin.
+///
+/// The argument constraints can be nil (which is interpreted as "no
+/// constraint"), but cname must be the name of a valid column in the data
+/// partition.
 ///
 /// @sa ibis::table::getHistogram
 long ibis::part::get1DDistribution(const char *constraints, const char *cname,
@@ -93,6 +99,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	mask.copy(*(qq.getHitVector()));
     }
 
+    ierr = nbins;
     switch (col->type()) {
     case ibis::BYTE:
     case ibis::SHORT:
@@ -173,6 +180,195 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	logMessage("get1DDistribution", "computing the distribution of column "
 		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
 		   cname, (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return ierr;
+} // ibis::part::get1DDistribution
+
+/// Compute the weight in each regularly-spaced bin.  The bins are defined
+/// by the  <tt>begin:end:stride</tt> triplet, which defines
+/// <tt> 1 + floor((end-begin)/stride) </tt> bins:
+/// @code
+/// [begin, begin+stride)
+/// [begin+stride, begin+stride*2)
+/// ...
+/// [begin+stride*floor((end-begin)/stride), end].
+/// @endcode
+/// Note that the bins all have closed ends on the left, and open ends on
+/// the right, except the last bin where both ends are closed.
+///
+/// When this function completes successfully, the array @c weights shall
+/// have <tt> 1+floor((end-begin)/stride) </tt> elements, one for each bin.
+/// The return value shall be the number of bins.  Any other value
+/// indicates an error.  If array @c weights has the same size as the number
+/// of bins on input, the weight values will be added to the array.  This is
+/// intended to be used to accumulate weights from different data
+/// partitions.  If the array @c weights does not have the correct size, it
+/// will be resized to the correct size and initialized to zero before
+/// counting the the current data partition.
+///
+/// This function proceeds by first evaluate the constraints, then retrieve
+/// the selected values, and finally computing the weights in each bin.
+///
+/// The constraints can be nil, which is interpreted as "no constraint",
+/// however both cname and wtname must be valid column names of this data
+/// partition.  Futhermore, both column must be numerical values, not
+/// string values.
+long ibis::part::get1DDistribution(const char *constraints, const char *bname,
+				   double begin, double end, double stride,
+				   const char *wtname,
+				   std::vector<double> &weights) const {
+    if (bname == 0 || *bname == 0 ||
+	wtname == 0 || *wtname == 0 ||
+	(begin >= end && !(stride < 0.0)) ||
+	(begin <= end && !(stride > 0.0)))
+	return -1L;
+
+    const ibis::column* bcol = getColumn(bname);
+    const ibis::column* wcol = getColumn(wtname);
+    if (bcol == 0 || wcol == 0)
+	return -2L;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DDistribution attempting to compute a histogram of "
+	    << bname << " with regular binning "
+	    << (constraints && *constraints ? " subject to " :
+		" without constraints")
+	    << (constraints ? constraints : "") << " weighted with " << wtname;
+	timer.start();
+    }
+    const size_t nbins = 1 + 
+	static_cast<uint32_t>(std::floor((end - begin) / stride));
+    if (weights.size() != nbins) {
+	weights.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i)
+	    weights[i] = 0.0;
+    }
+
+    long ierr;
+    ibis::bitvector mask;
+    {  // use a block to limit the scope of query object
+	std::string sel = bname;
+	sel += ", ";
+	sel += wtname;
+	ibis::query qq(ibis::util::userName(), this);
+	qq.setSelectClause(sel.c_str());
+	std::ostringstream oss;
+	if (constraints != 0 && *constraints != 0)
+	    oss << "(" << constraints << ") AND ";
+	oss << bname << " between " << std::setprecision(18) << begin
+	    << " and " << std::setprecision(18) << end;
+	qq.setWhereClause(oss.str().c_str());
+
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = qq.getNumHits();
+	if (ierr <= 0)
+	    return ierr;
+	mask.copy(*(qq.getHitVector()));
+    }
+
+    ierr = nbins;
+    array_t<double>* wts = wcol->selectDoubles(mask);
+    if (wts == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DDistribution failed retrieve values from column "
+	    << wcol->name() << " as weights";
+	return -3L;
+    }
+
+    switch (bcol->type()) {
+    case ibis::BYTE:
+    case ibis::SHORT:
+    case ibis::INT: {
+	array_t<int32_t>* vals = bcol->selectInts(mask);
+	if (vals != 0) {
+	    for (size_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::UBYTE:
+    case ibis::USHORT:
+    case ibis::UINT: {
+	array_t<uint32_t>* vals = bcol->selectUInts(mask);
+	if (vals != 0) {
+	    for (size_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::ULONG:
+    case ibis::LONG: {
+	array_t<int64_t>* vals = bcol->selectLongs(mask);
+	if (vals != 0) {
+	    for (size_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float>* vals = bcol->selectFloats(mask);
+	if (vals != 0) {
+	    for (size_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double>* vals = bcol->selectDoubles(mask);
+	if (vals != 0) {
+	    for (size_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 3)
+	    << "ibis::part::get1DDistribution -- unable to "
+	    "handle column (" << bname << ") type "
+	    << ibis::TYPESTRING[(int)bcol->type()];
+
+	ierr = -3;
+	break;}
+    }
+    delete wts;
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get1DDistribution", "computing the distribution of column "
+		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
+		   bname, (constraints ? " with restriction " : ""),
 		   (constraints ? constraints : ""),
 		   timer.CPUTime(), timer.realTime());
     }
@@ -901,6 +1097,418 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	ierr = -3;
 	break;}
     }
+    if (ierr > 0 && ibis::gVerbose > 0) {
+	timer.stop();
+	logMessage("get1DBins", "computing the distribution of column "
+		   "%s%s%s took %g sec(CPU), %g sec(elapsed)",
+		   cname, (constraints ? " with restriction " : ""),
+		   (constraints ? constraints : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return ierr;
+} // ibis::part::get1DBins
+
+/// Mark the positions of records falling in each bin and computed the
+/// total weight in each bins.  This version returns a vector of pointers
+/// to bitvectors.  It can reduce the memory usage and reduce execution
+/// time if the majority of the bins are empty.
+/// @note Assumes wts.size() == vals.size().
+template <typename T1> long
+ibis::part::fill1DBinsWeighted(const ibis::bitvector &mask,
+			       const array_t<T1> &vals,
+			       const double &begin, const double &end,
+			       const double &stride,
+			       const array_t<double> &wts,
+			       std::vector<double> &weights,
+			       std::vector<ibis::bitvector*> &bins) const {
+    if ((end-begin) > 1e9 * stride || (end-begin) * stride < 0.0)
+	return -10L;
+    const size_t nbins = 1 + static_cast<size_t>((end-begin)/stride);
+
+    if (mask.size() == vals.size() && vals.size() == wts.size()) {
+	bins.resize(nbins);
+	weights.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i) {
+	    weights[i] = 0.0;
+	    bins[i] = 0;
+	}
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *idx = is.indices();
+	    if (is.isRange()) {
+		for (uint32_t j = *idx; j < idx[1]; ++ j) {
+		    const size_t ibin =
+			static_cast<size_t>((vals[j]-begin)/stride);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		    weights[ibin] += wts[j];
+		}
+	    }
+	    else {
+		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
+		    const ibis::bitvector::word_t j = idx[k];
+		    const size_t ibin =
+			static_cast<size_t>((vals[j]-begin)/stride);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		    weights[ibin] += wts[j];
+		}
+	    }
+	}
+	for (size_t i = 0; i < nbins; ++ i)
+	    if (bins[i] != 0)
+		bins[i]->adjustSize(0, mask.size());
+    }
+    else if (mask.cnt() == vals.size() && vals.size() == wts.size()) {
+	bins.resize(nbins);
+	weights.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i) {
+	    weights[i] = 0.0;
+	    bins[i] = 0;
+	}
+	size_t ivals = 0;
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *idx = is.indices();
+	    if (is.isRange()) {
+		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
+		    const size_t ibin =
+			static_cast<size_t>((vals[ivals]-begin)/stride);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		    weights[ibin] += wts[ivals];
+		}
+	    }
+	    else {
+		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
+		    const ibis::bitvector::word_t j = idx[k];
+		    const size_t ibin =
+			static_cast<size_t>((vals[ivals]-begin)/stride);
+		    if (bins[ibin] == 0)
+			bins[ibin] = new ibis::bitvector;
+		    bins[ibin]->setBit(j, 1);
+		    weights[ibin] += wts[ivals];
+		}
+	    }
+	}
+	for (size_t i = 0; i < nbins; ++ i)
+	    if (bins[i] != 0)
+		bins[i]->adjustSize(0, mask.size());
+    }
+    else {
+	return -11L;
+    }
+    return (long)nbins;
+} // ibis::part::fill1DBins
+
+/// This version returns a vector of pointers to bit vectors.  It can
+/// reduce memory usage and reduce execution time if the majority of the
+/// bins are empty.
+long ibis::part::get1DBins(const char *constraints, const char *cname,
+			   double begin, double end, double stride,
+			   const char *wtname,
+			   std::vector<double> &weights,
+			   std::vector<ibis::bitvector*> &bins) const {
+    if (wtname == 0 || *wtname == 0 || cname == 0 || *cname == 0 ||
+	(begin >= end && !(stride < 0.0)) || (begin <= end && !(stride > 0.0)))
+	return -1L;
+
+    const ibis::column* col = getColumn(cname);
+    const ibis::column* wcol = getColumn(wtname);
+    if (col == 0 || wcol == 0)
+	return -2L;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DBins attempting to compute a histogram of "
+	    << cname << " with regular binning "
+	    << (constraints && *constraints ? "subject to " :
+		"without constraints")
+	    << (constraints ? constraints : "") << " weighted with " << wtname;
+	timer.start();
+    }
+    const size_t nbins = 1 + 
+	static_cast<uint32_t>(std::floor((end - begin) / stride));
+
+    long ierr;
+    ibis::bitvector mask;
+    { // use a block to limit the lifespan of the query object
+	ibis::query qq(ibis::util::userName(), this);
+	std::string sel;
+	sel = cname;
+	sel += ',';
+	sel += wtname;
+	qq.setSelectClause(sel.c_str());
+
+	std::ostringstream oss;
+	if (constraints != 0 && *constraints != 0)
+	    oss << "(" << constraints << ") AND ";
+	oss << cname << " between " << std::setprecision(18) << begin
+	    << " and " << std::setprecision(18) << end;
+	qq.setWhereClause(oss.str().c_str());
+
+	ierr = qq.evaluate();
+	if (ierr < 0)
+	    return ierr;
+	ierr = qq.getNumHits();
+	if (ierr <= 0)
+	    return ierr;
+	mask.copy(*(qq.getHitVector()));
+    }
+
+    array_t<double>* wts;
+    if (mask.cnt() > (nEvents >> 4)) {
+	ibis::bitvector tmp;
+	tmp.set(1, nEvents);
+	wts = wcol->selectDoubles(tmp);
+    }
+    else {
+	wts = wcol->selectDoubles(mask);
+    }
+    if (wts == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::get1DDistribution failed retrieve values from column "
+	    << wcol->name() << " as weights";
+	return -3L;
+    }
+
+    switch (col->type()) {
+    case ibis::BYTE: {
+	array_t<char>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<char>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectBytes(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<unsigned char>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectUBytes(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<int16_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectShorts(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<uint16_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectUShorts(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<int32_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectInts(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<uint32_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectUInts(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<int64_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectLongs(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<uint64_t>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectULongs(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<float>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectFloats(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double>* vals;
+	if (mask.cnt() > (nEvents >> 4)) {
+	    vals = new array_t<double>;
+	    ierr = col->getRawData(*vals);
+	    if (ierr < 0) {
+		delete vals;
+		vals = 0;
+	    }
+	}
+	else {
+	    vals = col->selectDoubles(mask);
+	}
+	if (vals != 0) {
+	    ierr = fill1DBinsWeighted(mask, *vals, begin, end, stride,
+				      *wts, weights, bins);
+	    delete vals;
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 3)
+	    << "ibis::part::get1DBins -- unable to "
+	    "handle column (" << cname << ") type "
+	    << ibis::TYPESTRING[(int)col->type()];
+
+	ierr = -3;
+	break;}
+    }
+    delete wts;
     if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get1DBins", "computing the distribution of column "

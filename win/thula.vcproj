@@ -400,6 +400,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\parth3dw.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\parti.cpp"
 				>
 			</File>

@@ -26,6 +26,7 @@
 ibis::roster::roster(const ibis::column* c, const char* dir)
     : col(c), inddes(-1) {
     if (c == 0) return;  // nothing can be done
+    if (c->partition() == 0 || c->partition()->currentDataDir() == 0) return;
     (void) read(dir); // attempt to read the existing list
 
     if (ind.size() != col->partition()->nRows() &&

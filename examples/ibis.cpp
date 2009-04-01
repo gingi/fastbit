@@ -473,6 +473,544 @@ static void printDistribution(const ibis::partList& tlist) {
     }
 } // printDistribution
 
+// print 1D weighted distribution -- exercise the new get2DDistribution that
+// uses (begin, end, stride) triplets
+static void print1DDistribution(const ibis::part& tbl, const char *cond,
+				const char *col1, const char *wt) {
+    const uint32_t NB1 = 100;
+    const ibis::column *cptr1 = tbl.getColumn(col1);
+    const ibis::column *cptrw = tbl.getColumn(wt);
+    std::string evt = "print1DDistribution(";
+    evt += tbl.name();
+    evt += ", ";
+    evt += col1;
+    evt += ", ";
+    evt += wt;
+    if (cond != 0) {
+	evt += ", ";
+	evt += cond;
+    }
+    evt += ')';
+    if (cptr1 == 0 || cptrw == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed because some of the names are not found "
+	    << "in data partition " << tbl.name();
+	return;
+    }
+
+    double amin1 = cptr1->getActualMin();
+    double amax1 = cptr1->getActualMax();
+    if (amin1 > amax1) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed due to failure to determine min/max values";
+	return;
+    }
+
+    double stride1;
+    if (amin1 >= amax1) {
+	stride1 = 1.0;
+    }
+    else if (cptr1->isFloat()) {
+	stride1 = (amax1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/NB1));
+    }
+    else {
+	stride1 = ibis::util::compactValue2((amax1 - amin1) / NB1,
+					    (amax1 + 1 - amin1) / NB1);
+    }
+    long ierr;
+    std::vector<double> weights;
+    ierr = tbl.get1DDistribution(cond,
+				 col1, amin1, amax1, stride1,
+				 wt, weights);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == weights.size()) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n1D-Weighted distribution of " << col1
+		    << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << " with " << weights.size() << " bin"
+		    << (weights.size() > 1 ? "s" : "") << " on " << NB1
+		    << " x " << NB1 << " cells\n";
+
+	uint32_t cnt = 0;
+	double tot = 0.0;
+	for (uint32_t i = 0; i < weights.size(); ++ i) {
+	    if (weights[i] > 0) {
+		lg.buffer() << i << "\t[" << amin1+stride1*i << ", "
+			    << amin1+stride1*(i+1)
+			    << ")\t" << weights[i] << "\n";
+		tot += weights[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total weight = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "Warning -- " << evt
+		    << " get1DDistribution returned with ierr = " << ierr
+		    << ", weights.size() = " << weights.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get1DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     wt, sum2, bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n" << evt << "-- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get1DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg.buffer() << "get1DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< " and sum2.size() is " << sum2.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg.buffer() << "get1DDistribution returned " << weights.size()
+			<< " bin" << (weights.size() > 1 ? "s" : "")
+			<< ", but get1DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< ") != sum2[" << i << "] (" << sum2[i]
+				<< ")\n";
+		}
+		if (bins[i] != 0) {
+		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg.buffer() << "** failed to retrieve "
+				    << bins[i]->cnt() << " value"
+				    << (bins[i]->cnt() > 1 ? "s" : "")
+				    << " from " << wt << "for bin " << i
+				    << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg.buffer() << "weights[" << i << "] ("
+					<< weights[i]
+					<< ") != sum of bins[" << i << "] ("
+					<< w << ") from " << bins[i]->cnt()
+					<< " value"
+					<< (bins[i]->cnt() > 1 ? "s" : "")
+					<< "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg.buffer() << "Warning -- ";
+	    lg.buffer() << "matching arrays weights and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clean(bins);
+    }
+} // print1DDistribution
+
+// print 2D weighted distribution -- exercise the new get2DDistribution that
+// uses (begin, end, stride) triplets
+static void print2DDistribution(const ibis::part& tbl, const char *cond,
+				const char *col1, const char *col2,
+				const char *wt) {
+    const uint32_t NB1 = 20;
+    const ibis::column *cptr1 = tbl.getColumn(col1);
+    const ibis::column *cptr2 = tbl.getColumn(col2);
+    const ibis::column *cptrw = tbl.getColumn(wt);
+    std::string evt = "print2DDistribution(";
+    evt += tbl.name();
+    evt += ", ";
+    evt += col1;
+    evt += ", ";
+    evt += col2;
+    evt += ", ";
+    evt += wt;
+    if (cond != 0) {
+	evt += ", ";
+	evt += cond;
+    }
+    evt += ')';
+
+    if (cptr1 == 0 || cptr2 == 0 || cptrw == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed because some of the names are not found "
+	    << "in data partition " << tbl.name();
+	return;
+    }
+
+    double amin1 = cptr1->getActualMin();
+    double amin2 = cptr2->getActualMin();
+    double amax1 = cptr1->getActualMax();
+    double amax2 = cptr2->getActualMax();
+    if (amin1 > amax1 || amin2 > amax2) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed due to failure to determine min/max values";
+	return;
+    }
+
+    double stride1, stride2;
+    if (amin1 >= amax1) {
+	stride1 = 1.0;
+    }
+    else if (cptr1->isFloat()) {
+	stride1 = (amax1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/NB1));
+    }
+    else {
+	stride1 = ibis::util::compactValue2((amax1 - amin1) / NB1,
+					    (amax1 + 1 - amin1) / NB1);
+    }
+    if (amin2 >= amax2) {
+	stride2 = 1.0;
+    }
+    else if (cptr2->isFloat()) {
+	stride2 = (amax2 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2(stride2, stride2*(1.0+0.75/NB1));
+    }
+    else {
+	stride2 = ibis::util::compactValue2((amax2 - amin2) / NB1,
+					    (amax2 + 1 - amin2) / NB1);
+    }
+    long ierr;
+    std::vector<double> weights;
+    ierr = tbl.get2DDistribution(cond,
+				 col1, amin1, amax1, stride1,
+				 col2, amin2, amax2, stride2,
+				 wt, weights);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == weights.size()) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n2D-Weighted distribution of " << col1 << " and "
+		    << col2 << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << " with " << weights.size() << " bin"
+		    << (weights.size() > 1 ? "s" : "") << " on " << NB1
+		    << " x " << NB1 << " cells\n";
+
+	uint32_t cnt = 0;
+	double tot = 0.0;
+	for (uint32_t i = 0; i < weights.size(); ++ i) {
+	    if (weights[i] > 0) {
+		const uint32_t i1 = i / NB1;
+		const uint32_t i2 = i % NB1;
+		lg.buffer() << i << "\t[" << amin1+stride1*i1 << ", "
+			    << amin1+stride1*(i1+1)
+			    << ") [" << amin2+stride2*i2 << ", "
+			    << amin2+stride2*(i2+1)
+			    << ")\t" << weights[i] << "\n";
+		tot += weights[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total weight = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "Warning -- part[" << tbl.name()
+		    << "].get2DDistribution returned with ierr = " << ierr
+		    << ", weights.size() = " << weights.size();
+	return;
+    }
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get2DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     wt, sum2, bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n" << evt << " -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg.buffer() << "get2DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< " and sum2.size() is " << sum2.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg.buffer() << "get2DDistribution returned " << weights.size()
+			<< " bin" << (weights.size() > 1 ? "s" : "")
+			<< ", but get2DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< ") != sum2[" << i << "] (" << sum2[i]
+				<< ")\n";
+		}
+		if (bins[i] != 0) {
+		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg.buffer() << "** failed to retrieve "
+				    << bins[i]->cnt() << " value"
+				    << (bins[i]->cnt() > 1 ? "s" : "")
+				    << " from " << wt << "for bin " << i
+				    << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg.buffer() << "weights[" << i << "] ("
+					<< weights[i]
+					<< ") != sum of bins[" << i << "] ("
+					<< w << ") from " << bins[i]->cnt()
+					<< " value"
+					<< (bins[i]->cnt() > 1 ? "s" : "")
+					<< "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg.buffer() << "Warning -- ";
+	    lg.buffer() << "matching arrays weights and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clean(bins);
+    }
+} // print2DDistribution
+
+// print 3D weighted distribution -- exercise the new get2DDistribution that
+// uses (begin, end, stride) triplets
+static void print3DDistribution(const ibis::part& tbl, const char *cond,
+				const char *col1, const char *col2,
+				const char *col3, const char *wt) {
+    const uint32_t NB1 = 10;
+    const ibis::column *cptr1 = tbl.getColumn(col1);
+    const ibis::column *cptr2 = tbl.getColumn(col2);
+    const ibis::column *cptr3 = tbl.getColumn(col3);
+    const ibis::column *cptrw = tbl.getColumn(wt);
+    std::string evt = "print3DDistribution(";
+    evt += tbl.name();
+    evt += ", ";
+    evt += col1;
+    evt += ", ";
+    evt += col2;
+    evt += ", ";
+    evt += col3;
+    evt += ", ";
+    evt += wt;
+    if (cond != 0) {
+	evt += ", ";
+	evt += cond;
+    }
+    evt += ')';
+
+    if (cptr1 == 0 || cptr2 == 0 || cptr3 == 0 || cptrw == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed because some of the names are not found "
+	    << "in data partition " << tbl.name();
+	return;
+    }
+
+    double amin1 = cptr1->getActualMin();
+    double amin2 = cptr2->getActualMin();
+    double amin3 = cptr3->getActualMin();
+    double amax1 = cptr1->getActualMax();
+    double amax2 = cptr2->getActualMax();
+    double amax3 = cptr3->getActualMax();
+    if (amin1 > amax1 || amin2 > amax2 || amin3 > amax3) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " can not proceed due to failure to determine min/max values";
+	return;
+    }
+
+    double stride1, stride2, stride3;
+    if (amin1 >= amax1) {
+	stride1 = 1.0;
+    }
+    else if (cptr1->isFloat()) {
+	stride1 = (amax1 - amin1) / NB1;
+	stride1 = ibis::util::compactValue2(stride1, stride1*(1.0+0.75/NB1));
+    }
+    else {
+	stride1 = ibis::util::compactValue2((amax1 - amin1) / NB1,
+					    (amax1 + 1 - amin1) / NB1);
+    }
+    if (amin2 >= amax2) {
+	stride2 = 1.0;
+    }
+    else if (cptr2->isFloat()) {
+	stride2 = (amax2 - amin2) / NB1;
+	stride2 = ibis::util::compactValue2(stride2, stride2*(1.0+0.75/NB1));
+    }
+    else {
+	stride2 = ibis::util::compactValue2((amax2 - amin2) / NB1,
+					    (amax2 + 1 - amin2) / NB1);
+    }
+    if (amin3 >= amax3) {
+	stride2 = 1.0;
+    }
+    else if (cptr3->isFloat()) {
+	stride3 = (amax3 - amin3) / NB1;
+	stride3 = ibis::util::compactValue2(stride3, stride3*(1.0+0.75/NB1));
+    }
+    else {
+	stride3 = ibis::util::compactValue2((amax3 - amin3) / NB1,
+					    (amax3 + 1 - amin3) / NB1);
+    }
+    long ierr;
+    std::vector<double> weights;
+    ierr = tbl.get3DDistribution(cond,
+				 col1, amin1, amax1, stride1,
+				 col2, amin2, amax2, stride2,
+				 col3, amin3, amax3, stride3,
+				 wt, weights);
+    if (ierr > 0 && static_cast<uint32_t>(ierr) == weights.size()) {
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n3D-Weighted distribution of " << col1 << ", "
+		    << col2 << " and " << col3 << " from table " << tbl.name();
+	if (cond && *cond)
+	    lg.buffer() << " subject to the condition " << cond;
+	lg.buffer() << " with " << weights.size() << " bin"
+		    << (weights.size() > 1 ? "s" : "") << " on " << NB1
+		    << " x " << NB1 << " cells\n";
+
+	uint32_t cnt = 0;
+	double tot = 0.0;
+	for (uint32_t i = 0; i < weights.size(); ++ i) {
+	    if (weights[i] > 0) {
+		const uint32_t i1 = i / (NB1 * NB1);
+		const uint32_t i2 = (i / NB1) % NB1;
+		const uint32_t i3 = i % NB1;
+		lg.buffer() << i << "\t[" << amin1+stride1*i1 << ", "
+			    << amin1+stride1*(i1+1)
+			    << ") [" << amin2+stride2*i2 << ", "
+			    << amin2+stride2*(i2+1)
+			    << ") [" << amin3+stride3*i3 << ", "
+			    << amin3+stride3*(i3+1)
+			    << ")\t" << weights[i] << "\n";
+		tot += weights[i];
+		++ cnt;
+	    }
+	}
+	lg.buffer() << "  Number of occupied cells = " << cnt
+		    << ", total weight = " << tot << ", number of rows in "
+		    << tbl.name() << " = " << tbl.nRows() << "\n";
+    }
+    else {
+	ibis::util::logger lg(0);
+	lg.buffer() << "Warning -- part[" << tbl.name()
+		    << "].get3DDistribution returned with ierr = " << ierr
+		    << ", weights.size() = " << weights.size();
+	return;
+    }
+
+    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get3DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     col3, amin3, amax3, stride3,
+			     wt, sum2, bins);
+	ibis::util::logger lg(0);
+	lg.buffer() << "\n" << evt << " -- \n";
+	if (ierr < 0) {
+	    lg.buffer() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg.buffer() << "get3DBins returned " << ierr
+			<< ", but bins.size() is " << bins.size()
+			<< " and sum2.size() is " << sum2.size()
+			<< "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg.buffer() << "get3DDistribution returned " << weights.size()
+			<< " bin" << (weights.size() > 1 ? "s" : "")
+			<< ", but get3DBins returned " << bins.size()
+			<< " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< ") != sum2[" << i << "] (" << sum2[i]
+				<< ")\n";
+		}
+		if (bins[i] != 0) {
+		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg.buffer() << "** failed to retrieve "
+				    << bins[i]->cnt() << " value"
+				    << (bins[i]->cnt() > 1 ? "s" : "")
+				    << " from " << wt << "for bin " << i
+				    << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg.buffer() << "weights[" << i << "] ("
+					<< weights[i]
+					<< ") != sum of bins[" << i << "] ("
+					<< w << ") from " << bins[i]->cnt()
+					<< " value"
+					<< (bins[i]->cnt() > 1 ? "s" : "")
+					<< "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg.buffer() << "weights[" << i << "] (" << weights[i]
+				<< "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg.buffer() << "Warning -- ";
+	    lg.buffer() << "matching arrays weights and bins produces "
+			<< ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clean(bins);
+    }
+} // print3DDistribution
+
 // print the joint distribution -- exercise the new get2DDistribution that
 // uses (begin, end, stride) triplets
 static void print2DDistribution(const ibis::part& tbl, const char *col1,
@@ -641,6 +1179,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	    lg.buffer() << "matching arrays cnts and bins produces "
 			<< ierr << " error" << (ierr > 1 ? "s" : "");
 	}
+	ibis::util::clean(bins);
 #endif
     }
 } // print2DDistribution
@@ -1171,6 +1710,47 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 		if (ibis::gVerbose > 6)
 		    print3DDist(**tit, name1.c_str(),
 				name2.c_str(), name3.c_str(), cond);
+	    }
+	}
+    }
+    else if (strnicmp(names, "weighted", 8) == 0) {
+	names += 8;
+	std::string nm1, nm2, nm3, nm4;
+	ibis::util::getString(nm1, names);
+	if (nm1.empty()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "the command 'print weighted' needs at least two names "
+		"as arguments";
+	    return;
+	}
+	ibis::util::getString(nm2, names);
+	if (nm2.empty()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "the command 'print weighted' needs at least two names "
+		"as arguments";
+	    return;
+	}
+	ibis::util::getString(nm3, names);
+	if (nm3.empty()) {
+	    for (ibis::partList::const_iterator tit = tlist.begin();
+		 tit != tlist.end(); ++ tit) {
+		print1DDistribution(**tit, cond, nm1.c_str(), nm2.c_str());
+	    }
+	    return;
+	}
+	ibis::util::getString(nm4, names);
+	if (nm4.empty()) {
+	    for (ibis::partList::const_iterator tit = tlist.begin();
+		 tit != tlist.end(); ++ tit) {
+		print2DDistribution(**tit, cond, nm1.c_str(),
+				    nm2.c_str(), nm3.c_str());
+	    }
+	}
+	else {
+	    for (ibis::partList::const_iterator tit = tlist.begin();
+		 tit != tlist.end(); ++ tit) {
+		print3DDistribution(**tit, cond, nm1.c_str(),
+				    nm2.c_str(), nm3.c_str(), nm4.c_str());
 	    }
 	}
     }

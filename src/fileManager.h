@@ -135,10 +135,14 @@ public:
 	const char* mesg; // mesg identifies the holder of the lock
     };
 
-    /// Returns the number of bytes currently on records in the file manager.
-    static long unsigned bytesInUse() {return ibis::fileManager::totalBytes();}
+    /// Return the current cache size in bytes.
+    static uint64_t currentCacheSize() {return maxBytes;}
+    /// Change the size of memory cache allocated to the file manager.
+    static int adjustCacheSize(uint64_t);
+    /// Returns the number of bytes currently on records.
+    static uint64_t bytesInUse() {return ibis::fileManager::totalBytes();}
     /// Return the number of bytes free.
-    static long unsigned bytesFree() {
+    static uint64_t bytesFree() {
 	return (maxBytes > ibis::fileManager::totalBytes() ?
 		maxBytes - ibis::fileManager::totalBytes() : 0);
     }

@@ -17,7 +17,7 @@ LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v6.0A
 # ******
 CCFLAGS=/nologo $(DEF) $(INC) $(OPT)
 #
-OBJ =  parth3d.obj parth3da.obj parth3db.obj \
+OBJ =  parth3d.obj parth3da.obj parth3db.obj parth3dw.obj \
  array_t.obj \
  bitvector.obj \
  bitvector64.obj \
@@ -374,6 +374,11 @@ parth3db.obj: ../src/parth3db.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
   ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
   ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c ../src/parth3db.cpp
+parth3dw.obj: ../src/parth3dw.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
+  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c ../src/parth3dw.cpp
 parti.obj: ../src/parti.cpp ../src/part.h ../src/column.h ../src/table.h \
   ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h \

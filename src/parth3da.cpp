@@ -15,7 +15,7 @@
 /// array bins in raster scan order, with the 3rd dimension as the fastest
 /// varying dimension and the 1st dimension as the slowest varying dimension.
 ///
-/// @note All bitmaps that are empty are left with size() = 0.  All other
+/// @note All bitmaps that are empty are left as nil (0).  All other
 /// bitmaps have the same size() as mask.size().  When use these returned
 /// bitmaps, please make sure to NOT mix empty bitmaps with non-empty
 /// bitmaps in bitwise logical operations!
