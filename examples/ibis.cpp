@@ -43,7 +43,7 @@
    LOGICAL_OP can be one of "and", "or", "xor", "minus", "&&", "&",
    "||", "|", "^", "-"
 
-   A range is specifed on one column of the form "ColumnA CMP Const"
+   A range is specifed on one column of the form "ColumnA CMP Constant"
    CMP can be one of =, ==, !=, >, >=, <, <=
    The ranges and expressions can also be negated with either '!' or '~'.
 
@@ -532,8 +532,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 	if (cond && *cond)
 	    lg.buffer() << " subject to the condition " << cond;
 	lg.buffer() << " with " << weights.size() << " bin"
-		    << (weights.size() > 1 ? "s" : "") << " on " << NB1
-		    << " x " << NB1 << " cells\n";
+		    << (weights.size() > 1 ? "s" : "") << "\n";
 
 	uint32_t cnt = 0;
 	double tot = 0.0;
@@ -905,7 +904,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 	    lg.buffer() << " subject to the condition " << cond;
 	lg.buffer() << " with " << weights.size() << " bin"
 		    << (weights.size() > 1 ? "s" : "") << " on " << NB1
-		    << " x " << NB1 << " cells\n";
+		    << " x " << NB1 << " x " << NB1 << " cells\n";
 
 	uint32_t cnt = 0;
 	double tot = 0.0;

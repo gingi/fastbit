@@ -11,8 +11,8 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 thula-0 thula-1 tcapi-3 \
-    marksdb.csv marksdb-1 marksdb-3 \
+EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 \
+    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
 
@@ -55,8 +55,9 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -pi -e 's/ in Partition .*//' $(TESTDIR)/hist0 && if [ `diff -w hist0 $(TESTDIR)/hist0 | wc -l` -eq 0 ] ; then echo $@ passed test 7; else echo $@ did NOT pass test 7; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo $@ passed test 8; else echo $@ did NOT pass test 8; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo $@ passed test 9; else echo $@ did NOT pass test 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select c where b > 90 order by c" -r -v 2 | if [ `fgrep "has 18 hits as expected" - | wc -l` -eq 1 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-10.log && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 11; else echo $@ did NOT pass test 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "weighted a b : c>80" > $(TESTDIR)/hist3 && if [ `diff -w hist3 $(TESTDIR)/hist3 | wc -l` -eq 0 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select c where b > 90 order by c" -r -v 2 | if [ `fgrep "has 18 hits as expected" - | wc -l` -eq 1 ] ; then echo $@ passed test 11; else echo $@ did NOT pass test 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-10.log && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 12; else echo $@ did NOT pass test 12; fi
 	@echo
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c < 10" -o $(TESTDIR)/t0-0 > /dev/null

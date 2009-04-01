@@ -1,3 +1,11 @@
+2009-04-01 John Wu <John.Wu at ACM.org>
+	* configure.ac: change handling of --with-java option to only
+	check for the javac if the JAVA directory (either specified
+	through --with-java or environment variable JAVA_HOME) actually
+	exists
+	* tests/Makefile.am: add a test case in check-ibis to try the
+	weighted histogram computations
+
 2009-03-31 John Wu <John.Wu at ACM.org>
 	* src/fileManager.h, src/fileManager.cpp: add functions
 	adjustCacheSize and currentCacheSize at the request of Jochen

@@ -462,44 +462,46 @@ AC_DEFUN([AC_PROG_JAVA],[
 AC_ARG_WITH(java,
 	    AS_HELP_STRING([--with-java=dir],[use dir as Java SDK root directory]),
             [if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi])
-#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
-if test ! "x$with_java" = "xno" ; then
-  if test "x$JAVA_HOME" = "x" ; then
-    case "${host_os}" in
-    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
-    darwin*)
-      JAVA_HOME="/Library/Java/Home"
-      ;;
-    # On Fedora Core systems the JDK is usually in /usr/java/default .
-    linux*)
-      JAVA_HOME="/usr/java/default"
-      ;;
-    *)
+#AC_MSG_RESULT([with_java=$with_java])
+if test "x$with_java" = "xno" ; then
+  JAVA_HOME=""
+elif test "x$with_java" = "xyes" -a "x$JAVA_HOME" = "x" ; then
+  case "${host_os}" in
+  # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+  darwin*)
+    JAVA_HOME="/Library/Java/Home"
     ;;
-    esac
-  fi
+  # On Fedora Core systems the JDK is usually in /usr/java/default .
+  linux*)
+    JAVA_HOME="/usr/java/default"
+    ;;
+  *)
+  ;;
+  esac
+fi
 
-  if test ! "x$JAVA_HOME" = "x"
+#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
+if test ! "x$JAVA_HOME" = "x" -a -d "$JAVA_HOME"
+then
+  JAVAPREFIX="${JAVA_HOME}/bin"
+  # Check for Java programs.  Order here is important: check first
+  # for the compiler.
+  AC_PROG_JAVAC
+  AC_PROG_JAVA
+
+  if test ! "x$JAVAC" = "xno"
   then
-    JAVAPREFIX="${JAVA_HOME}/bin"
-    # Check for Java programs. Order here is important: check first
-    # for the compiler.
-    AC_PROG_JAVAC
-    AC_PROG_JAVA
+    AC_JNI_INCLUDE_DIR
+    for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+    do
+      CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
+      CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
+    done
 
-    if test ! "x$JAVAC" = "xno"
-    then
-      AC_JNI_INCLUDE_DIR
-      for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
-      do
-        CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
-        CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
-      done
-
-      AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
-    fi
+    AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
   fi
 fi
+
 # build java test program if java and javac exist
 AM_CONDITIONAL(BUILD_JAVA_TEST, test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_javac_supports_enums" = "xno")
 AM_CONDITIONAL(BUILD_JAVA_INTERFACE, test ! "x$JAVAC" = "xno" &&  test "x$HAS_JNI" = "xyes")

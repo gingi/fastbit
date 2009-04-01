@@ -21426,28 +21426,30 @@ if test "${with_java+set}" = set; then
   withval=$with_java; if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi
 fi
 
-#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
-if test ! "x$with_java" = "xno" ; then
-  if test "x$JAVA_HOME" = "x" ; then
-    case "${host_os}" in
-    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
-    darwin*)
-      JAVA_HOME="/Library/Java/Home"
-      ;;
-    # On Fedora Core systems the JDK is usually in /usr/java/default .
-    linux*)
-      JAVA_HOME="/usr/java/default"
-      ;;
-    *)
+#AC_MSG_RESULT([with_java=$with_java])
+if test "x$with_java" = "xno" ; then
+  JAVA_HOME=""
+elif test "x$with_java" = "xyes" -a "x$JAVA_HOME" = "x" ; then
+  case "${host_os}" in
+  # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+  darwin*)
+    JAVA_HOME="/Library/Java/Home"
     ;;
-    esac
-  fi
+  # On Fedora Core systems the JDK is usually in /usr/java/default .
+  linux*)
+    JAVA_HOME="/usr/java/default"
+    ;;
+  *)
+  ;;
+  esac
+fi
 
-  if test ! "x$JAVA_HOME" = "x"
-  then
-    JAVAPREFIX="${JAVA_HOME}/bin"
-    # Check for Java programs. Order here is important: check first
-    # for the compiler.
+#AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
+if test ! "x$JAVA_HOME" = "x" -a -d "$JAVA_HOME"
+then
+  JAVAPREFIX="${JAVA_HOME}/bin"
+  # Check for Java programs.  Order here is important: check first
+  # for the compiler.
 
 
 		if test "x$JAVAPREFIX" = x; then
@@ -21510,7 +21512,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 21513 "configure" */
+/* #line 21515 "configure" */
 public class Test {
 }
 EOF
@@ -21645,7 +21647,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 21648: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 21650: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -21726,7 +21728,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 21729 "configure" */
+/* #line 21731 "configure" */
 public class Test {
 }
 EOF
@@ -21763,7 +21765,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 21766 "configure" */
+/* [#]line 21768 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -21808,8 +21810,8 @@ $as_echo "$ac_cv_prog_java_works" >&6; }
 
 
 
-    if test ! "x$JAVAC" = "xno"
-    then
+  if test ! "x$JAVAC" = "xno"
+  then
 
 
 JNI_INCLUDE_DIRS=""
@@ -21851,13 +21853,13 @@ do
   fi
 done
 
-      for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
-      do
-        CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
-        CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
-      done
+    for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+    do
+      CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
+      CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
+    done
 
-      if test "${ac_cv_header_jni_h+set}" = set; then
+    if test "${ac_cv_header_jni_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for jni.h" >&5
 $as_echo_n "checking for jni.h... " >&6; }
 if test "${ac_cv_header_jni_h+set}" = set; then
@@ -21996,9 +21998,9 @@ else
 fi
 
 
-    fi
   fi
 fi
+
 # build java test program if java and javac exist
  if test ! "x$JAVA" = "xno" &&  test ! "x$ac_cv_javac_supports_enums" = "xno"; then
   BUILD_JAVA_TEST_TRUE=
