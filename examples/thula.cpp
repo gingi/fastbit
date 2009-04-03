@@ -519,7 +519,7 @@ static int printValues2(const ibis::table& tbl) {
 	    std::cout << ", " << nms[j];
 	std::cout << "\n";
     }
-    int ierr;
+    int ierr = 0;
     for (size_t i = 0; i < nprt; ++ i) {
 	ierr = cur->fetch(); // make the next row ready
 	if (ierr == 0) {
@@ -647,7 +647,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    else {
 		strs.resize(nl.size()+3);
 		strs[0] = nl[0];
-		const char* nm2;
+		const char* nm2 = 0;
 		size_t i;
 		for (i = 1; i < nl.size(); ++ i) {
 		    nm2 = nl[i];

@@ -674,6 +674,8 @@ do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at0 appendTest0 >> $(TESTDIR)/append.log; \
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at1 appendTest1 >> $(TESTDIR)/append.log; \
 	done
+	$(IBISEXE) -v -reorder $(TESTDIR)/1/appendTest0 \
+	-reorder $(TESTDIR)/2/appendTest0 >> $(TESTDIR)/append.log
 #
 $(IBISEXE):
 	@cd $(EXDIR) && $(MAKE) ibis$(EXEEXT)

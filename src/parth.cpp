@@ -492,8 +492,6 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << (constraints ? constraints : "");
 	timer.start();
     }
-    const size_t nbins = 1 + 
-	static_cast<uint32_t>(std::floor((end - begin) / stride));
 
     long ierr;
     ibis::bitvector mask;
@@ -853,8 +851,6 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << (constraints ? constraints : "");
 	timer.start();
     }
-    const size_t nbins = 1 + 
-	static_cast<uint32_t>(std::floor((end - begin) / stride));
 
     long ierr;
     ibis::bitvector mask;
@@ -1232,8 +1228,6 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << (constraints ? constraints : "") << " weighted with " << wtname;
 	timer.start();
     }
-    const size_t nbins = 1 + 
-	static_cast<uint32_t>(std::floor((end - begin) / stride));
 
     long ierr;
     ibis::bitvector mask;

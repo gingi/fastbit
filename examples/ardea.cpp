@@ -8,15 +8,15 @@ This is a simple test program for functions defined in ibis::tablex.
 
 The user may specify a set of records to be read by using a combination of
 -m option (for meta data, i.e., column names and types) and -t or -r
-options.  Option -t is used to specify the name of a CSV file and option -r
-is used to specify one row of CSV data on the command line.
+options.  Option -t is used to specify the name of a text/CSV file and
+option -r is used to specify a row of text/CSV data on the command line.
 
 The caller may further specify a number of queries to be run on the data
 after they are written to disk.
 
 If the user did not specify any new data.  It will write a built-in set of
-data (91 rows and 8 columns) and then run 10 queries with known numbers of
-hits.
+data (91 rows and 8 columns) and then run 10 built-in queries with known
+numbers of hits.
 
 If the directory specified in -d option (default to "tmp") contains data,
 the new records will be appended.  When the names match, the records are
@@ -24,8 +24,10 @@ assumed to the same type (not checked).  When the names do not match, the
 rows with missing values are padded with NULL values.  See @c
 ibis::tablex::appendRow for more information about NULL values.
 
-@note Ardea ibis, the Latin name for <A HREF="http://www.birds.cornell.edu/AllAboutBirds/BirdGuide/Cattle_Egret.html">Cattle Egret</A>.
-    @ingroup FastBitExamples
+@note This file is named after Cattle Egret, whose Latin name is <A
+    HREF="http://tinyurl.com/ded8yj">Ardea ibis</A>.
+
+@ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -206,7 +208,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	else { // assume to be a set of query conditioins
 	    qcnd.insert(argv[i]);
 	}
-    } // for (inti=1; ...)
+    } // for (int i=1; ...)
 
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
@@ -580,7 +582,7 @@ static int printValues2(const ibis::table& tbl) {
     }
     if (nprt > nr)
 	nprt = static_cast<size_t>(nr);
-    int ierr;
+    int ierr = 0;
     for (size_t i = 0; i < nprt; ++ i) {
 	ierr = cur->fetch(); // make the next row ready
 	if (ierr == 0) {

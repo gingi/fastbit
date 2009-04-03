@@ -2603,7 +2603,7 @@ int ibis::mensa::cursor::fetch(ibis::table::row& res) {
     int ierr = fetch();
     if (ierr != 0) return ierr;
 
-    if (curRow == bBegin) {
+    if ((uint64_t)curRow == bBegin) {
 	ierr = fillBuffers();
 	if (ierr < 0)
 	    return ierr;
@@ -2616,7 +2616,7 @@ int ibis::mensa::cursor::fetch(uint64_t irow, ibis::table::row& res) {
     int ierr = fetch(irow);
     if (ierr != 0) return ierr;
 
-    if (curRow == bBegin) {
+    if ((uint64_t)curRow == bBegin) {
 	ierr = fillBuffers();
 	if (ierr < 0)
 	    return ierr;
@@ -2872,7 +2872,7 @@ int ibis::mensa::cursor::dumpBlock(std::ostream& out, const char* del) {
 /// Print the first nr rows of the table to the specified output stream.
 int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 				  const char *del) {
-    int ierr;
+    int ierr = 0;
     if (nr > tab.nRows()) nr = tab.nRows();
     if (curRow < 0) {
 	ierr = fetch();
@@ -2888,7 +2888,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
     }
 
     while (static_cast<uint64_t>(curRow) < nr) {
-	if (curRow == bBegin) {
+	if ((uint64_t)curRow == bBegin) {
 	    ierr = fillBuffers();
 	    if (ierr < 0) {
 		return -2;

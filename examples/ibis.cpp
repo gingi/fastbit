@@ -879,7 +879,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 					    (amax2 + 1 - amin2) / NB1);
     }
     if (amin3 >= amax3) {
-	stride2 = 1.0;
+	stride3 = 1.0;
     }
     else if (cptr3->isFloat()) {
 	stride3 = (amax3 - amin3) / NB1;
@@ -3739,7 +3739,7 @@ static void doJoin(const char* uid, const ibis::partList& parts,
 		<< " from the joined table, ierr = " << ierr;
 	}
     }
-    if (nhits > nprint) {
+    if (nhits > (int64_t)nprint) {
 	std::cout << " ... " << nhits - nprint << " skipped" << std::endl;
     }
     delete res;

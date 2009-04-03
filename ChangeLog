@@ -1,3 +1,13 @@
+2009-04-02 John Wu <John.Wu at ACM.org>
+	* src, examples: address warnings raised by the gcc compiler
+	* tests/Makefile.am: reorder the final output of appendTest0 from
+	do-large-append (so the built-in tests will invoke the new
+	functions on sorted data)
+	* src/column.cpp: re-arrange code to recover from error
+	searchSorted
+	* src/column.h: make searchSorted virtual so that HDF5_FastQuery
+	can redefine them
+
 2009-04-01 John Wu <John.Wu at ACM.org>
 	* configure.ac: change handling of --with-java option to only
 	check for the javac if the JAVA directory (either specified

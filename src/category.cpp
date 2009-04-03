@@ -1450,7 +1450,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	next = spbuf[0];
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
-		tolower(buf[j]);
+		buf[j] = tolower(buf[j]);
 
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
@@ -1465,7 +1465,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		curr += jbuf;
 	    }
 	    while (begin+jbuf >= next) {
-		bool match = (curr+slen == next); // same length?
+		bool match = (curr+(int64_t)slen == next); // same length?
 		long j = curr;
 		while (j+4 < next && match) {
 		    match = (buf[j-begin] == pat[j-curr]) &&
@@ -1598,7 +1598,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
-		tolower(buf[j]);
+		buf[j] = tolower(buf[j]);
 
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
@@ -1613,7 +1613,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		curr += jbuf;
 	    }
 	    while (begin+jbuf >= next) {
-		bool match = (curr+slen == next); // same length?
+		bool match = (curr+(int64_t)slen == next); // same length?
 		long j = curr;
 		while (j+4 < next && match) {
 		    match = (buf[j-begin] == pat[j-curr]) &&

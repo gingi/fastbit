@@ -2012,7 +2012,7 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 		throw ibis::bad_alloc("storage::enlarge failed");
 	    }
 	}
-	const void* m_old = m_begin;
+
 	m_begin =
 	    static_cast<char*>(realloc(static_cast<void*>(m_begin), n));
 	if (m_begin != 0) {

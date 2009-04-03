@@ -265,7 +265,7 @@ int ibis::fade::read(const char* f) {
     // nbases, cnts, and bases
     uint32_t nb;
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != end) {
+    if (ierr != (int)end) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "ibis::fade::read(" << fnm << ") failed to seek to " << end;
 	UnixClose(fdes);

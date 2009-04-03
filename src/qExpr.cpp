@@ -2491,9 +2491,17 @@ void ibis::qDiscreteRange::print(std::ostream& out) const {
 //     std::copy(values.begin(), values.end(),
 // 	      std::ostream_iterator<double>(out, ", "));
     if (values.size() > 0) {
+	size_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
+	    (1U << ibis::gVerbose) : values.size();
+	if (prt == 0)
+	    prt = 1;
+	else if (prt+prt >= values.size())
+	    prt = values.size();
 	out << values[0];
-	for (uint32_t i = 1; i < values.size(); ++ i)
+	for (uint32_t i = 1; i < prt; ++ i)
 	    out << ", " << values[i];
+	if (prt < values.size())
+	    out << " ... " << values.size()-prt << " omitted";
     }
     out << ')';
 } // ibis::qDiscreteRange::print

@@ -307,29 +307,31 @@ protected:
 		      const ibis::bitvector& mask) const;
 
     /// Resolve a continuous range condition on a sorted column.
-    int searchSorted(const ibis::qContinuousRange&, ibis::bitvector&) const;
+    virtual int searchSorted(const ibis::qContinuousRange&,
+			     ibis::bitvector&) const;
     /// Resolve a discrete range condition on a sorted column.
-    int searchSorted(const ibis::qDiscreteRange&, ibis::bitvector&) const;
+    virtual int searchSorted(const ibis::qDiscreteRange&,
+			     ibis::bitvector&) const;
     /// Resolve a continuous range condition on an array of values.
     template <typename T> int
-	searchSortedIC(const array_t<T>& vals,
-		       const ibis::qContinuousRange& rng,
-		       ibis::bitvector& hits) const;
-    /// Resolve a discrete range condition on an array of values.
-    template <typename T> int
-	searchSortedIC(const array_t<T>& vals,
-		       const ibis::qDiscreteRange& rng,
-		       ibis::bitvector& hits) const;
-    /// Resolve a continuous range condition using file operations.
-    template <typename T> int
-	searchSortedOOC(const char* fname,
+	searchSortedICC(const array_t<T>& vals,
 			const ibis::qContinuousRange& rng,
 			ibis::bitvector& hits) const;
-    /// Resolve a discrete range condition using file operations.
+    /// Resolve a discrete range condition on an array of values.
     template <typename T> int
-	searchSortedOOC(const char* fname,
+	searchSortedICD(const array_t<T>& vals,
 			const ibis::qDiscreteRange& rng,
 			ibis::bitvector& hits) const;
+    /// Resolve a continuous range condition using file operations.
+    template <typename T> int
+	searchSortedOOCC(const char* fname,
+			 const ibis::qContinuousRange& rng,
+			 ibis::bitvector& hits) const;
+    /// Resolve a discrete range condition using file operations.
+    template <typename T> int
+	searchSortedOOCD(const char* fname,
+			 const ibis::qDiscreteRange& rng,
+			 ibis::bitvector& hits) const;
     /// Find the smallest value >= tgt.
     template <typename T> uint32_t
 	findLower(int fdes, const uint32_t nr, const T tgt) const;

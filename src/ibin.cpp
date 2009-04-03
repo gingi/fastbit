@@ -5343,7 +5343,7 @@ void ibis::bin::print(std::ostream& out) const {
 	omt = nobs - npr;
     }
     if (omt > 0) {
-	out << " ...\t(" << omt << " ommited)";
+	out << " ...\t(" << omt << " omitted)";
     }
     out << std::endl;
 } // ibis::bin::print
@@ -5415,7 +5415,7 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 	omt += nobs - npr;
     }
     if (omt > 0) {
-	out << "\t ...\t(" << omt << " ommited)";
+	out << "\t ...\t(" << omt << " omitted)";
 	out << std::endl;
     }
 } // ibis::bin::print
