@@ -16,9 +16,19 @@
 /// Return value 0 == success, -1 == invalid name or type, 1 == specified
 /// name already in the list of columns.
 int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct) {
-    if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE) return -1;
+    if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::addColumn(" << cn << ", " << ct
+	    << ") can not proceed because of invalid parameters";
+	return -1;
+    }
     columnList::const_iterator it = cols.find(cn);
-    if (it != cols.end()) return 1;
+    if (it != cols.end()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "tafel::addColumn(" << cn << ", " << ct
+	    << ") -- name already in the data partition";
+	return 1;
+    }
 
     column* col = new column();
     col->name = cn;
@@ -69,9 +79,19 @@ int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct) {
 int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct,
 			   const char* cd) {
     if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE ||
-	cd == 0 || *cd == 0) return -1;
+	cd == 0 || *cd == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::addColumn(" << cn << ", " << ct << ", " << cd
+	    << ") can not proceed because of invalid parameters";
+	return -1;
+    }
     columnList::const_iterator it = cols.find(cn);
-    if (it != cols.end()) return 1;
+    if (it != cols.end()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "tafel::addColumn(" << cn << ", " << ct << ", " << cd
+	    << ") -- name already in the data partition";
+	return 1;
+    }
 
     column* col = new column();
     col->name = cn;
@@ -175,10 +195,22 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
     ibis::bitvector::word_t be = static_cast<ibis::bitvector::word_t>(begin);
     ibis::bitvector::word_t en = static_cast<ibis::bitvector::word_t>(end);
     if (be != begin || en != end || be >= en || cn == 0 || *cn == 0 ||
-	values == 0) return -1;
+	values == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::append(" << cn << ", " << begin << ", " << end
+	    << ", " << values << ") can not proceed because of invalid "
+	    "parameters";
+	return -1;
+    }
 
     columnList::iterator it = cols.find(cn);
-    if (it == cols.end()) return -2;
+    if (it == cols.end()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::append(" << cn << ", " << begin << ", " << end
+	    << ", " << values << ") can not proceed because " << cn
+	    << " is not a column of this data partition";
+	return -2;
+    }
 
     if (en > nrows) nrows = en;
     column* col = (*it).second;
@@ -644,7 +676,11 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 int ibis::tafel::write(const char* dir, const char* tname,
 		       const char* tdesc) const {
     if (cols.empty() || nrows == 0) return 0; // nothing new to write
-    if (dir == 0 || *dir == 0) return -1; // dir must be specified
+    if (dir == 0 || *dir == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::write needs a valid output directory name to proceed";
+	return -1; // dir must be specified
+    }
     ibis::horometer timer;
     if (ibis::gVerbose > 0)
 	timer.start();
@@ -775,7 +811,12 @@ int ibis::tafel::write(const char* dir, const char* tname,
     mdfile += DIRSEP;
     mdfile += "-part.txt";
     std::ofstream md(mdfile.c_str());
-    if (! md) return -3; // metadata file not ready
+    if (! md) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::write(" << dir << ") failed to open metadata file "
+	    "\"-part.txt\"";
+	return -3; // metadata file not ready
+    }
 
     md << "# meta data for data partition " << tname
        << " written by ibis::tafel::write on " << stamp << "\n\n"
@@ -802,10 +843,9 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	cnm += (*it).first;
 	int fdes = UnixOpen(cnm.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    if (ibis::gVerbose > -1)
-		ibis::util::logMessage("ibis::tafel::write",
-				       "failed to open file %s for writing",
-				       cnm.c_str()); 
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tafel::write(" << dir << ") failed to open file "
+		<< cnm << " for writing";
 	    return -4;
 	}
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -888,12 +928,10 @@ int ibis::tafel::write(const char* dir, const char* tname,
 #endif
 	UnixClose(fdes); // close the data file
 	if (ierr < 0) {
-	    if (ibis::gVerbose > 0)
-		ibis::util::logMessage("ibis::tafel::write",
-				       "failed to write column %s (type %s) "
-				       "to %s", (*it).first,
-				       ibis::TYPESTRING[(int)col.type],
-				       cnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "tafel::write(" << dir << ") failed to write column "
+		<< (*it).first << " (type " << ibis::TYPESTRING[(int)col.type]
+		<< ") to " << cnm;
 	    return ierr;
 	}
 
@@ -936,7 +974,13 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 			     const ibis::bitvector& newmask) const {
     const size_t elem = sizeof(T);
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
-    if (pos < 0) return -3; // failed to find the EOF position
+    if (pos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::writeColumn<" << typeid(T).name() << ">(" << fdes
+	    << ", " << nold << ", " << nnew << " ...) failed to seek to "
+	    "the end of the file";
+	return -3; // failed to find the EOF position
+    }
     if ((size_t) pos < nold*elem) {
 	const size_t n1 = (size_t)pos / elem;
 	totmask.adjustSize(n1, nold);
@@ -976,7 +1020,12 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 			     ibis::bitvector& totmask,
 			     const ibis::bitvector& newmask) const {
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
-    if (pos < 0) return -3; // failed to find the EOF position
+    if (pos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::writeString(" << fdes << ", " << nold << ", " << nnew
+	    << " ...) failed to seek to the end of the file";
+	return -3; // failed to find the EOF position
+    }
 
     pos = 0;
     totmask.adjustSize(nold, nold);
@@ -1376,9 +1425,19 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 } // ibis::tafel::parseLine
 
 int ibis::tafel::appendRow(const char* line, const char* del) {
-    if (line == 0) return -1;
+    if (line == 0 || *line == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::appendRow can not proceed because the incoming line "
+	    "is nil or empty";
+	return -1;
+    }
     while (*line != 0 && isspace(*line)) ++ line;
-    if (*line == 0) return -1;
+    if (*line == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::appendRow can not proceed because the incoming line "
+	    "is a blank string";
+	return -1;
+    }
     if (*line == '#' || (*line == '-' && line[1] == '-')) return 0;
 
     std::string id = "string ";
@@ -1395,15 +1454,29 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
 
 int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			 const char* del) {
-    if (filename == 0 || *filename == 0) return -1;
-    if (colorder.empty()) return -2;
+    if (filename == 0 || *filename == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::readCSV needs a filename to proceed";
+	return -1;
+    }
+    if (colorder.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::readCSV(" << filename << ") can not proceed because of "
+	    "improper initialization (colorder is empty)";
+	return -2;
+    }
     std::string delimiters = (del != 0 && *del != 0 ? del : ",");
     ibis::horometer timer;
     timer.start();
 
     char linebuf[MAX_LINE];
     std::ifstream csv(filename);
-    if (! csv) return -2; // failed to open the specified data file
+    if (! csv) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::readCSV(" << filename << ") failed to open the named "
+	    "file for reading";
+	return -3; // failed to open the specified data file
+    }
     if (maxrows > 1) {
 	try { // try to reserve request amount of space
 	    reserveSpace(maxrows);
@@ -1413,7 +1486,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		<< "tafel::readCSV(" << filename << ", " << maxrows << ", "
 		<< delimiters << ") -- failed to reserve space for "
 		<< maxrows << " rows from the named file";
-	    return -3;
+	    return -4;
 	}
     }
 

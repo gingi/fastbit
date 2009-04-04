@@ -1,3 +1,8 @@
+2009-04-03 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tafel.h: add reserveSpace to ibis::tablex.
+	* src/tafel.cpp: add LOGGER statements before all statements that
+	returns a negative number
+
 2009-04-02 John Wu <John.Wu at ACM.org>
 	* src, examples: address warnings raised by the gcc compiler
 	* tests/Makefile.am: reorder the final output of appendTest0 from

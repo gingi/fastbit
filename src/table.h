@@ -331,8 +331,8 @@ public:
     /// Add values to the named column.  The column name must be in the
     /// table already.  The first value is to be placed at row @c begin (the
     /// row numbers start with 0) and the last value before row @c end.
-    /// The array @c values must contain values of the correct type
-    /// corresponding to the type specified before.
+    /// The array @c values must contain (end - begin) values of the type
+    /// specified through addColumn.
     ///
     /// The expected types of values are "const std::vector<std::string>*"
     /// for string valued columns, and "const T*" for a fix-sized column of
@@ -407,7 +407,7 @@ public:
 			const char* delimiters=0) =0;
 
     /// Write the in-memory data records to the specified directory on
-    /// disk.  If the table name (@c tname) is a null string or an empty,
+    /// disk.  If the table name (@c tname) is a null string or an empty string,
     /// the last component of the directory name is used.  If the
     /// description (@c tdesc) is a null string or an empty string, a time
     /// stamp will be printed in its place.  If the specified directory
@@ -423,6 +423,12 @@ public:
     /// Remove all data recorded.  Keeps the metadata.  It is intended to
     /// be used after a call to function write to store new rows.
     virtual void clearData() =0;
+    /// Reserve enough space for the specified number of rows.  The
+    /// intention is to mimize the number of dynamic memory allocations
+    /// needed expand memory used to hold the data.  The implementation of
+    /// this function is not required, and the user is not required to call
+    /// this function to ensure the correctness of data handling.
+    virtual void reserveSpace(unsigned) {};
 
 protected:
     tablex() {}; // Derived classes need this.

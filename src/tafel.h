@@ -37,6 +37,7 @@ public:
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc) const;
     virtual void clearData();
+    virtual void reserveSpace(unsigned);
 
 protected:
     /// In-memory version of a column.
@@ -101,7 +102,6 @@ protected:
 		    const std::vector<std::string>& vals,
 		    ibis::bitvector& totmask,
 		    const ibis::bitvector& newmask) const;
-    void reserveSpace(unsigned);
 
 private:
     tafel(const tafel&);
