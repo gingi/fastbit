@@ -350,7 +350,7 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 			columns[i].lo = vint;
 		    if (vint > columns[i].hi)
 			columns[i].hi = vint;
-		    fwrite(&vint, sizeof(vint), 1, columns[i].file);
+		    (void) fwrite(&vint, sizeof(vint), 1, columns[i].file);
 		}
 		else {
 		    ++ ierr;
@@ -363,14 +363,14 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 			    columns[i].lo = dbl;
 			if (dbl > columns[i].hi)
 			    columns[i].hi = dbl;
-			fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
+			(void) fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
 		    }
 		    else {
 			tmp = s0;
 			std::string str;
 			columns[i].type = STRING;
 			jerr = readString(tmp, str);
-			fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
+			(void) fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
 		    }
 		}
 	    }
@@ -389,7 +389,7 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 			columns[i].lo = dbl;
 		    if (dbl > columns[i].hi)
 			columns[i].hi = dbl;
-		    fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
+		    (void) fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
 		}
 		else {
 		    ++ ierr;
@@ -397,19 +397,19 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 		    std::string str;
 		    columns[i].type = STRING;
 		    jerr = readString(tmp, str);
-		    fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
+		    (void) fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
 		}
 	    }
 	    else { // default double value is zero
 		double dbl = 0;
-		fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
+		(void) fwrite(&dbl, sizeof(dbl), 1, columns[i].file);
 	    }
 	    break;
 	case STRING:
 	    {
 		std::string str;
 		readString(tmp, str);
-		fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
+		(void) fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
 	    }
 	    break;
 	}

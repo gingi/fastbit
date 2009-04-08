@@ -1995,7 +1995,7 @@ long ibis::part::get1DDistribution(const char* constraints,
     } // switch (col->type())
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger lg(1);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "")
 		    << "]::get1DDistribution computed histogram of column "
 		    << cname;
@@ -3463,7 +3463,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
     }
 #if defined(_DEBUG) || defined(DEBUG)
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(0);
+	ibis::util::logger lg(4);
 	lg.buffer() << "ibis::part::get1DBins_ completed for " << mesg
 		    << ", memory in use = "
 		    << ibis::fileManager::instance().bytesInUse();
@@ -3582,7 +3582,7 @@ ibis::part::getDistribution
     long mbc = getDistribution(name, bds, cts);
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
-	ibis::util::logger lg;
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getDistribution(" << name
 		  << ") returned ierr=" << mbc << ", bds.size()="
 		  << bds.size() << ", cts.size()=" << cts.size() << "\n";
@@ -3881,7 +3881,7 @@ ibis::part::getDistribution
     long mbc = getDistribution(constraints, name, bds, cts);
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
-	ibis::util::logger lg;
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getDistribution(" << name << ", "
 		    << constraints << ") returned ierr=" << mbc
 		    << ", bds.size()=" << bds.size() << ", cts.size()="
@@ -3943,7 +3943,7 @@ ibis::part::getCumulativeDistribution
     long mbc = getCumulativeDistribution(name, bds, cts);
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
-	ibis::util::logger lg;
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getCumulativeDistribution(" << name
 		  << ") returned ierr=" << mbc << "\n";
 	if (mbc > 0)

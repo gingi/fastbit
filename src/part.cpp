@@ -439,7 +439,7 @@ ibis::part::part(const char* adir, const char* bdir) :
     ibis::fileManager::instance().addCleaner(myCleaner);
 
     if (ibis::gVerbose > 0 && m_name != 0) {
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	lg.buffer() << "Completed construction of an ";
 	if (nEvents == 0)
 	    lg.buffer() << "empty ";
@@ -801,7 +801,7 @@ void ibis::part::init(const char* prefix) {
     ibis::fileManager::instance().addCleaner(myCleaner);
 
     if (ibis::gVerbose > 0 && m_name != 0) {
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	lg.buffer() << "Completed construction of an ";
 	if (nEvents == 0)
 	    lg.buffer() << "empty ";
@@ -2122,7 +2122,7 @@ uint32_t ibis::part::countPages(const ibis::bitvector &mask,
 	}
     }
     else {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part::countPages(" << wordsize
 		    << ") page numbers: ";
 	while (ix.nIndices() > 0) {
@@ -4493,7 +4493,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
-	ibis::util::logger lg(1);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doScan -- evaluating "
 		    << cmp << " on " << mask.cnt() << " records (total: "
@@ -4583,7 +4583,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
-	ibis::util::logger lg(1);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::calculate -- evaluating " << trm << " on "
 		    << msk.cnt() << " records (total: " << nEvents
@@ -4780,7 +4780,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
     }
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part[" << name() << "]::buildIndex build "
 		    << nColumns() << " index" << (nColumns()>1 ? "es" : "")
 		    << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
@@ -5642,7 +5642,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	rid2 = qtmp.getRIDs();
 	std::sort(rid2->begin(), rid2->end());
 	if (rid1->size() == rid2->size()) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    uint32_t i, cnt=0;
 	    for (i=0; i<rid1->size(); ++i) {
 		if ((*rid1)[i].value != (*rid2)[i].value) {
@@ -5663,7 +5663,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	    }
 	}
 	else {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << "Warning -- query[" << qtmp.id() << "] sent "
 		      << rid1->size() << " RIDs, got back "
 		      << rid2->size() << "\n";
@@ -6228,7 +6228,7 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
 	va_end(args);
 
 	{
-	    ibis::util::logger lg(2);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " -- " << s;
 	    if (errno != 0)
@@ -6239,7 +6239,7 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
     else {
 #endif
 	{
-	    ibis::util::logger lg(2);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " == " << fmt << " ...";
 	    if (errno != 0)
@@ -6284,7 +6284,7 @@ void ibis::part::logMessage(const char* event,
 			    const char* fmt, ...) const {
     FILE* fptr = ibis::util::getLogFile();
     ibis::util::ioLock lock;
-#if defined(TIMED_LOG)
+#if defined(FASTBIT_TIMED_LOG)
     char tstr[28];
     ibis::util::getLocalTime(tstr);
     fprintf(fptr, "%s   ", tstr);

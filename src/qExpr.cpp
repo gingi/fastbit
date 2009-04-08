@@ -837,7 +837,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     }
 
     if (ibis::gVerbose > 6) {
-	ibis::util::logger lg(6);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::qExpr::reorder -- input: ";
 	print(lg.buffer());
     }
@@ -972,7 +972,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     } // else if (type == LOGICAL_MINUS)
 
     if (ibis::gVerbose > 6) {
-	ibis::util::logger lg(6);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::qExpr::reorder -- output: ";
 	print(lg.buffer());
     }
@@ -986,7 +986,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 				ibis::qExpr *&tail) const {
     if (ibis::gVerbose > 12) {
-	ibis::util::logger lg(12);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::qExpr::separateSimple -- input: ";
 	print(lg.buffer());
     }
@@ -2463,6 +2463,45 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     bool sorted = (values[0] <= values[1]);
     for (size_t i = 1; sorted && i < val.size()-1; ++ i)
 	sorted = (values[i] <= values[i+1]);
+    if (sorted == false) {
+	/// Sort the incoming values and remove duplicates.
+	std::sort(values.begin(), values.end());
+    }
+    size_t j = 0;
+    for (size_t i = 1; i < val.size(); ++ i) {
+	// loop to copy unique values to the beginning of the array
+	if (values[i] > values[j]) {
+	    ++ j;
+	    values[j] = values[i];
+	}
+    }
+    ++ j;
+    values.resize(j);
+    if (j < val.size()) {
+	j = val.size() - j;
+	LOGGER(ibis::gVerbose > 1)
+	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
+	    << val.size() << " elements, removed " << j
+	    << " duplicate value" << (j > 1 ? "s" : "");
+    }
+} // ibis::qDiscreteRange::qDiscreteRange
+
+/// Construct a qDiscreteRange object from an array of double values.
+ibis::qDiscreteRange::qDiscreteRange(const char *col,
+				     const array_t<double>& val)
+	: name(col) {
+    if (val.empty()) return;
+    values.resize(val.size());
+    values[0] = val[0];
+    if (val.size() <= 1U) return;
+
+    bool sorted = (val[0] <= val[1]);
+    values[1] = val[1];
+    for (size_t i = 2; i < val.size(); ++ i) {
+	values[i] = val[i];
+	sorted = sorted && (val[i-1] <= val[i]);
+    }
+
     if (sorted == false) {
 	/// Sort the incoming values and remove duplicates.
 	std::sort(values.begin(), values.end());

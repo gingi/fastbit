@@ -55,13 +55,13 @@ int truncate(const char*, uint32_t);
 #endif
 
 #if !defined(HAVE_GCC_ATOMIC32) && !defined(HAVE_CONFIG_H)
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__)
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC32 2
 #endif
 #endif
 #if !defined(HAVE_GCC_ATOMIC64) && !defined(HAVE_CONFIG_H)
 #if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__)
+#if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC64 2
 #endif
 #endif
@@ -180,7 +180,7 @@ int truncate(const char*, uint32_t);
 #endif
 
 #define LOGGER(v) \
-if (false == (v)) ; else ibis::util::logger(2).buffer() 
+if (false == (v)) ; else ibis::util::logger(0).buffer() 
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
@@ -661,14 +661,14 @@ namespace ibis {
 	class FASTBIT_CXX_DLLSPEC counter {
 	public:
 	    ~counter() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		(void)pthread_mutex_destroy(&lock_);
 #endif
 	    }
 	    counter() : count_(0) {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 		if (0 != pthread_mutex_init(&lock_, 0))
@@ -679,7 +679,7 @@ namespace ibis {
 
 	    /// Return the current count and increment the count.
 	    uint32_t operator()() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		return __sync_fetch_and_add(&count_, 1);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		return InterlockedIncrement((volatile long *)&count_)-1;
@@ -692,7 +692,7 @@ namespace ibis {
 	    }
 	    /// Reset count to zero.
 	    void reset() {
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_fetch_and_sub(&count_, count_);
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 		(void) InterlockedExchange((volatile long *)&count_, 0);
@@ -707,7 +707,7 @@ namespace ibis {
 	    }
 
 	private:
-#if __GNUC__+0 >= 4 && !defined(__CYGWIN__)
+#if defined(HAVE_GCC_ATOMIC32)
 #elif _MSC_VER+0 >= 1500 && defined(_WIN32)
 #else
 	    mutable pthread_mutex_t lock_; ///< The mutex lock.
@@ -928,17 +928,9 @@ namespace ibis {
 	/// default all messages are dump to stdout.
 	class FASTBIT_CXX_DLLSPEC logger {
 	public:
-	    /// Constructor.  The argument to this constructor is taken to
-	    /// be the number of spaces before the message.  Note, if a
-	    /// time stamp is given, it is always given before the spaces.
-	    /// The number of leading blanks is usually the verboseness
-	    /// level.  Typically, a message is formed only if the global
-	    /// verboseness level is higher than the level assigned to the
-	    /// particular message (through the use of LOGGER macro or
-	    /// explicit if statements).  In addition, the message is only
-	    /// outputed if the global verboseness level is no less than 0.
+	    /// Constructor.
 	    logger(int blanks=0);
-	    /// Destructor.  Output the message from this function.
+	    /// Destructor.
 	    ~logger();
 	    /// Retrun an output stream for caller to build a message.
 	    std::ostream& buffer() {return mybuffer;}
@@ -957,16 +949,9 @@ namespace ibis {
 	/// reports the CPU time and elapsed time in between.
 	class timer {
 	public:
-	    /// Constructor.  The caller must provide a message string.
-	    /// The message will only be printed if ibis::gVerbose is no
-	    /// less than lvl.
-	    /// @note The mesage stored in msg is copied to a string held
-	    /// by this object.
-	    /// @sa ibis::horometer
+	    /// Constructor.
 	    explicit timer(const char* msg, int lvl=1);
-	    /// Destructor.  It reports the time used since the constructor
-	    /// was called.  Use ibis::horometer directly if more control
-	    /// on the timing information is desired.
+	    /// Destructor.
 	    ~timer();
 
 	private:

@@ -1221,7 +1221,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			  timer.CPUTime(), timer.realTime());
 	}
 	if (ibis::gVerbose > 3) {
-	    ibis::util::logger lg(3);
+	    ibis::util::logger lg;
 	    ind->print(lg.buffer());
 	}
     }
@@ -2350,7 +2350,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 			static_cast<long unsigned>(bmap.size()),
 			static_cast<long unsigned>(nev), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>bmap.size())) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second->cnt()
@@ -2414,7 +2414,7 @@ void ibis::index::mapValues(const array_t<E>& val, VMap& bmap) {
 	     static_cast<long unsigned>(bmap.size()),
 	     static_cast<long unsigned>(nev), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>bmap.size())) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second->cnt()
@@ -3145,7 +3145,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			static_cast<long unsigned>(hist.size()),
 			(hist.size()>1?"s":""), timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>hist.size())) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << "value, count\n";
 	    for (it = hist.begin(); it != hist.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second << "\n";
@@ -3216,7 +3216,7 @@ void ibis::index::mapValues(const array_t<E>& val, histogram& hist,
 	     static_cast<long unsigned>(hist.size()), (hist.size()>1?"s":""),
 	     timer.realTime());
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>hist.size())) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << "value, count\n";
 	    for (it = hist.begin(); it != hist.end(); ++it)
 		lg.buffer() << (*it).first << ",\t" << (*it).second << "\n";
@@ -3586,7 +3586,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	while (doadjust) {
 	    if (ibis::gVerbose > 12) {
 		array_t<uint32_t>::const_iterator it;
-		ibis::util::logger lg(12);
+		ibis::util::logger lg;
 		lg.buffer() << "divideCounts(): smoothing --\n bounds("
 			    << bdry.size() << ") = [";
 		for (it = bdry.begin(); it != bdry.end(); ++it)
@@ -3882,7 +3882,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
     }
 
     if (ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	lg.buffer()
 	    << "divideCounts() binning result (i, cnt[i], sum cnt[i])\n";
 	for (i = 0, top=0; i < bdry[0]; ++i) {
@@ -3934,7 +3934,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 
 	if (ibis::gVerbose > 6) {
 	    array_t<uint32_t>::const_iterator it;
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    lg.buffer() << "divideCounts():\n    cnt(" << ncnt << ") = [";
 	    if (ncnt < 256) {
 		for (it = cnt.begin(); it != cnt.end(); ++it)

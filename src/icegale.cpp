@@ -44,7 +44,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -74,7 +74,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	convert();
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -95,7 +95,7 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 	convert();
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -136,7 +136,7 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	  (nbits+1)*sizeof(int32_t)+3*nobs*sizeof(double), nbases) {
     if (ibis::gVerbose > 8 &&
 	static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // reconstruct data from content of a file
@@ -856,7 +856,7 @@ void ibis::egale::construct(const char* f) {
 
     // write out the current content
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::egale::construct

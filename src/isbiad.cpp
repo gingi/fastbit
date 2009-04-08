@@ -34,7 +34,7 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	    construct2(f, nbase); // scan data twice
 	}
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -63,7 +63,7 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 ibis::sbiad::sbiad(const ibis::column* c, ibis::fileManager::storage* st,
 		   uint32_t offset) : ibis::fade(c, st, offset) {
     if (ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // reconstruct data from content of a file
@@ -287,7 +287,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 
     // write out the current content
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::sbiad::construct1
@@ -914,7 +914,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 
     // write out the current content
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::sbiad::construct2

@@ -111,7 +111,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 		optionalUnpack(bits, col->indexSpec());
 
 		if (ibis::gVerbose > 4) {
-		    ibis::util::logger lg(4);
+		    ibis::util::logger lg;
 		    print(lg.buffer());
 		}
 	    }
@@ -146,7 +146,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -178,7 +178,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	    binOrder(f);
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -298,7 +298,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	    str = 0;
 	    if (ibis::gVerbose > 8 &&
 		static_cast<INDEX_TYPE>(*(st->begin()+5)) == BINNING) {
-		ibis::util::logger lg(8);
+		ibis::util::logger lg;
 		print(lg.buffer());
 	    }
 	}
@@ -1753,7 +1753,7 @@ void ibis::bin::binning(const char* f) {
 			    static_cast<long unsigned>(nobs-2));
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
@@ -1973,7 +1973,7 @@ void ibis::bin::binningT(const char* f) {
 			    static_cast<long unsigned>(nobs-2));
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
@@ -3085,7 +3085,7 @@ void ibis::bin::binning(const array_t<E>& varr) {
 			    static_cast<long unsigned>(nobs-2));
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
@@ -3175,7 +3175,7 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 			    (gmap.size() > 1 ? "s" : ""));
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    printGranules(lg.buffer(), gmap);
 	}
     }
@@ -4984,7 +4984,7 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
 	    parts[i] = i;
     }
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "divideBitmaps -- divided " << nbms << " bitmaps into "
 		    << nparts << " groups\n";
 	for (unsigned i = 0; i < nparts; ++ i)
@@ -5687,7 +5687,7 @@ long ibis::bin::append(const ibis::bin& tail) {
 	delete bin2[i];
 
     if (ibis::gVerbose > 10) {
-	ibis::util::logger lg(10);
+	ibis::util::logger lg;
 	lg.buffer() << "\nNew combined index (append an index for " << n1
 		  << " objects to an index for " << n0 << " events\n" ;
 	print(lg.buffer());

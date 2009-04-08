@@ -49,7 +49,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	optionalUnpack(bits, col->indexSpec());
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -117,7 +117,7 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 ibis::mesa::mesa(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t offset) : ibis::bin(c, st, offset) {
     if ((offset > 8 || ! st->isFileMap()) && ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 }

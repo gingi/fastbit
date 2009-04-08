@@ -189,7 +189,7 @@ ibis::ambit::ambit(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -363,7 +363,7 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -413,7 +413,7 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -600,7 +600,7 @@ int ibis::ambit::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::ambit::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -629,7 +629,7 @@ int ibis::ambit::read(const char* f) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (fname)
 		    lg.buffer() << fname;
@@ -870,7 +870,7 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (fname)
 		    lg.buffer() << fname;
@@ -903,7 +903,7 @@ int ibis::ambit::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::ambit::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<const void*>(st->begin());
@@ -929,7 +929,7 @@ int ibis::ambit::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::ambit::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();
@@ -1045,7 +1045,7 @@ int ibis::ambit::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
 #if defined(DEBUG)
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(3);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG  from ibis::ambit::write(" << col->name() << ", "
 		    << start << ") -- offsets for subranges";
 	for (i=0; i<=nobs; ++i)

@@ -37,7 +37,7 @@ ibis::keywords::keywords(const ibis::column* c,
 	ibis::util::getFileSize(fmat.c_str()) > 0) {
 	read(f);
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
 	return;
@@ -62,7 +62,7 @@ ibis::keywords::keywords(const ibis::column* c,
     if (ierr >= 0) { // write out the dictionary and the boolean matrix
 	write(f);
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -438,7 +438,7 @@ int ibis::keywords::read(const char* f) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
 	    nprt = dim[1];
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "DEBUG -- ibis::keywords::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";

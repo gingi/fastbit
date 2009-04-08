@@ -864,7 +864,7 @@ long ibis::category::append(const char* dt, const char* df,
 			logMessage("append", "successfully extended the index "
 				   "in %s", dt);
 		    if (ibis::gVerbose > 8) {
-			ibis::util::logger lg(8);
+			ibis::util::logger lg;
 			ind.print(lg.buffer());
 		    }
 		}
@@ -1492,7 +1492,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		    hits.setBit(irow, 1);
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
 		if (ibis::gVerbose > 5) {
-		    ibis::util::logger lg(0);
+		    ibis::util::logger lg(4);
 		    lg.buffer() << "DEBUG -- text[" << thePart->name() << "."
 				<< m_name << "]::search processing string "
 				<< irow << " \'";

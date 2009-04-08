@@ -47,7 +47,7 @@ ibis::range::range(const ibis::column* c, const char* f)
 	optionalUnpack(bits, col->indexSpec());
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -98,7 +98,7 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	optionalUnpack(bits, col->indexSpec());
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -122,7 +122,7 @@ ibis::range::range(const ibis::column* c, ibis::fileManager::storage* st,
       min1(*(1+minval.end())) {
     if ((offset > 8 || ! st->isFileMap()) && ibis::gVerbose > 8 &&
 	static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == RANGE) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 }

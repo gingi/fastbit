@@ -31,7 +31,7 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // constructor
@@ -49,7 +49,7 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // constructor
@@ -64,7 +64,7 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     }
 
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // copy from an ibis::bin
@@ -85,7 +85,7 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 		   uint32_t offset) : ibis::egale(c, st, offset) {
     if (ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // reconstruct data from content of a file

@@ -28,7 +28,7 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
 	    coarsen();
     }
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // ibis::fuzz::fuzz
@@ -105,7 +105,7 @@ ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
     }
 
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // ibis::fuzz::fuzz
@@ -183,7 +183,7 @@ void ibis::fuzz::coarsen() {
     for (unsigned i = ncoarse-1; i > 0 && cbounds[i+1] < cbounds[i]; -- i)
 	cbounds[i] = cbounds[i+1] - 1;
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg(2);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::fuzz::coarsen will divide " << bits.size()
 		    << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)

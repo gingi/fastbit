@@ -72,7 +72,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 	throw ibis::bad_alloc("ibis::direkte construction failure");
     }
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // ibis::direkte::direkte
@@ -417,7 +417,7 @@ int ibis::direkte::read(const char* f) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
 	    nprt = dim[1];
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "DEBUG -- ibis::direkte::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";

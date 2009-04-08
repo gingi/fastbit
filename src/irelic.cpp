@@ -36,7 +36,7 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	    c->type() != ibis::TEXT) {
 	    construct(f);
 	    if (ibis::gVerbose > 5) {
-		ibis::util::logger lg(5);
+		ibis::util::logger lg;
 		print(lg.buffer());
 	    }
 	}
@@ -65,7 +65,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	bits[0] = new ibis::bitvector();
 	bits[0]->set(1, ntpl);
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(5);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -107,7 +107,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	    bits[i]->adjustSize(0, nrows);
 	}
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(5);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -158,7 +158,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : nobs);
 	if (nprt > nobs)
 	    nprt = nobs;
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "DEBUG -- ibis::relic::relic("
 		    << (st->filename()?st->filename():"unnamed")
 		    << ") got nobs = " << nobs << ", card = " << card
@@ -207,7 +207,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 
 	    if (ibis::gVerbose > 8 &&
 		static_cast<INDEX_TYPE>(*(st->begin()+5)) == RELIC) {
-		ibis::util::logger lg(8);
+		ibis::util::logger lg;
 		print(lg.buffer());
 	    }
 	}
@@ -564,7 +564,7 @@ void ibis::relic::construct(const char* f) {
 
     // write out the current content
     if (ibis::gVerbose > 6) {
- 	ibis::util::logger lg(6);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::relic::construct
@@ -603,7 +603,7 @@ void ibis::relic::construct(const array_t<E>& arr) {
 
     // write out the current content
     if (ibis::gVerbose > 6) {
- 	ibis::util::logger lg(6);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::relic::construct
@@ -1024,7 +1024,7 @@ long ibis::relic::append(const ibis::relic& tail) {
     }
 
     if (ibis::gVerbose > 10) {
-	ibis::util::logger lg(10);
+	ibis::util::logger lg;
 	lg.buffer() << "\nNew combined index (append an index for "
 		    << tail.nrows
 		    << " objects to an index for " << n0 << " events\n" ;

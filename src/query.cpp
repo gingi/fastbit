@@ -478,7 +478,7 @@ int ibis::query::setWhereClause(const char* str) {
     }
 
     if (ibis::gVerbose > 0) {
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	lg.buffer() << "query[" << myID << "]::setWhereClause -- WHERE \""
 		    << str << "\"";
 	if (ibis::gVerbose > 3)
@@ -2065,7 +2065,7 @@ void ibis::query::printRIDs(const ibis::RIDSet& ridset) const {
     if (ibis::gVerbose < 0) return;
 
     int len = ridset.size();
-    ibis::util::logger lg(4);
+    ibis::util::logger lg;
     ibis::RIDSet::const_iterator it = ridset.begin();
     lg.buffer() << "RID set length = " << len << std::endl;
     for (int i=0; i<len; ++i, ++it) {
@@ -2092,7 +2092,7 @@ void ibis::query::logError(const char* event, const char* fmt, ...) const {
 
 	(void) strncpy(lastError+7, s, MAX_LINE-7);
 	{
-	    ibis::util::logger lg(ibis::gVerbose + 2);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** query[" << myID << "]::" << event
 			<< " -- " << s;
 	    if (errno != 0)
@@ -2104,7 +2104,7 @@ void ibis::query::logError(const char* event, const char* fmt, ...) const {
 #endif
 	(void) strncpy(lastError+7, fmt, MAX_LINE-7);
 	{
-	    ibis::util::logger lg(ibis::gVerbose + 2);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** query[" << myID << "]::" << event
 			<< " -- " << fmt << " ...";
 	    if (errno != 0)
@@ -2126,7 +2126,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 	vsprintf(lastError+9, fmt, args);
 	va_end(args);
 
-	ibis::util::logger lg(ibis::gVerbose+1);
+	ibis::util::logger lg;
 	lg.buffer() << "Warning -- query[" << myID << "]::"
 		    << event << " -- " << lastError+9;
 	if (errno != 0) {
@@ -2143,7 +2143,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 	    vsprintf(s, fmt, args);
 	    va_end(args);
 
-	    ibis::util::logger lg(ibis::gVerbose+1);
+	    ibis::util::logger lg;
 	    lg.buffer() << "Warning -- query[" << myID << "]::" << event
 			<< " -- " << s;
 	    if (errno != 0) {
@@ -2170,7 +2170,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 	UnixSnprintf(lastError, MAX_LINE+PATH_MAX, "Warning: %s", fmt);
     }
 
-    ibis::util::logger lg(ibis::gVerbose+1);
+    ibis::util::logger lg;
     lg.buffer() << "Warning -- query[" << myID << "]::" << event
 		<< " -- " << fmt << " ..."
     if (errno != 0) {
@@ -2184,7 +2184,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 void ibis::query::logMessage(const char* event, const char* fmt, ...) const {
     FILE *fptr = ibis::util::getLogFile();
     ibis::util::ioLock lck;
-#if defined(TIMED_LOG)
+#if defined(FASTBIT_TIMED_LOG)
     char tstr[28];
     ibis::util::getLocalTime(tstr);
     fprintf(fptr, "%s   ", tstr);
@@ -2512,7 +2512,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 
 int ibis::query::computeHits() {
     if (ibis::gVerbose > 7) {
-	ibis::util::logger lg(7);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::query[" << myID << "]::computeHits -- "
 	    "starting to compute hits for the query";
 	if (conds.getExpr() != 0)
@@ -2600,7 +2600,7 @@ int ibis::query::computeHits() {
     if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
 	(ibis::gVerbose > 30 || (ibis::gVerbose > 4 &&
 				  (1U<<ibis::gVerbose) >= hits->bytes()))) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::query::computeHits() hit vector" << *hits
 		    << "\n";
 	if (ibis::gVerbose > 19) {
@@ -2692,7 +2692,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 		    uint32_t cnt = 0;
 		    ibis::bitvector::indexSet is = diff.firstIndexSet();
 
-		    ibis::util::logger lg(2);
+		    ibis::util::logger lg;
 		    lg.buffer() << "row numbers of mismatching hits\n";
 		    while (is.nIndices() && cnt < maxcnt) {
 			const ibis::bitvector::word_t *ii = is.indices();
@@ -3174,7 +3174,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     if (ierr < 0) // no confirmed hits
 	ht.set(0, mypart->nRows());
 #ifdef DEBUG
-    ibis::util::logger lg(ibis::gVerbose-1);
+    ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doScan(" << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
@@ -3517,7 +3517,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = -1;
     }
 #ifdef DEBUG
-    ibis::util::logger lg;
+    ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doEvaluate(" << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
@@ -3729,7 +3729,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
     }
     else {
 #if defined(DEBUG)
-	ibis::util::logger lg;
+	ibis::util::logger lg(4);
 	lg.buffer() << "query[" << myID << "::readRIDs() got " << rids->size()
 		    << "\n";
 	for (ibis::RIDSet::const_iterator it = rids->begin();
@@ -4575,7 +4575,7 @@ int64_t ibis::query::processJoin() {
 		    logWarning("processJoin", "some (%s) surepairs are "
 			       "not correct", ostr.str().c_str());
 		    const unsigned nrows = mypart->nRows();
-		    ibis::util::logger lg;
+		    ibis::util::logger lg(4);
 		    for (ibis::bitvector64::indexSet ix =
 			     tmp.firstIndexSet();
 			 ix.nIndices() > 0; ++ ix) {
@@ -4616,7 +4616,7 @@ int64_t ibis::query::processJoin() {
 			       "different results from the indexed scan",
 			       ostr.str().c_str());
 		    const unsigned nrows = mypart->nRows();
-		    ibis::util::logger lg;
+		    ibis::util::logger lg(4);
 		    for (ibis::bitvector64::indexSet ix =
 			     iffypairs.firstIndexSet();
 			 ix.nIndices() > 0; ++ ix) {
@@ -4699,7 +4699,7 @@ int64_t ibis::query::processJoin() {
 			   "different results from the indexed scan",
 			   ostr.str().c_str());
 		const unsigned nrows = mypart->nRows();
-		ibis::util::logger lg;
+		ibis::util::logger lg(4);
 		for (ibis::bitvector64::indexSet ix =
 			 iffypairs.firstIndexSet();
 		     ix.nIndices() > 0; ++ ix) {
@@ -4992,7 +4992,7 @@ int64_t ibis::query::countDeltaPairs(const array_t<T1>& val1,
 	cnt += i2 - i1;
     } // for ..
 #ifdef DEBUG
-    ibis::util::logger lg;
+    ibis::util::logger lg(4);
     lg.buffer() << "DEBUG: countDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
 	lg.buffer() << val1[ii] << ' ';
@@ -5335,7 +5335,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	}
 	else {
 	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
-		UnixWrite(fdes, idbuf, idsize);
+		(void) UnixWrite(fdes, idbuf, idsize);
 	}
 	cnt += i2 - i1;
     } // for ..

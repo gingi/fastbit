@@ -40,7 +40,7 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -561,7 +561,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
     optionalUnpack(bits, col->indexSpec());
     // write out the current content
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // construct1
@@ -1112,7 +1112,7 @@ void ibis::fade::construct2(const char* f, const uint32_t nbase) {
     optionalUnpack(bits, col->indexSpec());
     // write out the current content
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::fade::construct2

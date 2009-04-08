@@ -184,7 +184,7 @@ void ibis::bylt::coarsen() {
 	    cbounds[i-1] = cbounds[i] - 1;
     }
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg(2);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::bylt::coarsen will divide " << bits.size()
 		    << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
@@ -755,7 +755,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     const uint32_t c0 = cbounds.find(hit0);
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::bylt::evaluate(" << expr << ") hit0=" << hit0
 		  << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
@@ -1452,7 +1452,7 @@ int ibis::bylt::read(const char* f) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
 	    nprt = dim[1];
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "DEBUG -- ibis::bylt::read(" << f
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";

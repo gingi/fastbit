@@ -159,7 +159,7 @@ ibis::pale::pale(const ibis::bin& rhs) {
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -185,7 +185,7 @@ ibis::pale::pale(const ibis::column* c, ibis::fileManager::storage* st,
 		 sizeof(double)*nobs*3, nobs+1);
 #ifdef DEBUG
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg;
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG from ibis::pale::pale("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ") -- offsets of subranges\n";
@@ -207,7 +207,7 @@ ibis::pale::pale(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -315,7 +315,7 @@ int ibis::pale::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
 #if defined(DEBUG)
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- from ibis::pale::write(" << col->name()
 		    << ", " << start << ") -- offsets of subranges\n";
 	for (i=0; i<=nobs; ++i)
@@ -426,7 +426,7 @@ int ibis::pale::read(const char* f) {
 #if defined(DEBUG)
     array_t<int32_t> nextlevel(fdes, begin, end);
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(3);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::pale::read(";
 	if (fname)
 	    lg.buffer() << fname;
@@ -481,7 +481,7 @@ int ibis::pale::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::pale::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -545,7 +545,7 @@ int ibis::pale::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::pale::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());
@@ -572,7 +572,7 @@ int ibis::pale::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(4);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::pale::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();

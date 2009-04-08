@@ -152,7 +152,7 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	    if (bits[i])
 		bits[i]->compress();
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -500,7 +500,7 @@ int ibis::pack::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::pack::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -530,7 +530,7 @@ int ibis::pack::read(const char* f) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(4);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::pack::read(";
 		if (fname)
 		    lg.buffer() << fname;
@@ -566,7 +566,7 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::pack::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());
@@ -593,7 +593,7 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(0);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::pack::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();

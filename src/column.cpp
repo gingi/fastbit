@@ -4384,7 +4384,7 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
 	va_end(args);
 
 	{ // make sure the message is written before throwing
-	    ibis::util::logger lg(ibis::gVerbose+2);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** column["
 			<< (thePart != 0 ? thePart->name() : "")
 			<< '.' << m_name.c_str() << "]("
@@ -4398,7 +4398,7 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
     else {
 #endif
 	{
-	    ibis::util::logger lg(ibis::gVerbose+1);
+	    ibis::util::logger lg;
 	    lg.buffer() <<  " Error *** column["
 			<< (thePart != 0 ? thePart->name() : "")
 			<< '.' << m_name.c_str() << "]("
@@ -4445,7 +4445,7 @@ void ibis::column::logWarning(const char* event, const char* fmt, ...) const {
 void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
     FILE* fptr = ibis::util::getLogFile();
     ibis::util::ioLock lock;
-#if defined(TIMED_LOG)
+#if defined(FASTBIT_TIMED_LOG)
     char tstr[28];
     ibis::util::getLocalTime(tstr);
     fprintf(fptr, "%s   ", tstr);
@@ -4538,7 +4538,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    }
 	}
 	if (idx != 0 && ibis::gVerbose > 10) {
-	    ibis::util::logger lg(10);
+	    ibis::util::logger lg;
 	    idx->print(lg.buffer());
 	}
     }
@@ -5448,7 +5448,7 @@ long ibis::column::append(const char* dt, const char* df,
 			logMessage("append", "successfully extended the "
 				   "index in %s", dt);
 		    if (ibis::gVerbose > 8) {
-			ibis::util::logger lg(8);
+			ibis::util::logger lg;
 			ind->print(lg.buffer());
 		    }
 		    delete ind;
@@ -5469,7 +5469,7 @@ long ibis::column::append(const char* dt, const char* df,
 		    logMessage("append", "successfully created the "
 			       "index in %s", dt);
 		if (ibis::gVerbose > 8) {
-		    ibis::util::logger lg(8);
+		    ibis::util::logger lg;
 		    ind->print(lg.buffer());
 		}
 		delete ind;
@@ -5495,7 +5495,7 @@ long ibis::column::append(const char* dt, const char* df,
 		logMessage("append", "successfully created the "
 			   "index in %s", dt);
 	    if (ibis::gVerbose > 8) {
-		ibis::util::logger lg(8);
+		ibis::util::logger lg;
 		ind->print(lg.buffer());
 	    }
 	    delete ind;
@@ -5516,7 +5516,7 @@ long ibis::column::append(const char* dt, const char* df,
 			   "index in %s (also wrote to %s)", dt, df);
 	    ind->write(df);
 	    if (ibis::gVerbose > 8) {
-		ibis::util::logger lg(8);
+		ibis::util::logger lg;
 		ind->print(lg.buffer());
 	    }
 	    delete ind;
@@ -6201,7 +6201,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     }
 
     if (ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	lg.buffer() << "column[" << (thePart != 0 ? thePart->name() : "")
 		    << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
 		    << ")::writeData -- wrote " << nact << " entr"
@@ -6362,7 +6362,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	    }
 	}
 	fclose(fptr);
-	truncate(fname.c_str(), pos);
+	(void) truncate(fname.c_str(), pos);
 	ierr = static_cast<long>(pos / elm);
 	if (ibis::gVerbose > 1)
 	    logMessage("saveSelected", "rewrote data file %s with %ld row%s",
@@ -6797,7 +6797,7 @@ T ibis::column::computeMin(const array_t<T>& vals,
     }
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::column["
 		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 		    << "]::computeMin -- vals.size() = "
@@ -6836,7 +6836,7 @@ T ibis::column::computeMax(const array_t<T>& vals,
     }
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::column["
 		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 		    << "]::computeMax -- vals.size() = "

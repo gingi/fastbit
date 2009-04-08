@@ -68,13 +68,12 @@ public:
     typedef uint32_t word_t;///< The basic unit of data storage.
 
     // constructors of bitvector class
-    /// Default constructor.  Creates a new empty bitvector.
-    bitvector() : nbits(0), nset(0), active(), m_vec() {};
+    /// Default constructor.
+    bitvector();
     /// Destructor.
     ~bitvector() {clear();};
-    /// Shallow copy.  Underlying storage is reference counted.
-    bitvector(const bitvector& bv) : nbits(bv.nbits), nset(bv.nset),
-	active(bv.active), m_vec(bv.m_vec) {};
+    /// Shallow copy.
+    bitvector(const bitvector& bv);
     bitvector(const array_t<word_t>& arr);
     bitvector(const char* file); ///< Read the content of the named file.
     inline const bitvector& operator=(const bitvector& bv);
@@ -1097,59 +1096,6 @@ inline double ibis::bitvector::markovSize(word_t nb, word_t nc, double f) {
     }
     return sz*sizeof(word_t);
 } // end ibis::bitvector::markovSize
-
-/// Construct a bitvector from an array.  Because the array copy
-/// constructor performs shallow copy, this bitvector is not using any new
-/// space.
-inline ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
-    : nbits(0), nset(0), m_vec(arr) {
-    if (m_vec.size() > 1) { // non-trivial size
-	if (m_vec.back() > 0) { // has active bits
-	    if (m_vec.back() < MAXBITS) {
-		active.nbits = m_vec.back();
-		m_vec.pop_back();
-		active.val = m_vec.back();
-	    }
-	    else {
-		ibis::util::logMessage
-		    ("Error", "the serialized version of bitvector contains "
-		     "an unexpected last word (0x%.8lx)",
-		     static_cast<long unsigned>(m_vec.back()));
-#if defined(_DEBUG)
-		{ // print the array out
-		    word_t nb = 0;
-		    ibis::util::logger lg(4);
-		    lg.buffer() << "bitvector constructor received an array["
-				<< arr.size()
-				<< "] with the following values:";
-		    for (word_t i = 0; i < arr.size(); ++ i) {
-			if (arr[i] < HEADER0)
-			    nb += MAXBITS;
-			else
-			    nb += (arr[i] & MAXCNT) * MAXBITS;
-			lg.buffer() << "\n" << i << ",\t0x" << std::hex
-				    << std::setw(8) << std::setfill('0')
-				    << arr[i] << std::dec << "\tnb=" << nb;
-		    }
-		}
-// 		throw ibis::bad_alloc("bitvector -- the input is not a "
-// 				      "serialized bitvector");
-#endif
-	    }
-	}
-	else {
-	    active.reset();
-	}
-	m_vec.pop_back();
-
-#if defined(WAH_CHECK_SIZE)
-	nbits = do_cnt(); // count the number of bits
-#endif
-    }
-    else { // a one-word bitvector can only be an empty one
-	clear();
-    }
-} // ctor from array_t
 
 inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
     if (ind < nbits) { // in regular words

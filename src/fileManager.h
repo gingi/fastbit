@@ -516,7 +516,7 @@ ibis::fileManager::increaseUse(size_t inc, const char* evt) {
     if (inc > 0) {
 	ibis::fileManager::totalBytes += inc;
 	LOGGER(evt && ibis::gVerbose > 9)
-	    << evt << " -- increased totalBytes to "
+	    << evt << " added " << inc << " to increase totalBytes to "
 	    << ibis::fileManager::totalBytes();
     }
 } // ibis::fileManager::increaseUse
@@ -526,7 +526,7 @@ ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
     if (dec > 0) {
 	ibis::fileManager::totalBytes -= dec;
 	LOGGER(evt && ibis::gVerbose > 9)
-	    << evt << " -- decreased totalBytes to "
+	    << evt << " removed " << dec << " to decrease totalBytes to "
 	    << ibis::fileManager::totalBytes();
     }
 } // ibis::fileManager::decreaseUse

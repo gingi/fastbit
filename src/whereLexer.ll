@@ -22,6 +22,7 @@ typedef ibis::whereParser::token_type token_type;
 %option c++
 %option stack
 %option nounistd
+ /*%option noyywrap*/
 %option never-interactive
 %option prefix="_whereLexer_"
  /*%option case-insensitive*/

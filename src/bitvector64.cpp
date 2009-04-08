@@ -3228,7 +3228,7 @@ ibis::bitvector64::const_iterator::operator+=(int64_t incr) {
 		}
 	    }
 	    if (incr0 < 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::bitvector64::const_iterator::"
 			  << "operator+=(" << incr
 			  << ") passes the beginning of the bit sequence";
@@ -3253,7 +3253,7 @@ ibis::bitvector64::const_iterator::operator+=(int64_t incr) {
 		}
 	    }
 	    if (incr1 > 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::bitvector64::const_iterator::"
 			  << "operator+=(" << incr
 			  << ") passes the end of the bit sequence";

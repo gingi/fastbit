@@ -40,7 +40,7 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
 
     if (ibis::gVerbose > 4 && (ind.size() == col->partition()->nRows() ||
 			       inddes >= 0)) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // constructor
@@ -62,7 +62,7 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
 //     }
 
 //     if (ibis::gVerbose > 4) {
-// 	ibis::util::logger lg(4);
+// 	ibis::util::logger lg;
 // 	print(lg.buffer());
 //     }
 // } // constructor
@@ -75,7 +75,7 @@ ibis::roster::roster(const ibis::column* c,
 		     uint32_t offset)
     : col(c), ind(st, offset, c->partition()->nRows()), inddes(-1) {
     if (ibis::gVerbose > 8) {
-	ibis::util::logger lg(8);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 }
@@ -900,7 +900,7 @@ void ibis::roster::icSort(const char* fin) {
 	col->logWarning("roster", "no need for a separate index");
 	break;}
     default: {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "roster -- unable to create a roster list for ";
 	col->print(lg.buffer());
 	break;}
@@ -917,7 +917,7 @@ void ibis::roster::icSort(const char* fin) {
     }
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::roster::icSort
@@ -1341,7 +1341,7 @@ void ibis::roster::oocSort(const char *fin) {
     }
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 
@@ -2308,7 +2308,7 @@ uint32_t ibis::roster::locate(const double& v) const {
 	break;
     }
     default: {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "Warning -- column[" << col->partition()->name() << "."
 		    << col->name()
 		    << "]::roster -- no roster list for column type "

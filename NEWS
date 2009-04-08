@@ -1,3 +1,20 @@
+Tue Apr  7 21:44:08 PDT 2009
+Version ibis1.0.6
+-- implement functions to work with sorted data, add flags to indicate a
+   data column is sorted (a feature requested by Prabhat and Oliver
+   Ruebel)
+-- add functions to computed weighted histograms (a feature requested by
+   Oliver Ruebel)
+-- add ibis::countQuery as a simplified version of ibis::query
+-- extend ibis.cpp to exercise the new functions
+-- clean up some of the printing functions
+-- update error handling functions
+-- correct a bug in ibis::fileManager::buffer that records the wrong
+   size.  This causes FastBit to mismanage memory.
+-- change the definition of ibis::util::counter to use macro
+   HAVE_GCC_ATOMIC32 (to address a problem reported by Andrey Kolchanov)
+-- correct usage problems with olddesc in ibis::tafel::write
+
 Mon Mar  9 17:03:43 PDT 2009
 Version ibis1.0.5
 -- add FastBitStringReader, FastBitStringWriter and their assocaited
@@ -234,7 +251,7 @@ Version b0.8.7
 Sun Mar  9 07:52:50 PDT 2008
 Version b0.8.6
 -- add ibis::part::get1DDistribution and ibis::part::get2DDistribution
-   that accept user specified number of bins (Requested by Oliver Rubel
+   that accept user specified number of bins (Requested by Oliver Ruebel
    and Prabhat)
 -- fix bugs in two-level indexes that cause dead-locks and wrong answers
 

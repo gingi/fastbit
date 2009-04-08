@@ -1,3 +1,30 @@
+2009-04-07 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp:1714 need to multiply by sizeof(T) when
+	recording the size of the buffer.  This error was causing the file
+	manager to incorrectly counting the number of bytes in memory and
+	causing the it to attempt to free memory that are not there.  Have
+	confirmed with valgrind that there is actually no memory leak at
+	this time.
+	* src/util.h:58&65 Andrey Kolchanov report that on MacOS gcc 4
+	does not yet support atomic operations.  In class util::counter,
+	make use of macro HAVE_GCC_ATOMIC32 instead of relying on GCC
+	version to avoid the problem reported by Andrey
+	* src/util.cpp: re-enable printing of leading space in the
+	constructor of ibis::util::logger class as indicated in the
+	documentation of the function, remove extra parameters to most of
+	the invocations of the constructor of logger
+
+2009-04-06 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: add two more try-catch blocks to make a
+	total of eight layers as promised in the documentation of the
+	constructor if ibis::fileManager::buffer
+	* src/qExpr.h: add constructor for ibis::qDiscreteRange to make
+	use of array_t<double>
+
+2009-04-04 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: in tafel::write reusing the variable olddesc
+	causes incorrect description to be printed at the end
+
 2009-04-03 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.h: add reserveSpace to ibis::tablex.
 	* src/tafel.cpp: add LOGGER statements before all statements that
@@ -105,7 +132,7 @@
 	function find is similar to STL function lower_bound
 
 2009-03-23 John Wu <John.Wu at ACM.org>
-	* src/table.h: add function getColumnAsDouble that returns the
+	* src/table.h: add function getColumnAsDoubles that returns the
 	values in std::vector<double>
 	* examples/ibis.cpp: add code in tableSelect to directly generate
 	ibis::qDiscreteRange query expression (reuse the verify_rid flag

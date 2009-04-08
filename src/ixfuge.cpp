@@ -32,7 +32,7 @@ ibis::fuge::fuge(const ibis::column *c, const char *f)
 	    coarsen();
     }
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // ibis::fuge::fuge
@@ -53,7 +53,7 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
 	coffsets.clear();
     }
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // copy from ibis::bin
@@ -557,7 +557,7 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     const uint32_t c0 = cbounds.find(hit0);
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::fuge::evaluate(" << expr << ") hit0=" << hit0
 		  << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
@@ -763,7 +763,7 @@ void ibis::fuge::coarsen() {
     for (unsigned i = ncoarse-1; i > 0 && cbounds[i+1] < cbounds[i]; -- i)
 	cbounds[i] = cbounds[i+1] - 1;
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg(2);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::fuge::coarsen will divide " << bits.size()
 		  << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)

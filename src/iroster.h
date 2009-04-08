@@ -135,8 +135,8 @@ inline uint32_t ibis::roster::operator[](uint32_t i) const {
 	tmp = ind[i];
     }
     else if (inddes >= 0) {
-	UnixSeek(inddes, i*sizeof(uint32_t), SEEK_SET);
-	UnixRead(inddes, &tmp, sizeof(uint32_t));
+	(void) UnixSeek(inddes, i*sizeof(uint32_t), SEEK_SET);
+	(void) UnixRead(inddes, &tmp, sizeof(uint32_t));
     }
     else {
 	LOGGER(ibis::gVerbose > 0)

@@ -30,7 +30,7 @@ ibis::bak::bak(const ibis::column* c, const char* f) : ibis::bin() {
 	    optionalUnpack(bits, col->indexSpec());
 
 	    if (ibis::gVerbose > 4) {
-		ibis::util::logger lg(4);
+		ibis::util::logger lg;
 		print(lg.buffer());
 	    }
 	}
@@ -417,7 +417,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 			    (bmap.size() > 1 ? "s" : ""));
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg(6);
+	    ibis::util::logger lg;
 	    printMap(lg.buffer(), bmap);
 	}
     }
@@ -647,7 +647,7 @@ long ibis::bak::append(const char* dt, const char* df, uint32_t nnew) {
     write(dt); // record the new index
 
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg(2);
+	ibis::util::logger lg;
 	print(lg.buffer());
     }
     return nnew;

@@ -9,7 +9,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 34
+#define YY_FLEX_SUBMINOR_VERSION 35
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -187,13 +187,6 @@ extern int yyleng;
 	while ( 0 )
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
-
-/* The following is because we cannot portably get our hands on size_t
- * (without autoconf's help, which isn't available because we want
- * flex-generated scanners to compile on their own).
- * Given that the standard has decreed that size_t exists since 1989,
- * I guess we can afford to depend on it. Manoj.
- */
 
 #ifndef YY_TYPEDEF_YY_SIZE_T
 #define YY_TYPEDEF_YY_SIZE_T
@@ -481,9 +474,10 @@ typedef ibis::selectParser::token_type token_type;
 #define YY_USER_ACTION  yylloc->columns(yyleng);
 /* Flex declarations and options */
 #define YY_NO_UNISTD_H 1
+/*%option noyywrap*/
 /* regular expressions used to shorten the definitions 
 */
-#line 487 "selectLexer.cc"
+#line 481 "selectLexer.cc"
 
 #define INITIAL 0
 
@@ -583,13 +577,13 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 35 "selectLexer.ll"
+#line 36 "selectLexer.ll"
 
 
     yylloc->step();
 
 		   /* section defining the tokens */
-#line 593 "selectLexer.cc"
+#line 587 "selectLexer.cc"
 
 	if ( !(yy_init) )
 		{
@@ -670,83 +664,83 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 40 "selectLexer.ll"
+#line 41 "selectLexer.ll"
 {return token::BITOROP;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 41 "selectLexer.ll"
+#line 42 "selectLexer.ll"
 {return token::BITANDOP;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 42 "selectLexer.ll"
+#line 43 "selectLexer.ll"
 {return token::MINUSOP;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 43 "selectLexer.ll"
+#line 44 "selectLexer.ll"
 {return token::EXPOP;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 44 "selectLexer.ll"
+#line 45 "selectLexer.ll"
 {return token::ADDOP;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 45 "selectLexer.ll"
+#line 46 "selectLexer.ll"
 {return token::MULTOP;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 46 "selectLexer.ll"
+#line 47 "selectLexer.ll"
 {return token::DIVOP;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 47 "selectLexer.ll"
+#line 48 "selectLexer.ll"
 {return token::REMOP;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 48 "selectLexer.ll"
+#line 49 "selectLexer.ll"
 {return token::EXPOP;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 49 "selectLexer.ll"
+#line 50 "selectLexer.ll"
 {return token::ASOP;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 50 "selectLexer.ll"
+#line 51 "selectLexer.ll"
 {return token::AVGOP;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 51 "selectLexer.ll"
+#line 52 "selectLexer.ll"
 {return token::MAXOP;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 52 "selectLexer.ll"
+#line 53 "selectLexer.ll"
 {return token::MINOP;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 53 "selectLexer.ll"
+#line 54 "selectLexer.ll"
 {return token::SUMOP;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 54 "selectLexer.ll"
+#line 55 "selectLexer.ll"
 {return token::CNTOP;}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 56 "selectLexer.ll"
+#line 57 "selectLexer.ll"
 { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -758,7 +752,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 65 "selectLexer.ll"
+#line 66 "selectLexer.ll"
 { /* a floating-point number */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -770,7 +764,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 74 "selectLexer.ll"
+#line 75 "selectLexer.ll"
 { /* a hexidacimal string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -783,22 +777,22 @@ YY_RULE_SETUP
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 83 "selectLexer.ll"
+#line 84 "selectLexer.ll"
 ; /* do nothing for blank space */
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 85 "selectLexer.ll"
+#line 86 "selectLexer.ll"
 { /* pass the character to the parser as a token */
     return static_cast<token_type>(*yytext);
 }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 89 "selectLexer.ll"
+#line 90 "selectLexer.ll"
 ECHO;
 	YY_BREAK
-#line 802 "selectLexer.cc"
+#line 796 "selectLexer.cc"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1697,7 +1691,7 @@ void _selectLexer_free (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 89 "selectLexer.ll"
+#line 90 "selectLexer.ll"
 
 
 /* additional c++ code to complete the definition of class selectLexer */

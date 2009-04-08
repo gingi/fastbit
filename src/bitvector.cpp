@@ -27,8 +27,94 @@ const ibis::bitvector::word_t ibis::bitvector::HEADER0 =
 const ibis::bitvector::word_t ibis::bitvector::HEADER1 =
 (3U << ibis::bitvector::SECONDBIT);
 
+///  Creates a new empty bitvector.
+ibis::bitvector::bitvector() : nbits(0), nset(0), active(), m_vec() {
+    LOGGER(ibis::gVerbose > 9)
+	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec);
+} // ctor default
+
+/// Underlying storage is reference counted.
+ibis::bitvector::bitvector(const bitvector& bv)
+    : nbits(bv.nbits), nset(bv.nset), active(bv.active), m_vec(bv.m_vec) {
+    LOGGER(ibis::gVerbose > 9)
+	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec)
+	<< " as a copy of " << static_cast<const void*>(&bv)
+	<< " with m_vec at " << static_cast<const void*>(&(bv.m_vec));
+}
+
+/// Construct a bitvector from an array.  Because the array copy
+/// constructor performs shallow copy, this bitvector is not using any new
+/// space.
+ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
+    : nbits(0), nset(0), m_vec(arr) {
+    if (m_vec.size() > 1) { // non-trivial size
+	if (m_vec.back() > 0) { // has active bits
+	    if (m_vec.back() < MAXBITS) {
+		active.nbits = m_vec.back();
+		m_vec.pop_back();
+		active.val = m_vec.back();
+	    }
+	    else {
+		ibis::util::logMessage
+		    ("Error", "the serialized version of bitvector contains "
+		     "an unexpected last word (0x%.8lx)",
+		     static_cast<long unsigned>(m_vec.back()));
+#if defined(_DEBUG)
+		{ // print the array out
+		    word_t nb = 0;
+		    ibis::util::logger lg(4);
+		    lg.buffer() << "bitvector constructor received an array["
+				<< arr.size()
+				<< "] with the following values:";
+		    for (word_t i = 0; i < arr.size(); ++ i) {
+			if (arr[i] < HEADER0)
+			    nb += MAXBITS;
+			else
+			    nb += (arr[i] & MAXCNT) * MAXBITS;
+			lg.buffer() << "\n" << i << ",\t0x" << std::hex
+				    << std::setw(8) << std::setfill('0')
+				    << arr[i] << std::dec << "\tnb=" << nb;
+		    }
+		}
+// 		throw ibis::bad_alloc("bitvector -- the input is not a "
+// 				      "serialized bitvector");
+#endif
+	    }
+	}
+	else {
+	    active.reset();
+	}
+	m_vec.pop_back();
+
+#if defined(WAH_CHECK_SIZE)
+	nbits = do_cnt(); // count the number of bits
+#endif
+    }
+    else { // a one-word bitvector can only be an empty one
+	clear();
+    }
+    LOGGER(ibis::gVerbose > 9)
+	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec)
+	<< " based on an array_t<word_t> at " << static_cast<const void*>(&arr)
+	<< " with m_begin at " << static_cast<const void*>(arr.begin());
+} // ctor from array_t
+
 ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
-    try {read(file);} catch(...) {/*return empty bitvector*/}
+    if (file == 0 || *file == 0) return;
+
+    try {
+	read(file);
+	LOGGER(ibis::gVerbose > 9)
+	    << "bitvector constructed with m_vec at "
+	    << static_cast<void*>(&m_vec)
+	    << " by reading file " << file;
+    }
+    catch(...) {
+	LOGGER(ibis::gVerbose > 9)
+	    << "bitvector constructed with m_vec at "
+	    << static_cast<void*>(&m_vec);
+	/*return empty bitvector*/
+    }
 } // ctor from file
 
 // set a bitvector to contain n bits of val
@@ -1561,21 +1647,21 @@ void ibis::bitvector::read(const char * fn) {
     nbits = do_cnt();
     // some integrity check here
     if (nbits % MAXBITS) {
-	ibis::util::logger lg(-1);
+	ibis::util::logger lg(4);
 	lg.buffer() << " Error *** ibis::bitvector::nbits(" << nbits
 		    << ") is expected to be multiples of "
 		    << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
-	ibis::util::logger lg(-1);
+	ibis::util::logger lg(4);
 	lg.buffer() << " Error *** ibis::bitvector::nset (" << nset
 		    << ") is expected to be not greater than "
 		    << nbits+active.nbits << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
-	ibis::util::logger lg(-1);
+	ibis::util::logger lg(4);
 	lg.buffer() << " Error *** ibis::bitvector::active::nbits ("
 		    << active.nbits << ") is expected to be less than "
 		    << MAXBITS << ", but it is not.";
@@ -1620,7 +1706,7 @@ void ibis::bitvector::write(const char * fn) const {
 #if defined(WAH_CHECK_SIZE)
     word_t nb = (nbits > 0 ? do_cnt() : nbits);
     if (nb != nbits) {
-	ibis::util::logger lg(-1);
+	ibis::util::logger lg(4);
 	print(lg.buffer());
 	lg.buffer() << "Error ibis::bitvector::write() the value returned by "
 		    << "do_cnt() (" << nb << ") is different from nbits ("
@@ -1692,7 +1778,7 @@ void ibis::bitvector::write(int out) const {
 #if defined(WAH_CHECK_SIZE)
     word_t nb = (nbits > 0 ? do_cnt() : nbits);
     if (nb != nbits) {
-	ibis::util::logger lg(-1);
+	ibis::util::logger lg(4);
 	lg.buffer() << "Error ibis::bitvector::write() the value returned by "
 		    << "do_cnt() (" << nb << ") is different from nbits ("
 		    << nbits << ")\n" << "Reset nbits to " << nb;
@@ -2825,7 +2911,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
 
     if (y.it != rhs.m_vec.end()) {
 	{
-	    ibis::util::logger lg(-1);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "Bitvector 1\n" << *this << "\n Bitvector 2\n"
 			<< rhs << "\nXOR result so far\n" << res;
 	}
@@ -3843,7 +3929,7 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		}
 	    }
 	    if (incr0 < 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer()
 		    << " Error *** ibis::bitvector::iterator::operator+=("
 		    << incr << ") passes the beginning of the "
@@ -3869,7 +3955,7 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		}
 	    }
 	    if (incr1 > 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer()
 		    << " Error *** ibis::bitvector::iterator::operator+=("
 		    << incr << ") passes the end of the "
@@ -3939,7 +4025,7 @@ ibis::bitvector::const_iterator::operator+=(int incr) {
 		}
 	    }
 	    if (incr0 < 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::bitvector::const_iterator::"
 			    << "operator+=(" << incr
 			    << ") passes the beginning of the bit sequence";
@@ -3964,7 +4050,7 @@ ibis::bitvector::const_iterator::operator+=(int incr) {
 		}
 	    }
 	    if (incr1 > 0) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::bitvector::const_iterator::"
 			    << "operator+=(" << incr
 			    << ") passes the end of the bit sequence";

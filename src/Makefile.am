@@ -10,8 +10,8 @@ EXTRA_DIST=whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy Doxyfile
 
 # use a useless print statement to prevent the use of implicit rule
 # to generating executable named predicate
-parsers: whereLexer.cc whereParser.cc
-	@echo Updated whereLexer.cc and whereParser.cc
+parsers: whereLexer.cc whereParser.cc selectLexer.cc selectParser.cc
+	@echo Updated selectLexer.cc selectParser.cc whereLexer.cc and whereParser.cc
 
 docs: Doxyfile
 	perl -pi -e 's/(PROJECT_NUMBER\s*=\s*).+/\1$(PACKAGE_VERSION)/' Doxyfile

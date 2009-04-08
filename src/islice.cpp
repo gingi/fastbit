@@ -27,7 +27,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	    construct2(f);
 	}
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -62,7 +62,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
     try {
 	activate(); // always activate all bitvectors
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -440,7 +440,7 @@ void ibis::slice::construct1(const char* f) {
 
     // write out the current content to standard output
     if (ibis::gVerbose > 4) {
- 	ibis::util::logger lg(4);
+ 	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::slice::construct1

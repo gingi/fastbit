@@ -707,6 +707,7 @@ typedef ibis::whereParser::token_type token_type;
 #define YY_USER_ACTION  yylloc->columns(yyleng);
 /* Flex declarations and options */
 #define YY_NO_UNISTD_H 1
+/*%option noyywrap*/
 /*%option case-insensitive*/
 /* regular expressions used to shorten the definitions 
 
@@ -718,7 +719,7 @@ NAME	{ALPHA}((->)?[{DIGIT}{ALPHA}:.]+)*(\[[^\]]+\])?
 this version works -- guess I can not use {ALPHA}
 NAME	[_a-zA-Z]((->)?[_a-zA-Z0-9.:\[\]]+)*
 */
-#line 722 "whereLexer.cc"
+#line 723 "whereLexer.cc"
 
 #define INITIAL 0
 
@@ -818,13 +819,13 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 45 "whereLexer.ll"
+#line 46 "whereLexer.ll"
 
 
     yylloc->step();
 
 		   /* section defining the tokens */
-#line 828 "whereLexer.cc"
+#line 829 "whereLexer.cc"
 
 	if ( !(yy_init) )
 		{
@@ -905,173 +906,173 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 50 "whereLexer.ll"
+#line 51 "whereLexer.ll"
 {return token::NOTOP;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 51 "whereLexer.ll"
+#line 52 "whereLexer.ll"
 {return token::NOTOP;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 52 "whereLexer.ll"
+#line 53 "whereLexer.ll"
 {return token::LEOP;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 53 "whereLexer.ll"
+#line 54 "whereLexer.ll"
 {return token::NEQOP;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 54 "whereLexer.ll"
+#line 55 "whereLexer.ll"
 {return token::NEQOP;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 55 "whereLexer.ll"
+#line 56 "whereLexer.ll"
 {return token::LTOP;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 56 "whereLexer.ll"
+#line 57 "whereLexer.ll"
 {return token::GEOP;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 57 "whereLexer.ll"
+#line 58 "whereLexer.ll"
 {return token::GTOP;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 58 "whereLexer.ll"
+#line 59 "whereLexer.ll"
 {return token::EQOP;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 59 "whereLexer.ll"
+#line 60 "whereLexer.ll"
 {return token::EQOP;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 60 "whereLexer.ll"
+#line 61 "whereLexer.ll"
 {return token::OROP;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 61 "whereLexer.ll"
+#line 62 "whereLexer.ll"
 {return token::ANDOP;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 62 "whereLexer.ll"
+#line 63 "whereLexer.ll"
 {return token::ANDNOTOP;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 63 "whereLexer.ll"
+#line 64 "whereLexer.ll"
 {return token::ANDNOTOP;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 64 "whereLexer.ll"
+#line 65 "whereLexer.ll"
 {return token::BITOROP;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 65 "whereLexer.ll"
+#line 66 "whereLexer.ll"
 {return token::BITANDOP;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 66 "whereLexer.ll"
+#line 67 "whereLexer.ll"
 {return token::MINUSOP;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 67 "whereLexer.ll"
+#line 68 "whereLexer.ll"
 {return token::ADDOP;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 68 "whereLexer.ll"
+#line 69 "whereLexer.ll"
 {return token::MULTOP;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 69 "whereLexer.ll"
+#line 70 "whereLexer.ll"
 {return token::DIVOP;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 70 "whereLexer.ll"
+#line 71 "whereLexer.ll"
 {return token::REMOP;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 71 "whereLexer.ll"
+#line 72 "whereLexer.ll"
 {return token::EXPOP;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 72 "whereLexer.ll"
+#line 73 "whereLexer.ll"
 {return token::EXPOP;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 73 "whereLexer.ll"
+#line 74 "whereLexer.ll"
 {return token::NOTOP;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 74 "whereLexer.ll"
+#line 75 "whereLexer.ll"
 {return token::JOINOP;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 75 "whereLexer.ll"
+#line 76 "whereLexer.ll"
 {return token::INOP;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 76 "whereLexer.ll"
+#line 77 "whereLexer.ll"
 {return token::OROP;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 77 "whereLexer.ll"
+#line 78 "whereLexer.ll"
 {return token::ANDOP;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 78 "whereLexer.ll"
+#line 79 "whereLexer.ll"
 {return token::ANYOP;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 79 "whereLexer.ll"
+#line 80 "whereLexer.ll"
 {return token::XOROP;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 80 "whereLexer.ll"
+#line 81 "whereLexer.ll"
 {return token::ANDNOTOP;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 81 "whereLexer.ll"
+#line 82 "whereLexer.ll"
 {return token::ANDNOTOP;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 82 "whereLexer.ll"
+#line 83 "whereLexer.ll"
 {return token::BETWEENOP;}
 	YY_BREAK
 case 34:
 /* rule 34 can match eol */
 YY_RULE_SETUP
-#line 84 "whereLexer.ll"
+#line 85 "whereLexer.ll"
 { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1083,7 +1084,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 93 "whereLexer.ll"
+#line 94 "whereLexer.ll"
 { /* a floating-point number */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1095,7 +1096,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 102 "whereLexer.ll"
+#line 103 "whereLexer.ll"
 { /* a hexidacimal string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1108,7 +1109,7 @@ YY_RULE_SETUP
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 111 "whereLexer.ll"
+#line 112 "whereLexer.ll"
 { /* a quoted string literal */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1121,7 +1122,7 @@ YY_RULE_SETUP
 case 38:
 /* rule 38 can match eol */
 YY_RULE_SETUP
-#line 120 "whereLexer.ll"
+#line 121 "whereLexer.ll"
 { /* a number series */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1134,7 +1135,7 @@ YY_RULE_SETUP
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 129 "whereLexer.ll"
+#line 130 "whereLexer.ll"
 {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1147,22 +1148,22 @@ YY_RULE_SETUP
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 138 "whereLexer.ll"
+#line 139 "whereLexer.ll"
 ; /* do nothing for blank space */
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 140 "whereLexer.ll"
+#line 141 "whereLexer.ll"
 { /* pass the character to the parser as a token */
     return static_cast<token_type>(*yytext);
 }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 144 "whereLexer.ll"
+#line 145 "whereLexer.ll"
 ECHO;
 	YY_BREAK
-#line 1166 "whereLexer.cc"
+#line 1167 "whereLexer.cc"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2061,7 +2062,7 @@ void _whereLexer_free (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 144 "whereLexer.ll"
+#line 145 "whereLexer.ll"
 
 
 /* additional c++ code to complete the definition of class whereLexer */

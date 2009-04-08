@@ -22,6 +22,7 @@ typedef ibis::selectParser::token_type token_type;
 %option c++
 %option stack
 %option nounistd
+ /*%option noyywrap*/
 %option never-interactive
 %option prefix="_selectLexer_"
 

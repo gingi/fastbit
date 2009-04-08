@@ -45,7 +45,7 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
 	}
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::mensa -- constructed table "
 		    << name_ << " (" << desc_ << ") from ";
 	if (dir != 0 && *dir != 0)

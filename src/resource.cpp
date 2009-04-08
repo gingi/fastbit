@@ -22,7 +22,8 @@ const char* ibis::resource::delimiters = "*:.";
 /// - (2) environment variable IBISRC,
 /// - (3) file named ibis.rc in the current directory,
 /// - (4) file named .ibisrc in the current directory,
-/// - (5) file named .ibisrc in the user's home directory.
+/// - (5) file named .ibisrc in the user's home directory (if the
+///       environment variable HOME is defined).
 ///
 /// It will attempt to parse the content of the first file it finds.  The
 /// content of the file is parsed and added to the current content of the
@@ -376,7 +377,7 @@ void ibis::resource::parseNameValuePairs(const char *in,
 	}
     } // while ((tmp = strchr(str, '=')) != 0)
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(3);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::resource::parseNameValuePairs() converted \""
 		    << in << "\" into " << lst.size() << " name-value pairs";
 	for (vList::const_iterator it = lst.begin();
@@ -461,12 +462,12 @@ void ibis::resource::write(const char* fn) const {
 	    out.close();
 	}
 	else if (ibis::gVerbose > -1) {
-	    ibis::util::logger lg(ibis::gVerbose - 1);
+	    ibis::util::logger lg;
 	    write(lg.buffer());
 	}
     }
     else if (ibis::gVerbose > -1) {
-	ibis::util::logger lg(ibis::gVerbose - 1);
+	ibis::util::logger lg;
 	write(lg.buffer());
     }
 } // ibis::resource::write

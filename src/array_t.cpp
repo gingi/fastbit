@@ -12,6 +12,7 @@
 #endif
 #include "array_t.h"
 #include "util.h"
+#include <typeinfo>	// typeid
 
 // When the number of elements in an array to be sorted by qsort is less
 // than QSORT_MIN, the insert sort routine will be used.
@@ -32,10 +33,16 @@ array_t<T>::array_t()
 	m_begin = reinterpret_cast<T*>(actual->begin());
 	m_end = m_begin;
 	actual->beginUse();
+	LOGGER(ibis::gVerbose > 9)
+	    << "array_t<" << typeid(T).name() << "> constructed at "
+	    << static_cast<void*>(this) << " with actual="
+	    << static_cast<void*>(actual) << " and m_begin="
+	    << static_cast<void*>(m_begin);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t<T> failed to allocate an empty array";
+	    << "Warning -- array_t<" << typeid(T).name()
+	    << "> failed to allocate an empty array";
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
 }
@@ -49,10 +56,17 @@ array_t<T>::array_t(uint32_t n)
 	m_begin = reinterpret_cast<T*>(actual->begin());
 	m_end = m_begin + n;
 	actual->beginUse();
+	LOGGER(ibis::gVerbose > 9)
+	    << "array_t<" << typeid(T).name() << "> constructed at "
+	    << static_cast<void*>(this) << " with " << n << "element"
+	    << (n>1?"s":"") << ", actual="
+	    << static_cast<void*>(actual) << " and m_begin="
+	    << static_cast<void*>(m_begin);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t<T> failed to allocate an array with "
+	    << "Warning -- array_t<" << typeid(T).name()
+	    << "> failed to allocate an array with "
 	    << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
@@ -70,10 +84,17 @@ array_t<T>::array_t(uint32_t n, const T& val)
 	for (uint32_t i=0; i<n; ++i) {
 	    m_begin[i] = val;
 	}
+	LOGGER(ibis::gVerbose > 9)
+	    << "array_t<" << typeid(T).name() << "> constructed at "
+	    << static_cast<void*>(this) << " with " << n << "element"
+	    << (n>1?"s":"") << " of " << val << ", actual="
+	    << static_cast<void*>(actual) << " and m_begin="
+	    << static_cast<void*>(m_begin);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t<T> failed to allocate memory for copying "
+	    << "Warning -- array_t<" << typeid(T).name()
+	    << "> failed to allocate memory for copying "
 	    << n << " element" << (n > 1 ? "s" : "");
 	throw ibis::bad_alloc("array_t<T>::ctor failed");
     }
@@ -86,6 +107,12 @@ array_t<T>::array_t(const array_t<T>& rhs)
     if (actual != 0)
 	actual->beginUse();
     //timer.start();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", copied from "
+	<< static_cast<const void*>(&rhs);
 }
 
 /// A shallow copy constructor.  It makes a new array out of a section of
@@ -99,6 +126,13 @@ array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
     if (actual != 0)
 	actual->beginUse();
     //timer.start();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", copied " << nelm << " element"
+	<< (nelm>1?"s":"") << " from " << static_cast<const void*>(&rhs)
+	<< " starting with offset " << offset;
 }
 
 /// Turn a raw storage object into an array_t object.  The input storage
@@ -129,6 +163,13 @@ array_t<T>::array_t(ibis::fileManager::storage* rhs,
 	}
 	actual->beginUse();
     }
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", representing " << nelm
+	<< " element" << (nelm>1?"s":"") << " from "
+	<< static_cast<const void*>(rhs) << " starting with offset " << start;
 }
 
 /// Construct a new array by reading a part of a binary file.  The argument
@@ -147,6 +188,12 @@ array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
     if (actual)
 	actual->beginUse();
     //timer.start();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", content from file descriptor "
+	<< fdes << " beginning at " << begin << " ending at " << end;
 }
 
 template<class T>
@@ -160,6 +207,12 @@ array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
     }
     if (actual)
 	actual->beginUse();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", content from file " << fn
+	<< " beginning at " << begin << " ending at " << end;
 }
 
 /// Assignment operator.  It performs a shallow copy.
@@ -1045,7 +1098,7 @@ void array_t<T>::reserve(uint32_t n) {
 	    }
 	    else {
 		m_end = 0; m_begin = 0;
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << "array_t::reserve: unable to allocate " << n
 			    << ' ' << sizeof(T) << "-byte elements";
 		if (n1) lg.buffer() << ", lost previous content of "

@@ -772,7 +772,7 @@ long ibis::part::append1(const char *dir) {
 		   "columns", static_cast<long unsigned>(nEvents),
 		   static_cast<long unsigned>(columns.size()));
 	if (ibis::gVerbose > 3) {
-	    ibis::util::logger lg(3);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -902,7 +902,7 @@ long ibis::part::append2(const char *dir) {
 		   static_cast<long unsigned>(nEvents),
 		   static_cast<long unsigned>(columns.size()));
 	if (ibis::gVerbose > 3) {
-	    ibis::util::logger lg(3);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -964,7 +964,7 @@ long ibis::part::rollback() {
 		       "columns", static_cast<long unsigned>(nEvents),
 		       static_cast<long unsigned>(columns.size()));
 	    if (ibis::gVerbose > 3) {
-		ibis::util::logger lg(3);
+		ibis::util::logger lg;
 		print(lg.buffer());
 	    }
 	}
@@ -1185,7 +1185,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	}
     }
     if (ibis::gVerbose > 6) {
-	ibis::util::logger lg(6);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::part::appendToBackup -- The combined (new) "
 	    "attribute list (" << clist.size() << ")\n";
 	for (cit = clist.begin(); cit != clist.end(); ++cit)

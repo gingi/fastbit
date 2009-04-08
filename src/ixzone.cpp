@@ -160,7 +160,7 @@ ibis::zone::zone(const ibis::bin& rhs) {
 	}
 
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -187,7 +187,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 		 nobs+1);
 #ifdef DEBUG
 	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(5);
+	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: ibis::zone::zone("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ") -- offsets of subranges\n";
@@ -207,7 +207,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
@@ -317,7 +317,7 @@ int ibis::zone::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
 #if defined(DEBUG)
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::zone::write(" << col->name() << ", "
 		    << start << ") -- offsets of the file levels\n";
 	for (i=0; i<=nobs; ++i)
@@ -428,7 +428,7 @@ int ibis::zone::read(const char* f) {
 #if defined(DEBUG)
     array_t<int32_t> nextlevel(fdes, begin, end);
     if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(3);
+	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::zone::read(";
 	if (fname)
 	    lg.buffer() << fname;
@@ -487,7 +487,7 @@ int ibis::zone::read(const char* f) {
     if (nextlevel[0] > nextlevel[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::zone::read(";
 	    if (fname)
 		lg.buffer() << fname;
@@ -517,7 +517,7 @@ int ibis::zone::read(const char* f) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(-1);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::zone::read(";
 		if (fname)
 		    lg.buffer() << fname;
@@ -552,7 +552,7 @@ int ibis::zone::read(ibis::fileManager::storage* st) {
     if (offs[0] > offs[nobs]) {
 	clear();
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(4);
+	    ibis::util::logger lg;
 	    lg.buffer() << " Error *** ibis::zone::read(";
 	    if (st->unnamed())
 		lg.buffer() << static_cast<void*>(st->begin());
@@ -580,7 +580,7 @@ int ibis::zone::read(ibis::fileManager::storage* st) {
 	}
 	else {
 	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg(4);
+		ibis::util::logger lg;
 		lg.buffer() << " Error *** ibis::zone::read(";
 		if (st->filename())
 		    lg.buffer() << st->filename();

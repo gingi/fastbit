@@ -104,7 +104,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	double t2 = timer.realTime();
-	ibis::util::logger lg(3);
+	ibis::util::logger lg;
 	if (merge && dim.size() > 1 && ibis::gVerbose > 3)
 	    lg.buffer() <<"query[" << id() << "]::getHitsAsBlocks -- merging "
 			<< nold << " " << dim.size() << "-D block"
@@ -171,7 +171,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	double t2 = timer.realTime();
-	ibis::util::logger lg(3);
+	ibis::util::logger lg;
 	if (merge && shape.size() > 1 && ibis::gVerbose > 3)
 	    lg.buffer() << "query[" << id() << "]::getHitsAsBlocks -- merging "
 			<< nold << " " << shape.size() << "-D block"
@@ -1375,7 +1375,7 @@ int ibis::meshQuery::getPointsOnBoundary
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	double t2 = timer.realTime();
-	ibis::util::logger lg(3);
+	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
 	    lg.buffer()
 		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
@@ -1456,7 +1456,7 @@ int ibis::meshQuery::getPointsOnBoundary
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	double t2 = timer.realTime();
-	ibis::util::logger lg(3);
+	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
 	    lg.buffer()
 		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "

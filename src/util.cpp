@@ -1049,13 +1049,13 @@ const char* ibis::util::userName() {
 
 /// A function to output printf style message to stdout.  The message is
 /// preceeded with the current local time (as from function ctime) if the
-/// macro TIMED_LOG is defined as compile time.
+/// macro FASTBIT_TIMED_LOG is defined at the compile time.
 void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     if (ibis::gVerbose < 0) return;
 
     FILE* fptr = ibis::util::getLogFile();
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
-#if defined(TIMED_LOG)
+#if defined(FASTBIT_TIMED_LOG)
     char tstr[28];
     ibis::util::getLocalTime(tstr);
 
@@ -1072,7 +1072,7 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     fprintf(fptr, "\n");
     fflush(fptr);
 #else
-    ibis::util::logger lg(4);
+    ibis::util::logger lg;
     lg.buffer() << event << " -- " << fmt << " ...";
 #endif
 } // ibis::util::logMessage
@@ -1206,20 +1206,38 @@ int ibis::util::closeLogFile() {
     return ierr;
 } // ibis::util::closeLogFile
 
+///  The argument to this constructor is taken to be the number of spaces
+/// before the message.  When the macro FASTBIT_TIMED_LOG is defined at
+/// compile time, a time stamp is printed before the spaces.  The number of
+/// leading blanks is usually the verboseness level.  Typically, a message
+/// is formed only if the global verboseness level is higher than the level
+/// assigned to the particular message (through the use of LOGGER macro or
+/// explicit if statements).  In addition, the message is only outputed if
+/// the global verboseness level is no less than 0.
 ibis::util::logger::logger(int lvl) {
-#if defined(TIMED_LOG)
+#if defined(FASTBIT_TIMED_LOG)
     char tstr[28];
     ibis::util::getLocalTime(tstr);
     mybuffer << tster << " ";
-    if (lvl > 0) {
+#endif
+    if (lvl > 4) {
 	if (lvl > 1000) lvl = 10 + (int)sqrt(log((double)lvl));
 	else if (lvl > 8) lvl = 6 + (int)log((double)lvl);
 	for (int i = 0; i < lvl; ++ i)
 	    mybuffer << " ";
     }
-#endif
+    else if (lvl == 4) {
+	mybuffer << "    ";
+    }
+    else if (lvl == 3) {
+	mybuffer << "   ";
+    }
+    else if (lvl == 2) {
+	mybuffer << "  ";
+    }
 } // ibis::util::logger::logger
 
+///   Output the message from this function.
 ibis::util::logger::~logger() {
     const std::string& mystr = mybuffer.str();
     if (ibis::gVerbose >= 0 && ! mystr.empty()) {
@@ -1234,8 +1252,15 @@ ibis::util::logger::~logger() {
     }
 } // ibis::util::logger::~logger
 
+/// The caller must provide a message string.
+/// The message will only be printed if ibis::gVerbose is no
+/// less than lvl.
+/// @note The mesage stored in msg is copied to a string held
+/// by this object.
+/// @sa ibis::horometer
 ibis::util::timer::timer(const char* msg, int lvl) :
-    chrono_(ibis::gVerbose >= lvl ? new ibis::horometer : 0), mesg_(msg) {
+    chrono_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ?
+	    new ibis::horometer : 0), mesg_(msg) {
     if (chrono_ != 0) {
 	chrono_->start();
 	ibis::util::logger(2).buffer()
@@ -1243,11 +1268,14 @@ ibis::util::timer::timer(const char* msg, int lvl) :
     }
 } // ibis::util::timer::timer
 
+///  It reports the time used since the constructor was called.  Use
+/// ibis::horometer directly if more control on the timing information is
+/// desired.
 ibis::util::timer::~timer() {
     if (chrono_ != 0) {
 	chrono_->stop();
 	ibis::util::logger(2).buffer()
-	    << mesg_ << " --  stop timer ... duration: " << chrono_->CPUTime()
+	    << mesg_ << " -- duration: " << chrono_->CPUTime()
 	    << " sec(CPU), " << chrono_->realTime() << " sec(elapsed)";
 	delete chrono_;
     }
