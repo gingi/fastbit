@@ -43,8 +43,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
-//     virtual long evaluate(const ibis::qDiscreteRange& expr,
-// 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -423,6 +425,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -490,6 +496,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -540,6 +550,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -596,6 +610,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -645,6 +663,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -698,6 +720,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -751,6 +777,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -809,6 +839,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -872,6 +906,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -928,6 +966,10 @@ public:
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
+    virtual long evaluate(const ibis::qDiscreteRange& expr,
+			  ibis::bitvector& hits) const {
+	return ibis::index::evaluate(expr, hits);
+    }
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,

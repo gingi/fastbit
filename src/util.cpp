@@ -57,12 +57,11 @@ static FILE* ibis_util_logfilepointer = 0;
 static pthread_mutex_t ibis_util_timeLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-//
-// Return a null-terminated string from the beginning of input string str.
-// The first apparence of any character from characters in tok_chars is
-// turned into null.  The incoming argument is modified to point to the
-// first character that is not in tok_chrs.  If no character in tok_chrs is
-// found, str is returned and the first argument is changed to null.
+/// Return a null-terminated string from the beginning of input string str.
+/// The first apparence of any character from characters in tok_chars is
+/// turned into null.  The incoming argument is modified to point to the
+/// first character that is not in tok_chrs.  If no character in tok_chrs
+/// is found, str is returned and the first argument is changed to null.
 const char* ibis::util::getToken(char*& str, const char* tok_chrs) {
     const char* token = static_cast<const char*>(0);
     if (!str || !*str) return token;
@@ -78,8 +77,7 @@ const char* ibis::util::getToken(char*& str, const char* tok_chrs) {
     return token;
 }
 
-//
-// Recursivly create directory "dir".
+/// Recursivly create directory "dir".
 int ibis::util::makeDir(const char* dir) {
     Stat_T st;
     if (dir == 0 || *dir == 0) return -1;
@@ -925,6 +923,9 @@ uint32_t ibis::util::checksum(const char* str, uint32_t sz) {
     return ret;
 } // checksum for string
 
+/// Convert the incoming numbers into a base-64 alpha-numeric
+/// representation.  Three 32-bit integers can be packed int 16 base-64
+/// alphabets.
 void ibis::util::int2string(std::string& str,
 			    const std::vector<unsigned>& val) {
     uint32_t i;
@@ -946,6 +947,7 @@ void ibis::util::int2string(std::string& str,
     }
 } // ibis::util::int2string
 
+/// Pack three 32-bit integers into 16 base-64 alphabets.
 void ibis::util::int2string(std::string& str, unsigned v1, unsigned v2,
 			    unsigned v3) {
     char name[17];
@@ -969,6 +971,7 @@ void ibis::util::int2string(std::string& str, unsigned v1, unsigned v2,
     str = name;
 } // ibis::util::int2string
 
+/// Pack two 32-bit integers into 11 base-64 alphabets.
 void ibis::util::int2string(std::string& str, unsigned v1, unsigned v2) {
     char name[12];
     name[11] = (char)0;
@@ -986,6 +989,7 @@ void ibis::util::int2string(std::string& str, unsigned v1, unsigned v2) {
     str = name;
 } // ibis::util::int2string
 
+/// Pack a 32-bit integer into six base-64 alphabets.
 void ibis::util::int2string(std::string& str, unsigned val) {
     char name[7];
     name[6] = (char)0;
@@ -998,10 +1002,14 @@ void ibis::util::int2string(std::string& str, unsigned val) {
     str = name;
 } // ibis::util::int2string
 
-// return the name of the user who is running this program
+/// It attempts to retrieve the user name and store it in a local string.
+/// A global mutex lock is used to ensure that only one thread can modify
+/// the internally stored user name.  If it fails to determine the user
+/// name, it will return '<(-_-)>' as the user name.  The default user
+/// name is a long form of the robot emoticon.
 const char* ibis::util::userName() {
     static std::string uid;
-    ibis::util::mutexLock lock(&ibis::util::envLock, "(::()::)");
+    ibis::util::mutexLock lock(&ibis::util::envLock, "<(-_-)>");
 
     if (uid.empty()) {
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -1042,7 +1050,7 @@ const char* ibis::util::userName() {
 	// final fall back option, assign a fixed string that is commonly
 	// interpreted as robot
 	if (uid.empty())
-	    uid = "(::()::)";
+	    uid = "<(-_-)>";
     }
     return uid.c_str();
 } // ibis::util::userName
@@ -1206,7 +1214,7 @@ int ibis::util::closeLogFile() {
     return ierr;
 } // ibis::util::closeLogFile
 
-///  The argument to this constructor is taken to be the number of spaces
+/// The argument to this constructor is taken to be the number of spaces
 /// before the message.  When the macro FASTBIT_TIMED_LOG is defined at
 /// compile time, a time stamp is printed before the spaces.  The number of
 /// leading blanks is usually the verboseness level.  Typically, a message
@@ -1237,7 +1245,7 @@ ibis::util::logger::logger(int lvl) {
     }
 } // ibis::util::logger::logger
 
-///   Output the message from this function.
+/// Output the message and timing information from this function.
 ibis::util::logger::~logger() {
     const std::string& mystr = mybuffer.str();
     if (ibis::gVerbose >= 0 && ! mystr.empty()) {
@@ -1252,11 +1260,12 @@ ibis::util::logger::~logger() {
     }
 } // ibis::util::logger::~logger
 
-/// The caller must provide a message string.
-/// The message will only be printed if ibis::gVerbose is no
-/// less than lvl.
-/// @note The mesage stored in msg is copied to a string held
-/// by this object.
+/// The caller must provide a message string.  If ibis::gVerbose is no less
+/// than lvl, it will create an ibis::horometer object to keep the time and
+/// print a brief message from the constructor and the destructor.
+///
+/// @note The mesage stored in msg is copied to a string held by this
+/// object.
 /// @sa ibis::horometer
 ibis::util::timer::timer(const char* msg, int lvl) :
     chrono_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ?

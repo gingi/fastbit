@@ -372,8 +372,9 @@ namespace ibis {
 
 	/// Remove leading and trailing blank space.
 	inline char* trim(char* str);
-	/// duplicate string content with C++ default new operator.
+	/// Duplicate string content with C++ default new operator.
 	inline char* strnewdup(const char* s);
+	/// Duplicate no more than n characters.
 	inline char* strnewdup(const char* s, const uint32_t n);
 	/// Remove trailing character 'tail' from str.
 	inline void removeTail(char* str, char tail);
@@ -656,8 +657,10 @@ namespace ibis {
 
 	/// A simple shared counter.  Each time the operator() is called,
 	/// it is incremented by 1.  Calls from different threads are
-	/// serialized through a mutual exclusion lock if the GCC atomic
-	/// operations are not available.
+	/// serialized through a mutual exclusion lock or atomic
+	/// operations.  Currently, it only knows about atomic operations
+	/// provided by GCC and visual studio on WIN32.  The GCC automic
+	/// functions are determined in the configure script.
 	class FASTBIT_CXX_DLLSPEC counter {
 	public:
 	    ~counter() {
@@ -720,10 +723,15 @@ namespace ibis {
 	    const counter& operator=(const counter&);
 	}; // counter
 
-	/// A shared integer class that attempts to make use of the atomic
-	/// operations provided by GCC extension.  If the atomic extension
-	/// is not available, it falls back on the mutual exclusion lock
-	/// provided by pthread library.
+	/// A shared integer class.  Multiply threads may safely perform
+	/// different operations on this integer at the same time.  It
+	/// serializes the operations by using the atomic operations
+	/// provided by GCC extension.  The availability of automic
+	/// operations is indicated by whether or not the compiler macro
+	/// HAVE_GCC_ATOMIC32 is defined.  If the atomic extension is not
+	/// available, it falls back on the mutual exclusion lock provided
+	/// by pthread library.
+	///
 	/// @note The overhead of using mutual exclusion lock is large.  In
 	/// one test that acquires and release three locks a million time
 	/// each, using the locks took about 10 seconds, while using the
@@ -821,10 +829,12 @@ namespace ibis {
 	    sharedInt32& operator=(const sharedInt32&); // no assignment
 	}; // sharedInt32
 
-	/// A 64-bit shared integer class that attempts to make use of the
-	/// atomic operations provided by GCC extension.  If the atomic
-	/// extension is not available, it falls back on the mutual
-	/// exclusion lock provided by pthread library.
+	/// A 64-bit shared integer class.  It allows multiple threads to
+	/// safely operate on the integer through the use of the atomic
+	/// operations provided by GCC extension.  If the atomic extension
+	/// is not available, it falls back on the mutual exclusion lock
+	/// provided by pthread library.
+	/// @sa ibis::util::sharedInt32
 	class sharedInt64 {
 	public:
 	    sharedInt64() : val_(0) {
@@ -946,7 +956,13 @@ namespace ibis {
 
 	/// Print simply-formated timing information.  It starts the clock
 	/// in the constructor, stops the clock in the destructor, and
-	/// reports the CPU time and elapsed time in between.
+	/// reports the CPU time and elapsed time in between.  Typically
+	/// one would declare an object of this class in a block of code,
+	/// and let the object be cleaned up by compiler generated code at
+	/// the end of its scope.  Upon destruction of this object, it
+	/// prints its lifespan.  To distiguish the different time
+	/// durations, the user should provide a meaningful description to
+	/// the constructor.
 	class timer {
 	public:
 	    /// Constructor.
@@ -955,8 +971,8 @@ namespace ibis {
 	    ~timer();
 
 	private:
-	    ibis::horometer *chrono_;
-	    std::string mesg_; // has to hold a private copy of the message
+	    ibis::horometer *chrono_; ///< The actual timer object.
+	    std::string mesg_; ///< Holds a private copy of the message.
 
 	    timer(); // no default constructor
 	    timer(const timer&); // no copying
@@ -969,10 +985,12 @@ namespace ibis {
 char* getpass(const char* prompt);
 #endif
 
-/// A Linear Congruential Generator of pseudo-random numbers.
-/// The integer variable @c seed is always an odd number.  Don't use it
-/// directly.
+/// A Linear Congruential Generator of pseudo-random numbers.  It produces
+/// a floating-point in the range of [0, 1).  It is simple and fast, but
+/// does not produce high-quality random numbers, nor is it thread-safe.
 inline double ibis::util::rand() {
+    /// The internal variable @c seed is always an odd number.  Don't use
+    /// it directly.
     static uint32_t seed = 1;
     static const uint32_t alpha = 69069;
     static const double scale = ::pow(0.5, 32);
@@ -980,7 +998,7 @@ inline double ibis::util::rand() {
     return(scale * seed);
 } // ibis::util::rand
 
-/// Fletcher's checksum on two integers. Returns an integer.
+/// Fletcher's checksum on two integers.  Returns an integer.
 inline uint32_t ibis::util::checksum(uint32_t a, uint32_t b) {
     uint32_t a0 = (a >> 16);
     uint32_t a1 = (a & 0xFFFF);
@@ -989,8 +1007,8 @@ inline uint32_t ibis::util::checksum(uint32_t a, uint32_t b) {
     return ((((a0<<2)+a1*3+(b0<<1)+b1) << 16) | ((a0+a1+b0+b1) & 0xFFFF));
 } // ibis::util::checksum
 
-/// Same as strdup() but uses 'new' instead of 'malloc' and if s == 0 then
-/// the return 0
+/// Same as strdup() but uses 'new' instead of 'malloc'.  If s == 0, then
+/// it returns 0.
 inline char* ibis::util::strnewdup(const char* s) {
     char* str = 0;
     if (s!=0 && *s!=static_cast<char>(0)) {

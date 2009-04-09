@@ -203,7 +203,7 @@ under Contract No. DE-AC02-05CH11231 and DE-AC03-76SF00098.
 
 Additional information available on the web at
 <http://sdm.lbl.gov/fastbit/> or <http://lbl.gov/~kwu/fastbit/>.  Send any
-comments, bug reports and patches to <fastbit-users@hpcrdm.lbl.gov>.
+comments, bug reports, and patches to <fastbit-users@hpcrdm.lbl.gov>.
 */
 
 
@@ -227,11 +227,13 @@ namespace ibis {
     ///   .
     ///   In an RC file, one parameter occupies a line and the equal sign
     ///   "=" is required to delimit the name and the value, for example,
+    ///
     ///@verbatim
     ///   dataDir = /data/dns
     ///   cacheDir = /tmp/ibiscache
     ///@endverbatim
-    /// The minimal recommended parameters of an RC file are
+    ///
+    ///   The minimal recommended parameters of an RC file are
     ///   - dataDir, which can also be written as dataDir1 or indexDir.  It
     ///     tells ibis where to find the data to be queried.  Multiple data
     ///     directories may be specified by adding prefix to the parameter
@@ -241,13 +243,17 @@ namespace ibis {
     ///     and other purposes.
     ///
     /// @param mesgfile Name of the file to contain messages printed by
-    /// FastBit functions.  The message file (also called log file) name
-    /// may also be specified in the RF file under the key logfile, e.g.,
+    /// FastBit functions.  The message file (also called the log file)
+    /// name may also be specified in the RF file under the key logfile,
+    /// e.g.,
+    ///
     ///@verbatim
     ///   logfile = /tmp/ibis.log
     ///@endverbatim
-    /// One should call ibis::util::closeLogFile to close the log file to
-    /// ensure the content of the message properly preserved.
+    ///
+    /// One may call ibis::util::closeLogFile to close the log file,
+    /// however it is fine to leave the OS to close it upon the termination
+    /// of this program.
     inline void init(const int verbose=0, const char* rcfile=0,
 		     const char* mesgfile=0) {
 	gVerbose = verbose;
