@@ -8978,19 +8978,27 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 				  const ibis::qDiscreteRange& rng,
 				  ibis::bitvector& hits) const {
     const std::vector<double>& u = rng.getValues();
-    if ((size_t)(6.0*u.size()*std::log((double)vals.size())) >= vals.size()) {
+    std::string evt = "column::searchSortedICD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
+    hits.clear();
+    hits.reserve(vals.size(), u.size()); // reserve space
+    if ((size_t)(u.size()*std::log((double)vals.size())) >=
+	(u.size()+vals.size())) {
 	// go through the two lists to find matches
-	LOGGER(ibis::gVerbose >=5)
-	    << "column::searchSortedICD<" << typeid(T).name() << ">("
-	    << rng.colName() << " IN " << u.size()
-	    << "-element list) will march through two sorted lists";
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will march through two sorted lists";
 	size_t ju = 0;
 	size_t jv = 0;
-	hits.set(0, vals.size());
-	hits.decompress();
 	while (ju < u.size() && jv < vals.size()) {
-	    while (u[ju] < vals[jv]) ++ ju;
-	    while (u[ju] > vals[jv]) ++ jv;
+	    while (ju < u.size() && u[ju] < vals[jv]) ++ ju;
+	    while (jv < vals.size() && u[ju] > vals[jv]) ++ jv;
 	    if (u[ju] == vals[jv]) {
 		hits.setBit(jv, 1);
 		++ jv;
@@ -8999,10 +9007,8 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     }
     else {
 	// do binary search for each value in u
-	LOGGER(ibis::gVerbose >=5)
-	    << "column::searchSortedICD<" << typeid(T).name() << ">("
-	    << rng.colName() << " IN " << u.size()
-	    << "-element list) will use " << u.size()
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will use " << u.size()
 	    << " binary search" << (u.size() > 1 ? "es" : "");
 	for (size_t j = 0; j < u.size(); ++ j) {
 	    uint32_t jloc = vals.find(static_cast<T>(u[j]));
@@ -9010,8 +9016,8 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 		hits.setBit(jloc, 1);
 	    }
 	}
-	hits.adjustSize(0, vals.size());
     }
+    hits.adjustSize(0, vals.size());
     return 0;
 } // ibis::column::searchSortedICD
 
@@ -9023,12 +9029,21 @@ template<typename T>
 int ibis::column::searchSortedOOCD(const char* fname,
 				   const ibis::qDiscreteRange& rng,
 				   ibis::bitvector& hits) const {
+    const std::vector<double>& u = rng.getValues();
+    std::string evt = "column::searchSortedOOCD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
     int fdes = UnixOpen(fname, OPEN_READONLY);
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
-	    << m_name << "]::searchSortedOOCD<" << typeid(T).name() << ">("
-	    << fname << ", " << rng.colName() << " IN ...) failed to "
+	    << "Warning -- " << evt << " failed to "
 	    << "open the named data file, errno = " << errno
 	    << strerror(errno);
 	return -1;
@@ -9041,24 +9056,21 @@ int ibis::column::searchSortedOOCD(const char* fname,
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
-	    << m_name << "]::searchSortedOOCD<" << typeid(T).name() << ">("
-	    << fname << ", " << rng.colName()
-	    << " IN ...) failed to seek to the end of file";
+	    << "Warning -- " << evt << " failed to seek to the end of file";
 	(void) UnixClose(fdes);
 	return -2;
     }
     ibis::fileManager::instance().recordPages(0, ierr);
     const uint32_t nrows = ierr / sz;
-    const std::vector<double>& u = rng.getValues();
     ibis::fileManager::buffer<T> buf;
+    hits.clear();
+    hits.reserve(nrows, u.size()); // reserve space
     ierr = UnixSeek(fdes, 0, SEEK_SET); // point to the beginning of file
     if (buf.size() > 0) { // has a buffer to use
 	uint32_t ju = 0;
 	uint32_t jv = 0;
 	while (ju < u.size() &&
-	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz))
-	       > 0) {
+	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
 	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
 		while (ju < u.size() && u[ju] < buf[j]) ++ ju;
 		if (buf[j] == u[ju]) {

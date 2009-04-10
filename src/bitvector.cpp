@@ -3696,9 +3696,9 @@ void ibis::bitvector::reserve(unsigned nb, unsigned nc, double cf) {
 	    sz = (pow(1.0-den, static_cast<int>(2*MAXBITS)) +
 		  pow(den, static_cast<int>(2*MAXBITS)));
 	sz = ceil(nw * (1.0 - sz));
-	if (ibis::gVerbose > 9)
-	    ibis::util::logMessage("bitvector::reserve",
-				   "attempting to reserve %g bytes", sz);
+	LOGGER(ibis::gVerbose > 7)
+	    << "bitvector::reserve -- attempting to reserve "
+	    << 3+static_cast<uint32_t>(sz) << " words";
 	m_vec.reserve(3+static_cast<uint32_t>(sz));
     }
 } // ibis::bitvector::reserve

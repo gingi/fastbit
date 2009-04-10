@@ -1264,12 +1264,13 @@ ibis::util::logger::~logger() {
 /// than lvl, it will create an ibis::horometer object to keep the time and
 /// print a brief message from the constructor and the destructor.
 ///
-/// @note The mesage stored in msg is copied to a string held by this
-/// object.
+/// @note This class holds a private copy of the message to avoid relying on
+/// the incoming message being present at the destruction time.
 /// @sa ibis::horometer
 ibis::util::timer::timer(const char* msg, int lvl) :
     chrono_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ?
-	    new ibis::horometer : 0), mesg_(msg) {
+	    new ibis::horometer : 0),
+    mesg_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ? msg : "") {
     if (chrono_ != 0) {
 	chrono_->start();
 	ibis::util::logger(2).buffer()

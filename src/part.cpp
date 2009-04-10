@@ -4781,8 +4781,8 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << name() << "]::buildIndex build "
-		    << nColumns() << " index" << (nColumns()>1 ? "es" : "")
+	lg.buffer() << "ibis::part[" << name() << "]::buildIndex processed "
+		    << nColumns() << " column" << (nColumns()>1 ? "s" : "")
 		    << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
 		    << " took " << timer.CPUTime() << " CPU seconds and "
 		    << timer.realTime() << " elapsed seconds";

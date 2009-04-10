@@ -189,6 +189,7 @@ public:
     /// so that there are @c nt total bits.  The final result always
     /// contains @c nt bits.
     void adjustSize(word_t nv, word_t nt);
+    /// Reserve enough space for a bit vector with nb bits with nc set bits.
     void reserve(unsigned nb, unsigned nc, double cf=0.0);
 
     /// Is the bitvector empty?  For efficiency concerns, this funciton

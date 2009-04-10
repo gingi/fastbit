@@ -1,3 +1,19 @@
+2009-04-09 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:4784 change the message to more accurately reflect
+	the fact ibis::part::buildIndex merely goes through each column,
+	not necessarily builds any indexes
+	* src/bitvector.cpp:3700 update the message printed from
+	ibis::bitvector::reserve to indicate it is reserving the specified
+	number of words not bytes
+	* src/util.cpp:1272 add conditions to avoid copying the message
+	string in an attempt to make the timer class light-wiehgt
+	* src/column.cpp:8992 through some timing measurements on
+	hutch.lbl.gov, decided on a new test for choosing between binary
+	search and linear matching in ibis::column::searchSortedICD, add
+	statement to reserve space for hits (but timing measurements do
+	not show any advantage of doing it, keeping it anyway because it
+	seem to make sense)
+
 2009-04-07 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:1714 need to multiply by sizeof(T) when
 	recording the size of the buffer.  This error was causing the file
