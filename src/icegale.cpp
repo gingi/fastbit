@@ -196,7 +196,7 @@ int ibis::egale::write(const char* dt) const {
 		    8*((15+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs,
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nbits+1));
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(fdes); // write to disk
 #endif
     ierr = UnixClose(fdes);

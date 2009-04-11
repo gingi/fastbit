@@ -78,8 +78,7 @@ public:
     /// Return a list of names specified in the select clause.
     const selected& components() const {return comps;};
 
-    /// Specifies a list of Row IDs for the query object to retrieve the
-    /// records. 
+    /// Specify a list of Row IDs for the query object.
     int setRIDs(const RIDSet& set);
     /// Specify the where clause in string form.
     int setWhereClause(const char *str);
@@ -258,8 +257,7 @@ public:
     // Functions for cleaning up, retrieving query states
     // and error messages.
 
-    /// Releases the resources held by the query object and re-initialize
-    /// the select clause and the where clause to blank.
+    /// Releases the resources held by the query object.
     void clear();
     /// Return the current state of query.
     QUERY_STATE getState() const;

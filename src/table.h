@@ -429,6 +429,11 @@ public:
     /// this function is not required, and the user is not required to call
     /// this function to ensure the correctness of data handling.
     virtual void reserveSpace(unsigned) {};
+    /// Capacity of the memory cache.  Report the maximum number of rows
+    /// can be stored with this object before more memory will be
+    /// allocated.  A return value of zero (0) may also indicate that it
+    /// does not know about its capacity.
+    virtual unsigned capacity() const {return 0;}
 
 protected:
     tablex() {}; // Derived classes need this.

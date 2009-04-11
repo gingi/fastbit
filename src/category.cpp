@@ -647,7 +647,7 @@ long ibis::category::append(const char* dt, const char* df,
 				   "to \"%s\" by only wrote %ld", ierr,
 				   dest.c_str(), ret);
 		}
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
 		(void) fsync(fdest); // write to disk
 #endif
 		ierr = UnixClose(fdest);
@@ -756,7 +756,7 @@ long ibis::category::append(const char* dt, const char* df,
 				   "to \"%s\" by only wrote %ld", ierr,
 				   dest.c_str(), ret);
 		}
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
 		(void) fsync(fdest); // write to disk
 #endif
 		(void) UnixClose(fdest);
@@ -1285,7 +1285,7 @@ long ibis::text::append(const char* dt, const char* df,
 	    break;
 	}
     }
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(fdest); // write to disk
 #endif
     UnixClose(fdest);

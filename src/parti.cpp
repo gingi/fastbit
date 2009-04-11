@@ -735,10 +735,9 @@ long ibis::part::append1(const char *dir) {
     // retrieve the new RID list
     std::string fn(activeDir);
     fn += DIRSEP;
-    fn += "rids";
+    fn += "-rids";
     rids = new array_t<ibis::rid_t>;
-    if (0 != ibis::fileManager::instance().
-	getFile(fn.c_str(),*rids)) {
+    if (0 != ibis::fileManager::instance().getFile(fn.c_str(),*rids)) {
 	if (nEvents > 0 && ibis::gVerbose > 4)
 	    logMessage("append", "unable to read rid file \"%s\" ... %s",
 		       fn.c_str(), strerror(errno));
@@ -820,7 +819,7 @@ long ibis::part::append2(const char *dir) {
 	// make sure that the number of RIDs is as expected
 	std::string fn(backupDir);
 	fn += DIRSEP;
-	fn += "rids";
+	fn += "-rids";
 	uint32_t nrids = ibis::util::getFileSize(fn.c_str()) /
 	    sizeof(ibis::rid_t);
 	ntot = nEvents + ierr;
@@ -866,7 +865,7 @@ long ibis::part::append2(const char *dir) {
 	// retrieve the new RID list
 	std::string fn(activeDir);
 	fn += DIRSEP;
-	fn += "rids";
+	fn += "-rids";
 	rids = new array_t<ibis::rid_t>;
 	if (0 != ibis::fileManager::instance().
 	    getFile(fn.c_str(),*rids)) {
@@ -945,7 +944,7 @@ long ibis::part::rollback() {
 
 	std::string fn(activeDir);
 	fn += DIRSEP;
-	fn += "rids";
+	fn += "-rids";
 	rids = new ibis::RIDSet;
 	jerr = ibis::fileManager::instance().getFile(fn.c_str(), *rids);
 	if (jerr) {
@@ -1115,7 +1114,7 @@ long ibis::part::appendToBackup(const char* dir) {
     std::string fn;
     fn = dir;
     fn += DIRSEP;
-    fn += "rids";
+    fn += "-rids";
     long tmp = ibis::util::getFileSize(fn.c_str());
     if (tmp > 0) {
 	tmp /= sizeof(ibis::rid_t);
@@ -1202,8 +1201,7 @@ long ibis::part::appendToBackup(const char* dir) {
 
     if (has_rids) {
 	// integrate the RID lists, temporarily create a RID column
-	ibis::column* m_rids = new ibis::column
-	    (this, ibis::OID, "rids");
+	ibis::column* m_rids = new ibis::column(this, ibis::OID, "-rids");
 	ierr = m_rids->append(backupDir, dir, nold, napp, nbuf, buf);
 	delete m_rids;
 	if ((uint32_t)ierr != napp) {
@@ -1212,7 +1210,7 @@ long ibis::part::appendToBackup(const char* dir) {
 		       ierr);
 	    fn = backupDir;
 	    fn += DIRSEP;
-	    fn += "rids";
+	    fn += "-rids";
 	    remove(fn.c_str());
 	    fn += ".srt";
 	    remove(fn.c_str());
@@ -1267,7 +1265,11 @@ long ibis::part::appendToBackup(const char* dir) {
     return ierr;
 } // ibis::part::appendToBackup
 
-/// Mark the rows identified in @c rows as inactive.
+/// Mark the rows identified in @c rows as inactive.  Return the number of
+/// rows inactive or error code.
+///
+/// @note Inactive rows will no longer participate in future query
+/// evaluations.
 long ibis::part::deactivate(const ibis::bitvector& rows) {
     std::string mskfile(activeDir);
     if (! mskfile.empty())
@@ -1302,6 +1304,12 @@ long ibis::part::reactivate(const ibis::bitvector& rows) {
     return amask.cnt();
 } // ibis::part::reactivate
 
+/// The integers in array rows are simply the row numbers.  Note rows are
+/// numbered starting from 0.  Return the number of
+/// rows inactive or error code.
+///
+/// @note Inactive rows will no longer participate in future query
+/// evaluations.
 long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
     if (rows.empty()) return 0;
 
@@ -1313,6 +1321,11 @@ long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
 	return 0;
 } // ibis::part::deactivate
 
+/// All rows satisfying the specified conditions will be made inactive.
+/// Return the number of rows inactive or error code.
+///
+/// @note All inactive rows will no longer participate in any future query
+/// processing.
 long ibis::part::deactivate(const char* conds) {
     if (conds == 0 || *conds == 0) return 0;
 
@@ -1346,6 +1359,8 @@ long ibis::part::reactivate(const char* conds) {
 	return amask.cnt();
 } // ibis::part::reactivate
 
+/// Return the number of rows left or error code.
+/// @note This operations is permanent and irreversible!
 long ibis::part::purgeInactive() {
     int ierr = 0; 
     mutexLock lock(this, "purgeInactive");
@@ -1394,7 +1409,7 @@ long ibis::part::purgeInactive() {
 
 	if (ierr == (long) amask.cnt()) { // wrote selected values successfully
 	    if (rids != 0 && rids->size() == nEvents) {
-		ibis::column rcol(this, ibis::OID, "rids");
+		ibis::column rcol(this, ibis::OID, "-rids");
 		rcol.saveSelected(amask, backupDir, mybuf, nbuf);
 	    }
 	    std::string mskfile(backupDir);
@@ -1470,7 +1485,7 @@ long ibis::part::purgeInactive() {
 
 	if (ierr == (long) amask.cnt() && rids != 0 &&
 	    rids->size() == nEvents) {
-	    ibis::column rcol(this, ibis::OID, "rids");
+	    ibis::column rcol(this, ibis::OID, "-rids");
 	    rcol.saveSelected(amask, activeDir, mybuf, nbuf);
 
 	    delete rids;

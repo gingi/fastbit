@@ -663,11 +663,11 @@ ibis::fileManager::fileManager()
 	// MS Windows uses psapi to physical memory size
 	PERFORMANCE_INFORMATION pi;
 	if (GetPerformanceInfo(&pi, sizeof(pi))) {
+	    size_t avail = pi.PhysicalAvailable;
+	    size_t mem = (pi.PhysicalTotal >> 1);
 	    LOGGER(ibis::gVerbose > 4 && mem > 0)
 		<< "fileManager::ctor found the physical memory size to be "
 		<< pi.PhysicalTotal << " bytes";
-	    size_t avail = pi.PhysicalAvailable;
-	    size_t mem = (pi.PhysicalTotal >> 1);
 	    if (avail > mem) mem = avail; // take it if available
 	    if (mem < (ULONG_MAX / pi.PageSize))
 		maxBytes = mem * pi.PageSize;

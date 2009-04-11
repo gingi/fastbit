@@ -199,7 +199,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     bdlstore->endUse(); // this function no longer needs the read lock
     if (i < nbdl) { // open the rid file and read the selected segment
 	ibis::RIDSet* res = new ibis::RIDSet;
-	strcpy(fn+len, "rids");
+	strcpy(fn+len, "-rids");
 	int fdes = UnixOpen(fn, OPEN_READONLY);
 	if (fdes < 0) {
 	    if (errno != ENOENT || ibis::gVerbose > 10)
@@ -755,7 +755,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     ierr = fclose(fptr);
     delete [] fn;
     infile = true;
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     sync();
 #endif
 } // ibis::bundle1::write
@@ -1792,7 +1792,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     ierr = fclose(fptr);
     delete [] fn;
     infile = true;
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     sync();
 #endif
 } // ibis::bundles::write

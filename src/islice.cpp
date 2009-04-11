@@ -104,7 +104,7 @@ int ibis::slice::write(const char* dt) const {
 	return -3;
     }
     ierr = write(fdes);
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);

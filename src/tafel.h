@@ -38,6 +38,7 @@ public:
 		      const char* tdesc) const;
     virtual void clearData();
     virtual void reserveSpace(unsigned);
+    virtual unsigned capacity() const;
 
 protected:
     /// In-memory version of a column.

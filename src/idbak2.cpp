@@ -824,7 +824,7 @@ int ibis::bak2::write(const char* dt) const {
     offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
     ierr = UnixSeek(fdes, 8+2*sizeof(uint32_t), SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);

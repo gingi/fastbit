@@ -923,7 +923,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	default:
 	    break;
 	}
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
 	(void) fsync(fdes); // write to disk
 #endif
 	UnixClose(fdes); // close the data file
@@ -1150,6 +1150,63 @@ void ibis::tafel::reserveSpace(unsigned maxr) {
 	} // switch
     } // for
 } // ibis::tafel::reserveSpace
+
+unsigned ibis::tafel::capacity() const {
+    unsigned cap = (cols.empty() ? 0U : UINT_MAX);
+    unsigned tmp;
+    for (columnList::const_iterator it = cols.begin();
+	 it != cols.end(); ++ it) {
+	column& col = *((*it).second);
+	col.mask.clear();
+	if (col.values == 0) return 0U;
+
+	switch (col.type) {
+	case ibis::BYTE:
+	    tmp = static_cast<array_t<signed char>*>(col.values)->capacity();
+	    break;
+	case ibis::UBYTE:
+	    tmp = static_cast<array_t<unsigned char>*>(col.values)->capacity();
+	    break;
+	case ibis::SHORT:
+	    tmp = static_cast<array_t<int16_t>*>(col.values)->capacity();
+	    break;
+	case ibis::USHORT:
+	    tmp = static_cast<array_t<uint16_t>*>(col.values)->capacity();
+	    break;
+	case ibis::INT:
+	    tmp = static_cast<array_t<int32_t>*>(col.values)->capacity();
+	    break;
+	case ibis::UINT:
+	    tmp = static_cast<array_t<uint32_t>*>(col.values)->capacity();
+	    break;
+	case ibis::LONG:
+	    tmp = static_cast<array_t<int64_t>*>(col.values)->capacity();
+	    break;
+	case ibis::ULONG:
+	    tmp = static_cast<array_t<uint64_t>*>(col.values)->capacity();
+	    break;
+	case ibis::FLOAT:
+	    tmp = static_cast<array_t<float>*>(col.values)->capacity();
+	    break;
+	case ibis::DOUBLE:
+	    tmp = static_cast<array_t<double>*>(col.values)->capacity();
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    tmp =
+		static_cast<std::vector<std::string>*>(col.values)->capacity();
+	    break;
+	default:
+	    break;
+	} // switch
+
+	if (tmp < cap)
+	    cap = tmp;
+	if (tmp == 0U)
+	    return 0U;
+    } // for
+    return cap;
+} // ibis::tafel::capacity
 
 void ibis::tafel::clear() {
     const size_t ncol = colorder.size();

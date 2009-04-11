@@ -132,7 +132,7 @@ int ibis::sapid::write(const char* dt) const {
     ierr = UnixSeek(fdes, 8*((15+3*sizeof(uint32_t))/8)+sizeof(double)*card,
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);

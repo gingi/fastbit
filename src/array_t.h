@@ -59,13 +59,14 @@ public:
 
     int empty() const {return (m_begin == 0 || m_begin >= m_end);};
     uint32_t size() const {	///< Return the number of elements.
-	return (m_begin > 0 && m_end>=m_begin ? m_end - m_begin : 0);
+	return (m_begin > 0 && m_end > m_begin ? m_end - m_begin : 0);
     };
     void clear() {m_end = m_begin;};	///< Reset the size to zero.
 
     void pop_back() {--m_end;};		///< Remove the last element.
     void resize(uint32_t n);	///< Resize array.
     void reserve(uint32_t n);	///< Reserve space.
+    uint32_t capacity() const;
     inline void swap(array_t<T>& rhs);	///< Exchange the content.
     inline void push_back(const T& elm);///< Add one element.
 
@@ -227,4 +228,10 @@ inline void array_t<T>::freeMemory() {
 	actual = 0;
     }
 } // array_t<T>::freeMemory
+
+/// The maximum number of elements can be stored with the current memory.
+template <class T>
+inline uint32_t array_t<T>::capacity() const {
+    return (actual != 0 ? (const T*)actual->end() - m_begin : 0);
+} // array_t<T>::capacity
 #endif // IBIS_ARRAY_T_H

@@ -5319,7 +5319,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    j += diff;
 	}
     }
-#if _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) fsync(dest); // write to disk
 #endif
     UnixClose(dest);

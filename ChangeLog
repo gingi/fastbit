@@ -1,3 +1,19 @@
+2009-04-10 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp, src/part.cpp, src/parti.cpp, src/query.cpp;
+	change the name of data file for the explicit RIDs from "rids" to
+	"-rids".  Since no valid column name can start with a dash, this
+	removes any possibility of name collision.
+	* src/part.cpp, src/query.cpp: change getRIDs to output implicit
+	RIDs if no explicit ones are available
+	* src: add macro FASTBIT_SYNC_WRITE to control whether to make a
+	fsync call before closing a file opened for write.  If it is
+	defined and _POSIX_FSYNC is also defined, then fsync will be
+	called
+	* src/table.h, src/tafel.h, src/tafel.cpp: add function capacity
+	to report the maximum number of rows that can be stored with the
+	current memory allocated
+	* src/array_t.h: add function capacity
+
 2009-04-09 John Wu <John.Wu at ACM.org>
 	* src/part.cpp:4784 change the message to more accurately reflect
 	the fact ibis::part::buildIndex merely goes through each column,

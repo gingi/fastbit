@@ -665,7 +665,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     return 0;
 } // ibis::query::setWhereClause
 
-// incoming RIDs are copied
+/// Incoming RIDs are copied.
 int ibis::query::setRIDs(const ibis::RIDSet& rids) {
     if (rids.empty()) return -7;
 
@@ -1232,24 +1232,30 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
     return ierr;
 } // ibis::query::limit
 
-// Compute the RIDs of the hits.  If the file rids exists, return the
-// content of the file, else if the query was processed on the same data,
-// call the dataset object to retrieve the RIDs, otherwise it will be NULL.
+/// FastBit has a built-in type called ibis::rid_t.  User may use it to
+/// provide a global row identifier for each row.  We call such row
+/// identifiers (RIDs) the extenal RIDs.  In many cases, there is no
+/// external RIDs provided by the user, then there is still a set of
+/// implicit RIDs numbered from 0 to nRows()-1.  This function will
+/// retrieve the extenal RIDs if they are present, otherwise, it will
+/// return the implicit RIDs.
+///
+/// @note the returned pointer will be null if the query does not have an
+/// exact answer yet, has no hit, or is not associated with any data
+/// partition.
 ibis::RIDSet* ibis::query::getRIDs() const {
-    if (mypart == 0 || mypart->hasRIDs() == false)
+    if (mypart == 0 || hits == 0 || hits->cnt() == 0)
 	return 0;
     if (state != FULL_EVALUATE) {
 	logWarning("getRIDs", "call evaluate() first");
 	return 0;
     }
 
+    const bool exrids = mypart->hasRIDs();
     readLock lck(this, "getRIDs");
     ibis::RIDSet* rids = readRIDs();
-    bool gotRIDs = true;
-    if (rids == 0) {
-	gotRIDs = false;
-    }
-    else if (rids->size() == hits->cnt()) {
+    bool gotRIDs = (rids != 0);
+    if (gotRIDs && rids->size() == hits->cnt()) {
 	ibis::RIDSet* tmp = rids;
 	rids = new ibis::RIDSet;
 	rids->deepCopy(*tmp);
@@ -1261,7 +1267,7 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 	rids = 0;
     }
 
-    if (gotRIDs == false) { // need to get RIDs from the part object
+    if (exrids && !gotRIDs) { // need to get RIDs from the part object
 	ibis::part::readLock rock(mypart, "getRIDs");
 	if (hits && (dstime == mypart->timestamp() || dstime == 0)) {
 	    rids = mypart->getRIDs(*hits);
@@ -1280,6 +1286,27 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 	else {
 	    logWarning("getRIDs", "database has changed, "
 		       "re-evaluate the query");
+	}
+    }
+    else if (!gotRIDs) {
+	rids = new ibis::RIDSet;
+	rids->reserve(hits->cnt());
+	for (ibis::bitvector::indexSet is = hits->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    ibis::rid_t tmp;
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++j) {
+		    tmp.value = j;
+		    rids->push_back(tmp);
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j) {
+		    tmp.value = ii[j];
+		    rids->push_back(tmp);
+		}
+	    }
 	}
     }
 
@@ -1352,10 +1379,18 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
     return rids;
 } // ibis::query::getRIDsInBundle
 
-// Compute the row IDs of those marked 1 in the mask.
+/// The data type for row identifiers is ibis::rid_t, which can be treated
+/// as unsigned 64-bit integer.  These identifiers (RIDs) can be either
+/// provided by the user (external RIDs) or internally generated from row
+/// positions (implicit RIDs).  If the user has not provided external RIDs,
+/// then this function simply decodes the positions of the bits that are
+/// marked 1 and places the positions in the output array.
+///
+/// The return value can be null if this query object is not associated
+/// with a data partition or the mask contains no bit marked 1.
 ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
     ibis::RIDSet* ridset = 0;
-    if (mypart == 0 || mypart->hasRIDs() == false)
+    if (mypart == 0 || mask.cnt() == 0)
 	return ridset;
 
     ibis::part::readLock tmp(mypart, myID);
@@ -2207,7 +2242,7 @@ bool ibis::query::hasBundles() const {
     char bdlfile[PATH_MAX];
     strcpy(ridfile, dir());
     strcpy(bdlfile, dir());
-    strcat(ridfile, "rids");
+    strcat(ridfile, "-rids");
     strcat(bdlfile, "bundles");
     if (ibis::util::getFileSize(ridfile) > 0 &&
 	ibis::util::getFileSize(bdlfile) > 0) {
@@ -3709,15 +3744,15 @@ void ibis::query::writeHits() const {
     }
 } // ibis::query::writeHits
 
-// read RIDs from the file named "rids" and return a pointer to
-// ibis::RIDSet
+/// Read RIDs from the file named "-rids".  Return a pointer to
+/// ibis::RIDSet.
 ibis::RIDSet* ibis::query::readRIDs() const {
     if (myDir == 0)
 	return 0;
 
     char fn[PATH_MAX];
     strcpy(fn, myDir);
-    strcat(fn, "rids");
+    strcat(fn, "-rids");
 
     ibis::RIDSet* rids = new ibis::RIDSet();
     int ierr = ibis::fileManager::instance().getFile(fn, *rids);
@@ -3744,17 +3779,18 @@ ibis::RIDSet* ibis::query::readRIDs() const {
     return rids;
 } // ibis::query::readRIDs
 
+/// Write the list of RIDs to a file named "-rids".
 void ibis::query::writeRIDs(const ibis::RIDSet* rids) const {
     if (rids && myDir) {
 	char *fn = new char[strlen(myDir) + 8];
 	strcpy(fn, myDir);
-	strcat(fn, "rids");
+	strcat(fn, "-rids");
 	rids->write(fn);
 	delete [] fn;
     }
 } // ibis::query::writeRIDs
 
-// the function to clear most of the resouce consuming parts of a query
+/// It re-initializes the select clause and the where clause to blank.
 void ibis::query::clear() {
     if (ibis::gVerbose > 4)
 	logMessage("clear",
@@ -3825,7 +3861,7 @@ void ibis::query::removeFiles() {
 	logMessage("clear", "unable to remove %s ... %s", fname,
 		   strerror(errno));
 
-    strcpy(fname+len, "rids");
+    strcpy(fname+len, "-rids");
     ibis::fileManager::instance().flushFile(fname);
     if (0 == remove(fname)) {
 	if (ibis::gVerbose > 6)

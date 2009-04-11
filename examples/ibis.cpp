@@ -3211,7 +3211,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    else
 		lg.buffer() << "RID query test successful";
 	}
-	else {
+	else if (sstr != 0) {
 	    ibis::util::logger lg(0);
 	    lg.buffer() << "sent " << rid1->size() << " RIDs, got back "
 			<< rid0->size();

@@ -702,7 +702,7 @@ void ibis::part::init(const char* prefix) {
 	if (nEvents > 0 && ibis::gParameters().isTrue(fillrids.c_str())) {
 	    std::string fname(activeDir);
 	    fname += DIRSEP;
-	    fname += "rids";
+	    fname += "-rids";
 	    fillRIDs(fname.c_str());
 	}
     }
@@ -1658,7 +1658,7 @@ void ibis::part::readRIDs() const {
 
     std::string fn(activeDir);
     fn += DIRSEP;
-    fn += "rids";
+    fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (ibis::fileManager::instance().getFile(fn.c_str(), *rids)) {
 	if (ibis::gVerbose > 3)
@@ -1725,14 +1725,14 @@ void ibis::part::fillRIDs(const char* fn) const {
     }
 } // ibis::part::fillRIDs
 
-/// Generate a sorted version of the RIDs and stored the result in rids.srt.
+/// Generate a sorted version of the RIDs and stored the result in -rids.srt.
 void ibis::part::sortRIDs() const {
-    if (activeDir == 0) return;
+    if (activeDir == 0 && rids == 0) return;
 
     char name[PATH_MAX];
     mutexLock lck(this, "sortRIDs");
     //ibis::util::mutexLock lck(&ibis::util::envLock, "sortRIDs");
-    sprintf(name, "%s%crids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
     uint32_t sz = ibis::util::getFileSize(name);
     if (sz == nEvents*(sizeof(rid_t)+sizeof(uint32_t)))
 	return;
@@ -1757,7 +1757,7 @@ void ibis::part::sortRIDs() const {
 		   static_cast<long unsigned>(rids->size()));
     }
 
-    // write the sorted rids into rids.srt
+    // write the sorted rids into -rids.srt
     uint32_t buf[2];
     int fdes = UnixOpen(name, OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
@@ -1804,7 +1804,7 @@ uint32_t ibis::part::getRowNumber(const ibis::rid_t &rid) const {
     return ind;
 } // ibis::part::getRowNumber
 
-/// Use file rids.srt to search for the rid.
+/// Use file -rids.srt to search for the rid.
 uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     uint32_t ind = nEvents;
     if (activeDir == 0) return ind;
@@ -1816,15 +1816,15 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     // the end of the function call.  This mutex lock helps to resolve the
     // problem.
     //mutexLock lock(this, "searchSortedRIDs");
-    sprintf(name, "%s%crids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
-	sortRIDs(); // generate rids.srt file from rids
+	sortRIDs(); // generate -rids.srt file from rids
 	ierr = ibis::fileManager::instance().getFile(name, ridx);
 	if (ierr != 0) {
 	    logWarning("searchSortedRIDs",
-		       "unable to generate rids.srt (%s)",
+		       "unable to generate -rids.srt (%s)",
 		       name);
 	    return ind;
 	}
@@ -1894,30 +1894,30 @@ uint32_t ibis::part::searchRIDs(const ibis::rid_t &rid) const {
     return i;
 } // ibis::part::searchRIDs
 
-/// Use file rids.srt to search for the rid.
+/// Use file -rids.srt to search for the rid.
 /// Assume the incoming RIDs are sorted.
 void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
 				  ibis::bitvector &res) const {
     if (activeDir == 0) return;
     char name[PATH_MAX];
-    sprintf(name, "%s%crids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
-	sortRIDs(); // generate rids.srt file from rids
+	sortRIDs(); // generate -rids.srt file from rids
 	ierr = ibis::fileManager::instance().getFile(name, ridx);
 	if (ierr != 0) {
 	    logWarning("searchSortedRIDs",
-		       "unable to generate rids.srt (%s)",
+		       "unable to generate -rids.srt (%s)",
 		       name);
 	    searchRIDs(in, res);
 	    return;
 	}
     }
     if (ridx.size() != 3*nEvents) {
-	// Even though we have read the rids.srt file correctly, but the
+	// Even though we have read the -rids.srt file correctly, but the
 	// file is not the right size.  Need a way to delete the references
-	// to the file rids.srt.
+	// to the file -rids.srt.
 	array_t<uint32_t> *tmp = new array_t<uint32_t>;
 	tmp->swap(ridx);
 	delete tmp;
@@ -1994,25 +1994,22 @@ void ibis::part::searchRIDs(const ibis::RIDSet &in,
     res.adjustSize(0, nEvents);
 } // ibis::part::searchRIDs
 
-/// Retrieve the RIDs corresponding to mask[i] == 1.
-array_t<ibis::rid_t>* ibis::part::getRIDs(const ibis::bitvector &mask)
-    const {
+/// Retrieve the RIDs corresponding to mask[i] == 1.  If no external row
+/// identifers are provided, this function will use the implicit RIDs which
+/// are simply the positions of the rows numbered from 0 to nRows()-1.
+array_t<ibis::rid_t>*
+ibis::part::getRIDs(const ibis::bitvector &mask) const {
     const uint32_t cnt = mask.cnt();
     array_t<ibis::rid_t>* ret = new array_t<ibis::rid_t>;
     if (cnt == 0)
 	return ret;
     if (rids == 0)
-	return ret;
-    if (rids->size() != nEvents)
-	return ret;
-
-    ret->reserve(cnt);
-    ibis::bitvector::indexSet ind = mask.firstIndexSet();
-    if (rids == 0)
 	readRIDs(); // attempt to read the file rids
     else if (rids->size() == 0)
 	readRIDs();
 
+    ret->reserve(cnt);
+    ibis::bitvector::indexSet ind = mask.firstIndexSet();
     if (rids !=0 && rids->size() > 0) { // has rids specified
 	readLock lock(this, "getRIDs");
 	const uint32_t nmask = mask.size();
@@ -2439,7 +2436,7 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 	return 0;
     if (rids && rids->size() > 0) {
 	try {
-	    sortRIDs(); // make sure the file rids.srt is up-to-date
+	    sortRIDs(); // make sure the file -rids.srt is up-to-date
 	    searchSortedRIDs(in, hits);
 	}
 	catch (...) { // don't care about the exception
