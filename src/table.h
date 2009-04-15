@@ -435,6 +435,13 @@ public:
     /// does not know about its capacity.
     virtual unsigned capacity() const {return 0;}
 
+    /// The number of rows in this table.
+    virtual uint32_t nRows() const=0;
+    /// The number of columns in this table.
+    virtual size_t nColumns() const=0;
+    /// Print a description of the table to the specified output stream.
+    virtual void describe(std::ostream&) const=0;
+
 protected:
     tablex() {}; // Derived classes need this.
 

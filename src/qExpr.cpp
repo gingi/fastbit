@@ -122,7 +122,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		}
 		expr->left = 0;
 		delete expr;
-		expr = tm2;
+		expr = tm1;
 	    }
 	    else if ((tm1->left_op == ibis::qExpr::OP_LE ||
 		      tm1->left_op == ibis::qExpr::OP_LT) &&
@@ -751,8 +751,15 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	}
 	break;}
     } // switch(...
-    LOGGER(ibis::gVerbose > 4)
-	<< "ibis::qExpr::simplify -- output expression " << *expr;
+
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	lg.buffer() << "ibis::qExpr::simplify -- output expression ";
+	if (expr)
+	    lg.buffer() << *expr;
+	else
+	    lg.buffer() << "is nil";
+    }
 } // ibis::qExpr::simplify
 
 void ibis::qExpr::print(std::ostream& out) const {

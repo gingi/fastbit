@@ -140,10 +140,14 @@ int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct,
     return 0;
 } // ibis::tafel::addColumn
 
+/// Add values to an array of type T.  The input values (in) are copied to
+/// out[be:en-1].  If the array out has less then be elements to start
+/// with, it will be filled with value fill.  The output mask indicates
+/// whether the values in array out are valid.
 template <typename T>
 void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
 			 ibis::bitvector::word_t en, array_t<T>& out,
-			 const T& fill, ibis::bitvector& mask) const {
+			 const T& fill, ibis::bitvector& mask) {
     ibis::bitvector inmsk;
     inmsk.appendFill(0, be);
     inmsk.appendFill(1, en-be);
@@ -164,11 +168,12 @@ void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
 	<< inmsk << "totmask: " << mask;
 } // ibis::tafel::append
 
+/// Copy the incoming strings to out[be:en-1].
 void ibis::tafel::appendString(const std::vector<std::string>* in,
 			       ibis::bitvector::word_t be,
 			       ibis::bitvector::word_t en,
 			       std::vector<std::string>& out,
-			       ibis::bitvector& mask) const {
+			       ibis::bitvector& mask) {
     ibis::bitvector inmsk;
     inmsk.appendFill(0, be);
     inmsk.appendFill(1, en-be);
@@ -190,6 +195,7 @@ void ibis::tafel::appendString(const std::vector<std::string>* in,
 	<< inmsk << "totmask: " << mask;
 } // ibis::tafel::appendString
 
+/// Copy the incoming values to rows [begin:end) of column cn.
 int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
 			void* values) {
     ibis::bitvector::word_t be = static_cast<ibis::bitvector::word_t>(begin);
@@ -213,68 +219,74 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
     }
 
     if (en > nrows) nrows = en;
-    column* col = (*it).second;
-    switch (col->type) {
+    column& col = *((*it).second);
+    switch (col.type) {
     case ibis::BYTE:
 	append(static_cast<const signed char*>(values), be, en,
-	       *static_cast<array_t<signed char>*>(col->values),
-	       (signed char)0x7F, col->mask);
+	       *static_cast<array_t<signed char>*>(col.values),
+	       (signed char)0x7F, col.mask);
 	break;
     case ibis::UBYTE:
 	append(static_cast<const unsigned char*>(values), be, en,
-	       *static_cast<array_t<unsigned char>*>(col->values),
-	       (unsigned char)0xFFU, col->mask);
+	       *static_cast<array_t<unsigned char>*>(col.values),
+	       (unsigned char)0xFFU, col.mask);
 	break;
     case ibis::SHORT:
 	append(static_cast<const int16_t*>(values), be, en,
-	       *static_cast<array_t<int16_t>*>(col->values),
-	       (int16_t)0x7FFF, col->mask);
+	       *static_cast<array_t<int16_t>*>(col.values),
+	       (int16_t)0x7FFF, col.mask);
 	break;
     case ibis::USHORT:
 	append(static_cast<const uint16_t*>(values), be, en,
-	       *static_cast<array_t<uint16_t>*>(col->values),
-	       (uint16_t)0xFFFF, col->mask);
+	       *static_cast<array_t<uint16_t>*>(col.values),
+	       (uint16_t)0xFFFFU, col.mask);
 	break;
     case ibis::INT:
 	append(static_cast<const int32_t*>(values), be, en,
-	       *static_cast<array_t<int32_t>*>(col->values),
-	       (int32_t)0x7FFFFFFF, col->mask);
+	       *static_cast<array_t<int32_t>*>(col.values),
+	       (int32_t)0x7FFFFFFF, col.mask);
 	break;
     case ibis::UINT:
 	append(static_cast<const uint32_t*>(values), be, en,
-	       *static_cast<array_t<uint32_t>*>(col->values),
-	       (uint32_t)0xFFFFFFFFU, col->mask);
+	       *static_cast<array_t<uint32_t>*>(col.values),
+	       (uint32_t)0xFFFFFFFFU, col.mask);
 	break;
     case ibis::LONG:
 	append<int64_t>(static_cast<const int64_t*>(values), be, en,
-			*static_cast<array_t<int64_t>*>(col->values),
-			0x7FFFFFFFFFFFFFFFLL, col->mask);
+			*static_cast<array_t<int64_t>*>(col.values),
+			0x7FFFFFFFFFFFFFFFLL, col.mask);
 	break;
     case ibis::ULONG:
 	append<uint64_t>(static_cast<const uint64_t*>(values), be, en,
-			 *static_cast<array_t<uint64_t>*>(col->values),
-			 0xFFFFFFFFFFFFFFFFULL, col->mask);
+			 *static_cast<array_t<uint64_t>*>(col.values),
+			 0xFFFFFFFFFFFFFFFFULL, col.mask);
 	break;
     case ibis::FLOAT:
 	append(static_cast<const float*>(values), be, en,
-	       *static_cast<array_t<float>*>(col->values),
-	       std::numeric_limits<float>::quiet_NaN(), col->mask);
+	       *static_cast<array_t<float>*>(col.values),
+	       std::numeric_limits<float>::quiet_NaN(), col.mask);
 	break;
     case ibis::DOUBLE:
 	append(static_cast<const double*>(values), be, en,
-	       *static_cast<array_t<double>*>(col->values),
-	       std::numeric_limits<double>::quiet_NaN(), col->mask);
+	       *static_cast<array_t<double>*>(col.values),
+	       std::numeric_limits<double>::quiet_NaN(), col.mask);
 	break;
     case ibis::TEXT:
     case ibis::CATEGORY:
 	appendString(static_cast<const std::vector<std::string>*>(values),
 		     be, en,
-		     *static_cast<std::vector<std::string>*>(col->values),
-		     col->mask);
+		     *static_cast<std::vector<std::string>*>(col.values),
+		     col.mask);
 	break;
     default:
 	break;
     }
+#if defined(_DEBUG) || defined(DEBUG)
+    LOGGER(ibis::gVerbose > 6)
+	<< "tafel::append(" << cn  << ", " << begin << ", " << end
+	<< ", " << values << ") worked with column "
+	<< static_cast<void*>((*it).second);
+#endif
     return 0;
 } // ibis::tafel::append
 
@@ -294,6 +306,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::UBYTE: {
 	    array_t<unsigned char>& vals =
@@ -305,6 +320,9 @@ void ibis::tafel::normalize() {
 	    else if (vals.size() > nrows) {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
+	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
 	    }
 	    break;}
 	case ibis::SHORT: {
@@ -318,6 +336,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::USHORT: {
 	    array_t<uint16_t>& vals =
@@ -329,6 +350,9 @@ void ibis::tafel::normalize() {
 	    else if (vals.size() > nrows) {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
+	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
 	    }
 	    break;}
 	case ibis::INT: {
@@ -342,6 +366,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::UINT: {
 	    array_t<uint32_t>& vals =
@@ -353,6 +380,9 @@ void ibis::tafel::normalize() {
 	    else if (vals.size() > nrows) {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
+	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
 	    }
 	    break;}
 	case ibis::LONG: {
@@ -367,6 +397,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t>& vals =
@@ -379,6 +412,9 @@ void ibis::tafel::normalize() {
 	    else if (vals.size() > nrows) {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
+	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
 	    }
 	    break;}
 	case ibis::FLOAT: {
@@ -393,6 +429,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>& vals =
@@ -406,6 +445,9 @@ void ibis::tafel::normalize() {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
 	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
+	    }
 	    break;}
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
@@ -418,6 +460,9 @@ void ibis::tafel::normalize() {
 	    else if (vals.size() > nrows) {
 		col.mask.adjustSize(nrows, nrows);
 		vals.resize(nrows);
+	    }
+	    else {
+		col.mask.adjustSize(nrows, nrows);
 	    }
 	    break;}
 	default: {
@@ -1219,6 +1264,8 @@ void ibis::tafel::clear() {
     nrows = 0;
 } // ibis::tafel::clear
 
+/// Digest a line of text and place the values identified into the
+/// corresponding columns.
 int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     int cnt = 0;
     int ierr;
@@ -1841,6 +1888,24 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 	<< " sec(CPU), " << timer.realTime() << " sec(elapsed)";
     return 0;
 } // ibis::tafel::readCSV
+
+void ibis::tafel::describe(std::ostream &out) const {
+    out << "An extensible (in-memory) table with " << nrows << " row"
+	<< (nrows>1 ? "s" : "") << " and " << cols.size() << " column"
+	<< (cols.size()>1 ? "s" : "");
+    for (columnList::const_iterator it = cols.begin();
+	 it != cols.end(); ++ it) {
+	const ibis::tafel::column& col = *((*it).second);
+	out << "\n  " << (*it).first
+#if defined(_DEBUG) || defined(DEBUG)
+	    << "(" << static_cast<void*>((*it).second) << ")"
+#endif
+	    << ", " << ibis::TYPESTRING[col.type]
+	    << ", mask(" << col.mask.cnt() << " out of " << col.mask.size()
+	    << ")";
+    }
+    out << std::endl;
+} // ibis::tafel::describe
 
 ibis::tafel::column::~column() {
     switch (type) {

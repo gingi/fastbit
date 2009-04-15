@@ -1,3 +1,15 @@
+2009-04-14 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: in tafel::normalize add statement to make sure
+	col.mask is of the correct size
+	* src/tafel.h: remove const from the template tafel::append and
+	function tafel::appendString, the const keyword is preventing the
+	modified values being propergating back to the callers
+	* src/qExpr.cpp:125 the right-hand side should be tm1 instead of
+	tm2 (tm2 has been deleted in the previous line) -- a bug reported
+	by Hank Childs and Prabhat
+	* src/qExpr.cpp:755 change the output statement to check whether
+	or not the output pointer is nil
+
 2009-04-10 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp, src/part.cpp, src/parti.cpp, src/query.cpp;
 	change the name of data file for the explicit RIDs from "rids" to

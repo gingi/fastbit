@@ -312,6 +312,11 @@ int ibis::query::setPartition(const part* tbl) {
 		state = UNINITIALIZED;
 	    conds.clear();
 	}
+	if (conds.getExpr() == 0) {
+	    logWarning("setPartition", "The WHERE clause \"%s\" simplified to "
+		       "an empty expression", conds.getString());
+	    return -5;
+	}
     }
 
     if (comps.size() != 0) {
@@ -431,6 +436,11 @@ int ibis::query::setWhereClause(const char* str) {
 			   "%d incorrect name(s).  It will not be used.",
 			   str, ierr);
 		return -6;
+	    }
+	    if (tmp.getExpr() == 0) {
+		logWarning("setWhereClause", "The WHERE clause \"%s\" produced "
+			   "an empty expression", str);
+		return -5;
 	    }
 	}
 
@@ -572,6 +582,15 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	    delete expr;
 	    return -6;
 	}
+	if (conds.getExpr() == 0) {
+	    logWarning("setWhereClause", "The WHERE clause specified in three "
+		       "arrays contains an empty expression");
+	    if (comps.size())
+		state = SET_COMPONENTS;
+	    else
+		state = UNINITIALIZED;
+	    return -5;
+	}
     }
 
     writeLock lck(this, "setWhereClause");
@@ -622,7 +641,20 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	    logWarning("setWhereClause", "The WHERE clause expressed in the "
 		       "qExpr object contains %d incorrect name(s).  Revert to "
 		       "old value", ierr);
+	    if (comps.size())
+		state = SET_COMPONENTS;
+	    else
+		state = UNINITIALIZED;
 	    return -6;
+	}
+	if (wc.getExpr() == 0) {
+	    logWarning("setWhereClause", "The WHERE clause specified "
+		       "simplified to an empty expression");
+	    if (comps.size())
+		state = SET_COMPONENTS;
+	    else
+		state = UNINITIALIZED;
+	    return -5;
 	}
     }
     if (ibis::gVerbose > 0 &&
@@ -665,7 +697,14 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     return 0;
 } // ibis::query::setWhereClause
 
-/// Incoming RIDs are copied.
+/// Select the records with an RID in the list of RIDs.
+///
+/// @note The incoming RIDs are copied.
+///
+/// @note The RIDs and the where clause can be used together.  When they
+/// are both specified, they are used in conjuction.  In other word, the
+/// hits of the query will contain only the records that satisfy the where
+/// clause and have an RID in the list of RIDs.
 int ibis::query::setRIDs(const ibis::RIDSet& rids) {
     if (rids.empty()) return -7;
 

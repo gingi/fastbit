@@ -40,6 +40,10 @@ public:
     virtual void reserveSpace(unsigned);
     virtual unsigned capacity() const;
 
+    virtual uint32_t nRows() const {return nrows;}
+    virtual size_t nColumns() const {return cols.size();}
+    virtual void describe(std::ostream&) const;
+
 protected:
     /// In-memory version of a column.
     struct column {
@@ -73,12 +77,12 @@ protected:
     template <typename T>
     void append(const T* in, ibis::bitvector::word_t be,
 		ibis::bitvector::word_t en, array_t<T>& out,
-		const T& fill, ibis::bitvector& mask) const;
+		const T& fill, ibis::bitvector& mask);
     void appendString(const std::vector<std::string>* in,
 		      ibis::bitvector::word_t be,
 		      ibis::bitvector::word_t en,
 		      std::vector<std::string>& out,
-		      ibis::bitvector& mask) const;
+		      ibis::bitvector& mask);
 
     template <typename T>
     void locate(ibis::TYPE_T, std::vector<array_t<T>*>& buf) const;

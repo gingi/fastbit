@@ -2429,7 +2429,10 @@ array_t<double>* ibis::part::selectDoubles
     return res;
 } // ibis::part::selectDoubles
 
-// convert a list of RIDs into a bitvector
+/// Convert a list of RIDs into a bitvector.  If an list of external RIDs
+/// is available, sort those RIDS and search through them, otherwise,
+/// assume the incoming numbers are row numbers and mark the corresponding
+/// positions of hits.
 long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 				ibis::bitvector &hits) const {
     if (in.empty() || nEvents == 0)
