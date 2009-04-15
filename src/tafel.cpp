@@ -285,7 +285,9 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
     LOGGER(ibis::gVerbose > 6)
 	<< "tafel::append(" << cn  << ", " << begin << ", " << end
 	<< ", " << values << ") worked with column "
-	<< static_cast<void*>((*it).second);
+	<< static_cast<void*>((*it).second) << " with mask("
+	<< it->second->mask.cnt() << " out of " << it->second->mask.size()
+	<< ")";
 #endif
     return 0;
 } // ibis::tafel::append
@@ -1198,13 +1200,15 @@ void ibis::tafel::reserveSpace(unsigned maxr) {
 
 unsigned ibis::tafel::capacity() const {
     unsigned cap = (cols.empty() ? 0U : UINT_MAX);
-    unsigned tmp;
     for (columnList::const_iterator it = cols.begin();
 	 it != cols.end(); ++ it) {
 	column& col = *((*it).second);
-	col.mask.clear();
-	if (col.values == 0) return 0U;
+	if (col.values == 0) {
+	    col.mask.clear();
+	    return 0U;
+	}
 
+	unsigned tmp;
 	switch (col.type) {
 	case ibis::BYTE:
 	    tmp = static_cast<array_t<signed char>*>(col.values)->capacity();

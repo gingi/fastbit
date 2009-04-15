@@ -2,6 +2,9 @@
 	* configure.ac: change the handling of debug and xopt options to
 	preserve the existing CXXFLAGS specified by the user.  change
 	version number to 1.0.7
+	* src/tafel:1207 move the line that clears col.mask into the
+	if-block for nil pointers (in ibis::tafel::capacity).  Previously,
+	the mask is cleared for no reason at all.
 
 2009-04-14 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp: in tafel::normalize add statement to make sure

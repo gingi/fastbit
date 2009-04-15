@@ -1,3 +1,15 @@
+Version ibis1.0.7
+-- fix a bug in ibis::qExpr::simplfy that returns a deleted query
+   expression (a bug reported by Hank Childs and Prabhat)
+-- rename the file for external Row IDentifiers from "rids" to "-rids"
+   to prevent name collision
+-- change getRIDs to return implicit/internal RIDs if external RIDs are
+   not provided (a feature requested by Jochen Schlosser)
+-- add functions to ibis::tablex interface: nRows, nColumns, capacity,
+   and reserveSpace
+-- add macro FASTBIT_SYNC_WRITE to control whether or not to wait for
+   write operations
+
 Tue Apr  7 21:44:08 PDT 2009
 Version ibis1.0.6
 -- implement functions to work with sorted data, add flags to indicate a
