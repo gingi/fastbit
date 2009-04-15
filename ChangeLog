@@ -1,3 +1,8 @@
+2009-04-15 John Wu <John.Wu at ACM.org>
+	* configure.ac: change the handling of debug and xopt options to
+	preserve the existing CXXFLAGS specified by the user.  change
+	version number to 1.0.7
+
 2009-04-14 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp: in tafel::normalize add statement to make sure
 	col.mask is of the correct size

@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.0.6],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.0.7],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/config.h])
@@ -34,26 +34,26 @@ AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h strings.h sys/time.
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
-AC_C_CONST
-AC_C_INLINE
-AC_TYPE_OFF_T
-AC_TYPE_SIZE_T
-AC_HEADER_TIME
+#AC_C_CONST
+#AC_C_INLINE
+#AC_C_VOLATILE
+#AC_TYPE_OFF_T
+#AC_TYPE_SIZE_T
 AC_STRUCT_TM
+AC_HEADER_TIME
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 AC_TYPE_INT64_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT16_T
-AC_C_VOLATILE
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
-AC_FUNC_SELECT_ARGTYPES
+#AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor getpagesize getpass gettimeofday memset mkdir] , ,)
@@ -66,25 +66,44 @@ AC_ARG_ENABLE(debug,
 AC_MSG_RESULT($debug)
 AC_MSG_CHECKING(whether to enable extra optimization)
 AC_ARG_ENABLE(xopt,
-	      [AS_HELP_STRING([--enable-xopt],[turn on extra optimization [default: set by autoconf]])],
-	      [if test "$enableval" = "yes" ; then xopt="yes" ; else xopt="no" ; fi],[xopt=""])
+	      [AS_HELP_STRING([--enable-xopt],[turn on extra optimization [default: no, leave the default CXXFLAGS alone]])],
+	      [if test "$enableval" = "yes" ; then xopt="yes" ; else xopt="no" ; fi],[xopt="no"])
 AC_MSG_RESULT($xopt)
 if test "x$debug" = "xyes" ; then
-  if test "x$xopt" = "xyes" ; then
-    CFLAGS="-g -O3"
-  elif test "x$xopt" = "xno" ; then
-    CFLAGS="-g -O0"
+  if test `echo $CFLAGS | fgrep -- '-g' | wc -l` -eq 0 ; then
+    CFLAGS="$CFLAGS -g"
+  fi
+  if test `echo $CXXFLAGS | fgrep -- '-g' | wc -l` -eq 0 ; then
+    CXXFLAGS="$CXXFLAGS -g"
   fi
 elif test "x$debug" = "xno" ; then
-  if test "x$xopt" = "xyes" ; then
-    CFLAGS="-O5"
-  elif test "x$xopt" = "xno" ; then
-    CFLAGS="-O2"
-  else
-    CFLAGS="-O"
+  if test `echo $CFLAGS | fgrep -- '-g' | wc -l` -gt 0 ; then
+    OIFS=$IFS
+    IFS=' '
+    newflags=""
+    for g in $CFLAGS ; do if test "x$g" != "x-g[0123]" -a "x$g" != "x-g" ; then newflags="$newflags $g"; fi; done
+    CFLAGS=$newflags
+    IFS=$OIFS
   fi
-elif test "x$xopt" = "xyes" ; then
-    CFLAGS="-O3"
+  if test `echo $CXXFLAGS | fgrep -- '-g' | wc -l` -gt 0 ; then
+    OIFS=$IFS
+    IFS=' '
+    newflags=""
+    for g in $CXXFLAGS ; do if test "x$g" != "x-g[0123]" -a "x$g" != "x-g" ; then newflags="$newflags $g"; fi; done
+    CXXFLAGS=$newflags
+    IFS=$OIFS
+  fi
+fi
+if test "x$xopt" = "xyes" ; then
+   # add -O5 if the compiler accepts it, otherwise -O3
+   OLDCXXFLAGS=$CXXFLAGS;
+   CXXFLAGS="$CXXFLAGS -O5";
+   AC_COMPILE_IFELSE([
+      AC_LANG_PROGRAM([[
+	#include <cmath>
+	]], [[
+	return (1 == static_cast<int>(std::sqrt(2.0)));
+   	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
 
 AC_DEFUN([Z_CHECK_PTHREAD], [
@@ -289,7 +308,7 @@ AC_TRY_LINK(,
   ])
 ])
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-CXXFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
 AC_DEFUN([AC_JNI_INCLUDE_DIR],[
 

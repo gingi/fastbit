@@ -1,7 +1,7 @@
 FastBit is packaged with GNU build tools.  In most cases, this means you
 only need to run "./configure; make" to build the library and the
-examples.  The following are two set of instructions for customizing
-your configuration and building process if you encounters some problems.
+examples.  The following instructions are for customizing your
+configuration and building process.
 
 On systems where make (or gmake) can support parallel builds, it is safe
 to invoke the parallel build options to build the library and the
@@ -11,9 +11,10 @@ gmake -j 3 all
 
 Since it take a while (~ 20 min) to build the libraries, it is a good
 idea to spawn multiple jobs to compile them.  However, it is NOT safe to
-run the tests in parallel because different jobs may attempt to write
-the same files.  The commands 'make check', 'make more-check', and
-'make full-check' must be run as a single job.
+run the tests in parallel because different jobs will attempt to write
+the same files.  The commands 'make check', 'make more-check', and 'make
+full-check' must be run as a serial job (with only one thread of
+execution).
 
 If you are compiling with GCC, please choose version 4 for better
 support of the extensive template use.
@@ -40,12 +41,23 @@ There are only two additional options
   --enable-debug [extra debugging option]
   --enable-xopt  [extra optimization option]
 
-The default for both is "no", in which case, the library is build with
--O option to g++ compiler.  With --enable-xopt, the optimization flag
--O5 will be used for g++, which may slightly improve the performance of
-some query operations, but may also introduce errors due to excessive
-compiler "optimization."  In most cases, we suggest that users leave
-both of these options at default values.
+The default for the 1st option is left to the configure script itself,
+which in anbsence of any direction will normally enable the debug
+option.  The default for the 2nd option is "no", in which case, the flag
+present in CXXFLAGS or the default determined by the configure script
+will be used.  With --enable-xopt, the optimization flag -O5 will be
+used if the compiler accepts it otherwise -O3 will be append to the list
+of compiler options.  The option -O5 is generally supported by GCC
+compilers and can slightly improve the performance of some query
+operations, but may also introduce errors due to excessive compiler
+"optimization."  In most cases, we suggest that users leave both of
+these options at default values.
+
+If CXXFLAGS is specified on the command line to configure or is present
+as an evironment variable, the configure script will not add its usually
+"-g -O2" options.  If CXXFLAGS is specified, it should include desired
+optimization flags.
+
 
 The configure script will attempt to detect whether a JDK is available
 when it is run, however, the detection mechanism primarily rely on the
@@ -60,7 +72,7 @@ speicified in the visual studio project for the java project.  Here are
 some steps to take
 
 (1) open the windows explorer, navigate to win directory in your FastBit
-    directory, double click on ibis.sln should involve visual studio if
+    directory, double click on ibis.sln should invoke visual studio if
     your machine have visual studio,
 
 (2) the solution should have 7 projects, right click on the java
@@ -76,6 +88,7 @@ NOTE: FastBit requires pthread support, one such library is pthread
       files using similar procedure.  The "Additional Libary
       Directories" that need to be modified is under "Linker" in the
       list of Configuration Properties.
+
 
 ----------
 Compiler Macros
@@ -122,7 +135,7 @@ ALWAYS_READ_BITVECTOR0
 
 FASTBIT_EXPAND_ALL_TYPES
 
-  The macro FASTBIT_EXPAND_ALL_TYPES controlls whether all ten different
+  The macro FASTBIT_EXPAND_ALL_TYPES controls whether all ten different
   columns will have its own template instance function.  By default,
   with FASTBIT_EXPAND_ALL_TYPES not defined, only five instances are
   generated.  The columns of type BYTE and SHORT are converted to INT
@@ -133,6 +146,15 @@ FASTBIT_EXPAND_ALL_TYPES
   program.  However, the last convertion may cause correctness issues if
   the unsigned 64-bit integers actually have the sign bit set to 1,
   i.e., > 8x2^63 ~ 8x10^18.
+
+FASTBIT_SYNC_WRITE
+
+  If this macro is defined, FastBit will attempt to make sure the files
+  opened for write operations synchronize its in-memory content with
+  on-disk content before closing the files.  This reduces the likelihood
+  of data corruption in case of program crash, but it also makes the
+  program waits for disk operations to complete.  The delay can be
+  especially painful if there are numerous write operaitons.
 
 
 ----------
