@@ -667,7 +667,7 @@ ibis::fileManager::fileManager()
 	    size_t mem = (pi.PhysicalTotal >> 1);
 	    LOGGER(ibis::gVerbose > 4 && mem > 0)
 		<< "fileManager::ctor found the physical memory size to be "
-		<< pi.PhysicalTotal << " bytes";
+		<< pi.PhysicalTotal * pi.PageSize << " bytes";
 	    if (avail > mem) mem = avail; // take it if available
 	    if (mem < (ULONG_MAX / pi.PageSize))
 		maxBytes = mem * pi.PageSize;

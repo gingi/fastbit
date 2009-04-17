@@ -143,11 +143,14 @@ int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct,
 /// Add values to an array of type T.  The input values (in) are copied to
 /// out[be:en-1].  If the array out has less then be elements to start
 /// with, it will be filled with value fill.  The output mask indicates
-/// whether the values in array out are valid.
+/// whether the values in array out are valid.  This version works with one
+/// column as at a time.
+/// @note It is a const function because it only makes changes to its
+/// arguments.
 template <typename T>
 void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
 			 ibis::bitvector::word_t en, array_t<T>& out,
-			 const T& fill, ibis::bitvector& mask) {
+			 const T& fill, ibis::bitvector& mask) const {
     ibis::bitvector inmsk;
     inmsk.appendFill(0, be);
     inmsk.appendFill(1, en-be);
@@ -168,12 +171,15 @@ void ibis::tafel::append(const T* in, ibis::bitvector::word_t be,
 	<< inmsk << "totmask: " << mask;
 } // ibis::tafel::append
 
-/// Copy the incoming strings to out[be:en-1].
+/// Copy the incoming strings to out[be:en-1].  Work with one column at a
+/// time.
+/// @note It is a const function because it only makes changes to its
+/// arguments.
 void ibis::tafel::appendString(const std::vector<std::string>* in,
 			       ibis::bitvector::word_t be,
 			       ibis::bitvector::word_t en,
 			       std::vector<std::string>& out,
-			       ibis::bitvector& mask) {
+			       ibis::bitvector& mask) const {
     ibis::bitvector inmsk;
     inmsk.appendFill(0, be);
     inmsk.appendFill(1, en-be);
@@ -473,35 +479,52 @@ void ibis::tafel::normalize() {
     }
 } // ibis::tafel::normalize
 
+/// Locate the buffers and masks associated with a data type.
 template <typename T>
-void ibis::tafel::locate(ibis::TYPE_T t, std::vector<array_t<T>*>& buf) const {
+void ibis::tafel::locate(ibis::TYPE_T t, std::vector<array_t<T>*>& buf,
+			 std::vector<ibis::bitvector*>& msk) const {
     buf.clear();
+    msk.clear();
     for (size_t i = 0; i < colorder.size(); ++ i) {
-	if (colorder[i]->type == t)
+	if (colorder[i]->type == t) {
 	    buf.push_back(static_cast<array_t<T>*>(colorder[i]->values));
+	    msk.push_back(&(colorder[i]->mask));
+	}
     }
 } // ibis::tafel::locate
 
+/// Locate the buffers and masks associated with a string-valued data type.
 void ibis::tafel::locateString(ibis::TYPE_T t,
-			       std::vector<std::vector<std::string>*>& buf)
-    const {
+			       std::vector<std::vector<std::string>*>& buf,
+			       std::vector<ibis::bitvector*>& msk) const {
     buf.clear();
+    msk.clear();
     for (size_t i = 0; i < colorder.size(); ++ i) {
-	if (colorder[i]->type == t)
+	if (colorder[i]->type == t) {
 	    buf.push_back(static_cast<std::vector<std::string>*>
 			  (colorder[i]->values));
+	    msk.push_back(&(colorder[i]->mask));
+	}
     }
 } // ibis::tafel::locateString
 
+/// Append one row to columns of a particular type.  This version with
+/// multiple columns but only one row.
+///
+/// @note It assumes that the existing data have been normalized, i.e., all
+/// columns have the same number of rows.
 template <typename T>
 void ibis::tafel::append(const std::vector<std::string>& nm,
 			 const std::vector<T>& va,
-			 std::vector<array_t<T>*>& buf) {
+			 std::vector<array_t<T>*>& buf,
+			 std::vector<ibis::bitvector*>& msk) {
     const size_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
     for (size_t i = 0; i < n1; ++ i) {
 	if (nm[i].empty()) {
 	    if (buf.size() > i && buf[i] != 0)
 		buf[i]->push_back(va[i]);
+	    if (msk.size() > i && msk[i] != 0)
+		msk[i]->operator+=(1);
 	}
 	else {
 	    columnList::iterator it = cols.find(nm[i].c_str());
@@ -509,6 +532,9 @@ void ibis::tafel::append(const std::vector<std::string>& nm,
 		if (buf.size() < i) buf.resize(i+1);
 		buf[i] = static_cast<array_t<T>*>((*it).second->values);
 		buf[i]->push_back(va[i]);
+		if (msk.size() < i) msk.resize(i+1);
+		msk[i] = &(it->second->mask);
+		*(msk[i]) += 1;
 	    }
 	}
     }
@@ -517,17 +543,27 @@ void ibis::tafel::append(const std::vector<std::string>& nm,
     for (size_t i = n1; i < n2; ++ i) {
 	if (buf[i] != 0)
 	    buf[i]->push_back(va[i]);
+	if (msk.size() > i && msk[i] != 0)
+	    *(msk[i]) += 1;
     }
 } // ibis::tafel::append
 
+/// Append one row to string-valued columns.  This version with multiple
+/// columns but only one row.
+///
+/// @note It assumes that the existing data have been normalized, i.e., all
+/// columns have the same number of rows.
 void ibis::tafel::appendString(const std::vector<std::string>& nm,
 			       const std::vector<std::string>& va,
-			       std::vector<std::vector<std::string>*>& buf) {
+			       std::vector<std::vector<std::string>*>& buf,
+			       std::vector<ibis::bitvector*>& msk) {
     const size_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
     for (size_t i = 0; i < n1; ++ i) {
 	if (nm[i].empty()) {
 	    if (buf.size() > i && buf[i] != 0)
 		buf[i]->push_back(va[i]);
+	    if (msk.size() > i && msk[i] != 0)
+		*(msk[i]) += 1;
 	}
 	else {
 	    columnList::iterator it = cols.find(nm[i].c_str());
@@ -536,6 +572,7 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 		buf[i] = static_cast<std::vector<std::string>*>
 		    ((*it).second->values);
 		buf[i]->push_back(va[i]);
+		*(msk[i]) += 1;
 	    }
 	}
     }
@@ -544,83 +581,86 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
     for (size_t i = n1; i < n2; ++ i) {
 	if (buf[i] != 0)
 	    buf[i]->push_back(va[i]);
+	if (msk.size() > i && msk[i] != 0)
+	    *(msk[i]) += 1;
     }
 } // ibis::tafel::appendString
 
 int ibis::tafel::appendRow(const ibis::table::row& r) {
     normalize(); // make sure every column has the same number of rows
     size_t cnt = 0;
+    std::vector<ibis::bitvector*> msk;
     if (r.bytesvalues.size() > 0) {
 	std::vector<array_t<signed char>*> bytesptr;
-	locate(ibis::BYTE, bytesptr);
+	locate(ibis::BYTE, bytesptr, msk);
 	cnt += r.bytesvalues.size();
-	append(r.bytesnames, r.bytesvalues, bytesptr);
+	append(r.bytesnames, r.bytesvalues, bytesptr, msk);
     }
     if (r.ubytesvalues.size() > 0) {
 	std::vector<array_t<unsigned char>*> ubytesptr;
-	locate(ibis::UBYTE, ubytesptr);
+	locate(ibis::UBYTE, ubytesptr, msk);
 	cnt += r.ubytesvalues.size();
-	append(r.ubytesnames, r.ubytesvalues, ubytesptr);
+	append(r.ubytesnames, r.ubytesvalues, ubytesptr, msk);
     }
     if (r.shortsvalues.size() > 0) {
 	std::vector<array_t<int16_t>*> shortsptr;
-	locate(ibis::SHORT, shortsptr);
+	locate(ibis::SHORT, shortsptr, msk);
 	cnt += r.shortsvalues.size();
-	append(r.shortsnames, r.shortsvalues, shortsptr);
+	append(r.shortsnames, r.shortsvalues, shortsptr, msk);
     }
     if (r.ushortsvalues.size() > 0) {
 	std::vector<array_t<uint16_t>*> ushortsptr;
-	locate(ibis::USHORT, ushortsptr);
+	locate(ibis::USHORT, ushortsptr, msk);
 	cnt += r.ushortsvalues.size();
-	append(r.ushortsnames, r.ushortsvalues, ushortsptr);
+	append(r.ushortsnames, r.ushortsvalues, ushortsptr, msk);
     }
     if (r.intsvalues.size() > 0) {
 	std::vector<array_t<int32_t>*> intsptr;
-	locate(ibis::INT, intsptr);
+	locate(ibis::INT, intsptr, msk);
 	cnt += r.intsvalues.size();
-	append(r.intsnames, r.intsvalues, intsptr);
+	append(r.intsnames, r.intsvalues, intsptr, msk);
     }
     if (r.uintsvalues.size() > 0) {
 	std::vector<array_t<uint32_t>*> uintsptr;
-	locate(ibis::UINT, uintsptr);
+	locate(ibis::UINT, uintsptr, msk);
 	cnt += r.uintsvalues.size();
-	append(r.uintsnames, r.uintsvalues, uintsptr);
+	append(r.uintsnames, r.uintsvalues, uintsptr, msk);
     }
     if (r.longsvalues.size() > 0) {
 	std::vector<array_t<int64_t>*> longsptr;
-	locate(ibis::LONG, longsptr);
+	locate(ibis::LONG, longsptr, msk);
 	cnt += r.longsvalues.size();
-	append(r.longsnames, r.longsvalues, longsptr);
+	append(r.longsnames, r.longsvalues, longsptr, msk);
     }
     if (r.ulongsvalues.size() > 0) {
 	std::vector<array_t<uint64_t>*> ulongsptr;
-	locate(ibis::ULONG, ulongsptr);
+	locate(ibis::ULONG, ulongsptr, msk);
 	cnt += r.ulongsvalues.size();
-	append(r.ulongsnames, r.ulongsvalues, ulongsptr);
+	append(r.ulongsnames, r.ulongsvalues, ulongsptr, msk);
     }
     if (r.floatsvalues.size() > 0) {
 	std::vector<array_t<float>*> floatsptr;
-	locate(ibis::FLOAT, floatsptr);
+	locate(ibis::FLOAT, floatsptr, msk);
 	cnt += r.floatsvalues.size();
-	append(r.floatsnames, r.floatsvalues, floatsptr);
+	append(r.floatsnames, r.floatsvalues, floatsptr, msk);
     }
     if (r.doublesvalues.size() > 0) {
 	std::vector<array_t<double>*> doublesptr;
-	locate(ibis::DOUBLE, doublesptr);
+	locate(ibis::DOUBLE, doublesptr, msk);
 	cnt += r.doublesvalues.size();
-	append(r.doublesnames, r.doublesvalues, doublesptr);
+	append(r.doublesnames, r.doublesvalues, doublesptr, msk);
     }
     if (r.catsvalues.size() > 0) {
 	std::vector<std::vector<std::string>*> catsptr;
-	locateString(ibis::CATEGORY, catsptr);
+	locateString(ibis::CATEGORY, catsptr, msk);
 	cnt += r.catsvalues.size();
-	appendString(r.catsnames, r.catsvalues, catsptr);
+	appendString(r.catsnames, r.catsvalues, catsptr, msk);
     }
     if (r.textsvalues.size() > 0) {
 	std::vector<std::vector<std::string>*> textsptr;
-	locateString(ibis::TEXT, textsptr);
+	locateString(ibis::TEXT, textsptr, msk);
 	cnt += r.textsvalues.size();
-	appendString(r.textsnames, r.textsvalues, textsptr);
+	appendString(r.textsnames, r.textsvalues, textsptr, msk);
     }
     nrows += (cnt > 0);
     return 0;
@@ -628,30 +668,42 @@ int ibis::tafel::appendRow(const ibis::table::row& r) {
 
 int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
     if (rs.empty()) return 0;
+    std::vector<ibis::bitvector*> bytesmsk;
     std::vector<array_t<signed char>*> bytesptr;
-    locate(ibis::BYTE, bytesptr);
+    locate(ibis::BYTE, bytesptr, bytesmsk);
+    std::vector<ibis::bitvector*> ubytesmsk;
     std::vector<array_t<unsigned char>*> ubytesptr;
-    locate(ibis::UBYTE, ubytesptr);
+    locate(ibis::UBYTE, ubytesptr, ubytesmsk);
+    std::vector<ibis::bitvector*> shortsmsk;
     std::vector<array_t<int16_t>*> shortsptr;
-    locate(ibis::SHORT, shortsptr);
+    locate(ibis::SHORT, shortsptr, shortsmsk);
+    std::vector<ibis::bitvector*> ushortsmsk;
     std::vector<array_t<uint16_t>*> ushortsptr;
-    locate(ibis::USHORT, ushortsptr);
+    locate(ibis::USHORT, ushortsptr, ushortsmsk);
+    std::vector<ibis::bitvector*> intsmsk;
     std::vector<array_t<int32_t>*> intsptr;
-    locate(ibis::INT, intsptr);
+    locate(ibis::INT, intsptr, intsmsk);
+    std::vector<ibis::bitvector*> uintsmsk;
     std::vector<array_t<uint32_t>*> uintsptr;
-    locate(ibis::UINT, uintsptr);
+    locate(ibis::UINT, uintsptr, uintsmsk);
+    std::vector<ibis::bitvector*> longsmsk;
     std::vector<array_t<int64_t>*> longsptr;
-    locate(ibis::LONG, longsptr);
+    locate(ibis::LONG, longsptr, longsmsk);
+    std::vector<ibis::bitvector*> ulongsmsk;
     std::vector<array_t<uint64_t>*> ulongsptr;
-    locate(ibis::ULONG, ulongsptr);
+    locate(ibis::ULONG, ulongsptr, ulongsmsk);
+    std::vector<ibis::bitvector*> floatsmsk;
     std::vector<array_t<float>*> floatsptr;
-    locate(ibis::FLOAT, floatsptr);
+    locate(ibis::FLOAT, floatsptr, floatsmsk);
+    std::vector<ibis::bitvector*> doublesmsk;
     std::vector<array_t<double>*> doublesptr;
-    locate(ibis::DOUBLE, doublesptr);
+    locate(ibis::DOUBLE, doublesptr, doublesmsk);
+    std::vector<ibis::bitvector*> catsmsk;
     std::vector<std::vector<std::string>*> catsptr;
-    locateString(ibis::CATEGORY, catsptr);
+    locateString(ibis::CATEGORY, catsptr, catsmsk);
+    std::vector<ibis::bitvector*> textsmsk;
     std::vector<std::vector<std::string>*> textsptr;
-    locateString(ibis::TEXT, textsptr);
+    locateString(ibis::TEXT, textsptr, textsmsk);
 
     const size_t ncols = cols.size();
     size_t cnt = 0;
@@ -662,51 +714,54 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 	cnt = 0;
 	if (rs[i].bytesvalues.size() > 0) {
 	    cnt += rs[i].bytesvalues.size();
-	    append(rs[i].bytesnames, rs[i].bytesvalues, bytesptr);
+	    append(rs[i].bytesnames, rs[i].bytesvalues, bytesptr, bytesmsk);
 	}
 	if (rs[i].ubytesvalues.size() > 0) {
 	    cnt += rs[i].ubytesvalues.size();
-	    append(rs[i].ubytesnames, rs[i].ubytesvalues, ubytesptr);
+	    append(rs[i].ubytesnames, rs[i].ubytesvalues, ubytesptr, ubytesmsk);
 	}
 	if (rs[i].shortsvalues.size() > 0) {
 	    cnt += rs[i].shortsvalues.size();
-	    append(rs[i].shortsnames, rs[i].shortsvalues, shortsptr);
+	    append(rs[i].shortsnames, rs[i].shortsvalues, shortsptr, shortsmsk);
 	}
 	if (rs[i].ushortsvalues.size() > 0) {
 	    cnt += rs[i].ushortsvalues.size();
-	    append(rs[i].ushortsnames, rs[i].ushortsvalues, ushortsptr);
+	    append(rs[i].ushortsnames, rs[i].ushortsvalues, ushortsptr,
+		   ushortsmsk);
 	}
 	if (rs[i].intsvalues.size() > 0) {
 	    cnt += rs[i].intsvalues.size();
-	    append(rs[i].intsnames, rs[i].intsvalues, intsptr);
+	    append(rs[i].intsnames, rs[i].intsvalues, intsptr, intsmsk);
 	}
 	if (rs[i].uintsvalues.size() > 0) {
 	    cnt += rs[i].uintsvalues.size();
-	    append(rs[i].uintsnames, rs[i].uintsvalues, uintsptr);
+	    append(rs[i].uintsnames, rs[i].uintsvalues, uintsptr, uintsmsk);
 	}
 	if (rs[i].longsvalues.size() > 0) {
 	    cnt += rs[i].longsvalues.size();
-	    append(rs[i].longsnames, rs[i].longsvalues, longsptr);
+	    append(rs[i].longsnames, rs[i].longsvalues, longsptr, longsmsk);
 	}
 	if (rs[i].ulongsvalues.size() > 0) {
 	    cnt += rs[i].ulongsvalues.size();
-	    append(rs[i].ulongsnames, rs[i].ulongsvalues, ulongsptr);
+	    append(rs[i].ulongsnames, rs[i].ulongsvalues, ulongsptr, ulongsmsk);
 	}
 	if (rs[i].floatsvalues.size() > 0) {
 	    cnt += rs[i].floatsvalues.size();
-	    append(rs[i].floatsnames, rs[i].floatsvalues, floatsptr);
+	    append(rs[i].floatsnames, rs[i].floatsvalues, floatsptr, floatsmsk);
 	}
 	if (rs[i].doublesvalues.size() > 0) {
 	    cnt += rs[i].doublesvalues.size();
-	    append(rs[i].doublesnames, rs[i].doublesvalues, doublesptr);
+	    append(rs[i].doublesnames, rs[i].doublesvalues, doublesptr,
+		   doublesmsk);
 	}
 	if (rs[i].catsvalues.size() > 0) {
 	    cnt += rs[i].catsvalues.size();
-	    appendString(rs[i].catsnames, rs[i].catsvalues, catsptr);
+	    appendString(rs[i].catsnames, rs[i].catsvalues, catsptr, catsmsk);
 	}
 	if (rs[i].textsvalues.size() > 0) {
 	    cnt += rs[i].textsvalues.size();
-	    appendString(rs[i].textsnames, rs[i].textsvalues, textsptr);
+	    appendString(rs[i].textsnames, rs[i].textsvalues, textsptr,
+			 textsmsk);
 	}
 	nrows += (cnt > 0);
     }
@@ -1000,7 +1055,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	LOGGER(ibis::gVerbose > 0)
+	ibis::util::logger().buffer()
 	    << "tafel::write completed writing partition " 
 	    << tname << " (" << tdesc << ") with "
 	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
@@ -1053,11 +1108,14 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	totmask += newmask;
     }
     totmask.adjustSize(totmask.size(), nnew+nold);
-    LOGGER(ibis::gVerbose > 6)
-	<< "tafel::writeColumn wrote " << pos << " bytes of "
-	<< typeid(T).name() << " for " << nnew << " elements\n"
-	<< "Overall bit mask: "<< totmask;
-
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg.buffer() << "tafel::writeColumn wrote " << pos << " bytes of "
+		    << typeid(T).name() << " for " << nnew << " elements\n";
+	if (ibis::gVerbose > 6)
+	    lg.buffer() << "mask for new records: " << newmask << "\n";
+	lg.buffer() << "Overall bit mask: "<< totmask;
+    }
     return (-5 * ((size_t) pos != nnew*elem));
 } // ibis::tafel::writeColumn
 
@@ -1091,15 +1149,17 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew+nold);
-    if (ibis::gVerbose > 6) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg.buffer() << "tafel::writeString wrote " << pos
-		    << " strings (" << nnew << " expected)\nvals.size()="
-		    << vals.size() << ", content\n";
+		    << " strings (" << nnew << " expected)\n";
 #if DEBUG+0>0
+	lg.buffer() << "vals[" << vals.size() << "]:\n"
 	for (size_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size()); ++ j)
-	    lg.buffer() << j << "\t" << vals[j] << "\n";
+	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
 #endif
+	if (ibis::gVerbose > 6)
+	    lg.buffer() << "mask for new records: " << newmask << "\n";
 	lg.buffer() << "Overall bit mask: " << totmask;
     }
     return (-5 * ((size_t) pos != nnew));

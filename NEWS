@@ -1,3 +1,4 @@
+Wed Apr 15 16:42:04 PDT 2009
 Version ibis1.0.7
 -- fix a bug in ibis::qExpr::simplfy that returns a deleted query
    expression (a bug reported by Hank Childs and Prabhat)

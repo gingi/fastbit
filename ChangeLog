@@ -1,3 +1,13 @@
+2009-04-16 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp:670 need to multiply page size to
+	pi.PhysicalTotal to get bytes
+	* src/tafel.cpp, src/tafel.h: add masks to functions locate,
+	locateString, append, and appendString -- to ensure the masks are
+	extended as the values are added through ibis::table::row
+	* src/mensa.cpp: change the behavior of ibis::mensa::addPartition
+	to examine the global configuration entries when the input
+	directory name is not a valid string
+
 2009-04-15 John Wu <John.Wu at ACM.org>
 	* configure.ac: change the handling of debug and xopt options to
 	preserve the existing CXXFLAGS specified by the user.  change

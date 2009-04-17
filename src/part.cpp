@@ -9617,6 +9617,8 @@ uint32_t ibis::part::vault::tellReal() const {
 /// Examining the given director to look for the metadata files and
 /// constructs ibis::part.  Can descend into subdirectories through opendir
 /// family of functions.
+///
+/// Returns the number of data partitions found.
 unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
     if (dir1 == 0) return 0;
     unsigned int cnt = 0;
@@ -9707,6 +9709,8 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 /// Read the two directories, if there are matching subdirs, construct an
 /// ibis::part from them.  Will descend into the subdirectories when run on
 /// unix systems to look for matching subdirectories.
+///
+/// Returns the number of data partitions found.
 unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 				   const char* adir, const char* bdir) {
     if (adir == 0 || *adir == 0) return 0;
@@ -9820,7 +9824,9 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
     return cnt;
 } // ibis::util::tablesFromDir
 
-// read the parameters dataDir1 and dataDir2 to build tables
+/// Read the parameters dataDir1 and dataDir2 to build data partitions.
+///
+/// Returns the number of data partitions found.
 unsigned ibis::util::tablesFromResources(ibis::partList &tables,
 					 const ibis::resource &res) {
     unsigned int cnt = 0;

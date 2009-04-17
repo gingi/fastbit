@@ -60,6 +60,17 @@ static void usage(const char* name) {
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		       qList& qcnd, const char*& sel, const char*& frm) {
+#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+    ibis::gVerbose = INT_MAX;
+#elif DEBUG + 0 > 0
+    ibis::gVerbose += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+    ibis::gVerbose += 5 * _DEBUG;
+#else
+    ibis::gVerbose += 3;
+#endif
+#endif
     std::vector<const char*> dirs;
 
     sel = 0;
@@ -148,7 +159,9 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	}
     } // for (inti=1; ...)
 
+    // add the data partitions from configuartion files first
     tbl = ibis::table::create(0);
+    // add data partitions from explicitly specified directories
     for (std::vector<const char*>::const_iterator it = dirs.begin();
 	 it != dirs.end(); ++ it) {
 	if (tbl != 0)
@@ -161,17 +174,6 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	exit(-2);
     }
 
-#if defined(DEBUG) || defined(_DEBUG)
-#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-    ibis::gVerbose = INT_MAX;
-#elif DEBUG + 0 > 0
-    ibis::gVerbose += 7 * DEBUG;
-#elif _DEBUG + 0 > 0
-    ibis::gVerbose += 5 * _DEBUG;
-#else
-    ibis::gVerbose += 3;
-#endif
-#endif
     if (ibis::gVerbose > 0) {
 	tbl->describe(std::cout);
     }

@@ -60,7 +60,9 @@ namespace ibis {
 /// specialization of this ibis::table class.
 class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
-    /// Create a table object from the specified data directory.
+    /// Create a table object from the specified data directory.  If the
+    /// argument is a nil pointer, it will examine configuration parameters
+    /// to find locations of data patitions.
     static ibis::table* create(const char* dir);
     /// Create a table object from a pair of data directories.  The
     /// intention of maintaining two sets of data files is to continue
@@ -136,12 +138,17 @@ public:
     /// Reverse the order of the rows.
     virtual void reverseRows()=0;
 
-    /// Add data partition defined in the named directory.  It returns 0 to
-    /// indicate success, a negative number to indicate failure, and a
-    /// positive number to indicate some adversary conditions.
-    /// @note On systems that supports readdir and friend (all
-    /// unix-type of systems do), it also recursively traverses all
-    /// subdirectories.
+    /// Add a data partition defined in the named directory.  It returns 0
+    /// to indicate success, a negative number to indicate failure, and a
+    /// positive number to indicate some advisory conditions.
+    ///
+    /// If the name of the directory is a nil pointer, this function will
+    /// examine the entries in the configuration parameters to identify
+    /// locations of data partitions.  This matches the behavior of
+    /// ibis::table::create.
+    ///
+    /// @note On systems that supports readdir and friend (all unix-type of
+    /// systems do), it also recursively traverses all subdirectories.
     virtual int addPartition(const char* dir) {return -1;}
 
     /// The following functions deal with auxillary data for accelerating

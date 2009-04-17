@@ -1858,6 +1858,17 @@ static void parse_args(int argc, char** argv,
 		       int& mode, ibis::partList& tlist,
 		       stringList& qlist, stringList& alist, stringList& slist,
 		       std::vector<std::string> &queff, ibis::joinlist& joins) {
+#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+    ibis::gVerbose = INT_MAX;
+#elif DEBUG + 0 > 0
+    ibis::gVerbose += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+    ibis::gVerbose += 5 * _DEBUG;
+#else
+    ibis::gVerbose += 3;
+#endif
+#endif
     mode = -1;
     alist.clear(); // list of append operations
     qlist.clear(); // list of query strings
@@ -2204,17 +2215,6 @@ static void parse_args(int argc, char** argv,
 	    dirs.push_back(argv[i]);
 	}
     } // for (inti=1; ...)
-#if defined(DEBUG) || defined(_DEBUG)
-#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-    ibis::gVerbose = INT_MAX;
-#elif DEBUG + 0 > 0
-    ibis::gVerbose += 7 * DEBUG;
-#elif _DEBUG + 0 > 0
-    ibis::gVerbose += 5 * _DEBUG;
-#else
-    ibis::gVerbose += 3;
-#endif
-#endif
 
     for (unsigned i = 0; i < queff.size(); ++ i) {
 	qlist.push_back(queff[i].c_str());

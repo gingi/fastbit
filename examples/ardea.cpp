@@ -91,6 +91,17 @@ static void usage(const char* name) {
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		       const char*& outdir, const char*& dsname,
 		       const char*& del, int& nrpf) {
+#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+    ibis::gVerbose = INT_MAX;
+#elif DEBUG + 0 > 0
+    ibis::gVerbose += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+    ibis::gVerbose += 5 * _DEBUG;
+#else
+    ibis::gVerbose += 3;
+#endif
+#endif
     sel = 0;
     nrpf = 0;
     for (int i=1; i<argc; ++i) {
@@ -210,17 +221,6 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	}
     } // for (int i=1; ...)
 
-#if defined(DEBUG) || defined(_DEBUG)
-#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-    ibis::gVerbose = INT_MAX;
-#elif DEBUG + 0 > 0
-    ibis::gVerbose += 7 * DEBUG;
-#elif _DEBUG + 0 > 0
-    ibis::gVerbose += 5 * _DEBUG;
-#else
-    ibis::gVerbose += 3;
-#endif
-#endif
     std::cout << argv[0] << ": verbose level " << ibis::gVerbose << "\n";
     if (inputrows.size() > 0 || csvfiles.size() > 0) {
 	if (!metadata.empty()) {

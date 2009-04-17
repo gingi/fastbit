@@ -77,23 +77,27 @@ protected:
     template <typename T>
     void append(const T* in, ibis::bitvector::word_t be,
 		ibis::bitvector::word_t en, array_t<T>& out,
-		const T& fill, ibis::bitvector& mask);
+		const T& fill, ibis::bitvector& mask) const;
     void appendString(const std::vector<std::string>* in,
 		      ibis::bitvector::word_t be,
 		      ibis::bitvector::word_t en,
 		      std::vector<std::string>& out,
-		      ibis::bitvector& mask);
+		      ibis::bitvector& mask) const;
 
     template <typename T>
-    void locate(ibis::TYPE_T, std::vector<array_t<T>*>& buf) const;
+    void locate(ibis::TYPE_T, std::vector<array_t<T>*>& buf,
+		std::vector<ibis::bitvector*>& msk) const;
     void locateString(ibis::TYPE_T t,
-		      std::vector<std::vector<std::string>*>& buf) const;
+		      std::vector<std::vector<std::string>*>& buf,
+		      std::vector<ibis::bitvector*>& msk) const;
     template <typename T>
     void append(const std::vector<std::string>& nm, const std::vector<T>& va,
-		std::vector<array_t<T>*>& buf);
+		std::vector<array_t<T>*>& buf,
+		std::vector<ibis::bitvector*>& msk);
     void appendString(const std::vector<std::string>& nm,
 		      const std::vector<std::string>& va,
-		      std::vector<std::vector<std::string>*>& buf);
+		      std::vector<std::vector<std::string>*>& buf,
+		      std::vector<ibis::bitvector*>& msk);
     int parseLine(const char* str, const char* del, const char* id);
 
     template <typename T>

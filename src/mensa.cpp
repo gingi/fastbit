@@ -121,6 +121,8 @@ int ibis::mensa::addPartition(const char* dir) {
     unsigned int newparts = 0;
     if (dir != 0 && *dir != 0)
 	newparts = ibis::util::tablesFromDir(parts, dir);
+    else
+	newparts = ibis::util::tablesFromResources(parts, ibis::gParameters());
     if (newparts == 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::mensa::addPartition(" << dir
