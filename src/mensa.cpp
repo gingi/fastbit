@@ -3033,7 +3033,7 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
     return ierr;
 } // ibis::mensa::cursor::dumpIJ
 
-int ibis::mensa::cursor::getColumnAsByte(size_t j, char* val) const {
+int ibis::mensa::cursor::getColumnAsByte(size_t j, char& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3045,7 +3045,7 @@ int ibis::mensa::cursor::getColumnAsByte(size_t j, char* val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3055,7 +3055,7 @@ int ibis::mensa::cursor::getColumnAsByte(size_t j, char* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsByte
 
-int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char* val) const {
+int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3067,8 +3067,8 @@ int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char* val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3078,7 +3078,7 @@ int ibis::mensa::cursor::getColumnAsUByte(size_t j, unsigned char* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsUByte
 
-int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t* val) const {
+int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3089,18 +3089,18 @@ int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t* val) const {
 
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>
-		 (buffer[j].cval->begin()) + (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>
+		(buffer[j].cval->begin()) + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3110,7 +3110,7 @@ int ibis::mensa::cursor::getColumnAsShort(size_t j, int16_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsShort
 
-int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t* val) const {
+int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3122,14 +3122,14 @@ int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t* val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3139,7 +3139,7 @@ int ibis::mensa::cursor::getColumnAsUShort(size_t j, uint16_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsUShort
 
-int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t* val) const {
+int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3150,28 +3150,28 @@ int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t* val) const {
 
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
-	*val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::INT:
     case ibis::UINT: {
-	*val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3181,7 +3181,7 @@ int ibis::mensa::cursor::getColumnAsInt(size_t j, int32_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsInt
 
-int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t* val) const {
+int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3193,20 +3193,20 @@ int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t* val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::INT:
     case ibis::UINT: {
-	*val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3216,7 +3216,7 @@ int ibis::mensa::cursor::getColumnAsUInt(size_t j, uint32_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsUInt
 
-int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t* val) const {
+int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3227,38 +3227,38 @@ int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t* val) const {
 
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
-	*val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::INT: {
-	*val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UINT: {
-	*val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::LONG:
     case ibis::ULONG: {
-	*val = *(reinterpret_cast<int64_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int64_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3268,7 +3268,7 @@ int ibis::mensa::cursor::getColumnAsLong(size_t j, int64_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsLong
 
-int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t* val) const {
+int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3280,26 +3280,26 @@ int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t* val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::INT:
     case ibis::UINT: {
-	*val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::LONG:
     case ibis::ULONG: {
-	*val = *(reinterpret_cast<uint64_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint64_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3309,7 +3309,7 @@ int ibis::mensa::cursor::getColumnAsULong(size_t j, uint64_t* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsULong
 
-int ibis::mensa::cursor::getColumnAsFloat(size_t j, float* val) const {
+int ibis::mensa::cursor::getColumnAsFloat(size_t j, float& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3320,27 +3320,27 @@ int ibis::mensa::cursor::getColumnAsFloat(size_t j, float* val) const {
 
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
-	*val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::FLOAT: {
-	*val = *(reinterpret_cast<float*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<float*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3350,7 +3350,7 @@ int ibis::mensa::cursor::getColumnAsFloat(size_t j, float* val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsFloat
 
-int ibis::mensa::cursor::getColumnAsDouble(size_t j, double* val) const {
+int ibis::mensa::cursor::getColumnAsDouble(size_t j, double& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
 	return -1;
     int ierr = 0;
@@ -3361,37 +3361,37 @@ int ibis::mensa::cursor::getColumnAsDouble(size_t j, double* val) const {
 
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	*val = *(buffer[j].cval->begin() + (curRow - bBegin));
+	val = *(buffer[j].cval->begin() + (curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
-	*val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
-	*val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::USHORT: {
-	*val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::INT: {
-	*val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::UINT: {
-	*val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     case ibis::DOUBLE: {
-	*val = *(reinterpret_cast<double*>(buffer[j].cval->begin()) +
-		 (curRow - bBegin));
+	val = *(reinterpret_cast<double*>(buffer[j].cval->begin()) +
+		(curRow - bBegin));
 	ierr = 0;
 	break;}
     default: {
@@ -3416,53 +3416,63 @@ int ibis::mensa::cursor::getColumnAsString(size_t j, std::string& val) const {
     case ibis::BYTE: {
 	oss << static_cast<int>(*(buffer[j].cval->begin() +
 				  irow));
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
 	oss << static_cast<unsigned>
 	    (*(reinterpret_cast<unsigned char*>(buffer[j].cval->begin()) +
 	       irow));
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
 	oss << *(reinterpret_cast<int16_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::USHORT: {
 	oss << *(reinterpret_cast<uint16_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::INT: {
 	oss << *(reinterpret_cast<int32_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::UINT: {
 	oss << *(reinterpret_cast<uint32_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::LONG: {
 	oss << *(reinterpret_cast<int64_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::ULONG: {
 	oss << *(reinterpret_cast<uint64_t*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::FLOAT: {
 	oss << *(reinterpret_cast<float*>(buffer[j].cval->begin()) +
 		 irow);
+	val = oss.str();
 	ierr = 0;
 	break;}
     case ibis::DOUBLE: {
 	oss << *(reinterpret_cast<double*>(buffer[j].cval->begin()) +
 		 irow);
 	ierr = 0;
+	val = oss.str();
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
@@ -3480,7 +3490,6 @@ int ibis::mensa::cursor::getColumnAsString(size_t j, std::string& val) const {
 	ierr = -1;
 	break;}
     }
-    val = oss.str();
     return ierr;
 } // ibis::mensa::cursor::getColumnAsString
 

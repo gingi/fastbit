@@ -67,29 +67,29 @@ public:
     virtual int fetch();
     virtual int dump(std::ostream& out, const char* del=", ") const;
 
-    virtual int getColumnAsByte(const char* cname, char*) const;
-    virtual int getColumnAsUByte(const char* cname, unsigned char*) const;
-    virtual int getColumnAsShort(const char* cname, int16_t*) const;
-    virtual int getColumnAsUShort(const char* cname, uint16_t*) const;
-    virtual int getColumnAsInt(const char* cname, int32_t*) const;
-    virtual int getColumnAsUInt(const char* cname, uint32_t*) const;
-    virtual int getColumnAsLong(const char* cname, int64_t*) const;
-    virtual int getColumnAsULong(const char* cname, uint64_t*) const;
-    virtual int getColumnAsFloat(const char* cname, float*) const;
-    virtual int getColumnAsDouble(const char* cname, double*) const;
+    virtual int getColumnAsByte(const char* cname, char&) const;
+    virtual int getColumnAsUByte(const char* cname, unsigned char&) const;
+    virtual int getColumnAsShort(const char* cname, int16_t&) const;
+    virtual int getColumnAsUShort(const char* cname, uint16_t&) const;
+    virtual int getColumnAsInt(const char* cname, int32_t&) const;
+    virtual int getColumnAsUInt(const char* cname, uint32_t&) const;
+    virtual int getColumnAsLong(const char* cname, int64_t&) const;
+    virtual int getColumnAsULong(const char* cname, uint64_t&) const;
+    virtual int getColumnAsFloat(const char* cname, float&) const;
+    virtual int getColumnAsDouble(const char* cname, double&) const;
     virtual int getColumnAsString(const char* cname, std::string&) const;
 
-    virtual int getColumnAsByte(size_t cnum, char* val) const;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char* val) const;
-    virtual int getColumnAsShort(size_t cnum, int16_t* val) const;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t* val) const;
-    virtual int getColumnAsInt(size_t cnum, int32_t* val) const;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t* val) const;
-    virtual int getColumnAsLong(size_t cnum, int64_t* val) const;
-    virtual int getColumnAsULong(size_t cnum, uint64_t* val) const;
-    virtual int getColumnAsFloat(size_t cnum, float* val) const;
-    virtual int getColumnAsDouble(size_t cnum, double* val) const;
-    virtual int getColumnAsString(size_t cnum, std::string& val) const;
+    virtual int getColumnAsByte(size_t cnum, char&) const;
+    virtual int getColumnAsUByte(size_t cnum, unsigned char&) const;
+    virtual int getColumnAsShort(size_t cnum, int16_t&) const;
+    virtual int getColumnAsUShort(size_t cnum, uint16_t&) const;
+    virtual int getColumnAsInt(size_t cnum, int32_t&) const;
+    virtual int getColumnAsUInt(size_t cnum, uint32_t&) const;
+    virtual int getColumnAsLong(size_t cnum, int64_t&) const;
+    virtual int getColumnAsULong(size_t cnum, uint64_t&) const;
+    virtual int getColumnAsFloat(size_t cnum, float&) const;
+    virtual int getColumnAsDouble(size_t cnum, double&) const;
+    virtual int getColumnAsString(size_t cnum, std::string&) const;
 
 protected:
     const ibis::joinIN& jin_;
@@ -114,7 +114,7 @@ private:
 }; // class ibis::joinIN::result
 
 inline int
-ibis::joinIN::result::getColumnAsByte(size_t cnum, char* val) const {
+ibis::joinIN::result::getColumnAsByte(size_t cnum, char& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -122,7 +122,7 @@ ibis::joinIN::result::getColumnAsByte(size_t cnum, char* val) const {
     uint32_t pos = ipToPos[cnum];
     if (pos < colR_.size()) {
 	if (typeR_[pos] == ibis::BYTE && colR_[pos] != 0) {
-	    *val = (*(static_cast<array_t<char>*>(valR_[pos])))
+	    val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		[(*jin_.orderR_)[currR_]];
 	    ierr = 0;
 	}
@@ -130,7 +130,7 @@ ibis::joinIN::result::getColumnAsByte(size_t cnum, char* val) const {
     else {
 	pos -= colR_.size();
 	if (typeS_[pos] == ibis::BYTE && colS_[pos] != 0) {
-	    *val = (*(static_cast<array_t<char>*>(valS_[pos])))
+	    val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		[(*jin_.orderS_)[currS_]];
 	    ierr = 0;
 	}
@@ -139,7 +139,7 @@ ibis::joinIN::result::getColumnAsByte(size_t cnum, char* val) const {
 } // ibis::joinIN::result::getColumnAsByte
 
 inline int
-ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char* val) const {
+ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -147,7 +147,7 @@ ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char* val) const {
     uint32_t pos = ipToPos[cnum];
     if (pos < colR_.size()) {
 	if (typeR_[pos] == ibis::UBYTE && colR_[pos] != 0) {
-	    *val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+	    val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		[(*jin_.orderR_)[currR_]];
 	    ierr = 0;
 	}
@@ -155,7 +155,7 @@ ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char* val) const {
     else {
 	pos -= colR_.size();
 	if (typeS_[pos] == ibis::UBYTE && colS_[pos] != 0) {
-	    *val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+	    val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		[(*jin_.orderS_)[currS_]];
 	    ierr = 0;
 	}
@@ -164,7 +164,7 @@ ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char* val) const {
 } // ibis::joinIN::result::getColumnAsUByte
 
 inline int
-ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t* val) const {
+ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -175,17 +175,17 @@ ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -198,17 +198,17 @@ ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -219,7 +219,7 @@ ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t* val) const {
 } // ibis::joinIN::result::getColumnAsShort
 
 inline int
-ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t* val) const {
+ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -230,17 +230,17 @@ ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -253,17 +253,17 @@ ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -274,7 +274,7 @@ ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t* val) const {
 } // ibis::joinIN::result::getColumnAsUShort
 
 inline int
-ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t* val) const {
+ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -285,27 +285,27 @@ ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -318,27 +318,27 @@ ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -349,7 +349,7 @@ ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t* val) const {
 } // ibis::joinIN::result::getColumnAsInt
 
 inline int
-ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t* val) const {
+ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -360,27 +360,27 @@ ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -393,27 +393,27 @@ ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -424,7 +424,7 @@ ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t* val) const {
 } // ibis::joinIN::result::getColumnAsUInt
 
 inline int
-ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t* val) const {
+ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -435,37 +435,37 @@ ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::LONG:
-		*val = (*(static_cast<array_t<int64_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int64_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -478,37 +478,37 @@ ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::LONG:
-		*val = (*(static_cast<array_t<int64_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int64_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -519,7 +519,7 @@ ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t* val) const {
 } // ibis::joinIN::result::getColumnAsLong
 
 inline int
-ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t* val) const {
+ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -530,37 +530,37 @@ ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::ULONG:
-		*val = (*(static_cast<array_t<uint64_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint64_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -573,37 +573,37 @@ ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::ULONG:
-		*val = (*(static_cast<array_t<uint64_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint64_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -614,7 +614,7 @@ ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t* val) const {
 } // ibis::joinIN::result::getColumnAsULong
 
 inline int
-ibis::joinIN::result::getColumnAsFloat(size_t cnum, float* val) const {
+ibis::joinIN::result::getColumnAsFloat(size_t cnum, float& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -625,27 +625,27 @@ ibis::joinIN::result::getColumnAsFloat(size_t cnum, float* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::FLOAT:
-		*val = (*(static_cast<array_t<float>*>(valR_[pos])))
+		val = (*(static_cast<array_t<float>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -658,27 +658,27 @@ ibis::joinIN::result::getColumnAsFloat(size_t cnum, float* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::FLOAT:
-		*val = (*(static_cast<array_t<float>*>(valS_[pos])))
+		val = (*(static_cast<array_t<float>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -689,7 +689,7 @@ ibis::joinIN::result::getColumnAsFloat(size_t cnum, float* val) const {
 } // ibis::joinIN::result::getColumnAsFloat
 
 inline int
-ibis::joinIN::result::getColumnAsDouble(size_t cnum, double* val) const {
+ibis::joinIN::result::getColumnAsDouble(size_t cnum, double& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -700,42 +700,42 @@ ibis::joinIN::result::getColumnAsDouble(size_t cnum, double* val) const {
 	    switch (typeR_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::FLOAT:
-		*val = (*(static_cast<array_t<float>*>(valR_[pos])))
+		val = (*(static_cast<array_t<float>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
 	    case ibis::DOUBLE:
-		*val = (*(static_cast<array_t<double>*>(valR_[pos])))
+		val = (*(static_cast<array_t<double>*>(valR_[pos])))
 		    [(*jin_.orderR_)[currR_]];
 		ierr = 0;
 		break;
@@ -748,42 +748,42 @@ ibis::joinIN::result::getColumnAsDouble(size_t cnum, double* val) const {
 	    switch (typeS_[pos]) {
 	    default: break;
 	    case ibis::BYTE:
-		*val = (*(static_cast<array_t<char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UBYTE:
-		*val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
+		val = (*(static_cast<array_t<unsigned char>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::SHORT:
-		*val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::USHORT:
-		*val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint16_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::INT:
-		*val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<int32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::UINT:
-		*val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
+		val = (*(static_cast<array_t<uint32_t>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::FLOAT:
-		*val = (*(static_cast<array_t<float>*>(valS_[pos])))
+		val = (*(static_cast<array_t<float>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
 	    case ibis::DOUBLE:
-		*val = (*(static_cast<array_t<double>*>(valS_[pos])))
+		val = (*(static_cast<array_t<double>*>(valS_[pos])))
 		    [(*jin_.orderS_)[currS_]];
 		ierr = 0;
 		break;
@@ -899,4 +899,3 @@ ibis::joinIN::result::dumpS(std::ostream& out, size_t ind) const {
     }
 } // ibis::joinIN::result::dumpS
 #endif
-

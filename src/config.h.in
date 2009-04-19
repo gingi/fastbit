@@ -16,9 +16,6 @@
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
-/* Define to 1 if you have the `floor' function. */
-#undef HAVE_FLOOR
-
 /* Define to 1 if support __sync_add_and_fetch() on 32-bit integers */
 #undef HAVE_GCC_ATOMIC32
 

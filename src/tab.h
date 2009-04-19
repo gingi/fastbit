@@ -261,29 +261,29 @@ public:
     virtual uint64_t getCurrentRowNumber() const {return tab.nRows();}
     virtual int dump(std::ostream&, const char* del) const {return 0;}
 
-    virtual int getColumnAsByte(const char*, char*) const {return -1;}
-    virtual int getColumnAsUByte(const char*, unsigned char*) const
+    virtual int getColumnAsByte(const char*, char&) const {return -1;}
+    virtual int getColumnAsUByte(const char*, unsigned char&) const
     {return -1;}
-    virtual int getColumnAsShort(const char*, int16_t*) const {return -1;}
-    virtual int getColumnAsUShort(const char*, uint16_t*) const {return -1;}
-    virtual int getColumnAsInt(const char*, int32_t*) const {return -1;}
-    virtual int getColumnAsUInt(const char*, uint32_t*) const {return -1;}
-    virtual int getColumnAsLong(const char*, int64_t*) const {return -1;}
-    virtual int getColumnAsULong(const char*, uint64_t*) const {return -1;}
-    virtual int getColumnAsFloat(const char*, float*) const {return -1;}
-    virtual int getColumnAsDouble(const char*, double*) const {return -1;}
+    virtual int getColumnAsShort(const char*, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(const char*, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(const char*, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(const char*, uint32_t&) const {return -1;}
+    virtual int getColumnAsLong(const char*, int64_t&) const {return -1;}
+    virtual int getColumnAsULong(const char*, uint64_t&) const {return -1;}
+    virtual int getColumnAsFloat(const char*, float&) const {return -1;}
+    virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
 
-    virtual int getColumnAsByte(size_t, char*) const {return -1;}
-    virtual int getColumnAsUByte(size_t, unsigned char*) const {return -1;}
-    virtual int getColumnAsShort(size_t, int16_t*) const {return -1;}
-    virtual int getColumnAsUShort(size_t, uint16_t*) const {return -1;}
-    virtual int getColumnAsInt(size_t, int32_t*) const {return -1;}
-    virtual int getColumnAsUInt(size_t, uint32_t*) const {return -1;}
-    virtual int getColumnAsLong(size_t, int64_t*) const {return -1;}
-    virtual int getColumnAsULong(size_t, uint64_t*) const {return -1;}
-    virtual int getColumnAsFloat(size_t, float*) const {return -1;}
-    virtual int getColumnAsDouble(size_t, double*) const {return -1;}
+    virtual int getColumnAsByte(size_t, char&) const {return -1;}
+    virtual int getColumnAsUByte(size_t, unsigned char&) const {return -1;}
+    virtual int getColumnAsShort(size_t, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(size_t, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(size_t, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(size_t, uint32_t&) const {return -1;}
+    virtual int getColumnAsLong(size_t, int64_t&) const {return -1;}
+    virtual int getColumnAsULong(size_t, uint64_t&) const {return -1;}
+    virtual int getColumnAsFloat(size_t, float&) const {return -1;}
+    virtual int getColumnAsDouble(size_t, double&) const {return -1;}
     virtual int getColumnAsString(size_t, std::string&) const {return -1;}
 
 private:
@@ -389,57 +389,57 @@ public:
 	}
     }
 
-    virtual int getColumnAsByte(const char*, char*) const {return -1;}
-    virtual int getColumnAsUByte(const char*, unsigned char*) const {
+    virtual int getColumnAsByte(const char*, char&) const {return -1;}
+    virtual int getColumnAsUByte(const char*, unsigned char&) const {
 	return -1;}
-    virtual int getColumnAsShort(const char*, int16_t*) const {return -1;}
-    virtual int getColumnAsUShort(const char*, uint16_t*) const {return -1;}
-    virtual int getColumnAsInt(const char*, int32_t*) const {return -1;}
-    virtual int getColumnAsUInt(const char* cn, uint32_t* val) const {
+    virtual int getColumnAsShort(const char*, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(const char*, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(const char*, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(const char* cn, uint32_t&) const {
 	return -1;}
-    virtual int getColumnAsLong(const char* cn, int64_t* val) const {
+    virtual int getColumnAsLong(const char* cn, int64_t& val) const {
 	if (current == 0 && stricmp(tab.colName(), cn) == 0) {
-	    *val = tab.nRows();
+	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}
     }
-    virtual int getColumnAsULong(const char* cn, uint64_t* val) const {
+    virtual int getColumnAsULong(const char* cn, uint64_t& val) const {
 	if (current == 0 && stricmp(tab.colName(), cn) == 0) {
-	    *val = tab.nRows();
+	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}
     }
-    virtual int getColumnAsFloat(const char*, float*) const {return -1;}
-    virtual int getColumnAsDouble(const char*, double*) const {return -1;}
+    virtual int getColumnAsFloat(const char*, float&) const {return -1;}
+    virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
 
-    virtual int getColumnAsByte(size_t, char*) const {return -1;}
-    virtual int getColumnAsUByte(size_t, unsigned char*) const {return -1;}
-    virtual int getColumnAsShort(size_t, int16_t*) const {return -1;}
-    virtual int getColumnAsUShort(size_t, uint16_t*) const {return -1;}
-    virtual int getColumnAsInt(size_t, int32_t*) const {return -1;}
-    virtual int getColumnAsUInt(size_t cn, uint32_t* val) const {
+    virtual int getColumnAsByte(size_t, char&) const {return -1;}
+    virtual int getColumnAsUByte(size_t, unsigned char&) const {return -1;}
+    virtual int getColumnAsShort(size_t, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(size_t, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(size_t, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(size_t cn, uint32_t&) const {
 	return -1;}
-    virtual int getColumnAsLong(size_t cn, int64_t* val) const {
+    virtual int getColumnAsLong(size_t cn, int64_t& val) const {
 	if (current == 0 && cn == 0) {
-	    *val = tab.nRows();
+	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}}
-    virtual int getColumnAsULong(size_t cn, uint64_t* val) const {
+    virtual int getColumnAsULong(size_t cn, uint64_t& val) const {
 	if (current == 0 && cn == 0) {
-	    *val = tab.nRows();
+	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}}
-    virtual int getColumnAsFloat(size_t, float*) const {return -1;}
-    virtual int getColumnAsDouble(size_t, double*) const {return -1;}
+    virtual int getColumnAsFloat(size_t, float&) const {return -1;}
+    virtual int getColumnAsDouble(size_t, double&) const {return -1;}
     virtual int getColumnAsString(size_t, std::string&) const {return -1;}
 
 private:

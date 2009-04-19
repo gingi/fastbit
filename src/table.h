@@ -577,16 +577,16 @@ public:
     /// Retrieve the value of the named column.
     /// @note Note the cost of name lookup is likely to dominate the total
     /// cost of such a function.
-    virtual int getColumnAsByte(const char* cname, char*) const=0;
-    virtual int getColumnAsUByte(const char* cname, unsigned char*) const=0;
-    virtual int getColumnAsShort(const char* cname, int16_t*) const=0;
-    virtual int getColumnAsUShort(const char* cname, uint16_t*) const=0;
-    virtual int getColumnAsInt(const char* cname, int32_t*) const=0;
-    virtual int getColumnAsUInt(const char* cname, uint32_t*) const=0;
-    virtual int getColumnAsLong(const char* cname, int64_t*) const=0;
-    virtual int getColumnAsULong(const char* cname, uint64_t*) const=0;
-    virtual int getColumnAsFloat(const char* cname, float*) const=0;
-    virtual int getColumnAsDouble(const char* cname, double*) const=0;
+    virtual int getColumnAsByte(const char* cname, char&) const=0;
+    virtual int getColumnAsUByte(const char* cname, unsigned char&) const=0;
+    virtual int getColumnAsShort(const char* cname, int16_t&) const=0;
+    virtual int getColumnAsUShort(const char* cname, uint16_t&) const=0;
+    virtual int getColumnAsInt(const char* cname, int32_t&) const=0;
+    virtual int getColumnAsUInt(const char* cname, uint32_t&) const=0;
+    virtual int getColumnAsLong(const char* cname, int64_t&) const=0;
+    virtual int getColumnAsULong(const char* cname, uint64_t&) const=0;
+    virtual int getColumnAsFloat(const char* cname, float&) const=0;
+    virtual int getColumnAsDouble(const char* cname, double&) const=0;
     virtual int getColumnAsString(const char* cname, std::string&) const=0;
 
     /// This version of getColumnAsTTT directly use the column number, i.e.,
@@ -594,16 +594,16 @@ public:
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
-    virtual int getColumnAsByte(size_t cnum, char* val) const=0;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char* val) const=0;
-    virtual int getColumnAsShort(size_t cnum, int16_t* val) const=0;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t* val) const=0;
-    virtual int getColumnAsInt(size_t cnum, int32_t* val) const=0;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t* val) const=0;
-    virtual int getColumnAsLong(size_t cnum, int64_t* val) const=0;
-    virtual int getColumnAsULong(size_t cnum, uint64_t* val) const=0;
-    virtual int getColumnAsFloat(size_t cnum, float* val) const=0;
-    virtual int getColumnAsDouble(size_t cnum, double* val) const=0;
+    virtual int getColumnAsByte(size_t cnum, char& val) const=0;
+    virtual int getColumnAsUByte(size_t cnum, unsigned char& val) const=0;
+    virtual int getColumnAsShort(size_t cnum, int16_t& val) const=0;
+    virtual int getColumnAsUShort(size_t cnum, uint16_t& val) const=0;
+    virtual int getColumnAsInt(size_t cnum, int32_t& val) const=0;
+    virtual int getColumnAsUInt(size_t cnum, uint32_t& val) const=0;
+    virtual int getColumnAsLong(size_t cnum, int64_t& val) const=0;
+    virtual int getColumnAsULong(size_t cnum, uint64_t& val) const=0;
+    virtual int getColumnAsFloat(size_t cnum, float& val) const=0;
+    virtual int getColumnAsDouble(size_t cnum, double& val) const=0;
     virtual int getColumnAsString(size_t cnum, std::string& val) const=0;
 
 protected:

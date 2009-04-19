@@ -217,28 +217,28 @@ public:
     virtual uint64_t getCurrentRowNumber() const {return curRow;}
     virtual int dump(std::ostream& out, const char* del) const;
 
-    virtual int getColumnAsByte(const char*, char*) const;
-    virtual int getColumnAsUByte(const char*, unsigned char*) const;
-    virtual int getColumnAsShort(const char*, int16_t*) const;
-    virtual int getColumnAsUShort(const char*, uint16_t*) const;
-    virtual int getColumnAsInt(const char*, int32_t*) const;
-    virtual int getColumnAsUInt(const char*, uint32_t*) const;
-    virtual int getColumnAsLong(const char*, int64_t*) const;
-    virtual int getColumnAsULong(const char*, uint64_t*) const;
-    virtual int getColumnAsFloat(const char*, float*) const;
-    virtual int getColumnAsDouble(const char*, double*) const;
+    virtual int getColumnAsByte(const char*, char&) const;
+    virtual int getColumnAsUByte(const char*, unsigned char&) const;
+    virtual int getColumnAsShort(const char*, int16_t&) const;
+    virtual int getColumnAsUShort(const char*, uint16_t&) const;
+    virtual int getColumnAsInt(const char*, int32_t&) const;
+    virtual int getColumnAsUInt(const char*, uint32_t&) const;
+    virtual int getColumnAsLong(const char*, int64_t&) const;
+    virtual int getColumnAsULong(const char*, uint64_t&) const;
+    virtual int getColumnAsFloat(const char*, float&) const;
+    virtual int getColumnAsDouble(const char*, double&) const;
     virtual int getColumnAsString(const char*, std::string&) const;
 
-    virtual int getColumnAsByte(size_t, char*) const;
-    virtual int getColumnAsUByte(size_t, unsigned char*) const;
-    virtual int getColumnAsShort(size_t, int16_t*) const;
-    virtual int getColumnAsUShort(size_t, uint16_t*) const;
-    virtual int getColumnAsInt(size_t, int32_t*) const;
-    virtual int getColumnAsUInt(size_t, uint32_t*) const;
-    virtual int getColumnAsLong(size_t, int64_t*) const;
-    virtual int getColumnAsULong(size_t, uint64_t*) const;
-    virtual int getColumnAsFloat(size_t, float*) const;
-    virtual int getColumnAsDouble(size_t, double*) const;
+    virtual int getColumnAsByte(size_t, char&) const;
+    virtual int getColumnAsUByte(size_t, unsigned char&) const;
+    virtual int getColumnAsShort(size_t, int16_t&) const;
+    virtual int getColumnAsUShort(size_t, uint16_t&) const;
+    virtual int getColumnAsInt(size_t, int32_t&) const;
+    virtual int getColumnAsUInt(size_t, uint32_t&) const;
+    virtual int getColumnAsLong(size_t, int64_t&) const;
+    virtual int getColumnAsULong(size_t, uint64_t&) const;
+    virtual int getColumnAsFloat(size_t, float&) const;
+    virtual int getColumnAsDouble(size_t, double&) const;
     virtual int getColumnAsString(size_t, std::string&) const;
 
 protected:
@@ -496,7 +496,7 @@ ibis::bord::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
 } // ibis::bord::cursor::dumpIJ
 
 inline int
-ibis::bord::cursor::getColumnAsByte(const char* cn, char* val) const {
+ibis::bord::cursor::getColumnAsByte(const char* cn, char& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -508,7 +508,7 @@ ibis::bord::cursor::getColumnAsByte(const char* cn, char* val) const {
 
 inline int
 ibis::bord::cursor::getColumnAsUByte(const char* cn,
-				     unsigned char* val) const {
+				     unsigned char& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -519,7 +519,7 @@ ibis::bord::cursor::getColumnAsUByte(const char* cn,
 } // ibis::bord::cursor::getColumnAsUByte
 
 inline int
-ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t* val) const {
+ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -530,7 +530,7 @@ ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t* val) const {
 } // ibis::bord::cursor::getColumnAsShort
 
 inline int
-ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t* val) const {
+ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -541,7 +541,7 @@ ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t* val) const {
 } // ibis::bord::cursor::getColumnAsUShort
 
 inline int
-ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t* val) const {
+ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -552,7 +552,7 @@ ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t* val) const {
 } // ibis::bord::cursor::getColumnAsInt
 
 inline int
-ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t* val) const {
+ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -563,7 +563,7 @@ ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t* val) const {
 } // ibis::bord::cursor::getColumnAsUInt
 
 inline int
-ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t* val) const {
+ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -574,7 +574,7 @@ ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t* val) const {
 } // ibis::bord::cursor::getColumnAsLong
 
 inline int
-ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t* val) const {
+ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -585,7 +585,7 @@ ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t* val) const {
 } // ibis::bord::cursor::getColumnAsULong
 
 inline int
-ibis::bord::cursor::getColumnAsFloat(const char* cn, float* val) const {
+ibis::bord::cursor::getColumnAsFloat(const char* cn, float& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -596,7 +596,7 @@ ibis::bord::cursor::getColumnAsFloat(const char* cn, float* val) const {
 } // ibis::bord::cursor::getColumnAsFloat
 
 inline int
-ibis::bord::cursor::getColumnAsDouble(const char* cn, double* val) const {
+ibis::bord::cursor::getColumnAsDouble(const char* cn, double& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);

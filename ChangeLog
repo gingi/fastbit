@@ -1,3 +1,16 @@
+2009-04-18 John Wu <John.Wu at ACM.org>
+	* configure.ac: actually try to compile src/whereLexer.cc to
+	determine whether to use win/FlexLexer.h or not
+
+2009-04-17 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tab.h, src/bord.h, src/join.h, src/joinin.h:
+	change the return value type from point to reference to reduce the
+	need to check the validity of the pointers (existing code did not
+	check them anyway)
+	* src/bord.cpp, src/mensa.cpp: in getColumnAsString move statement
+	copying oss.str() to individual cases, previously this was done at
+	the end, which causes all string values to returned as empty string
+
 2009-04-16 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:670 need to multiply page size to
 	pi.PhysicalTotal to get bytes

@@ -1128,7 +1128,7 @@ int ibis::joinIN::result::getColumnAsString(size_t cnum,
 } // ibis::joinIN::result::getColumnAsString
 
 int
-ibis::joinIN::result::getColumnAsByte(const char* cname, char* val) const {
+ibis::joinIN::result::getColumnAsByte(const char* cname, char& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1149,7 +1149,7 @@ ibis::joinIN::result::getColumnAsByte(const char* cname, char* val) const {
 
 int
 ibis::joinIN::result::getColumnAsUByte(const char* cname,
-				       unsigned char* val) const {
+				       unsigned char& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1169,7 +1169,7 @@ ibis::joinIN::result::getColumnAsUByte(const char* cname,
 } // ibis::joinIN::result::getColumnAsUByte
 
 int
-ibis::joinIN::result::getColumnAsShort(const char* cname, int16_t* val) const {
+ibis::joinIN::result::getColumnAsShort(const char* cname, int16_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1190,7 +1190,7 @@ ibis::joinIN::result::getColumnAsShort(const char* cname, int16_t* val) const {
 
 int
 ibis::joinIN::result::getColumnAsUShort(const char* cname,
-					uint16_t* val) const {
+					uint16_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1210,7 +1210,7 @@ ibis::joinIN::result::getColumnAsUShort(const char* cname,
 } // ibis::joinIN::result::getColumnAsUShort
 
 int
-ibis::joinIN::result::getColumnAsInt(const char* cname, int32_t* val) const {
+ibis::joinIN::result::getColumnAsInt(const char* cname, int32_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1230,7 +1230,7 @@ ibis::joinIN::result::getColumnAsInt(const char* cname, int32_t* val) const {
 } // ibis::joinIN::result::getColumnAsInt
 
 int
-ibis::joinIN::result::getColumnAsUInt(const char* cname, uint32_t* val) const {
+ibis::joinIN::result::getColumnAsUInt(const char* cname, uint32_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1250,7 +1250,7 @@ ibis::joinIN::result::getColumnAsUInt(const char* cname, uint32_t* val) const {
 } // ibis::joinIN::result::getColumnAsUInt
 
 int
-ibis::joinIN::result::getColumnAsLong(const char* cname, int64_t* val) const {
+ibis::joinIN::result::getColumnAsLong(const char* cname, int64_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1270,7 +1270,7 @@ ibis::joinIN::result::getColumnAsLong(const char* cname, int64_t* val) const {
 } // ibis::joinIN::result::getColumnAsLong
 
 int
-ibis::joinIN::result::getColumnAsULong(const char* cname, uint64_t* val) const {
+ibis::joinIN::result::getColumnAsULong(const char* cname, uint64_t& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1290,7 +1290,7 @@ ibis::joinIN::result::getColumnAsULong(const char* cname, uint64_t* val) const {
 } // ibis::joinIN::result::getColumnAsULong
 
 int
-ibis::joinIN::result::getColumnAsFloat(const char* cname, float* val) const {
+ibis::joinIN::result::getColumnAsFloat(const char* cname, float& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
@@ -1310,7 +1310,7 @@ ibis::joinIN::result::getColumnAsFloat(const char* cname, float* val) const {
 } // ibis::joinIN::result::getColumnAsFloat
 
 int
-ibis::joinIN::result::getColumnAsDouble(const char* cname, double* val) const {
+ibis::joinIN::result::getColumnAsDouble(const char* cname, double& val) const {
     std::map<const char*, uint32_t, ibis::lessi>::const_iterator it =
 	namesToPos.find(cname);
     if (it != namesToPos.end()) {
