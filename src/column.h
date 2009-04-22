@@ -111,9 +111,8 @@ public:
     const char* nullMaskName(std::string& fname) const;
     void  getNullMask(bitvector& mask) const;
 
-    /// Return the string value for the <code>i</code>th row.  Only valid
-    /// for ibis::text and ibis::category.
-    ///@ref ibis::text
+    /// Return the string value for the <code>i</code>th row.  Only
+    /// implemented for ibis::text and ibis::category.  @sa ibis::text
     virtual void getString(uint32_t i, std::string &val) const {};
     /// Determine if the input string is one of the records.  If yes,
     /// return the pointer to the incoming string, otherwise return nil.
@@ -150,14 +149,20 @@ public:
     long selectValues(const bitvector& mask,
 		      array_t<T>& vals, array_t<uint32_t>& inds) const;
 
-    virtual void write(FILE* file) const; // write the TDC entry
-    virtual void print(std::ostream& out) const; // print header info
+    /// Write the TDC entry.
+    virtual void write(FILE* file) const;
+    /// Print some basic infomation about this column.
+    virtual void print(std::ostream& out) const;
+    /// Log messages using printf syntax.
     void logMessage(const char* event, const char* fmt, ...) const;
+    /// Log warming message using printf syntax.
     void logWarning(const char* event, const char* fmt, ...) const;
 
-    /// expand/contract range condition so that the new ranges fall exactly
-    /// on the bin boundaries
+    /// Expand the range expression so that the new range falls exactly on
+    /// the bin boundaries.
     int expandRange(ibis::qContinuousRange& rng) const;
+    /// Contract the range expression so that the new range falls exactly
+    /// on the bin boundaries.
     int contractRange(ibis::qContinuousRange& rng) const;
 
     /// Compute a lower bound and an upper bound on the number of hits
@@ -172,15 +177,17 @@ public:
     virtual long estimateRange(const ibis::qContinuousRange& cmp,
 			       ibis::bitvector& low,
 			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
     virtual long estimateRange(const ibis::qDiscreteRange& cmp,
 			       ibis::bitvector& low,
 			       ibis::bitvector& high) const;
 
-    /// Attempt to compute the exact answer.  If successful, return the
-    /// number of hits, otherwise return a negative value.
+    /// Compute the exact answer.  If successful, return the number of
+    /// hits, otherwise return a negative value.
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
+    /// Compute the exact answer to a discrete range expression.
     virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
@@ -189,13 +196,17 @@ public:
     /// no index can be computed, it will return the number of rows as the
     /// upper bound.
     virtual long estimateRange(const ibis::qContinuousRange& cmp) const;
+    /// Compute an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qDiscreteRange& cmp) const;
 
-    /// Estimate the cost of evaluate the query expression.
+    /// Estimate the cost of evaluating the query expression.
     virtual double estimateCost(const ibis::qContinuousRange& cmp) const;
+    /// Estimate the cost of evaluating a dicreate range expression.
     virtual double estimateCost(const ibis::qDiscreteRange& cmp) const;
+    /// Estimate the cost of evaluating a string lookup.
     virtual double estimateCost(const ibis::qString& cmp) const {
 	return 0;}
+    /// Estimate the cost of looking up a group of strings.
     virtual double estimateCost(const ibis::qMultiString& cmp) const {
 	return 0;}
 
@@ -204,6 +215,7 @@ public:
     /// condition.
     virtual float getUndecidable(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& iffy) const;
+    /// Find rows that can not be decided with the existing index.
     virtual float getUndecidable(const ibis::qDiscreteRange& cmp,
 				 ibis::bitvector& iffy) const;
 
@@ -216,19 +228,22 @@ public:
 			   ibis::bitvector& mask, const void *va1,
 			   const void *va2=0);
 
+    /// Write the selected records to the specified directory.
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
 
     /// Truncate the number of data entries in the named dir to @c nent.
     long truncateData(const char* dir, uint32_t nent,
 		      ibis::bitvector& mask) const;
+    /// Cast the incoming array into the specified type T before write them
+    /// to a file.
     template <typename T>
     long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
 		      const T special);
 
-    // A group of functions to compute some basic statistics for the
-    // attribute values.
-
+    /// A group of functions to compute some basic statistics for the
+    /// attribute values.
+    ///@{
     /// Compute the actual minimum value by reading the data or examining
     /// the index.  It returns DBL_MAX in case of error.
     virtual double getActualMin() const;
@@ -258,7 +273,7 @@ public:
     /// bbs.
     long getDistribution(std::vector<double>& bbs,
 			 std::vector<uint32_t>& counts) const;
-
+    /// @}
     class info;
     class indexLock;
     class mutexLock;

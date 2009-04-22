@@ -1,3 +1,8 @@
+2009-04-22 John Wu <John.Wu at ACM.org>
+	* src/query.h, src/query.cpp: add function getQualifiedStrings
+	* src/part.h, src/part.cpp: add function selectStrings
+	* src/utilidor.h: clean up errors in in-line documentation
+
 2009-04-18 John Wu <John.Wu at ACM.org>
 	* configure.ac: actually try to compile src/whereLexer.cc to
 	determine whether to use win/FlexLexer.h or not

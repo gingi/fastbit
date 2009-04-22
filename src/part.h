@@ -273,6 +273,9 @@ public:
     /// Retrieve values of the name column as 64-bit floating-point values.
     array_t<double>* selectDoubles(const char* name,
 				   const ibis::bitvector &mask) const;
+    /// Retrieve values of the name column as strings.
+    std::vector<std::string>* selectStrings(const char* name,
+					    const ibis::bitvector &mask) const;
     /// Calculate the values of an arithmetic expression.
     long calculate(const ibis::math::term&, const ibis::bitvector&,
 		   array_t<double>&) const;

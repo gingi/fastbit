@@ -2429,6 +2429,49 @@ array_t<double>* ibis::part::selectDoubles
     return res;
 } // ibis::part::selectDoubles
 
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
+std::vector<std::string>* ibis::part::selectStrings
+(const char* pname, const ibis::bitvector &mask) const {
+    std::vector<std::string>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res = (*it).second->selectStrings(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectStrings(" << (pname ? pname : "")
+	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectStrings(" << (pname ? pname : "")
+	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectStrings(" << (pname ? pname : "")
+	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectStrings
+
 /// Convert a list of RIDs into a bitvector.  If an list of external RIDs
 /// is available, sort those RIDS and search through them, otherwise,
 /// assume the incoming numbers are row numbers and mark the corresponding

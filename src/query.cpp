@@ -1271,8 +1271,8 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
     return ierr;
 } // ibis::query::limit
 
-/// FastBit has a built-in type called ibis::rid_t.  User may use it to
-/// provide a global row identifier for each row.  We call such row
+/// @detail FastBit has a built-in type called ibis::rid_t.  User may use
+/// it to provide a global row identifier for each row.  We call such row
 /// identifiers (RIDs) the extenal RIDs.  In many cases, there is no
 /// external RIDs provided by the user, then there is still a set of
 /// implicit RIDs numbered from 0 to nRows()-1.  This function will
@@ -1418,12 +1418,12 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
     return rids;
 } // ibis::query::getRIDsInBundle
 
-/// The data type for row identifiers is ibis::rid_t, which can be treated
-/// as unsigned 64-bit integer.  These identifiers (RIDs) can be either
-/// provided by the user (external RIDs) or internally generated from row
-/// positions (implicit RIDs).  If the user has not provided external RIDs,
-/// then this function simply decodes the positions of the bits that are
-/// marked 1 and places the positions in the output array.
+/// @detail The data type for row identifiers is ibis::rid_t, which can be
+/// treated as unsigned 64-bit integer.  These identifiers (RIDs) can be
+/// either provided by the user (external RIDs) or internally generated
+/// from row positions (implicit RIDs).  If the user has not provided
+/// external RIDs, then this function simply decodes the positions of the
+/// bits that are marked 1 and places the positions in the output array.
 ///
 /// The return value can be null if this query object is not associated
 /// with a data partition or the mask contains no bit marked 1.
@@ -1446,6 +1446,9 @@ ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
     return ridset;
 } // ibis::query::getRIDs
 
+/// An implicit casting will be performed if possible.  A null pointer will
+/// be returned if the underlying values can not be safely cast into 32-bit
+/// integers.
 array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
@@ -1460,6 +1463,9 @@ array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
     return res;
 } // ibis::query::getQualifiedInts
 
+/// An implicit casting will be performed if possible.  A null pointer will
+/// be returned if the underlying values can not be safely cast into 32-bit
+/// unsigned integers.
 array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
@@ -1474,6 +1480,9 @@ array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
     return res;
 } // ibis::query::getQualifiedUInts
 
+/// An implicit casting will be performed if possible.  A null pointer will
+/// be returned if the underlying values can not be safely cast into 32-bit
+/// floating-point values.
 array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
@@ -1497,6 +1506,10 @@ array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
     return res;
 } // ibis::query::getQualifiedFloats
 
+/// An implicit casting will be performed if the specified column is not of
+/// type double.  Note that casting from 64-bit integers to double may
+/// cause loss of precision; casting of 32-bit floating-point values to
+/// 64-bit version may lead to spurious precision.
 array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
@@ -1519,6 +1532,32 @@ array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
     }
     return res;
 } // ibis::query::getQualifiedDoubles
+
+/// The argument @c colname must be the name of a string-valued column,
+/// otherwise a null pointer will be returned.
+std::vector<std::string>*
+ibis::query::getQualifiedStrings(const char* colname) {
+    if (state != FULL_EVALUATE || dstime != mypart->timestamp())
+	evaluate();
+    std::vector<std::string>* res = 0;
+    if (dstime == mypart->timestamp() && hits != 0) {
+	const bool newlock = (dslock == 0);
+	if (newlock) {
+	    dslock = new ibis::part::readLock(mypart, myID);
+	}
+	readLock lck(this, "getQualifiedStrings");
+	res = mypart->selectStrings(colname, *hits);
+
+	if (newlock) {
+	    delete dslock;
+	    dslock = 0;
+	}
+	if (ibis::gVerbose > 2)
+	    logMessage("getQualifiedStrings", "got %lu double value(s)",
+		       static_cast<long unsigned>(res!=0 ? res->size() : 0));
+    }
+    return res;
+} // ibis::query::getQualifiedStrings
 
 ibis::query::QUERY_STATE ibis::query::getState() const {
     if (ibis::gVerbose > 6) {

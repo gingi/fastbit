@@ -71,11 +71,11 @@ public:
     const column* IDColumnForKeywordIndex() const;
 
 protected:
-    /// Locate the starting position of each string and write the positions
-    /// as unsigned integers to a file with .sp as extension.
+    /// Locate the starting position of each string.
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;
     /// Read the string value of <code>i</code>th row.
     void readString(uint32_t i, std::string &val) const;
+    /// Read one string from an open file.
     int  readString(std::string&, int, long, long, char*, uint32_t,
 		    uint32_t&, off_t&) const;
 

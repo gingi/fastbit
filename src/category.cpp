@@ -996,6 +996,9 @@ ibis::text::text(const ibis::column& col) : ibis::column(col) {
 /// is a nil pointer, the directory defaults to the current working
 /// directory of the data partition.
 ///
+/// It writes the starting positions as int64_t integers to a file with .sp
+/// as extension.
+///
 /// Argument @c buf (with @c nbuf bytes) is used as temporary work space.
 /// If @c nbuf = 0, this function allocates its own working space.
 void ibis::text::startPositions(const char *dir, char *buf,
@@ -1229,7 +1232,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 /// data file in directory @c dt.  Use the buffer @c buf to copy data in
 /// large chuncks.
 ///@note  No error checking is performed.
-///@note  Does not check for missing entries.  May cuase records to be
+///@note  Does not check for missing entries.  May cause records to be
 /// misaligned.
 long ibis::text::append(const char* dt, const char* df,
 			const uint32_t nold, const uint32_t nnew,
@@ -2036,8 +2039,11 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     return res;
 } // ibis::text::selectStrings
 
-/// Read one string from an open file.  The string starts at position @c be
-/// and ends at @c en.  The content may be in the array @c buf.
+/// The string starts at position @c be and ends at @c en.  The content may
+/// be in the array @c buf.
+///
+/// Returns 0 if successful, otherwise return a negative number to indicate
+/// error.
 int ibis::text::readString(std::string& res, int fdes, long be, long en,
 			   char* buf, uint32_t nbuf, uint32_t& inbuf,
 			   off_t& boffset) const {

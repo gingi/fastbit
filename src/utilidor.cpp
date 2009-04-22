@@ -4,11 +4,11 @@
 #include "utilidor.h"
 #include <typeinfo>
 
-#ifndef QSORT_MIN
-#define QSORT_MIN 64
+#ifndef FASTBIT_QSORT_MIN
+#define FASTBIT_QSORT_MIN 64
 #endif
-#ifndef QSORT_MAX_DEPTH
-#define QSORT_MAX_DEPTH 20
+#ifndef FASTBIT_QSORT_MAX_DEPTH
+#define FASTBIT_QSORT_MAX_DEPTH 20
 #endif
 
 namespace ibis {
@@ -71,7 +71,7 @@ namespace ibis {
 				       array_t<uint32_t>& vals,
 				       uint32_t begin, uint32_t end);
 
-	/// Radix sort.  Allocates buffers needed for copying data.
+	/// LSD Radix sort.  Allocates buffers needed for copying data.
 	/// @{
 	void sort_radix(array_t<char>& keys, array_t<uint32_t>& vals);
 	void sort_radix(array_t<unsigned char>& keys,
@@ -475,6 +475,8 @@ void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
     }
 } // ibis::util::sortKeys
 
+/// Quick sort with introspection.  It will switch to heap sort after
+/// FASTBIT_QSORT_MAX_DEPTH levels of recursion.
 template <typename T1, typename T2>
 void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 			    uint32_t lvl) {
@@ -482,7 +484,7 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	(keys.size() <= vals.size() ? keys.size() : vals.size());
     uint32_t back = nelm;
     uint32_t front = 0;
-    while (back > front + QSORT_MIN) {
+    while (back > front + FASTBIT_QSORT_MIN) {
 	// find the pivot element
 	uint32_t pivot;
 	if (front > 0 || back < nelm) {
@@ -500,8 +502,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	else if (pivot-front <= back-pivot) { // the front part is smaller
 	    array_t<T1> kfront(keys, front, pivot-front);
 	    array_t<T2> vfront(vals, front, pivot-front);
-	    if (pivot-front >= QSORT_MIN) {
-		if (lvl <= QSORT_MAX_DEPTH)
+	    if (pivot-front >= FASTBIT_QSORT_MIN) {
+		if (lvl <= FASTBIT_QSORT_MAX_DEPTH)
 		    sort_quick(kfront, vfront, lvl+1);
 		else // no more recursions
 		    sort_heap(kfront, vfront);
@@ -514,8 +516,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	else { // the back part is smaller
 	    array_t<T1> kback(keys, pivot, back-pivot);
 	    array_t<T2> vback(vals, pivot, back-pivot);
-	    if (back-pivot >= QSORT_MIN) {
-		if (lvl <= QSORT_MAX_DEPTH)
+	    if (back-pivot >= FASTBIT_QSORT_MIN) {
+		if (lvl <= FASTBIT_QSORT_MAX_DEPTH)
 		    sort_quick(kback, vback, lvl+1);
 		else // no more recursions
 		    sort_heap(kback, vback);
@@ -1070,11 +1072,18 @@ void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
 #endif
 } // ibis::util::sort_insertion
 
+/// @detail It uses quick sort if there are more than
+/// FASTBIT_QSORT_MIN+FASTBIT_QSORT_MIN elements to sort, otherwise, it
+/// uses shell sort.
+///
+/// @note Obviously, all the arrays and whatever auxiliary data much fit in
+/// memory.  Furthermore, FastBit does not track the memory usage of
+/// std::vector nor std::string.
 void ibis::util::sortStrings(std::vector<std::string>& keys,
 			     array_t<uint32_t>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
-    if (nelm > 32) {
+    if (nelm > FASTBIT_QSORT_MIN+FASTBIT_QSORT_MIN) {
 	sortStrings_quick(keys, vals, 0, nelm);
     }
     else if (nelm > 1) {
@@ -1082,10 +1091,11 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
     }
 } // ibis::util::sortStrings
 
+/// Quicck-sort for strings with shell sort as clean-up procedure.
 void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 				   array_t<uint32_t>& vals, uint32_t begin,
 				   uint32_t end) {
-    while (end > begin+QSORT_MIN) {
+    while (end > begin+FASTBIT_QSORT_MIN) {
 	uint32_t split = sortStrings_partition(keys, vals, begin, end);
 	if (split < end) {
 	    if (split - begin <= end - split) {
@@ -1202,6 +1212,7 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 #endif
 } // ibis::util::sortStrings_shell
 
+/// Median-of-3 partitioning algorithm.
 #if defined(_MSC_VER) && defined(_WIN32) && _MSC_VER < 1400
 #pragma optimize("g", off)
 #endif

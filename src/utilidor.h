@@ -57,9 +57,7 @@ namespace ibis {
 	/// move the vals accordingly.
 	template <typename T1, typename T2>
 	void sortKeys(array_t<T1>& keys, array_t<T2>& vals);
-	/// Sorting function with string keys.  Due to a lack of shallow
-	/// copying for std::vector, this is simply a wrapper for
-	/// sort_shell, a Shell sorting function.
+	/// Sorting function with string keys and uint32_t as payload.
 	void sortStrings(std::vector<std::string>& keys,
 			 array_t<uint32_t>& vals);
     } // namespace util

@@ -172,16 +172,6 @@ public:
     /// Count the number of hits.  Don't generate the hit vector if not
     /// already there.
     long countHits() const;
-    /// Return the list of row IDs of the hits.  The user is responsible
-    /// for freeing the pointer.
-    /// @see getQualifiedInts
-    RIDSet* getRIDs() const;
-    /// Return a list of row ids that match the mask.  The user is
-    /// responsible for freeing the pointer.
-    /// @see getQualifiedInts
-    RIDSet* getRIDs(const ibis::bitvector& mask) const;
-    /// Return the list of row IDs of the hits within the specified bundle.
-    const RIDSet* getRIDsInBundle(const uint32_t bid) const;
 
     /// Re-order the bundles according the the new "ORDER BY"
     /// specification.  It returns 0 if it completes successfully.  It
@@ -209,18 +199,30 @@ public:
     /// The caller must call the operator @c delete to free the pointers
     /// returned.
     ///
-    /// @note Any column of the data partition may be specified, not just
-    /// those given in the select clause.  The content returned is read
-    /// from disk when these functions are called, which may be different
-    /// from their values when the function @c evaluate was called.  In
-    /// other word, they may be inconsistent with the conditions specified
-    /// in the where clause.  For append-only data, this is NOT an issue.
-    ///
-    /// The above caveat also applies to the two versions of getRIDs.
+    /// Any column in the data partition may be used with @c
+    /// getQualifiedXXX, not just those given in the select clause.  The
+    /// content returned is read from disk when these functions are called.
+    /// @{
+    /// Retrieve integer values from records satisfying the query conditions.
     array_t<int32_t>* getQualifiedInts(const char* column_name);
+    /// Retrieve unsigned integer values from records satisfying the query
+    /// conditions.
     array_t<uint32_t>* getQualifiedUInts(const char* column_name);
+    /// Retrieve floating-point values from records satisfying the query
+    /// conditions.
     array_t<float>* getQualifiedFloats(const char* column_name);
+    /// Retrieve double precision floating-point values from records
+    /// satisfying the query conditions.
     array_t<double>* getQualifiedDoubles(const char* column_name);
+    /// Retrieve string values from records satisfying the query conditions.
+    std::vector<std::string>* getQualifiedStrings(const char* column_name);
+    /// Return the list of row IDs of the hits.
+    RIDSet* getRIDs() const;
+    /// Return a list of row IDs that match the mask.
+    RIDSet* getRIDs(const ibis::bitvector& mask) const;
+    /// Return the list of row IDs of the hits within the specified bundle.
+    const RIDSet* getRIDsInBundle(const uint32_t bid) const;
+    /// @}
 
     /// Print the values of the selected columns to the specified output
     /// stream.  The printed values are grouped by the columns without

@@ -2582,7 +2582,9 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 } // xdoQuery
 
 // This print function takes the most general option in getting the values
-// out of a query.  If the values in the select clause are of known type,
+// out of a query.  All supported FastBit types can be retrieved as
+// strings, therefore, it is always fine to use getString to retrieve a
+// value.  However, if the values in the select clause are of known type,
 // those types should be used instead of @c getString.
 static void printQueryResults(std::ostream &out, ibis::query &q) {
     ibis::query::result cursor(q);
