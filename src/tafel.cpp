@@ -1052,8 +1052,23 @@ int ibis::tafel::write(const char* dir, const char* tname,
 
 	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
 	   << ibis::TYPESTRING[(int) col.type];
-	if (col.type == ibis::TEXT)
+	if (col.type == ibis::TEXT) {
 	    md << "\nindex=none";
+	}
+	else if (col.type == ibis::BYTE  || col.type == ibis::UBYTE ||
+		 col.type == ibis::SHORT || col.type == ibis::USHORT ||
+		 col.type == ibis::INT   || col.type == ibis::UINT ||
+		 col.type == ibis::LONG  || col.type == ibis::ULONG ||
+		 col.type == ibis::FLOAT || col.type == ibis::DOUBLE) {
+	    std::string idxkey = "ibis.";
+	    idxkey += tname;
+	    idxkey += ".";
+	    idxkey += (*it).first;
+	    idxkey += ".index";
+	    const char* str = ibis::gParameters()[idxkey.c_str()];
+	    if (str != 0)
+		md << "\nindex = " << str;
+	}
 	md << "\nEnd Column\n";
     }
     md.close(); // close the file
@@ -1621,7 +1636,6 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     normalize();
     int ierr = parseLine(line, delimiters.c_str(), id.c_str());
     nrows += (ierr > 0);
-    ierr = -(ierr <= 0);
     return ierr;
 } // ibis::tafel::appendRow
 

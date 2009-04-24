@@ -1,3 +1,13 @@
+2009-04-24 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp:1624 delete the line that changes ierr to 0 and -1
+	* src/tafel.cpp:1055 in function write, add code to check for
+	index specification in gParameters
+	* tests/Makefile.am: make test failure message more consistent,
+	they now all starts with 'Did NOT pass' such-and-such test
+	* examples/tcapi.c: add explicit casting to match the types
+	specified in the print format (otherwise prints wront value for
+	64-bit integers on Mac under gcc 4.0.0)
+
 2009-04-23 John Wu <John.Wu at ACM.org>
 	* src/parti.cpp: prevent current versions of part::reorder from
 	working on partitions with string values, they simply will not

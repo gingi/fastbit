@@ -225,12 +225,11 @@ int main(int argc, char **argv) {
 	    default:
 	    case 'i':
 	    case 'I': {
-		const int32_t *const tmp =
-		    fastbit_get_qualified_ints(qh, argv[i]);
+		const int32_t *tmp = fastbit_get_qualified_ints(qh, argv[i]);
 		if (tmp != 0) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
-			fprintf(output, "%d ", tmp[j]);
+			fprintf(output, "%d ", (int)tmp[j]);
 		    fprintf(output, "\n");
 		}
 		else {
@@ -241,12 +240,11 @@ int main(int argc, char **argv) {
 		break;}
 	    case 'u':
 	    case 'U': {
-		const uint32_t *const tmp =
-		    fastbit_get_qualified_uints(qh, argv[i]);
+		const uint32_t *tmp = fastbit_get_qualified_uints(qh, argv[i]);
 		if (tmp != 0) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
-			fprintf(output, "%u ", tmp[j]);
+			fprintf(output, "%u ", (unsigned)tmp[j]);
 		    fprintf(output, "\n");
 		}
 		else {
@@ -257,12 +255,11 @@ int main(int argc, char **argv) {
 		break;}
 	    case 'l':
 	    case 'L': {
-		const uint64_t *const tmp =
-		    fastbit_get_qualified_longs(qh, argv[i]);
+		const int64_t *tmp = fastbit_get_qualified_longs(qh, argv[i]);
 		if (tmp != 0) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
-			fprintf(output, "%ld ", tmp[j]);
+			fprintf(output, "%lld ", (long long)tmp[j]);
 		    fprintf(output, "\n");
 		}
 		else {
@@ -275,8 +272,7 @@ int main(int argc, char **argv) {
 	    case 'R':
 	    case 'f':
 	    case 'F': {
-		const float *const tmp =
-		    fastbit_get_qualified_floats(qh, argv[i]);
+		const float *tmp = fastbit_get_qualified_floats(qh, argv[i]);
 		if (tmp != 0) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
@@ -291,8 +287,7 @@ int main(int argc, char **argv) {
 		break;}
 	    case 'd':
 	    case 'D': {
-		const double *const
-		    tmp = fastbit_get_qualified_doubles(qh, argv[i]);
+		const double *tmp = fastbit_get_qualified_doubles(qh, argv[i]);
 		if (tmp != 0) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)

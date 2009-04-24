@@ -1,3 +1,17 @@
+Fri Apr 24 14:45:27 PDT 2009
+Version ibis1.0.8
+-- clean up implementation of ibis::tablex in ibis::tafel
+-- add support for all elementary data types to functions
+   ibis::query::getQualifiedTTTs and ibis::part::selectTTTs
+-- use references (instead of pointer) when retrieving a single values
+   through ibis::table::cursor
+-- clean up documentation about a number of functions
+-- update the detection rule on where to locate FlexLexer.h in configure
+   script
+-- use explicit type casting in the print statements of examples/tcapi.c
+   to avoid problem with print the wrong values (first saw on a Mac with
+   gcc 4.0.1)
+
 Wed Apr 15 16:42:04 PDT 2009
 Version ibis1.0.7
 -- fix a bug in ibis::qExpr::simplfy that returns a deleted query
