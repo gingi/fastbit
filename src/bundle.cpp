@@ -760,7 +760,9 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
 #endif
 } // ibis::bundle1::write
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit integer.
+/// Return the maximal value defined in the class numeric_limits if either
+/// i or j is out of bounds.
 int32_t ibis::bundle1::getInt(uint32_t i, uint32_t j) const {
     int32_t ret = 0x7FFFFFFF;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -769,7 +771,9 @@ int32_t ibis::bundle1::getInt(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getInt
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit unsigned
+/// integer.  Return the maximal value defined in the class numeric_limits
+/// if either i or j is out of bounds.
 uint32_t ibis::bundle1::getUInt(uint32_t i, uint32_t j) const {
     uint32_t ret = 0xFFFFFFFFU;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -778,7 +782,9 @@ uint32_t ibis::bundle1::getUInt(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getUInt
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit integer.
+/// Return the maximal value defined in the class numeric_limits if either
+/// i or j is out of bounds.
 int64_t ibis::bundle1::getLong(uint32_t i, uint32_t j) const {
     int64_t ret = 0x7FFFFFFFFFFFFFFFLL;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -787,7 +793,9 @@ int64_t ibis::bundle1::getLong(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getLong
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit unsigned
+/// integer.  Return the maximal value defined in the class numeric_limits
+/// if either i or j is out of bounds.
 uint64_t ibis::bundle1::getULong(uint32_t i, uint32_t j) const {
     uint64_t ret = 0xFFFFFFFFFFFFFFFFULL;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -796,7 +804,9 @@ uint64_t ibis::bundle1::getULong(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getULong
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit floating-point
+/// value.  Return the maximal value defined in the class numeric_limits if
+/// wither i or j is out of bounds.
 float ibis::bundle1::getFloat(uint32_t i, uint32_t j) const {
     float ret = FLT_MAX;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -805,7 +815,9 @@ float ibis::bundle1::getFloat(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getFloat
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit floating-point
+/// value.  Return the maximal value defined in the class numeric_limits if
+/// either i or j is out of bounds.
 double ibis::bundle1::getDouble(uint32_t i, uint32_t j) const {
     double ret = DBL_MAX;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -814,8 +826,10 @@ double ibis::bundle1::getDouble(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundle1::getDouble
 
-/// Convert any value to its string representation through @c
-/// std::ostringstream.
+/// Retrieve the value of i-th row j-th column as a string.  Returns an
+/// empty string if either i or j is out of bounds, which can not be
+/// distinguished from an actual empty string.  This function converts a
+/// value to its string representation through @c std::ostringstream.
 std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
     std::ostringstream oss;
     if (i < col->size() && j == 0) { // indices i and j are valid
@@ -1797,7 +1811,9 @@ void ibis::bundles::write(const ibis::query& theQ) const {
 #endif
 } // ibis::bundles::write
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit integer.
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 int32_t ibis::bundles::getInt(uint32_t i, uint32_t j) const {
     int32_t ret = 0x7FFFFFFF;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1806,7 +1822,9 @@ int32_t ibis::bundles::getInt(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getInt
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit unsigned integer.
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 uint32_t ibis::bundles::getUInt(uint32_t i, uint32_t j) const {
     uint32_t ret = 0xFFFFFFFFU;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1815,7 +1833,9 @@ uint32_t ibis::bundles::getUInt(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getUInt
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit integer.
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 int64_t ibis::bundles::getLong(uint32_t i, uint32_t j) const {
     int64_t ret = 0x7FFFFFFFFFFFFFFFLL;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1824,7 +1844,9 @@ int64_t ibis::bundles::getLong(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getLong
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit unsigned integer.
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 uint64_t ibis::bundles::getULong(uint32_t i, uint32_t j) const {
     uint64_t ret = 0xFFFFFFFFFFFFFFFFULL;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1833,7 +1855,10 @@ uint64_t ibis::bundles::getULong(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getULong
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 32-bit floating-point
+/// number.
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 float ibis::bundles::getFloat(uint32_t i, uint32_t j) const {
     float ret = FLT_MAX;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1842,7 +1867,10 @@ float ibis::bundles::getFloat(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getFloat
 
-/// Return the maximal value defined in the class numeric_limits.
+/// Retrieve the value of i-th row j-th column as a 64-bit floating-point
+/// number. 
+/// Return the maximal value defined in the class numeric_limits if indices
+/// i and j are out of bounds.
 double ibis::bundles::getDouble(uint32_t i, uint32_t j) const {
     double ret = DBL_MAX;
     if (j < cols.size() && i < cols[j]->size()) { // indices i and j are valid
@@ -1851,7 +1879,8 @@ double ibis::bundles::getDouble(uint32_t i, uint32_t j) const {
     return ret;
 } // ibis::bundles::getDouble
 
-/// Convert any value to its string representation through @c
+/// Retrieve the value of i-th row j-th column as a string.
+/// Convert the value to its string representation through @c
 /// std::ostringstream.
 std::string ibis::bundles::getString(uint32_t i, uint32_t j) const {
     std::ostringstream oss;
@@ -1930,15 +1959,25 @@ void ibis::query::result::reset() {
     lib_ = 0;
 } // ibis::query::result::reset
 
-int ibis::query::result::getInt(const char *cname) const {
+int32_t ibis::query::result::getInt(const char *cname) const {
     uint32_t ind = sel.find(cname);
     return getInt(ind);
 } // ibis::query::result::getInt
 
-unsigned ibis::query::result::getUInt(const char *cname) const {
+uint32_t ibis::query::result::getUInt(const char *cname) const {
     uint32_t ind = sel.find(cname);
     return getUInt(ind);
 } // ibis::query::result::getUInt
+
+int64_t ibis::query::result::getLong(const char *cname) const {
+    uint32_t ind = sel.find(cname);
+    return getLong(ind);
+} // ibis::query::result::getLong
+
+uint64_t ibis::query::result::getULong(const char *cname) const {
+    uint32_t ind = sel.find(cname);
+    return getULong(ind);
+} // ibis::query::result::getULong
 
 float ibis::query::result::getFloat(const char *cname) const {
     uint32_t ind = sel.find(cname);

@@ -4,8 +4,9 @@
 // Copyright 2007-2009 the Regents of the University of California
 #ifndef IBIS_SELECTLEXER_H
 #define IBIS_SELECTLEXER_H
-/** \file Declares the name ibis::selectLexer.  Defines the tokenizer with
-    two arguments to satisfy the reentrant parser defined in selectParser.yy.
+/** \file
+    Declares the name ibis::selectLexer.  Defines the tokenizer with two
+    arguments to satisfy the reentrant parser defined in selectParser.yy.
  */
 #ifndef YY_DECL
 // the new lex function to satisfy the reentrant parser requirement

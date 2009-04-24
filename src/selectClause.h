@@ -2,7 +2,9 @@
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2009 the Regents of the University of California
-/** \file Declares ibis::selectClause class. */
+/** @file
+    Declares ibis::selectClause class.
+*/
 #ifndef IBIS_SELECTCLAUSE_H
 #define IBIS_SELECTCLAUSE_H
 #include "qExpr.h"
@@ -13,8 +15,8 @@ namespace ibis {
     class selectParser;
 }
 
-/// A class to encapsulate the parsing of a string into an internal
-/// representation suitable for computation.
+/// A class to parse a string into a list of arithmetic expressions and
+/// aggregation functions.
 class ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
@@ -80,19 +82,25 @@ public:
     }
 
 protected:
+    /// Arithmetic expressions.
     mathTerms terms_;
+    /// Aggregation functions.
     std::vector<AGREGADO> aggr_;
     typedef std::map<std::string, unsigned> StringToInt;
+    /// Aliases.
     StringToInt alias_;
+    /// Names of each term in the select clause.
     std::vector<std::string> names_;
 
-    std::string clause_;	// string version of the select clause
+    std::string clause_;	///< String version of the select clause.
 
-    ibis::selectLexer *lexer;	// hold a pointer for the parser
+    ibis::selectLexer *lexer;	///< A pointer for the parser.
 
     friend class ibis::selectParser;
 
+    /// Sort out the names for the terms.
     void fillNames();
+    /// The actual work-horse to do the verification.
     int _verify(const ibis::part&, const ibis::math::term&) const;
 }; // class ibis::selectClause
 

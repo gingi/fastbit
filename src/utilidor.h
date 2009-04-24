@@ -23,17 +23,20 @@ namespace ibis {
 
     namespace util {
 
+	/// Sort RID lists.  None of them are stable sort.
 	///@{
-	/// Sorting RID lists.  The first two use quick sort and the third
-	/// one use the insertion sort.  None of them are stable sort
-	void sortRIDs(ibis::RIDSet& rids);
+	/// Sort the given list of RIDs with quick sort.
+	void sortRIDs(ibis::RIDSet&);
+	/// Sort a portion of the RIDSet with quick sort.
 	void sortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
+	/// Sort a portion of the RIDset with insertion sort.
 	void isortRIDs(ibis::RIDSet&, uint32_t, uint32_t);
 	///@}
 
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T> &arr, const array_t<uint32_t> &ind);
+	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T*> &arr, const array_t<uint32_t> &ind);
 	/// Sort two arrays together.  Order arr1 in ascending order first,

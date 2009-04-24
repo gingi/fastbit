@@ -4,8 +4,9 @@
 // Copyright 2007-2009 the Regents of the University of California
 #ifndef IBIS_WHERELEXER_H
 #define IBIS_WHERELEXER_H
-/** \file Declares the name ibis::whereLexer.  Defines the tokenizer with
-    two arguments to satisfy the reentrant parser defined in whereParser.yy.
+/** \file
+    Declares the name ibis::whereLexer.  Defines the tokenizer with two
+    arguments to satisfy the reentrant parser defined in whereParser.yy.
  */
 #ifndef YY_DECL
 // the new lex function to satisfy the reentrant parser requirement

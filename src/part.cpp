@@ -2217,6 +2217,178 @@ ibis::part::accessHint(const ibis::bitvector &mask,
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
+array_t<char>* ibis::part::selectBytes
+(const char* pname, const ibis::bitvector &mask) const {
+    array_t<char>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectBytes(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectBytes
+
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
+array_t<unsigned char>* ibis::part::selectUBytes
+(const char* pname, const ibis::bitvector &mask) const {
+    array_t<unsigned char>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectUBytes(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectUBytes
+
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
+array_t<int16_t>* ibis::part::selectShorts
+(const char* pname, const ibis::bitvector &mask) const {
+    array_t<int16_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectShorts(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectShorts
+
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
+array_t<uint16_t>* ibis::part::selectUShorts
+(const char* pname, const ibis::bitvector &mask) const {
+    array_t<uint16_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectUShorts(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectUShorts
+
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
 array_t<int32_t>* ibis::part::selectInts
 (const char* pname, const ibis::bitvector &mask) const {
     array_t<int32_t>* res = 0;
@@ -2342,6 +2514,49 @@ array_t<int64_t>* ibis::part::selectLongs
 
     return res;
 } // ibis::part::selectLongs
+
+/// The selected values are packed into the resulting array.  Only those
+/// rows marked 1 are retrieved.  The caller is responsible for deleting
+/// the returned value.
+array_t<uint64_t>* ibis::part::selectULongs
+(const char* pname, const ibis::bitvector &mask) const {
+    array_t<uint64_t>* res = 0;
+    try {
+	columnList::const_iterator it = columns.find(pname);
+	if (it != columns.end()) { // got it
+	    res =  (*it).second->selectULongs(mask);
+	}
+    }
+    catch (const std::exception &e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following std::exception -- " << e.what();
+	delete res;
+	res = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received the following string exception -- " << s;
+	delete res;
+	res = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
+	    << mask.cnt() << " out of " << mask.size() 
+	    << ") received a unexpected exception";
+	delete res;
+	res = 0;
+    }
+
+    return res;
+} // ibis::part::selectULongs
 
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting

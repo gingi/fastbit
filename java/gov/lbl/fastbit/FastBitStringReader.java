@@ -180,6 +180,7 @@ public class FastBitStringReader {
      * @param fb
      * @param fbHandle
      * @param partition
+     * @param charsetName
      * @return
      */
     public FastBitStringReader.ReadHandle

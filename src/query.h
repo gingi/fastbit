@@ -10,23 +10,24 @@
 #include "part.h"	// class part
 #include "whereClause.h"	// ibis::whereClause
 
-/// @ingroup FastBitMain
 /// A data structure for representing user queries.  This is the primary
 /// entry for user to take advantage of bitmap indexing facilities.  A
 /// query is a very limited version of the SQL SELECT statement.  It is
-/// only defined on one data partition and it takes a where clause and a select
-/// clause.  The where clause is mandatory.  It contains a list of range
-/// conditions joined together with logical operators, such as "temperature
-/// > 700 and 100 <= presessure < 350".  Records whose attribute values
-/// satisfy the conditions defined in the where clause is considered hits.
-/// A query may retrieve values of variables/columns specified in the
-/// select clause.  A select clause is optional.  If specified, it contains
-/// a list of column names.  These attributes must not be NULL in order for
-/// a record to be a hit.  The select clause may also contain column names
-/// appearing as the argument to one of the four functions: @c avg, @c max,
-/// @c min and @c sum.  For example, "temperature, pressure,
-/// average(ho2_concentration)" may be a select statement for a Chemistry
-/// application.
+/// only defined on one data partition and it takes a where clause and a
+/// select clause.  The where clause is mandatory.  It contains a list of
+/// range conditions joined together with logical operators, such as
+/// "temperature > 700 and 100 <= presessure < 350".  Records whose
+/// attribute values satisfy the conditions defined in the where clause is
+/// considered hits.  A query may retrieve values of variables/columns
+/// specified in the select clause.  A select clause is optional.  If
+/// specified, it contains a list of column names.  These attributes must
+/// not be NULL in order for a record to be a hit.  The select clause may
+/// also contain column names appearing as the argument to one of the four
+/// aggregation functions: @c avg, @c max, @c min and @c sum.  For example,
+/// "temperature, pressure, average(ho2_concentration)" may be a select
+/// statement for a Chemistry application.  @note If one needs to include
+/// arithmetic expressions in the select clause, use the function
+/// ibis::table::select instead of using this class.
 ///
 /// The hits can be computed in two ways by using functions @c estimate or
 /// @c evaluate.  The function @c estimate can take advantage of the
@@ -45,6 +46,8 @@
 /// Additionally, one may call either @c printSelected or @c
 /// printSelectedWithRID to print the selected values to the specified I/O
 /// stream.
+///
+/// @ingroup FastBitMain
 class FASTBIT_CXX_DLLSPEC ibis::query {
 public:
     enum QUERY_STATE {
@@ -173,41 +176,58 @@ public:
     /// already there.
     long countHits() const;
 
-    /// Re-order the bundles according the the new "ORDER BY"
+    /// Re-order the results according to the new "ORDER BY"
     /// specification.  It returns 0 if it completes successfully.  It
     /// returns a negative number to indicate error.
     /// If @c direction >= 0, sort the values in ascending order,
     /// otherwise, sort them in descending order.
+    ///
+    /// @note The results stored in ibis::bundle and ibis::query::result
+    /// are already ordered according to the columns specified in the
+    /// select clause.  One only needs to call this function to re-order
+    /// the results differently.
     int orderby(const char *names, int direction) const;
 
-    /// Truncate the bundles to provide the top-K rows of the bundles.  It
-    /// returns the number of results kept, which is the smaller of the
-    /// current number of bundles and the input argument @c keep.  A
-    /// negative value is returned in case of error, e.g., query has not
-    /// been fully specified.  If the second argument is true, the internal
-    /// hit vector is updated to match the truncated solution.  Otherwise,
-    /// the internal hit vector is left unchanged.  Since the functions
-    /// getNumHits and getQualifiedXXX uses this internal hit vector, it is
-    /// generally a good idea to update the hit vector.  On the other hand,
-    /// one may wish to avoid this update if the hit vector is not used in
-    /// any way.
+    /// Truncate the results to provide the top-K rows.  It returns the
+    /// number of results kept, which is the smaller of the current number
+    /// of rows and the input argument @c keep.  A negative value is
+    /// returned in case of error, e.g., query has not been fully
+    /// specified.  If the 4th argument is true, the internal hit vector is
+    /// updated to match the truncated solution.  Otherwise, the internal
+    /// hit vector is left unchanged.  Since the functions getNumHits and
+    /// getQualifiedTTT uses this internal hit vector, it is generally a
+    /// good idea to update the hit vector.  On the other hand, one may
+    /// wish to avoid this update if the hit vector is to be kept for some
+    /// purpose.
     long int limit(const char *names, int direction, uint32_t keep,
 		   bool updateHits = true);
 
-    /// The functions @c getQualifiedXXX return the values of selected
+    /// The functions @c getQualifiedTTT return the values of selected
     /// columns in the records that satisfies the specified conditions.
     /// The caller must call the operator @c delete to free the pointers
     /// returned.
     ///
     /// Any column in the data partition may be used with @c
-    /// getQualifiedXXX, not just those given in the select clause.  The
+    /// getQualifiedTTT, not just those given in the select clause.  The
     /// content returned is read from disk when these functions are called.
     /// @{
+    /// Retrieve the values of column_name as 8-bit integers.
+    array_t<char>* getQualifiedBytes(const char* column_name);
+    /// Retrieve the values of column_name as 8-bit unsigned integers.
+    array_t<unsigned char>* getQualifiedUBytes(const char* column_name);
+    /// Retrieve the values of column_name as 16-bit integers.
+    array_t<int16_t>* getQualifiedShorts(const char* column_name);
+    /// Retrieve the values of column_name as 16-bit unsigned integers.
+    array_t<uint16_t>* getQualifiedUShorts(const char* column_name);
     /// Retrieve integer values from records satisfying the query conditions.
     array_t<int32_t>* getQualifiedInts(const char* column_name);
     /// Retrieve unsigned integer values from records satisfying the query
     /// conditions.
     array_t<uint32_t>* getQualifiedUInts(const char* column_name);
+    /// Retrieve values of column_name as 64-bit integers.
+    array_t<int64_t>* getQualifiedLongs(const char* column_name);
+    /// Retrieve values of column_name as 64-bit unsigned integers.
+    array_t<uint64_t>* getQualifiedULongs(const char* column_name);
     /// Retrieve floating-point values from records satisfying the query
     /// conditions.
     array_t<float>* getQualifiedFloats(const char* column_name);

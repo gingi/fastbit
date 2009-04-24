@@ -476,7 +476,8 @@ void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
 } // ibis::util::sortKeys
 
 /// Quick sort with introspection.  It will switch to heap sort after
-/// FASTBIT_QSORT_MAX_DEPTH levels of recursion.
+/// FASTBIT_QSORT_MAX_DEPTH levels of recursion.  Performs recursive call
+/// only on the smaller half, while iterate over the larger half.
 template <typename T1, typename T2>
 void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 			    uint32_t lvl) {
@@ -1072,7 +1073,7 @@ void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
 #endif
 } // ibis::util::sort_insertion
 
-/// @detail It uses quick sort if there are more than
+/// It uses quick sort if there are more than
 /// FASTBIT_QSORT_MIN+FASTBIT_QSORT_MIN elements to sort, otherwise, it
 /// uses shell sort.
 ///
@@ -2771,6 +2772,9 @@ template void
 ibis::util::reorder<float>(array_t<float>&, const array_t<uint32_t>&);
 template void
 ibis::util::reorder<double>(array_t<double>&, const array_t<uint32_t>&);
+template void
+ibis::util::reorder<ibis::rid_t>(array_t<ibis::rid_t>&,
+				 const array_t<uint32_t>&);
 template void
 ibis::util::reorder<array_t<ibis::rid_t> >(array_t<array_t<ibis::rid_t>*>&,
 					   const array_t<uint32_t>&);

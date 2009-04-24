@@ -365,6 +365,8 @@ public:
     /// through @c addColumn or if the same order as they are recreated
     /// from an existing dataset (which is typically alphabetical).
     ///
+    /// Return the number of values added to the new row.
+    ///
     /// @note The column names are not case-sensitive.
     ///
     /// @note Like @c append, this function can not be used to introduce
@@ -387,11 +389,15 @@ public:
     /// Append a row stored in ASCII form.  The ASCII form of the values
     /// are assumed to be separated by comma (,) or space, but additional
     /// delimiters may be added through the second argument.
+    ///
+    /// Return the number of values added to the new row.
     virtual int appendRow(const char* line, const char* delimiters=0) = 0;
     /// Add multiple rows.  Rows in the incoming vector are processed on
     /// after another.  The ordering of the values in earlier rows are
     /// automatically carried over to the later rows until another set of
     /// names is specified.
+    ///
+    /// Return the number of new rows added.
     /// @sa appendRow
     virtual int appendRows(const std::vector<ibis::table::row>&) =0;
 

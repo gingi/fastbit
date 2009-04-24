@@ -2,7 +2,9 @@
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 // Copyright 2007-2009 the Regents of the University of California
-/** \file Declares ibis::whereClause class. */
+/** @file
+    Declares ibis::whereClause class.
+*/
 #ifndef IBIS_WHERECLAUSE_H
 #define IBIS_WHERECLAUSE_H
 #include "qExpr.h"
@@ -14,19 +16,18 @@ namespace ibis {
     class whereParser;
 }
 
-/// A class to encapsulate the parsing of a string into an ibis::qExpr
-/// object.  One may access the functions defined for ibis::qExpr through
-/// the operator->.
+/// A class to parse a string into an ibis::qExpr object.  One may access
+/// the functions defined for ibis::qExpr through the operator->.
 ///
 /// A where clause is a set of range conditions joined together with
 /// logical operators.  The supported logical operators are
 /// @code
 /// NOT, AND, OR, XOR, &&, ||.
 /// @endcode
-
+///
 /// The supported range conditions are equality conditions, discrete
 /// ranges, one-sided range conditions and two-sided range conditions.
-
+///
 /// - An equality condition is defined by the equal operator and its two
 /// operands can be arithematic expressions, column names, numbers or
 /// string literals.  On string valued columns, FastBit currently only
@@ -39,18 +40,18 @@ namespace ibis {
 /// operand to see if it is a column name.  If the right operand is the
 /// name of string-valued column, the left operand will be used as string
 /// literal.
-
+///
 /// - A discrete range is defined by the operator "IN", e.g.,
 /// @code
 /// column_name IN ( list_of_strings_or_numbers )
 /// @endcode
 /// Note unquoted string values must start with an alphabet or a
 /// underscore.  Strings starting with anything else must be quoted.
-
+///
 /// - A one-side range condtion can be defined with any of the following
 /// operators, <, <=, >, and >=.  The two operands of the operator can be
 /// any arithmetic expressions, column names or numbers.
-
+///
 /// - A two-sided range condtion can be defined with two operators selected
 /// from <, <=, >, and >=, if their directions much agree.  Alternatively,
 /// they can be defined with operators "... between ... and ...", where
@@ -60,10 +61,10 @@ namespace ibis {
 /// is equivalent to
 /// @code
 /// B <= A <= C
-/// @end
+/// @endcode
 /// In this example, A, B, and C can be any arithematic expression, column
 /// name or number.
-
+///
 /// An arithematic expression may contain operators +, -, *, /, %, ^, and
 /// **, as well as common one-argument and two-argument functions defined
 /// in the header file math.h.  Both operators ^ and ** denote the
@@ -139,8 +140,8 @@ public:
     }
 
 protected:
-    std::string clause_;	// string version of the where clause
-    ibis::qExpr *expr_;		// the expression tree
+    std::string clause_;	///< String version of the where clause.
+    ibis::qExpr *expr_;		///< The expression tree.
 
     /// Add conditions implied by self-join conditions.
     void amplify(const ibis::part&);

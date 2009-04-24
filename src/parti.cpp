@@ -21,7 +21,8 @@
 /// a negative number and the base data is corrupt!
 /// Danger: This function does not update null masks!
 long ibis::part::reorder() {
-    if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
+    if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
+	amask.cnt() != amask.size()) return 0;
 
     long ierr = purgeInactive();
     if (ierr <= 0) return ierr;
@@ -33,6 +34,11 @@ long ibis::part::reorder() {
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
+	if (! it->second->isNumeric()) return -1L;
+	ibis::bitvector msk;
+	it->second->getNullMask(msk);
+	if (msk.cnt() != msk.size()) return -2L;
+
 	(*it).second->unloadIndex();
 	(*it).second->purgeIndexFile();
     }
@@ -43,7 +49,7 @@ long ibis::part::reorder() {
     array_t<uint64_t> ranges;
     for (columnList::iterator it = columns.begin(); it != columns.end();
 	 ++ it) {
-	if ((*it).second->type() == ibis::CATEGORY) {
+	if ((*it).second->isInteger()) {
 	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
 		uint64_t width = static_cast<uint64_t>
 		    ((*it).second->upperBound() - (*it).second->lowerBound());
@@ -51,31 +57,21 @@ long ibis::part::reorder() {
 		ranges.push_back(width);
 	    }
 	    else {
-		load.push_back((*it).second);
+		(*it).second->computeMinMax();
+		if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		    uint64_t width = static_cast<uint64_t>
+			((*it).second->upperBound() -
+			 (*it).second->lowerBound());
+		    keys.push_back((*it).second);
+		    ranges.push_back(width);
+		}
+		else {
+		    load.push_back((*it).second);
+		}
 	    }
-	}
-	else if ((*it).second->type() == ibis::FLOAT ||
-		 (*it).second->type() == ibis::DOUBLE ||
-		 (*it).second->type() == ibis::TEXT) {
-	    load.push_back((*it).second);
-	}
-	else if ((*it).second->upperBound() > (*it).second->lowerBound()) {
-	    uint64_t width = static_cast<uint64_t>
-		((*it).second->upperBound() - (*it).second->lowerBound());
-	    keys.push_back((*it).second);
-	    ranges.push_back(width);
 	}
 	else {
-	    (*it).second->computeMinMax();
-	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
-		uint64_t width = static_cast<uint64_t>
-		    ((*it).second->upperBound() - (*it).second->lowerBound());
-		keys.push_back((*it).second);
-		ranges.push_back(width);
-	    }
-	    else {
-		load.push_back((*it).second);
-	    }
+	    load.push_back((*it).second);
 	}
     }
 
@@ -110,9 +106,6 @@ long ibis::part::reorder() {
 	    std::string sname;
 	    const char *fname = keys[i]->dataFileName(sname);
 	    switch (keys[i]->type()) {
-	    case ibis::CATEGORY:
-		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
-		break;
 	    case ibis::DOUBLE:
 		ierr = reorderValues<double>(fname, ind1, ind0, starts);
 		break;
@@ -144,9 +137,10 @@ long ibis::part::reorder() {
 		ierr = reorderValues<char>(fname, ind1, ind0, starts);
 		break;
 	    default:
-		logWarning("reorder", "column %s type %d is not supported",
+		logWarning("reorder", "column %s type %d can not be used as "
+			   "sort key",
 			   keys[i]->name(), static_cast<int>(keys[i]->type()));
-		break;
+		continue;
 	    }
 
 	    if (ierr == static_cast<long>(nRows())) {
@@ -189,9 +183,10 @@ long ibis::part::reorder() {
 	std::string sname;
 	const char *fname = load[i]->dataFileName(sname);
 	switch (load[i]->type()) {
-	case ibis::CATEGORY:
-	    ierr = writeValues<uint32_t>(fname, ind1);
-	    break;
+// 	case ibis::TEXT:
+// 	case ibis::CATEGORY:
+// 	    ierr = writeValues<uint32_t>(fname, ind1);
+// 	    break;
 	case ibis::DOUBLE:
 	    ierr = writeValues<double>(fname, ind1);
 	    break;
@@ -223,9 +218,33 @@ long ibis::part::reorder() {
 	    ierr = writeValues<char>(fname, ind1);
 	    break;
 	default:
-	    logWarning("reorder", "column %s type %d is not supported",
+	    logWarning("reorder", "column %s type %d can not moved safely "
+		       "in this implementation",
 		       keys[i]->name(), static_cast<int>(keys[i]->type()));
-	    break;
+	    continue;
+	}
+	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	    << evt << " failed to write data to " << fname << " for column "
+	    << load[i]->name() << " (type " << ibis::TYPESTRING[load[i]->type()]
+	    << "), ierr = " << ierr;
+    }
+
+    if (rids != 0 && rids->size() == nEvents) {
+	delete rids;
+	rids = 0;
+	std::string fname(activeDir);
+	fname += DIRSEP;
+	fname += "-rids";
+	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
+	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	    << evt << " failed to write data to " << fname
+	    << ", ierr = " << ierr;
+	if (ierr > 0 && static_cast<unsigned>(ierr) == nEvents) {
+	    rids = new ibis::RIDSet;
+	    ierr = ibis::fileManager::instance().getFile(fname.c_str(), *rids);
+	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+		<< evt << " failed to read " << fname
+		<< " after reordering, ierr = " << ierr;
 	}
     }
 
@@ -253,6 +272,11 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
+	if (! it->second->isNumeric()) return -1L;
+	ibis::bitvector msk;
+	it->second->getNullMask(msk);
+	if (msk.cnt() != msk.size()) return -2L;
+
 	(*it).second->unloadIndex();
 	(*it).second->purgeIndexFile();
     }
@@ -285,25 +309,24 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     }
 
     if (keys.empty()) { // no keys specified
-	if (ibis::gVerbose > 2) {
-	    if (names.empty()) {
-		logMessage("reorder", "user did not specify ordering keys, "
-			   "will attempt to use all integer columns as "
-			   "ordering keys");
-	    }
-	    else {
-		std::ostringstream oss;
-		oss << names[0];
-		for (unsigned i = 1; i < names.size(); ++ i)
-		    oss << ", " << names[i];
-		logMessage("reorder", "user specified ordering keys \"%s\" "
-			   "does not match any numerical columns with more "
-			   "than one distinct value, will attempt to use "
-			   "all integer columns as ordering keys",
-			   oss.str().c_str());
-	    }
+	if (names.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< evt << " -- user did not specify ordering keys, "
+		"will attempt to use all integer columns as ordering keys";
+	    return reorder();
 	}
-	return reorder();
+	else if (ibis::gVerbose > 0) {
+	    std::ostringstream oss;
+	    oss << names[0];
+	    for (unsigned i = 1; i < names.size(); ++ i)
+		oss << ", " << names[i];
+	    logMessage("reorder", "user specified ordering keys \"%s\" "
+		       "does not match any numerical columns with more "
+		       "than one distinct value, will attempt to use "
+		       "all integer columns as ordering keys",
+		       oss.str().c_str());
+	}
+	return 0;
     }
     for (ibis::part::columnList::const_iterator it = columns.begin();
 	 it != columns.end(); ++ it) {
@@ -331,9 +354,6 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	    std::string sname;
 	    const char *fname = keys[i]->dataFileName(sname);
 	    switch (keys[i]->type()) {
-	    case ibis::CATEGORY:
-		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
-		break;
 	    case ibis::DOUBLE:
 		ierr = reorderValues<double>(fname, ind1, ind0, starts);
 		break;
@@ -365,9 +385,10 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 		ierr = reorderValues<char>(fname, ind1, ind0, starts);
 		break;
 	    default:
-		logWarning("reorder", "column %s type %d is not supported",
+		logWarning("reorder", "column %s type %d is not supported as "
+			   "sort key",
 			   keys[i]->name(), static_cast<int>(keys[i]->type()));
-		break;
+		continue;
 	    }
 
 	    if (ierr == static_cast<long>(nRows())) {
@@ -443,10 +464,33 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	    ierr = writeValues<char>(fname, ind1);
 	    break;
 	default:
-	    logWarning("reorder", "column %s type %s is not supported",
-		       keys[i]->name(),
+	    logWarning("reorder", "column %s type %s is not supported in "
+		       "this implementation", keys[i]->name(),
 		       ibis::TYPESTRING[static_cast<int>(keys[i]->type())]);
-	    break;
+	    continue;
+	}
+	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	    << evt << " failed to write data to " << fname << " for column "
+	    << load[i]->name() << " (type " << ibis::TYPESTRING[load[i]->type()]
+	    << "), ierr = " << ierr;
+    }
+
+    if (rids != 0 && rids->size() == nEvents) {
+	delete rids;
+	rids = 0;
+	std::string fname(activeDir);
+	fname += DIRSEP;
+	fname += "-rids";
+	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
+	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	    << evt << " failed to write data to " << fname
+	    << ", ierr = " << ierr;
+	if (ierr > 0 && static_cast<unsigned>(ierr) == nEvents) {
+	    rids = new ibis::RIDSet;
+	    ierr = ibis::fileManager::instance().getFile(fname.c_str(), *rids);
+	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+		<< evt << " failed to read " << fname
+		<< " after reordering, ierr = " << ierr;
 	}
     }
 
@@ -462,6 +506,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     return ierr;
 } // ibis::part::reorder
 
+/// Writes elementary data tyles.  Can not handle string values correctly.
 template <typename T>
 long ibis::part::writeValues(const char *fname,
 			     const array_t<uint32_t>& ind) {
@@ -512,6 +557,7 @@ long ibis::part::writeValues(const char *fname,
     return vals.size();
 } // ibis::part::writeValues
 
+/// Reorders elementary data types.  Can not handle string valued data.
 template <typename T>
 long ibis::part::reorderValues(const char *fname,
 			       const array_t<uint32_t>& indin,

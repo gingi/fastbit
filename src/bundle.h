@@ -5,7 +5,7 @@
 #ifndef IBIS_BUNDLE_H
 #define IBIS_BUNDLE_H
 ///@file
-/// Designed to store selected values.
+/// Classes to store selected values.
 ///
 /// The class ibis::bundle is use to represent a sorted version of the
 /// selected columns of a query.  The selected columns can be of any type.
@@ -13,17 +13,8 @@
 /// written to a directory containing other type of information about the
 /// query.
 ///
-/// This is an incore implementation, that is, it stores all relevant values
-/// in memory.  It is intended to be used only to sort the selected values
-/// and immediately write out the content to files.
-///
-/// When multiple components are selected, a generic version of the sorting
-/// algorithm is used.  It should be faster to handle special versions
-/// separately.  For example, if all the selected components are of the
-/// same type, it is possible to use a more compact array structure for
-/// comparisons.  It might be also useful to separate out the case where
-/// there are only two components.
-///
+/// The class ibis::query::result is a thin wrapper on top of ibis::bundle
+/// to provide row-wise data accesses.
 #include "util.h"
 #include "array_t.h"	// fileManager::storage, array_t<>
 #include "query.h"	// ibis::query
@@ -43,6 +34,39 @@ namespace ibis {
 
 /// @ingroup FastBitIBIS
 /// The public interface of bundles.
+///
+/// This is an incore implementation, that is, it stores all relevant values
+/// in memory.  It is intended to be used only to sort the selected values
+/// and immediately write out the content to files.
+///
+/// Given a select clause, its terms are logically re-ordered so that the
+/// plain column names are placed before all the functions, such as,
+/// "SELECT variable1, variable2, ..., aggregation1, aggregation2, ..."
+/// where the relative order of the plain column names are preserved as
+/// they appeared on input.  The rows/records of the query results are
+/// ordered according to the values of the plain columns.
+///
+/// @note This implementation only works with select clauses containing
+/// plain column names and aggregations on plain columns, no arithmetic
+/// expressions, no aliases.
+///
+/// @note The sorting on string-valued columns does NOT produce
+/// alphabetical ordering.  For categorical values, the sorting is done on
+/// the integer version of the data, not on the string values.  Therefore,
+/// the string will not appear in alphabetically order!  However,
+/// aggregation functions should still produce correct results.  The text
+/// values will appear in the order they are in the data files, i.e., the
+/// same order as they are inputed.  Furthermore, all text values are
+/// treated as different because the actual string values are not examined
+/// during sorting.  Don't use text columns with aggregation functions!
+///
+/// @note When multiple components are selected, a generic version of the
+/// sorting algorithm is used.  It may be faster to handle special versions
+/// separately.  For example, if all the selected components are of the
+/// same type, it is possible to use a more compact array structure for
+/// comparisons.  It might be also useful to separate out the case where
+/// there are only two components.
+///
 class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:
     /// Create a new bundle from previously stored information.
@@ -64,19 +88,19 @@ public:
     virtual void print(std::ostream& out) const = 0;
     /// Print the bundle values along with the RIDs.
     virtual void printAll(std::ostream& out) const = 0;
-    /// @{
-    /// Retrieve a specific value.  Numerical values will be casted into
+    /// Retrieve a single value.  Numerical values will be casted into
     /// the return type.
     /// @note Most compilers will emit numerous complains about the
     /// potential data loss due to type conversions.  User should employ
     /// the correct types to avoid actual loss of precision.
+    /// @{
     virtual int32_t getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
     virtual int64_t getLong(uint32_t, uint32_t) const;
     virtual uint64_t getULong(uint32_t, uint32_t) const;
     virtual float getFloat(uint32_t, uint32_t) const;
     virtual double getDouble(uint32_t, uint32_t) const;
-    /// Retrieve a string value.  It converts any data type to its string
+    /// Retrieve a string value.  It converts all data types to its string
     /// representation through the string stream library.
     /// @note This is generic, but slow!
     virtual std::string getString(uint32_t, uint32_t) const;
@@ -309,6 +333,11 @@ private:
 /// row at a time.  It matches the semantics of an ODBC cursor.  That is
 /// the function @c next has to be called before the first set of results
 /// can be used.
+///
+/// @note This implementation makes use of ibis::bundle for internal
+/// storage, which means the results returned are sorted, see documentation
+/// about ibis::bundle for more detail.
+///
 /// @note This implementation stores the results in memory.  Therefore, it
 /// is not suitable for handling large result sets.
 class FASTBIT_CXX_DLLSPEC ibis::query::result {
@@ -316,7 +345,8 @@ public:
     result(ibis::query& q);
     ~result();
 
-    bool next(); //< Move to the next set of results.
+    /// Move to the next row/record of results.
+    bool next();
     /// Move the internal pointer back to the beginning.  Must call @c next
     /// to use the first set of results.
     void reset();
@@ -324,9 +354,13 @@ public:
     /// Retrieve the value of the named column as a signed integer.
     /// @note The name must appeared in the select clause of the query used
     /// to construct the @c result object.
-    int getInt(const char *cname) const;
+    int32_t getInt(const char *cname) const;
     /// Retrieve the value of the named column as an unsigned integer.
-    unsigned getUInt(const char *cname) const;
+    uint32_t getUInt(const char *cname) const;
+    /// Retrieve the value as a 64-bit integer.
+    int64_t getLong(const char *cname) const;
+    /// Retrieve the value as a 64-bit unsigned integer.
+    uint64_t getULong(const char *cname) const;
     /// Retrieve the value of the named column as a single-precision
     /// floating-point number.
     float getFloat(const char *cname) const;
@@ -339,13 +373,22 @@ public:
     /// signed integer.
     /// @note Since this version avoids the name look up, it should be more
     /// efficient than the version taking the column name as argument.
-    int getInt(uint32_t selind) const {
+    int32_t getInt(uint32_t selind) const {
 	return bdl_->getInt(bid_-1, selind);
     }
     /// Retrieve the value of column @c selind in the select clause as an
     /// unsigned integer.
-    unsigned getUInt(uint32_t selind) const {
+    uint32_t getUInt(uint32_t selind) const {
 	return bdl_->getUInt(bid_-1, selind);
+    }
+    /// Retrieve the value as a 64-bit integer.
+    int64_t getLong(uint32_t selind) const {
+	return bdl_->getLong(bid_-1, selind);
+    }
+    /// Retrieve the value of column @c selind in the select clause as a
+    /// 64-bit unsigned integer.
+    uint64_t getULong(uint32_t selind) const {
+	return bdl_->getULong(bid_-1, selind);
     }
     /// Retrieve the value of column @c selind in the select clause as a
     /// single-precision floating-point number.

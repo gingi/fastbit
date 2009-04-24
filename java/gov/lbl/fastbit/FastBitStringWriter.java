@@ -381,10 +381,11 @@ public class FastBitStringWriter {
     }
 
     /**
-     * Create a new index metadata.
-     * @param partitionDirectory
-     * @param columnName
-     * @param type
+     * Create metadata for a data partition with a single column.
+     * @param partitionDirectory Directory for the data partition
+     * @param columnName Column name.  Also used as the data partition name.
+     * @param type Data type.
+     * @param rowCount Number of rows.
      * @throws FastBitStringWriterException
      */
     public synchronized void

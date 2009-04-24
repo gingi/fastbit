@@ -588,7 +588,7 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 
 int ibis::tafel::appendRow(const ibis::table::row& r) {
     normalize(); // make sure every column has the same number of rows
-    size_t cnt = 0;
+    int cnt = 0;
     std::vector<ibis::bitvector*> msk;
     if (r.bytesvalues.size() > 0) {
 	std::vector<array_t<signed char>*> bytesptr;
@@ -663,7 +663,7 @@ int ibis::tafel::appendRow(const ibis::table::row& r) {
 	appendString(r.textsnames, r.textsvalues, textsptr, msk);
     }
     nrows += (cnt > 0);
-    return 0;
+    return cnt;
 } // ibis::tafel::appendRow
 
 int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
@@ -707,6 +707,7 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 
     const size_t ncols = cols.size();
     size_t cnt = 0;
+    int jnew = 0;
     for (size_t i = 0; i < rs.size(); ++ i) {
 	if (cnt < ncols)
 	    normalize();
@@ -763,9 +764,13 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 	    appendString(rs[i].textsnames, rs[i].textsvalues, textsptr,
 			 textsmsk);
 	}
-	nrows += (cnt > 0);
+	if (cnt > 0) {
+	    ++ nrows;
+	    ++ jnew;
+	}
+	
     }
-    return 0;
+    return jnew;
 } // ibis::tafel::appendRows
 
 /// Return error code:

@@ -258,24 +258,39 @@ public:
 			 ibis::bitvector64 &result) const;
     /******************************************************************/
 
+    /// Retrieve values of the name column as 8-bit integers.
+    array_t<char>*
+	selectBytes(const char* name, const ibis::bitvector &mask) const;
+    /// Retrieve values of the name column as 8-bit unsigned integers.
+    array_t<unsigned char>*
+	selectUBytes(const char* name, const ibis::bitvector &mask) const;
+    /// Retrieve values of the name column as 16-bit integers.
+    array_t<int16_t>*
+	selectShorts(const char* name, const ibis::bitvector &mask) const;
+    /// Retrieve values of the name column as 16-bit unsigned integers.
+    array_t<uint16_t>*
+	selectUShorts(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 32-bit integers.
-    array_t<int32_t>*  selectInts(const char* name,
-				  const ibis::bitvector &mask) const;
+    array_t<int32_t>*
+	selectInts(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 32-bit unsigned integers.
-    array_t<uint32_t>* selectUInts(const char* name,
-				   const ibis::bitvector &mask) const;
+    array_t<uint32_t>*
+	selectUInts(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 64-bit integers.
-    array_t<int64_t>*  selectLongs(const char* name,
-				   const ibis::bitvector &mask) const;
+    array_t<int64_t>*
+	selectLongs(const char* name, const ibis::bitvector &mask) const;
+    /// Retrieve values of the name column as 64-bit unsigned integers.
+    array_t<uint64_t>*
+	selectULongs(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 32-bit floating-point values.
-    array_t<float>*   selectFloats(const char* name,
-				   const ibis::bitvector &mask) const;
+    array_t<float>*
+	selectFloats(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 64-bit floating-point values.
-    array_t<double>* selectDoubles(const char* name,
-				   const ibis::bitvector &mask) const;
+    array_t<double>*
+	selectDoubles(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as strings.
-    std::vector<std::string>* selectStrings(const char* name,
-					    const ibis::bitvector &mask) const;
+    std::vector<std::string>*
+	selectStrings(const char* name, const ibis::bitvector &mask) const;
     /// Calculate the values of an arithmetic expression.
     long calculate(const ibis::math::term&, const ibis::bitvector&,
 		   array_t<double>&) const;

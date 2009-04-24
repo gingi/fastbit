@@ -1949,6 +1949,10 @@ array_t<int64_t>* ibis::text::selectLongs(const ibis::bitvector& mask)
     return ret;
 } // ibis::text::selectLongs
 
+/// Retrieve the string values from the rows marked 1 in mask.
+///
+/// @note FastBit does not track the memory usage of neither std::vector
+/// nor std::string.
 std::vector<std::string>*
 ibis::text::selectStrings(const ibis::bitvector& mask) const {
     std::vector<std::string>* res = new std::vector<std::string>();
