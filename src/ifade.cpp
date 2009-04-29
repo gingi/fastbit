@@ -1468,7 +1468,7 @@ uint32_t ibis::fade::estimate(const ibis::qContinuousRange& expr) const {
     for (uint32_t i=h0; i<h1; ++i)
 	nhits += cnts[i];
     return nhits;
-} // ibis::fade::estimate()
+} // ibis::fade::estimate
 
 double ibis::fade::getSum() const {
     double ret = 0;

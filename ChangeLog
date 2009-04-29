@@ -1,3 +1,9 @@
+2009-04-28 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp:5745 ibis::bin::estimateCost mistakenly compares
+	cand1 against bits.size, more natural to use offsets.size(),
+	change the version of locate called to get a more accurate
+	information about the query processing cost
+
 2009-04-24 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp:1624 delete the line that changes ierr to 0 and -1
 	* src/tafel.cpp:1055 in function write, add code to check for

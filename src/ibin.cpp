@@ -5739,16 +5739,18 @@ array_t<uint32_t>* ibis::bin::indices(const ibis::bitvector& mask) const {
 
 double ibis::bin::estimateCost(const ibis::qContinuousRange& expr) const {
     double ret = 0;
+    uint32_t cand0=0, cand1=nobs, hit0=nobs, hit1=0;
     if (offsets.size() > bits.size()) {
-	uint32_t cand0, cand1;
-	locate(expr, cand0, cand1);
-	if (cand0 < cand1 && cand1 < bits.size())
+	locate(expr, cand0, cand1, hit0, hit1);
+	if (cand0 < cand1 && cand1 < offsets.size())
 	    ret = offsets[cand1] - offsets[cand0];
     }
-    if (nobs > 0)
-	ret += 2.0 * col->elementSize() * nrows / nobs;
-    else
-	ret += col->elementSize() * nrows;
+    if (hit0 > cand0 || hit1 < cand1) {
+	if (nobs > 0)
+	    ret += 2.0 * col->elementSize() * nrows / nobs;
+	else
+	    ret += col->elementSize() * nrows;
+    }
     return ret;
 } // ibis::bin::estimateCost
 
