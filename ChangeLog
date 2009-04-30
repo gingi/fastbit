@@ -1,6 +1,18 @@
+2009-04-30 John Wu <John.Wu at ACM.org>
+	* src/parth2d.cpp, src/parth3d?.cpp: when getRawData fails try
+	selectTypes again.  Because getRawData is not a virtual function,
+	client code may not be able to access them correctly.  This cause
+	problems in applications like HDF5_FastQuery (reported by Allen
+	Sanderson)
+
+2009-04-29 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp:5750 further refine the cost estimation to taking
+	into account of how many edge bins are needed for candidate check
+	* src/ibin.cpp, src/irelic.cpp: clean up in-line documentation
+
 2009-04-28 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp:5745 ibis::bin::estimateCost mistakenly compares
-	cand1 against bits.size, more natural to use offsets.size(),
+	cand1 against bits.size, more natural to use offsets.size();
 	change the version of locate called to get a more accurate
 	information about the query processing cost
 

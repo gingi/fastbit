@@ -17,7 +17,7 @@
 
 /// A minimalistic structure for storing arbitrary text fields.
 /// The keyword search operation is implemented through a boolean
-/// term-document matrix (ibis::keywords) that is actually generated
+/// term-document matrix (ibis::keywords) that has to be generated
 /// externally.
 class ibis::text : public ibis::column {
 public:

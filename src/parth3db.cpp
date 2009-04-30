@@ -176,7 +176,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectBytes(mask);
 	    }
 	}
 	else {
@@ -195,7 +195,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectUBytes(mask);
 	    }
 	}
 	else {
@@ -214,7 +214,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectShorts(mask);
 	    }
 	}
 	else {
@@ -233,7 +233,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectUShorts(mask);
 	    }
 	}
 	else {
@@ -261,7 +261,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectInts(mask);
 	    }
 	}
 	else {
@@ -288,7 +288,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectUInts(mask);
 	    }
 	}
 	else {
@@ -309,7 +309,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectULongs(mask);
 	    }
 	}
 	else {
@@ -329,7 +329,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectLongs(mask);
 	    }
 	}
 	else {
@@ -348,7 +348,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectFloats(mask);
 	    }
 	}
 	else {
@@ -367,7 +367,7 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
 	    ierr = col3.getRawData(*val3);
 	    if (ierr < 0) {
 		delete val3;
-		val3 = 0;
+		val3 = col3.selectDoubles(mask);
 	    }
 	}
 	else {
@@ -416,7 +416,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectBytes(mask);
 	    }
 	}
 	else {
@@ -435,7 +435,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectUBytes(mask);
 	    }
 	}
 	else {
@@ -454,7 +454,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectShorts(mask);
 	    }
 	}
 	else {
@@ -473,7 +473,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectUShorts(mask);
 	    }
 	}
 	else {
@@ -501,7 +501,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectInts(mask);
 	    }
 	}
 	else {
@@ -528,7 +528,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectUInts(mask);
 	    }
 	}
 	else {
@@ -549,7 +549,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectULongs(mask);
 	    }
 	}
 	else {
@@ -569,7 +569,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectLongs(mask);
 	    }
 	}
 	else {
@@ -588,7 +588,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectFloats(mask);
 	    }
 	}
 	else {
@@ -607,7 +607,7 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 	    ierr = col2.getRawData(*val2);
 	    if (ierr < 0) {
 		delete val2;
-		val2 = 0;
+		val2 = col2.selectDoubles(mask);
 	    }
 	}
 	else {
@@ -716,7 +716,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectBytes(mask);
 	    }
 	}
 	else {
@@ -735,7 +735,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectUBytes(mask);
 	    }
 	}
 	else {
@@ -754,7 +754,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectShorts(mask);
 	    }
 	}
 	else {
@@ -773,7 +773,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectUShorts(mask);
 	    }
 	}
 	else {
@@ -801,7 +801,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectInts(mask);
 	    }
 	}
 	else {
@@ -828,7 +828,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectUInts(mask);
 	    }
 	}
 	else {
@@ -849,7 +849,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectULongs(mask);
 	    }
 	}
 	else {
@@ -869,7 +869,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectLongs(mask);
 	    }
 	}
 	else {
@@ -888,7 +888,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectFloats(mask);
 	    }
 	}
 	else {
@@ -907,7 +907,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    ierr = col1->getRawData(*val1);
 	    if (ierr < 0) {
 		delete val1;
-		val1 = 0;
+		val1 = col1->selectDoubles(mask);
 	    }
 	}
 	else {

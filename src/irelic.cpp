@@ -724,9 +724,9 @@ void ibis::relic::speedTest(std::ostream& out) const {
 	catch (...) {
 	}
     }
-} // ibis::relic::speedTest()
+} // ibis::relic::speedTest
 
-// the printing function
+/// The printing function.
 void ibis::relic::print(std::ostream& out) const {
     if (vals.size() != bits.size() || bits.empty())
 	return;
@@ -782,8 +782,7 @@ void ibis::relic::print(std::ostream& out) const {
     out << "\n";
 } // ibis::relic::print
 
-// convert the bitvector mask into bin indices -- used by
-// ibis::category::selectUInt
+/// Convert the bitvector mask into bin indices.
 array_t<uint32_t>* ibis::relic::keys(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0) // nothing to do
 	return 0;
@@ -875,7 +874,8 @@ long ibis::relic::append(const array_t<uint32_t>& ind) {
     return ind.size();
 } // ibis::relic::append
 
-// create index based data in df and append the result to the index in dt
+/// Create an index based on data in df and append the result to the index
+/// in dt.
 long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
     std::string fnm;
     indexFileName(df, fnm);
@@ -938,8 +938,8 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
     }
 } // ibis::relic::append
 
-// this function first convert *this into a map then back into the linear
-// data structure
+/// Append tail to this index.  This function first convert *this into a
+/// map then back into the linear data structure.
 long ibis::relic::append(const ibis::relic& tail) {
     if (tail.col != col) return -1;
     if (tail.bits.empty()) return -3;
@@ -1487,7 +1487,7 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
     }
 } // ibis::relic::locate
 
-// Compute the hits as a @c bitvector.
+/// Compute the hits as a @c bitvector.
 long ibis::relic::evaluate(const ibis::qContinuousRange& expr,
 			   ibis::bitvector& lower) const {
     // values in the range [hit0, hit1) satisfy the query
@@ -1504,6 +1504,8 @@ long ibis::relic::evaluate(const ibis::qContinuousRange& expr,
     return lower.cnt();
 } // ibis::relic::evaluate
 
+/// Return the number of hits satisfying the given continuous range
+/// expression.
 uint32_t ibis::relic::estimate(const ibis::qContinuousRange& expr) const {
     if (bits.empty()) return 0;
 
@@ -1517,6 +1519,8 @@ uint32_t ibis::relic::estimate(const ibis::qContinuousRange& expr) const {
     return nhits;
 } // ibis::relic::estimate
 
+/// Estimate the cost of resolving the continuous range expression.  The
+/// answer is in the number of bytes needed from this index.
 double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
     double ret = 0.0;
     if (offsets.size() > bits.size()) {
@@ -1528,6 +1532,8 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
     return ret;
 } // ibis::relic::estimateCost
 
+/// Estimate the cost of resolving the discrete range expression.  The
+/// answer is in the number of bytes needed from this index.
 double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
     if (offsets.size() > bits.size()) {
@@ -1541,10 +1547,12 @@ double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     return ret;
 } // ibis::relic::estimateCost
 
+/// Resolve a discrete range condition.  The answer is a bitvector marking
+/// the rows satisfying the range conditions.
 long ibis::relic::evaluate(const ibis::qDiscreteRange& expr,
-			   ibis::bitvector& lower) const {
+			   ibis::bitvector& answer) const {
     const std::vector<double>& varr = expr.getValues();
-    lower.set(0, nrows);
+    answer.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);
 	if (itmp > 0 && vals[itmp-1] == varr[i]) {
@@ -1552,12 +1560,13 @@ long ibis::relic::evaluate(const ibis::qDiscreteRange& expr,
 	    if (bits[itmp] == 0)
 		activate(itmp);
 	    if (bits[itmp])
-		lower |= *(bits[itmp]);
+		answer |= *(bits[itmp]);
 	}
     }
-    return lower.cnt();
+    return answer.cnt();
 } // ibis::relic::evaluate
 
+/// Compute the number of hits satisfying the discrete range expression.
 uint32_t ibis::relic::estimate(const ibis::qDiscreteRange& expr) const {
     const std::vector<double>& varr = expr.getValues();
     uint32_t cnt = 0;
@@ -1574,12 +1583,14 @@ uint32_t ibis::relic::estimate(const ibis::qDiscreteRange& expr) const {
     return cnt;
 } // ibis::relic::evaluate
 
+/// Return all distinct values as the bin boundaries.
 void ibis::relic::binBoundaries(std::vector<double>& b) const {
     b.resize(vals.size());
     for (uint32_t i = 0; i < vals.size(); ++ i)
 	b[i] = vals[i];
 } // ibis::relic::binBoundaries
 
+/// Return the exact count for each distinct value.
 void ibis::relic::binWeights(std::vector<uint32_t>& c) const {
     activate(); // need to make sure all bitmaps are available
     c.resize(vals.size());
@@ -1587,6 +1598,7 @@ void ibis::relic::binWeights(std::vector<uint32_t>& c) const {
 	c[i] = bits[i]->cnt();
 } // ibis::relic::binWeights
 
+/// Compute the sum of all values of the column indexed.
 double ibis::relic::getSum() const {
     double ret;
     bool here = false;
@@ -1606,6 +1618,7 @@ double ibis::relic::getSum() const {
     return ret;
 } // ibis::relic::getSum
 
+/// Compute the sum of all values of the column indexed.
 double ibis::relic::computeSum() const {
     double sum = 0;
     activate(); // need to activate all bitvectors
@@ -1615,6 +1628,7 @@ double ibis::relic::computeSum() const {
     return sum;
 } // ibis::relic::computeSum
 
+/// Compute a cumulative distribition.
 long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 					    std::vector<uint32_t>& cts) const {
     bds.clear();
@@ -1671,6 +1685,7 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
     return ierr;
 } // ibis::relic::getCumulativeDistribution
 
+/// Compute a histogram.
 long ibis::relic::getDistribution(std::vector<double>& bds,
 				  std::vector<uint32_t>& cts) const {
     bds.clear();

@@ -398,7 +398,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
     }
 } // ibis::bin::bin
 
-// read from a file
+/// Read from a file named f.
 int ibis::bin::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
@@ -662,7 +662,7 @@ int ibis::bin::read(int fdes, uint32_t start, const char *fn) {
     return 0;
 } // ibis::bin::read
 
-// read from a reference counted piece of memory
+/// Read from a reference counted piece of memory.
 int ibis::bin::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
     clear(); // clear the existing content
@@ -748,8 +748,8 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
     return 0;
 } // ibis::bin::read
 
-// fill the bitvectors with zeros so that they all contain nrows bits
-// truncate the bitvectors if they have more bits
+/// Fill the bitvectors with zeros so that they all contain nrows bits.
+/// Truncate the bitvectors if they have more bits.
 void ibis::bin::adjustLength(uint32_t nr) {
     if (nr == nrows) return;
     nrows = nr;
@@ -761,8 +761,7 @@ void ibis::bin::adjustLength(uint32_t nr) {
     }
 } // ibis::bin::adjustLength
 
-// return the smallest i such that bounds[i] >= val
-// revert to test for bounds[i] > val, to avoid change other functions
+/// Find the smallest i such that bounds[i] > val.
 uint32_t ibis::bin::locate(const double& val) const {
 #if defined(DEBUG) && DEBUG + 0 > 1
     ibis::util::logMessage("ibis::bin::locate", "searching for %g in an "
@@ -5746,10 +5745,16 @@ double ibis::bin::estimateCost(const ibis::qContinuousRange& expr) const {
 	    ret = offsets[cand1] - offsets[cand0];
     }
     if (hit0 > cand0 || hit1 < cand1) {
-	if (nobs > 0)
-	    ret += 2.0 * col->elementSize() * nrows / nobs;
-	else
+	if (nobs > 0) {
+	    const double ccheck = col->elementSize() * nrows / nobs;
+	    if (hit0 > cand0 && hit1 < cand1 && hit0 <= hit1)
+		ret += 2.0 * ccheck;
+	    else
+		ret += ccheck;
+	}
+	else {
 	    ret += col->elementSize() * nrows;
+	}
     }
     return ret;
 } // ibis::bin::estimateCost
@@ -6138,6 +6143,7 @@ int ibis::bin::contractRange(ibis::qContinuousRange& rng) const {
     return ret;
 } // ibis::bin::contractRange
 
+/// Locate the outer reaches of a continuous range expression.
 void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 		       uint32_t& cand1) const {
     uint32_t bin0 = (expr.leftOperator()!=ibis::qExpr::OP_UNDEFINED) ?
@@ -6682,6 +6688,7 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
     }
 } // locate cand0 and cand1
 
+/// Locate the bins for all candidates and hits.
 void ibis::bin::locate(const ibis::qContinuousRange& expr,
 		       uint32_t& cand0, uint32_t& cand1,
 		       uint32_t& hit0, uint32_t& hit1) const {
@@ -7549,6 +7556,7 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
     }
 } // locate cand0, cand1, hit0, and hit1
 
+/// Compute the actual minimum value from the binned index.
 double ibis::bin::getMin() const {
     double ret = DBL_MAX;
     for (uint32_t i = 0; i < nobs; ++ i)
@@ -7559,6 +7567,7 @@ double ibis::bin::getMin() const {
     return ret;
 } // ibis::bin::getMin
 
+/// Compute the actual maximum value from the binned index.
 double ibis::bin::getMax() const {
     double ret = -DBL_MAX;
     for (uint32_t i = nobs; i > 0; ) {
@@ -7571,6 +7580,7 @@ double ibis::bin::getMax() const {
     return ret;
 } // ibis::bin::getMax
 
+/// Compute the approximate value of the sum from the binned index.
 double ibis::bin::getSum() const {
     double ret;
     bool here = true;
@@ -7590,6 +7600,7 @@ double ibis::bin::getSum() const {
     return ret;
 } // ibis::bin::getSum
 
+/// Compute the approximate sum of all values using the binned index.
 double ibis::bin::computeSum() const {
     double sum = 0;
     activate(); // need to activate all bitvectors
@@ -7599,6 +7610,7 @@ double ibis::bin::computeSum() const {
     return sum;
 } // ibis::bin::computeSum
 
+/// Compute the cumulative distribution from the binned index.
 long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 					  std::vector<uint32_t>& cts) const {
     bds.clear();
@@ -7657,6 +7669,7 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
     return ierr;
 } // ibis::bin::getCumulativeDistribution
 
+/// Compute a histogram from the binned index.
 long ibis::bin::getDistribution(std::vector<double>& bds,
 				std::vector<uint32_t>& cts) const {
     bds.clear();

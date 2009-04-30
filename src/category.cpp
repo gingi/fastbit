@@ -234,7 +234,7 @@ ibis::category::category(const part* tbl, FILE* file)
     }
 } // ibis::category::category
 
-// Construct a category object from a name.
+/// Construct a category object from a name.
 ibis::category::category(const part* tbl, const char* name)
     : text(tbl, name, ibis::CATEGORY), dic() {
     readDictionary();
@@ -251,7 +251,7 @@ ibis::category::category(const part* tbl, const char* name)
     }
 } // ibis::category::category
 
-/// Copy constructor.  Copy from a collumn object with KEY type.
+/// Copy constructor.  Copy from a collumn object with CATEGORY type.
 ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     if (m_type != ibis::CATEGORY) {
 	throw ibis::bad_alloc("Must be type CATEGORY");
@@ -272,8 +272,8 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     }
 } // ibis::category::category
 
-// construct a column that has only one possible value and build the
-// corresponding index
+/// Construct a column that has only one possible value.  Also build the
+/// corresponding index.
 ibis::category::category(const part* tbl, const char* name,
 			 const char* value, const char* dir,
 			 uint32_t nevt) :
@@ -977,13 +977,15 @@ ibis::text::text(const part* tbl, FILE* file) : column(tbl, file) {
     if (thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
 }
-//
+
+/// Construct a text object for a data partition with the given name.
 ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t) :
     column(tbl, t, name) {
     if (thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
 }
-// copy constructor -- copy from a col with STRING type
+
+/// Copy constructor.  Copy from a column with TEXT type.
 ibis::text::text(const ibis::column& col) : ibis::column(col) {
     if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
 	throw "Must be either TEXT or CATEGORY";

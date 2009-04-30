@@ -522,7 +522,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectBytes(mask);
 	    }
 	}
 	else {
@@ -543,7 +543,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUBytes(mask);
 	    }
 	}
 	else {
@@ -564,7 +564,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectShorts(mask);
 	    }
 	}
 	else {
@@ -585,7 +585,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUShorts(mask);
 	    }
 	}
 	else {
@@ -606,7 +606,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectInts(mask);
 	    }
 	}
 	else {
@@ -627,7 +627,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUInts(mask);
 	    }
 	}
 	else {
@@ -648,7 +648,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectLongs(mask);
 	    }
 	}
 	else {
@@ -669,7 +669,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectULongs(mask);
 	    }
 	}
 	else {
@@ -690,7 +690,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectFloats(mask);
 	    }
 	}
 	else {
@@ -711,7 +711,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectDoubles(mask);
 	    }
 	}
 	else {
@@ -881,7 +881,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectBytes(mask);
 	    }
 	}
 	else {
@@ -902,7 +902,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUBytes(mask);
 	    }
 	}
 	else {
@@ -923,7 +923,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectShorts(mask);
 	    }
 	}
 	else {
@@ -944,7 +944,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUShorts(mask);
 	    }
 	}
 	else {
@@ -965,7 +965,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectInts(mask);
 	    }
 	}
 	else {
@@ -986,7 +986,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUInts(mask);
 	    }
 	}
 	else {
@@ -1007,7 +1007,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectLongs(mask);
 	    }
 	}
 	else {
@@ -1028,7 +1028,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectULongs(mask);
 	    }
 	}
 	else {
@@ -1049,7 +1049,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectFloats(mask);
 	    }
 	}
 	else {
@@ -1070,7 +1070,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectDoubles(mask);
 	    }
 	}
 	else {
@@ -1280,7 +1280,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectBytes(mask);
 	    }
 	}
 	else {
@@ -1302,7 +1302,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUBytes(mask);
 	    }
 	}
 	else {
@@ -1324,7 +1324,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectShorts(mask);
 	    }
 	}
 	else {
@@ -1346,7 +1346,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUShorts(mask);
 	    }
 	}
 	else {
@@ -1368,7 +1368,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectInts(mask);
 	    }
 	}
 	else {
@@ -1390,7 +1390,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectUInts(mask);
 	    }
 	}
 	else {
@@ -1412,7 +1412,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectLongs(mask);
 	    }
 	}
 	else {
@@ -1434,7 +1434,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectULongs(mask);
 	    }
 	}
 	else {
@@ -1456,7 +1456,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectFloats(mask);
 	    }
 	}
 	else {
@@ -1478,7 +1478,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = col->getRawData(*vals);
 	    if (ierr < 0) {
 		delete vals;
-		vals = 0;
+		vals = col->selectDoubles(mask);
 	    }
 	}
 	else {
@@ -2636,7 +2636,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	    ierr = col.getRawData(*vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
+		    << "Warning - " << mesg
 		    << " failed to retrieve any values for column "
 		    << col.name();
 		delete vals;

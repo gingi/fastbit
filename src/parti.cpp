@@ -322,8 +322,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 		oss << ", " << names[i];
 	    logMessage("reorder", "user specified ordering keys \"%s\" "
 		       "does not match any numerical columns with more "
-		       "than one distinct value, will attempt to use "
-		       "all integer columns as ordering keys",
+		       "than one distinct value, can not continue",
 		       oss.str().c_str());
 	}
 	return 0;
