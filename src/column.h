@@ -119,35 +119,47 @@ public:
     virtual const char* findString(const char* str) const
     {return static_cast<const char*>(0);}
 
-    /// Return all rows of the column as an array_t object. Caller is
+    /// Return all rows of the column as an array_t object.  Caller is
     /// responsible for deleting the returned object.
     array_t<int32_t>* getIntArray() const;
-    /// @sa getIntArray
+    /// Return all rows of the column as an array_t object.
     array_t<float>*   getFloatArray() const;
-    /// @sa getIntArray
+    /// Return all rows of the column as an array_t object.
     array_t<double>*  getDoubleArray() const;
+    /// Return all rows of the column as an array_t object.
+    virtual int getValuesArray(void* vals) const;
+    /// Return the content of base data file as storage object.
     ibis::fileManager::storage* getRawData() const;
-    template <typename T> int getRawData(array_t<T>& vals) const;
 
-    /// Return selected rows of the column as an array_t object.  Caller is
+    /// Return selected rows of the column in an array_t object.  Caller is
     /// responsible for deleting the returned object.
     virtual array_t<char>*     selectBytes(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<int16_t>*  selectShorts(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint16_t>* selectUShorts(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<int32_t>*  selectInts(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<int64_t>*  selectLongs(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint64_t>* selectULongs(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<float>*    selectFloats(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const {return 0;}
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
-    template <typename T>
-    long selectValues(const bitvector& mask, array_t<T>& vals) const;
-    template <typename T>
+    /// Return selected rows of the column in an array_t object.
+    long selectValues(const bitvector& mask, void* vals) const;
+    /// Return selected rows of the column in an array_t object along with
+    /// their positions.
     long selectValues(const bitvector& mask,
-		      array_t<T>& vals, array_t<uint32_t>& inds) const;
+		      void* vals, array_t<uint32_t>& inds) const;
 
     /// Write the TDC entry.
     virtual void write(FILE* file) const;
@@ -308,15 +320,19 @@ protected:
     /// maximum value.
     void actualMinMax(const char *fname, const ibis::bitvector& mask,
 		      double &min, double &max) const;
+    /// Compute the minimum and maximum of the values in the array.
     template <typename T>
     void actualMinMax(const array_t<T>& vals, const ibis::bitvector& mask,
 		      double& min, double& max) const;
+    /// Compute the minimum value in the array.
     template <typename T>
     T computeMin(const array_t<T>& vals,
 		 const ibis::bitvector& mask) const;
+    /// Compute the maximum value in the array.
     template <typename T>
     T computeMax(const array_t<T>& vals,
 		 const ibis::bitvector& mask) const;
+    /// Compute the sum of values in the array.
     template <typename T>
     double computeSum(const array_t<T>& vals,
 		      const ibis::bitvector& mask) const;
@@ -353,6 +369,11 @@ protected:
     /// Find the smallest value > tgt.
     template <typename T> uint32_t
 	findUpper(int fdes, const uint32_t nr, const T tgt) const;
+    template <typename T>
+	long selectValuesT(const bitvector& mask, array_t<T>& vals) const;
+    template <typename T>
+	long selectValuesT(const bitvector& mask,
+			   array_t<T>& vals, array_t<uint32_t>& inds) const;
 
     class readLock;
     class writeLock;

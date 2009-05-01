@@ -3663,11 +3663,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
+/// This static member function works on an array that is provided by the
+/// caller.  Since the values are provided, this function does not check
+/// the name of the variable involved in the range condition.
 template <typename E>
 long ibis::part::doScan(const array_t<E> &varr,
 			const ibis::qRange &cmp,
 			const ibis::bitvector &mask,
-			ibis::bitvector &hits) const {
+			ibis::bitvector &hits) {
     for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	 is.nIndices() > 0; ++ is) {
 	const ibis::bitvector::word_t *iix = is.indices();
@@ -6560,13 +6563,13 @@ void ibis::part::logMessage(const char* event,
     fflush(fptr);
 } // ibis::part::logMessage
 
-// The function that performs the actual comparison for range queries.  The
-// size of array may either match the number of bits in @c mask or the
-// number of set bits in @c mask.  This allows one to either use the whole
-// array or the only the elements need for this operation.  In either case,
-// only mask.cnt() elements of array are checked but position of the bits
-// that need to be set in the output bitvector @c hits have to be handled
-// differently.
+/// The function that performs the actual comparison for range queries.
+/// The size of array may either match the number of bits in @c mask or the
+/// number of set bits in @c mask.  This allows one to either use the whole
+/// array or the only the elements need for this operation.  In either
+/// case, only mask.cnt() elements of array are checked but position of the
+/// bits that need to be set in the output bitvector @c hits have to be
+/// handled differently.
 template <typename T>
 long ibis::part::doCompare(const array_t<T> &array,
 			   const ibis::bitvector &mask,
@@ -7273,13 +7276,14 @@ long ibis::part::negativeCompare(const char* file,
     return ierr;
 } // ibis::part::negativeCompare
 
-// perform the actual comparison for range queries on file directly (without
-// file mapping) assuming the file contains signed integers in binary
+/// This static member function works on an array that is provided by the
+/// caller.  Since the values are provided, this function does not check
+/// the name of the variable involved in the range condition.
 template <typename T>
 long ibis::part::doScan(const array_t<T> &vals,
 			const ibis::qContinuousRange &rng,
 			const ibis::bitvector &mask,
-			ibis::bitvector &hits) const {
+			ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
@@ -7959,11 +7963,10 @@ long ibis::part::doScan(const array_t<T> &vals,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
-		    << "]::doScan -- evaluating "
-		    << rng << " on " << mask.cnt() << " " << typeid(T).name()
+	lg.buffer() << "part::doScan -- evaluating " << rng
+		    << " on " << mask.cnt() << " " << typeid(T).name()
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
-		    << nEvents << ") took " << timer.realTime()
+		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -7980,18 +7983,17 @@ long ibis::part::doScan(const array_t<T> &vals,
 template <typename T, typename F>
 long ibis::part::doCompare(const array_t<T> &vals, F cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits) const {
+			   ibis::bitvector &hits) {
     long ierr = 0;
     if (mask.size() == 0 || mask.cnt() == 0)
 	return ierr;
 
     if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
-	if (ibis::gVerbose > 0)
-	    logWarning("doCompare", "array_t<%s>.size(%lu) must be either "
-		       "%lu or %lu", typeid(T).name(),
-		       static_cast<long unsigned>(vals.size()),
-		       static_cast<long unsigned>(mask.size()),
-		       static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare<" << typeid(T).name() << ", "
+	    << typeid(F).name() << ">(vals[" << vals.size()
+	    << "]) -- vals.size() must be either mask.size(" << mask.size()
+	    << ") or mask.cnt(" << mask.cnt() << ")";
 	ierr = -1;
 	return ierr;
     }
@@ -8058,18 +8060,17 @@ long ibis::part::doCompare(const array_t<T> &vals, F cmp,
 template <typename T, typename F>
 long ibis::part::doCompare0(const array_t<T> &vals, F cmp,
 			    const ibis::bitvector &mask,
-			    ibis::bitvector &hits) const {
+			    ibis::bitvector &hits) {
     long ierr = 0;
     if (mask.size() == 0 || mask.cnt() == 0)
 	return ierr;
 
     if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
-	if (ibis::gVerbose > 0)
-	    logWarning("doCompare", "array_t<%s>.size(%lu) must be either "
-		       "%lu or %lu", typeid(T).name(),
-		       static_cast<long unsigned>(vals.size()),
-		       static_cast<long unsigned>(mask.size()),
-		       static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare0<" << typeid(T).name() << ", "
+	    << typeid(F).name() << ">(vals[" << vals.size()
+	    << "]) -- vals.size() must be either mask.size(" << mask.size()
+	    << ") or mask.cnt(" << mask.cnt() << ")";
 	ierr = -1;
 	return ierr;
     }
@@ -8127,18 +8128,17 @@ long ibis::part::doCompare0(const array_t<T> &vals, F cmp,
 template <typename T, typename F1, typename F2>
 long ibis::part::doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits) const {
+			   ibis::bitvector &hits) {
     long ierr = 0;
     if (mask.size() == 0 || mask.cnt() == 0)
 	return ierr;
 
     if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
-	if (ibis::gVerbose > 0)
-	    logWarning("doCompare", "array_t<%s>.size(%lu) must be either "
-		       "%lu or %lu", typeid(T).name(),
-		       static_cast<long unsigned>(vals.size()),
-		       static_cast<long unsigned>(mask.size()),
-		       static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare<" << typeid(T).name() << ", "
+	    << typeid(F1).name() << ", " << typeid(F2).name() << ">(vals["
+	    << vals.size() << "]) -- vals.size() must be either mask.size("
+	    << mask.size() << ") or mask.cnt(" << mask.cnt() << ")";
 	ierr = -1;
 	return ierr;
     }
@@ -8205,18 +8205,17 @@ long ibis::part::doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 template <typename T, typename F1, typename F2>
 long ibis::part::doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 			    const ibis::bitvector &mask,
-			    ibis::bitvector &hits) const {
+			    ibis::bitvector &hits) {
     long ierr = 0;
     if (mask.size() == 0 || mask.cnt() == 0)
 	return ierr;
 
     if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
-	if (ibis::gVerbose > 0)
-	    logWarning("doCompare", "array_t<%s>.size(%lu) must be either "
-		       "%lu or %lu", typeid(T).name(),
-		       static_cast<long unsigned>(vals.size()),
-		       static_cast<long unsigned>(mask.size()),
-		       static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare0<" << typeid(T).name() << ", "
+	    << typeid(F1).name() << ", " << typeid(F2).name() << ">(vals["
+	    << vals.size() << "]) -- vals.size() must be either mask.size("
+	    << mask.size() << ") or mask.cnt(" << mask.cnt() << ")";
 	ierr = -1;
 	return ierr;
     }
@@ -8312,7 +8311,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 	ierr = doCount<double>(cmp);
 	break;
     default:
-	if (ibis::gVerbose > -1)
+	if (ibis::gVerbose >= 0)
 	    logWarning("countHits", "does not support type %d (%s)",
 		       static_cast<int>((*it).second->type()),
 		       cmp.colName());

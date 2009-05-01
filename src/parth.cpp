@@ -519,7 +519,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectBytes(mask);
@@ -540,7 +540,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<unsigned char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<unsigned char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUBytes(mask);
@@ -561,7 +561,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectShorts(mask);
@@ -582,7 +582,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUShorts(mask);
@@ -603,7 +603,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectInts(mask);
@@ -624,7 +624,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUInts(mask);
@@ -645,7 +645,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectLongs(mask);
@@ -666,7 +666,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectULongs(mask);
@@ -687,7 +687,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<float>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<float>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectFloats(mask);
@@ -708,7 +708,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<double>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<double>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectDoubles(mask);
@@ -878,7 +878,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectBytes(mask);
@@ -899,7 +899,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<unsigned char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<unsigned char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUBytes(mask);
@@ -920,7 +920,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectShorts(mask);
@@ -941,7 +941,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUShorts(mask);
@@ -962,7 +962,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectInts(mask);
@@ -983,7 +983,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUInts(mask);
@@ -1004,7 +1004,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectLongs(mask);
@@ -1025,7 +1025,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectULongs(mask);
@@ -1046,7 +1046,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<float>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<float>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectFloats(mask);
@@ -1067,7 +1067,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<double>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<double>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectDoubles(mask);
@@ -1277,7 +1277,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectBytes(mask);
@@ -1299,7 +1299,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<unsigned char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<unsigned char>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUBytes(mask);
@@ -1321,7 +1321,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectShorts(mask);
@@ -1343,7 +1343,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint16_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint16_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUShorts(mask);
@@ -1365,7 +1365,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectInts(mask);
@@ -1387,7 +1387,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint32_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectUInts(mask);
@@ -1409,7 +1409,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<int64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<int64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectLongs(mask);
@@ -1431,7 +1431,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<uint64_t>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint64_t>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectULongs(mask);
@@ -1453,7 +1453,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<float>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<float>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectFloats(mask);
@@ -1475,7 +1475,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	array_t<double>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<double>;
-	    ierr = col->getRawData(*vals);
+	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
 		vals = col->selectDoubles(mask);
@@ -2633,7 +2633,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<char>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning - " << mesg
@@ -2713,7 +2713,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<unsigned char>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -2793,7 +2793,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<int16_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -2873,7 +2873,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<uint16_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -2953,7 +2953,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<int32_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -3042,7 +3042,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<uint32_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -3130,7 +3130,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<int64_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -3218,7 +3218,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<uint64_t>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -3306,7 +3306,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<float>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg
@@ -3386,7 +3386,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
 	    vals = new array_t<double>;
-	    ierr = col.getRawData(*vals);
+	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg

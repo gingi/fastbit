@@ -2607,7 +2607,7 @@ void findMissingValuesT(const ibis::column &col,
 			const ibis::bitvector &ht0,
 			const ibis::bitvector &ht1) {
     array_t<T> vals0, vals1;
-    long ierr = col.selectValues(ht0, vals0);
+    long ierr = col.selectValues(ht0, &vals0);
     if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht0.cnt()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- findMissingValues did received expected number "
@@ -2615,7 +2615,7 @@ void findMissingValuesT(const ibis::column &col,
 	    << ", received " << ierr;
 	return;
     }
-    ierr = col.selectValues(ht1, vals1);
+    ierr = col.selectValues(ht1, &vals1);
     if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht1.cnt()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- findMissingValues did received expected number "

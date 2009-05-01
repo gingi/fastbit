@@ -820,7 +820,7 @@ int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals) const {
 	}
 
 	const ibis::column* col = dp.getColumn(cn);
-	if (col != 0 && col->getRawData(tmp) >= 0)
+	if (col != 0 && col->getValuesArray(&tmp) >= 0)
 	    memcpy(vals+ierr, tmp.begin(), dp.nRows());
 	ierr += dp.nRows();
     }
@@ -852,7 +852,7 @@ int64_t ibis::mensa::getColumnAsUBytes(const char* cn,
 	}
 
 	const ibis::column* col = dp.getColumn(cn);
-	if (col != 0 && col->getRawData(tmp) >= 0)
+	if (col != 0 && col->getValuesArray(&tmp) >= 0)
 	    memcpy(vals+ierr, tmp.begin(), dp.nRows());
 	ierr += dp.nRows();
     }
@@ -881,7 +881,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -903,7 +903,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(int16_t));
 	    ierr += dp.nRows();
 	}
@@ -936,7 +936,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -958,7 +958,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(uint16_t));
 	    ierr += dp.nRows();
 	}
@@ -990,7 +990,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1011,7 +1011,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1032,7 +1032,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1053,7 +1053,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1075,7 +1075,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(int32_t));
 	    ierr += dp.nRows();
 	}
@@ -1108,7 +1108,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1130,7 +1130,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1152,7 +1152,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(uint32_t));
 	    ierr += dp.nRows();
 	}
@@ -1187,7 +1187,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1208,7 +1208,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1229,7 +1229,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1250,7 +1250,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1271,7 +1271,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1292,7 +1292,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1314,7 +1314,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(int64_t));
 	    ierr += dp.nRows();
 	}
@@ -1349,7 +1349,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1371,7 +1371,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1393,7 +1393,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1415,7 +1415,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(uint64_t));
 	    ierr += dp.nRows();
 	}
@@ -1449,7 +1449,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1470,7 +1470,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1491,7 +1491,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1512,7 +1512,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1533,7 +1533,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(float));
 	    ierr += dp.nRows();
 	}
@@ -1567,7 +1567,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1588,7 +1588,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1609,7 +1609,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1630,7 +1630,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1651,7 +1651,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1672,7 +1672,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1693,7 +1693,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1714,7 +1714,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		memcpy(vals+ierr, tmp.begin(), dp.nRows()*sizeof(double));
 	    ierr += dp.nRows();
 	}
@@ -1756,7 +1756,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1777,7 +1777,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1798,7 +1798,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1819,7 +1819,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1840,7 +1840,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1861,7 +1861,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1882,7 +1882,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    }
@@ -1903,7 +1903,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0)
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0)
 		for (size_t i=0; i < tmp.size(); ++ i)
 		    vals[ierr+i] = tmp[i];
 	    ierr += dp.nRows();
@@ -1942,7 +1942,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << static_cast<int>(tmp[i]);
@@ -1966,7 +1966,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << static_cast<unsigned>(tmp[i]);
@@ -1990,7 +1990,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2014,7 +2014,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2038,7 +2038,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2062,7 +2062,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2086,7 +2086,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2110,7 +2110,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2134,7 +2134,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2158,7 +2158,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    }
 
 	    const ibis::column* col = dp.getColumn(cn);
-	    if (col != 0 && col->getRawData(tmp) >= 0) {
+	    if (col != 0 && col->getValuesArray(&tmp) >= 0) {
 		for (size_t i=0; i < tmp.size(); ++ i) {
 		    std::ostringstream oss;
 		    oss << tmp[i];
@@ -2417,7 +2417,7 @@ int ibis::mensa::cursor::getSelected
  ibis::fileManager::storage *&vals) const {
     array_t<T> tmp;
     int ierr;
-    if (col.selectValues(mask, tmp) < 0) {
+    if (col.selectValues(mask, &tmp) < 0) {
 	vals = 0;
 	ierr = -1;
     }

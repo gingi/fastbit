@@ -701,22 +701,76 @@ array_t<double>* ibis::column::getDoubleArray() const {
     return array;
 } // ibis::column::getDoubleArray
 
-template <typename T>
-int ibis::column::getRawData(array_t<T>& vals) const {
-    if (sizeof(T) != elementSize())
-	return -1;
-
+/// The incoming argument must be array_t<Type>*.  This function will
+/// explicitly cast vals into one of the ten supported numerical data
+/// types.
+/// 
+/// It return 0 to indicate success, and a negative number to indicate
+/// error.
+int ibis::column::getValuesArray(void* vals) const {
+    if (vals == 0) return -1;
     int ierr = 0;
     ibis::fileManager::storage *tmp = getRawData();
     if (tmp != 0) {
-	array_t<T> ta(*tmp);
-	vals.swap(ta);
+	switch (m_type) {
+	case ibis::BYTE: {
+	    array_t<char> ta(*tmp);
+	    static_cast<array_t<char>*>(vals)->swap(ta);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> ta(*tmp);
+	    static_cast<array_t<unsigned char>*>(vals)->swap(ta);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> ta(*tmp);
+	    static_cast<array_t<int16_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> ta(*tmp);
+	    static_cast<array_t<uint16_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> ta(*tmp);
+	    static_cast<array_t<int32_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> ta(*tmp);
+	    static_cast<array_t<uint32_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> ta(*tmp);
+	    static_cast<array_t<int64_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> ta(*tmp);
+	    static_cast<array_t<uint64_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> ta(*tmp);
+	    static_cast<array_t<float>*>(vals)->swap(ta);
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> ta(*tmp);
+	    static_cast<array_t<double>*>(vals)->swap(ta);
+	    break;}
+	case ibis::OID: {
+	    array_t<ibis::rid_t> ta(*tmp);
+	    static_cast<array_t<ibis::rid_t>*>(vals)->swap(ta);
+	    break;}
+        default: {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column::getValuesArray(" << vals
+		<< ") does not support data type "
+		<< ibis::TYPESTRING[static_cast<int>(m_type)];
+	    ierr = -2;
+	    break;}
+        }
     }
     else {
-	ierr = -1;
+	ierr = -3;
     }
     return ierr;
-} // ibis::column::getRawData
+} // ibis::column::getValuesArray
 
 ibis::fileManager::storage* ibis::column::getRawData() const {
     std::string sname;
@@ -816,12 +870,12 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -919,12 +973,12 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -1024,12 +1078,12 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -1256,12 +1310,12 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -1523,12 +1577,12 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -1889,12 +1943,12 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -2161,12 +2215,12 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -2755,12 +2809,12 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -3093,12 +3147,12 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -3989,12 +4043,12 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 		       timer.CPUTime(), timer.realTime());
 	}
 #else
-	long ierr = selectValues(mask, *array);
+	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-		<< "]::selectValues failed with error code " << ierr;
+		<< "]::selectValuesT failed with error code " << ierr;
 	    delete array;
 	    array = 0;
 	}
@@ -4016,21 +4070,21 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 /// returns a negative number, the contents of arrays @c vals is not
 /// guaranteed to be in any particular state.
 template <typename T>
-long ibis::column::selectValues(const bitvector& mask,
-				array_t<T>& vals) const {
+long ibis::column::selectValuesT(const bitvector& mask,
+				 array_t<T>& vals) const {
     if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
     if (elementSize() != sizeof(T)) {
-	logWarning("selectValues", "incompatible types");
+	logWarning("selectValuesT", "incompatible types");
 	return -1;
     }
     std::string sname;
     const char *dfn = dataFileName(sname);
     if (dfn == 0) return -3;
 #ifdef DEBUG
-    logMessage("selectValues", "selecting %lu out of %lu values from %s",
+    logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
@@ -4046,7 +4100,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	    << "]::selectValues failed to allocate space for vals[" << tot
+	    << "]::selectValuesT failed to allocate space for vals[" << tot
 	    << "]";
 	return -2;
     }
@@ -4096,7 +4150,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	    }
 	}
 	if (ibis::gVerbose > 4)
-	    logMessage("selectValues", "got %lu values (%lu wanted) from an "
+	    logMessage("selectValuesT", "got %lu values (%lu wanted) from an "
 		       "in-memory version of file %s as %s",
 		       static_cast<long unsigned>(vals.size()), tot, dfn,
 		       typeid(T).name());
@@ -4104,7 +4158,7 @@ long ibis::column::selectValues(const bitvector& mask,
     else { // has to use UnixRead family of functions
 	int fdes = UnixOpen(dfn, OPEN_READONLY);
 	if (fdes < 0) {
-	    logWarning("selectValues", "failed to open file %s, ierr=%d",
+	    logWarning("selectValuesT", "failed to open file %s, ierr=%d",
 		       dfn, fdes);
 	    return fdes;
 	}
@@ -4127,7 +4181,7 @@ long ibis::column::selectValues(const bitvector& mask,
 		    vals.resize(vals.size() + ierr);
 		    ibis::fileManager::instance().recordPages(pos, pos+ierr);
 		    if (static_cast<uint32_t>(ierr) != nelm)
-			logWarning("selectValues", "expected to read %lu "
+			logWarning("selectValuesT", "expected to read %lu "
 				   "consecutive elements (of %lu bytes each) "
 				   "from %s, but actually read %ld",
 				   static_cast<long unsigned>(nelm),
@@ -4135,7 +4189,7 @@ long ibis::column::selectValues(const bitvector& mask,
 				   dfn, ierr);
 		}
 		else {
-		    logWarning("selectValues", "failed to read at %ld in "
+		    logWarning("selectValuesT", "failed to read at %ld in "
 			       "file %s", UnixSeek(fdes, 0L, SEEK_CUR),
 			       dfn);
 		}
@@ -4152,7 +4206,7 @@ long ibis::column::selectValues(const bitvector& mask,
 			    vals.push_back(tmp);
 			}
 			else {
-			    logWarning("selectValues", "failed to read "
+			    logWarning("selectValuesT", "failed to read "
 				       "%lu-byte data from offset %ld in "
 				       "file \"%s\"",
 				       static_cast<long unsigned>(sizeof(tmp)),
@@ -4160,7 +4214,7 @@ long ibis::column::selectValues(const bitvector& mask,
 			}
 		    }
 		    else {
-			logWarning("selectValues", "failed to seek to the "
+			logWarning("selectValuesT", "failed to seek to the "
 				   "expected location in file \"%s\" (actual "
 				   "%ld, expected %ld)", dfn,
 				   static_cast<long>(pos),
@@ -4170,7 +4224,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	    }
 	} // for (ibis::bitvector::indexSet...
 	if (ibis::gVerbose > 4)
-	    logMessage("selectValues", "got %lu values (%lu wanted) from "
+	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
 		       "reading file %s",
 		       static_cast<long unsigned>(vals.size()),
 		       static_cast<long unsigned>(tot), dfn);
@@ -4178,11 +4232,11 @@ long ibis::column::selectValues(const bitvector& mask,
 
     ierr = vals.size();
     if (vals.size() != tot)
-	logWarning("selectValues", "got %li out of %lu values from %s as %s",
+	logWarning("selectValuesT", "got %li out of %lu values from %s as %s",
 		   ierr, static_cast<long unsigned>(tot), dfn,
 		   typeid(T).name());
     return ierr;
-} // ibis::column::selectValues
+} // ibis::column::selectValuesT
 
 /// Select the values marked in the bitvector @c mask.
 /// Select all values marked 1 in the @c mask and pack them into the
@@ -4193,15 +4247,15 @@ long ibis::column::selectValues(const bitvector& mask,
 /// negative number, the contents of arrays @c vals and @c inds are not
 /// guaranteed to be in particular state.
 template <typename T>
-long ibis::column::selectValues(const bitvector& mask,
-				array_t<T>& vals,
-				array_t<uint32_t>& inds) const {
+long ibis::column::selectValuesT(const bitvector& mask,
+				 array_t<T>& vals,
+				 array_t<uint32_t>& inds) const {
     if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
     if (elementSize() != sizeof(T)) {
-	logWarning("selectValues", "incompatible types");
+	logWarning("selectValuesT", "incompatible types");
 	return -1;
     }
 
@@ -4213,7 +4267,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	    << "]::selectValues failed to allocate space for vals[" << tot
+	    << "]::selectValuesT failed to allocate space for vals[" << tot
 	    << "] and inds[" << tot << "]";
 	return -2;
     }
@@ -4221,7 +4275,7 @@ long ibis::column::selectValues(const bitvector& mask,
     const char *dfn = dataFileName(sname);
     if (dfn == 0) return -3;
 #ifdef DEBUG
-    logMessage("selectValues", "selecting %lu out of %lu values from %s",
+    logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
@@ -4273,7 +4327,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	    }
 	}
 	if (ibis::gVerbose > 4)
-	    logMessage("selectValues", "got %lu values (%lu wanted) from an "
+	    logMessage("selectValuesT", "got %lu values (%lu wanted) from an "
 		       "in-memory version of file %s as %s",
 		       static_cast<long unsigned>(vals.size()), tot, dfn,
 		       typeid(T).name());
@@ -4281,7 +4335,7 @@ long ibis::column::selectValues(const bitvector& mask,
     else { // has to use UnixRead family of functions
 	int fdes = UnixOpen(dfn, OPEN_READONLY);
 	if (fdes < 0) {
-	    logWarning("selectValues", "failed to open file %s, ierr=%d",
+	    logWarning("selectValuesT", "failed to open file %s, ierr=%d",
 		       dfn, fdes);
 	    return fdes;
 	}
@@ -4306,7 +4360,7 @@ long ibis::column::selectValues(const bitvector& mask,
 			inds.push_back(i + *ixval);
 		    ibis::fileManager::instance().recordPages(pos, pos+ierr);
 		    if (static_cast<uint32_t>(ierr) != nelm)
-			logWarning("selectValues", "expected to read %lu "
+			logWarning("selectValuesT", "expected to read %lu "
 				   "consecutive elements (of %lu bytes each) "
 				   "from %s, but actually read %ld",
 				   static_cast<long unsigned>(nelm),
@@ -4314,7 +4368,7 @@ long ibis::column::selectValues(const bitvector& mask,
 				   dfn, ierr);
 		}
 		else {
-		    logWarning("selectValues", "failed to read at %ld in "
+		    logWarning("selectValuesT", "failed to read at %ld in "
 			       "file %s", UnixSeek(fdes, 0L, SEEK_CUR),
 			       dfn);
 		}
@@ -4332,7 +4386,7 @@ long ibis::column::selectValues(const bitvector& mask,
 			    inds.push_back(ixval[j]);
 			}
 			else {
-			    logWarning("selectValues", "failed to read "
+			    logWarning("selectValuesT", "failed to read "
 				       "%lu-byte data from offset %ld in "
 				       "file \"%s\"",
 				       static_cast<long unsigned>(sizeof(tmp)),
@@ -4340,7 +4394,7 @@ long ibis::column::selectValues(const bitvector& mask,
 			}
 		    }
 		    else {
-			logWarning("selectValues", "failed to seek to the "
+			logWarning("selectValuesT", "failed to seek to the "
 				   "expected location in file \"%s\" (actual "
 				   "%ld, expected %ld)", dfn,
 				   static_cast<long>(pos),
@@ -4350,7 +4404,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	    }
 	} // for (ibis::bitvector::indexSet...
 	if (ibis::gVerbose > 4)
-	    logMessage("selectValues", "got %lu values (%lu wanted) from "
+	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
 		       "reading file %s",
 		       static_cast<long unsigned>(vals.size()),
 		       static_cast<long unsigned>(tot), dfn);
@@ -4358,12 +4412,91 @@ long ibis::column::selectValues(const bitvector& mask,
 
     ierr = (vals.size() <= inds.size() ? vals.size() : inds.size());
     if (static_cast<uint32_t>(ierr) != tot)
-	logWarning("selectValues", "got %li out of %lu values from %s as %s",
+	logWarning("selectValuesT", "got %li out of %lu values from %s as %s",
 		   ierr, static_cast<long unsigned>(tot), dfn,
 		   typeid(T).name());
     vals.resize(ierr);
     inds.resize(ierr);
     return ierr;
+} // ibis::column::selectValuesT
+
+/// The caller must provide the correct array_t<type>* for vals!  Not type
+/// casting is performed in this function.  Only elementary numerical types
+/// are supported.
+long ibis::column::selectValues(const bitvector& mask, void* vals) const {
+    if (vals == 0) return -1L;
+    switch (m_type) {
+    case ibis::BYTE:
+	return selectValuesT(mask, *static_cast<array_t<char>*>(vals));
+    case ibis::UBYTE:
+	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals));
+    case ibis::SHORT:
+	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals));
+    case ibis::USHORT:
+	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals));
+    case ibis::INT:
+	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals));
+    case ibis::UINT:
+	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals));
+    case ibis::LONG:
+	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals));
+    case ibis::ULONG:
+	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals));
+    case ibis::FLOAT:
+	return selectValuesT(mask, *static_cast<array_t<float>*>(vals));
+    case ibis::DOUBLE:
+	return selectValuesT(mask, *static_cast<array_t<double>*>(vals));
+    case ibis::OID:
+	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals));
+    default:
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column::selectValues["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectValues is not able to handle data type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -2L;
+}
+} // ibis::column::selectValues
+
+/// The caller must provide the correct array_t<type>* for vals!  Not type
+/// casting is performed in this function.  Only elementary numerical types
+/// are supported.
+long ibis::column::selectValues(const bitvector& mask,
+				void* vals, array_t<uint32_t>& inds) const {
+    if (vals == 0) return -1L;
+    switch (m_type) {
+    case ibis::BYTE:
+	return selectValuesT(mask, *static_cast<array_t<char>*>(vals), inds);
+    case ibis::UBYTE:
+	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals),
+			     inds);
+    case ibis::SHORT:
+	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals), inds);
+    case ibis::USHORT:
+	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals), inds);
+    case ibis::INT:
+	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals), inds);
+    case ibis::UINT:
+	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals), inds);
+    case ibis::LONG:
+	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals), inds);
+    case ibis::ULONG:
+	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals), inds);
+    case ibis::FLOAT:
+	return selectValuesT(mask, *static_cast<array_t<float>*>(vals), inds);
+    case ibis::DOUBLE:
+	return selectValuesT(mask, *static_cast<array_t<double>*>(vals), inds);
+    case ibis::OID:
+	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals),
+	    inds);
+    default:
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column::selectValues["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectValues is not able to handle data type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -2L;
+}
 } // ibis::column::selectValues
 
 // only write some information about the column
@@ -9098,39 +9231,28 @@ int ibis::column::searchSortedOOCD(const char* fname,
 } // ibis::column::searchSortedOOCD
 
 // explicit template instantiation
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<unsigned char>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<signed char>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<char>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<uint16_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<int16_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<uint32_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<int32_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<uint64_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<int64_t>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<float>&, array_t<uint32_t>&) const;
-template long ibis::column::selectValues
+template long ibis::column::selectValuesT
 (const bitvector&, array_t<double>&, array_t<uint32_t>&) const;
-
-template int ibis::column::getRawData(array_t<char>&) const;
-template int ibis::column::getRawData(array_t<unsigned char>&) const;
-template int ibis::column::getRawData(array_t<int16_t>&) const;
-template int ibis::column::getRawData(array_t<uint16_t>&) const;
-template int ibis::column::getRawData(array_t<int32_t>&) const;
-template int ibis::column::getRawData(array_t<uint32_t>&) const;
-template int ibis::column::getRawData(array_t<int64_t>&) const;
-template int ibis::column::getRawData(array_t<uint64_t>&) const;
-template int ibis::column::getRawData(array_t<float>&) const;
-template int ibis::column::getRawData(array_t<double>&) const;
 
 template long ibis::column::castAndWrite
 (const array_t<double>& vals, ibis::bitvector& mask, const char special);

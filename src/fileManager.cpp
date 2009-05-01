@@ -536,7 +536,7 @@ void ibis::fileManager::clear() {
 	delete (*it);
 
     LOGGER((ibis::fileManager::totalBytes() != 0 && ibis::gVerbose > 0) ||
-	   ibis::gVerbose > 12)
+	   ibis::gVerbose > 8)
 	<< "fileManager::clear -- There are " << ibis::fileManager::totalBytes()
 	<< " byte" << (ibis::fileManager::totalBytes()>1 ? "s" : "")
 	<< " of storage remain in memory after removing all managed objects";
