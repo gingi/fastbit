@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
-				PreprocessorDefinitions="WIN32;WINVER=0x0600;_DEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
+				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;_DEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -128,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
-				PreprocessorDefinitions="WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
+				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="1"

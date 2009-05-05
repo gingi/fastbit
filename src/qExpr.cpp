@@ -1276,108 +1276,57 @@ bool ibis::qContinuousRange::empty() const {
 } // ibis::qContinuousRange::empty
 
 void ibis::qContinuousRange::print(std::ostream& out) const {
-    if (name == 0) {
-	out << "NULL";
+    if (name == 0 || *name == 0 ||
+	(left_op == OP_UNDEFINED && right_op == OP_UNDEFINED)) {
+	out << "ILL-DEFINED-RANGE";
 	return;
     }
 
     switch (left_op) {
     case OP_EQ: {
-	out << name << "==" << lower;
+	out << lower << "==";
 	break;
     }
     case OP_LT: {
-	switch (right_op) {
-	case OP_LT:
-	    out << lower << " < " << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << lower << " < " << name << " <= " << upper;
-	    break;
-	case OP_UNDEFINED:
-	    out << lower << " < " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
+	out << lower << '<';
 	break;
     } // case OP_LT
     case OP_LE: {
-	switch (right_op) {
-	case OP_LT:
-	    out << lower << " <= " << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << lower << " <= " << name << " <= " << upper;
-	    break;
-	case OP_UNDEFINED:
-	    out << lower << " <= " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
+	out << lower << "<=";
 	break;
     } // case OP_LE
     case OP_GT: {
-	switch (right_op) {
-	case OP_GT:
-	    out << upper << " < " << name << " < " << lower;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name << " < " << lower;
-	    break;
-	case OP_UNDEFINED:
-	    out << name << " < " << lower;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
+	out << lower << '>';
 	break;
     } // case OP_GT
     case OP_GE: {
-	switch (right_op) {
-	case OP_GT:
-	    out << upper << " < " << name << " <= " << lower;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name << " <= " << lower;
-	    break;
-	case OP_UNDEFINED:
-	    out << name << " <= " << lower;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch (right_op)
+	out << lower << ">=";
 	break;
     } // case OP_GE
     default:
-	switch (right_op) {
-	case OP_EQ:
-	    out << name << "==" << upper;
-	    break;
-	case OP_LT:
-	    out << name << " < " << upper;
-	    break;
-	case OP_LE:
-	    out << name << " <= " << upper;
-	    break;
-	case OP_GT:
-	    out << upper << " < " << name;
-	    break;
-	case OP_GE:
-	    out << upper << " <= " << name;
-	    break;
-	default:
-	    out << " ILL-DEFINED-RANGE";
-	    break;
-	} // end of switch right_op
 	break;
     } // switch (left_op)
-} // ibis::qContinuousRange::print(std::ostream& out)
+    out << name;
+    switch (right_op) {
+    case OP_EQ:
+	out << "==" << upper;
+	break;
+    case OP_LT:
+	out << '<' << upper;
+	break;
+    case OP_LE:
+	out << "<=" << upper;
+	break;
+    case OP_GT:
+	out << '>' << upper;
+	break;
+    case OP_GE:
+	out << ">=" << upper;
+	break;
+    default:
+	break;
+    } // end of switch right_op
+} // ibis::qContinuousRange::print
 
 void ibis::qContinuousRange::printRange(std::ostream& out) const {
     if (name == 0) return;

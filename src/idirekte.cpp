@@ -579,8 +579,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	}
 	break;}
     case ibis::qExpr::OP_LE: {
-	if (expr.leftBound() > ib)
-	    ++ ib;
+	ib += (expr.leftBound() > ib);
 	switch (expr.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
 	    if (expr.rightBound()>ie)
@@ -617,7 +616,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	}
 	break;}
     case ibis::qExpr::OP_GT: {
-	++ ib;
+	ib += (expr.leftBound() > ib);
 	switch (expr.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
 	    if (expr.rightBound() > ie)
@@ -659,8 +658,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	}
 	break;}
     case ibis::qExpr::OP_GE: {
-	if (expr.leftBound() > ib)
-	    ++ ib;
+	++ ib;
 	switch (expr.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
 	    if (expr.rightBound() > ie)
@@ -686,7 +684,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	    ib = tmp;
 	    break;}
 	case ibis::qExpr::OP_EQ: {
-	    if (expr.rightBound() >= expr.leftBound()) {
+	    if (expr.leftBound() >= expr.rightBound()) {
 		ib = ie;
 		++ ie;
 	    }
@@ -695,7 +693,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	    }  
 	    break;}
 	default: {
-	    ie = ib + 1;
+	    ie = ib;
 	    ib = 0;
 	    break;}
 	}
@@ -863,11 +861,31 @@ double ibis::direkte::estimateCost(const ibis::qContinuousRange& expr) const {
     double cost = 0.0;
     uint32_t ib, ie;
     locate(expr, ib, ie);
-    if (offsets.size() > bits.size()) {
-	if (ib < ie && ie < offsets.size())
-	    cost = offsets[ie] - offsets[ib];
-	else if (ib < offsets.size())
-	    cost = offsets.back() - offsets[ib];
+    if (ib < ie) {
+	if (offsets.size() > bits.size()) {
+	    const int32_t tot = offsets.back() - offsets[0];
+	    if (ie < offsets.size()) {
+		const int32_t mid = offsets[ie] - offsets[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	    else if (ib < offsets.size()) {
+		const int32_t mid = offsets.back() - offsets[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	}
+	else {
+	    const unsigned elm = col->elementSize();
+	    if (elm > 0)
+		cost = (double)elm * col->partition()->nRows();
+	    else
+		cost = 4.0 * col->partition()->nRows();
+	}
     }
     return cost;
 } // ibis::direkte::estimateCost

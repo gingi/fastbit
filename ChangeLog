@@ -1,3 +1,35 @@
+2009-05-04 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp, src/irelic.cpp, src/idirekte.cpp: in estimateCost
+	for qContinuousRange, take into account of the complement option
+	* src/util.h:1072 in the round_up that outputs float, only invoke
+	nextafter if the initial rounding produce a value that is less
+	than the input value
+	* src/idirekte.cpp: update function locate for all combinations
+	that can be generated
+	* src/qExpr.cpp: simplify qContinuousRange::print to more
+	faithfully print the actually expression
+	* src/qExpr.h: make leftBound and rightBound of qContinuousRange
+	simply return lower and upper
+	* src/capi.h, src/const.h, src/util.h: remove the macro
+	HAVE_CONFIG_H, add WITHOUT_FASTBIT_CONFIG_H.  On systems that can
+	not run the configure script, the user must define
+	WITHOUT_FASTBIT_CONFIG_H
+
+2009-05-03 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: correct template doScan and doCount (that makes
+	use of std::binder1st and std::biner2nd) to make use of the new
+	function round_up, simplify their comparison by taking into
+	account of conditions that might contain each other; change the
+	answer to ill-formed range expressions to be 0; change
+	part::selfTest to pick a random column for testRangeOperators
+	instead of using the sorted one
+
+2009-05-02 John Wu <John.Wu at ACM.org>
+	* src/util.h: add templates ibis::util::round_down and
+	ibis::util::round_up (with specializations)
+	* configure.ac: add check for function nextafter, to be used in
+	incrDouble, round_up and friends in util.h
+
 2009-05-01 John Wu <John.Wu at ACM.org>
 	* src/column.h, src/column.cpp: rename getRawData to
 	getValuesArray

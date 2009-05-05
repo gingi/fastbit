@@ -1002,11 +1002,11 @@ void ibis::util::int2string(std::string& str, unsigned val) {
     str = name;
 } // ibis::util::int2string
 
-/// It attempts to retrieve the user name and store it in a local string.
-/// A global mutex lock is used to ensure that only one thread can modify
-/// the internally stored user name.  If it fails to determine the user
-/// name, it will return '<(-_-)>' as the user name.  The default user
-/// name is a long form of the robot emoticon.
+/// It attempts to retrieve the user name from the system and store it
+/// locally.  A global mutex lock is used to ensure that only one thread
+/// can access the locally stored user name.  If it fails to determine the
+/// user name, it will return '<(-_-)>', which is a long form of the robot
+/// emoticon.
 const char* ibis::util::userName() {
     static std::string uid;
     ibis::util::mutexLock lock(&ibis::util::envLock, "<(-_-)>");
@@ -1033,10 +1033,9 @@ const char* ibis::util::userName() {
 	    uid = buf;
 #elif defined(_REENTRANT) || defined(_THREAD_SAFE) || defined(_POSIX_THREAD_SAFE_FUNCTIONS)
 	// in case we are not on a posix-compliant system and no cuserid,
-	// try getlogin, however
-	// getlongin and variants need a TTY or utmp entry to function
-	// correctly.  They may cause a core dump if this function is
-	// called without a TTY (or utmp)
+	// try getlogin, however getlongin and variants need a TTY or utmp
+	// entry to function correctly.  They may cause a core dump if this
+	// function is called without a TTY (or utmp)
 	char buf[64];
 	if (getlogin_r(buf, 64) == 0) {
 	    uid = buf;

@@ -251,9 +251,9 @@ public:
     COMPARE leftOperator() const {return left_op;}
     COMPARE rightOperator() const {return right_op;}
     virtual const double& leftBound() const {
-	return (right_op != OP_EQ ? lower : upper);}
+	return (lower);}
     virtual const double& rightBound() const {
-	return (left_op != OP_EQ ? upper : lower);}
+	return (upper);}
     // allow one to possibly change the left and right bounds, the left and
     // right operator
     double& leftBound() {return lower;}
@@ -1231,11 +1231,33 @@ inline ibis::math::term* ibis::math::stdFunction2::reduce() {
 
 namespace std {
     inline ostream& operator<<(ostream&, const ibis::qExpr&);
+    inline ostream& operator<<(ostream&, const ibis::qExpr::COMPARE&);
 }
 
 /// Wrap the function print as operator<<.
 inline std::ostream& std::operator<<(std::ostream& out, const ibis::qExpr& pn) {
     pn.print(out);
     return out;
-}
+} // std::operator<<
+
+/// Print a comparison operator.
+inline std::ostream& std::operator<<(std::ostream& out,
+				     const ibis::qExpr::COMPARE& op) {
+    switch (op) {
+    default:
+    case ibis::qExpr::OP_UNDEFINED:
+	out << "??"; break;
+    case ibis::qExpr::OP_LT:
+	out << "<"; break;
+    case ibis::qExpr::OP_LE:
+	out << "<="; break;
+    case ibis::qExpr::OP_GT:
+	out << ">"; break;
+    case ibis::qExpr::OP_GE:
+	out << ">="; break;
+    case ibis::qExpr::OP_EQ:
+	out << "=="; break;
+    }
+    return out;
+} // std::operator<<
 #endif // IBIS_EXPR_H

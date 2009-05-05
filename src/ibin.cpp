@@ -5741,8 +5741,14 @@ double ibis::bin::estimateCost(const ibis::qContinuousRange& expr) const {
     uint32_t cand0=0, cand1=nobs, hit0=nobs, hit1=0;
     if (offsets.size() > bits.size()) {
 	locate(expr, cand0, cand1, hit0, hit1);
-	if (cand0 < cand1 && cand1 < offsets.size())
-	    ret = offsets[cand1] - offsets[cand0];
+	if (cand0 < cand1 && cand1 < offsets.size()) {
+	    const int32_t tot = offsets.back() - offsets[0];
+	    const int32_t mid = offsets[cand1] - offsets[cand0];
+	    if ((tot >> 1) >= mid)
+		ret = mid;
+	    else
+		ret = tot - mid;
+	}
     }
     if (hit0 > cand0 || hit1 < cand1) {
 	if (nobs > 0) {

@@ -54,12 +54,12 @@ int truncate(const char*, uint32_t);
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
-#if !defined(HAVE_GCC_ATOMIC32) && !defined(HAVE_CONFIG_H)
+#if !defined(HAVE_GCC_ATOMIC32) && defined(WITHOUT_FASTBIT_CONFIG_H)
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC32 2
 #endif
 #endif
-#if !defined(HAVE_GCC_ATOMIC64) && !defined(HAVE_CONFIG_H)
+#if !defined(HAVE_GCC_ATOMIC64) && defined(WITHOUT_FASTBIT_CONFIG_H)
 #if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC64 2
@@ -426,31 +426,11 @@ namespace ibis {
 	void int2string(std::string &str, const std::vector<unsigned>& val);
 	///@}
 
+	/// Functions to handle manipulation of floating-point numbers.
 	///@{
-	/// Functions to handle manipulation of floating-point numbers.  The
-	/// success of these functions is high sensitive to the definition
-	/// of DBL_EPSILON.  It should be defined as the smallest value x
-	/// such that (1+x) is different from x.  For 64-bit IEEE
-	/// floating-point number, it is approximately 2.2E-16 (2^{-52})
-	/// (May 2, 2001)
-	inline double incrDouble(const double& in) {
-	    double tmp = fabs(in) * DBL_EPSILON;
-	    if (tmp > 0.0) tmp += in;
-	    else tmp = in + DBL_MIN;
-	    return tmp;
-	}
-	inline double decrDouble(const double& in) {
-	    double tmp = fabs(in) * DBL_EPSILON;
-	    if (tmp > 0.0) tmp = in - tmp;
-	    else tmp = in - DBL_MIN;
-	    return tmp;
-	}
-	inline void eq2range(const double& in, double& left, double& right) {
-	    double tmp = fabs(in) * DBL_EPSILON;
-	    if (tmp > 0.0) {right = in + tmp;}
-	    else {right = in + DBL_MIN;}
-	    left = in;
-	}
+	double incrDouble(const double&);
+	double decrDouble(const double&);
+	void   eq2range(const double&, double&, double&);
 	/// Reduce the decimal precision of the incoming floating-point
 	/// value to specified precision. 
 	inline double coarsen(const double in, const unsigned prec=2);
@@ -467,6 +447,30 @@ namespace ibis {
 	/// Set a double to NaN.
 	void setNaN(double& val);
 	void setNaN(float& val);
+
+	/// Round the incoming value to the largest output value that is no
+	/// more than the input.  Both Tin and Tout must be elementary data
+	/// types, and Tout must be an elementary integral type.
+	template <typename Tin, typename Tout>
+	void round_down(const Tin& inval, Tout& outval) {
+	    outval = static_cast<Tout>(inval);
+	}
+	/// Round the incoming value to the smallest output value that is
+	/// no less than the input.  Both Tin and Tout must be elementary
+	/// data types, and Tout must be an elementary integral type.
+	template <typename Tin, typename Tout>
+	void round_up(const Tin& inval, Tout& outval) {
+	    outval = static_cast<Tout>(inval) +
+		(static_cast<double>(inval)-static_cast<Tout>(inval) > 0.0);
+	}
+	/// A specialization of round_up for the output type float.
+	template <typename Tin>
+	void round_up(const Tin& inval, float& outval);
+	/// A specialization of round_up for the output in double.
+	template <typename Tin>
+	void round_up(const Tin& inval, double& outval) {
+	    outval = static_cast<double>(inval);
+	}
 	///@}
 
 	/// Print a message to standard output.  The format string is same
@@ -986,8 +990,8 @@ char* getpass(const char* prompt);
 #endif
 
 /// A Linear Congruential Generator of pseudo-random numbers.  It produces
-/// a floating-point in the range of [0, 1).  It is simple and fast, but
-/// does not produce high-quality random numbers, nor is it thread-safe.
+/// a floating-point in the range of [0, 1).  It is very simple, but does
+/// not produce high-quality random numbers, nor is it thread-safe.
 inline double ibis::util::rand() {
     /// The internal variable @c seed is always an odd number.  Don't use
     /// it directly.
@@ -1006,6 +1010,79 @@ inline uint32_t ibis::util::checksum(uint32_t a, uint32_t b) {
     uint32_t b1 = (b & 0xFFFF);
     return ((((a0<<2)+a1*3+(b0<<1)+b1) << 16) | ((a0+a1+b0+b1) & 0xFFFF));
 } // ibis::util::checksum
+
+/// Increment the input value to the next larger value.  If the math
+/// library has nextafter, it will use nextafter, otherwise, it will use
+/// the unit round-off error to compute the next larger value.  The success
+/// of this computation is high sensitive to the definition of DBL_EPSILON.
+/// It should be defined as the smallest value x such that (1+x) is
+/// different from x.  For 64-bit IEEE floating-point number, it is
+/// approximately 2.2E-16 (2^{-52}) (May 2, 2001)
+inline double ibis::util::incrDouble(const double& in) {
+#if defined(HAVE_NEXTAFTER)
+    return nextafter(in, DBL_MAX);
+#elif defined(_MSC_VER) && defined(_WIN32)
+    return _nextafter(in, DBL_MAX);
+#else
+    double tmp = fabs(in) * DBL_EPSILON;
+    if (tmp > 0.0) tmp += in;
+    else tmp = in + DBL_MIN;
+    return tmp;
+#endif
+}
+
+/// Decrease the input value to the next smaller value.
+/// @sa ibis::util::incrDouble
+inline double ibis::util::decrDouble(const double& in) {
+#if defined(HAVE_NEXTAFTER)
+    return nextafter(in, -DBL_MAX);
+#elif defined(_MSC_VER) && defined(_WIN32)
+    return _nextafter(in, -DBL_MAX);
+#else
+    double tmp = fabs(in) * DBL_EPSILON;
+    if (tmp > 0.0) tmp = in - tmp;
+    else tmp = in - DBL_MIN;
+    return tmp;
+#endif
+}
+
+/// Generate a range [left, right) that contains exactly the input value
+/// in.  This is used to transform an expression expression "A = in" into
+/// "left <= A < right".
+/// @sa ibis::util::incrDouble
+inline void ibis::util::eq2range(const double& in,
+				 double& left, double& right) {
+#if defined(HAVE_NEXTAFTER)
+    right = nextafter(in, DBL_MAX);
+#elif defined(_MSC_VER) && defined(_WIN32)
+    right = _nextafter(in, DBL_MAX);
+#else
+    double tmp = fabs(in) * DBL_EPSILON;
+    if (tmp > 0.0) {right = in + tmp;}
+    else {right = in + DBL_MIN;}
+#endif
+    left = in;
+} // ibis::util::eq2range
+
+/// This function uses nextafterf if the macro HAVE_NEXTAFTER is defined,
+/// otherwise it uses FLT_EPSILON to compute outval as
+/// (float)(inval)*(1+FLT_EPSILON).
+template <typename Tin>
+inline void ibis::util::round_up(const Tin& inval, float& outval) {
+    // perform the initial rounding
+    outval = static_cast<float>(inval);
+    if (static_cast<Tin>(outval) < inval) {
+	// if the rounded value is less than the input value, compute the
+	// next value
+#if defined(HAVE_NEXTAFTER)
+	outval = nextafterf(static_cast<float>(inval), FLT_MAX);
+#else
+	float tmp = fabsf(outval) * FLT_EPSILON;
+	if (tmp > 0.0) outval += tmp;
+	else outval += FLT_MIN;
+#endif
+    }
+} // ibis::util::round_up
 
 /// Same as strdup() but uses 'new' instead of 'malloc'.  If s == 0, then
 /// it returns 0.

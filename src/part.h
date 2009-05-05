@@ -190,7 +190,8 @@ public:
 			   const ibis::qRange &cmp,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits);
-    /// Locate the records that satisfy the range condition.
+    /// Locate the records that satisfy the range condition.  E is an
+    /// elementary type.
     template <typename E>
 	static long doScan(const array_t<E> &varr,
 			   const ibis::qContinuousRange &cmp,
@@ -785,12 +786,13 @@ protected:
 
     /// Count the number rows satisfying the range expression.
     template <typename T>
-    long doCount(const ibis::qRange &cmp) const;
+	long doCount(const ibis::qRange &cmp) const;
 
-    /// Count the number rows satisfying the range expression.
+    /// Count the number rows satisfying the range expression.  T is an
+    /// elementary type.
     template <typename T>
-    long doCount(const array_t<T> &vals, const ibis::qRange &cmp,
-		 const ibis::bitvector &mask) const;
+	long doCount(const array_t<T> &vals, const ibis::qRange &cmp,
+		     const ibis::bitvector &mask) const;
 
     /// Count the number rows satisfying the range expression.
     template <typename T, typename F>

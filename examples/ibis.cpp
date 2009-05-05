@@ -311,6 +311,7 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 	return;
     }
     else {
+	uint32_t tot = 0;
 	ibis::util::logger lg(0);
 	lg.buffer() << "Column " << cname << " in Partition "
 		    << tbl.name() << ":\n";
@@ -329,7 +330,10 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 			    << "] (" << bounds[j+1] << ")\n";
 	    lg.buffer() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
 			<< counts[j] << "\n";
+	    tot += counts[j];
 	}
+	lg.buffer() << "  total count = " << tot << ", tbl.nRows() = "
+		    << tbl.nRows();
     }
     if (nb > 0 && (verify_rid || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;

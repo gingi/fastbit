@@ -331,8 +331,7 @@ protected:
     // use index only to come up with a upper bound and a lower bound
     void doEstimate(const qExpr* term, ibis::bitvector& low,
 		    ibis::bitvector& high) const;
-    /// Assume the mask contains information from the indexes already, read
-    /// the data partition to resolve the query.
+    /// Read the data partition to resolve the query conditions.
     int doScan(const qExpr* term, const ibis::bitvector& mask,
 	       ibis::bitvector& hits) const;
     /// Read the data partition to resolve the query expression.

@@ -80,7 +80,7 @@ public:
 
     /// Returns a pointer to the one and only file manager.
     static fileManager& instance();
-    /// Returns the value of simple counter.
+    /// Returns the value of a simple counter.  It is not thread-safe!
     time_t iBeat() const {return _hbeat++;}
     /// Returns the number of pages accessed by function read from stdlib.h.
     const double& pageCount() const {return page_count;}

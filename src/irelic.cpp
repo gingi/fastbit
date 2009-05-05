@@ -1526,8 +1526,14 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
     if (offsets.size() > bits.size()) {
 	uint32_t h0, h1;
 	locate(expr, h0, h1);
-	if (h1 > h0 && bits.size() > h1 )
-	    ret = offsets[h1] - offsets[h0];
+	if (h1 > h0 && offsets.size() > h1 ) {
+	    const int32_t tot = offsets.back() - offsets[0];
+	    const int32_t mid = offsets[h1] - offsets[h0];
+	    if ((tot >> 1) >= mid)
+		ret = mid;
+	    else
+		ret = tot - mid;
+	}
     }
     return ret;
 } // ibis::relic::estimateCost

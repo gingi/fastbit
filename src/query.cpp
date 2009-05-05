@@ -2955,7 +2955,7 @@ long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     return ierr;
 } // ibis::query::getExpandedHits
 
-// perform sequential scan
+/// Perform a sequential scan.
 int ibis::query::doScan(const ibis::qExpr* term,
 			ibis::bitvector& ht) const {
     int ierr = 0;
@@ -2978,7 +2978,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_AND: {
 	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), b1);
-	if (ierr >= 0)
+	if (ierr > 0)
 	    ierr = doScan(term->getRight(), b1, ht);
 	break;
     }
@@ -3005,7 +3005,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_MINUS: {
 	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ierr = doScan(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
@@ -3021,19 +3021,19 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), ht);
 	break;
     case ibis::qExpr::ANYANY:
-	mypart->matchAny
+	ierr = mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), ht);
 	break;
     case ibis::qExpr::STRING:
-	mypart->lookforString
+	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	if (ibis::gVerbose > 1)
 	    logMessage("doScan", "NOTE -- scanning the index for "
 		       "string comparisons");
 	break;
     case ibis::qExpr::COMPRANGE:
-	mypart->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
-		       ht);
+	ierr = mypart->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
+			      ht);
 	break;
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
@@ -3078,7 +3078,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     case ibis::qExpr::LOGICAL_AND: {
 	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), mask, b1);
-	if (ierr >= 0)
+	if (ierr > 0)
 	    ierr = doScan(term->getRight(), b1, ht);
 	break;
     }
@@ -3124,7 +3124,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     case ibis::qExpr::LOGICAL_MINUS: {
 	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ierr = doScan(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
@@ -3431,7 +3431,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_AND: {
 	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), b1);
-	if (ierr >= 0)
+	if (ierr > 0)
 	    ierr = doEvaluate(term->getRight(), b1, ht);
 	break;
     }
@@ -3458,7 +3458,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_MINUS: {
 	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
@@ -3595,7 +3595,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_AND: {
 	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), mask, b1);
-	if (ierr >= 0)
+	if (ierr > 0)
 	    ierr = doEvaluate(term->getRight(), b1, ht);
 	break;
     }
@@ -3629,7 +3629,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_MINUS: {
 	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;

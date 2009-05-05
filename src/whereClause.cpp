@@ -91,8 +91,10 @@ void ibis::whereClause::clear() throw () {
 /// This function also simplifies the arithmetic expression if
 /// ibis::term::preserveInputExpression is not set and augment the
 /// expressions with implied conditions.
+///
 /// @note The select clause is provided to make the aliases defined there
 /// available to the where clause.
+///
 /// @note Simplifying the arithmetic expressions typically reduces the time
 /// needed for evaluations, but may introduces a different set of round-off
 /// erros in the evaluation process than the original expression.

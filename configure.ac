@@ -33,7 +33,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h strings.h sys/time.h unistd.h values.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STDBOOL
+#AC_HEADER_STDBOOL
 #AC_C_CONST
 #AC_C_INLINE
 #AC_C_VOLATILE
@@ -106,6 +106,20 @@ if test "x$xopt" = "xyes" ; then
    	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
 
+AC_MSG_CHECKING([if math.h defines nextafter])
+AC_TRY_LINK([
+  #include <math.h>
+],[
+  double pi=3.141592654;
+  return (nextafter(pi, 4.0) > pi) ? 0 : -1;
+],[
+  AC_MSG_RESULT([yes])
+  AC_DEFINE(HAVE_NEXTAFTER, 1, [Define to 1 if nextafter is defined in math.h and is in libm.])
+],[
+  AC_MSG_RESULT([no])
+])
+
+# function to check for pthread library
 AC_DEFUN([Z_CHECK_PTHREAD], [
 AC_REQUIRE([AC_CANONICAL_HOST])
 AC_LANG_PUSH(C++)
@@ -302,6 +316,23 @@ AC_TRY_LINK([
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
+# make sure FlexLexer.h defines yywrap
+#AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
+AC_MSG_CHECKING([if the default FlexLexer.h defines yywrap])
+if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/whereLexer.cc) && test -s whereLexer.o; then
+AC_MSG_RESULT([yes])
+else
+if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -c src/whereLexer.cc) && test -s whereLexer.o; then
+AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
+CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"
+else
+AC_MSG_ERROR([no, must have FlexLexer.h to continue])
+fi
+fi
+rm -f whereLexer.o
+
+
+# check for java include directory
 AC_DEFUN([AC_JNI_INCLUDE_DIR],[
 
 JNI_INCLUDE_DIRS=""
@@ -341,7 +372,7 @@ do
   fi
 done
 ])
-#
+# does command java work
 AC_DEFUN([AC_PROG_JAVA_WORKS], [
 AC_CHECK_PROG(uudecode, uudecode$EXEEXT, yes)
 if test "x$uudecode" = xyes; then
@@ -424,6 +455,7 @@ rm -fr $JAVA_TEST $CLASS_TEST Test.uue
 AC_PROVIDE([$0])dnl
 ]
 )
+# JAVAC
 AC_DEFUN([AC_PROG_JAVAC_WORKS],[
 	AC_CACHE_CHECK([if $JAVAC works], ac_cv_prog_javac_works, [
 	JAVA_TEST=Test.java
@@ -523,21 +555,6 @@ else
 AC_MSG_RESULT([no])
 fi
 AC_SUBST(BUILD_JAVA_INTERFACE)
-
-# make sure FlexLexer.h defines yywrap
-#AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
-AC_MSG_CHECKING([if the default FlexLexer.h defines yywrap])
-if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/whereLexer.cc) && test -s whereLexer.o; then
-AC_MSG_RESULT([yes])
-else
-if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -c src/whereLexer.cc) && test -s whereLexer.o; then
-AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
-CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"
-else
-AC_MSG_ERROR([no, must have FlexLexer.h to continue])
-fi
-fi
-rm -f whereLexer.o
 
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)

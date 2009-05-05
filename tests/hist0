@@ -21,4 +21,4 @@ Histogram [19] under the condition of "c>80"
 [97, 98)	2
 [98, 99)	2
 [99, 100)	2
-
+  total count = 38, tbl.nRows() = 200

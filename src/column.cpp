@@ -282,6 +282,8 @@ ibis::column::~column() {
 	mutexLock mk(this, "~column");
 	writeLock wk(this, "~column");
 	delete idx;
+	LOGGER(ibis::gVerbose > 3 && !m_name.empty() && thePart != 0)
+	    << "clearing column " << thePart->name() << '.' << m_name;
     }
 
     pthread_mutex_destroy(&mutex);
@@ -4877,11 +4879,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		}
 	    }
 	    else {
-		ierr = 0;
+		ierr = low.cnt();
 	    }
 	}
 	else {
-	    ierr = 0;
+	    ierr = low.cnt();
 	}
 
 	LOGGER(ibis::gVerbose > 3)

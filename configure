@@ -17609,236 +17609,7 @@ done
 
 
 # Checks for typedefs, structures, and compiler characteristics.
-{ $as_echo "$as_me:$LINENO: checking for stdbool.h that conforms to C99" >&5
-$as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
-if test "${ac_cv_header_stdbool_h+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-#include <stdbool.h>
-#ifndef bool
- "error: bool is not defined"
-#endif
-#ifndef false
- "error: false is not defined"
-#endif
-#if false
- "error: false is not 0"
-#endif
-#ifndef true
- "error: true is not defined"
-#endif
-#if true != 1
- "error: true is not 1"
-#endif
-#ifndef __bool_true_false_are_defined
- "error: __bool_true_false_are_defined is not defined"
-#endif
-
-	struct s { _Bool s: 1; _Bool t; } s;
-
-	char a[true == 1 ? 1 : -1];
-	char b[false == 0 ? 1 : -1];
-	char c[__bool_true_false_are_defined == 1 ? 1 : -1];
-	char d[(bool) 0.5 == true ? 1 : -1];
-	bool e = &s;
-	char f[(_Bool) 0.0 == false ? 1 : -1];
-	char g[true];
-	char h[sizeof (_Bool)];
-	char i[sizeof s.t];
-	enum { j = false, k = true, l = false * true, m = true * 256 };
-	/* The following fails for
-	   HP aC++/ANSI C B3910B A.05.55 [Dec 04 2003]. */
-	_Bool n[m];
-	char o[sizeof n == m * sizeof n[0] ? 1 : -1];
-	char p[-1 - (_Bool) 0 < 0 && -1 - (bool) 0 < 0 ? 1 : -1];
-#	if defined __xlc__ || defined __GNUC__
-	 /* Catch a bug in IBM AIX xlc compiler version 6.0.0.0
-	    reported by James Lemley on 2005-10-05; see
-	    http://lists.gnu.org/archive/html/bug-coreutils/2005-10/msg00086.html
-	    This test is not quite right, since xlc is allowed to
-	    reject this program, as the initializer for xlcbug is
-	    not one of the forms that C requires support for.
-	    However, doing the test right would require a runtime
-	    test, and that would make cross-compilation harder.
-	    Let us hope that IBM fixes the xlc bug, and also adds
-	    support for this kind of constant expression.  In the
-	    meantime, this test will reject xlc, which is OK, since
-	    our stdbool.h substitute should suffice.  We also test
-	    this with GCC, where it should work, to detect more
-	    quickly whether someone messes up the test in the
-	    future.  */
-	 char digs[] = "0123456789";
-	 int xlcbug = 1 / (&(digs + 5)[-2 + (bool) 1] == &digs[4] ? 1 : -1);
-#	endif
-	/* Catch a bug in an HP-UX C compiler.  See
-	   http://gcc.gnu.org/ml/gcc-patches/2003-12/msg02303.html
-	   http://lists.gnu.org/archive/html/bug-coreutils/2005-11/msg00161.html
-	 */
-	_Bool q = true;
-	_Bool *pq = &q;
-
-int
-main ()
-{
-
-	*pq |= q;
-	*pq |= ! q;
-	/* Refer to every declared value, to avoid compiler optimizations.  */
-	return (!a + !b + !c + !d + !e + !f + !g + !h + !i + !!j + !k + !!l
-		+ !m + !n + !o + !p + !q + !pq);
-
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_cv_header_stdbool_h=yes
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_header_stdbool_h=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_stdbool_h" >&5
-$as_echo "$ac_cv_header_stdbool_h" >&6; }
-{ $as_echo "$as_me:$LINENO: checking for _Bool" >&5
-$as_echo_n "checking for _Bool... " >&6; }
-if test "${ac_cv_type__Bool+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_type__Bool=no
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-if (sizeof (_Bool))
-       return 0;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-if (sizeof ((_Bool)))
-	  return 0;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  :
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_type__Bool=yes
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_type__Bool" >&5
-$as_echo "$ac_cv_type__Bool" >&6; }
-if test "x$ac_cv_type__Bool" = x""yes; then
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE__BOOL 1
-_ACEOF
-
-
-fi
-
-if test $ac_cv_header_stdbool_h = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_STDBOOL_H 1
-_ACEOF
-
-fi
-
+#AC_HEADER_STDBOOL
 #AC_C_CONST
 #AC_C_INLINE
 #AC_C_VOLATILE
@@ -20225,6 +19996,73 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 
+{ $as_echo "$as_me:$LINENO: checking if math.h defines nextafter" >&5
+$as_echo_n "checking if math.h defines nextafter... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+  #include <math.h>
+
+int
+main ()
+{
+
+  double pi=3.141592654;
+  return (nextafter(pi, 4.0) > pi) ? 0 : -1;
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_cxx_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+
+  { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_NEXTAFTER 1
+_ACEOF
+
+
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+
+# function to check for pthread library
 
 #end AC_DEFUN Z_CHECK_PTHREAD
 
@@ -20794,9 +20632,42 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
+# make sure FlexLexer.h defines yywrap
+#AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
+{ $as_echo "$as_me:$LINENO: checking if the default FlexLexer.h defines yywrap" >&5
+$as_echo_n "checking if the default FlexLexer.h defines yywrap... " >&6; }
+if { ac_try='$CXX $CXXFLAGS -c src/whereLexer.cc'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } && test -s whereLexer.o; then
+{ $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+if { ac_try='$CXX $CXXFLAGS -I ${PWD}/win -c src/whereLexer.cc'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } && test -s whereLexer.o; then
+{ $as_echo "$as_me:$LINENO: result: no, use ${PWD}/win/FlexLexer.h" >&5
+$as_echo "no, use ${PWD}/win/FlexLexer.h" >&6; }
+CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"
+else
+{ { $as_echo "$as_me:$LINENO: error: no, must have FlexLexer.h to continue" >&5
+$as_echo "$as_me: error: no, must have FlexLexer.h to continue" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+fi
+rm -f whereLexer.o
 
-#
 
+# check for java include directory
+
+# does command java work
+
+# JAVAC
 
 
 
@@ -20894,7 +20765,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 20897 "configure" */
+/* #line 20768 "configure" */
 public class Test {
 }
 EOF
@@ -21029,7 +20900,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 21032: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 20903: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -21110,7 +20981,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 21113 "configure" */
+/* #line 20984 "configure" */
 public class Test {
 }
 EOF
@@ -21147,7 +21018,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 21150 "configure" */
+/* [#]line 21021 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -21410,36 +21281,6 @@ else
 $as_echo "no" >&6; }
 fi
 
-
-# make sure FlexLexer.h defines yywrap
-#AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
-{ $as_echo "$as_me:$LINENO: checking if the default FlexLexer.h defines yywrap" >&5
-$as_echo_n "checking if the default FlexLexer.h defines yywrap... " >&6; }
-if { ac_try='$CXX $CXXFLAGS -c src/whereLexer.cc'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } && test -s whereLexer.o; then
-{ $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-if { ac_try='$CXX $CXXFLAGS -I ${PWD}/win -c src/whereLexer.cc'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } && test -s whereLexer.o; then
-{ $as_echo "$as_me:$LINENO: result: no, use ${PWD}/win/FlexLexer.h" >&5
-$as_echo "no, use ${PWD}/win/FlexLexer.h" >&6; }
-CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"
-else
-{ { $as_echo "$as_me:$LINENO: error: no, must have FlexLexer.h to continue" >&5
-$as_echo "$as_me: error: no, must have FlexLexer.h to continue" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-fi
-rm -f whereLexer.o
 
 
 

@@ -20,7 +20,7 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
-#ifdef HAVE_CONFIG_H
+#ifndef WITHOUT_FASTBIT_CONFIG_H
 #include "config.h"
 #endif
 #if defined(HAVE_INTTYPES_H) || defined(sun) || defined(__APPLE__) || defined(__FreeBSD__)
