@@ -4271,8 +4271,8 @@ int main(int argc, char** argv) {
 		else if (zapping) {
 		    (*it)->purgeIndexFiles();
 		}
-		(*it)->buildIndex(build_index, indexingOption);
-		//(*it)->loadIndex(indexingOption);
+		(*it)->buildIndexes(indexingOption, build_index);
+		//(*it)->loadIndexes(indexingOption);
 	    }
 	    timer1.stop();
 	    LOGGER(ibis::gVerbose >= 0)
@@ -4309,7 +4309,7 @@ int main(int argc, char** argv) {
 		 it != tlist.end(); ++ it) {
 		// tell the partition to perform self tests
 		long nerr = (*it)->selfTest(testing);
-		(*it)->unloadIndex();
+		(*it)->unloadIndexes();
 
 		if (ibis::gVerbose >= 0) {
 		    ibis::util::logger lg(0);

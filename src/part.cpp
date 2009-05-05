@@ -13,6 +13,7 @@
 #include "qExpr.h"
 #include "category.h"
 #include "query.h"
+#include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 #include "iroster.h"
 #include "twister.h"	// ibis::MersenneTwister
@@ -167,7 +168,7 @@ extern "C" {
     } // ibis_part_startBackup
 
     /// The thread function to building indexes.
-    static void* ibis_part_build_index(void* arg) {
+    static void* ibis_part_build_indexes(void* arg) {
 	if (arg == 0) return reinterpret_cast<void*>(-1L);
 	ibis::part::indexBuilderPool &pool =
 	    *(reinterpret_cast<ibis::part::indexBuilderPool*>(arg));
@@ -188,21 +189,21 @@ extern "C" {
 	    return 0;
 	}
 	catch (const std::exception &e) {
-	    pool.tbl.logMessage("buildIndex", "loadIndex "
+	    pool.tbl.logMessage("buildIndexes", "loadIndex "
 				"received std::exception \"%s\"", e.what());
 	    return(reinterpret_cast<void*>(-31L));
 	}
 	catch (const char* s) {
-	    pool.tbl.logMessage("buildIndex", "loadIndex "
+	    pool.tbl.logMessage("buildIndexes", "loadIndex "
 				"received exception \"%s\"", s);
 	    return(reinterpret_cast<void*>(-32L));
 	}
 	catch (...) {
-	    pool.tbl.logMessage("buildIndex", "loadIndex received an "
+	    pool.tbl.logMessage("buildIndexes", "loadIndex received an "
 				"unexpected exception");
 	    return(reinterpret_cast<void*>(-30L));
 	}
-    } // ibis_part_build_index
+    } // ibis_part_build_indexes
 } // extern "C"
 
 /// The default prefix (NULL) tells it to use names in global namespace of
@@ -675,17 +676,21 @@ void ibis::part::init(const char* prefix) {
 	ibis::util::makeDir(subdir.c_str());
 	delete [] activeDir;
 	activeDir = ibis::util::strnewdup(subdir.c_str());
-	maxLength = readTDC(nEvents, columns, activeDir);
 	if (backupDir != 0) {
 	    subdir = backupDir;
+	    delete [] backupDir;
+	    backupDir = 0;
+	}
+	else {
+	    subdir.erase();
+	}
+	maxLength = readTDC(nEvents, columns, activeDir);
+	if (backupDir == 0) {
 	    subdir += DIRSEP;
 	    subdir += prefix;
 	    int ierr = ibis::util::makeDir(subdir.c_str());
-	    delete [] backupDir;
 	    if (ierr >= 0)
 		backupDir = ibis::util::strnewdup(subdir.c_str());
-	    else
-		backupDir = 0;
 	}
     }
     if (maxLength > 0) { // metadata file exists
@@ -3516,13 +3521,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<int64_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3546,13 +3546,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<uint64_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldUnsignedBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3576,13 +3571,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<int32_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3606,13 +3596,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<uint32_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldUnsignedBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3636,13 +3621,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<int16_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3666,13 +3646,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<uint16_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldUnsignedBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3696,13 +3671,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<char> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -3726,13 +3696,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    array_t<unsigned char> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
-		    const ibis::qContinuousRange &tmp =
+		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ibis::qContinuousRange
-			rng(tmp.leftBound(), tmp.leftOperator(),
-			    tmp.colName(), tmp.rightOperator(),
-			    tmp.rightBound());
-		    rng.foldUnsignedBoundaries();
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
@@ -5118,13 +5083,13 @@ void ibis::part::buildSorted(const char* cname) const {
 /// May use @c nthr threads to build indexes.  The argument opt is used to
 /// build new indexes if the corresponding columns do not already have
 /// indexes.
-/// @sa ibis::part::loadIndex
-void ibis::part::buildIndex(int nthr, const char* opt) {
-    writeLock lock(this, "buildIndex");
+/// @sa ibis::part::loadIndexes
+void ibis::part::buildIndexes(const char* opt, int nthr) {
+    writeLock lock(this, "buildIndexes");
     ibis::horometer timer;
     timer.start();
     if (ibis::gVerbose > 5)
-	logMessage("buildIndex",
+	logMessage("buildIndexes",
 		   "start to load indexes of this data partition");
     if (nthr > 1) {
 	-- nthr; // spawn one less thread than specified
@@ -5140,40 +5105,40 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 		&& ierr != ENOTSUP
 #endif
 		) {
-		logMessage("buildIndex", "pthread_attr_setscope is unable "
+		logMessage("buildIndexes", "pthread_attr_setscope is unable "
 			   "to set system scope (ierr = %d)", ierr);
 	    }
 #endif
 	    for (long i = 0; i < nthr; ++i) {
 		ierr = pthread_create(&(tid[i]), &tattr,
-				      ibis_part_build_index,
+				      ibis_part_build_indexes,
 				      (void*)&pool);
 		if (0 != ierr) {
-		    logWarning("buildIndex", "unable to start the thread # "
+		    logWarning("buildIndexes", "unable to start the thread # "
 			       "%ld to run ibis_part_build_index (%s)",
 			       i, strerror(ierr));
 		}
 	    }
 	}
 	else {
-	    logWarning("buildIndex", "pthread_attr_init failed with %d, "
+	    logWarning("buildIndexes", "pthread_attr_init failed with %d, "
 		       "using default attributes", ierr);
 	    for (long i = 0; i < nthr; ++i) {
-		ierr = pthread_create(&(tid[i]), 0, ibis_part_build_index,
+		ierr = pthread_create(&(tid[i]), 0, ibis_part_build_indexes,
 				      (void*)&pool);
 		if (0 != ierr) {
-		    logWarning("buildIndex", "unable to start the thread # "
+		    logWarning("buildIndexes", "unable to start the thread # "
 			       "%ld to run ibis_part_build_index (%s)",
 			       i, strerror(ierr));
 		}
 	    }
 	}
-	(void) ibis_part_build_index((void*)&pool);
+	(void) ibis_part_build_indexes((void*)&pool);
 	for (int i = 0; i < nthr; ++ i) {
 	    void *j;
 	    pthread_join(tid[i], &j);
 	    if (j != 0) {
-		logWarning("buildIndex", "thread # %i returned a "
+		logWarning("buildIndexes", "thread # %i returned a "
 			   "nonzero code %ld", i,
 			   reinterpret_cast<long int>(j));
 	    }
@@ -5194,7 +5159,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << name() << "]::buildIndex processed "
+	lg.buffer() << "ibis::part[" << name() << "]::buildIndexes processed "
 		    << nColumns() << " column" << (nColumns()>1 ? "s" : "")
 		    << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
 		    << " took " << timer.CPUTime() << " CPU seconds and "
@@ -5210,7 +5175,7 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 		writeTDC(nEvents, columns, backupDir);
 	}
     }
-} // ibis::part::buildIndex
+} // ibis::part::buildIndexes
 
 /// This function iterates through all columns and load the index
 /// associated with each one of them.  If an index for a column does not
@@ -5220,11 +5185,11 @@ void ibis::part::buildIndex(int nthr, const char* opt) {
 /// the data partition are used.  If the argument readall is greater than
 /// 0, the existing index will be read into memory in one-shot.  The pros
 /// and cons of doing so is explained in function ibis::index::create.
-void ibis::part::loadIndex(const char* opt, int readall) const {
+void ibis::part::loadIndexes(const char* opt, int readall) const {
     if (activeDir == 0) return;
 
     if (ibis::gVerbose > 5)
-	logMessage("loadIndex",
+	logMessage("loadIndexes",
 		   "start to load indexes of this data partition");
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
@@ -5255,7 +5220,7 @@ void ibis::part::loadIndex(const char* opt, int readall) const {
 	}
 
 	if (ibis::gVerbose > 1)
-	    logMessage("loadIndex", "attempt to write %lu bitmap(s) (%lu) "
+	    logMessage("loadIndexes", "attempt to write %lu bitmap(s) (%lu) "
 		       "to %s", static_cast<long unsigned>(cnt.size()),
 		       static_cast<long unsigned>(tot), expf);
 	FILE* fptr = fopen(expf, "w"); // write in ASCII text
@@ -5297,25 +5262,25 @@ void ibis::part::loadIndex(const char* opt, int readall) const {
 	    fclose(fptr);
 	}
 	else if (ibis::gVerbose > 0)
-	    logMessage("loadIndex", "failed to open file \"%s\" to write "
+	    logMessage("loadIndexes", "failed to open file \"%s\" to write "
 		       "the bitmaps ... %s", expf,
 		       (errno ? strerror(errno) : "no free stdio stream"));
 
 	for (i = 0; i < idx.size(); ++i)
 	    delete idx[i];
     }
-} // ibis::part::loadIndex
+} // ibis::part::loadIndexes
 
 // unload index
-void ibis::part::unloadIndex() const {
+void ibis::part::unloadIndexes() const {
     if (ibis::gVerbose > 5)
-	logMessage("unloadIndex",
+	logMessage("unloadIndexes",
 		   "start to unload indexes of this data partition");
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
 	(*it).second->unloadIndex();
     }
-} // ibis::part::unloadIndex
+} // ibis::part::unloadIndexes
 
 /// @note The indices will be rebuilt next time they are needed.  This
 /// function is useful after changing the index specification before
@@ -5817,7 +5782,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
 	mutexLock lock(this, "quickTest");
-	unloadIndex();
+	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
     if (ierr >= 0) {
@@ -5862,7 +5827,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	ierr = qtmp.evaluate();
 	if (ierr < 0) { // unload all indexes, try once more
 	    mutexLock lock(this, "quickTest");
-	    unloadIndex();
+	    unloadIndexes();
 	    ierr = qtmp.evaluate();
 	}
 	if (ierr >= 0) {
@@ -5905,7 +5870,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
 	mutexLock lock(this, "quickTest");
-	unloadIndex();
+	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
     if (ierr >= 0)
@@ -5940,7 +5905,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
 	mutexLock lock(this, "quickTest");
-	unloadIndex();
+	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
     if (ierr < 0)
@@ -6050,7 +6015,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
 	mutexLock lock(this, "quickTest");
-	unloadIndex();
+	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
     if (ierr >= 0) {
@@ -6152,13 +6117,14 @@ void ibis::part::testRangeOperators(const char* pref, const ibis::column* col,
 		<< ' ' << ops[i2] << ' ' << b1 + b2 * r1;
 	    ibis::qContinuousRange rng(b1, ops[i1], col->name(), ops[i2],
 				       b1 + b2 * r1);
-	    ibis::query cq(ibis::util::userName(), this, pref);
+	    //ibis::query cq(ibis::util::userName(), this, pref);
+	    ibis::countQuery cq(this);
 	    long ierr = cq.setWhereClause(&rng);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- part[" << (m_name ? m_name : "?")
 		    << "]::testRangeOperators failed to assign " << rng
-		    << " as a where clause to query " << cq.id();
+		    << " as a where clause to a count query";
 		++ (*nerrors);
 		continue;
 	    }
@@ -6227,7 +6193,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	int ierr = qtmp.evaluate();
 	if (ierr < 0) { // unload all indexes, try once more
 	    mutexLock lock(this, "queryTest");
-	    unloadIndex();
+	    unloadIndexes();
 	    ierr = qtmp.evaluate();
 	}
 	if (ierr >= 0) {
@@ -6293,7 +6259,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    ierr = qtmp.evaluate();
 	    if (ierr < 0) { // unload all indexes, try once more
 		mutexLock lock(this, "queryTest");
-		unloadIndex();
+		unloadIndexes();
 		ierr = qtmp.evaluate();
 	    }
 	    if (ierr >= 0) {
@@ -6308,7 +6274,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    ierr = qtmp.evaluate();
 	    if (ierr < 0) { // unload all indexes, try once more
 		mutexLock lock(this, "queryTest");
-		unloadIndex();
+		unloadIndexes();
 		ierr = qtmp.evaluate();
 	    }
 	    if (ierr >= 0) {
@@ -8163,16 +8129,22 @@ long ibis::part::doScan(const array_t<T> &vals,
 				 mask, hits);
 	    break;}
 	case ibis::qExpr::OP_EQ: {
-	    if (uncomp)
-		ierr = doCompare0(vals,
-				  std::binder2nd<std::equal_to<T> >
-				  (std::equal_to<T>(), rightBound),
-				  mask, hits);
-	    else
+	    if (rightBound == rng.rightBound()) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<T> >
+				      (std::equal_to<T>(), rightBound),
+				      mask, hits);
+		else
 		ierr = doCompare(vals,
 				 std::binder2nd<std::equal_to<T> >
 				 (std::equal_to<T>(), rightBound),
 				 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
 	    break;}
 	default: {
 	    hits.set(0, mask.size());

@@ -122,7 +122,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 
     t = _capi_tlist->find(dir);
     if (t->nRows() > 0 && t->nColumns() > 0) {
-	t->buildIndex(1, opt);
+	t->buildIndexes(opt);
     }
     else {
 	LOGGER(ibis::gVerbose > 0)

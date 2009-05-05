@@ -143,7 +143,7 @@ FASTBIT_EXPAND_ALL_TYPES
   UBYTE and USHORT are converted to UINT.  Similarly, the type ULONG is
   converted LONG and handled as LONG.  The first two convertions may
   only increase run time, but will not affect the correctness of the
-  program.  However, the last convertion may cause correctness issues if
+  program.  However, the last conversion may cause correctness issues if
   the unsigned 64-bit integers actually have the sign bit set to 1,
   i.e., > 8x2^63 ~ 8x10^18.
 
@@ -155,6 +155,16 @@ FASTBIT_SYNC_WRITE
   of data corruption in case of program crash, but it also makes the
   program waits for disk operations to complete.  The delay can be
   especially painful if there are numerous write operaitons.
+
+WITHOUT_FASTBIT_CONFIG_H
+
+  This macro should be defined if the system can not run the configure
+  script in the main directory.  The configure script produces the file
+  src/config.h that contains important compiler macros.  When this macro
+  is defined, the source code will not attempt to include src/config.h.
+  The macros defined in it will take one default values.  This option
+  has been mainly tested on MS Windows platform with VisualStudio.  A
+  user in this environment must specify this macro!
 
 
 ----------

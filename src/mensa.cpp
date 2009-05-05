@@ -282,8 +282,8 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 int ibis::mensa::buildIndexes(const char* opt) {
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it)->loadIndex(opt);
-	(*it)->unloadIndex();
+	(*it)->loadIndexes(opt);
+	(*it)->unloadIndexes();
     }
     return 0;
 } // ibis::mensa::buildIndexes

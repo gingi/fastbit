@@ -750,7 +750,7 @@ long ibis::part::append1(const char *dir) {
     {   // need an exclusive lock to allow file manager to close all
 	// open files
 	writeLock rw(this, "append");
-	unloadIndex();	// remove all indices
+	unloadIndexes();	// remove all indices
 	delete rids;	// remove the RID list
 	ibis::fileManager::instance().flushDir(activeDir);
 	columnList::iterator it;
@@ -885,7 +885,7 @@ long ibis::part::append2(const char *dir) {
 	// backupDir
 	writeLock rw(this, "append");
 	if (strcmp(dir, activeDir)) {
-	    unloadIndex();	// remove all indices
+	    unloadIndexes();	// remove all indices
 	    delete rids;	// remove the RID list
 	    ibis::fileManager::instance().flushDir(activeDir);
 	    columnList::iterator it;
@@ -967,7 +967,7 @@ long ibis::part::rollback() {
     try {
 	// process no more queries, clear RID list, close all open files
 	writeLock rw(this, "rollback");
-	unloadIndex();	// remove all indices
+	unloadIndexes();	// remove all indices
 	delete rids;	// remove the RID list
 	ibis::fileManager::instance().clear();
 
@@ -1464,7 +1464,7 @@ long ibis::part::purgeInactive() {
 	    writeTDC(amask.cnt(), columns, backupDir);
 
 	    writeLock rw(this, "append");
-	    unloadIndex();	// remove all indices
+	    unloadIndexes();	// remove all indices
 	    delete rids;	// remove the RID list
 	    rids = 0;
 	    ibis::fileManager::instance().flushDir(activeDir);

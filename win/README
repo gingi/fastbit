@@ -104,3 +104,10 @@ InterlockedExchangeAdd64 is not available, at run time, linking time or
 compile time, you might add /D "WINVER=0x0501" to the compiler options.
 The following web page has more information about WINVER
 <http://msdn.microsoft.com/en-us/library/aa383745(VS.85).aspx>
+
+May 5, 2009: Users may explicitly define the macro
+WITHOUT_FASTBIT_CONFIG_H to inform the compiler to not include
+../src/config.h.  On systems that could not run ../configure, the file
+../src/configure either does not existing or was created for another
+system.  In this case, one need to defined WITHOUT_FASTBIT_CONFIG_H if
+not using VisualStudio compilers.

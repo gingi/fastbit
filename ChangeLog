@@ -1,3 +1,17 @@
+2009-05-05 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/part.cpp: rename buildIndex, loadIndex, and
+	unloadIndex to buildIndexes, loadIndexes, and unloadIndexes
+	* INSTALL, win/README: add notes about the new macro
+	WITHOUT_FASTBIT_CONFIG_H
+	* src/const.h, src/capi.h: don't include config.h under
+	VisualStudio on Win32
+	* src/part.cpp: in part::init, try to preserve the backupDir read
+	from metadata file; in function doScan remove calls to
+	foldBoundaries and foldUnsignedBoundaries before calling the
+	template doScan; the case for rng.rightOperator() == OP_EQ  did
+	not check that the rounded boundary actually equal to the original
+	query boundary
+
 2009-05-04 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp, src/irelic.cpp, src/idirekte.cpp: in estimateCost
 	for qContinuousRange, take into account of the complement option
@@ -13,7 +27,8 @@
 	* src/capi.h, src/const.h, src/util.h: remove the macro
 	HAVE_CONFIG_H, add WITHOUT_FASTBIT_CONFIG_H.  On systems that can
 	not run the configure script, the user must define
-	WITHOUT_FASTBIT_CONFIG_H
+	WITHOUT_FASTBIT_CONFIG_H (to address a problem reported by Hank
+	Childs)
 
 2009-05-03 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: correct template doScan and doCount (that makes
@@ -58,7 +73,8 @@
 	* src/ibin.cpp:5745 ibis::bin::estimateCost mistakenly compares
 	cand1 against bits.size, more natural to use offsets.size();
 	change the version of locate called to get a more accurate
-	information about the query processing cost
+	information about the query processing cost (a problem that was
+	originally noticed by Prabhat and Allen Sanderson)
 
 2009-04-24 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp:1624 delete the line that changes ierr to 0 and -1

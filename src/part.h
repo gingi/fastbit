@@ -54,13 +54,13 @@ public:
     TABLE_STATE getStateNoLocking() const {return state;}
 
     /// Make sure indexes for all columns are available.
-    void buildIndex(int nthr=1, const char* opt=0);
+    void buildIndexes(const char* opt=0, int nthr=1);
     /// Build a sorted version of the specified column.
     void buildSorted(const char* colname) const;
     /// Load indexes of all columns.
-    void loadIndex(const char* opt=0, int readall=0) const;
+    void loadIndexes(const char* opt=0, int readall=0) const;
     /// Unload indexes of all columns.
-    void unloadIndex() const;
+    void unloadIndexes() const;
     /// Remove existing index files!
     void purgeIndexFiles() const;
 
@@ -1617,7 +1617,7 @@ inline int64_t ibis::part::evaluateJoin
 
 inline void ibis::part::cleaner::operator()() const {
     const uint32_t sz = ibis::fileManager::bytesInUse();
-    thePart->unloadIndex();
+    thePart->unloadIndexes();
     if (sz == ibis::fileManager::bytesInUse() &&
 	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
 	thePart->freeRIDs();

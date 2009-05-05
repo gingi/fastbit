@@ -68,7 +68,7 @@
 // common headers needed
 #include <errno.h>	// errno
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
-#ifndef WITHOUT_FASTBIT_CONFIG_H
+#if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
 #  include "config.h"	// existence of headers
 #  ifdef HAVE_STRING_H
 #    if !STDC_HEADERS && HAVE_MEMORY_H
