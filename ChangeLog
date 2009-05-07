@@ -1,3 +1,17 @@
+2009-05-06 John Wu <John.Wu at ACM.org>
+	* src/i*.cpp: remove (or comment out) calls to function write from
+	all versions of concrete implementations of ibis::index::append
+	* src/part.cpp: in verifyBackupDir, set backupDir to nil (0) if
+	makeDir fails
+	* src/ibin.cpp: handle the case where the existing index is not of
+	the currect size in ibis::bin::append, change all implementations
+	of ibis::index::append to check for the value of nrows against
+	nold
+	* configure.ac, src/config.h.in: use extra AC_OUTPUT_COMMANDS to
+	rename PACKAGE_VERSION and friends to FASTBIT_VERSION etc.  This
+	is to avoid possible conflict with other packages with the default
+	names (a problem reported by Prabhat)
+
 2009-05-05 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: rename buildIndex, loadIndex, and
 	unloadIndex to buildIndexes, loadIndexes, and unloadIndexes
@@ -11,6 +25,12 @@
 	template doScan; the case for rng.rightOperator() == OP_EQ  did
 	not check that the rounded boundary actually equal to the original
 	query boundary
+	* configure.ac:325 need to define WITHOUT_FASTBIT_CONFIG_H when
+	trying to compile wherelexer.cc
+	* src/idirekte.cpp: implement direkte::append
+	* src/ibin.cpp ...: in all concrete versions of
+	ibis::index::write, add calls to fileManager::flushFile after
+	failure to open the index file
 
 2009-05-04 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp, src/irelic.cpp, src/idirekte.cpp: in estimateCost
@@ -33,7 +53,7 @@
 2009-05-03 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: correct template doScan and doCount (that makes
 	use of std::binder1st and std::biner2nd) to make use of the new
-	function round_up, simplify their comparison by taking into
+	function round_up, simplify their comparisons by taking into
 	account of conditions that might contain each other; change the
 	answer to ill-formed range expressions to be 0; change
 	part::selfTest to pick a random column for testRangeOperators

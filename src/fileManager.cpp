@@ -363,7 +363,7 @@ void ibis::fileManager::flushFile(const char* name) {
 	else {
 	    LOGGER(ibis::gVerbose > 2)
 		<< "fileManager::flushFile -- can not remove \"" << (*it).first
-		<< "\" because it is in use";
+		<< "\" because it is in use (" << (*it).second->inUse() << ')';
 	}
     }
     else if (incore.end() != (it = incore.find(name))) {
@@ -377,7 +377,7 @@ void ibis::fileManager::flushFile(const char* name) {
 	else {
 	    LOGGER(ibis::gVerbose > 2)
 		<< "fileManager::flushFile -- can not remove \"" << (*it).first
-		<< "\" because it is in use";
+		<< "\" because it is in use (" << (*it).second->inUse() << ')';
 	}
     }
 } // ibis::fileManager::flushFile

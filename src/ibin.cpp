@@ -32,89 +32,6 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 	    read(f);
 
 	if (nobs == 0) {
-	    const char* spec = col->indexSpec();
-	    if (spec == 0 || *spec == 0) {
-		std::string idxnm(c->partition()->name());
-		idxnm += '.';
-		idxnm += c->name();
-		idxnm += ".index";
-		spec = ibis::gParameters()[idxnm.c_str()];
-	    }
-	    const bool reorder = (spec != 0 ? strstr(spec, "reorder") != 0 :
-				  false);
-
-	    if (spec != 0 &&
-		(strstr(spec, "precision=") || strstr(spec, "prec="))) {
-		// <binning precision=d /> or <binning prec=d />
-		ibis::bak2 tmp(c, f);
-		swap(tmp);
-
-		// append DBL_MAX as the bin boundary at the end
-		bounds.push_back(DBL_MAX);
-		// insert an empty bit vector at the beginning of the list
-		ibis::bitvector *tb = new ibis::bitvector;
-		tb->set(0, bits[0]->size());
-		bits.insert(bits.begin(), tb);
-		minval.insert(minval.begin(), DBL_MAX);
-		maxval.insert(maxval.begin(), -DBL_MAX);
-		// there is now one more bins than before
-		++ nobs;
-		if (reorder)
-		    binOrder(f);
-	    }
-	    else { // may read the data file to determine the bin boundaries
-		setBoundaries(f);
-		if (reorder) {
-		    switch (col->type()) { // binning with reordering
-		    case ibis::DOUBLE:
-			binningT<double>(f);
-			break;
-		    case ibis::FLOAT:
-			binningT<float>(f);
-			break;
-		    case ibis::ULONG:
-			binningT<uint64_t>(f);
-			break;
-		    case ibis::LONG:
-			binningT<int64_t>(f);
-			break;
-		    case ibis::UINT:
-			binningT<uint32_t>(f);
-			break;
-		    case ibis::INT:
-			binningT<int32_t>(f);
-			break;
-		    case ibis::USHORT:
-			binningT<uint16_t>(f);
-			break;
-		    case ibis::SHORT:
-			binningT<int16_t>(f);
-			break;
-		    case ibis::UBYTE:
-			binningT<unsigned char>(f);
-			break;
-		    case ibis::BYTE:
-			binningT<signed char>(f);
-			break;
-		    default:
-			ibis::util::logMessage
-			    ("Warning",
-			     "unable to binng column %s type %d",
-			     col->name(), (int)(col->type()));
-			throw ibis::bad_alloc("Unexpected data type for "
-					      "ibis::bin::bin");
-		    }
-		}
-		else {
-		    binning(f);
-		}
-		optionalUnpack(bits, col->indexSpec());
-
-		if (ibis::gVerbose > 4) {
-		    ibis::util::logger lg;
-		    print(lg.buffer());
-		}
-	    }
 	}
     }
     catch (...) {
@@ -2552,6 +2469,95 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
     }
 #endif
 } // ibis::bin::scanAndPartition
+
+/// This construction function is designed to handle the full spectrum of
+/// binning specifications.  It invokes ibis::bak2 to handle reduced
+/// precision binning.
+void ibis::bin::construct(const char* df) {
+    const char* spec = col->indexSpec();
+    if (spec == 0 || *spec == 0) {
+	std::string idxnm(col->partition()->name());
+	idxnm += '.';
+	idxnm += col->name();
+	idxnm += ".index";
+	spec = ibis::gParameters()[idxnm.c_str()];
+    }
+    const bool reorder = (spec != 0 ? strstr(spec, "reorder") != 0 :
+			  false);
+
+    if (spec != 0 &&
+	(strstr(spec, "precision=") || strstr(spec, "prec="))) {
+	// <binning precision=d /> or <binning prec=d />
+	ibis::bak2 tmp(col, df);
+	swap(tmp);
+
+	// append DBL_MAX as the bin boundary at the end
+	bounds.push_back(DBL_MAX);
+	// insert an empty bit vector at the beginning of the list
+	ibis::bitvector *tb = new ibis::bitvector;
+	tb->set(0, bits[0]->size());
+	bits.insert(bits.begin(), tb);
+	minval.insert(minval.begin(), DBL_MAX);
+	maxval.insert(maxval.begin(), -DBL_MAX);
+	// there is now one more bins than before
+	++ nobs;
+	if (reorder)
+	    binOrder(df);
+    }
+    else { // may read the data file to determine the bin boundaries
+	setBoundaries(df);
+	if (reorder) {
+	    switch (col->type()) { // binning with reordering
+	    case ibis::DOUBLE:
+		binningT<double>(df);
+		break;
+	    case ibis::FLOAT:
+		binningT<float>(df);
+		break;
+	    case ibis::ULONG:
+		binningT<uint64_t>(df);
+		break;
+	    case ibis::LONG:
+		binningT<int64_t>(df);
+		break;
+	    case ibis::UINT:
+		binningT<uint32_t>(df);
+		break;
+	    case ibis::INT:
+		binningT<int32_t>(df);
+		break;
+	    case ibis::USHORT:
+		binningT<uint16_t>(df);
+		break;
+	    case ibis::SHORT:
+		binningT<int16_t>(df);
+		break;
+	    case ibis::UBYTE:
+		binningT<unsigned char>(df);
+		break;
+	    case ibis::BYTE:
+		binningT<signed char>(df);
+		break;
+	    default:
+		ibis::util::logMessage
+		    ("Warning",
+		     "unable to binng column %s type %d",
+		     col->name(), (int)(col->type()));
+		throw ibis::bad_alloc("Unexpected data type for "
+				      "ibis::bin::bin");
+	    }
+	}
+	else {
+	    binning(df);
+	}
+	optionalUnpack(bits, col->indexSpec());
+
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    print(lg.buffer());
+	}
+    }
+} // ibis::bin::construct
 
 // explicit instantiations of templated functions
 template void ibis::bin::construct(const array_t<char>&);
@@ -5020,14 +5026,18 @@ int ibis::bin::write(const char* dt) const {
     array_t<int32_t> offs(nobs+1);
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	const char* mesg;
-	if (errno != 0)
-	    mesg = strerror(errno);
-	else
-	    mesg = "no free stdio stream";
-	col->logWarning("bin::write", "unable to open \"%s\" for "
-			"write ... %s", fnm.c_str(), mesg);
-	return -5;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    const char* mesg;
+	    if (errno != 0)
+		mesg = strerror(errno);
+	    else
+		mesg = "no free stdio stream";
+	    col->logWarning("bin::write", "unable to open \"%s\" for "
+			    "write ... %s", fnm.c_str(), mesg);
+	    return -5;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -5472,10 +5482,23 @@ long ibis::bin::append(const array_t<uint32_t>& ind) {
     return ind.size();
 } // ibis::bin::append
 
-// create index for the data in df and append the result to the index in dt
+/// Create index for the data in df and append the result to the index in dt.
 long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
     if (nnew == 0)
 	return 0;
+
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    if (nrows != nold) { // recreate the new index
+#ifdef APPEND_UPDATE_INDEXES
+	LOGGER(ibis::gVerbose > 3)
+	    << "bin::append to build a new index for " << col->name()
+	    << " using data in " << dt;
+	clear(); // clear the current content
+	construct(dt);
+#endif
+	return nnew;
+    }
 
     std::string fnm;
     indexFileName(df, fnm);
@@ -5578,14 +5601,13 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
 	samebounds = (bounds[i] == bin0->bounds[i]);
     if (! samebounds) { // bounds different can not reuse
 	delete bin0;
-#ifdef APPEND_UPDATE_INDICES
+#ifdef APPEND_UPDATE_INDEXES
 	if (ibis::gVerbose > 3)
 	    col->logMessage("bin::append", "the index in %s does not have "
 			    "the same bin boundaries as the one in %s, "
 			    "has to build new bins", dt, df);
 	clear();	// clear the current content
 	binning(dt);
-	write(dt);
 	return nnew;
 #else
 	if (ibis::gVerbose > 1)
@@ -5597,7 +5619,7 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
     else if ((bits[0]->cnt()+(bits.back())->cnt()+bin0->bits[0]->cnt()+
 	      (bin0->bits.back())->cnt()) > weight+weight) {
 	// the outside bins contain too may entries
-#ifdef APPEND_UPDATE_INDICES
+#ifdef APPEND_UPDATE_INDEXES
 	if (ibis::gVerbose > 3)
 	    col->logMessage("bin::append", "the combined index (from %s "
 			    "and %s) has too many entries in the two end "
@@ -5609,7 +5631,6 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
 	bin0->clear();
 
 	binning(dt, bnds); // rebuild indices using new boundaries
-	write(dt);
 	bin0->binning(df, bnds);
 	bin0->write(df);
 	delete bin0;
@@ -5629,7 +5650,6 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
 	ierr = append(*bin0);
 	delete bin0;
 	if (ierr == 0) {
-	    write(dt); // write out the new content
 	    return nnew;
 	}
 	else {

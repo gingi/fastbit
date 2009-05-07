@@ -25,7 +25,7 @@ full-check:
 
 clean: clean-recursive
 	-rm -f win/*.suo win/*.ncb win/fastbit.def win/*.obj win/*.lib win/*.exe win/*.exe.*
-	-rm -fr doc/html doc/latex win/Debug win/Release win/dll win/*.vcproj.*
+	-rm -fr autom4t4.cache doc/html doc/latex win/Debug win/Release win/dll win/*.vcproj.*
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES) Makefile win/*.suo win/*.ncb win/*.obj win/*.exe win/*.exe.*

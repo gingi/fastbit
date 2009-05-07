@@ -155,9 +155,13 @@ int ibis::egale::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("egale::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -3;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("egale::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -3;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -921,12 +925,14 @@ void ibis::egale::print(std::ostream& out) const {
 
 // create index based data in dt -- have to start from data directly
 long ibis::egale::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
     std::string ff, ft;
     dataFileName(df, ff);
     dataFileName(dt, ft);
     uint32_t sf = ibis::util::getFileSize(ff.c_str());
     uint32_t st = ibis::util::getFileSize(ft.c_str());
-    if (sf >= (st >> 1)) {
+    if (sf >= (st >> 1) || nold != nrows) {
 	clear();
 	construct(dt);	// rebuild the new index using the combined data
     }
@@ -957,9 +963,9 @@ long ibis::egale::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	}
     }
-    write(dt);		// write out the new content
+    //write(dt);		// write out the new content
     return nnew;
-} // ibis::egale::append()
+} // ibis::egale::append
 
 // add up bits[ib:ie-1] and to res -- must execute \sum_{i=ib}^{ie}, can not
 // use compelement

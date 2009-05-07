@@ -256,12 +256,14 @@ void ibis::entre::print(std::ostream& out) const {
 
 // create index based data in dt -- have to start from data directly
 long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
     std::string ff, ft;
     dataFileName(df, ff);
     dataFileName(dt, ft);
     uint32_t sf = ibis::util::getFileSize(ff.c_str());
     uint32_t st = ibis::util::getFileSize(ft.c_str());
-    if (sf >= (st >> 1)) {
+    if (sf >= (st >> 1) || nrows != nold) {
 	clear();
 	ibis::egale::construct(dt); // the new index on the combined data
 	convert();	// convert to interval code
@@ -293,7 +295,7 @@ long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	}
     }
-    (void) write(dt);		// write out the new content
+    //(void) write(dt);		// write out the new content
     return nnew;
 } // ibis::entre::append
 

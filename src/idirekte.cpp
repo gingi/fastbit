@@ -295,9 +295,13 @@ int ibis::direkte::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("direkte::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("direkte::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -901,9 +905,134 @@ double ibis::direkte::estimateCost(const ibis::qDiscreteRange& expr) const {
     return cost;
 } // ibis::direkte::estimateCost
 
-long ibis::direkte::append(const char*, const char*, uint32_t) {
-    col->logWarning("ERROR", "direkte::append not implemented yet");
-    return 0L;
+/// This implementation simply recreate a new index using the data in dt.
+long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
+    if (dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0) return -1L;    
+
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    long ierr;
+    if (nrows == nold) { // can make use of the existing index
+	std::string dfidx;
+	indexFileName(df, dfidx);
+	ibis::direkte* idxf = 0;
+	ibis::fileManager::storage* stdf = 0;
+	ierr = ibis::fileManager::instance().getFile(dfidx.c_str(), &stdf);
+	if (ierr == 0 && stdf != 0) {
+	    const char* header = stdf->begin();
+	    if (header[0] == '#' && header[1] == 'I' && header[2] == 'B' &&
+		header[3] == 'I' && header[4] == 'S' &&
+		header[5] == ibis::index::DIREKTE &&
+		header[6] == static_cast<char>(sizeof(int32_t)) &&
+		header[7] == static_cast<char>(0)) {
+		idxf = new ibis::direkte(col, stdf);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 5)
+		    << "direkte::append -- file " << dfidx
+		    << " has a unexpected header";
+		remove(dfidx.c_str());
+	    }
+	}
+	if (idxf != 0 && idxf->nrows == nnew) {
+	    if (nold == 0) {
+		nrows = idxf->nrows;
+		str = idxf->str; idxf->str = 0;
+		fname = 0;
+		offsets.swap(idxf->offsets);
+		bits.swap(idxf->bits);
+		delete idxf;
+		//ierr = write(dt);
+		return nnew;
+	    }
+
+	    activate(); // make sure all bitvectors are in memory
+	    if (bits.size() < idxf->bits.size()) {
+		bits.reserve(idxf->bits.size());
+	    }
+	    size_t j = 0;
+	    while (j < idxf->bits.size()) {
+		if (j >= bits.size()) {
+		    bits.push_back(new ibis::bitvector);
+		    bits[j]->set(0, nold);
+		}
+		if (idxf->bits[j] != 0) {
+		    *(bits[j]) += *(idxf->bits[j]);
+		}
+		else {
+		    bits[j]->adjustSize(nold, nold+nnew);
+		}
+		++ j;
+	    }
+	    while (j < bits.size()) {
+		if (bits[j] != 0)
+		    bits[j]->adjustSize(nold, nold+nnew);
+		++ j;
+	    }
+
+	    delete idxf;
+	    //ierr = write(dt);
+	    return nnew;
+	}
+    }
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "ibis::direkte::append to recreate the index with the data from "
+	<< dt;
+    clear();
+    std::string dfname;
+    dataFileName(dt, dfname);
+    if (col->type() == ibis::CATEGORY)
+	dfname += ".int";
+
+    switch (col->type()) {
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::direkte can only be used "
+	    "for columns with integer values (current column " << col->name()
+	    << ", type=" <<  ibis::TYPESTRING[(int)col->type()] << ")";
+	ierr = -2;
+	return ierr;}
+    case ibis::BYTE: {
+	ierr = construct<signed char>(dfname.c_str());
+	break;}
+    case ibis::UBYTE: {
+	ierr = construct<unsigned char>(dfname.c_str());
+	break;}
+    case ibis::SHORT: {
+	ierr = construct<int16_t>(dfname.c_str());
+	break;}
+    case ibis::USHORT: {
+	ierr = construct<uint16_t>(dfname.c_str());
+	break;}
+    case ibis::INT: {
+	ierr = construct<int32_t>(dfname.c_str());
+	break;}
+    case ibis::UINT:
+    case ibis::CATEGORY: {
+	ierr = construct<uint32_t>(dfname.c_str());
+	break;}
+    case ibis::LONG: {
+	ierr = construct<int64_t>(dfname.c_str());
+	break;}
+    case ibis::ULONG: {
+	ierr = construct<uint64_t>(dfname.c_str());
+	break;}
+    }
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::direkte::construct failed with error code "
+	    << ierr;
+    }
+    else {
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    print(lg.buffer());
+	}
+	//ierr = write(dt);
+	ierr = nnew;
+    }
+    return ierr;
 } // ibis::direkte::append
 
 double ibis::direkte::getSum() const {

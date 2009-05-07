@@ -312,9 +312,13 @@ int ibis::keywords::write(const char* dt) const {
 	activate();
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("keywords::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -1;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("keywords::write", "unable to open \"%s\"",
+			    fnm.c_str());
+	    return -1;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);

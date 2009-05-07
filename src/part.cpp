@@ -737,7 +737,7 @@ void ibis::part::init(const char* prefix) {
 	    if (verifyBackupDir() == 0) {
 		state = STABLE_STATE;
 	    }
-	    else {
+	    else if (backupDir != 0) {
 		makeBackupCopy();
 	    }
 	}
@@ -5188,13 +5188,13 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
 void ibis::part::loadIndexes(const char* opt, int readall) const {
     if (activeDir == 0) return;
 
-    if (ibis::gVerbose > 5)
-	logMessage("loadIndexes",
-		   "start to load indexes of this data partition");
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
 	(*it).second->loadIndex(opt, readall);
     }
+    if (ibis::gVerbose > 6)
+	logMessage("loadIndexes",
+		   "loaded all indexes of this data partition");
 
     const char* expf = ibis::gParameters()["exportBitmapAsCsr"];
     if (expf != 0 && *expf != 0) {
@@ -5273,13 +5273,13 @@ void ibis::part::loadIndexes(const char* opt, int readall) const {
 
 // unload index
 void ibis::part::unloadIndexes() const {
-    if (ibis::gVerbose > 5)
-	logMessage("unloadIndexes",
-		   "start to unload indexes of this data partition");
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
 	(*it).second->unloadIndex();
     }
+    if (ibis::gVerbose > 6)
+	logMessage("unloadIndexes",
+		   "unloaded all indexes of this data partition");
 } // ibis::part::unloadIndexes
 
 /// @note The indices will be rebuilt next time they are needed.  This
@@ -5479,7 +5479,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 		    (columns.size() > 2 ?
 		     columns.size() - (columns.size() >> 1) : columns.size());
 		unsigned nq = (63 & ibis::fileManager::instance().iBeat()) +
-		    10 * ibis::gVerbose;
+		    7 * ibis::gVerbose;
 		nq *= (nth + 1);
 		if (nEvents >= 104857600)
 		    nq >>= 1; // reduce number of queries for large partition
@@ -5862,7 +5862,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	    ++(*nerrors);
 	}
 	b2 = b1;
-	b1 = ibis::util::compactValue(0.8*lower+0.2*b1, 0.5*(lower + b1));
+	b1 = ibis::util::compactValue(0.875*lower+0.125*b1, 0.5*(lower + b1));
     }
 
     sprintf(clause, "%g <= %s < %g", lower, att->name(), b2);
@@ -9037,29 +9037,41 @@ void ibis::part::deriveBackupDirName() {
 // are the same
 long ibis::part::verifyBackupDir() {
     long ierr = 0;
-    if (activeDir == 0) return ierr;
-
-    if (backupDir == 0 || *backupDir == 0 || backupDir == activeDir ||
-	strcmp(activeDir, backupDir) == 0)
+    if (activeDir == 0 || backupDir == 0 || *backupDir == 0 ||
+	backupDir == activeDir || strcmp(activeDir, backupDir) == 0)
 	return ierr;
+
     try {
 	ierr = ibis::util::makeDir(backupDir);
-	if (ierr < 0) return ierr;
+	if (ierr < 0) {
+	    delete [] backupDir;
+	    backupDir = 0;
+	    return ierr;
+	}
     }
     catch (const std::exception &e) {
-	logError("ibis::part::verifyBackupDir",
-		 "unable to create backupDir \"%s\" -- %s",
-		 backupDir, e.what());
+	logWarning("ibis::part::verifyBackupDir",
+		   "unable to create backupDir \"%s\" -- %s",
+		   backupDir, e.what());
+	delete [] backupDir;
+	backupDir = 0;
+	return -12;
     }
     catch (const char* s) {
-	logError("ibis::part::verifyBackupDir",
-		 "unable to create backupDir \"%s\" -- %s",
-		 backupDir, s);
+	logWarning("ibis::part::verifyBackupDir",
+		   "unable to create backupDir \"%s\" -- %s",
+		   backupDir, s);
+	delete [] backupDir;
+	backupDir = 0;
+	return -13;
     }
     catch (...) {
-	logError("ibis::part::verifyBackupDir",
-		 "unable to create backupDir \"%s\" -- unknow error",
-		 backupDir);
+	logWarning("ibis::part::verifyBackupDir",
+		   "unable to create backupDir \"%s\" -- unknow error",
+		   backupDir);
+	delete [] backupDir;
+	backupDir = 0;
+	return -14;
     }
 
     Stat_T st;

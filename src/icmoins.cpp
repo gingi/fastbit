@@ -104,9 +104,13 @@ int ibis::moins::write(const char* dt) const {
 
     int fdes = UnixOpen(name.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("moins::write", "unable to open \"%s\" for write",
-			name.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(name.c_str());
+	fdes = UnixOpen(name.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("moins::write", "unable to open \"%s\" for write",
+			    name.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -262,12 +266,14 @@ void ibis::moins::print(std::ostream& out) const {
 
 // create index based data in dt -- have to start from data directly
 long ibis::moins::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
     std::string ff, ft;
     dataFileName(df, ff);
     dataFileName(dt, ft);
     uint32_t sf = ibis::util::getFileSize(ff.c_str());
     uint32_t st = ibis::util::getFileSize(ft.c_str());
-    if (sf >= (st >> 1)) {
+    if (sf >= (st >> 1) || nold != nrows) {
 	clear();
 	ibis::egale::construct(dt); // the new index on the combined data
 	convert();	// convert to range code
@@ -299,7 +305,7 @@ long ibis::moins::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	}
     }
-    write(dt);		// write out the new content
+    //write(dt);		// write out the new content
     return nnew;
 } // ibis::moins::append
 

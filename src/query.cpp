@@ -2390,7 +2390,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 
     ibis::util::logger lg;
     lg.buffer() << "Warning -- query[" << myID << "]::" << event
-		<< " -- " << fmt << " ..."
+		<< " -- " << fmt << " ...";
     if (errno != 0) {
 	if (errno != ENOENT)
 	    lg.buffer() << " ... " << strerror(errno);

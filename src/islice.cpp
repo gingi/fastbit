@@ -84,9 +84,13 @@ int ibis::slice::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("slice::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("slice::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -1042,7 +1046,7 @@ void ibis::slice::print(std::ostream& out) const {
 long ibis::slice::append(const char* dt, const char* df, uint32_t nnew) {
     clear();		// clear the current content
     construct2(dt);	// generate the new version of the index
-    write(dt);		// write out the new content
+    //write(dt);		// write out the new content
     return nnew;
 } // ibis::slice::append
 

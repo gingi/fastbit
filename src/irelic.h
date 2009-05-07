@@ -132,11 +132,11 @@ protected:
     /// intended to be element types supported in column.h.
     template <typename E>
     void construct(const array_t<E>& arr);
+    /// Construct a new index in memory.
+    void construct(const char* f = 0);
 
 private:
     // private member functions
-    void construct(const char* f = 0);
-
     int64_t equiJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     ibis::bitvector64& hits) const;
     int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,

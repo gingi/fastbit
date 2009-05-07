@@ -956,9 +956,13 @@ int ibis::ambit::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("ambit::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("ambit::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -1675,9 +1679,22 @@ void ibis::ambit::print(std::ostream& out, const uint32_t tot,
 } // ibis::ambit::print
 
 long ibis::ambit::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    if (nrows != nold) { // recreate the new index
+#ifdef APPEND_UPDATE_INDEXES
+	LOGGER(ibis::gVerbose > 3)
+	    << "ambit::append to build a new index for " << col->name()
+	    << " using data in " << dt;
+	clear(); // clear the current content
+	array_t<double> tmp;
+	construct(dt, tmp);
+#endif
+	return nnew;
+    }
+
     std::string fnm;
     indexFileName(df, fnm);
-
     ibis::ambit* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
@@ -1706,7 +1723,7 @@ long ibis::ambit::append(const char* dt, const char* df, uint32_t nnew) {
     ierr = append(*bin0);
     delete bin0;
     if (ierr == 0) {
-	write(dt); // write out the new content
+	//write(dt); // write out the new content
 	return nnew;
     }
     else {

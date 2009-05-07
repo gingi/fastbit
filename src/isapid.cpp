@@ -92,6 +92,8 @@ int ibis::sapid::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
 	col->logWarning("sapid::write", "unable to open \"%s\" for write",
 			fnm.c_str());
 	return -2;
@@ -912,7 +914,7 @@ long ibis::sapid::append(const char* dt, const char* df, uint32_t nnew) {
     const uint32_t nb = bases.size();
     clear();		// clear the current content
     construct2(dt, nb); // build a new index by scanning data twice
-    write(dt);		// write out the new content
+    //write(dt);		// write out the new content
     return nnew;
 } // ibis::sapid::append
 

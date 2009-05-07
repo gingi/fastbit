@@ -5597,7 +5597,7 @@ long ibis::column::append(const char* dt, const char* df,
 				   ierr, file);
 		}
 	    }
-#ifdef APPEND_UPDATE_INDICES
+#ifdef APPEND_UPDATE_INDEXES
 	    else { // directly create the new indices
 		ind = ibis::index::create(this, dt);
 		if (ind != 0 && ibis::gVerbose > 6)
@@ -5623,7 +5623,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    }
 #endif
 	}
-#ifdef APPEND_UPDATE_INDICES
+#ifdef APPEND_UPDATE_INDEXES
 	else { // directly create the indices
 	    ind = ibis::index::create(this, dt);
 	    if (ind != 0 && ibis::gVerbose > 6)
@@ -5642,7 +5642,7 @@ long ibis::column::append(const char* dt, const char* df,
 	}
 #endif
     }
-#ifdef APPEND_UPDATE_INDICES
+#ifdef APPEND_UPDATE_INDEXES
     else { // dt and df contains the same data
 	ind = ibis::index::create(this, dt);
 	if (ind) {

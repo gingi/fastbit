@@ -114,7 +114,8 @@ long ibis::zona::append(const char* dt, const char* df, uint32_t nnew) {
     if (ret <= 0 || static_cast<uint32_t>(ret) != nnew)
 	return ret;
 
-    coarsen();
+    if (nrows == col->partition()->nRows())
+	coarsen();
     return ret;
 }
 
@@ -817,9 +818,13 @@ int ibis::zona::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("zona::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("zona::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);

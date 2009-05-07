@@ -126,7 +126,6 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-POW_LIB = @POW_LIB@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 RANLIB = @RANLIB@
 SED = @SED@
@@ -544,14 +543,14 @@ sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 # a test of append operations, 10 copies of data in test0 and test1
 append-test: $(TESTDIR)/append.log
 	@echo
-	@if [ `fgrep ' 0 error' $(TESTDIR)/append.log | fgrep appendTest | wc -l` -lt 20 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed append tests.; fi
+	@if [ `fgrep ' committing 100' $(TESTDIR)/append.log | fgrep '0/test' | wc -l` -lt 20 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed append tests.; fi
 $(TESTDIR)/append.log:
 	$(MAKE) do-small-append
 # make 1024 copies of the results of append-test
 large-append-test: do-large-append
 	rm -rf $(TESTDIR)/at0 $(TESTDIR)/at1
 	@echo
-	@if [ `fgrep ' 0 error' $(TESTDIR)/append.log | fgrep appendTest | wc -l` -lt 40 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed large append tests.; fi
+	@if [ `fgrep ' committing 512000' $(TESTDIR)/append.log | wc -l` -lt 2 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed large append tests.; fi
 	@echo
 #
 large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem.rc

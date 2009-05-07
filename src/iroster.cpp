@@ -111,10 +111,14 @@ int ibis::roster::write(const char* df) const {
 
     FILE* fptr = fopen(fnm.c_str(), "wb");
     if (fptr == 0) {
-	col->logWarning("roster::write", "unable to open \"%s\" for write "
-			"... %s", fnm.c_str(), (errno ? strerror(errno) :
-						"no free stdio stream"));
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fptr = fopen(fnm.c_str(), "wb");
+	if (fptr == 0) {
+	    col->logWarning("roster::write", "unable to open \"%s\" for write "
+			    "... %s", fnm.c_str(), (errno ? strerror(errno) :
+						    "no free stdio stream"));
+	    return -2;
+	}
     }
 
     ierr = fwrite(reinterpret_cast<const void*>(ind.begin()),

@@ -81,9 +81,13 @@ int ibis::sbiad::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("sbiad::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("sbiad::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -983,7 +987,7 @@ long ibis::sbiad::append(const char* dt, const char* df, uint32_t nnew) {
     const uint32_t nb = bases.size();
     clear();		// clear the current content
     construct2(dt, nb); // scan data twice to build the new index
-    write(dt);		// write out the new content
+    //write(dt);		// write out the new content
     return nnew;
 } // ibis::sbiad::append
 

@@ -134,9 +134,13 @@ int ibis::mesa::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("mesa::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("mesa::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -232,6 +236,53 @@ int ibis::mesa::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET);
     return 0;
 } // ibis::mesa::write
+
+/// This function first construct equality bins then convert to the
+/// interval encoding.
+void ibis::mesa::construct(const char* df) {
+    ibis::bin::construct(df); // initial binning
+
+    // b2 is the temporary storage for the bitvectors of ibis::bin object
+    std::vector<ibis::bitvector*> b2(nobs);
+    for (uint32_t i=0; i<nobs; ++i) {// copy the pointers
+	b2[i] = bits[i];
+	bits[i] = 0;
+    }
+    try {
+	uint32_t n2 = (nobs + 1) / 2;
+	bits[0] = new ibis::bitvector;
+	sumBits(b2, 0, n2, *(bits[0]));
+	for (uint32_t i=1; i + n2 <= nobs; ++i) {
+	    bits[i] = new ibis::bitvector();
+	    bits[i]->copy(*bits[i-1]);
+	    *(bits[i]) -= *(b2[i-1]);
+	    *(bits[i]) |= *(b2[i+n2-1]);
+	}
+	for (uint32_t i = 0; i < nobs; ++ i) { // done with b2
+	    delete b2[i];
+	    b2[i] = 0; // change it to nil to avoid being deleted again
+	}
+
+	for (uint32_t i = 0; i+n2 <= nobs; ++i)
+	    bits[i]->decompress();
+	optionalUnpack(bits, col->indexSpec());
+
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    print(lg.buffer());
+	}
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::column[" << col->name()
+	    << "]::mesa::ctor encountered an exception, cleaning up ...";
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    delete b2[i];
+	}
+	clear();
+	throw;
+    }
+} // ibis::mesa::construct
 
 void ibis::mesa::binBoundaries(std::vector<double>& ret) const {
     ret.resize(nobs+1);
@@ -371,9 +422,18 @@ void ibis::mesa::print(std::ostream& out) const {
 } // ibis::mesa::print
 
 long ibis::mesa::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    if (nold != nrows) {
+#ifdef APPEND_UPDATE_INDEXES
+	clear();
+	construct(dt);
+#endif
+	return nnew;
+    }
+
     std::string fnm;
     indexFileName(df, fnm);
-
     ibis::mesa* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
@@ -402,7 +462,7 @@ long ibis::mesa::append(const char* dt, const char* df, uint32_t nnew) {
 	ierr = append(*bin0);
 	delete bin0;
 	if (ierr == 0) {
-	    write(dt); // write out the new content
+	    //write(dt); // write out the new content
 	    return nnew;
 	}
 	else {

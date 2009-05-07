@@ -226,9 +226,13 @@ int ibis::pack::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("pack::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("pack::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -759,9 +763,14 @@ void ibis::pack::print(std::ostream& out) const {
 } // ibis::pack::print
 
 long ibis::pack::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    if (nrows != nold) { // don't do anything
+	return 0;
+    }
+
     std::string fnm = df;
     indexFileName(df, fnm);
-
     ibis::pack* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
@@ -789,7 +798,7 @@ long ibis::pack::append(const char* dt, const char* df, uint32_t nnew) {
     ierr = append(*bin0);
     delete bin0;
     if (ierr == 0) {
-	write(dt); // write out the new content
+	//write(dt); // write out the new content
 	return nnew;
     }
     else {

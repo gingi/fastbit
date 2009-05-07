@@ -452,9 +452,13 @@ int ibis::range::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("range::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("range::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -539,6 +543,48 @@ int ibis::range::write(int fdes) const {
     ierr = UnixSeek(fdes, offs[nobs], SEEK_SET);
     return 0;
 } // ibis::range::write
+
+void ibis::range::construct(const char *df) {
+    ibis::bin::construct(df);
+    if (nobs < 2) {
+	clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "range::construct(" << df << ") column " << col->name()
+	    << " has too non-trivial bins to build a range-encoded index";
+	return;
+    }
+
+    try {
+	// convert from bin to range
+	-- nobs;
+	max1 = maxval[nobs];
+	min1 = minval[nobs];
+	bounds.resize(nobs);
+	maxval.resize(nobs);
+	minval.resize(nobs);
+	for (uint32_t i = 1; i < nobs; ++i)
+	    *(bits[i]) |= *(bits[i-1]);
+	delete bits[nobs];
+	bits.resize(nobs);
+
+	// make sure all bit vectors are the same size
+	for (uint32_t i = 0; i < nobs; ++i)
+	    bits[i]->compress();
+	optionalUnpack(bits, col->indexSpec());
+
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    print(lg.buffer());
+	}
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning - ibis::column[" << col->name()
+	    << "]::range::ctor encountered an exception, cleaning up ...";
+	clear();
+	throw;
+    }
+} // ibis::range::construct
 
 // generate a new range index -- the caller may specify an array of doubles
 // as the boundaries of the bins
@@ -927,9 +973,21 @@ void ibis::range::print(std::ostream& out, const uint32_t tot,
 } // ibis::range::print
 
 long ibis::range::append(const char* dt, const char* df, uint32_t nnew) {
+    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+			   col->partition()->nRows()-nnew : nrows);
+    if (nrows != nold) { // recreate the new index
+#ifdef APPEND_UPDATE_INDEXES
+	LOGGER(ibis::gVerbose > 3)
+	    << "range::append to build a new index for " << col->name()
+	    << " using data in " << dt;
+	clear(); // clear the current content
+	construct(dt);
+#endif
+	return nnew;
+    }
+
     std::string fnm;
     indexFileName(df, fnm);
-
     ibis::range* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
@@ -958,7 +1016,7 @@ long ibis::range::append(const char* dt, const char* df, uint32_t nnew) {
 	ierr = append(*bin0);
 	delete bin0;
 	if (ierr == 0) {
-	    write(dt); // write out the new content
+	    //write(dt); // write out the new content
 	    return nnew;
 	}
 	else {

@@ -469,9 +469,13 @@ int ibis::bak::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("bak::write", "unable to open \"%s\" for write",
-			fnm.c_str());
-	return -2;
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("bak::write", "unable to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
@@ -644,7 +648,7 @@ long ibis::bak::append(const char* dt, const char* df, uint32_t nnew) {
     mapValues(dt, bmap);
     construct(bmap);
     optionalUnpack(bits, col->indexSpec());
-    write(dt); // record the new index
+    //write(dt); // record the new index
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;

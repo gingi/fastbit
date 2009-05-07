@@ -272,6 +272,11 @@ namespace ibis {
 	    gParameters().read(rcfile);
 	if (mesgfile != 0 && *mesgfile != 0)
 	    (void)ibis::util::setLogFileName(mesgfile);
+	LOGGER(ibis::gVerbose > 0)
+	    << "ibis::init completed initialization of " << FASTBIT_STRING
+	    << " with ibis::gVerbose = "
+	    << ibis::gVerbose << ", log messages will be printed to "
+	    << (mesgfile != 0 ? mesgfile : "standard output");
     }
 }
 #endif // IBIS_H

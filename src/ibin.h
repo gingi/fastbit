@@ -175,10 +175,12 @@ protected:
     array_t<double> maxval;	///< The maximal values in each bin.
     array_t<double> minval;	///< The minimal values in each bin.
 
-    // a constructor to accommodate multicomponent encodings
+    /// A constructor to accommodate multicomponent encodings.
     bin(const ibis::column* c, const uint32_t nbits,
 	ibis::fileManager::storage* st, uint32_t offset = 8);
 
+    /// Construct a binned bitmap index.
+    void construct(const char*);
     /// Generate bins according to the specified boundaries.
     void binning(const char* f, const std::vector<double>& bd);
     void binning(const char* f, const array_t<double>& bd);
@@ -222,38 +224,43 @@ protected:
     template <typename E>
     void mapGranules(const array_t<E>&, granuleMap& gmap) const;
     void printGranules(std::ostream& out, const granuleMap& gmap) const;
-    // Convert the granule map into binned index.  Destroy the content of
-    // the granuleMap.
+    /// Convert the granule map into binned index.  Destroy the content of
+    /// the granuleMap.
     void convertGranules(granuleMap& gmap);
 
-    // read a file containing a list of floating-point numbers
+    /// Read a file containing a list of floating-point numbers.
     void readBinBoundaries(const char* name, uint32_t nb);
-    // partition the range based on the (approximate) histogram of the data
+    /// Partition the range based on the (approximate) histogram of the data
     void scanAndPartition(const char*, unsigned, uint32_t nbins=0);
-    // the function used by setBoudaries() to actually generate the bounds
+    /// The function used by setBoudaries() to actually generate the bounds
     void addBounds(double lbd, double rbd, uint32_t nbins, uint32_t eqw);
-    // parse the index specs to determine eqw and nbins
+    /// Parse the index specs to determine eqw and nbins.
     uint32_t parseNbins() const;
+    /// Parse the specification about scaling.
     unsigned parseScale() const;
-    // parse the index spec to extract precision
+    /// Parse the index spec to extract precision.
     unsigned parsePrec() const;
 
-    // partition the bitmaps into groups of takes about the same amount of
-    // storage.
+    /// Partition the bitmaps into groups of takes about the same amount of
+    /// storage.
     void divideBitmaps(const std::vector<ibis::bitvector*>& bms,
 		       std::vector<unsigned>& parts) const;
 
-    // compute the sum of values from the information in the index
+    /// Compute the sum of values from the information in the index.
     virtual double computeSum() const;
-    // some common functions that work on the bitvectors
-    virtual void adjustLength(uint32_t nrows);    // fill with zeros
-    virtual uint32_t locate(const double& val) const; // bin containing val
+    /// Fill the bitmaps to the specified size.
+    virtual void adjustLength(uint32_t nrows);
+    /// Find the bin containing val.
+    virtual uint32_t locate(const double& val) const;
+    /// Find the outer boundaries of the range expression.
     virtual void locate(const ibis::qContinuousRange& expr,
 			uint32_t& cand0, uint32_t& cand1) const;
+    /// Find the bins related to the range expression.
     virtual void locate(const ibis::qContinuousRange& expr,
 			uint32_t& cand0, uint32_t& cand1,
 			uint32_t& hit0, uint32_t& hit1) const;
-    void swap(bin& rhs) { // swap the content of the index
+    /// Swap the content of the index.
+    void swap(bin& rhs) {
 	const ibis::column* c = col;
 	col = rhs.col;
 	rhs.col = c;
@@ -469,10 +476,13 @@ protected:
 			uint32_t& cand0, uint32_t& cand1,
 			uint32_t& hit0, uint32_t& hit1) const;
     virtual double computeSum() const;
+    /// Construct a new index.
+    void construct(const char*);
+    /// Construct a new index with the specified bin boundaries.
+    void construct(const char* f, const array_t<double>& bd);
 
 private:
     // private member functions
-    void construct(const char* f, const array_t<double>& bd);
     int write(int fptr) const; // write to the given stream
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
 	       const double& rbound) const;
@@ -521,6 +531,8 @@ public:
 
 protected:
     virtual double computeSum() const;
+    /// Construct a new index.
+    void construct(const char*);
 
 private:
     // private member functions
@@ -576,6 +588,8 @@ public:
 protected:
     virtual double computeSum() const;
     virtual void clear();
+    /// Construct a new index using the given bin boundaries.
+    void construct(const char* f, const array_t<double>& bd);
 
 private:
     // min and max of range nobs (the one that is not explicitly recorded)
@@ -587,7 +601,6 @@ private:
     int read(int fdes, uint32_t offset, const char *fn);
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
 	      const double& rbound) const;
-    void construct(const char* f, const array_t<double>& bd);
 
     ambit(const ambit&);
     const ambit& operator=(const ambit&);

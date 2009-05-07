@@ -3599,7 +3599,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
     }
     const long napp = ierr;
     if (tbl->getState() != ibis::part::STABLE_STATE) {
-	if (ibis::gVerbose >= 0) {// self test after append
+	if (ibis::gVerbose > 2 || testing > 0) {// self test after append
 	    int nth = static_cast<int>(ibis::gVerbose < 20
 				       ? ibis::gVerbose * 0.25
 				       : 3+log((double)ibis::gVerbose));
@@ -3648,7 +3648,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	}
 
 	// self test after commit,
-	if (ibis::gVerbose > 0) {
+	if (ibis::gVerbose > 1 && testing > 0) {
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose >= 1)
 		<< "doAppend(" << dir << "): selfTest on partition \""
@@ -3659,7 +3659,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	}
     }
     else {
-	if (ibis::gVerbose > 0) {
+	if (ibis::gVerbose > 1 && testing > 0) {
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose >= 1)
 		<< "doAppend(" << dir << "): selfTest on partition \""
