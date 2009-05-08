@@ -85,7 +85,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	ibis::whereClause tmp(str);
 	if (tmp.getExpr() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- ibis::countQuery::setWhereClause failed to "
+		<< "Warning -- countQuery::setWhereClause failed to "
 		"parse \""
 		<< str << "\"";
 	    return -5;
@@ -94,7 +94,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	    int ierr = tmp.verify(*mypart, m_sel);
 	    if (ierr != 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- ibis::countQuery::setWhereClause detected "
+		    << "Warning -- countQuery::setWhereClause detected "
 		    "error " << ierr << " in the WHERE clause \""
 		    << str << "\"";
 		return -6;
@@ -103,7 +103,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(0);
-	    lg.buffer() << "ibis::countQuery::setWhereClause -- ";
+	    lg.buffer() << "countQuery::setWhereClause -- ";
 	    if (conds.getString() != 0)
 		lg.buffer() << "replace the where clause \""
 			    << conds << "\" with \"" << tmp << "\"";
@@ -125,7 +125,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::countQuery::setWhereClause failed to parse \""
+	    << "Warning -- countQuery::setWhereClause failed to parse \""
 	    << str << "\"";
 	return -5;
     }
@@ -184,7 +184,7 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
 int ibis::countQuery::estimate() {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
-    ibis::util::timer mytime("ibis::countQuery::estimate", 2);
+    ibis::util::timer mytime("countQuery::estimate", 2);
 #ifndef DONOT_REORDER_EXPRESSION
     if (conds.getExpr() != 0 && false == conds->directEval()) {
 	ibis::query::weight wt(mypart);
@@ -204,7 +204,7 @@ int ibis::countQuery::estimate() {
 	    cand->adjustSize(mypart->nRows(), mypart->nRows());
 	if (hits->size() != mypart->nRows()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "ibis::countQuery::estimate -- hits.size(" << hits->size()
+		<< "countQuery::estimate -- hits.size(" << hits->size()
 		<< ") differs from expected value(" << mypart->nRows() << ")";
 	    hits->setBit(mypart->nRows()-1, 0);
 	}
@@ -227,7 +227,7 @@ int ibis::countQuery::estimate() {
 
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg(1);
-	lg.buffer() << "ibis::countQuery::estimate -- number of hits ";
+	lg.buffer() << "countQuery::estimate -- number of hits ";
 	if (hits != 0) {
 	    if (cand != 0)
 		lg.buffer() << "in [" << hits->cnt() << ", "
@@ -264,7 +264,7 @@ int ibis::countQuery::evaluate() {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
     int ierr;
-    ibis::util::timer mytime("ibis::countQuery::evaluate", 1);
+    ibis::util::timer mytime("countQuery::evaluate", 1);
 
     if (hits == 0) { // have not performed an estimate
 	if (conds.getExpr() != 0) { // usual range query
@@ -313,8 +313,8 @@ int ibis::countQuery::evaluate() {
 	    hits->compress();
 	}
     }
-    LOGGER(ibis::gVerbose > 1)
-	<< "ibis::countQuery::evaluate -- Select count(*) From "
+    LOGGER(ibis::gVerbose > 0)
+	<< "countQuery::evaluate -- Select count(*) From "
 	<< mypart->name() << " Where " << conds << "\t-->\t" << hits->cnt();
     return 0;
 } // ibis::countQuery::evaluate
@@ -331,7 +331,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 				  ibis::bitvector& high) const {
     if (term == 0) return;
     LOGGER(ibis::gVerbose > 7)
-	<< "ibis::countQuery::doEstimate -- starting to estimate "
+	<< "countQuery::doEstimate -- starting to estimate "
 	<< *term;
 
     switch (term->getType()) {
@@ -515,7 +515,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	break;
     default:
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- ibis::countQuery::doEstimate unable to estimate "
+	    << "Warning -- countQuery::doEstimate unable to estimate "
 	    "query term of unexpected type, presume every row is a hit";
 	high.set(1, mypart->nRows());
 	low.set(1, mypart->nRows());
@@ -533,7 +533,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	return ierr;
     }
     LOGGER(ibis::gVerbose > 7)
-	<< "ibis::countQuery::doScan -- reading data to resolve "
+	<< "countQuery::doScan -- reading data to resolve "
 	<< *term << " with mask.size() = " << mask.size()
 	<< " and mask.cnt() = " << mask.cnt();
 
@@ -623,7 +623,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::countQuery::doScan -- scanning the index for strings";
+	    << "countQuery::doScan -- scanning the index for strings";
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
@@ -639,7 +639,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     }
     default: {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::countQuery::doScan -- unable to evaluate query term of "
+	    << "countQuery::doScan -- unable to evaluate query term of "
 	    "unexpected type";
 	ht.set(0, mypart->nRows());
 	ierr = -1;
@@ -648,7 +648,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     if (ierr < 0) // no confirmed hits
 	ht.set(0, mypart->nRows());
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::countQuery::doScan(" << *term << ") --> " << ht.cnt()
+	<< "countQuery::doScan(" << *term << ") --> " << ht.cnt()
 	<< ", ierr = " << ierr;
     return ierr;
 } // ibis::countQuery::doScan
@@ -667,7 +667,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	return ierr;
     }
     LOGGER(ibis::gVerbose > 7)
-	<< "ibis::countQuery::doEvaluate -- starting to evaluate "
+	<< "countQuery::doEvaluate -- starting to evaluate "
 	<< *term;
 
     switch (term->getType()) {
@@ -817,14 +817,14 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
     }
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::countQuery::doEvaluate unable to evaluate a "
+	    << "Warning -- countQuery::doEvaluate unable to evaluate a "
 	    "query term of unexpected type, copy the mask as the solution";
 	ht.set(0, mask.size());
 	ierr = -1;
 }
 #ifdef DEBUG
     ibis::util::logger lg;
-    lg.buffer() << "ibis::countQuery::doEvaluate(" << *term
+    lg.buffer() << "countQuery::doEvaluate(" << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
@@ -835,7 +835,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "ibis::countQuery::doEvaluate(" << *term << ", mask.cnt()="
+	<< "countQuery::doEvaluate(" << *term << ", mask.cnt()="
 	<< mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;

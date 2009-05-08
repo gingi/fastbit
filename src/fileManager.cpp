@@ -734,8 +734,8 @@ ibis::fileManager::fileManager()
 	throw ibis::bad_alloc("pthread_cond_init(readCond) failed in "
 			      "fileManager ctor");
     LOGGER(ibis::gVerbose > 1)
-	<< "fileManager initialization complete -- maxBytes=" << maxBytes
-	<< ", maxOpenFiles=" << maxOpenFiles;
+	<< "fileManager initialization complete\n\t-- maxBytes="
+	<< maxBytes << ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
 
 // destructor
@@ -846,14 +846,15 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- " << evt << ": the named file is empty";
+		    << evt << ": the named file is empty";
+		ierr = -106;
 		return ierr;
 	    }
 	}
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- ibis::fileManager::getFile(" << name
+		    << "ibis::fileManager::getFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
 	    ierr = -101;
@@ -1073,25 +1074,26 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- ibis::fileManager::tryGetFile(" << name
+		    << "ibis::fileManager::tryGetFile(" << name
 		    << ") file is empty.";
+		ierr = -106;
 		return ierr;
 	    }
 	}
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- ibis::fileManager::tryGetFile(" << name
+		    << "ibis::fileManager::tryGetFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
-	    ierr = -105;
+	    ierr = -101;
 	    return ierr;
 	}
     }
 
     // not enough space to get the file
     if (bytes + ibis::fileManager::totalBytes() > maxBytes) {
-	return -106; // not enough space
+	return -102; // not enough space
     }
     if (reading.find(name) != reading.end()) {
 	ierr = -111; // another thread is reading the same file

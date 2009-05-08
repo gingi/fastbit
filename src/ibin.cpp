@@ -31,8 +31,8 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 	if (f) // try to read the file as an index file
 	    read(f);
 
-	if (nobs == 0) {
-	}
+	if (nobs == 0)
+	    construct(f);
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
@@ -2540,22 +2540,27 @@ void ibis::bin::construct(const char* df) {
 		break;
 	    default:
 		ibis::util::logMessage
-		    ("Warning",
-		     "unable to binng column %s type %d",
+		    ("Warning", "unable to binng column %s type %d",
 		     col->name(), (int)(col->type()));
-		throw ibis::bad_alloc("Unexpected data type for "
-				      "ibis::bin::bin");
+		throw "Unexpected data type for ibis::bin";
 	    }
 	}
 	else {
 	    binning(df);
 	}
-	optionalUnpack(bits, col->indexSpec());
-
-	if (ibis::gVerbose > 4) {
-	    ibis::util::logger lg;
-	    print(lg.buffer());
-	}
+    }
+    optionalUnpack(bits, col->indexSpec());
+    nobs = bits.size();
+    if (nobs > 0) {
+	offsets.resize(nobs+1);
+	offsets[0] = 0;
+	for (unsigned j = 0; j < nobs; ++ j)
+	    offsets[j+1] = offsets[j] +
+		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
+    }
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	print(lg.buffer());
     }
 } // ibis::bin::construct
 
@@ -6896,8 +6901,6 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 	    }
 	    break;
 	case ibis::qExpr::OP_GT:
-	    hit1 = nobs;
-	    cand1 = nobs;
 	    if (expr.rightBound() > expr.leftBound()) {
 		if (bin1 >= nobs) {
 		    hit0 = nobs;
@@ -6916,10 +6919,10 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 		    cand0 = bin1;
 		}
 	    }
-	    break;
-	case ibis::qExpr::OP_GE:
 	    hit1 = nobs;
 	    cand1 = nobs;
+	    break;
+	case ibis::qExpr::OP_GE:
 	    if (expr.rightBound() > expr.leftBound()) {
 		if (bin1 >= nobs) {
 		    hit0 = nobs;
@@ -6938,6 +6941,8 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 		    cand0 = bin1;
 		}
 	    }
+	    hit1 = nobs;
+	    cand1 = nobs;
 	    break;
 	case ibis::qExpr::OP_EQ:
 	    if (expr.rightBound() < expr.leftBound()) {
@@ -7032,8 +7037,6 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 	    }
 	    break;
 	case ibis::qExpr::OP_GT:
-	    hit1 = nobs;
-	    cand1 = nobs;
 	    if (expr.rightBound() > expr.leftBound()) {
 		if (bin1 >= nobs) {
 		    hit0 = nobs;
@@ -7052,10 +7055,10 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 		    cand0 = bin1;
 		}
 	    }
-	    break;
-	case ibis::qExpr::OP_GE:
 	    hit1 = nobs;
 	    cand1 = nobs;
+	    break;
+	case ibis::qExpr::OP_GE:
 	    if (expr.rightBound() > expr.leftBound()) {
 		if (bin1 >= nobs) {
 		    hit0 = nobs;
@@ -7074,6 +7077,8 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 		    cand0 = bin1;
 		}
 	    }
+	    hit1 = nobs;
+	    cand1 = nobs;
 	    break;
 	case ibis::qExpr::OP_EQ:
 	    if (expr.rightBound() <= expr.leftBound()) {

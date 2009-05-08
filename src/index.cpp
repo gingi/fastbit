@@ -127,6 +127,10 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     ibis::index* ind = 0;
     if (c == 0) // can not procede
 	return ind;
+    if (c->partition() == 0)
+	return ind;
+    if (c->partition()->nRows() == 0)
+	return ind;
 
     if (spec == 0 || *spec == static_cast<char>(0))
 	spec = c->indexSpec(); // index spec of the column
@@ -259,10 +263,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			  ibis::fileManager::PREFER_READ :
 			  ibis::fileManager::MMAP_LARGE_FILES));
 		    if (ierr != 0) {
-			if (ibis::gVerbose > 7 || errno != ENOENT)
-			    c->logWarning("readIndex",
-					  "unable to read file \"%s\" ... %s",
-					  file.c_str(), strerror(errno));
+			LOGGER(ibis::gVerbose > 7)
+			    << "index::create tryGetFile(" << file
+			    << " failed with return code " << ierr;
 			st = 0;
 		    }
 		    if (st)
@@ -834,7 +837,19 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    ind = new ibis::bin(c, file.c_str());
 		}
 
-		if (ind && ind->getNRows() == c->partition()->nRows()) {
+		if (ind == 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "ibis::index::create failed to create an index for "
+			<< c->name() << " with " << file;
+		}
+		else if (ind->getNRows() == 0) {
+		    delete ind;
+		    ind = 0;
+		    LOGGER(ibis::gVerbose > 0)
+			<< "ibis::index::create create an empty index for "
+			<< c->name() << " with " << file;
+		}
+		else if (ind->getNRows() == c->partition()->nRows()) {
 		    // have built a valid index, write out its content
 		    file.erase(file.rfind(DIRSEP));
 		    try {
@@ -849,6 +864,15 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			file += ".idx";
 			remove(file.c_str());
 		    }
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "ibis::index::create created an index with "
+			<< ind->getNRows() << " row"
+			<< (ind->getNRows() > 1 ? "s" : "") << " from "
+			<< file << ", but the data partition has "
+			<< c->partition()->nRows() << " row"
+			<< (c->partition()->nRows() > 1 ? "s" : "");
 		}
 	    }
 	} // if (dfname != 0)
@@ -1146,7 +1170,19 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		ind = new ibis::bin(c);
 	    }
 
-	    if (ind && ind->getNRows() == c->partition()->nRows()) {
+	    if (ind == 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "ibis::index::create failed to create an index for "
+		    << c->name();
+	    }
+	    else if (ind->getNRows() == 0) {
+		delete ind;
+		ind = 0;
+		LOGGER(ibis::gVerbose > 0)
+		    << "ibis::index::create create an empty index for "
+		    << c->name();
+	    }
+	    else if (ind->getNRows() == c->partition()->nRows()) {
 		// having built a valid index, write out its content
 		try {
 		    ind->write(c->partition()->currentDataDir());
@@ -1162,10 +1198,19 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    remove(idxname.c_str());
 		}
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "ibis::index::create created an index with "
+		    << ind->getNRows() << " row"
+		    << (ind->getNRows() > 1 ? "s" : "")
+		    << ", but the data partition has "
+		    << c->partition()->nRows() << " row"
+		    << (c->partition()->nRows() > 1 ? "s" : "");
+	    }
 	} // building a new index
     }
     catch (const char* s) {
-	ibis::util::logMessage("Warning", "ibis::index::ceate(%s) received "
+	ibis::util::logMessage("Warning", "ibis::index::create(%s) received "
 			       "a string exception -- %s", c->name(), s);
 	delete ind;
 	ind = 0;

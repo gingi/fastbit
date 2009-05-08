@@ -461,11 +461,11 @@ namespace ibis {
 	template <typename Tin, typename Tout>
 	void round_up(const Tin& inval, Tout& outval) {
 	    outval = static_cast<Tout>(inval) +
-		(static_cast<double>(inval)-static_cast<Tout>(inval) > 0.0);
+		((inval-static_cast<Tin>(static_cast<Tout>(inval))) > 0);
 	}
 	/// A specialization of round_up for the output type float.
 	template <typename Tin>
-	void round_up(const Tin& inval, float& outval);
+	void round_up(const Tin& inval, float&);
 	/// A specialization of round_up for the output in double.
 	template <typename Tin>
 	void round_up(const Tin& inval, double& outval) {

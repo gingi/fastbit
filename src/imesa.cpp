@@ -263,9 +263,13 @@ void ibis::mesa::construct(const char* df) {
 	    b2[i] = 0; // change it to nil to avoid being deleted again
 	}
 
-	for (uint32_t i = 0; i+n2 <= nobs; ++i)
-	    bits[i]->decompress();
-	optionalUnpack(bits, col->indexSpec());
+	bits.resize(nobs-n2+1);
+	offsets.resize(nobs-n2);
+	offsets[0] = 0;
+	for (uint32_t i = 0; i+n2 <= nobs; ++i) {
+	    bits[i]->compress();
+	    offsets[i+1] = offsets[i] + bits[i]->getSerialSize();
+	}
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
@@ -831,7 +835,7 @@ void ibis::mesa::estimate(const ibis::qContinuousRange& expr,
 
     // compute the bitvector upper
     if (hit0 == cand0 && hit1 == cand1) {
-	upper.copy(lower);
+	upper.clear(); // clear upper to indicate lower is accurate
     }
     else if (cand0 >= cand1) {
 	upper.set(0, lower.size());
@@ -880,7 +884,7 @@ void ibis::mesa::estimate(const ibis::qContinuousRange& expr,
 		upper -= *(bits[cand1]);
 	}
     }
-} // ibis::mesa::estimate()
+} // ibis::mesa::estimate
 
 // return an upper bound on the number of hits
 uint32_t ibis::mesa::estimate(const ibis::qContinuousRange& expr) const {
@@ -924,7 +928,7 @@ uint32_t ibis::mesa::estimate(const ibis::qContinuousRange& expr) const {
 	}
     }
     return nhits;
-} // ibis::mesa::estimate()
+} // ibis::mesa::estimate
 
 // ***should implement a more efficient version***
 float ibis::mesa::undecidable(const ibis::qContinuousRange& expr,

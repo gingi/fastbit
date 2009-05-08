@@ -571,6 +571,11 @@ void ibis::range::construct(const char *df) {
 	for (uint32_t i = 0; i < nobs; ++i)
 	    bits[i]->compress();
 	optionalUnpack(bits, col->indexSpec());
+	offsets.resize(nobs+1);
+	offsets[0] = 0;
+	for (unsigned j = 0; j < nobs; ++ j)
+	    offsets[j+1] = offsets[j] +
+		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
@@ -2067,15 +2072,15 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    if (expr.rightBound() > expr.leftBound()) {
 		if (bin1 >= nobs) {
 		    if (expr.rightBound() >= max1) {
-			hit1 = nobs + 1;
+			hit0 = nobs + 1;
 			cand0 = nobs + 1;
 		    }
 		    else if (expr.rightBound() >= min1) {
-			hit1 = nobs + 1;
+			hit0 = nobs + 1;
 			cand0 = nobs;
 		    }
 		    else {
-			hit1 = nobs;
+			hit0 = nobs;
 			cand0 = nobs;
 		    }
 		}
@@ -2798,7 +2803,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_LT:
 	    if (expr.leftBound() < expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs;
@@ -2840,7 +2845,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_LE:
 	    if (expr.leftBound() <= expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.rightBound() >= min1) {
 			hit0 = nobs;
@@ -2882,7 +2887,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_GT:
 	    if (expr.leftBound() > expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs;
@@ -2924,7 +2929,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_GE:
 	    if (expr.leftBound() >= expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs;
@@ -2966,7 +2971,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_EQ:
 	    if (expr.leftBound() == expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.rightBound() <= max1 &&
 			expr.rightBound() >= min1) {
 			hit0 = nobs;
@@ -3199,7 +3204,7 @@ void ibis::range::estimate(const ibis::qContinuousRange& expr,
 
     // upper contains bins [cand0, cand1)
     if (hit0 == cand0 && hit1 == cand1) {
-	upper.copy(lower);
+	upper.clear(); // clear its content to indicate accurate answer
     }
     else if (cand0 > 0) {
 	if (cand1 <= nobs) {

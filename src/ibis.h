@@ -268,15 +268,16 @@ namespace ibis {
 	gVerbose += 3;
 #endif
 #endif
+	if (mesgfile != 0 && *mesgfile != 0) {
+	    int ierr = ibis::util::setLogFileName(mesgfile);
+	    if (ierr < 0 && ibis::gVerbose >= 0) {
+		std::cerr << "ibis::init failed to set log file to "
+			  << mesgfile << std::endl;
+	     }
+	}
+
 	if (rcfile != 0 && *rcfile != 0)
 	    gParameters().read(rcfile);
-	if (mesgfile != 0 && *mesgfile != 0)
-	    (void)ibis::util::setLogFileName(mesgfile);
-	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::init completed initialization of " << FASTBIT_STRING
-	    << " with ibis::gVerbose = "
-	    << ibis::gVerbose << ", log messages will be printed to "
-	    << (mesgfile != 0 ? mesgfile : "standard output");
     }
 }
 #endif // IBIS_H

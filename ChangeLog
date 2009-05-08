@@ -1,3 +1,29 @@
+2009-05-08 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: fixing cases involving x < a >= x or x <= a > x in
+	doScan and doCount; add code to unload indexes and retry the
+	evaluateRange call
+	* src/countQuery.cpp: minor clean up of log messages
+	* src/range.cpp: a couple of bin1 should have been bin0 in
+	range::locate, a couple hit1 should be hit0
+	* src/icentre.cpp: in entre::estimate cand1+1 >= bounds.size()
+	should have been cand1 >= bounds.size() (the error causes
+	incorrect answers when the query boundary is in the next to the
+	last bin)
+	* examples/ibis.cpp: add code in doQuery to exercise the
+	countQuery class
+
+2009-05-07 John Wu <John.Wu at ACM.org>
+	* configure.ac: uncomment AC_FUNC_VPRINTF, otherwise the log
+	functions logMessage, logWarning and logError are crippled
+	* src/part.cpp:5996 change the constant expression so that rid1
+	will never be resized to an empty array
+	* examples.cpp: minor adjustment the function clean_up and print
+	out
+	* src/ibin.cpp, src/irange.cpp, src/imesa.cpp: in function
+	construct set the values of offsets
+	* src/column.cpp: in searchSortedICC and searchSortedOOCC, call
+	round_up for some of the comparison operators
+
 2009-05-06 John Wu <John.Wu at ACM.org>
 	* src/i*.cpp: remove (or comment out) calls to function write from
 	all versions of concrete implementations of ibis::index::append
@@ -11,6 +37,16 @@
 	rename PACKAGE_VERSION and friends to FASTBIT_VERSION etc.  This
 	is to avoid possible conflict with other packages with the default
 	names (a problem reported by Prabhat)
+	* src/ibis.h: move call to util::setLogFileName ahead of
+	gParameters().read
+	* src/const.h: add a backup definition for FASTBIT_STRING
+	(otherwise cannot use FASTBIT_STRING without checking)
+	* src/util.cpp: change the initial message print to a log file to
+	include FastBit version and bug report information
+	* src/ibin.cpp: add new function construct to consolidate the
+	construction of a binned index
+	* src/index.cpp: in index::create add more print statement in case
+	of abnormal indexes
 
 2009-05-05 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: rename buildIndex, loadIndex, and

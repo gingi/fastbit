@@ -1174,15 +1174,19 @@ int ibis::util::setLogFileName(const char* filename) {
     ibis::util::ioLock lock;
     FILE* fptr = fopen(filename, "a");
     if (fptr != 0) {
-	int ierr = fprintf(fptr,
-			   "\nibis::util::setLogFileName opened %s on %s\n",
-			   filename, tstr);
+	int ierr = fprintf
+	    (fptr, "\nibis::util::setLogFileName opened %s on %s for %s\n",
+	     filename, tstr, FASTBIT_STRING);
 	if (ierr > 1) {
 	    if (ibis_util_logfilepointer != 0 &&
-		! ibis_util_logfilename.empty())
+		! ibis_util_logfilename.empty()) // close existing file
 		fclose(ibis_util_logfilepointer);
 	    ibis_util_logfilename = filename;
 	    ibis_util_logfilepointer = fptr;
+#ifdef FASTBIT_BUGREPORT
+	    ierr = fprintf(fptr, "\tsend comments and bug reports to %s\n",
+			   FASTBIT_BUGREPORT);
+#endif
 	    return 0;
 	}
 	else {

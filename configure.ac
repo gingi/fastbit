@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.0.8c],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.0.9],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/config.h])
@@ -56,7 +56,7 @@ AC_CHECK_HEADERS([fcntl.h float.h inttypes.h limits.h memory.h stdint.h stdlib.h
 #AC_FUNC_REALLOC
 #AC_FUNC_SELECT_ARGTYPES
 #AC_FUNC_STRTOD
-#AC_FUNC_VPRINTF
+AC_FUNC_VPRINTF
 #AC_CHECK_FUNCS([getpagesize getpass gettimeofday memset mkdir] , ,)
 AC_CHECK_FUNCS([gettimeofday mkdir] , ,)
 

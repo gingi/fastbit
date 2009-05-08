@@ -3145,6 +3145,30 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << timer.realTime() << " elapsed seconds";
     }
 
+    if (ibis::gVerbose > 0 && (sstr == 0 || *sstr == 0) &&
+	aQuery.getWhereClause()) {
+	ibis::countQuery cq(tbl);
+	num2 = cq.setWhereClause(aQuery.getWhereClause());
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "doQuery -- failed to set \"" << aQuery.getWhereClause()
+		<< "\" on a countQuery";
+	}
+	else {
+	    num2 = cq.evaluate();
+	    if (num2 < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "doQuery -- failed to evaluate the count query on "
+		    << aQuery.getWhereClause();
+	    }
+	    else if (cq.getNumHits() != num1) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- countQuery.getNumHits returned "
+		    << cq.getNumHits() << ", while query.getNumHits returned "
+		    << num1;
+	    }
+	}
+    }
     if (ibis::gVerbose > 5 || verify_rid) {
 	ibis::bitvector btmp;
 	num2 = aQuery.sequentialScan(btmp);
@@ -3245,7 +3269,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
 	if (rid1->size() > 1024) {
 	    // select no more than 1024 RIDs -- RID2Hits is slow
-	    uint32_t len = (1023 & rid1->size());
+	    uint32_t len = 512 + (511 & rid1->size());
 	    if (len == 0) len = 1024;
 	    rid1->resize(len);
 	}
@@ -4183,12 +4207,12 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 	"Total pages accessed through read(unistd.h) is estimated to be "
 	<< ibis::fileManager::instance().pageCount();
 
+    if (sane)
+	ibis::fileManager::instance().clear();
     if (ibis::gVerbose >= 4) {
 	ibis::util::logger lg(4);
 	ibis::fileManager::instance().printStatus(lg.buffer());
     }
-    if (sane)
-	ibis::fileManager::instance().clear();
 
 #if defined(RUSAGE_SELF) && defined(RUSAGE_CHILDREN)
     if (ibis::gVerbose >= 2) {
@@ -4214,9 +4238,6 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
     _CrtMemDumpAllObjectsSince(NULL);
     _CrtDumpMemoryLeaks();
 #endif
-
-    // last thing -- close the file logging the messages
-    ibis::util::closeLogFile();
 } // clean_up
 
 int main(int argc, char** argv) {
@@ -4439,12 +4460,15 @@ int main(int argc, char** argv) {
 	    }
 	}
 
+	clean_up(tlist);
 	timer.stop();
 	if (timer.realTime() > 0.001)
 	    LOGGER(ibis::gVerbose >= 2)
 		<< *argv << ":: total CPU time " << timer.CPUTime()
 		<< " s, total elapsed time " << timer.realTime() << " s";
-	clean_up(tlist);
+
+	// last thing -- close the file logging the messages
+	ibis::util::closeLogFile();
 	return 0;
     }
     catch (const std::exception& e) {

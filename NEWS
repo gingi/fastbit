@@ -1,4 +1,4 @@
-Version ibis1.0.8
+Version ibis1.0.9
 -- refine all estimateCost functions (wrong cost estimates have led to a
    wrong choice for evaluation strategy, 1st reported by Prabhat and
    Allen Sanderson)
@@ -8,13 +8,17 @@ Version ibis1.0.8
 -- use library function nextafter instead of incrDouble and decrDouble
    when available
 -- refine the code in templates ibis::part::doScan and
-   ibis::part::doCountto reduce the amount of computation
+   ibis::part::doCount to reduce the amount of computations
 -- add macro WITHOUT_FASTBIT_CONFIG_H as the opposite of HAVE_CONFIG_H
    so that the user code does not need to define HAVE_CONFIG_H when
    configure script can be run (this changes assumes the FastBit
    config.h file is present and remove the need to client code to 
    define HAVE_CONFIG_H when including FastBit headers, a problem first
    encountered by Hank Childs)
+-- integrate part::testRangeOperators as part of selfTest to exercise
+   all combinations of logical operators in a range expression
+-- clean up ibin.cpp, irange.cpp, imesa.cpp, and icentre.cpp to address
+   errors identified through 'make full-check'
 
 Fri Apr 24 14:45:27 PDT 2009
 Version ibis1.0.8

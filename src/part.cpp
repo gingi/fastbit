@@ -41,7 +41,7 @@
 #endif
 
 extern "C" {
-    // a function to start the some test queries
+    /// A thread function to run the functioin queryTest or quickTest.
     static void* ibis_part_threadedTestFun1(void* arg) {
 	if (arg == 0)
 	    return reinterpret_cast<void*>(-1L);
@@ -86,6 +86,7 @@ extern "C" {
 	}
     } // ibis_part_threadedTestFun1
 
+    /// A thread function to work on a shared list of range conditions.
     static void* ibis_part_threadedTestFun2(void* arg) {
 	if (arg == 0)
 	    return reinterpret_cast<void*>(-1L);
@@ -102,7 +103,7 @@ extern "C" {
 	try {
 	    unsigned myerr = 0;
 	    unsigned mycnt = 0;
-	    ibis::query qq(ibis::util::userName(), et0);
+	    ibis::countQuery qq(et0);
 	    for (uint32_t j = myList->cnt(); j < myList->conds.size();
 		 j = myList->cnt()) {
 		++ mycnt;
@@ -113,9 +114,9 @@ extern "C" {
 		}
 		else {
 		    ++ myerr;
-		    ++ (*myList->nerrors);
 		}
 	    }
+	    (*myList->nerrors) += myerr;
 	    LOGGER(ibis::gVerbose > 2)
 		<< "INFO: thread " << myid << " completed " << mycnt
 		<< " set" << (mycnt > 1 ? "s" : "")
@@ -2886,6 +2887,11 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
 	ret = (*it).second->estimateRange(cmp);
+	if (ret < 0) {
+	    mutexLock lock(this, "estimateRange");
+	    unloadIndexes();
+	    ret = (*it).second->estimateRange(cmp);
+	}
     }
     else {
 	logWarning("estimateRange", "unable to find a "
@@ -2908,6 +2914,11 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
 	ret = (*it).second->estimateRange(cmp);
+	if (ret < 0) {
+	    mutexLock lock(this, "estimateRange");
+	    unloadIndexes();
+	    ret = (*it).second->estimateRange(cmp);
+	}
     }
     else {
 	logWarning("estimateRange", "unable to find a column "
@@ -3009,6 +3020,11 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
 	ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	if (ierr < 0) {
+	    mutexLock lock(this, "evaluateRange");
+	    unloadIndexes();
+	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	}
     }
     else {
 	logWarning("evaluateRange", "unable to find a column named %s",
@@ -3036,6 +3052,11 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	columnList::const_iterator it = columns.find(cmp.colName());
 	if (it != columns.end()) {
 	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	    if (ierr < 0) {
+		mutexLock lock(this, "evaluateRange");
+		unloadIndexes();
+		ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	    }
 	}
 	else {
 	    logWarning("evaluateRange", "unable to find a column "
@@ -5966,7 +5987,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	    }
 	}
     }
-    // test RID query -- limit to no more than 1024 RIDs to save time
+    // test RID query -- limit to no more than 2048 RIDs to save time
     ibis::RIDSet* rid1 = qtmp.getRIDs();
     if (rid1 == 0 || rid1->empty()) {
 	delete rid1;
@@ -5993,7 +6014,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     }
 #endif
     if (rid1->size() > 2048)
-	rid1->resize(2047 & rid1->size());
+	rid1->resize(1024+(1023 & rid1->size()));
     std::sort(rid1->begin(), rid1->end());
 #if defined(DEBUG)
     {
@@ -6028,13 +6049,13 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 		if ((*rid1)[i].value != (*rid2)[i].value) {
 		    ++cnt;
 		    lg.buffer() << i << "th RID " << (*rid1)[i]
-			      << " != " << (*rid2)[i] << "\n";
+				<< " != " << (*rid2)[i] << "\n";
 		}
 	    }
 	    if (cnt > 0) {
 		lg.buffer() << "Warning -- query[" << qtmp.id() << "] " << cnt
-			  << " mismatches out of a total of "
-			  << rid1->size() << "\n";
+			    << " mismatches out of a total of "
+			    << rid1->size() << "\n";
 		++(*nerrors);
 	    }
 	    else if (ibis::gVerbose > 4) {
@@ -6045,8 +6066,8 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	else {
 	    ibis::util::logger lg;
 	    lg.buffer() << "Warning -- query[" << qtmp.id() << "] sent "
-		      << rid1->size() << " RIDs, got back "
-		      << rid2->size() << "\n";
+			<< rid1->size() << " RIDs, got back "
+			<< rid2->size() << "\n";
 	    uint32_t i=0, cnt;
 	    cnt = (rid1->size() < rid2->size()) ? rid1->size() :
 		rid2->size();
@@ -7515,7 +7536,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	    }
 	    break;}
 	case ibis::qExpr::OP_GE: {
-	    if (leftBound > rightBound) {
+	    if (leftBound >= rightBound) {
 		if (uncomp)
 		    ierr = doCompare0(vals,
 				      std::binder1st<std::less<T> >
@@ -7619,7 +7640,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	    }
 	    break;}
 	case ibis::qExpr::OP_GT: {
-	    if (leftBound >= rightBound) {
+	    if (leftBound > rightBound) {
 		if (uncomp)
 		    ierr = doCompare0(vals,
 				      std::binder1st<std::less_equal<T> >
@@ -7835,7 +7856,7 @@ long ibis::part::doScan(const array_t<T> &vals,
     case ibis::qExpr::OP_GE: {
 	switch (rng.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
-	    if (leftBound <= rightBound) {
+	    if (leftBound < rightBound) {
 		if (uncomp)
 		    ierr = doCompare0(vals,
 				      std::binder1st< std::greater_equal<T> >
@@ -8663,7 +8684,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 		ierr = 0;
 	    break;}
 	case ibis::qExpr::OP_GT: {
-	    if (leftBound >= rightBound)
+	    if (leftBound > rightBound)
 		ierr = doCount(vals, mask,
 			       std::binder1st<std::less_equal<T> >
 			       (std::less_equal<T>(), leftBound));
@@ -8712,7 +8733,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 			       (std::less<T>(), rightBound));
 	    break;}
 	case ibis::qExpr::OP_LE: {
-	    if (leftBound < rightBound)
+	    if (leftBound <= rightBound)
 		ierr = doCount(vals, mask,
 			       std::binder1st< std::greater<T> >
 			       (std::greater<T>(), leftBound));
@@ -8761,7 +8782,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
     case ibis::qExpr::OP_GE: {
 	switch (rng.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
-	    if (leftBound <= rightBound)
+	    if (leftBound < rightBound)
 		ierr = doCount(vals, mask,
 			       std::binder1st< std::greater_equal<T> >
 			       (std::greater_equal<T>(), leftBound));

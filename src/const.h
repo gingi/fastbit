@@ -92,6 +92,9 @@
 #  endif
 #  include <string.h>
 #endif
+#ifndef FASTBIT_STRING
+#define FASTBIT_STRING "FastBit ibis"
+#endif
 #include <functional>	// std::less, std::binary_function<>
 
 // Compiler independent definitions:

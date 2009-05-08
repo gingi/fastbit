@@ -999,7 +999,7 @@ void ibis::entre::estimate(const ibis::qContinuousRange& expr,
     if (hit1 <= hit0) {
 	lower.set(0, nrows);
     }
-    else if (hit0 == 0 && hit1+1 >= bounds.size()) {
+    else if (hit0 == 0 && hit1 >= bounds.size()) {
 	lower.set(1, nrows);
     }
     else if (hit0+1 == hit1) { // equal to one single value
@@ -1022,7 +1022,7 @@ void ibis::entre::estimate(const ibis::qContinuousRange& expr,
     else if (cand1 <= cand0) {
 	upper.set(0, nrows);
     }
-    else if (cand0 == 0 && cand1+1 >= bounds.size()) {
+    else if (cand0 == 0 && cand1 >= bounds.size()) {
 	upper.set(1, nrows);
     }
     else if (cand0+1 == cand1) { // equal to one single value
@@ -1047,7 +1047,7 @@ void ibis::entre::estimate(const ibis::qContinuousRange& expr,
     else { // (cand0-1, cand1-1]
 	evalLL(upper, cand0-1, cand1-1);
     }
-} // ibis::entre::estimate()
+} // ibis::entre::estimate
 
 // compute an upper bound on the number of hits
 uint32_t ibis::entre::estimate(const ibis::qContinuousRange& expr) const {
@@ -1059,7 +1059,7 @@ uint32_t ibis::entre::estimate(const ibis::qContinuousRange& expr) const {
     if (cand1 <= cand0) {
 	cnt = 0;
     }
-    else if (cand0 == 0 && cand1+1 >= bounds.size()) {
+    else if (cand0 == 0 && cand1 >= bounds.size()) {
 	cnt = nrows;
     }
     else if (cand0+1 == cand1) { // equal to one single value

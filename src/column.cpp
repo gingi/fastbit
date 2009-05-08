@@ -4877,20 +4877,20 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		    low.adjustSize(0, mymask.size());
 		    low |= b2;
 		}
-	    }
-	    else {
-		ierr = low.cnt();
+		else {
+		    low.clear();
+		}
 	    }
 	}
-	else {
+	if (low.size() == mymask.size())
 	    ierr = low.cnt();
-	}
 
 	LOGGER(ibis::gVerbose > 3)
 	    << "ibis::column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp
-	    << ") completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	    << "]::evaluateRange(" << cmp << ", mask(" << mask.cnt()
+	    << ", " << mask.size() << ")) completed with low.size() = "
+	    << low.size() << ", low.cnt() = " << low.cnt()
+	    << ", and ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -7722,8 +7722,17 @@ int ibis::column::searchSortedICC(const array_t<T>& vals,
 				  ibis::bitvector& hits) const {
     hits.clear();
     uint32_t iloc, jloc;
-    const T ival = static_cast<T>(rng.leftBound());
-    const T jval = static_cast<T>(rng.rightBound());
+    T ival = (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED ? 0 :
+	      static_cast<T>(rng.leftBound()));
+    if (rng.leftOperator() == ibis::qExpr::OP_LE ||
+	rng.leftOperator() == ibis::qExpr::OP_GT)
+	ibis::util::round_up(rng.leftBound(), ival);
+    T jval = (rng.rightOperator() == ibis::qExpr::OP_UNDEFINED ? 0 :
+	      static_cast<T>(rng.rightBound()));
+    if (rng.rightOperator() == ibis::qExpr::OP_GE ||
+	rng.rightOperator() == ibis::qExpr::OP_LT)
+	ibis::util::round_up(rng.rightBound(), jval);
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_LT: {
 	switch (rng.rightOperator()) {
@@ -8309,8 +8318,18 @@ int ibis::column::searchSortedOOCC(const char* fname,
     const uint32_t sz = sizeof(T);
     hits.clear();
     uint32_t iloc, jloc;
-    const T ival = static_cast<T>(rng.leftBound());
-    const T jval = static_cast<T>(rng.rightBound());
+    T ival = (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED ? 0 :
+	      static_cast<T>(rng.leftBound()));
+    if (rng.leftOperator() == ibis::qExpr::OP_LE ||
+	rng.leftOperator() == ibis::qExpr::OP_GT)
+	ibis::util::round_up(rng.leftBound(), ival);
+
+    T jval = (rng.rightOperator() == ibis::qExpr::OP_UNDEFINED ? 0 :
+	      static_cast<T>(rng.rightBound()));
+    if (rng.rightOperator() == ibis::qExpr::OP_GE ||
+	rng.rightOperator() == ibis::qExpr::OP_LT)
+	ibis::util::round_up(rng.rightBound(), jval);
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_LT: {
 	switch (rng.rightOperator()) {
