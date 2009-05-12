@@ -539,10 +539,10 @@ public:
     /// "(nz=10, ny=12, nx=14)".
     void setMeshShape(const char *shape) {
 	digestMeshShape(shape);
-	writeTDC(nEvents, columns, activeDir);
+	writeMetaData(nEvents, columns, activeDir);
     }
-    /// Write the TDC file to record the changes to the partition.
-    void updateTDC() const {writeTDC(nEvents, columns, activeDir);}
+    /// Write the metadata file to record the changes to the partition.
+    void updateMetaData() const {writeMetaData(nEvents, columns, activeDir);}
     /// Update the list of columns with information in this data partition
     void combineNames(ibis::table::namesTypes &metalist) const;
 
@@ -677,11 +677,11 @@ protected:
     /******************************************************************/
     // protected member functions
     //
-    /// Read TDC file.
-    int  readTDC(size_t &nrows, columnList &plist, const char* dir);
-    /// Write TDC file.
-    void writeTDC(const uint32_t nrows, const columnList &plist,
-		  const char* dir) const;
+    /// Read metadata file -part.txt.
+    int  readMetaData(size_t &nrows, columnList &plist, const char* dir);
+    /// Write metadata file -part.txt.
+    void writeMetaData(const uint32_t nrows, const columnList &plist,
+		       const char* dir) const;
     void readRIDs() const; ///< Read RIDs from file 'rids'.
     void freeRIDs() const; ///< Remove the rids list from memory.
 

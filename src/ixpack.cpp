@@ -2,9 +2,9 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2000-2009 the Regents of the University of California
 //
-// This file contains the implementation of the class ibis::pack.  It defines
-// a two-level index where the coarse level is formed with cumulative ranges,
-// but the lower level contains only the simple bins.
+// This file contains the implementation of the class ibis::pack.  It
+// defines a two-level index where the coarse level is formed with
+// cumulative ranges, but the lower level contains only the simple bins.
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -892,7 +892,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& upper) const {
     if (bits.empty()) {
 	lower.set(0, nrows);
-	upper.clear();
+	upper.set(1, nrows);
 	return;
     }
 
@@ -914,7 +914,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	case ibis::qExpr::OP_UNDEFINED:
 	    col->logWarning("pack::estimate", "operators for the range not "
 			    "specified");
-	    return;
+	    break;
 	case ibis::qExpr::OP_LT:
 	    rbound = expr.rightBound();
 	    hit0 = 0;
@@ -1030,7 +1030,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 		hit0 = bin1 + 1;
 		cand0 = bin1 + 1;
 	    }
-	    else if (expr.rightBound() >= minval[bin1]) {
+	    else if (expr.rightBound() <= minval[bin1]) {
 		hit0 = bin1;
 		cand0 = bin1;
 	    }
@@ -1213,12 +1213,12 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 		    hit0 = bin1 + 1;
 		    cand0 = bin1 + 1;
 		}
-		else if (expr.rightBound() >= minval[bin1]) {
-		    hit0 = bin1;
+		else if (expr.rightBound() > minval[bin1]) {
+		    hit0 = bin1 + 1;
 		    cand0 = bin1;
 		}
 		else {
-		    hit0 = bin1 + 1;
+		    hit0 = bin1;
 		    cand0 = bin1;
 		}
 	    }
@@ -1238,7 +1238,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 		    }
 		}
 		else if (expr.rightBound() <= maxval[bin1] &&
-			 expr.rightBound() >= maxval[bin1]) {
+			 expr.rightBound() >= minval[bin1]) {
 		    hit0 = bin1; hit1 = bin1;
 		    cand0 = bin1; cand1 = bin1 + 1;
 		    if (maxval[bin1] == minval[bin1]) hit1 = cand1;
@@ -1318,9 +1318,19 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_LE:
 	    rbound = ibis::util::incrDouble(expr.rightBound());
-	    if (bin1 > nobs) {
-		hit1 = nobs;
-		cand1 = nobs;
+	    if (bin1 >= nobs) {
+		if (expr.rightBound() > max1) {
+		    hit1 = nobs + 1;
+		    cand1 = nobs + 1;
+		}
+		else if (expr.rightBound() > min1) {
+		    hit1 = nobs;
+		    cand1 = nobs + 1;
+		}
+		else {
+		    hit1 = nobs;
+		    cand1 = nobs;
+		}
 	    }
 	    else if (expr.rightBound() >= maxval[bin1]) {
 		hit1 = bin1 + 1;
@@ -1625,7 +1635,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    hit1 = bin0 + 1;
 	    cand1 = bin0 + 1;
 	}
-	else if (expr.leftBound() <= minval[bin0]) {
+	else if (expr.leftBound() < minval[bin0]) {
 	    hit1 = bin0;
 	    cand1 = bin0;
 	}
@@ -1807,7 +1817,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_LT:
 	    if (expr.leftBound() < expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs; hit1 = nobs;
@@ -1834,7 +1844,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_LE:
 	    if (expr.leftBound() <= expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs; hit1 = nobs;
@@ -1846,7 +1856,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 		    }
 		}
 		else if (expr.leftBound() <= maxval[bin0] &&
-			 expr.leftBound() >= maxval[bin0]) {
+			 expr.leftBound() >= minval[bin0]) {
 		    hit0 = bin0; hit1 = bin0;
 		    cand0 = bin0; cand1 = bin0 + 1;
 		    if (maxval[bin0] == minval[bin0]) hit1 = cand1;
@@ -1861,7 +1871,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_GT:
 	    if (expr.leftBound() > expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs; hit1 = nobs;
@@ -1873,7 +1883,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 		    }
 		}
 		else if (expr.leftBound() <= maxval[bin0] &&
-			 expr.leftBound() >= maxval[bin0]) {
+			 expr.leftBound() >= minval[bin0]) {
 		    hit0 = bin0; hit1 = bin0;
 		    cand0 = bin0; cand1 = bin0 + 1;
 		    if (maxval[bin0] == minval[bin0]) hit1 = cand1;
@@ -1888,7 +1898,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_GE:
 	    if (expr.leftBound() >= expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() <= max1 &&
 			expr.leftBound() >= min1) {
 			hit0 = nobs; hit1 = nobs;
@@ -1915,7 +1925,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	    break;
 	case ibis::qExpr::OP_EQ:
 	    if (expr.leftBound() == expr.rightBound()) {
-		if (bin1 >= nobs) {
+		if (bin0 >= nobs) {
 		    if (expr.leftBound() >= min1 &&
 			expr.leftBound() <= max1) {
 			hit0 = nobs; hit1 = nobs;
@@ -1965,7 +1975,11 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
     uint32_t i, j;
     bool same = false; // are upper and lower the same ?
     // attempt to generate lower and upper bounds together
-    if (cand0 == hit0 && cand1 == hit1) { // top level only
+    if (cand0 >= cand1) {
+	lower.set(0, nrows);
+	upper.clear();
+    }
+    else if (cand0 == hit0 && cand1 == hit1) { // top level only
 	if (hit0 >= hit1) {
 	    lower.set(0, nrows);
 	    upper.set(0, nrows);

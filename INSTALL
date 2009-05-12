@@ -13,7 +13,7 @@ Since it take a while (~ 20 min) to build the libraries, it is a good
 idea to spawn multiple jobs to compile them.  However, it is NOT safe to
 run the tests in parallel because different jobs will attempt to write
 the same files.  The commands 'make check', 'make more-check', and 'make
-full-check' must be run as a serial job (with only one thread of
+full-check' must be run as serial jobs (with only one thread of
 execution).
 
 If you are compiling with GCC, please choose version 4 for better
@@ -21,7 +21,8 @@ support of the extensive template use.
 
 To place the executable files and libraries in their expected locations,
 execute 'make install'.  One make change where the files are installed
-by specifying a prefix, e.g.,
+by specifying a prefix, e.g., (it is usually better to specify
+installation direcotry on the command line of configure, see note 13 )
 
 make prefix=${HOME} install
 
@@ -93,10 +94,22 @@ NOTE: FastBit requires pthread support, one such library is pthread
 ----------
 Compiler Macros
 
-There is a number of compiler macros for controlling certain internal
-FastBit parameters.  In cases where you find unexpected troubles with
-FastBit, they might come in handy.  Here is a list in the order of
-potential usefulness.
+There are a number of compiler macros for controlling certain internal
+FastBit parameters.  Where you find unexpected troubles with FastBit,
+they might come in handy.  Here is a list in the order of potential
+usefulness.
+
+WITHOUT_FASTBIT_CONFIG_H
+
+  This macro should be defined if the system can not run the configure
+  script in the main directory.  The configure script produces the file
+  src/config.h that contains important compiler macros.  When this macro
+  is defined, the source code will not attempt to include src/config.h.
+  The macros defined in it will take on default values.  This option has
+  been mainly tested on MS Windows platform with VisualStudio.  For
+  convenience, we have made sure this macro is not necessary under this
+  specific environment (MS windows + VisualStudio), all other platforms
+  that can not run the configure script, must define this macro!
 
 FILEMANAGER_UNLOAD_TIME
 
@@ -155,16 +168,6 @@ FASTBIT_SYNC_WRITE
   of data corruption in case of program crash, but it also makes the
   program waits for disk operations to complete.  The delay can be
   especially painful if there are numerous write operaitons.
-
-WITHOUT_FASTBIT_CONFIG_H
-
-  This macro should be defined if the system can not run the configure
-  script in the main directory.  The configure script produces the file
-  src/config.h that contains important compiler macros.  When this macro
-  is defined, the source code will not attempt to include src/config.h.
-  The macros defined in it will take one default values.  This option
-  has been mainly tested on MS Windows platform with VisualStudio.  A
-  user in this environment must specify this macro!
 
 
 ----------

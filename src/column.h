@@ -161,7 +161,7 @@ public:
     long selectValues(const bitvector& mask,
 		      void* vals, array_t<uint32_t>& inds) const;
 
-    /// Write the TDC entry.
+    /// Write the metadata entry.
     virtual void write(FILE* file) const;
     /// Print some basic infomation about this column.
     virtual void print(std::ostream& out) const;

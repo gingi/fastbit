@@ -65,8 +65,8 @@ public:
     virtual void getString(uint32_t i, std::string &val) const {
 	readString(i, val);}
 
-    virtual void write(FILE* file) const; // write the TDC entry
-    virtual void print(std::ostream& out) const; // print header info
+    virtual void write(FILE* file) const; ///< Write the metadata entry.
+    virtual void print(std::ostream& out) const; ///< Print header info.
 
     const column* IDColumnForKeywordIndex() const;
 
@@ -180,8 +180,8 @@ public:
     virtual const char* isKey(const char* str) const {
 	return dic.find(str);}
 
-    virtual void write(FILE* file) const; // write the TDC entry
-    virtual void print(std::ostream& out) const; // print header info
+    virtual void write(FILE* file) const; ///< Write the metadata entry.
+    virtual void print(std::ostream& out) const; ///< Print header info.
 
 private:
     // private member variables

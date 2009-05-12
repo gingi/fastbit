@@ -256,7 +256,7 @@ long ibis::part::reorder() {
 	m_desc += " on ";
 	m_desc += currtime;
     }
-    writeTDC(nEvents, columns, activeDir);
+    writeMetaData(nEvents, columns, activeDir);
     return ierr;
 } // ibis::part::reorder
 
@@ -501,7 +501,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	m_desc += " on ";
 	m_desc += currtime;
     }
-    writeTDC(nEvents, columns, activeDir);
+    writeMetaData(nEvents, columns, activeDir);
     return ierr;
 } // ibis::part::reorder
 
@@ -770,7 +770,7 @@ long ibis::part::append1(const char *dir) {
     backupDir = 0;
 
     // retrieve the new column list
-    readTDC(nEvents, columns, activeDir);
+    readMetaData(nEvents, columns, activeDir);
     if (ntot > 0 && ntot != nEvents) {
 	logWarning("append", "expected %lu rows, but the table.tdc "
 		   "file says %lu", static_cast<long unsigned>(ierr),
@@ -796,7 +796,7 @@ long ibis::part::append1(const char *dir) {
 
     switchTime = time(0);
     state = STABLE_STATE; // switched successfully
-    writeTDC(nEvents, columns, activeDir); // update the TDC file
+    writeMetaData(nEvents, columns, activeDir); // update the TDC file
 
     if (nEvents > 0) { // update the mask for the partition
 	amask.adjustSize(nEvents, nEvents);
@@ -900,7 +900,7 @@ long ibis::part::append2(const char *dir) {
 	}
 
 	// retrieve the new column list
-	readTDC(nEvents, columns, activeDir);
+	readMetaData(nEvents, columns, activeDir);
 	if (ntot > 0 && ntot != nEvents) {
 	    logWarning("append", "expected %lu rows, but the table.tdc "
 		       "file says %lu", static_cast<long unsigned>(ierr),
@@ -927,7 +927,7 @@ long ibis::part::append2(const char *dir) {
 
 	switchTime = time(0);
 	state = TRANSITION_STATE; // switched successfully
-	writeTDC(nEvents, columns, activeDir); // update the TDC file
+	writeMetaData(nEvents, columns, activeDir); // update the TDC file
 
 	// update the mask for the partition
 	amask.adjustSize(nEvents, nEvents);
@@ -975,7 +975,7 @@ long ibis::part::rollback() {
 	char* tmp = activeDir;
 	activeDir = backupDir;
 	backupDir = tmp;
-	int jerr = readTDC(nEvents, columns, activeDir);
+	int jerr = readMetaData(nEvents, columns, activeDir);
 	if (jerr <= 0) {
 	    logWarning("rollback", "the TDC file in \"%s\" contains no "
 		       "valid entry.  Simply remove directory %s",
@@ -1080,8 +1080,8 @@ long ibis::part::commit(const char* dir) {
 	    ibis::fileManager::instance().flushDir(backupDir);
 	    state = STABLE_STATE;
 	    // rewrite the table.tdc files to show the correct state
-	    writeTDC(nEvents, columns, activeDir);
-	    writeTDC(nEvents, columns, backupDir);
+	    writeMetaData(nEvents, columns, activeDir);
+	    writeMetaData(nEvents, columns, backupDir);
 
 	    if (amask.cnt() < amask.size()) {
 		std::string mskfile(backupDir);
@@ -1140,7 +1140,7 @@ long ibis::part::appendToBackup(const char* dir) {
     columnList::iterator cit, pit;
 
     ibis::fileManager::instance().flushDir(backupDir);
-    ierr = readTDC(napp, clist, dir); // read table.tdc in dir
+    ierr = readMetaData(napp, clist, dir); // read table.tdc in dir
     if (ierr <= 0 || napp == 0) {
 	if (ibis::gVerbose > 0)
 	    logMessage("appendToBackup", "no data in the specified source "
@@ -1302,7 +1302,7 @@ long ibis::part::appendToBackup(const char* dir) {
     }
 
     // rewrite table.tdc in the backup directory
-    writeTDC(nold+napp, clist, backupDir);
+    writeMetaData(nold+napp, clist, backupDir);
     // clear clist
     for (cit = clist.begin(); cit != clist.end(); ++ cit)
 	delete (*cit).second;
@@ -1461,7 +1461,7 @@ long ibis::part::purgeInactive() {
 	    mskfile += DIRSEP;
 	    mskfile += "-part.msk";
 	    remove(mskfile.c_str());
-	    writeTDC(amask.cnt(), columns, backupDir);
+	    writeMetaData(amask.cnt(), columns, backupDir);
 
 	    writeLock rw(this, "append");
 	    unloadIndexes();	// remove all indices
@@ -1482,7 +1482,7 @@ long ibis::part::purgeInactive() {
 	    char* tstr = activeDir;
 	    activeDir = backupDir;
 	    backupDir = tstr;
-	    readTDC(nEvents, columns, activeDir);
+	    readMetaData(nEvents, columns, activeDir);
 	    readRIDs();
 	}
 
@@ -1545,7 +1545,7 @@ long ibis::part::purgeInactive() {
 	    mskfile += DIRSEP;
 	mskfile += "-part.msk";
 	remove(mskfile.c_str());
-	writeTDC(nEvents, columns, activeDir); // rewrite the metadata file
+	writeMetaData(nEvents, columns, activeDir); // rewrite the metadata file
     }
 
     return ierr;

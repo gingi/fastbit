@@ -6370,7 +6370,7 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 	    }
 	    break;
 	case ibis::qExpr::OP_LE:
-	    if (bin1 > nobs) {
+	    if (bin1 >= nobs) {
 		cand1 = nobs;
 	    }
 	    else if (expr.rightBound() < minval[bin1]) {
@@ -7019,7 +7019,7 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 	    }
 	    break;
 	case ibis::qExpr::OP_LE:
-	    if (bin1 > nobs) {
+	    if (bin1 >= nobs) {
 		hit1 = nobs;
 		cand1 = nobs;
 	    }

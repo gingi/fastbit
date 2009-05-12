@@ -27,7 +27,7 @@
 #endif
 #endif
 
-// constants defined for type name and type code used in the TDC file
+// constants defined for type name and type code used in the metadata file
 const char* ibis::TYPECODE   = "?OBAHGIULVRDCS";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
@@ -72,7 +72,7 @@ ibis::column::column(const part* tbl, FILE* file)
     }
 
     bool badType = false;
-    // read the column entry of the TDC file
+    // read the column entry of the metadata file
     // assume the calling program has read "Begin Property/Column" already
     do {
 	s1 = fgets(buf, MAX_LINE, file);
@@ -290,7 +290,8 @@ ibis::column::~column() {
     pthread_rwlock_destroy(&rwlock);
 } // destructor
 
-/// Write the current content to the TDC file.
+/// Write the current content to the metadata file -part.txt of the data
+/// partition.
 void ibis::column::write(FILE* file) const {
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
@@ -4635,7 +4636,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    key += ".disableIndexOnFailure";
 	    if (ibis::gParameters().isTrue(key.c_str())) {
 		// don't try to build index any more
-		thePart->updateTDC();
+		thePart->updateMetaData();
 	    }
 	    return;
 	}
@@ -4689,7 +4690,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 // 	    if (ibis::gParameters().isTrue(key.c_str())) {
 // 		// don't try to build index any more
 // 		const_cast<column*>(this)->m_bins = "noindex";
-// 		thePart->updateTDC();
+// 		thePart->updateMetaData();
 // 	    }
 // 	    purgeIndexFile();
     }

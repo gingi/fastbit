@@ -330,7 +330,7 @@ ibis::part::part(const char* adir, const char* bdir) :
     }
 
     // read the metadata file in activeDir
-    int maxLength = readTDC(nEvents, columns, activeDir);
+    int maxLength = readMetaData(nEvents, columns, activeDir);
     if (maxLength > 0) {
 	// read in the RIDs
 	readRIDs();
@@ -663,7 +663,7 @@ void ibis::part::init(const char* prefix) {
     }
 
     // read metadata file in activeDir
-    int maxLength = readTDC(nEvents, columns, activeDir);
+    int maxLength = readMetaData(nEvents, columns, activeDir);
     const char *tmp = strrchr(activeDir, DIRSEP);
     const bool useDir = (maxLength <=0 &&
 			 (prefix == 0 || *prefix == 0 ||
@@ -685,7 +685,7 @@ void ibis::part::init(const char* prefix) {
 	else {
 	    subdir.erase();
 	}
-	maxLength = readTDC(nEvents, columns, activeDir);
+	maxLength = readMetaData(nEvents, columns, activeDir);
 	if (backupDir == 0) {
 	    subdir += DIRSEP;
 	    subdir += prefix;
@@ -828,8 +828,11 @@ void ibis::part::init(const char* prefix) {
     }
 } // ibis::part::init
 
-// read the meta tag entry in the header section of the metadata file in
-// directory dir
+/// Read the meta tag entry in the header section of the metadata file in
+/// directory dir.  A meta tag is a list of name-value pairs associated
+/// with a data partition.  It can be used to record information about
+/// about a data partition that one might want to search through
+/// matchNameValuePair or matchMetaTags.
 char* ibis::part::readMetaTags(const char* const dir) {
     char *s1;
     char* m_tags = 0;
@@ -906,7 +909,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	}
     } // the loop to parse header
 
-    fclose(file); // close the tdc file
+    fclose(file); // close the file
 
     return m_tags;
 } // ibis::part::readMetaTags
@@ -981,7 +984,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 	}
     } // the loop to parse header
 
-    fclose(file); // close the tdc file
+    fclose(file); // close the file
 } // ibis::part::readMeshShape
 
 /// Read the metadata file from the named dir.  If dir is the activeDir,
@@ -994,7 +997,8 @@ void ibis::part::readMeshShape(const char* const dir) {
 /// the data files could possibly have the same name (since '-' cann't
 /// appear in any column names).  This file was previously named
 /// "table.tdc" and this function still recognize this old name.
-int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
+int ibis::part::readMetaData(size_t &nrows, columnList &plist,
+			     const char* dir) {
     if (dir == 0 || *dir == 0) return -90;
     // clear the content of plist
     for (columnList::iterator it = plist.begin(); it != plist.end(); ++it)
@@ -1013,16 +1017,14 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
     }
     if (file == 0) {
 	if (ibis::gVerbose > 7)
-	    ibis::util::logMessage("ibis::part::readTDC", "failed to "
+	    ibis::util::logMessage("ibis::part::readMetaData", "failed to "
 				   "open file \"%s\" ... %s", tdcname.c_str(),
 				   (errno ? strerror(errno) :
 				    "no free stdio stream"));
 	return -91;
     }
-    if (ibis::gVerbose > 4) {
-	ibis::util::logMessage("ibis::part::readTDC", "opened %s",
-			       tdcname.c_str());
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "part::readMetaData -- opened " << tdcname << " for reading";
 
     char *s1;
     int  maxLength = 0;
@@ -1039,11 +1041,10 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("Warning", "readTDC may have encountered "
-				   "a line that has more than %d characters",
-				   MAX_LINE);
-	}
+	LOGGER(strlen(buf) + 1 >= MAX_LINE)
+	    << "Warning -- part::readMetaData(" << tdcname
+	    << ") may have encountered a line that has more than "
+	    << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 6) << buf;
 
 	// s1 points to the value come after = sign
@@ -1087,6 +1088,7 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 		-- s1;
 	    }
 #endif
+	    LOGGER(ibis::gVerbose > 1 && ibis::gVerbose <= 6) << buf;
 	}
 	else if (strnicmp(buf, "Bins:", 5) == 0) {
 	    delete [] idxstr; // discard teh old value
@@ -1099,6 +1101,7 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 		-- s1;
 	    }
 #endif
+	    LOGGER(ibis::gVerbose > 1 && ibis::gVerbose <= 6) << buf;
 	}
 	else if (strnicmp(buf, "Columns_Selected", 16) == 0 ||
 		 strnicmp(buf, "Properties_Selected", 19) == 0) {
@@ -1116,7 +1119,7 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 		    int j = atoi(s1);
 		    if (j < i) {
 			ibis::util::logMessage
-			    ("Warning", "readTDC encounters "
+			    ("Warning", "readMetaData encounters "
 			     "an illformed range:\n%d%s", i, s2);
 		    }
 		    while (i<j) {
@@ -1219,19 +1222,18 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
     int len, cnt=0;
     while ((s1 = fgets(buf, MAX_LINE, file))) {
 	// get to the next "Begin Column" line
-	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("Warning", "readTDC may have encountered "
-				   "a line with more than %d characters.",
-				   MAX_LINE);
-	}
+	LOGGER(strlen(buf) + 1 >= MAX_LINE)
+	    << "Warning -- part::readMetaData(" << tdcname
+	    << ") may have encountered a line with more than " << MAX_LINE
+	    << " characters";
 
 	if (strnicmp(buf, "Begin Column", 12) == 0 ||
 	    strnicmp(buf, "Begin Property", 14) == 0) {
 	    ++ cnt;
 	    column* prop = new column(this, file);
-	    if (ibis::gVerbose > 5)
-		logMessage("readTDC", "got column %s from %s", prop->name(),
-			   tdcname.c_str());
+	    LOGGER(ibis::gVerbose > 5)
+		<< "part::readMetaData -- got column " << prop->name()
+		<<  " from " << tdcname;
 
 	    if (prop->type() == ibis::CATEGORY) {
 		column* tmp = new ibis::category(*prop);
@@ -1265,15 +1267,15 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
     fclose(file); // close the tdc file
 
     if ((uint32_t)num_columns != plist.size() && num_columns < INT_MAX) {
-	ibis::util::logMessage("Warning", "ibis::part::readTDC found %lu "
+	ibis::util::logMessage("Warning", "ibis::part::readMetaData found %lu "
 			       "columns, but %lu were expected",
 			       static_cast<long unsigned>(plist.size()),
 			       static_cast<long unsigned>(num_columns));
     }
     if (cnt != tot_columns && tot_columns != INT_MAX) {
-	ibis::util::logMessage("Warning", "ibis::part::readTDC expects %lu "
-			       "columns, in the TDC file, but only %lu "
-			       "entries were found",
+	ibis::util::logMessage("Warning", "ibis::part::readMetaData expects "
+			       "%lu columns, in the metadata file, but only "
+			       "%lu entries were found",
 			       static_cast<long unsigned>(tot_columns),
 			       static_cast<long unsigned>(cnt));
     }
@@ -1317,23 +1319,23 @@ int ibis::part::readTDC(size_t &nrows, columnList &plist, const char* dir) {
 	}
 
 	if (mt > 0 && activeDir != 0 && *activeDir != 0) {
-	    // write an updated TDC file
+	    // write an updated metadata file
 	    if (ibis::gVerbose > 1)
-		logMessage("readTDC", "found %lu meta tags not recorded as "
-			   "columns, writing new TDC file to %s",
+		logMessage("readMetaData", "found %lu meta tags not recorded "
+			   "as columns, writing new metadata file to %s",
 			   static_cast<unsigned long>(mt), dir);
-	    writeTDC(nEvents, plist, activeDir);
+	    writeMetaData(nEvents, plist, activeDir);
 	    if (backupDir)
-		writeTDC(nEvents, plist, activeDir);
+		writeMetaData(nEvents, plist, activeDir);
 	}
     }
     return maxLength;
-} // ibis::part::readTDC
+} // ibis::part::readMetaData
 
 /// Write the metadata about the data partition into the ASCII file named
 /// "-part.txt".
-void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
-			  const char* dir) const {
+void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
+			       const char* dir) const {
     if (dir == 0 || *dir == 0)
 	return;
     char* filename = new char[strlen(dir)+16];
@@ -1341,7 +1343,7 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
     FILE *fptr = fopen(filename, "w");
     if (fptr == 0) {
 	ibis::util::logMessage
-	    ("Warning", "writeTDC failed to open file \"%s\" for writing "
+	    ("Warning", "writeMetaData failed to open file \"%s\" for writing "
 	     "... %s", filename, (errno ? strerror(errno) :
 				  "no free stdio stream"));
 	delete [] filename;
@@ -1352,7 +1354,7 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
     bool isBackup = (backupDir != 0 ? (strcmp(backupDir, dir) == 0) : false);
     char stamp[28];
     ibis::util::getGMTime(stamp);
-    fprintf(fptr, "# metadata file written by ibis::part::writeTDC\n"
+    fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"
 	    "# on %s UTC\n\n", stamp);
     if (m_name != 0) {
 	fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", m_name);
@@ -1419,13 +1421,11 @@ void ibis::part::writeTDC(const uint32_t nrows, const columnList &plist,
 	 it != plist.end(); ++ it)
 	(*it).second->write(fptr);
     fclose(fptr);
-    if (ibis::gVerbose > 4)
-	logMessage("writeTDC", "wrote a new table file for %lu rows and %lu "
-		   "columns to \"%s\"",
-		   static_cast<long unsigned>(nrows),
-		   static_cast<long unsigned>(plist.size()), filename);
+    LOGGER(ibis::gVerbose > 4)
+	<< "part::writeMetaData -- wrote metadata for " << nrows
+	<< " rows and " << plist.size() << "columns to \"" << filename << "\"";
     delete [] filename;
-} // ibis::part::writeTDC
+} // ibis::part::writeMetaData
 
 /// Make a deep copy of the incoming name-value pairs.
 void ibis::part::setMetaTags(const ibis::resource::vList &mts) {
@@ -1531,7 +1531,7 @@ bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     return ret;
 } // ibis::part::matchMetaTags
 
-// digest the columne shape string read from TDC file
+/// Digest the columne shape string read from metadata file.
 void ibis::part::digestMeshShape(const char *shape) {
     if (shape == 0) return;
     while (*shape && isspace(*shape))
@@ -5067,13 +5067,13 @@ void ibis::part::computeMinMax() {
     }
 
     if (activeDir == 0) return;
-    writeTDC(nEvents, columns, activeDir);
+    writeMetaData(nEvents, columns, activeDir);
 
     Stat_T tmp;
     if (backupDir != 0 && *backupDir != 0) {
 	if (UnixStat(backupDir, &tmp) == 0) {
 	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
-		writeTDC(nEvents, columns, backupDir);
+		writeMetaData(nEvents, columns, backupDir);
 	}
     }
 } // ibis::part::computeMinMax
@@ -5188,12 +5188,12 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
     }
 
     if (activeDir == 0) return;
-    writeTDC(nEvents, columns, activeDir);
+    writeMetaData(nEvents, columns, activeDir);
     Stat_T tmp;
     if (backupDir != 0 && *backupDir != 0) {
 	if (UnixStat(backupDir, &tmp) == 0) {
 	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
-		writeTDC(nEvents, columns, backupDir);
+		writeMetaData(nEvents, columns, backupDir);
 	}
     }
 } // ibis::part::buildIndexes
@@ -5320,9 +5320,9 @@ void ibis::part::indexSpec(const char *spec) {
     delete [] idxstr;
     idxstr = ibis::util::strnewdup(spec);
     if (activeDir != 0)
-	writeTDC(nEvents, columns, activeDir);
+	writeMetaData(nEvents, columns, activeDir);
     if (backupDir != 0)
-	writeTDC(nEvents, columns, backupDir);
+	writeMetaData(nEvents, columns, backupDir);
 } // ibis::part::indexSpec
 
 // need a read lock to ensure the sanity of the state

@@ -1077,7 +1077,7 @@ long ibis::range::append(const ibis::range& tail) {
     for (i = 0; i < nobs; ++i)
 	delete bin2[i];
     return 0;
-} // ibis::range::append()
+} // ibis::range::append
 
 void ibis::range::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 			 uint32_t& cand1) const {
@@ -1800,7 +1800,7 @@ void ibis::range::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 			ostr.str().c_str(), static_cast<long unsigned>(cand0),
 			static_cast<long unsigned>(cand1));
     }
-} // ibis::range::locate()
+} // ibis::range::locate
 
 void ibis::range::locate(const ibis::qContinuousRange& expr,
 			 uint32_t& cand0, uint32_t& cand1,
@@ -3203,7 +3203,7 @@ void ibis::range::estimate(const ibis::qContinuousRange& expr,
     }
 
     // upper contains bins [cand0, cand1)
-    if (hit0 == cand0 && hit1 == cand1) {
+    if (cand0 >= cand1 || (hit0 == cand0 && hit1 == cand1)) {
 	upper.clear(); // clear its content to indicate accurate answer
     }
     else if (cand0 > 0) {

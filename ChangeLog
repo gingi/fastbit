@@ -1,3 +1,26 @@
+2009-05-12 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: capture the return code of ibis and print it
+	out in cases of error (in large-append-test)
+	* src/irange.cpp:3206 add case for empty upper bound
+
+2009-05-11 John Wu <John.Wu at ACM.org>
+	* src/ixpack.cpp, src/ixpale.cpp, src/ixambit.cpp, src/zone.cpp:
+	neglected to handle the case where cand0 >= cand1 (no hit); when
+	both left operator and right operator are undefined, change return
+	value of the function estimate to empty bitmpas instead of
+	undefined values
+	* src/ixpack.cpp: in estimate when the left operator is <= and
+	right operator is <=, the right boundary is not handled correctly
+	* src/ibin.cpp: tests bin1 > nobs should be bin1 >= nobs
+	* src/part.h, src/part.cpp, src/parti.cpp: rename readTDC to
+	readMetaData, writeTDC to writeMetaData, and updateTDC to
+	updateMetaData
+
+2009-05-09 John Wu <John.Wu at ACM.org>
+	* src/ixpack.cpp, src/ixpale.cpp, src/ixambit.cpp, src/zone.cpp:
+	fix more bugs in function estimate (involving operator cobinations
+	that can not be accessed through the query parser)
+
 2009-05-08 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: fixing cases involving x < a >= x or x <= a > x in
 	doScan and doCount; add code to unload indexes and retry the
@@ -11,6 +34,7 @@
 	last bin)
 	* examples/ibis.cpp: add code in doQuery to exercise the
 	countQuery class
+	* src/ixpack.cpp: fixing bugs in pack::estimate
 
 2009-05-07 John Wu <John.Wu at ACM.org>
 	* configure.ac: uncomment AC_FUNC_VPRINTF, otherwise the log

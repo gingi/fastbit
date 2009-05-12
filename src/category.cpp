@@ -925,7 +925,7 @@ void ibis::category::readDictionary(const char *dir) {
     dic.read(fnm.c_str());
 } // ibis::category::readDictionary
 
-// write the current content to the TDC file
+/// Write the current content to the metadata file for the data partition.
 void ibis::category::write(FILE* file) const {
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
@@ -1871,7 +1871,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
     return hits.cnt();
 } // ibis::text::search
 
-// write the current content to the TDC file
+/// Write the current metadata to -part.txt of the data partition.
 void ibis::text::write(FILE* file) const {
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
