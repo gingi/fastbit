@@ -858,17 +858,25 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		    << " contains conflicting type specifications";
 		return -2;
 	    }
-	    else LOGGER(ibis::gVerbose > 2) 
-		<< "tafel::write(" << dir
-		<< ") found existing data partition named "
-		<< tmp.name() << " with " << tmp.nRows()
-		<< " row" << (tmp.nRows()>1 ? "s" : "")
-		<< " and " << tmp.nColumns() << " column"
-		<< (tmp.nColumns()>1?"s":"")
-		<< ", will append " << nrows << " new row"
-		<< (nrows>1 ? "s" : "");
+	    else {
+		LOGGER(ibis::gVerbose > 2) 
+		    << "tafel::write(" << dir
+		    << ") found existing data partition named "
+		    << tmp.name() << " with " << tmp.nRows()
+		    << " row" << (tmp.nRows()>1 ? "s" : "")
+		    << " and " << tmp.nColumns() << " column"
+		    << (tmp.nColumns()>1?"s":"")
+		    << ", will append " << nrows << " new row"
+		    << (nrows>1 ? "s" : "");
+	    }
 	}
     }
+    LOGGER(ibis::gVerbose > 1)
+	<< "tafel::write starting to wrote " << nrows << " row"
+	<< (nrows>1?"s":"") << " and " << cols.size() << " column"
+	<< (cols.size()>1?"s":"") << " to " << dir << " as "
+	<< " data partition " << tname;
+
     time_t currtime = time(0); // current time
     char stamp[28];
     ibis::util::secondsToString(currtime, stamp);
@@ -958,7 +966,9 @@ int ibis::tafel::write(const char* dir, const char* tname,
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
-
+	LOGGER(ibis::gVerbose > 2)
+	    << "tafel::write opened file " << cnm
+	    << " to write data for column " << (*it).first;
 	std::string mskfile = cnm; // mask file name
 	mskfile += ".msk";
 	ibis::bitvector msk(mskfile.c_str());

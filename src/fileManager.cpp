@@ -1347,7 +1347,7 @@ int ibis::fileManager::unload(size_t size) {
     if (size > maxBytes) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- request fileManager::unload(" << size
-	    << ") can not be honered, maxBytes (" << std::setprecision(3)
+	    << ") can not be honored, maxBytes (" << std::setprecision(3)
 	    << static_cast<double>(maxBytes) << ") too small";
 	return -113;
     }

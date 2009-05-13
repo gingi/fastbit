@@ -165,7 +165,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	for b in $(BINNINGS) ; do \
 	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
-	ncases=`expr 1 + $$ncases`; echo; echo "test case # $${ncases}"; \
+	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
 	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
 	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
@@ -178,7 +178,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	@echo
 #
 multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
-	for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
+	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	echo; \

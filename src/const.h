@@ -69,7 +69,7 @@
 #include <errno.h>	// errno
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
-#  include "config.h"	// existence of headers
+#  include "fastbit-config.h"	// macros defined by the configure script
 #  ifdef HAVE_STRING_H
 #    if !STDC_HEADERS && HAVE_MEMORY_H
 #      include <memory.h>

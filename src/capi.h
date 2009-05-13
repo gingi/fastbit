@@ -21,7 +21,7 @@
 #endif // _MSC_VER >= 1000
 
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
-#include "config.h"
+#include "fastbit-config.h"
 #endif
 #if defined(HAVE_INTTYPES_H) || defined(sun) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <inttypes.h>

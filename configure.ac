@@ -4,10 +4,10 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.0.9],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.0.9a],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
-AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_HEADER([src/fastbit-config.h])
 AM_INIT_AUTOMAKE([no-define])
 
 LIB_VERSION_INFO=0:9:0
@@ -570,9 +570,7 @@ AC_SUBST(CFLAGS)
 
 AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile tests/Makefile java/Makefile])
 AC_OUTPUT_COMMANDS([
-mv src/config.h config.tmp
-sed 's/^#define PACKAGE_/#define FASTBIT_/' config.tmp > src/config.h
-rm config.tmp
+sed -i.bak -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
 echo timestamp for src/config.h > src/stamp-h1
 ])
 AC_OUTPUT
