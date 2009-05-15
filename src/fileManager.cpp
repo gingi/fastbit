@@ -1609,7 +1609,9 @@ void ibis::fileManager::signalMemoryAvailable() const {
 /// and buffer.address() != 0.
 template <typename T>
 ibis::fileManager::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
-    const long unsigned nfree = ibis::fileManager::bytesFree();
+    long unsigned nfree = ibis::fileManager::bytesFree();
+    if (nfree > 0x80000000) // will not use more than 2GB for a buffer
+	nfree = 0x80000000;
     if (nfree == 0) {
 	nbuf = 0;
 	return;
@@ -1691,6 +1693,46 @@ ibis::fileManager::buffer<T>::~buffer() {
 	ibis::fileManager::decreaseUse(nbuf*sizeof(T), evt.c_str());
     }
 } // ibis::fileManager::buffer::dtor
+
+/// Increase the number of elements can be stored in the buffer to sz.  If
+/// the input size is 0, it doubles the current size.  If the input value
+/// is not 0 but less than the current size, nothing is done.  It return
+/// the number of elements can be stored.  Since a buffer is intended to be
+/// for temporary storage, the existing content is not copied when
+/// reallocating new memory.  It will not allocate more than 2GB of memory.
+template<typename T>
+uint32_t ibis::fileManager::buffer<T>::resize(uint32_t sz) {
+    long unsigned nfree = ibis::fileManager::bytesFree();
+    if (nfree > 0x80000000) // will not use more than 2GB for a buffer
+	nfree = 0x80000000;
+    if (sz == 0) sz = nbuf + nbuf;
+    if (sz == 0) sz = 2048;
+    if (sz > nbuf && nfree/sizeof(T) >= sz) {
+	std::string evt = "fileManager::buffer";
+	if (ibis::gVerbose > 8) {
+	    evt += '<';
+	    evt += typeid(T).name();
+	    evt += '>';
+	    std::ostringstream oss;
+	    oss << "::resize(" << sz << ")";
+	    evt += oss.str();
+	}
+	T* tmp = new T[sz];
+	if (tmp != 0) {
+	    delete [] buf;
+	    buf = tmp;
+
+	    ibis::fileManager::increaseUse((sz-nbuf)*sizeof(T), evt.c_str());
+	    nbuf = sz;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< evt << " failed to allocate a new array with " << sz
+		<< " elements, keeping existing content";
+	}
+    }
+    return nbuf;
+} // ibis::fileManager::buffer<T>::resize
 
 // explicit template instantiation required
 template class ibis::fileManager::buffer<char>;

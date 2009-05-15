@@ -224,7 +224,7 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
 	return -2;
     }
 
-    if (en > nrows) nrows = en;
+    if (en > mrows) mrows = en;
     column& col = *((*it).second);
     switch (col.type) {
     case ibis::BYTE:
@@ -299,178 +299,178 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
 } // ibis::tafel::append
 
 void ibis::tafel::normalize() {
-    if (cols.empty() || nrows == 0) return;
+    if (cols.empty() || mrows == 0) return;
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	switch (col.type) {
 	case ibis::BYTE: {
 	    array_t<signed char>& vals =
 		* static_cast<array_t<signed char>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0x7F);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0x7F);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::UBYTE: {
 	    array_t<unsigned char>& vals =
 		* static_cast<array_t<unsigned char>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0xFFU);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0xFFU);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::SHORT: {
 	    array_t<int16_t>& vals =
 		* static_cast<array_t<int16_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0x7FFF);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0x7FFF);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::USHORT: {
 	    array_t<uint16_t>& vals =
 		* static_cast<array_t<uint16_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0xFFFFU);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0xFFFFU);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::INT: {
 	    array_t<int32_t>& vals =
 		* static_cast<array_t<int32_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0x7FFFFFFF);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0x7FFFFFFF);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::UINT: {
 	    array_t<uint32_t>& vals =
 		* static_cast<array_t<uint32_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), 0xFFFFFFFFU);
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), 0xFFFFFFFFU);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t>& vals =
 		* static_cast<array_t<int64_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(),
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(),
 			    0x7FFFFFFFFFFFFFFFLL);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t>& vals =
 		* static_cast<array_t<uint64_t>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(),
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(),
 			    0xFFFFFFFFFFFFFFFFULL);
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>& vals =
 		* static_cast<array_t<float>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(),
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(),
 			    std::numeric_limits<float>::quiet_NaN());
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>& vals =
 		* static_cast<array_t<double>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(),
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(),
 			    std::numeric_limits<double>::quiet_NaN());
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
 	    std::vector<std::string>& vals =
 		* static_cast<std::vector<std::string>*>(col.values);
-	    if (vals.size() < nrows) {
-		col.mask.adjustSize(vals.size(), nrows);
-		vals.insert(vals.end(), nrows-vals.size(), "");
+	    if (vals.size() < mrows) {
+		col.mask.adjustSize(vals.size(), mrows);
+		vals.insert(vals.end(), mrows-vals.size(), "");
 	    }
-	    else if (vals.size() > nrows) {
-		col.mask.adjustSize(nrows, nrows);
-		vals.resize(nrows);
+	    else if (vals.size() > mrows) {
+		col.mask.adjustSize(mrows, mrows);
+		vals.resize(mrows);
 	    }
 	    else {
-		col.mask.adjustSize(nrows, nrows);
+		col.mask.adjustSize(mrows, mrows);
 	    }
 	    break;}
 	default: {
@@ -662,7 +662,7 @@ int ibis::tafel::appendRow(const ibis::table::row& r) {
 	cnt += r.textsvalues.size();
 	appendString(r.textsnames, r.textsvalues, textsptr, msk);
     }
-    nrows += (cnt > 0);
+    mrows += (cnt > 0);
     return cnt;
 } // ibis::tafel::appendRow
 
@@ -765,7 +765,7 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 			 textsmsk);
 	}
 	if (cnt > 0) {
-	    ++ nrows;
+	    ++ mrows;
 	    ++ jnew;
 	}
 	
@@ -782,7 +782,7 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 /// - -5: failed to write the expected number of records.
 int ibis::tafel::write(const char* dir, const char* tname,
 		       const char* tdesc) const {
-    if (cols.empty() || nrows == 0) return 0; // nothing new to write
+    if (cols.empty() || mrows == 0) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "tafel::write needs a valid output directory name to proceed";
@@ -866,14 +866,14 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		    << " row" << (tmp.nRows()>1 ? "s" : "")
 		    << " and " << tmp.nColumns() << " column"
 		    << (tmp.nColumns()>1?"s":"")
-		    << ", will append " << nrows << " new row"
-		    << (nrows>1 ? "s" : "");
+		    << ", will append " << mrows << " new row"
+		    << (mrows>1 ? "s" : "");
 	    }
 	}
     }
     LOGGER(ibis::gVerbose > 1)
-	<< "tafel::write starting to wrote " << nrows << " row"
-	<< (nrows>1?"s":"") << " and " << cols.size() << " column"
+	<< "tafel::write starting to wrote " << mrows << " row"
+	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
 	<< (cols.size()>1?"s":"") << " to " << dir << " as "
 	<< " data partition " << tname;
 
@@ -884,8 +884,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	std::ostringstream oss;
 	oss << "Table constructed with ibis::tablex interface on "
 	    << stamp << " with " << cols.size() << " column"
-	    << (cols.size() > 1 ? "s" : "") << " and " << nold + nrows
-	    << " row" << (nold+nrows>1 ? "s" : "");
+	    << (cols.size() > 1 ? "s" : "") << " and " << nold + mrows
+	    << " row" << (nold+mrows>1 ? "s" : "");
 	olddesc = oss.str();
 	tdesc = olddesc.c_str();
     }
@@ -936,7 +936,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     md << "# meta data for data partition " << tname
        << " written by ibis::tafel::write on " << stamp << "\n\n"
        << "BEGIN HEADER\nName = " << tname << "\nDescription = "
-       << tdesc << "\nNumber_of_rows = " << nold+nrows
+       << tdesc << "\nNumber_of_rows = " << nold+mrows
        << "\nNumber_of_columns = " << cols.size()
        << "\nTimestamp = " << currtime;
     { // try to find the default index specification
@@ -975,57 +975,57 @@ int ibis::tafel::write(const char* dir, const char* tname,
 
 	switch (col.type) {
 	case ibis::BYTE:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<signed char>*>
 			       (col.values), (signed char)0x7F, msk, col.mask);
 	    break;
 	case ibis::UBYTE:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<unsigned char>*>
 			       (col.values), (unsigned char)0xFF, msk,
 			       col.mask);
 	    break;
 	case ibis::SHORT:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<int16_t>*>
 			       (col.values), (int16_t)0x7FFF, msk, col.mask);
 	    break;
 	case ibis::USHORT:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<uint16_t>*>
 			       (col.values), (uint16_t)0xFFFF, msk, col.mask);
 	    break;
 	case ibis::INT:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<int32_t>*>
 			       (col.values), (int32_t)0x7FFFFFFF, msk,
 			       col.mask);
 	    break;
 	case ibis::UINT:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<uint32_t>*>
 			       (col.values), (uint32_t)0xFFFFFFFF, msk,
 			       col.mask);
 	    break;
 	case ibis::LONG:
 	    ierr = writeColumn<int64_t>
-		(fdes, nold, nrows, * static_cast<const array_t<int64_t>*>
+		(fdes, nold, mrows, * static_cast<const array_t<int64_t>*>
 		 (col.values), 0x7FFFFFFFFFFFFFFFLL, msk, col.mask);
 	    break;
 	case ibis::ULONG:
 	    ierr = writeColumn<uint64_t>
-		(fdes, nold, nrows, * static_cast<const array_t<uint64_t>*>
+		(fdes, nold, mrows, * static_cast<const array_t<uint64_t>*>
 		 (col.values), 0xFFFFFFFFFFFFFFFFULL, msk, col.mask);
 	    break;
 	case ibis::FLOAT:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<float>*>
 			       (col.values),
 			       std::numeric_limits<float>::quiet_NaN(),
 			       msk, col.mask);
 	    break;
 	case ibis::DOUBLE:
-	    ierr = writeColumn(fdes, nold, nrows,
+	    ierr = writeColumn(fdes, nold, mrows,
 			       * static_cast<const array_t<double>*>
 			       (col.values), 
 			       std::numeric_limits<double>::quiet_NaN(),
@@ -1033,7 +1033,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::TEXT:
 	case ibis::CATEGORY:
-	    ierr = writeString(fdes, nold, nrows,
+	    ierr = writeString(fdes, nold, mrows,
 			       * static_cast<const std::vector<std::string>*>
 			       (col.values), msk, col.mask);
 	    break;
@@ -1089,8 +1089,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    << "tafel::write completed writing partition " 
 	    << tname << " (" << tdesc << ") with "
 	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
-	    << " and " << nrows << " row" << (nrows>1 ? "s" : "")
-	    << " (total " << nold+nrows << ") to " << dir
+	    << " and " << mrows << " row" << (mrows>1 ? "s" : "")
+	    << " (total " << nold+mrows << ") to " << dir
 	    << " using " << timer.CPUTime() << " sec(CPU), "
 	    << timer.realTime() << " sec(elapsed)";
     }
@@ -1196,7 +1196,7 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 } // ibis::tafel::writeString
 
 void ibis::tafel::clearData() {
-    nrows = 0;
+    mrows = 0;
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	col.mask.clear();
@@ -1243,7 +1243,7 @@ void ibis::tafel::clearData() {
 
 /// Reserve space for maxr records in memory.
 void ibis::tafel::reserveSpace(unsigned maxr) {
-    nrows = 0;
+    mrows = 0;
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	col.mask.clear();
@@ -1355,7 +1355,7 @@ void ibis::tafel::clear() {
 	delete colorder[i];
     colorder.clear();
     cols.clear();
-    nrows = 0;
+    mrows = 0;
 } // ibis::tafel::clear
 
 /// Digest a line of text and place the values identified into the
@@ -1645,7 +1645,7 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
 
     normalize();
     int ierr = parseLine(line, delimiters.c_str(), id.c_str());
-    nrows += (ierr > 0);
+    mrows += (ierr > 0);
     return ierr;
 } // ibis::tafel::appendRow
 
@@ -1666,7 +1666,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     ibis::horometer timer;
     timer.start();
 
-    char linebuf[MAX_LINE];
+    ibis::fileManager::buffer<char> linebuf(MAX_LINE+MAX_LINE);
     std::ifstream csv(filename);
     if (! csv) {
 	LOGGER(ibis::gVerbose > 0)
@@ -1693,17 +1693,42 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     std::string stmp;
     size_t cnt = 0;
     size_t iline = 0;
+    bool more = true;
     const size_t pline = (ibis::gVerbose < 3 ? 1000000 :
 			  ibis::gVerbose < 5 ? 100000 :
 			  ibis::gVerbose < 7 ? 10000 : 1000);
     char* str; // pointer to next character to be processed
     const size_t ncol = colorder.size();
-    while (csv.getline(linebuf, MAX_LINE)) {
-	str = linebuf;
+    while (more) {
+	++ iline;
+	std::streampos linestart = csv.tellg();
+	while (! csv.getline(linebuf.address(), linebuf.size())) {
+	    // failed to read the line
+	    const uint32_t nold = linebuf.size();
+	    // double the size of linebuf
+	    if (nold+nold != linebuf.resize(nold+nold)) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- tafel::readCSV(" << filename
+		    << ") failed to allocate linebuf of " << nold+nold
+		    << " bytes";
+		more = false;
+		break;
+	    }
+	    // go back to the beginning of the line so we can try to read again
+	    if (! csv.seekg(linestart, std::ios::beg)) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- tafel::readCSV(" << filename
+		    << ") failed to seek to the start of line # " << iline
+		    << ", no way to continue";
+		more = false;
+		break;
+	    }
+	}
+
+	str = linebuf.address();
 	while (*str != 0 && isspace(*str)) ++ str; // skip leading space
 	if (*str == '#' || (*str == '-' && str[1] == '-')) {
 	    // skip comment line (shell style comment and SQL style comments)
-	    ++ iline;
 	    continue;
 	}
 
@@ -1723,7 +1748,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a byte";
 
 			continue; // skip the line
@@ -1736,7 +1761,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1 
+			<< "column " << i+1 << " in row " << iline 
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1750,7 +1775,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a byte";
 			continue; // skip the line
 		    }
@@ -1762,7 +1787,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1776,7 +1801,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a two-byte integer";
 			continue; // skip the line
 		    }
@@ -1788,7 +1813,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1802,7 +1827,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a two-byte integer";
 			continue; // skip the line
 		    }
@@ -1814,7 +1839,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1828,7 +1853,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a four-byte integer";
 			continue; // skip the line
 		    }
@@ -1840,7 +1865,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1854,7 +1879,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 			LOGGER(ibis::gVerbose > 2)
 			    << "Warning -- tafel::readCSV "
 			    << "column " << i+1 << " in row "
-			    << iline+1 << " (" << itmp << ") "
+			    << iline << " (" << itmp << ") "
 			    << "can not fit into a four-byte integer";
 			continue; // skip the line
 		    }
@@ -1866,7 +1891,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1883,7 +1908,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1900,7 +1925,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as an integer";
 		    continue;
 		}
@@ -1918,7 +1943,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as a "
 			"floating-point number";
 		    continue;
@@ -1937,7 +1962,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline+1
+			<< "column " << i+1 << " in row " << iline
 			<< " can not be parsed correctly as a "
 			"floating-point number";
 		    continue;
@@ -1966,8 +1991,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		break;
 	    }
 	}
-	nrows += (cnt > 0);
-	++ iline;
+	mrows += (cnt > 0);
 	LOGGER(ibis::gVerbose > 0 && (iline % pline) == 0)
 	    << "tafel::readCSV(" << filename << ") processed line "
 	    << iline << " ...";
@@ -1976,15 +2000,15 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     timer.stop();
     LOGGER(ibis::gVerbose > 0)
 	<< "tafel::readCSV(" << filename << ") processed " << iline
-	<< (iline>1 ? " lines":" line") << " of text and extracted " << nrows
-	<< (nrows>1?" records":" record") << " using " << timer.CPUTime()
+	<< (iline>1 ? " lines":" line") << " of text and extracted " << mrows
+	<< (mrows>1?" records":" record") << " using " << timer.CPUTime()
 	<< " sec(CPU), " << timer.realTime() << " sec(elapsed)";
     return 0;
 } // ibis::tafel::readCSV
 
 void ibis::tafel::describe(std::ostream &out) const {
-    out << "An extensible (in-memory) table with " << nrows << " row"
-	<< (nrows>1 ? "s" : "") << " and " << cols.size() << " column"
+    out << "An extensible (in-memory) table with " << mrows << " row"
+	<< (mrows>1 ? "s" : "") << " and " << cols.size() << " column"
 	<< (cols.size()>1 ? "s" : "");
     for (columnList::const_iterator it = cols.begin();
 	 it != cols.end(); ++ it) {

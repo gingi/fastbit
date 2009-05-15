@@ -295,6 +295,11 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
 	    lbuf <<= 1;
 	    delete [] buf;
 	    buf = new char[lbuf];
+	    if (buf == 0) {
+		std::cerr << "readALine failed to allocate a buf of char["
+			  << lbuf << "], can not continue" << std::endl;
+		return -4;
+	    }
 	    fseek(fptr, start, SEEK_SET);
 	    retry = 1;
 	}

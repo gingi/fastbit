@@ -83,7 +83,7 @@ $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t0
 	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:short" -t test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
-	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
+	@echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 # a simple internal sanity check
 sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	@echo

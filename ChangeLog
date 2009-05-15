@@ -1,3 +1,12 @@
+2009-05-14 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tafel.h: change tablex::nRows to tablex::mRows,
+	tablex::nColumns to tablex::mColumns to avoid possible name
+	conflict when table and tablex are used together
+	* tests/readcsv.cpp:298 add check for buf == 0 after call to new
+	* src/fileManager.h: add function resize to
+	ibis::fileManager::buffer, add call to initialize file manager in
+	function fileManager::byteFree
+
 2009-05-13 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp: add more print statements to tafel::write
 	* configure.ac: rename src/config.h.in to

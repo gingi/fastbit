@@ -142,10 +142,7 @@ public:
     /// Returns the number of bytes currently on records.
     static uint64_t bytesInUse() {return ibis::fileManager::totalBytes();}
     /// Return the number of bytes free.
-    static uint64_t bytesFree() {
-	return (maxBytes > ibis::fileManager::totalBytes() ?
-		maxBytes - ibis::fileManager::totalBytes() : 0);
-    }
+    static uint64_t bytesFree();
 
     /// A buffer is intended to be a temporary workspace in memory.  The
     /// constructor allocates a certain amount of memory, default to 16 MB;
@@ -166,6 +163,8 @@ public:
 	T* address() const {return buf;}
 	/// The number of elements in the buffer.  NOT the number of bytes.
 	uint32_t size() const {return nbuf;}
+	/// Increase the size of the buffer.
+	uint32_t resize(uint32_t sz=0);
 
     private:
 	T* buf; ///< The address of the buffer.
@@ -459,6 +458,13 @@ private:
 }; // ibis::fileManager::rofSegment
 #endif
 
+inline uint64_t ibis::fileManager::bytesFree() {
+    if (maxBytes == 0)
+	ibis::fileManager::instance();
+    return (maxBytes > ibis::fileManager::totalBytes() ?
+	    maxBytes - ibis::fileManager::totalBytes() : 0);
+} // ibis::fileManager::bytesFree
+
 inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
@@ -471,7 +477,7 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
 			       "to %s" " returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
-} // void ibis::fileManager::releaseAccess()
+} // ibis::fileManager::releaseAccess
 
 inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
@@ -485,7 +491,7 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
 			       "to %s returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
-} // void ibis::fileManager::gainReadAccess()
+} // ibis::fileManager::gainReadAccess
 
 inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     int ierr = pthread_rwlock_wrlock(&lock);
@@ -499,7 +505,7 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
 			       "to %s returned %i -- %s",
 			       mesg, ierr, strerror(ierr));
     }
-} // void ibis::fileManager::gainWriteAccess()
+} // ibis::fileManager::gainWriteAccess
 
 // record the number of pages touched by the range specified [start, stop)
 inline void ibis::fileManager::recordPages(off_t start, off_t stop) {

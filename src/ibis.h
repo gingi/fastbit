@@ -278,6 +278,7 @@ namespace ibis {
 
 	if (rcfile != 0 && *rcfile != 0)
 	    gParameters().read(rcfile);
+	ibis::fileManager::instance(); // initialize the file manager
     }
 }
 #endif // IBIS_H

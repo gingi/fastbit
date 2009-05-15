@@ -448,10 +448,10 @@ public:
     /// does not know about its capacity.
     virtual unsigned capacity() const {return 0;}
 
-    /// The number of rows in this table.
-    virtual uint32_t nRows() const=0;
+    /// The maximum number of rows in any column.
+    virtual uint32_t mRows() const=0;
     /// The number of columns in this table.
-    virtual size_t nColumns() const=0;
+    virtual size_t mColumns() const=0;
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const=0;
 

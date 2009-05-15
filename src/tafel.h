@@ -21,7 +21,7 @@ namespace ibis {
 ///@note The word tafel is a German word for table.
 class ibis::tafel : public ibis::tablex {
 public:
-    tafel() : nrows(0U) {}
+    tafel() : mrows(0U) {}
     virtual ~tafel() {clear();}
 
     virtual int addColumn(const char* cname, ibis::TYPE_T ctype);
@@ -40,8 +40,8 @@ public:
     virtual void reserveSpace(unsigned);
     virtual unsigned capacity() const;
 
-    virtual uint32_t nRows() const {return nrows;}
-    virtual size_t nColumns() const {return cols.size();}
+    virtual uint32_t mRows() const {return mrows;}
+    virtual size_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
 
 protected:
@@ -66,7 +66,7 @@ protected:
     /// Order of columns as they were specified through @c addColumn.
     std::vector<column*> colorder;
     /// Number of rows of this table.
-    ibis::bitvector::word_t nrows;
+    ibis::bitvector::word_t mrows;
 
     /// Clear all content.  Removes both data and metadata.
     void clear();
