@@ -871,11 +871,6 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    }
 	}
     }
-    LOGGER(ibis::gVerbose > 1)
-	<< "tafel::write starting to wrote " << mrows << " row"
-	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
-	<< (cols.size()>1?"s":"") << " to " << dir << " as "
-	<< " data partition " << tname;
 
     time_t currtime = time(0); // current time
     char stamp[28];
@@ -921,6 +916,11 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		oldnm[0] = 'A' + (oldnm[0] % 26);
 	}
     }
+    LOGGER(ibis::gVerbose > 1)
+	<< "tafel::write starting to wrote " << mrows << " row"
+	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
+	<< (cols.size()>1?"s":"") << " to " << dir << " as "
+	<< " data partition " << tname;
 
     std::string mdfile = dir;
     mdfile += DIRSEP;
@@ -1666,10 +1666,10 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     ibis::horometer timer;
     timer.start();
 
-    ibis::fileManager::buffer<char> linebuf(MAX_LINE+MAX_LINE);
+    ibis::fileManager::buffer<char> linebuf(MAX_LINE);
     std::ifstream csv(filename);
     if (! csv) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "tafel::readCSV(" << filename << ") failed to open the named "
 	    "file for reading";
 	return -3; // failed to open the specified data file
@@ -1703,8 +1703,16 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 	++ iline;
 	std::streampos linestart = csv.tellg();
 	while (! csv.getline(linebuf.address(), linebuf.size())) {
+	    if (csv.eof()) {
+		*(linebuf.address()) = 0;
+		more = false;
+		-- iline;
+		break;
+	    }
+
 	    // failed to read the line
-	    const uint32_t nold = linebuf.size();
+	    const uint32_t nold =
+		(linebuf.size() > 0 ? linebuf.size() : MAX_LINE);
 	    // double the size of linebuf
 	    if (nold+nold != linebuf.resize(nold+nold)) {
 		LOGGER(ibis::gVerbose > 0)
@@ -1714,20 +1722,23 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 		more = false;
 		break;
 	    }
+	    csv.clear(); // clear the error bit
 	    // go back to the beginning of the line so we can try to read again
 	    if (! csv.seekg(linestart, std::ios::beg)) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- tafel::readCSV(" << filename
 		    << ") failed to seek to the start of line # " << iline
 		    << ", no way to continue";
+		*(linebuf.address()) = 0;
 		more = false;
 		break;
 	    }
 	}
 
 	str = linebuf.address();
+	if (str == 0) break;
 	while (*str != 0 && isspace(*str)) ++ str; // skip leading space
-	if (*str == '#' || (*str == '-' && str[1] == '-')) {
+	if (*str == 0 || *str == '#' || (*str == '-' && str[1] == '-')) {
 	    // skip comment line (shell style comment and SQL style comments)
 	    continue;
 	}
@@ -2069,3 +2080,249 @@ ibis::tafel::column::~column() {
 ibis::tablex* ibis::tablex::create() {
     return new ibis::tafel;
 } // ibis::tablex::create
+
+int ibis::tablex::readNamesAndTypes(const char* filename) {
+    if (filename == 0 || *filename == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tablex::readNamesAndTypes needs a filename to proceed";
+	return -1;
+    }
+
+    ibis::fileManager::buffer<char> linebuf(MAX_LINE);
+    std::ifstream ntfile(filename);
+    if (! ntfile) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "tablex::readNamesAndTypes(" << filename
+	    << ") failed to open the named file for reading";
+	return -3;
+    }
+
+    int ret = 0;
+    bool more = true;
+    while (more) {
+	std::streampos linestart = ntfile.tellg();
+	while (! ntfile.getline(linebuf.address(), linebuf.size())) {
+	    if (ntfile.eof()) {
+		*(linebuf.address()) = 0;
+		more = false;
+		break;
+	    }
+
+	    const uint32_t nold =
+		(linebuf.size() > 0  ? linebuf.size() : MAX_LINE);
+	    if (nold+nold != linebuf.resize(nold+nold)) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- tablex::readNamesAndTypes(" << filename
+		    << ") failed to allocate linebuf of " << nold+nold
+		    << " bytes";
+		more = false;
+		break;
+	    }
+	    ntfile.clear(); // clear the error bit
+	    if (! ntfile.seekg(linestart, std::ios::beg)) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- tablex::readNamesAndTypes(" << filename
+		    << ") failed to seek to the beginning of a line";
+		*(linebuf.address()) = 0;
+		more = false;
+		break;
+	    }
+	}
+	if (linebuf.address() != 0 && *(linebuf.address()) != 0) {
+	    int ierr = parseNamesAndTypes(linebuf.address());
+	    if (ierr >  0)
+		ret += ierr;
+	}
+    } // while (more)
+
+    LOGGER(ibis::gVerbose > 2)
+	<< "tablex::readNamesAndTypes(" << filename << ") successfully parsed "
+	<< ret << " name-type pair" << (ret > 1 ? "s" : "");
+    return ret;
+} // ibis::tablex::readNamesAndTypes
+
+/// A column name must start with an alphabet or a underscore (_), and
+/// followed by any number of alphanumeric characters (including
+/// underscores).  For each built-in data types, the type names recognized
+/// are as follows:
+/// - ibis::BYTE: byte,
+/// - ibis::UBYTE: ubyte, unsigned byte,
+/// - ibis::SHORT: short, halfword
+/// - ibis::USHORT: ushort, unsigned short,
+/// - ibis::INT: int,
+/// - ibis::UINT: uint, unsigned int,
+/// - ibis::LONG: long,
+/// - ibis::ULONG: ulong, unsigned long,
+/// - ibis::FLOAT: float, real,
+/// - ibis::DOUBLE: double,
+/// - ibis::CATEGORY: category, key
+/// - ibis::TEXT: text, string
+///
+/// If it can not find a type, but a valid name is found, then the type is
+/// assumed to be int.
+///
+/// @note Column names are not case-sensitive and all types should be
+/// specified in lower case letters.
+///
+/// Characters following '#' or '--' on a line will be treated as comments
+/// and discarded.
+int ibis::tablex::parseNamesAndTypes(const char* txt) {
+    if (txt == 0 || *txt == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tablex::parseNamesAndTypes received an empty string";
+	return -1;
+    }
+
+    int ret = 0;
+    const char *str = txt;
+    std::string nm, type;
+    while (*str != 0) {
+	// skip leading space
+	while (*str != 0 && isspace(*str)) ++ str;
+	// find first alphabet or _
+	while (*str != 0) {
+	    if (*str == '#' || (*str == '-' && str[1] == '-')) return ret;
+	    else if(*str != '_' && isalpha(*str) == 0) ++ str;
+	    else break;
+	}
+	nm.clear();
+	while (*str != 0 && (isalnum(*str) != 0 || *str == '_')) {
+	    nm += *str;
+	    ++ str;
+	}
+
+	if (nm.empty()) return ret;
+
+	// skip ti
+	while (*str != 0) {
+	    if (*str == '#' || (*str == '-' && str[1] == '-')) {
+		for (++ str; *str != 0; ++ str);
+	    }
+	    else if (isalpha(*str) == 0) ++ str;
+	    else break;
+	}
+	type.clear();
+	while (*str != 0 && isalpha(*str) != 0) {
+	    type += *str;
+	    ++ str;
+	}
+	if (type.compare("unsigned") == 0 || type.compare("signed") == 0) {
+	    // read the second word, drop signed
+	    if (type.compare("signed") == 0)
+		type.clear();
+	    while (*str != 0 && isspace(*str) != 0) ++ str;
+	    while (*str != 0 && isalpha(*str) != 0) {
+		type += *str;
+		++ str;
+	    }
+	}
+	if (type.empty())
+	    type = 'i';
+
+	LOGGER(ibis::gVerbose > 2)
+	    << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
+	    << ':' << type << "\"";
+
+	if (type.compare("unsigned") == 0) {
+	    switch (*(type.c_str()+8)) {
+	    case 'b':
+	    case 'B':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 's':
+	    case 'S':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    default:
+		LOGGER(ibis::gVerbose > 2)
+		    << "tablex::parseNamesAndTypes assumes type \"" << type
+		    << "\" to be uint32_t";
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    }
+	}
+	else if (type[0] == 'u' || type[0] == 'U') {
+	    switch (*(type.c_str()+1)) {
+	    case 'b':
+	    case 'B':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 's':
+	    case 'S':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    default:
+		LOGGER(ibis::gVerbose > 2)
+		    << "tablex::parseNamesAndTypes assumes type \"" << type
+		    << "\" to be uint32_t";
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    }
+	}
+	else {
+	    switch (type[0]) {
+	    case 'a':
+	    case 'A':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 'b':
+	    case 'B':
+		addColumn(nm.c_str(), ibis::BYTE); break;
+	    case 'h':
+	    case 'H':
+		addColumn(nm.c_str(), ibis::SHORT); break;
+	    case 'g':
+	    case 'G':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::INT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::LONG); break;
+	    case 'v':
+	    case 'V':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    case 'r':
+	    case 'R':
+	    case 'f':
+	    case 'F':
+		addColumn(nm.c_str(), ibis::FLOAT); break;
+	    case 'd':
+	    case 'D':
+		addColumn(nm.c_str(), ibis::DOUBLE); break;
+	    case 'c':
+	    case 'C':
+	    case 'k':
+	    case 'K':
+		addColumn(nm.c_str(), ibis::CATEGORY); break;
+	    case 't':
+	    case 'T':
+		addColumn(nm.c_str(), ibis::TEXT); break;
+	    case 's':
+	    case 'S':
+		if (type[1] == 't' && type[1] == 'T')
+		    addColumn(nm.c_str(), ibis::TEXT);
+		else
+		    addColumn(nm.c_str(), ibis::SHORT);
+		break;
+	    default:
+		LOGGER(ibis::gVerbose > 2)
+		    << "tablex::parseNamesAndTypes assumes type \"" << type
+		    << "\" to be int32_t";
+		addColumn(nm.c_str(), ibis::INT); break;
+	    }
+	}
+	++ ret;
+    } // while (*str != 0)
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "tablex::parseNamesAndType extracted " << ret
+	<< " name-type pair" << (ret > 1 ? "s" : "");
+    return ret;
+} // ibis::tablex::parseNamesAndTypes

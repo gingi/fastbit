@@ -1,3 +1,13 @@
+2009-05-15 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/tafel.cpp: add ibis::tablex::readNamesAndTypes
+	and ibis::tablex::parseNamesAndTypes, implement them in
+	src/tafel.cpp, addressing an issue of column names not accepting
+	underscore (a problem first reported by Nicolae Mihalache <mache
+	at abcpages dot com>)
+	* examples/ardea.cpp: add option -M to accept a metadata file name
+	for metadata that includes a large number of columns (to
+	accomodate the need to read metadata of wide tables)
+
 2009-05-14 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.h: change tablex::nRows to tablex::mRows,
 	tablex::nColumns to tablex::mColumns to avoid possible name
@@ -6,6 +16,9 @@
 	* src/fileManager.h: add function resize to
 	ibis::fileManager::buffer, add call to initialize file manager in
 	function fileManager::byteFree
+	* src/tafel.cpp: in tafel::readCSV increase the size of linebuf to
+	accomodate data files with wide rows (a problem first reported by
+	Nicolae Mihalache <mache at abcpages dot com>)
 
 2009-05-13 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp: add more print statements to tafel::write

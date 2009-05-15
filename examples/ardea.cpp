@@ -42,13 +42,14 @@ typedef std::set< const char*, ibis::lessi > qList;
 static std::vector<const char*> inputrows;
 static std::vector<const char*> csvfiles;
 static std::string metadata;
+static const char* metadatafile = 0;
 
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
 	"[-r a-row-in-ASCII] [-t text-file-to-read] [-b break/delimiters-in-text-file]"
-	"[-m name:type[,name:type,...]] [-m max-rows-per-file] "
+	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
 	"[-s select-clause] [-w where-clause] [-v[=| ]verbose_level]\n\n"
 	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
@@ -134,7 +135,6 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		}
 		break;
 	    case 'm':
-	    case 'M':
 		if (i+1 < argc) {
 		    ++ i;
 		    if (isdigit(*argv[i])) {
@@ -147,6 +147,12 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 			    metadata += ", ";
 			metadata += argv[i];
 		    }
+		}
+		break;
+	    case 'M':
+		if (i+1 < argc) {
+		    ++ i;
+		    metadatafile = argv[i];
 		}
 		break;
 	    case 'n':
@@ -223,30 +229,35 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 
     std::cout << argv[0] << ": verbose level " << ibis::gVerbose << "\n";
     if (inputrows.size() > 0 || csvfiles.size() > 0) {
-	if (!metadata.empty()) {
-	    std::cout << "Will parse ";
-	    if (csvfiles.size() > 0)
-		std::cout << csvfiles.size() << " CSV file"
-			  << (csvfiles.size() > 1 ? "s" : "");
-	    if (csvfiles.size() > 0 && inputrows.size() > 0)
-		std::cout <<  " and ";
-	    if (inputrows.size() > 0)
-		std::cout << inputrows.size() << " row"
-			  << (inputrows.size() > 1 ? "s" : "");
-	    std::cout << " with the following column names and types\n\t"
-		      << metadata << "\n";
-	}
-	else {
-	    std::clog << *argv << " can not parse the specified data without "
-		      << "metadata, use option -m name:type[,name:type] "
-		      << "to specify the required metadata\n";
-	}
+	std::cout << "Will attempt to parse ";
+	if (csvfiles.size() > 0)
+	    std::cout << csvfiles.size() << " CSV file"
+		      << (csvfiles.size() > 1 ? "s" : "");
+	if (csvfiles.size() > 0 && inputrows.size() > 0)
+	    std::cout <<  " and ";
+	if (inputrows.size() > 0)
+	    std::cout << inputrows.size() << " row"
+		      << (inputrows.size() > 1 ? "s" : "");
+	std::cout << "\n";
     }
-    else if (! metadata.empty()) {
-	std::clog << *argv << " metadata specified with -r or -t options\n";
+    if (!metadata.empty()) {
+	std::cout << " with the following column names and types\n\t"
+		  << metadata << "\n";
+	if (metadatafile != 0)
+	    std::cout << "as well as those names and types from "
+		      << metadatafile << "\n";
+    }
+    else if (metadatafile != 0) {
+	std::cout << " with names and types from " << metadatafile << "\n";
+    }
+    else {
+	std::clog
+	    << "\n" << *argv << " can not parse the specified data "
+	    "without metadata, use -m name:type[,name:type] or "
+	    "-M metadatafilename to specify the column names and types\n";
     }
     if (qcnd.size() > 0) {
-	std::cout << "User-supplied queries: ";
+	std::cout << "Will also exercise the following queries: ";
 	for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
 	    std::cout << "  " << *it << "\n";
     }
@@ -658,90 +669,6 @@ static void doQuery(const ibis::table& tbl, const char* wstr,
     delete selected;
 } // doQuery
 
-static void parseNamesTypes(ibis::tablex& tbl) {
-    const char* str = metadata.c_str();
-    std::string nm;
-    char type = 'i'; // initial default type is int
-    while (*str != 0) {
-	// skip leading space
-	while (*str != 0 && isspace(*str)) ++ str;
-	if (*str == 0) return;
-
-	// extract a name
-	nm.clear();
-	while (*str != 0 && isalpha(*str) == 0) ++ str;
-	while (*str != 0 && isalnum(*str) != 0) {
-	    nm += *str;
-	    ++ str;
-	}
-	if (nm.empty()) return; // did not get a name
-
-	// skip space
-	while (*str != 0 && isspace(*str)) ++ str;
-	if (*str == ':') { // try to find the type
-	    ++ str;
-	    bool nextname = (*str != 0 && isspace(*str));
-	    while (*str != 0 && isspace(*str)) ++ str;
-	    if (strchr("bsilfdktBSILFDKT", *str) == 0) {
-		std::clog << '\'' << *str << "\' is not one of bsilfdkt, "
-			  << "assume column \"" << nm << "\" is of type "
-			  << type << std::endl;
-		if (! nextname) // skip the rest of the word
-		    while (*str != 0 && isalnum(*str) != 0) ++ str;
-	    }
-	    else {
-		type = *str;
-		while (*str != 0 && isalnum(*str) != 0) ++ str;
-	    }
-	}
-	if (*str != 0)
-	    str += strspn(str, ",; \t");
-
-	switch (type) {
-	case 'b':
-	case 'B':
-	    tbl.addColumn(nm.c_str(), ibis::BYTE);
-	    break;
-	case 's':
-	case 'S':
-	    tbl.addColumn(nm.c_str(), ibis::SHORT);
-	    break;
-	case 'i':
-	case 'I':
-	    tbl.addColumn(nm.c_str(), ibis::INT);
-	    break;
-	case 'l':
-	case 'L':
-	    tbl.addColumn(nm.c_str(), ibis::LONG);
-	    break;
-	case 'f':
-	case 'F':
-	    tbl.addColumn(nm.c_str(), ibis::FLOAT);
-	    break;
-	case 'd':
-	case 'D':
-	    tbl.addColumn(nm.c_str(), ibis::DOUBLE);
-	    break;
-	case 'k':
-	case 'K':
-	    tbl.addColumn(nm.c_str(), ibis::CATEGORY);
-	    break;
-	case 't':
-	case 'T':
-	    tbl.addColumn(nm.c_str(), ibis::TEXT);
-	    break;
-	default:
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- parseNamesTypes does not recognize type "
-		<< *str << ", know types are:\nb(byte), s(short), i(int), "
-		"l(long), f(float), d(double), k(key), and t(text)\n"
-		".. assume it is type int";
-	    tbl.addColumn(nm.c_str(), ibis::INT);
-	    break;
-	}
-    }
-} // parseNamesTypes
-
 int main(int argc, char** argv) {
     const char* outdir = "tmp";
     const char* sel;
@@ -751,12 +678,16 @@ int main(int argc, char** argv) {
     qList qcnd;
 
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
-    bool usersupplied = (! metadata.empty() &&
+    bool usersupplied = ((! metadata.empty() || metadatafile != 0) &&
 			 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
     ibis::tablex* ta = ibis::tablex::create();
     if (usersupplied) { // use user-supplied data
-	parseNamesTypes(*ta);
+	if (! metadata.empty())
+	    ta->parseNamesAndTypes(metadata.c_str());
+	if (metadatafile != 0)
+	    ta->readNamesAndTypes(metadatafile);
+
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
 		std::cout << *argv << " to read CSV file " << csvfiles[i]

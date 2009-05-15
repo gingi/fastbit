@@ -419,6 +419,11 @@ public:
     virtual int readCSV(const char* filename, const int maxrows=0,
 			const char* delimiters=0) =0;
 
+    /// Read a file containing the names and types of columns.
+    virtual int readNamesAndTypes(const char* filename);
+    /// Parse names and data types in string form.
+    virtual int parseNamesAndTypes(const char* txt);
+
     /// Write the in-memory data records to the specified directory on
     /// disk.  If the table name (@c tname) is a null string or an empty string,
     /// the last component of the directory name is used.  If the
