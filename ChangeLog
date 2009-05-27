@@ -1,3 +1,35 @@
+2009-05-27 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: in column::appendValues and
+	column::appendStrings, add UnixClose to close the file and add
+	statements to write the mask fo the column
+
+2009-05-26 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: in both versions of tafel::appendRow, only
+	increment mrows if all fields have been added, change normalize to
+	compute the value of mrows, in appendRow that takes
+	ibis::table::row, call normalize only if the number of columns is
+	the same as the number of column of the current data partition
+	(otherwise only work with the few columns indicated in the
+	incoming data structure)
+	* src/table.h: add function table::row::nColumns
+	* src/tafel.cpp:717 add a line to capture the new mask found
+	through name matching
+
+2009-05-22 John Wu <John.Wu at ACM.org>
+	* src/util.cpp: extend util::charTable to contain 65 characters
+	instead of 64 just in case someone is using the util::charIndex as
+	indices into util::charTable
+	* src/tafel.h: change the definition of tafel::column from
+	protected to public to make it possible to directly access the
+	in-memory columns
+	* src/column.h, src/column.cpp: add a new variant of function
+	append with two functions appendValues and appendString to direct
+	add values to the active data file
+
+2009-05-21 John Wu <John.Wu at ACM.org>
+	* src/array_t.cpp: replace all calls to util::logMessage with
+	calls to LOGGER
+
 2009-05-15 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/tafel.cpp: add ibis::tablex::readNamesAndTypes
 	and ibis::tablex::parseNamesAndTypes, implement them in

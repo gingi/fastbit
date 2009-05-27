@@ -1168,9 +1168,9 @@ array_t<T>::insert(typename array_t<T>::iterator p, const T& val) {
 /// Insert n copies of a value (val) before p.
 template<class T> void
 array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
-    if (actual->inUse() > 1 && ibis::gVerbose > -1)
-	ibis::util::logMessage("Warning", "array_t -- should not insert "
-			       "to a shared array");
+    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< ">::instert -- should not insert to a shared array";
 
     if (n <= 0) { // nothing to do
 #if defined(DEBUG) && DEBUG > 2
@@ -1210,9 +1210,9 @@ template<class T> void
 array_t<T>::insert(typename array_t<T>::iterator p,
 		   typename array_t<T>::const_iterator front,
 		   typename array_t<T>::const_iterator back) {
-    if (actual->inUse() > 1 && ibis::gVerbose > -1)
-	ibis::util::logMessage("Warning", "array_t -- should not insert "
-			       "to a shared array");
+    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< ">::instert -- should not insert to a shared array";
 
     long n = back - front;
     if (n <= 0) { // nothing to do
@@ -1252,9 +1252,9 @@ array_t<T>::insert(typename array_t<T>::iterator p,
 /// Erase one element.
 template<class T> typename array_t<T>::iterator
 array_t<T>::erase(typename array_t<T>::iterator p) {
-    if (actual->inUse() > 1 && ibis::gVerbose > -1)
-	ibis::util::logMessage("Warning", "array_t -- should not erase "
-			       "part of a shared array");
+    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< ">::erase -- should not erase part of a shared array";
 
     if (p >= m_begin && p < m_end) {
 	iterator i = p, j = p+1;
@@ -1274,9 +1274,9 @@ array_t<T>::erase(typename array_t<T>::iterator p) {
 template<class T> typename array_t<T>::iterator
 array_t<T>::erase(typename array_t<T>::iterator i,
 		  typename array_t<T>::iterator j) {
-    if (actual->inUse() > 1 && ibis::gVerbose > -1)
-	ibis::util::logMessage("Warning", "array_t -- should not erase "
-			       "part of a shared array");
+    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< ">::erase -- should not erase part of a shared array";
 
     if (i >= j) {
 	return m_begin;
@@ -1295,6 +1295,7 @@ array_t<T>::erase(typename array_t<T>::iterator i,
 /// Read an array from the name file.
 template<class T>
 void array_t<T>::read(const char* file) {
+    if (file == 0 || *file == 0) return;
     freeMemory();
     int ierr = ibis::fileManager::instance().getFile(file, &actual);
     if (ierr == 0) {
@@ -1302,9 +1303,10 @@ void array_t<T>::read(const char* file) {
 	m_end = (T*)(actual->end());
 	actual->beginUse();
     }
-    else if (ibis::gVerbose > -1) {
-	ibis::util::logMessage("Warning", "array_t<T>::read(%s) failed",
-			       file);
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- array_t<" << typeid(T).name()
+	    << ">::read(" << file << ") failed with ierr=" << ierr;
     }
 } // array_t<T>::read
 
@@ -1318,13 +1320,10 @@ off_t array_t<T>::read(const int fdes, const off_t begin,
 	m_end = (T*)(actual->begin()+nread);
     }
     else {
-	ibis::util::logMessage("Warning",
-			       "array_t<T>::read(%d, %lu, %lu) expected to "
-			       "read %ld bytes, but acutally read %ld",
-			       fdes, static_cast<long unsigned>(begin),
-			       static_cast<long unsigned>(end),
-			       static_cast<long int>(end-begin),
-			       static_cast<long int>(nread));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- array_t<" << typeid(T).name() << ">::read("
+	    << fdes << ", " << begin << ", " << end << ") expected to read "
+	    << (end-begin) << " bytes, but acutally read " << nread;
     }
     return nread;
 } // array_t<T>::read

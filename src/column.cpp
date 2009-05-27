@@ -5244,8 +5244,9 @@ double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
     return ret;
 } // ibis::column::estimateCost
 
-// compute the rows that can not be decided by the index, if no index,
-// nothing can be decided.
+/// Compute the locations of the rows can not be decided by the index.
+/// Returns the fraction of rows might satisfy the specified range
+/// condition.  If no index, nothing can be decided.
 float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
 				   ibis::bitvector& iffy) const {
     float ret = 1.0;
@@ -5732,6 +5733,218 @@ long ibis::column::string2int(int fptr, dictionary& dic,
     return ierr;
 } // ibis::column::string2int
 
+/// Append the records in vals to the current working dataset.  The 'void*'
+/// in this function follows the convention of the function getValuesArray
+/// (not writeData), i.e., for the ten fixed-size elementary data types, it
+/// is array_t<type>* and for string-valued columns it is
+/// std::vector<std::string>*.
+///
+/// Return the number of entries actually written to disk or a negative
+/// number to indicate error conditions.
+long ibis::column::append(const void* vals, const ibis::bitvector& msk) {
+    if (thePart == 0 || thePart->name() == 0 || thePart->currentDataDir() == 0)
+	return -1L;
+    if (m_name.empty()) return -2L;
+
+    long ierr;
+    writeLock lock(this, "appendValues");
+    switch (m_type) {
+    case ibis::BYTE:
+	ierr = appendValues(* static_cast<const array_t<char>*>(vals), msk);
+	break;
+    case ibis::UBYTE:
+	ierr = appendValues(* static_cast<const array_t<unsigned char>*>(vals),
+			    msk);
+	break;
+    case ibis::SHORT:
+	ierr = appendValues(* static_cast<const array_t<int16_t>*>(vals), msk);
+	break;
+    case ibis::USHORT:
+	ierr = appendValues(* static_cast<const array_t<uint16_t>*>(vals), msk);
+	break;
+    case ibis::INT:
+	ierr = appendValues(* static_cast<const array_t<int32_t>*>(vals), msk);
+	break;
+    case ibis::UINT:
+	ierr = appendValues(* static_cast<const array_t<uint32_t>*>(vals), msk);
+	break;
+    case ibis::LONG:
+	ierr = appendValues(* static_cast<const array_t<int64_t>*>(vals), msk);
+	break;
+    case ibis::ULONG:
+	ierr = appendValues(* static_cast<const array_t<uint64_t>*>(vals), msk);
+	break;
+    case ibis::FLOAT:
+	ierr = appendValues(* static_cast<const array_t<float>*>(vals), msk);
+	break;
+    case ibis::DOUBLE:
+	ierr = appendValues(* static_cast<const array_t<double>*>(vals), msk);
+	break;
+    case ibis::CATEGORY:
+    case ibis::TEXT:
+	ierr = appendStrings
+	    (* static_cast<const std::vector<std::string>*>(vals), msk);
+	break;
+    default:
+	ierr = -3L;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "]::append can not handle type " << (int) m_type << " ("
+	    << ibis::TYPESTRING[(int)m_type] << ')';
+	break;
+    } // siwthc (m_type)
+    return ierr;
+} // ibis::column::append
+
+/// This function attempts to fill the data file with NULL values if the
+/// existing data file is shorter than expected.  It writes the data in
+/// vals and extends the existing validity mask.
+template <typename T>
+long ibis::column::appendValues(const array_t<T>& vals,
+				const ibis::bitvector& msk) {
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += '.';
+    evt += m_name;
+    evt += "]::appendValues<";
+    evt += typeid(T).name();
+    evt += '>';
+    std::string fn = thePart->currentDataDir();
+    fn += DIRSEP;
+    fn += m_name;
+    int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (curr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << fn
+	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
+	return -5L;
+    }
+
+    long ierr = 0;
+    const unsigned elem = sizeof(T);
+    off_t oldsz = UnixSeek(curr, 0, SEEK_END);
+    if (oldsz < 0)
+	oldsz = 0;
+    else
+	oldsz = oldsz / elem;
+    if (static_cast<size_t>(oldsz) < thePart->nRows()) {
+	mask_.adjustSize(oldsz, thePart->nRows());
+	while (static_cast<size_t>(oldsz) < thePart->nRows()) {
+	    const size_t nw = (thePart->nRows()-oldsz <= vals.size() ?
+			       thePart->nRows()-oldsz : vals.size());
+	    ierr = UnixWrite(curr, vals.begin(), nw*elem);
+	    if (ierr < static_cast<long>(nw*elem)) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " failed to write " << nw*elem
+		    << " bytes to " << fn << ", the write function returned "
+		    << ierr;
+		UnixClose(curr);
+		return -6L;
+	    }
+	}
+    }
+    else if (static_cast<size_t>(oldsz) > thePart->nRows()) {
+	mask_.adjustSize(thePart->nRows(), thePart->nRows());
+	UnixSeek(curr, elem * thePart->nRows(), SEEK_SET);
+    }
+
+    ierr = UnixWrite(curr, vals.begin(), vals.size()*elem);
+    if (ierr < static_cast<long>(vals.size() * elem)) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to write " << vals.size()*elem
+	    << " bytes to " << fn << ", the write function returned " << ierr;
+	UnixClose(curr);
+	return -7L;
+    }
+
+    UnixClose(curr);
+    LOGGER(ibis::gVerbose > 2)
+	<< evt << " successfully added " << vals.size() << " element"
+	<< (vals.size()>1?"s":"") << " to " << fn;
+
+    ierr = vals.size();
+    mask_ += msk;
+    mask_.adjustSize(thePart->nRows()+vals.size(),
+		     thePart->nRows()+vals.size());
+    if (mask_.cnt() < mask_.size()) {
+	fn += ".msk";
+	mask_.write(fn.c_str());
+    }
+    return ierr;
+} // ibis::column::appendValues
+
+/// This function attempts to fill the existing data file with null values
+/// based on the content of the validity mask.   It then write strings in
+/// vals and extends the validity mask.
+long ibis::column::appendStrings(const std::vector<std::string>& vals,
+				 const ibis::bitvector& msk) {
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += '.';
+    evt += m_name;
+    evt += "]::appendStrings";
+
+    std::string fn = thePart->currentDataDir();
+    fn += DIRSEP;
+    fn += m_name;
+    int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (curr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << fn
+	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
+	return -5L;
+    }
+
+    long ierr = 0;
+    if (mask_.size() < thePart->nRows()) {
+	char tmp[128];
+	for (unsigned j = 0; j < 128; ++ j)
+	    tmp[j] = 0;
+	for (unsigned j = mask_.size(); j < thePart->nRows(); j += 128) {
+	    const long nw = (thePart->nRows()-j <= 128 ?
+			     thePart->nRows()-j : 128);
+	    ierr = UnixWrite(curr, tmp, nw);
+	    if (ierr < nw) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " failed to write " << nw
+		    << " bytes to " << fn << ", the write function returned "
+		    << ierr;
+		UnixClose(curr);
+		return -6L;
+	    }
+	}
+	mask_.adjustSize(0, thePart->nRows());
+    }
+
+    for (ierr = 0; ierr < static_cast<long>(vals.size()); ++ ierr) {
+	long jerr = UnixWrite(curr, vals[ierr].c_str(), 1+vals[ierr].size());
+	if (jerr < static_cast<long>(1 + vals[ierr].size())) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " failed to write "
+		<< 1+vals[ierr].size() << " bytes to " << fn
+		<< ", the write function returned " << jerr;
+	    UnixClose(curr);
+	    return -7L;
+	}
+    }
+    UnixClose(curr);
+    LOGGER(ibis::gVerbose > 2)
+	<< evt << " successfully added " << vals.size() << " string"
+	<< (vals.size()>1?"s":"") << " to " << fn;
+    mask_ += msk;
+    mask_.adjustSize(thePart->nRows()+vals.size(),
+		     thePart->nRows()+vals.size());
+    if (mask_.cnt() < mask_.size()) {
+	fn += ".msk";
+	mask_.write(fn.c_str());
+    }
+    return ierr;
+} // ibis::column::appendStrings
+
+/// Write the content in array va1 to directory dir.  Extend the mask.
+/// The void* is internally cast into a pointer to the fixed-size
+/// elementary data types according to the type of column.  Therefore,
+/// there is no way this function can handle string values.
 /// - Normally: record the content in array va1 to the directory dir.
 /// - Special case 1: the OID column writes the second array va2 only.
 /// - Special case 2: for string values, va2 is recasted to be the number

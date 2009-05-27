@@ -222,9 +222,6 @@ public:
     virtual double estimateCost(const ibis::qMultiString& cmp) const {
 	return 0;}
 
-    /// Compute the locations of the rows can not be decided by the index.
-    /// Returns the fraction of rows might satisfy the specified range
-    /// condition.
     virtual float getUndecidable(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& iffy) const;
     /// Find rows that can not be decided with the existing index.
@@ -235,10 +232,15 @@ public:
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, const uint32_t nbuf, char* buf);
 
-    /// Record the content in array va1 to directory dir.  Extend the mask.
+    virtual long append(const void* vals, const ibis::bitvector& msk);
     virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,
 			   ibis::bitvector& mask, const void *va1,
 			   const void *va2=0);
+    /// Cast the incoming array into the specified type T before write them
+    /// to a file.
+    template <typename T>
+    long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
+		      const T special);
 
     /// Write the selected records to the specified directory.
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
@@ -247,11 +249,6 @@ public:
     /// Truncate the number of data entries in the named dir to @c nent.
     long truncateData(const char* dir, uint32_t nent,
 		      ibis::bitvector& mask) const;
-    /// Cast the incoming array into the specified type T before write them
-    /// to a file.
-    template <typename T>
-    long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
-		      const T special);
 
     /// A group of functions to compute some basic statistics for the
     /// attribute values.
@@ -374,6 +371,11 @@ protected:
     template <typename T>
 	long selectValuesT(const bitvector& mask,
 			   array_t<T>& vals, array_t<uint32_t>& inds) const;
+    /// Append the content of incoming array to the current data.
+    template <typename T>
+	long appendValues(const array_t<T>&, const ibis::bitvector&);
+    /// Append the strings to the current data.
+    long appendStrings(const std::vector<std::string>&, const ibis::bitvector&);
 
     class readLock;
     class writeLock;

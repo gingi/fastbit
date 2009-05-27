@@ -44,15 +44,17 @@ public:
     virtual size_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
 
-protected:
     /// In-memory version of a column.
     struct column {
+	/// Name of the column.
 	std::string name;
+	/// Description of the column.
 	std::string desc;
+	/// Type of the data.
 	ibis::TYPE_T type;
-	/// For fix-sized elements, this is a pointer to an array_t
-	/// object.  For string-valued elements, this is a pointer to
-	/// std::vector<std::string>.
+	/// Pointer to the in-memory storage.  For fix-sized elements, this
+	/// is a pointer to an array_t object.  For string-valued elements,
+	/// this is a pointer to std::vector<std::string>.
 	void* values;
 	/// Valid values correspond to 1, null values correspond to 0.
 	ibis::bitvector mask;
@@ -61,6 +63,10 @@ protected:
 	~column();
     }; // column
     typedef std::map<const char*, column*, ibis::lessi> columnList;
+    /// The list of columns stored in memory.
+    const columnList& getColumns() const {return cols;}
+
+protected:
     /// List of columns in alphabetical order.
     columnList cols;
     /// Order of columns as they were specified through @c addColumn.

@@ -715,7 +715,7 @@ void ibis::part::init(const char* prefix) {
     delete [] fn;
 
     if (m_name == 0) { // should assign a name
-	if (prefix) {  // use argument to this function
+	if (prefix != 0) {  // use argument to this function
 	    m_name = ibis::util::strnewdup(prefix);
 	}
 	else if (nEvents > 0) {
@@ -1422,8 +1422,9 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	(*it).second->write(fptr);
     fclose(fptr);
     LOGGER(ibis::gVerbose > 4)
-	<< "part::writeMetaData -- wrote metadata for " << nrows
-	<< " rows and " << plist.size() << "columns to \"" << filename << "\"";
+	<< "part[" << name() << "]::writeMetaData -- wrote metadata for "
+	<< nrows << " rows and " << plist.size() << " columns to \""
+	<< filename << "\"";
     delete [] filename;
 } // ibis::part::writeMetaData
 

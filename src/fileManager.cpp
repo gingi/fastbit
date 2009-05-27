@@ -454,7 +454,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	if (cnt) {// there are files in use, wait for them to be released
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fileManager::flushDir(" << name
-		<< ") finishes with " << cnt << " file"
+		<< ") finished with " << cnt << " file"
 		<< (cnt>1?"s":"") << " still in memory";
 	    return;
 	    //	    pthread_cond_wait(&cond, &mutex);

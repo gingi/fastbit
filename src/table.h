@@ -23,22 +23,28 @@
 namespace ibis {
 
     /// Supported data types.
-    enum TYPE_T {UNKNOWN_TYPE=0,///< Unknown type, can't really do
-				///  anything with it.
-		 OID,	///< A special eight-byte ID type for
-			///  internal use.
-		 BYTE,	///< One-byte signed integers.
-		 UBYTE,	///< One-byte unsigned integers.
-		 SHORT,	///< Two-byte signed integers.
-		 USHORT,///< Two-byte unsigned integers.
-		 INT,	///< Four-byte signed integers.
-		 UINT,	///< Four-byte unsigned integers.
-		 LONG,	///< Eight-byte signed integers.
-		 ULONG,	///< Eight-byte unsigned integers.
-		 FLOAT,	///< Four-byte IEEE floating-point numbers.
-		 DOUBLE,///< Eight-byte IEEE floating-point numbers.
-		 CATEGORY,	///< Low cardinality null-terminated strings.
-		 TEXT	///< Arbitrary null-terminated strings.
+    enum TYPE_T {
+	/// Unknown type, can't really do anything with it.
+	UNKNOWN_TYPE=0,
+	/// A special eight-byte ID type for internal use.
+	OID,
+	BYTE,	///< One-byte signed integers, internally char.
+	UBYTE,	///< One-byte unsigned integers, internally unsigned char.
+	SHORT,	///< Two-byte signed integers, internally int16_t.
+	USHORT, ///< Two-byte unsigned integers, internally uint16_t.
+	INT,	///< Four-byte signed integers, internally int32_t.
+	UINT,	///< Four-byte unsigned integers, internally uint32_t.
+	LONG,	///< Eight-byte signed integers, internally int64_t.
+	ULONG,	///< Eight-byte unsigned integers, internally uint64_t.
+	FLOAT,	///< Four-byte IEEE floating-point numbers, internally float.
+	DOUBLE, ///< Eight-byte IEEE floating-point numbers, internally double.
+	/// Low cardinality null-terminated strings.  Strings are
+	/// internally stored with the null terminators.
+	CATEGORY,
+	/// Arbitrary null-terminated strings.  Strings are internally
+	/// stored with the null terminators, therefore null can not be
+	/// part of a string.
+	TEXT
     };
     /// Human readable version of the enumeration types.
     FASTBIT_CXX_DLLSPEC extern const char** TYPESTRING;
@@ -290,6 +296,14 @@ public:
 	void clear();
 	/// Clear the content of arrays of values.  Leave the names alone.
 	void clearValues();
+	/// The number of columns in the row.
+	size_t nColumns() const {
+	    return bytesvalues.size() + ubytesvalues.size() +
+		shortsvalues.size() + ushortsvalues.size() +
+		intsvalues.size() + uintsvalues.size() +
+		longsvalues.size() + ulongsvalues.size() +
+		floatsvalues.size() + doublesvalues.size() +
+		catsvalues.size() + textsvalues.size();}
     }; // struct row
 
     // Cursor class for row-wise data accesses.

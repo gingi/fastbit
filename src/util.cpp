@@ -31,20 +31,24 @@ int ibis::gVerbose = 0;
 // initialize the static member of ibis::util
 pthread_mutex_t ibis::util::envLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ibis::util::ioLock::mutex = PTHREAD_MUTEX_INITIALIZER;
-// 64 printable ASCII characters that are not special to most of the
-// command interpreters, same set as RFC 1421, but not in the same order
+/// A list of 65 printable ASCII characters that are not special to most of
+/// the command interpreters.  The first 64 of them are basically the same
+/// as specified in RFC 3548 for base-64 numbers, but appear in different
+/// order.  A set of numbers represented using this base-64 representation
+/// will be sorted in the same order as their decimal representations.
 const char* ibis::util::charTable =
-"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=";
-// maps back from ASCII to positions of the characters in the abobe list
+"-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
+/// Maps back from ASCII to positions of the characters in
+/// ibis::util::charTable.
 const short unsigned ibis::util::charIndex[] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 64,
-     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 64, 64, 64, 63, 64, 64,
-    64, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-    25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 64, 64, 64, 64, 64,
-    64, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-    51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 64, 64, 64, 64,
+    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64,  0, 64, 64,
+     1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 64, 64, 64, 63, 64, 64,
+    64, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 64, 64, 64, 64, 37,
+    64, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+    53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 64, 64, 64, 64,
 };
 
 // file scope variables

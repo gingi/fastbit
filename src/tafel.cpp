@@ -299,7 +299,149 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
 } // ibis::tafel::append
 
 void ibis::tafel::normalize() {
-    if (cols.empty() || mrows == 0) return;
+    if (cols.empty()) return;
+    // loop one - determine the maximum values is all the columns
+    bool need2nd = false;
+    for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
+	column& col = *((*it).second);
+	switch (col.type) {
+	case ibis::BYTE: {
+	    array_t<signed char>& vals =
+		* static_cast<array_t<signed char>*>(col.values);
+	    if (mrows < vals.size()) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char>& vals =
+		* static_cast<array_t<unsigned char>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t>& vals =
+		* static_cast<array_t<int16_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t>& vals =
+		* static_cast<array_t<uint16_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t>& vals =
+		* static_cast<array_t<int32_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t>& vals =
+		* static_cast<array_t<uint32_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t>& vals =
+		* static_cast<array_t<int64_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t>& vals =
+		* static_cast<array_t<uint64_t>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>& vals =
+		* static_cast<array_t<float>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>& vals =
+		* static_cast<array_t<double>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	case ibis::TEXT:
+	case ibis::CATEGORY: {
+	    std::vector<std::string>& vals =
+		* static_cast<std::vector<std::string>*>(col.values);
+	    if (vals.size() > mrows) {
+		mrows = vals.size();
+		need2nd = true;
+	    }
+	    else if (mrows > vals.size()) {
+		need2nd = true;
+	    }
+	    break;}
+	default: {
+	    break;}
+	}
+	if (col.mask.size() > mrows) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tafel::normalize - col[" << col.name << "].mask("
+		<< col.mask.cnt() << ", " << col.mask.size() << ") -- mrows = "
+		<< mrows;
+	    mrows = col.mask.size();
+	    need2nd = true;
+	}
+    }
+    if (! need2nd) return;
+
+    // second loop - adjust the array sizes
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	switch (col.type) {
@@ -572,6 +714,7 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 		buf[i] = static_cast<std::vector<std::string>*>
 		    ((*it).second->values);
 		buf[i]->push_back(va[i]);
+		msk[i] = &(it->second->mask);
 		*(msk[i]) += 1;
 	    }
 	}
@@ -587,8 +730,10 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 } // ibis::tafel::appendString
 
 int ibis::tafel::appendRow(const ibis::table::row& r) {
-    normalize(); // make sure every column has the same number of rows
     int cnt = 0;
+    if (r.nColumns() >= cols.size())
+	normalize();
+
     std::vector<ibis::bitvector*> msk;
     if (r.bytesvalues.size() > 0) {
 	std::vector<array_t<signed char>*> bytesptr;
@@ -662,7 +807,7 @@ int ibis::tafel::appendRow(const ibis::table::row& r) {
 	cnt += r.textsvalues.size();
 	appendString(r.textsnames, r.textsvalues, textsptr, msk);
     }
-    mrows += (cnt > 0);
+    mrows += (cnt >= cols.size());
     return cnt;
 } // ibis::tafel::appendRow
 
@@ -1645,7 +1790,7 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
 
     normalize();
     int ierr = parseLine(line, delimiters.c_str(), id.c_str());
-    mrows += (ierr > 0);
+    mrows += (ierr >= static_cast<int>(cols.size()));
     return ierr;
 } // ibis::tafel::appendRow
 
