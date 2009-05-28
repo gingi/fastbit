@@ -1,3 +1,8 @@
+2009-05-28 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: print the names of files as they being
+	removed by fileManager::flushFile and fileManager::flushDir when
+	the verbose level is larger than 7
+
 2009-05-27 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: in column::appendValues and
 	column::appendStrings, add UnixClose to close the file and add

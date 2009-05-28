@@ -353,10 +353,10 @@ void ibis::fileManager::flushFile(const char* name) {
     mutexLock lck(*this, "flushFile");
     fileList::iterator it = mapped.find(name);
     if (it != mapped.end()) {
-	LOGGER(ibis::gVerbose > 11)
-	    << "fileManager::flushFile -- removing file \"" << (*it).first
-	    << "\" from the list of mapped files";
 	if ((*it).second->inUse() == 0) {
+	    LOGGER(ibis::gVerbose > 7)
+		<< "fileManager::flushFile -- removing \"" << (*it).first
+		<< "\" from the list of mapped files";
 	    delete (*it).second;
 	    mapped.erase(it);
 	}
@@ -367,10 +367,10 @@ void ibis::fileManager::flushFile(const char* name) {
 	}
     }
     else if (incore.end() != (it = incore.find(name))) {
-	LOGGER(ibis::gVerbose > 11)
-	    << "fileManager::flushFile -- removing file \"" << (*it).first
-	    << "\" from the list of incore files";
 	if ((*it).second->inUse() == 0) {
+	    LOGGER(ibis::gVerbose > 7)
+		<< "fileManager::flushFile -- removing \"" << (*it).first
+		<< "\" from the list of incore files";
 	    delete (*it).second;
 	    incore.erase(it);
 	}
@@ -415,6 +415,10 @@ void ibis::fileManager::flushDir(const char* name) {
 		    }
 		    else {
 			//writeLock wlck(this, "flushDir");
+			LOGGER(ibis::gVerbose > 7)
+			    << "fileManager::flushDir -- removing \""
+			    << (*it).first
+			    << "\" from the list of mapped files";
 			delete (*it).second;
 			mapped.erase(it);
 			++ deleted;
@@ -442,6 +446,10 @@ void ibis::fileManager::flushDir(const char* name) {
 		    }
 		    else {
 			//writeLock wlck(this, "flushDir");
+			LOGGER(ibis::gVerbose > 7)
+			    << "fileManager::flushDir -- removing \""
+			    << (*it).first
+			    << "\" from the list of incore files";
 			delete (*it).second;
 			incore.erase(it);
 			++ deleted;
@@ -460,7 +468,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	    //	    pthread_cond_wait(&cond, &mutex);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 11)
+	    LOGGER(ibis::gVerbose > 5)
 		<< "fileManager::flushDir -- removed " << deleted
 		<< " file" << (deleted>1?"s":"") << " from " << name;
 	    return;
