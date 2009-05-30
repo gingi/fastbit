@@ -73,17 +73,26 @@ namespace ibis {
 
 	/// LSD Radix sort.  Allocates buffers needed for copying data.
 	/// @{
-	void sort_radix(array_t<char>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<unsigned char>& keys,
-			array_t<uint32_t>& vals);
-	void sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<float>& keys, array_t<uint32_t>& vals);
-	void sort_radix(array_t<double>& keys, array_t<uint32_t>& vals);
+	template <typename T>
+	void sort_radix(array_t<char>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<unsigned char>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<uint16_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<int16_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<uint32_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<int32_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<uint64_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<int64_t>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<float>& keys, array_t<T>& vals);
+	template <typename T>
+	void sort_radix(array_t<double>& keys, array_t<T>& vals);
 	/// @}
     }
 }
@@ -1314,7 +1323,8 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
     return i0;
 } // ibis::util::sortStrings_partition
 
-void ibis::util::sort_radix(array_t<char>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<char>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offsets(256, 0);
@@ -1336,7 +1346,7 @@ void ibis::util::sort_radix(array_t<char>& keys, array_t<uint32_t>& vals) {
     }
     if (maxv < nelm) {
 	array_t<char> ktmp(nelm);
-	array_t<uint32_t> vtmp(nelm);
+	array_t<T> vtmp(nelm);
 	for (uint32_t j = 0; j < nelm; ++ j) {
 	    ktmp[offsets[keys[j]+128]] = keys[j];
 	    vtmp[offsets[keys[j]+128]] = vals[j];
@@ -1373,8 +1383,9 @@ void ibis::util::sort_radix(array_t<char>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
+template <typename T>
 void ibis::util::sort_radix(array_t<unsigned char>& keys,
-			    array_t<uint32_t>& vals) {
+			    array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offsets(256, 0);
@@ -1397,7 +1408,7 @@ void ibis::util::sort_radix(array_t<unsigned char>& keys,
 
     if (maxv < nelm) {
 	array_t<unsigned char> ktmp(nelm);
-	array_t<uint32_t> vtmp(nelm);
+	array_t<T> vtmp(nelm);
 	for (uint32_t j = 0; j < nelm; ++ j) {
 	    ktmp[offsets[keys[j]]] = keys[j];
 	    vtmp[offsets[keys[j]]] = vals[j];
@@ -1434,7 +1445,8 @@ void ibis::util::sort_radix(array_t<unsigned char>& keys,
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(256, 0);
@@ -1468,7 +1480,7 @@ void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals) {
     if (max1 == nelm && max2 == nelm) return;
 
     array_t<int16_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -1524,7 +1536,8 @@ void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(256, 0);
@@ -1558,7 +1571,7 @@ void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals) {
     if (max1 == nelm && max2 == nelm) return;
 
     array_t<uint16_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -1614,7 +1627,8 @@ void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -1667,7 +1681,7 @@ void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals) {
     if (max1 == nelm && max2 == nelm && max2 == nelm) return;
 
     array_t<int32_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -1735,7 +1749,8 @@ void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -1788,7 +1803,7 @@ void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals) {
     if (max1 == nelm && max2 == nelm && max3 == nelm) return;
 
     array_t<uint32_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -1856,7 +1871,8 @@ void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -1945,7 +1961,7 @@ void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals) {
 	max5 == nelm && max6 == nelm) return;
 
     array_t<int64_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -2057,7 +2073,8 @@ void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -2146,7 +2163,7 @@ void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals) {
 	max5 == nelm && max6 == nelm) return;
 
     array_t<uint64_t> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -2258,7 +2275,8 @@ void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<float>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<float>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -2312,7 +2330,7 @@ void ibis::util::sort_radix(array_t<float>& keys, array_t<uint32_t>& vals) {
 	return; // all values are the same
 
     array_t<float> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) { // need actual copying
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -2392,7 +2410,8 @@ void ibis::util::sort_radix(array_t<float>& keys, array_t<uint32_t>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-void ibis::util::sort_radix(array_t<double>& keys, array_t<uint32_t>& vals) {
+template <typename T>
+void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offset1(2048, 0); // 11-bit
@@ -2489,7 +2508,7 @@ void ibis::util::sort_radix(array_t<double>& keys, array_t<uint32_t>& vals) {
 	max5 == nelm && max6 == nelm) return;
 
     array_t<double> ktmp(nelm);
-    array_t<uint32_t> vtmp(nelm);
+    array_t<T> vtmp(nelm);
     // distribution 1
     if (max1 < nelm) {
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -2852,26 +2871,26 @@ ibis::util::sortAll<float, double>(array_t<float>&, array_t<double>&);
 template void
 ibis::util::sortAll<double, double>(array_t<double>&, array_t<double>&);
 
-template void ibis::util::sortKeys(array_t<char>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<unsigned char>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<int16_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<uint16_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<int32_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<uint32_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<int64_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<uint64_t>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<float>&, array_t<uint32_t>&);
-template void ibis::util::sortKeys(array_t<double>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<char>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<unsigned char>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<int16_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<uint16_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<int32_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<uint32_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<int64_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<uint64_t>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<float>&, array_t<uint32_t>&);
-template void ibis::util::sort_quick3(array_t<double>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<unsigned char>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<int16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<uint16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<int32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<uint32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<int64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<uint64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<float>&, array_t<uint32_t>&);
+template void
+ibis::util::sort_quick3(array_t<double>&, array_t<uint32_t>&);
 
 template void
 ibis::util::sort_shell(array_t<char>&, array_t<uint32_t>&);
@@ -2914,3 +2933,45 @@ template void
 ibis::util::sort_insertion(array_t<float>&, array_t<uint32_t>&);
 template void
 ibis::util::sort_insertion(array_t<double>&, array_t<uint32_t>&);
+
+template void
+ibis::util::sortKeys(array_t<char>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<unsigned char>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<int16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<uint16_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<int32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<uint32_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<int64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<uint64_t>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<float>&, array_t<uint32_t>&);
+template void
+ibis::util::sortKeys(array_t<double>&, array_t<uint32_t>&);
+
+template void
+ibis::util::sortKeys(array_t<char>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<unsigned char>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<int16_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<uint16_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<int32_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<uint32_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<int64_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<uint64_t>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<float>&, array_t<ibis::rid_t>&);
+template void
+ibis::util::sortKeys(array_t<double>&, array_t<ibis::rid_t>&);

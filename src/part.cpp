@@ -437,6 +437,27 @@ ibis::part::part(const char* adir, const char* bdir) :
     }
     if (j) throw "direcotry names too long";
 
+    if (backupDir != 0) {
+	ibis::util::removeTail(backupDir, DIRSEP);
+	// check its header file for consistency
+	if (nEvents > 0) {
+	    if (verifyBackupDir() == 0) {
+		state = STABLE_STATE;
+	    }
+	    else {
+		makeBackupCopy();
+	    }
+	}
+	else {
+	    ibis::util::mutexLock lock(&ibis::util::envLock, backupDir);
+	    ibis::util::removeDir(backupDir, true);
+	    state = STABLE_STATE;
+	}
+    }
+    else { // assumed to be in stable state
+	state = STABLE_STATE;
+    }
+
     myCleaner = new ibis::part::cleaner(this);
     ibis::fileManager::instance().addCleaner(myCleaner);
 
@@ -733,12 +754,12 @@ void ibis::part::init(const char* prefix) {
 
     if (backupDir != 0) {
 	ibis::util::removeTail(backupDir, DIRSEP);
-	// verify its header file for consistency
+	// check its header file for consistency
 	if (nEvents > 0) {
 	    if (verifyBackupDir() == 0) {
 		state = STABLE_STATE;
 	    }
-	    else if (backupDir != 0) {
+	    else {
 		makeBackupCopy();
 	    }
 	}

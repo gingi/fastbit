@@ -693,7 +693,9 @@ long ibis::part::reorderValues(const char *fname,
 
 /// Append data in dir to the current database.  Return the number of rows
 /// actually added.
-/// It is possible to rollback the append operation before commit.
+///
+/// @note If there is a backup data directory, it is possible to rollback
+/// the append operation before commit.
 long ibis::part::append(const char* dir) {
     long ierr = 0;
     if (dir == 0)
@@ -708,13 +710,14 @@ long ibis::part::append(const char* dir) {
     if (state == STABLE_STATE)
 	state = RECEIVING_STATE;
     if (state != RECEIVING_STATE) {
-	logWarning("append", "can not accept data in %s while in state "
-		   "%d", dir, static_cast<int>(state));
+	logWarning("append", "can not accept data from %s while in state %d",
+		   dir, static_cast<int>(state));
 	return ierr;
     }
 
     try {
-	if (backupDir != 0 && *backupDir != 0)
+	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
+	    strcmp(activeDir, backupDir) != 0)
 	    ierr = append2(dir);
 	else
 	    ierr = append1(dir);
@@ -760,7 +763,8 @@ long ibis::part::append1(const char *dir) {
     }
 
     // assign backupDir so that appendToBackup will work correctly
-    delete [] backupDir;
+    if (backupDir != activeDir)
+	delete [] backupDir;
     backupDir = activeDir;
 
     // do the work of copying data

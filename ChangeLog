@@ -1,3 +1,11 @@
+2009-05-29 John Wu <John.Wu at ACM.org>
+	* src/part.cpp, src/parti.cpp: examine the logic of assigning the
+	initial state in the constructor of ibis::part to address a
+	question raised by Jochen Schlosser
+	* src/utilidor.cpp: add explicit template instantiations for
+	sortKeys with array_t<ibis::rid_t> as payload (make it easier to
+	perform joins outside of FastBit code)
+
 2009-05-28 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: print the names of files as they being
 	removed by fileManager::flushFile and fileManager::flushDir when
