@@ -1386,55 +1386,302 @@ void ibis::tafel::clearData() {
     } // for
 } // ibis::tafel::clearData
 
-/// Reserve space for maxr records in memory.
-void ibis::tafel::reserveSpace(unsigned maxr) {
-    mrows = 0;
+/// Attempt to reserve enough memory for maxr rows to be stored in memory.
+/// This function will not reserve space for more than 1 billion rows.  If
+/// maxr is less than mrows, it will simply return mrows.  It calls
+/// doReserve to performs the actual reservations.  If doReserve throws an
+/// exception, it will reduce the value of maxr and try again.  It will
+/// give up after 5 tries and return -1, otherwise, it returns the actual
+/// capacity allocated.
+///
+/// @note
+/// If the caller does not store more rows than can be held in memory, the
+/// underlying data structure should automatically expand to accomodate the
+/// new rows.  However, it is definitely advantages in reserving space
+/// ahead of time.  It will reduce the need to expand the underlying
+/// storage objects, which can reduce the execution time.  In addition,
+/// reserving a good fraction of the physical memory, say 10 - 40%, for
+/// storing rows in memory can reduce the number of times the write
+/// operation is invoked when loading a large number of rows from external
+/// sources.  Since the string values are stored as std::vector objects,
+/// additional memory is allocated for each new string added to memory,
+/// therefore, after importing many long strings, it is still possible to
+/// run out of memory even after one successfully reserved space with this
+/// function.
+///
+/// @note It is possible for the existing content to be lost if doReserve
+/// throws an exception, therefore, one should call this function when
+/// this object does not hold any user data in memory.
+int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
+    if (cols.empty()) return maxr;
+    if (mrows >= maxr) return mrows;
+    if (maxr > 0x40000000) maxr = 0x40000000;
+
+    int32_t ret = 0;
+    try {
+	ret = doReserve(maxr);
+    }
+    catch (...) {
+	if (mrows > 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tafel::reserveSpace(" << maxr << ") failed while mrows="
+		<< mrows << ", existing content has been lost";
+	    mrows = 0;
+	    return -2;
+	}
+
+	maxr >>= 1;
+	try {
+	    ret = doReserve(maxr);
+	}
+	catch (...) {
+	    maxr >>= 2;
+	    try {
+		ret = doReserve(maxr);
+	    }
+	    catch (...) {
+		maxr >>= 2;
+		try {
+		    ret = doReserve(maxr);
+		}
+		catch (...) {
+		    maxr >>= 2;
+		    try {
+			ret = doReserve(maxr);
+		    }
+		    catch (...) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "tafel::reserveSpace(" << maxr
+			    << ") failed after 5 tries";
+			ret = -1;
+		    }
+		}
+	    }
+	}
+    }
+    return ret;
+} // ibis::tafel::reserveSpace
+
+/// Reserve space for maxr records in memory.  This function does not
+/// perform error checking.  The public version of it reserveSpace does.
+int32_t ibis::tafel::doReserve(uint32_t maxr) {
+    if (mrows >= maxr)
+	return mrows;
+
+    int32_t ret = 0x7FFFFFFF;
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	col.mask.clear();
 	switch (col.type) {
-	case ibis::BYTE:
-	    static_cast<array_t<signed char>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::UBYTE:
-	    static_cast<array_t<unsigned char>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::SHORT:
-	    static_cast<array_t<int16_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::USHORT:
-	    static_cast<array_t<uint16_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::INT:
-	    static_cast<array_t<int32_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::UINT:
-	    static_cast<array_t<uint32_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::LONG:
-	    static_cast<array_t<int64_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::ULONG:
-	    static_cast<array_t<uint64_t>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::FLOAT:
-	    static_cast<array_t<float>*>(col.values)->reserve(maxr);
-	    break;
-	case ibis::DOUBLE:
-	    static_cast<array_t<double>*>(col.values)->reserve(maxr);
-	    break;
+	case ibis::BYTE: {
+	    array_t<signed char>* tmp = 
+		static_cast<array_t<signed char>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<signed char>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t)curr) {
+		ret = curr;
+	    }
+	    break;}
+        case ibis::UBYTE: {
+	    array_t<unsigned char>* tmp = 
+		static_cast<array_t<unsigned char>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<unsigned char>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t>* tmp = 
+		static_cast<array_t<int16_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<int16_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t>* tmp = 
+		static_cast<array_t<uint16_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<uint16_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t>* tmp = 
+		static_cast<array_t<int32_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<int32_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t>* tmp = 
+		static_cast<array_t<uint32_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<uint32_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t>* tmp = 
+		static_cast<array_t<int64_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<int64_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t>* tmp = 
+		static_cast<array_t<uint64_t>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<uint64_t>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* tmp = 
+		static_cast<array_t<float>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<float>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* tmp = 
+		static_cast<array_t<double>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new array_t<double>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
 	case ibis::TEXT:
-	case ibis::CATEGORY:
-	    static_cast<std::vector<std::string>*>(col.values)->reserve(maxr);
-	    break;
+	case ibis::CATEGORY: {
+	    std::vector<std::string>* tmp = 
+		static_cast<std::vector<std::string>*>(col.values);
+	    const uint32_t curr = tmp->capacity();
+	    if (mrows == 0 && curr > (maxr >> 1)*3) {
+		delete tmp;
+		tmp = new std::vector<std::string>(maxr);
+		col.values = tmp;
+		ret = maxr;
+	    }
+	    else if (curr < maxr) {
+		tmp->reserve(maxr);
+		ret = maxr;
+	    }
+	    else if (ret > (int32_t) curr) {
+		ret = curr;
+	    }
+	    break;}
 	default:
 	    break;
 	} // switch
     } // for
-} // ibis::tafel::reserveSpace
+    return ret;
+} // ibis::tafel::doReserve
 
-unsigned ibis::tafel::capacity() const {
-    unsigned cap = (cols.empty() ? 0U : UINT_MAX);
+uint32_t ibis::tafel::capacity() const {
+    if (cols.empty()) return 0U;
+    uint32_t cap = 0xFFFFFFFF;
     for (columnList::const_iterator it = cols.begin();
 	 it != cols.end(); ++ it) {
 	column& col = *((*it).second);
@@ -1443,7 +1690,7 @@ unsigned ibis::tafel::capacity() const {
 	    return 0U;
 	}
 
-	unsigned tmp;
+	uint32_t tmp;
 	switch (col.type) {
 	case ibis::BYTE:
 	    tmp = static_cast<array_t<signed char>*>(col.values)->capacity();
@@ -1487,7 +1734,7 @@ unsigned ibis::tafel::capacity() const {
 	if (tmp < cap)
 	    cap = tmp;
 	if (tmp == 0U)
-	    return 0U;
+	    return tmp;
     } // for
     return cap;
 } // ibis::tafel::capacity

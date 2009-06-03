@@ -453,19 +453,26 @@ public:
 		      const char* tdesc) const =0;
 
     /// Remove all data recorded.  Keeps the metadata.  It is intended to
-    /// be used after a call to function write to store new rows.
+    /// be used after a call to function write in preparation before
+    /// storing new rows.
     virtual void clearData() =0;
-    /// Reserve enough space for the specified number of rows.  The
-    /// intention is to mimize the number of dynamic memory allocations
+    /// Reserve enough space for the specified number of rows.  Return the
+    /// number of rows that can be stored or a negative number to indicate
+    /// error.  Since the return value is a 32-bit signed integer, it is
+    /// not possible to represent number greater or equal to 2^31 (~2
+    /// billion), the caller shall not attempt to reserve space for 2^31
+    /// rows (or more).
+    ///
+    /// The intention is to mimize the number of dynamic memory allocations
     /// needed expand memory used to hold the data.  The implementation of
     /// this function is not required, and the user is not required to call
-    /// this function to ensure the correctness of data handling.
-    virtual void reserveSpace(unsigned) {};
+    /// this function as long as the new data can be held in memory.
+    virtual int32_t reserveSpace(uint32_t) {return 0;}
     /// Capacity of the memory cache.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it
     /// does not know about its capacity.
-    virtual unsigned capacity() const {return 0;}
+    virtual uint32_t capacity() const {return 0;}
 
     /// The maximum number of rows in any column.
     virtual uint32_t mRows() const=0;

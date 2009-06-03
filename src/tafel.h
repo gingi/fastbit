@@ -37,8 +37,8 @@ public:
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc) const;
     virtual void clearData();
-    virtual void reserveSpace(unsigned);
-    virtual unsigned capacity() const;
+    virtual int32_t reserveSpace(uint32_t);
+    virtual uint32_t capacity() const;
 
     virtual uint32_t mRows() const {return mrows;}
     virtual size_t mColumns() const {return cols.size();}
@@ -117,6 +117,7 @@ protected:
 		    const std::vector<std::string>& vals,
 		    ibis::bitvector& totmask,
 		    const ibis::bitvector& newmask) const;
+    int32_t doReserve(uint32_t);
 
 private:
     tafel(const tafel&);

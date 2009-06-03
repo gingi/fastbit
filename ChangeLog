@@ -1,3 +1,13 @@
+2009-06-02 John Wu <John.Wu at ACM.org>
+	* src/table.h: clarify the logic of tablex::reserveSpace
+	* src/tafel.h, src/tafel.cpp: add function doReserve and
+	reimplement reserveSpace by calling doReserve, make reserveSpace
+	more robust, add documentation about the function
+
+2009-06-01 John Wu <John.Wu at ACM.org>
+	* tests/script/fastbit-config.in: add new file to report the
+	compilation flags
+
 2009-05-29 John Wu <John.Wu at ACM.org>
 	* src/part.cpp, src/parti.cpp: examine the logic of assigning the
 	initial state in the constructor of ibis::part to address a

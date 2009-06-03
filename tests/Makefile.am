@@ -14,12 +14,14 @@ TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 \
     thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
+    scripts/fastbit-config.in \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
 
 #
 # tests with different levels of thoroughness
 check: clean check-am
-	$(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) check-text && $(MAKE) check-ibis && $(MAKE) check-marksdb
+	$(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) check-text \
+	&& $(MAKE) check-ibis && $(MAKE) check-marksdb
 more-check: check small-tests
 full-check: more-check large-tests
 #
