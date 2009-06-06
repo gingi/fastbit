@@ -181,7 +181,7 @@ public:
 
 protected:
     // reduce the scope of the constructor
-    qRange() : qExpr(RANGE) {};
+    qRange() : qExpr() {};
     qRange(TYPE t) : qExpr(t) {};
 
 private:
@@ -207,28 +207,30 @@ private:
 class ibis::qContinuousRange : public ibis::qRange {
 public:
     /// Construct an empty range expression.
-    qContinuousRange() : name(0), lower(0), upper(0), left_op(OP_UNDEFINED),
-			 right_op(OP_UNDEFINED) {};
+    qContinuousRange()
+	: qRange(ibis::qExpr::RANGE), name(0), lower(0), upper(0),
+	  left_op(OP_UNDEFINED), right_op(OP_UNDEFINED) {};
     /// Construct a range expression from strings.
     qContinuousRange(const char* lstr, COMPARE lop, const char* prop,
 		     COMPARE rop, const char* rstr);
     /// Construct a range expression with an integer boundary.
     qContinuousRange(const char* col, COMPARE op, uint32_t val) :
-	name(ibis::util::strnewdup(col)), lower(val),
-	upper(DBL_MAX), left_op(op), right_op(OP_UNDEFINED) {};
+	qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(col)),
+	lower(val), upper(DBL_MAX), left_op(op), right_op(OP_UNDEFINED) {};
     /// Copy constructor.
     qContinuousRange(const qContinuousRange& rhs) :
-	name(ibis::util::strnewdup(rhs.name)), lower(rhs.lower),
-	upper(rhs.upper), left_op(rhs.left_op), right_op(rhs.right_op) {};
+	qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(rhs.name)),
+	lower(rhs.lower), upper(rhs.upper), left_op(rhs.left_op),
+	right_op(rhs.right_op) {};
     /// Construct a range expression from double-precision boundaries.
     qContinuousRange(double lv, COMPARE lop, const char* prop,
 		     COMPARE rop, double rv)
-	: name(ibis::util::strnewdup(prop)), lower(lv),
-	  upper(rv), left_op(lop), right_op(rop) {};
+	: qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(prop)),
+	  lower(lv), upper(rv), left_op(lop), right_op(rop) {};
     /// Construct a one-side range expression.
     qContinuousRange(const char* prop, COMPARE op, double val)
-	: name(ibis::util::strnewdup(prop)), lower(-DBL_MAX),
-	  upper(val), left_op(OP_UNDEFINED), right_op(op) {
+	: qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(prop)),
+	  lower(-DBL_MAX), upper(val), left_op(OP_UNDEFINED), right_op(op) {
 	// prefer to use the operator < and <= rather than > and >=
 	if (right_op == ibis::qExpr::OP_GT) {
 	    right_op = ibis::qExpr::OP_UNDEFINED;

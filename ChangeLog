@@ -1,3 +1,15 @@
+2009-06-04 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp: constructors of qDiscreteRange negelcted to set
+	the type of the expression
+	* src/qExpr.h: change qRange to not set query expression type, add
+	code to set query expression type in all constructors of
+	ibis::qContinuousRange
+
+2009-06-03 John Wu <John.Wu at ACM.org>
+	* src/table.h: change return value of ibis::table::addPartition to
+	return the number of partitions found on success (instead of
+	returning 0)
+
 2009-06-02 John Wu <John.Wu at ACM.org>
 	* src/table.h: clarify the logic of tablex::reserveSpace
 	* src/tafel.h, src/tafel.cpp: add function doReserve and

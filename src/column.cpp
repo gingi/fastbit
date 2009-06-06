@@ -4973,8 +4973,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     try {
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
-	    double idxcost =
-		idx->estimateCost(cmp)*std::log((double)cmp.getValues().size());
+	    double idxcost = idx->estimateCost(cmp) *
+		(1.0 + std::log((double)cmp.getValues().size()));
 	    if (m_sorted && idxcost > mymask.size()) {
 		ierr = searchSorted(cmp, low);
 		if (ierr == 0) {
@@ -9357,7 +9357,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((size_t)(u.size()*std::log((double)vals.size())) >=
+    if ((size_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
 	(u.size()+vals.size())) {
 	// go through the two lists to find matches
 	LOGGER(ibis::gVerbose >= 5)

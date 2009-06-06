@@ -114,6 +114,9 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     }
 } // constructor with two directories as arguments
 
+/// Add data partitions defined in the named directory.  It uses opendir
+/// and friends to traverse the subdirectories, which means it will only
+/// able to descend to subdirectories on unix and compatible systems.
 int ibis::mensa::addPartition(const char* dir) {
     const size_t npold = parts.size();
     const size_t ncold = naty.size();
@@ -158,7 +161,7 @@ int ibis::mensa::addPartition(const char* dir) {
 	<< parts.size() << ", the number of rows from " << nrold << " to "
 	<< nrows << ", and the number of columns from " << ncold << " to "
 	<< naty.size();
-    return (naty.size() > ncold && ncold > 0);
+    return newparts;
 } // ibis::mensa::addPartition
 
 void ibis::mensa::clear() {

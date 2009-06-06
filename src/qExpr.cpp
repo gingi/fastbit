@@ -2368,7 +2368,6 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	return;
     }
 
-
 #if 0
     { // use a std::set to temporarily hold the values and eliminate
       // duplicates
@@ -2413,7 +2412,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 /// Construct a qDiscreteRange object from a vector of double values.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<double>& val)
-	: name(col), values(val) {
+    : ibis::qRange(ibis::qExpr::DRANGE), name(col), values(val) {
     if (val.size() <= 1U) return;
 
     bool sorted = (values[0] <= values[1]);
@@ -2445,7 +2444,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 /// Construct a qDiscreteRange object from an array of double values.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const array_t<double>& val)
-	: name(col) {
+    : ibis::qRange(ibis::qExpr::DRANGE), name(col) {
     if (val.empty()) return;
     values.resize(val.size());
     values[0] = val[0];

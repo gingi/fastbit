@@ -144,17 +144,18 @@ public:
     /// Reverse the order of the rows.
     virtual void reverseRows()=0;
 
-    /// Add a data partition defined in the named directory.  It returns 0
-    /// to indicate success, a negative number to indicate failure, and a
-    /// positive number to indicate some advisory conditions.
+    /// Add a data partition defined in the named directory.  Upon
+    /// successful completion, it returns the number of data partitions
+    /// found, otherwise it returns a negative number to indicate failure.
     ///
     /// If the name of the directory is a nil pointer, this function will
     /// examine the entries in the configuration parameters to identify
     /// locations of data partitions.  This matches the behavior of
     /// ibis::table::create.
     ///
-    /// @note On systems that supports readdir and friend (all unix-type of
-    /// systems do), it also recursively traverses all subdirectories.
+    /// @note The intent is for this function to recursively examine its
+    /// subdirecories when possible.  Therefore it may find an arbitrary
+    /// number of data partitions.
     virtual int addPartition(const char* dir) {return -1;}
 
     /// The following functions deal with auxillary data for accelerating

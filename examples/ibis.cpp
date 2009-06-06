@@ -2399,7 +2399,12 @@ ibis::mensa2::mensa2(const ibis::partList &l) : ibis::mensa() {
 	name_ = "T-";
 	name_ += (*it)->name();
 	if (desc_.empty()) {
-	    
+	    desc_ = "a simple list of partitions: ";
+	    desc_ += parts[0]->name();
+	    for (size_t j = 1; j < parts.size(); ++ j) {
+		desc_ += (j+1 < parts.size() ? ", " : " and ");
+		desc_ += parts[j]->name();
+	    }
 	}
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {

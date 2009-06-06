@@ -1676,6 +1676,9 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 	    break;
 	} // switch
     } // for
+    LOGGER(ibis::gVerbose > 1)
+        << "tafel::doReserve(" << maxr << ") completed with actual capacity "
+        << ret;
     return ret;
 } // ibis::tafel::doReserve
 
