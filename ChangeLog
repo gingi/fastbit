@@ -1,3 +1,25 @@
+2009-06-09 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: in column::getNullMask comparisons involving
+	mask.size() need to taking into account of the state of data
+	partition.  This is the root cause of the problem observed by
+	Jochen Schlosser.  A better solution might be to create indexes
+	without the use of null masks.
+	* src/util.cpp: clean up the log message from util::removeDir,
+	if the argument leaveDir is set, do not remove the subdirectories
+	either (when used from ibis::part and ibis::query, only the files
+	in the current current directories need to be removed, the
+	subdirectories should be saved)
+	* src/ixbylt.cpp: bylt::evaluate used c0 incorrectly when the
+	query range is open to the right side
+
+2009-06-08 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: warn about file size over 2GB in
+	ibis::column::append, simplify the logic regarding the existing
+	mask file
+	* src/column.cpp update column::mask_ in column::append to address
+	a problem reported by Jochen Schlosser
+	* src/part.cpp: in function init, check parameter useBackupDir
+
 2009-06-04 John Wu <John.Wu at ACM.org>
 	* src/qExpr.cpp: constructors of qDiscreteRange negelcted to set
 	the type of the expression

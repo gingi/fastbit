@@ -192,7 +192,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
     if (carr != 0) {
 	ret = (*env)->NewByteArray(env, nrows);
 	if (ret != NULL) {
-	    (*env)->SetByteArrayRegion(env, ret, 0, nrows, carr);
+	    (*env)->SetByteArrayRegion(env, ret, 0, nrows,
+				       (const signed char*)carr);
 	}
     }
     else {
@@ -201,7 +202,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
 
-JNIEXPORT jshortArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
+JNIEXPORT jshortArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
 (JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
     jboolean iscopy;
     const char *ccol;
@@ -297,7 +299,8 @@ JNIEXPORT jlongArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
 
-JNIEXPORT jfloatArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
+JNIEXPORT jfloatArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
 (JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
     jboolean iscopy;
     const char *ccol;
@@ -329,7 +332,8 @@ JNIEXPORT jfloatArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1float
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
 
-JNIEXPORT jdoubleArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
+JNIEXPORT jdoubleArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
 (JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
     jboolean iscopy;
     const char *ccol;

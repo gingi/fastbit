@@ -426,13 +426,13 @@ ibis::part::part(const char* adir, const char* bdir) :
     int j = 0;
     if (maxLength <= 0) maxLength = 16;
     if (strlen(activeDir)+16+maxLength > PATH_MAX) {
-	ibis::util::logMessage("Warning", "directory name \"%s\" is too "
-			       "long", activeDir);
+	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
+			       activeDir);
 	++j;
     }
     if (backupDir != 0 && strlen(backupDir)+16+maxLength > PATH_MAX) {
-	ibis::util::logMessage("Warning", "directory name \"%s\" is too "
-			       "long", backupDir);
+	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
+			       backupDir);
 	++j;
     }
     if (j) throw "direcotry names too long";
@@ -668,18 +668,18 @@ void ibis::part::init(const char* prefix) {
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part::init failed because of " << e.what();
+	    << "Warning -- part::init failed because of " << e.what();
 	throw "ibis::part::init received a std::exception while calling "
 	    "makeDir";
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part::init failed because of " << s;
+	    << "Warning -- part::init failed because of " << s;
 	throw "ibis::part::init received a string exception while calling "
 	    "makeDir";
     }
     catch (...) {
-	throw "ibis::part::init received a unknown exception while "
+	throw "part::init received a unknown exception while "
 	    "calling makeDir";
     }
 
@@ -707,12 +707,27 @@ void ibis::part::init(const char* prefix) {
 	    subdir.erase();
 	}
 	maxLength = readMetaData(nEvents, columns, activeDir);
-	if (backupDir == 0) {
-	    subdir += DIRSEP;
-	    subdir += prefix;
-	    int ierr = ibis::util::makeDir(subdir.c_str());
-	    if (ierr >= 0)
-		backupDir = ibis::util::strnewdup(subdir.c_str());
+	if (backupDir != 0) {
+	    if (verifyBackupDir() != 0) {
+		if (! subdir.empty()) {
+		    delete [] backupDir;
+		    backupDir = 0;
+		}
+	    }
+	}
+
+	strcpy(fn+j, "useBackupDir");
+	if (ibis::gParameters().isTrue(fn) && backupDir == 0) {
+	    // use backup dir
+	    if (! subdir.empty()) {
+		subdir += DIRSEP;
+		subdir += prefix;
+		int ierr = ibis::util::makeDir(subdir.c_str());
+		if (ierr >= 0)
+		    backupDir = ibis::util::strnewdup(subdir.c_str());
+	    }
+	    if (backupDir == 0)
+		deriveBackupDirName();
 	}
     }
     if (maxLength > 0) { // metadata file exists
@@ -754,8 +769,8 @@ void ibis::part::init(const char* prefix) {
 
     if (backupDir != 0) {
 	ibis::util::removeTail(backupDir, DIRSEP);
-	// check its header file for consistency
 	if (nEvents > 0) {
+	    // check its header file for consistency
 	    if (verifyBackupDir() == 0) {
 		state = STABLE_STATE;
 	    }
@@ -865,7 +880,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
     char buf[MAX_LINE];
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, DIRSEP);
     if (ierr < 2 || ierr > MAX_LINE) {
-	ibis::util::logMessage("Warning", "ibis::part::readMetaTags failed "
+	ibis::util::logMessage("Warning", "part::readMetaTags failed "
 			       "to generate the metadata file name");
 	return m_tags;
     }
@@ -876,18 +891,14 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	file = fopen(buf, "r");
     }
     if (file == 0) {
-	if (ibis::gVerbose > 1)
-	    ibis::util::logMessage("Warning",
-				   "ibis::part::readMetaTags failed "
-				   "to open file \"%s\" ... %s", buf,
-				   (errno ? strerror(errno) :
-				    "no free stdio stream"));
+	LOGGER(ibis::gVerbose > 2)
+	    << "part::readMetaTags failed to find neither -part.txt "
+	    "nor table.tdc in \"" << dir << "\" ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return m_tags;
     }
-    if (ibis::gVerbose > 4) {
-	ibis::util::logMessage("ibis::part::readMetaTags()", "opened %s",
-			       buf);
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "part::readMetaTags -- opened " << buf;
 
     // skip till begin header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
@@ -1037,11 +1048,10 @@ int ibis::part::readMetaData(size_t &nrows, columnList &plist,
 	file = fopen(tdcname.c_str(), "r");
     }
     if (file == 0) {
-	if (ibis::gVerbose > 7)
-	    ibis::util::logMessage("ibis::part::readMetaData", "failed to "
-				   "open file \"%s\" ... %s", tdcname.c_str(),
-				   (errno ? strerror(errno) :
-				    "no free stdio stream"));
+	LOGGER(ibis::gVerbose > 2)
+	    << "part::readMetaData -- failed to find neither -part.txt "
+	    "nor table.tdc in \"" << dir << "\" ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -91;
     }
     LOGGER(ibis::gVerbose > 4)
@@ -9124,7 +9134,7 @@ long ibis::part::verifyBackupDir() {
     fn += "-part.txt";
     ierr = UnixStat(fn.c_str(), &st);
     if (ierr != 0) { // try the old file name
-	fn.erase(fn.size()-10);
+	fn.erase(fn.size()-9);
 	fn += "table.tdc";
 	ierr = UnixStat(fn.c_str(), &st);
     }

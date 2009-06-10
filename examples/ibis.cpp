@@ -2619,16 +2619,16 @@ void findMissingValuesT(const ibis::column &col,
     long ierr = col.selectValues(ht0, &vals0);
     if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht0.cnt()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- findMissingValues did received expected number "
-	    "of values for query 0, expected " << ht0.cnt()
+	    << "Warning -- findMissingValues did not receive the expected "
+	    "number of values for query 0, expected " << ht0.cnt()
 	    << ", received " << ierr;
 	return;
     }
     ierr = col.selectValues(ht1, &vals1);
     if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht1.cnt()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- findMissingValues did received expected number "
-	    "of values for query 1, expected " << ht1.cnt()
+	    << "Warning -- findMissingValues did not receive the expected "
+	    "number of values for query 1, expected " << ht1.cnt()
 	    << ", received " << ierr;
 	return;
     }
@@ -3677,7 +3677,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	}
 
 	// self test after commit,
-	if (ibis::gVerbose > 1 && testing > 0) {
+	if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose >= 1)
 		<< "doAppend(" << dir << "): selfTest on partition \""
@@ -3687,16 +3687,14 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 		<< (ierr > 1 ? " errors\n" : " error\n");
 	}
     }
-    else {
-	if (ibis::gVerbose > 1 && testing > 0) {
-	    ierr = tbl->selfTest(0);
-	    LOGGER(ibis::gVerbose >= 1)
-		<< "doAppend(" << dir << "): selfTest on partition \""
-		<< tbl->name() << "\" (after appending " << napp
-		<< (napp > 1 ? " rows" : " row")
-		<< ") encountered " << ierr
-		<< (ierr > 1 ? " errors\n" : " error\n");
-	}
+    else if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
+	ierr = tbl->selfTest(0);
+	LOGGER(ibis::gVerbose >= 1)
+	    << "doAppend(" << dir << "): selfTest on partition \""
+	    << tbl->name() << "\" (after appending " << napp
+	    << (napp > 1 ? " rows" : " row")
+	    << ") encountered " << ierr
+	    << (ierr > 1 ? " errors\n" : " error\n");
     }
     if (newtable) // new partition, add it to the list of partitions
 	tlist.push_back(tbl);

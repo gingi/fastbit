@@ -1969,7 +1969,7 @@ char* ibis::query::newToken(const char *uid) {
     name[3]  = ibis::util::charTable[63 & ta]; ta >>= 6;
     name[2]  = ibis::util::charTable[63 & ta]; ta >>= 6;
     name[1]  = ibis::util::charTable[63 & ta]; ta >>= 6;
-    // ensure the first byte is one of alphabets
+    // ensure the first byte is an alphabet
     if (ta > 9 && ta < 62) {
 	name[0]  = ibis::util::charTable[ta];
     }

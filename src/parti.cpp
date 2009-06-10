@@ -1095,9 +1095,9 @@ long ibis::part::commit(const char* dir) {
 		amask.write(mskfile.c_str());
 		ibis::fileManager::instance().flushFile(mskfile.c_str());
 	    }
-	    if (ibis::gVerbose > 0)
-		logMessage("commit", "commit successfully "
-			   "integrated new data");
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part[" << name() << "]::commit -- successfully "
+		"integrated new data from " << dir << ", nrows=" << nEvents;
 	}
 	else {
 	    logWarning("commit", "failed to integrate new data into "

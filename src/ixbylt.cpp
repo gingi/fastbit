@@ -827,11 +827,11 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	if (c0 < ncoarse - 1) { // left edge bin is a regular bin
 	    unsigned option = 2; // option 2 [ direct | - ]
 	    long cost = (offsets[cbounds[c0]] - offsets[hit0])
-		+ (coffsets[c0+1] - coffsets[c0]);
+		+ (c0>0 ? coffsets[c0] - coffsets[c0-1] : 0);
 	    long tmp;
-	    if (c0 > 0) { // option 3: [complement | -]
+	    if (c0 > 1) { // option 3: [complement | -]
 		tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
-		    + (coffsets[c0] - coffsets[c0-1]);
+		    + (coffsets[c0-1] - coffsets[c0-2]);
 		if (tmp < cost) {
 		    cost = tmp;
 		    option = 3;
@@ -853,21 +853,24 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		break;
 	    case 2:
 		col->getNullMask(lower);
-		activateCoarse(c0);
-		if (cbits[c0] != 0)
-		    lower -= *(cbits[c0]);
+		if (c0 > 0) {
+		    activateCoarse(c0-1);
+		    if (cbits[c0-1] != 0)
+			lower -= *(cbits[c0-1]);
+		}
 		if (hit0 < cbounds[0])
 		    addBins(hit0, cbounds[c0], lower);
 		break;
 	    case 3:
 		col->getNullMask(lower);
 		if (c0 > 0) {
-		    activateCoarse(c0-1);
-		    if (cbits[c0-1] != 0)
-			lower -= *(cbits[c0-1]);
-
+		    if (c0 > 1) {
+			activateCoarse(c0-2);
+			if (cbits[c0-2] != 0)
+			    lower -= *(cbits[c0-2]);
+		    }
 		    ibis::bitvector bv;
-		    sumBins(cbounds[c0-1], hit0, bv);
+		    addBins(cbounds[c0-1], hit0, bv);
 		    lower -= bv;
 		}
 		else if (hit0 > 0) {

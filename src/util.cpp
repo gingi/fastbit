@@ -396,7 +396,7 @@ int ibis::util::copy(const char* to, const char* from) {
     if (fdes < 0) {
 	if (errno != ENOENT || ibis::gVerbose > 10)
 	    ibis::util::logMessage
-		("Warning", "ibis::util::copy(%s, %s) failed "
+		("Warning", "util::copy(%s, %s) failed "
 		 "to open %s ... %s", to, from, from,
 		 (errno ? strerror(errno) : "no free stdio stream"));
 	return -1;
@@ -408,7 +408,7 @@ int ibis::util::copy(const char* to, const char* from) {
     int tdes = UnixOpen(to, OPEN_WRITEONLY, OPEN_FILEMODE);
     if (tdes < 0) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::util::copy(%s, %s) failed "
+	    ("Warning", "util::copy(%s, %s) failed "
 	     "to open %s ... %s", to, from, to,
 	     (errno ? strerror(errno) : "no free stdio stream"));
 	UnixClose(fdes);
@@ -435,7 +435,7 @@ int ibis::util::copy(const char* to, const char* from) {
 	while ((i = UnixRead(fdes, buf, nbuf))) {
 	    j = UnixWrite(tdes, buf, i);
 	    if (i != j) {
-		ibis::util::logMessage("Warning", "ibis::util::copy(%s, %s) "
+		ibis::util::logMessage("Warning", "util::copy(%s, %s) "
 				       "failed to write %lu bytes, only %lu "
 				       "bytes are written", to, from,
 				       static_cast<long unsigned>(i),
@@ -451,7 +451,7 @@ int ibis::util::copy(const char* to, const char* from) {
 	while ((i = UnixRead(fdes, sbuf, nbuf))) {
 	    j = UnixWrite(tdes, sbuf, i);
 	    if (i != j) {
-		ibis::util::logMessage("Warning", "ibis::util::copy(%s, %s) "
+		ibis::util::logMessage("Warning", "util::copy(%s, %s) "
 				       "failed to write %lu bytes, only %lu "
 				       "bytes are written", to, from,
 				       static_cast<long unsigned>(i),
@@ -472,13 +472,13 @@ int ibis::util::copy(const char* to, const char* from) {
 	return -3;
 } // ibis::util::copy
 
-// remove the files in the named direcotry, if the directory is then become
-// empty remove it as well
+/// If this function is run on a unix-type system and the second argument
+/// is true, it will leave all the subdirectories intact as well.
 void ibis::util::removeDir(const char* name, bool leaveDir) {
     if (name == 0 || *name == 0) return; // can not do anything
     char* cmd = new char[strlen(name)+32];
     char buf[PATH_MAX];
-    std::string event = "ibis::util::removeDir(";
+    std::string event = "util::removeDir(";
     event += name;
     event += ")";
 #if defined(USE_RM)
@@ -486,80 +486,65 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	sprintf(cmd, "/bin/rm -rf \"%s\"/*", name);
     else
 	sprintf(cmd, "/bin/rm -rf \"%s\"", name);
-    if (ibis::gVerbose > 4)
-	ibis::util::logMessage(event.c_str(),
-			       "issuing command \"%s\"", cmd);
+    LOGGER(ibis::gVerbose > 4)
+	<< event << " issuing command \"" << cmd << "\"";
 
     FILE* fptr = popen(cmd, "r");
     if (fptr) {
 	while (fgets(buf, PATH_MAX, fptr)) {
-	    if (ibis::gVerbose > 4)
-		ibis::util::logMessage(event.c_str(), "got message -- %s",
-				       buf);
+	    LOGGER(ibis::gVerbose > 4)
+		<< event << " got message -- " << buf;
 	}
 
 	int ierr = pclose(fptr);
-	if (ierr && ibis::gVerbose > 0) {
+	if (ierr && ibis::gVerbose >= 0) {
 	    ibis::util::logMessage("Warning ", "command \"%s\" returned with "
 				   "error %d ... %s", cmd, ierr,
 				   strerror(errno));
 	}
-	else if (ibis::gVerbose > 2) {
+	else if (ibis::gVerbose > 0) {
 	    ibis::util::logMessage(event.c_str(), "command \"%s\" succeeded",
 				   cmd);
 	}
     }
-    else if (ibis::gVerbose > 0) {
+    else if (ibis::gVerbose >= 0) {
 	ibis::util::logMessage("Warning", "%s failed to popen(%s) ... %s",
 			       event.c_str(), cmd, strerror(errno));
     }
 #elif defined(_WIN32) && defined(_MSC_VER)
-    sprintf(cmd, "rmdir /s /q \"%s\"", name); // "/s /q" on available on NT
-    if (ibis::gVerbose > 4)
- 	ibis::util::logMessage(event.c_str(), "issuing command \"%s\"...",
-			       cmd);
+    sprintf(cmd, "rmdir /s /q \"%s\"", name); // "/s /q" are available on NT
+    LOGGER(ibis::gVerbose > 4)
+ 	<< event << " issuing command \"" << cmd << "\"...";
 
     FILE* fptr = _popen(cmd, "rt");
     if (fptr) {
  	while (fgets(buf, PATH_MAX, fptr)) {
- 	    if (ibis::gVerbose > 4) {
-		ibis::util::logMessage(event.c_str(), "get message -- %s",
-				       buf);
-	    }
+ 	    LOGGER(ibis::gVerbose > 4)
+		<< event << " get message -- " << buf;
  	}
 
  	int ierr = _pclose(fptr);
- 	if (ierr && ibis::gVerbose > 0) { 
+ 	if (ierr && ibis::gVerbose >= 0) { 
 	    ibis::util::logMessage("Warning ", "command \"%s\" returned with "
 				   "error %d ... %s", cmd, ierr,
 				   strerror(errno));
  	}
- 	else if (ibis::gVerbose > 2) {
+ 	else if (ibis::gVerbose > 0) {
 	    ibis::util::logMessage(event.c_str(), "command \"%s\" succeeded",
 				   cmd);
  	}
      }
-     else if (ibis::gVerbose > 0) {
+     else if (ibis::gVerbose >= 0) {
 	ibis::util::logMessage("Warning", "%s failed to popen(%s) ... %s",
 			       event.c_str(), cmd, strerror(errno));
      }
-//       if (0 == rmdir(name)) {
-//  	if (ibis::gVerbose > 4) {
-//  	    ibis::util::logMessage("ibis::util::", "removeDir(%s) successful",
-//  				   name);
-//  	}
-//      }
-//      else if (ibis::gVerbose > 0) {
-//  	ibis::util::logMessage("Warning", "removedir(%s) failed ... %s",
-//  			       name, strerror(errno));
-//      }
 #elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     char* olddir = getcwd(buf, PATH_MAX);
     if (olddir) {
 	olddir = ibis::util::strnewdup(buf);
     }
     else {
-	ibis::util::logMessage("ibis::util::removeDir()", "can not getcwd ... "
+	ibis::util::logMessage("util::removeDir", "can not getcwd ... "
 			       "%s ", strerror(errno));
     }
 
@@ -567,12 +552,12 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     if (ierr != 0) {
 	if (errno != ENOENT) // ok if directory does not exist
 	    ibis::util::logMessage
-		("ibis::util::removeDir()", "can not chdir to %s ... %s",
+		("util::removeDir", "can not chdir to %s ... %s",
 		 name, strerror(errno));
 	if (errno == ENOTDIR) { // assume it to be a file
 	    if (0 != remove(name))
 		ibis::util::logMessage
-		    ("ibis::util::removeDir()", "can not remove %s ... %s",
+		    ("util::removeDir", "can not remove %s ... %s",
 		     name, strerror(errno));
 	}
 	delete [] cmd;
@@ -582,7 +567,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     (void) getcwd(buf, PATH_MAX);
     uint32_t len = strlen(buf);
     if (strncmp(buf, name, len)) { // names differ
-	ibis::util::logMessage("ibis::util::removeDir()", "specified dir name "
+	ibis::util::logMessage("util::removeDir", "specified dir name "
 			       "is %s, but CWD is actually %s", name, buf);
 	strcpy(buf, name);
 	len = strlen(buf);
@@ -605,7 +590,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 
 	// construct the full name
 	if (len+strlen(ent->d_name) >= PATH_MAX) {
-	    ibis::util::logMessage("ibis::util::removeDir()", "file name "
+	    ibis::util::logMessage("util::removeDir", "file name "
 				   "\"%s%s\" too long", buf, ent->d_name);
 	    isEmpty = false;
 	    continue;
@@ -613,24 +598,27 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	strcpy(buf+len, ent->d_name);
 
 	if (UnixStat(buf, &fst) != 0) {
-	    ibis::util::logMessage("ibis::util::removeDir()",
+	    ibis::util::logMessage("util::removeDir",
 				   "stat(%s) failed ... %s",
 				   buf, strerror(errno));
 	    if (0 != remove(buf)) {
-		ibis::util::logMessage("ibis::util::removeDir()",
+		ibis::util::logMessage("util::removeDir",
 				       "can not remove %s ... %s",
 				       buf, strerror(errno));
 		if (errno != ENOENT) isEmpty = false;
 	    }
 	    continue;
 	}
-	bool isDir = ((fst.st_mode & S_IFDIR) == S_IFDIR);
-	if (isDir) {
-	    removeDir(buf);
+
+	if ((fst.st_mode & S_IFDIR) == S_IFDIR) {
+	    if (leaveDir)
+		isEmpty = false;
+	    else
+		removeDir(buf);
 	}
 	else { // assume it is a regular file
 	    if (0 != remove(buf)) {
-		ibis::util::logMessage("ibis::util::removeDir()",
+		ibis::util::logMessage("util::removeDir",
 				       "can not remove %s ... %s",
 				       buf, strerror(errno));
 		if (errno != ENOENT) isEmpty = false;
@@ -641,29 +629,39 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     if (olddir) {
 	ierr = chdir(olddir);
 	if (0 != ierr) {
-	    ibis::util::logMessage("Warning", "ibis::util::removeDir() cannot "
+	    ibis::util::logMessage("Warning", "util::removeDir cannot "
 				   "return to %s ... %s", olddir,
-				   strerror(errno));
+				   (errno ? strerror(errno) : "???"));
 	}
 	delete [] olddir;
     }
 
     if (isEmpty && !leaveDir) {
 	ierr = rmdir(name);
-	if (ierr != 0) 
-	    ibis::util::logMessage("ibis::util::removeDir()",
-				   "directory %s can not removed ... %s",
-				   name, strerror(errno));
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- util::removeDir can not remove directory "
+		<< name << " ... " << (errno ? strerror(errno) : "???");
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "util::removeDir removed directory " << name;
+	}
     }
     else if (!isEmpty) {
-	ibis::util::logMessage("ibis::util::removeDir()", "directory %s is "
-			       "not removed because it is not empty", name);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "util::removeDir failed to remove directory "
+	    << name << " because it is not empty";
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "util::removeDir removed directory " << name;
     }
 #else
     ibis::util::logMessage("Warning", "donot know how to delete directory");
 #endif
     delete [] cmd;
-}
+} // ibis::util::removeDir
 
 /// Compute a compact 64-bit floating-point value in the range (left,
 /// right].  The righ-end is inclusive because the computed value is used
@@ -753,7 +751,7 @@ double ibis::util::compactValue(double left, double right,
     if (! (sep > left && sep <= right)) {
 	sep = right;
 #if defined(_DEBUG) || defined(DEBUG)
-	ibis::util::logMessage("Warning", "ibis::util::compactValue produced "
+	ibis::util::logMessage("Warning", "util::compactValue produced "
 			       "a value, %g (%g) out of range (%g, %g]",
 			       sep, diff, left, right);
 #endif
@@ -838,7 +836,7 @@ double ibis::util::compactValue2(double left, double right,
     if (! (sep > left && sep <= right)) {
 	sep = right;
 #if defined(_DEBUG) || defined(DEBUG)
-	ibis::util::logMessage("Warning", "ibis::util::compactValue2 produced "
+	ibis::util::logMessage("Warning", "util::compactValue2 produced "
 			       "a value, %g (%g) out of range (%g, %g]",
 			       sep, diff, left, right);
 #endif
@@ -1665,7 +1663,7 @@ char* ibis::util::getpass_r(const char *prompt, char *buff, uint32_t buflen) {
 
 char* getpass(const char *prompt) {
     static char buf[256];
-    ibis::util::mutexLock lock(&ibis::util::envLock, "ibis::util::getpass");
+    ibis::util::mutexLock lock(&ibis::util::envLock, "util::getpass");
     return ibis::util::getpass_r(prompt, buf, 256);
 } // getpass
 #endif

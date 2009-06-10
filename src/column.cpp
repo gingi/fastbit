@@ -565,7 +565,7 @@ const char* ibis::column::nullMaskName(std::string& fname) const {
 void ibis::column::getNullMask(ibis::bitvector& mask) const {
     if (thePart == 0) return;
 
-    mutexLock lock(this, "ibis::column::getNullMask");
+    mutexLock lock(this, "column::getNullMask");
     if (mask_.size() == thePart->nRows()) {
 	ibis::bitvector tmp(mask_);
 	mask.swap(tmp);
@@ -611,10 +611,16 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		mask.set(1, sz);
 	    }
 
-	    if (mask.size() != thePart->nRows()) {
+	    if (mask.size() != thePart->nRows() &&
+		thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
 		mask.adjustSize(sz, thePart->nRows());
-		mask.write(fnm);
 		ibis::fileManager::instance().flushFile(fnm);
+		mask.write(fnm);
+		LOGGER(ibis::gVerbose > 1)
+		    << "column[" << thePart->name() << '.' << m_name
+		    << "]::getNullMask constructed a new mask with "
+		    << mask.cnt() << " out of " << mask.size()
+		    << " set bits, wrote to " << fnm;
 	    }
 	    if (ibis::gVerbose > 3)
 		logMessage("getNullMask", "get null mask (%lu, %lu) "
@@ -4679,7 +4685,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	}
     }
     catch (const char* s) {
-	logWarning("loadIndex", "ibis::index::ceate(%s) throw "
+	logWarning("loadIndex", "index::ceate(%s) throw "
 		   "the following exception\n%s", name(), s);
 	delete idx;
 	idx = 0;
@@ -4695,13 +4701,13 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 // 	    purgeIndexFile();
     }
     catch (const std::exception& e) {
-	logWarning("loadIndex", "ibis::index::create(%s) failed "
+	logWarning("loadIndex", "index::create(%s) failed "
 		   "to create a new index -- %s", name(), e.what());
 	delete idx;
 	idx = 0;
     }
     catch (...) {
-	logWarning("loadIndex", "ibis::index::create(%s) failed "
+	logWarning("loadIndex", "index::create(%s) failed "
 		   "to create a new index -- unexpected exception",
 		   name());
 	delete idx;
@@ -4887,7 +4893,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = low.cnt();
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "column[" << thePart->name() << "." << name()
 	    << "]::evaluateRange(" << cmp << ", mask(" << mask.cnt()
 	    << ", " << mask.size() << ")) completed with low.size() = "
 	    << low.size() << ", low.cnt() = " << low.cnt()
@@ -4916,7 +4922,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "ibis::column[" << thePart->name() << "." << name()
+		<< "column[" << thePart->name() << "." << name()
 		<< "]::evaluateRange(" << cmp << ") receied an "
 		"exception from doScan in the exception handling code, "
 		"giving up...";
@@ -4932,7 +4938,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "ibis::column[" << thePart->name() << "." << name()
+	<< "column[" << thePart->name() << "." << name()
 	<< "]::evaluateRange(" << cmp
 	<< ") completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
@@ -5076,7 +5082,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "column[" << thePart->name() << "." << name()
 	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	    << "completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
@@ -5104,7 +5110,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "ibis::column[" << thePart->name() << "." << name()
+		<< "column[" << thePart->name() << "." << name()
 		<< "]::evaluateRange(" << cmp.colName() << "IN ...) receied "
 		"an exception from doScan in the exception handling code, "
 		"giving up...";
@@ -5117,7 +5123,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "ibis::column[" << thePart->name() << "." << name()
+	<< "column[" << thePart->name() << "." << name()
 	<< "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	<< "completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
@@ -5154,7 +5160,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "ibis::column[" << thePart->name() << "." << name()
+	    << "column[" << thePart->name() << "." << name()
 	    << "]::estimateRange(" << cmp
 	    << ") completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", high.size() = "
@@ -5364,24 +5370,35 @@ long ibis::column::append(const char* dt, const char* df,
 		   "unable to continue because elementSize() is zero");
 	return -1;
     }
+    else if (static_cast<uint64_t>((nold+nnew))*elem >= 0x80000000LU) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << '.' << name()
+	    << "]:append -- the new data file will have more than 2GB, nold="
+	    << nold << ", nnew=" << nnew << ", elementSize()=" << elem;
+	return -2;
+    }
 
-    ret = m_name.size()+2;
-    char* to = new char[strlen(dt)+ret];
-    char* from = new char[strlen(df)+ret];
-    sprintf(to, "%s%c%s", dt, DIRSEP, m_name.c_str()); // the file names
-    sprintf(from, "%s%c%s", df, DIRSEP, m_name.c_str());
-    if (ibis::gVerbose > 5)
-	logMessage("append", "source \"%s\" --> destination \"%s\"",
-		   from, to);
+    writeLock lock(this, "column::append");
+    std::string to;
+    std::string from;
+    to += dt;
+    to += DIRSEP;
+    to += m_name;
+    from += df;
+    from += DIRSEP;
+    from += m_name;
+    LOGGER(ibis::gVerbose > 3)
+	<< "column[" << thePart->name() << '.' << name()
+	<< "]::append -- source \"" << from << "\" --> destination \""
+	<< to << "\", nold=" << nold << ", nnew=" << nnew;
 
     // open destination file, position the file pointer
-    int dest = UnixOpen(to, OPEN_APPENDONLY, OPEN_FILEMODE);
+    int dest = UnixOpen(to.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (dest < 0) {
 	logWarning("append", "unable to open file \"%s\" for append ... %s",
-		   to, (errno ? strerror(errno) : "no free stdio stream"));
-	delete [] from;
-	delete [] to;
-	return -2;
+		   to.c_str(),
+		   (errno ? strerror(errno) : "no free stdio stream"));
+	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(dest, _O_BINARY);
@@ -5399,53 +5416,58 @@ long ibis::column::append(const char* dt, const char* df,
 	    j += diff;
 	}
     }
-    if (UnixSeek(dest, sz, SEEK_SET) < 0) {
+    if (UnixSeek(dest, sz, SEEK_SET) < static_cast<long>(sz)) {
 	// can not move file pointer to the expected location
 	UnixClose(dest);
-	return -3;
+	logWarning("append", "failed to seek to %ld in %s",
+		   static_cast<long>(sz), to.c_str());
+	return -4;
     }
 
     ret = 0;	// to count the number of bytes written
-    int src = UnixOpen(from, OPEN_READONLY); // open the files
+    int src = UnixOpen(from.c_str(), OPEN_READONLY); // open the files
     if (src >= 0) { // open the source file, copy it
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(src, _O_BINARY);
 #endif
 	const uint32_t tgt = nnew * elem;
-	uint32_t iread=1, iwrite;
+	long iread=1, iwrite;
 	while (static_cast<uint32_t>(ret) < tgt &&
 	       (iread = UnixRead(src, buf, nbuf)) > 0) {
-	    if (iread + ret > tgt) {// write at most tgt bytes
-		if (ibis::gVerbose > 1)
-		    logMessage("append", "read %lu bytes from %s, but "
-			       "expected %lu",
-			       static_cast<long unsigned>(iread), from,
-			       static_cast<long unsigned>(tgt-ret));
+	    if (iread + ret > static_cast<long>(tgt)) {
+		// write at most tgt bytes
+		LOGGER(ibis::gVerbose > 1)
+		    << "column[" << thePart->name() << '.' << name()
+		    << "]::append -- read " << iread << " bytes from " << from
+		    << ", but expected " << (tgt-ret) << ", will use first "
+		    << (tgt-ret) << " bytes";
 		iread = tgt - ret;
 	    }
 	    iwrite = UnixWrite(dest, buf, iread);
 	    if (iwrite != iread) {
-		logWarning("append", "Only wrote %lu out of %lu bytes to "
+		logWarning("append", "Only wrote %ld out of %ld bytes to "
 			   "\"%s\" after written %ld elements",
-			   static_cast<long unsigned>(iwrite),
-			   static_cast<long unsigned>(iread), to, ret);
+			   static_cast<long>(iwrite), static_cast<long>(iread),
+			   to.c_str(), ret);
 	    }
-	    ret += iwrite;
+	    ret += (iwrite>0 ? iwrite : 0);
 	}
-	nnew0 = UnixSeek(src, 0, SEEK_CUR) / elem;
 	UnixClose(src);
-	if (ibis::gVerbose > 10)
-	    logMessage("append", "copied the content of \"%s\" to \"%s\"",
-		       from, to);
 	m_sorted = false; // assume no longer sorted
+	LOGGER(ibis::gVerbose > 8)
+	    << "column[" << thePart->name() << '.' << name()
+	    << "]::append -- copied " << ret << " bytes from \"" << from
+	    << "\" to \"" << to << "\"";
     }
     else if (ibis::gVerbose > 0) { // can not open source file, write 0
 	logWarning("append", "unable to open file \"%s\" for reading ... "
 		   "%s\nwill write zeros in its place",
-		   from, (errno ? strerror(errno) : "no free stdio stream"));
+		   from.c_str(),
+		   (errno ? strerror(errno) : "no free stdio stream"));
     }
     j = UnixSeek(dest, 0, SEEK_CUR);
     sz = elem * (nold + nnew);
+    nnew0 = (j / elem) - nold;
     if (j < sz) {
 	memset(buf, 0, nbuf);
 	while (j < sz) {
@@ -5461,14 +5483,14 @@ long ibis::column::append(const char* dt, const char* df,
 #endif
     UnixClose(dest);
     if (j != sz) {
-	logWarning("append", "file \"%s\" size (%lu) differs from the "
-		   "expected value %lu", to, static_cast<long unsigned>(j),
-		   static_cast<long unsigned>(sz));
+	logWarning("append", "file \"%s\" size (%ld) differs from the "
+		   "expected value %ld", to.c_str(),
+		   static_cast<long>(j), static_cast<long>(sz));
 	if (j > sz) //truncate the file to the expected size
-	    truncate(to, sz);
+	    truncate(to.c_str(), sz);
     }
     else if (ibis::gVerbose > 10) {
-	logMessage("append", "size of \"%s\" is %lu as expected", to,
+	logMessage("append", "size of \"%s\" is %lu as expected", to.c_str(),
 		   static_cast<long unsigned>(j));
     }
 
@@ -5476,37 +5498,31 @@ long ibis::column::append(const char* dt, const char* df,
     if (ibis::gVerbose > 4)
 	logMessage("append", "appended %ld rows", ret);
     if (m_type == ibis::OID) {
-	delete [] from;
-	delete [] to;
 	return ret;
     }
 
     //////////////////////////////////////////////////
     // deals with the masks
-    char file[PATH_MAX];
-    strcpy(file, from);
-    strcat(file, ".msk");
+    std::string filename;
+    filename = from;
+    filename += ".msk";
     ibis::bitvector mapp;
-    try {mapp.read(file);} catch (...) {/* ok to continue */}
+    try {mapp.read(filename.c_str());} catch (...) {/* ok to continue */}
     mapp.adjustSize(nnew0, nnew);
     if (ibis::gVerbose > 7)
 	logMessage("append", "mask file \"%s\" contains %lu set bits "
-		   "out of %lu total bits", file,
+		   "out of %lu total bits", filename.c_str(),
 		   static_cast<long unsigned>(mapp.cnt()),
 		   static_cast<long unsigned>(mapp.size()));
 
-    strcpy(file, to);
-    strcat(file, ".msk");
+    filename = to;
+    filename += ".msk";
     ibis::bitvector mtot;
-    try {mtot.read(file);}
-    catch (...) {
-	mtot.adjustSize(nold0, nold);
-    }
-    if (mtot.size() != nold)
-	mtot.adjustSize(nold0, nold);
+    try {mtot.read(filename.c_str());} catch (...) {/* ok to continue */}
+    mtot.adjustSize(nold0, nold);
     if (ibis::gVerbose > 7)
 	logMessage("append", "mask file \"%s\" contains %lu set bits "
-		   "out of %lu total bits before append", file,
+		   "out of %lu total bits before append", filename.c_str(),
 		   static_cast<long unsigned>(mtot.cnt()),
 		   static_cast<long unsigned>(mtot.size()));
 
@@ -5521,10 +5537,10 @@ long ibis::column::append(const char* dt, const char* df,
 	mtot.adjustSize(nold+nnew, nold+nnew);
     }
     if (mtot.cnt() != mtot.size()) {
-	mtot.write(file);
+	mtot.write(filename.c_str());
 	if (ibis::gVerbose > 6) {
 	    logMessage("append", "mask file \"%s\" indicates %lu valid "
-		       "records out of %lu", file,
+		       "records out of %lu", filename.c_str(),
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
 #if defined(DEBUG)
@@ -5533,19 +5549,26 @@ long ibis::column::append(const char* dt, const char* df,
 	}
     }
     else {
-	remove(file); // no need to have the file
+	remove(filename.c_str()); // no need to have the file
 	if (ibis::gVerbose > 6)
 	    logMessage("append", "mask file \"%s\" removed, all "
-		       "%lu records are valid", file,
+		       "%lu records are valid", filename.c_str(),
 		       static_cast<long unsigned>(mtot.size()));
+    }
+    if (strcmp(dt, thePart->currentDataDir()) == 0) {
+	// update the mask stored internally
+	mutexLock lck(this, "column::append");
+	mask_.swap(mtot);
     }
 
     //////////////////////////////////////////////////
     // deal with the index
     ibis::index* ind = 0;
-    j = strlen(file);
-    file[--j] = 'x'; file[--j] = 'd'; file[--j] = 'i'; // msk --> idx
-    j = ibis::util::getFileSize(file);
+    j = filename.size();
+    filename[--j] = 'x'; // msk --> idx
+    filename[--j] = 'd';
+    filename[--j] = 'i';
+    j = ibis::util::getFileSize(filename.c_str());
     if (thePart->getState() == ibis::part::TRANSITION_STATE) {
 	// the active directory may have up to date indices
 	std::string ff = thePart->currentDataDir();
@@ -5556,18 +5579,18 @@ long ibis::column::append(const char* dt, const char* df,
 	if (UnixStat(ff.c_str(), &st) == 0) {
 	    if (st.st_atime >= thePart->timestamp()) {
 		// copy the fresh index file
-		ibis::util::copy(file, ff.c_str());
+		ibis::util::copy(filename.c_str(), ff.c_str());
 		if (ibis::gVerbose > 6)
 		    logMessage("append",
 			       "copied index file \"%s\" to \"%s\"",
-			       ff.c_str(), file);
+			       ff.c_str(), filename.c_str());
 	    }
 	    else if (j > 0) { // remove the stale file
-		remove(file);
+		remove(filename.c_str());
 	    }
 	}
 	else if (j > 0) { // remove the stale index file
-	    remove(file);
+	    remove(filename.c_str());
 	}
     }
     else if (thePart->nRows() > 0) {
@@ -5576,9 +5599,9 @@ long ibis::column::append(const char* dt, const char* df,
 	    if (ind && ind->getNRows() == nold) {
 		// existing file maps successfully into an index
 		long ierr = ind->append(dt, df, nnew);
-		// the append operation have force the index into memory,
+		// the append operation have forced the index into memory,
 		// remove record of the old index file
-		ibis::fileManager::instance().flushFile(file);
+		ibis::fileManager::instance().flushFile(filename.c_str());
 		if (static_cast<uint32_t>(ierr) == nnew) { // success
 		    ind->write(dt);	// record the updated index
 		    if (ibis::gVerbose > 6)
@@ -5592,11 +5615,11 @@ long ibis::column::append(const char* dt, const char* df,
 		}
 		else {			// failed to append
 		    delete ind;
-		    remove(file);
+		    remove(filename.c_str());
 		    if (ibis::gVerbose > 4)
 			logMessage("append", "failed to extend the index "
 				   "(code: %ld), removing file \"%s\"",
-				   ierr, file);
+				   ierr, filename.c_str());
 		}
 	    }
 #ifdef APPEND_UPDATE_INDEXES
@@ -5619,9 +5642,9 @@ long ibis::column::append(const char* dt, const char* df,
 #else
 	    else { // clean up the stale index
 		delete ind;
-		ibis::fileManager::instance().flushFile(file);
+		ibis::fileManager::instance().flushFile(filename.c_str());
 		// simply remove the existing index file
-		remove(file);
+		remove(filename.c_str());
 	    }
 #endif
 	}
@@ -5660,8 +5683,6 @@ long ibis::column::append(const char* dt, const char* df,
 	}
     }
 #endif
-    delete [] from;
-    delete [] to;
     return ret;
 } // ibis::column::append
 
@@ -5823,6 +5844,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
     long ierr = 0;
     const unsigned elem = sizeof(T);
     off_t oldsz = UnixSeek(curr, 0, SEEK_END);
+    mutexLock lock(this, evt.c_str());
     if (oldsz < 0)
 	oldsz = 0;
     else
@@ -5884,6 +5906,7 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
     evt += m_name;
     evt += "]::appendStrings";
 
+    mutexLock lock(this, evt.c_str());
     std::string fn = thePart->currentDataDir();
     fn += DIRSEP;
     fn += m_name;
@@ -6723,7 +6746,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 
 	mutexLock mtx(this, "saveSelected");
 	mask_.swap(bv);
-	if (mask_.size() != mask_.cnt())
+	if (mask_.size() > mask_.cnt())
 	    mask_.write(fname.c_str());
 	else
 	    remove(fname.c_str());
@@ -7114,9 +7137,8 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::column["
-	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
-	<< "]::actualMinMax -- vals.size() = "
+	<< "column[" << (thePart!=0 ? thePart->name() : "") << "."
+	<< m_name << "]::actualMinMax -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt()
 	<< ", min = " << min << ", max = " << max;
 } // ibis::column::actualMinMax
@@ -7147,9 +7169,8 @@ T ibis::column::computeMin(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::column["
-		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-		    << "]::computeMin -- vals.size() = "
+	lg.buffer() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
+		    << m_name << "]::computeMin -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", min = ";
 	if (strstr(typeid(T).name(), "char") != 0)
@@ -7186,9 +7207,8 @@ T ibis::column::computeMax(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::column["
-		    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-		    << "]::computeMax -- vals.size() = "
+	lg.buffer() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
+		    << m_name << "]::computeMax -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", max = ";
 	if (strstr(typeid(T).name(), "char") != 0)
@@ -7224,8 +7244,7 @@ double ibis::column::computeSum(const array_t<T>& vals,
     }
 
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::column["
-	<< (thePart!=0 ? thePart->name() : "") << "." << m_name
+	<< "column[" << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	<< "]::computeSum -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt() << ", sum = " << res;
     return res;
