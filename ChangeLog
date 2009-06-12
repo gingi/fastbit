@@ -1,3 +1,10 @@
+2009-06-12 John Wu <John.Wu at ACM.org>
+	* src/table.h: add optional argument to ibis::tablex::addColumn
+	and ibis::tablex::write to specify indexing options, add function
+	ibis::tablex::writeMetaData
+	* src/part.cpp: remove the special case for creating new directory
+	from the constructor that takes two directory names as arguments
+
 2009-06-11 John Wu <John.Wu at ACM.org>
 	* src/index.cpp:2549 change the test to use sampled histogram in
 	more cases (in a case with 20 million unique values, the histogram

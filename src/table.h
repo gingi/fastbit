@@ -86,9 +86,9 @@ public:
     /// Free text description.  May return a null pointer.
     virtual const char* description() const {return desc_.c_str();}
     /// The number of rows in this table.
-    virtual uint64_t nRows() const=0;
+    virtual uint64_t nRows() const =0;
     /// The number of columns in this table.
-    virtual size_t nColumns() const=0;
+    virtual size_t nColumns() const =0;
 
     /// A list of strings.
     /// @note The pointers are expected to point to names stored internally.
@@ -99,27 +99,27 @@ public:
     /// An associate array of names and types.
     typedef std::map<const char*, ibis::TYPE_T, ibis::lessi> namesTypes;
 
-    virtual stringList columnNames() const=0; ///< Return column names.
-    virtual typeList columnTypes() const=0; ///< Return data types.
+    virtual stringList columnNames() const =0; ///< Return column names.
+    virtual typeList columnTypes() const =0; ///< Return data types.
 
     /// Print a description of the table to the specified output stream.
-    virtual void describe(std::ostream&) const=0;
+    virtual void describe(std::ostream&) const =0;
     /// Print all column names on one line.
-    virtual void dumpNames(std::ostream& out, const char* del=", ") const=0;
+    virtual void dumpNames(std::ostream& out, const char* del=", ") const =0;
     /// Print the values in ASCII form to the specified output stream.  The
     /// default delimiter is coma (","), which produces
     /// Comma-Separated-Values (CSV).
-    virtual int dump(std::ostream& out, const char* del=", ") const=0;
+    virtual int dump(std::ostream& out, const char* del=", ") const =0;
     /// Print the first nr rows.
     virtual int dump(std::ostream& out, uint64_t nr,
-		     const char* del=", ") const=0;
+		     const char* del=", ") const =0;
     /// Estimate the number of rows satisfying the selection conditions.
     /// The number of rows is between [@c nmin, @c nmax].
     virtual void estimate(const char* cond,
-			  uint64_t& nmin, uint64_t& nmax) const=0;
+			  uint64_t& nmin, uint64_t& nmax) const =0;
     /// Given a set of column names and a set of selection conditions,
     /// compute another table that represents the selected values.
-    virtual table* select(const char* sel, const char* cond) const=0;
+    virtual table* select(const char* sel, const char* cond) const =0;
 
     /// Perform aggregate functions on the current table.  It produces a
     /// new table.  The list of strings passed to this function are
@@ -127,7 +127,7 @@ public:
     /// Currently, only functions COUNT, AVG, MIN, MAX, and SUM are
     /// supported, and the functions can only accept a column name as
     /// arguments.
-    virtual table* groupby(const stringList&) const=0;
+    virtual table* groupby(const stringList&) const =0;
     /// Perform group-by operation.  The column names and operations are
     /// separated by commas.
     virtual table* groupby(const char*) const;
@@ -180,7 +180,7 @@ public:
     virtual int buildIndexes(const char* options=0) =0;
     /// Retrieve the current indexing option.  If no column name is
     /// specified, it retrieve the indexing option for the table.
-    virtual const char* indexSpec(const char* colname=0) const=0;
+    virtual const char* indexSpec(const char* colname=0) const =0;
     /// Replace the current indexing option.  If no column name is
     /// specified, it resets the indexing option for the table.
     virtual void indexSpec(const char* opt, const char* colname=0) =0;
@@ -193,32 +193,32 @@ public:
     /// returned.  In these cases, the caller is responsible for allocating
     /// enough storage for the values to be returned.
     /// @{
-    virtual int64_t getColumnAsBytes(const char* cname, char* vals) const=0;
+    virtual int64_t getColumnAsBytes(const char* cname, char* vals) const =0;
     virtual int64_t getColumnAsUBytes(const char* cname,
-				      unsigned char* vals) const=0;
+				      unsigned char* vals) const =0;
     virtual int64_t getColumnAsShorts(const char* cname,
-				      int16_t* vals) const=0;
+				      int16_t* vals) const =0;
     virtual int64_t getColumnAsUShorts(const char* cname,
-				       uint16_t* vals) const=0;
+				       uint16_t* vals) const =0;
     virtual int64_t getColumnAsInts(const char* cname,
-				    int32_t* vals) const=0;
+				    int32_t* vals) const =0;
     virtual int64_t getColumnAsUInts(const char* cname,
-				     uint32_t* vals) const=0;
+				     uint32_t* vals) const =0;
     virtual int64_t getColumnAsLongs(const char* cname,
-				     int64_t* vals) const=0;
+				     int64_t* vals) const =0;
     virtual int64_t getColumnAsULongs(const char* cname,
-				      uint64_t* vals) const=0;
+				      uint64_t* vals) const =0;
     virtual int64_t getColumnAsFloats(const char* cname,
-				      float* vals) const=0;
+				      float* vals) const =0;
     virtual int64_t getColumnAsDoubles(const char* cname,
-				       double* vals) const=0;
+				       double* vals) const =0;
     virtual int64_t getColumnAsDoubles(const char* cname,
-				       std::vector<double>& vals) const=0;
+				       std::vector<double>& vals) const =0;
     /// Retrieve the null-terminated strings as a vector of std::string
     /// objects.  Both ibis::CATEGORY and ibis::TEXT types can be retrieved
     /// using this function.
     virtual int64_t getColumnAsStrings(const char* cname,
-				       std::vector<std::string>& vals) const=0;
+				       std::vector<std::string>& vals) const =0;
     /// @}
 
     /// @{
@@ -237,7 +237,7 @@ public:
     virtual long getHistogram(const char* constraints,
 			      const char* cname,
 			      double begin, double end, double stride,
-			      std::vector<size_t>& counts) const=0;
+			      std::vector<size_t>& counts) const =0;
     /// Compute a two-dimension histogram on columns @c cname1 and @c
     /// cname2.  The bins along each dimension are defined the same way as
     /// in function @c getHistogram.  The array @c counts stores the
@@ -249,7 +249,7 @@ public:
 				double begin1, double end1, double stride1,
 				const char* cname2,
 				double begin2, double end2, double stride2,
-				std::vector<size_t>& counts) const=0;
+				std::vector<size_t>& counts) const =0;
     /// Compute a three-dimensional histogram on the named columns.  The
     /// triplets <begin, end, stride> are used the same ways in @c
     /// getHistogram and @c getHistogram2D.  The three dimensional bins
@@ -263,7 +263,7 @@ public:
 				double begin2, double end2, double stride2,
 				const char* cname3,
 				double begin3, double end3, double stride3,
-				std::vector<size_t>& counts) const=0;
+				std::vector<size_t>& counts) const =0;
     /// @}
 
     /// A simple struct for storing a row of a table.
@@ -310,7 +310,7 @@ public:
     // Cursor class for row-wise data accesses.
     class cursor;
     /// Create a @c cursor object to perform row-wise data access.
-    virtual cursor* createCursor() const=0;
+    virtual cursor* createCursor() const =0;
 
     /// Parse a string into a set of names.  Some bytes may be turned into
     /// 0 to mark the end of names or functions.
@@ -347,9 +347,8 @@ public:
     virtual ~tablex() {}; // nothing to do.
 
     /// Add a column.
-    virtual int addColumn(const char* cname, ibis::TYPE_T ctype) =0;
     virtual int addColumn(const char* cname, ibis::TYPE_T ctype,
-			  const char* cdesc) =0;
+			  const char* cdesc=0, const char* idx=0) =0;
     /// Add values to the named column.  The column name must be in the
     /// table already.  The first value is to be placed at row @c begin (the
     /// row numbers start with 0) and the last value before row @c end.
@@ -424,13 +423,13 @@ public:
     /// this argument as 0, but setting the correct number will likely
     /// reduce the amount of time needed by this function.  By default the
     /// records are delimited by comma (,) and blank space.  One may
-    /// specify alternative delimiters using the second argument.
-    /// @note This function attempts to read everything in the named file
-    /// into memory in one-shot, therefore it may not be able to handle
-    /// very large files.  Because the dynamic memory allocation may
-    /// fragment the memory address space, the amount of memory available
-    /// to this function may be significantly less than the amount of
-    /// physical memory.
+    /// specify alternative delimiters using the second argument.  @note
+    /// This function attempts to read everything in the named file into
+    /// memory in one-shot, therefore it may not be able to handle very
+    /// large files.  Because the dynamic memory allocation may fragment
+    /// the memory address space, the amount of memory available to this
+    /// function may be significantly less than the amount of physical
+    /// memory.
     virtual int readCSV(const char* filename, const int maxrows=0,
 			const char* delimiters=0) =0;
 
@@ -440,8 +439,8 @@ public:
     virtual int parseNamesAndTypes(const char* txt);
 
     /// Write the in-memory data records to the specified directory on
-    /// disk.  If the table name (@c tname) is a null string or an empty string,
-    /// the last component of the directory name is used.  If the
+    /// disk.  If the table name (@c tname) is a null string or an empty
+    /// string, the last component of the directory name is used.  If the
     /// description (@c tdesc) is a null string or an empty string, a time
     /// stamp will be printed in its place.  If the specified directory
     /// already contains data, the new records will be appended to the
@@ -449,13 +448,23 @@ public:
     /// overwrite the existing name, but the existing name and description
     /// will be retained if the current arguments are null strings or empty
     /// strings.  The data type associated with this table will overwrite
-    /// the existing data type information.
-    virtual int write(const char* dir, const char* tname,
-		      const char* tdesc) const =0;
+    /// the existing data type information.  If the index specification is
+    /// not null, the existing index specification will be overwritten.
+    virtual int write(const char* dir, const char* tname=0,
+		      const char* tdesc=0, const char* idx=0) const =0;
+    /// Write out the information about the columns.  It will write the
+    /// metadata file containing the column information and index
+    /// specifications if no metadata file already exists.  It returns the
+    /// number of columns written to the metadata file upon successful
+    /// completion, returns 0 if a metadata file already exists or no
+    /// columns has been specified, returns a negative number to indicate
+    /// errors.
+    virtual int writeMetaData(const char* dir, const char* tname=0,
+			      const char* tdesc=0, const char* idx=0) const =0;
 
-    /// Remove all data recorded.  Keeps the metadata.  It is intended to
-    /// be used after a call to function write in preparation before
-    /// storing new rows.
+    /// Remove all data recorded.  Keeps the information about columns.  It
+    /// is intended to be used after a call to function write in
+    /// preparation before storing new rows.
     virtual void clearData() =0;
     /// Reserve enough space for the specified number of rows.  Return the
     /// number of rows that can be stored or a negative number to indicate
@@ -476,11 +485,11 @@ public:
     virtual uint32_t capacity() const {return 0;}
 
     /// The maximum number of rows in any column.
-    virtual uint32_t mRows() const=0;
+    virtual uint32_t mRows() const =0;
     /// The number of columns in this table.
-    virtual size_t mColumns() const=0;
+    virtual size_t mColumns() const =0;
     /// Print a description of the table to the specified output stream.
-    virtual void describe(std::ostream&) const=0;
+    virtual void describe(std::ostream&) const =0;
 
 protected:
     tablex() {}; // Derived classes need this.
@@ -580,10 +589,10 @@ private:
 class FASTBIT_CXX_DLLSPEC ibis::table::cursor {
 public:
     virtual ~cursor() {};
-    virtual uint64_t nRows() const=0;
-    virtual size_t nColumns() const=0;
-    virtual ibis::table::stringList columnNames() const=0;
-    virtual ibis::table::typeList columnTypes() const=0;
+    virtual uint64_t nRows() const =0;
+    virtual size_t nColumns() const =0;
+    virtual ibis::table::stringList columnNames() const =0;
+    virtual ibis::table::typeList columnTypes() const =0;
     /// Make the next row of the data set available for retrieval.  Returns
     /// 0 if successful, returns a negative number to indicate error.
     virtual int fetch() =0;
@@ -595,7 +604,7 @@ public:
     /// - @c nRows()-1].  If the cursor is not ready, such as before the
     /// first call to @c fetch or function @c fetch returned an error, this
     /// function return the same value as function @c nRows.
-    virtual uint64_t getCurrentRowNumber() const=0;
+    virtual uint64_t getCurrentRowNumber() const =0;
 
     /// Fetch the content of the next row and make the next row as the
     /// current row as well.
@@ -605,39 +614,39 @@ public:
     virtual int fetch(uint64_t rownum, ibis::table::row&) =0;
 
     /// Print out the values of the current row.
-    virtual int dump(std::ostream& out, const char* del=", ") const=0;
+    virtual int dump(std::ostream& out, const char* del=", ") const =0;
 
     /// Retrieve the value of the named column.
     /// @note Note the cost of name lookup is likely to dominate the total
     /// cost of such a function.
-    virtual int getColumnAsByte(const char* cname, char&) const=0;
-    virtual int getColumnAsUByte(const char* cname, unsigned char&) const=0;
-    virtual int getColumnAsShort(const char* cname, int16_t&) const=0;
-    virtual int getColumnAsUShort(const char* cname, uint16_t&) const=0;
-    virtual int getColumnAsInt(const char* cname, int32_t&) const=0;
-    virtual int getColumnAsUInt(const char* cname, uint32_t&) const=0;
-    virtual int getColumnAsLong(const char* cname, int64_t&) const=0;
-    virtual int getColumnAsULong(const char* cname, uint64_t&) const=0;
-    virtual int getColumnAsFloat(const char* cname, float&) const=0;
-    virtual int getColumnAsDouble(const char* cname, double&) const=0;
-    virtual int getColumnAsString(const char* cname, std::string&) const=0;
+    virtual int getColumnAsByte(const char* cname, char&) const =0;
+    virtual int getColumnAsUByte(const char* cname, unsigned char&) const =0;
+    virtual int getColumnAsShort(const char* cname, int16_t&) const =0;
+    virtual int getColumnAsUShort(const char* cname, uint16_t&) const =0;
+    virtual int getColumnAsInt(const char* cname, int32_t&) const =0;
+    virtual int getColumnAsUInt(const char* cname, uint32_t&) const =0;
+    virtual int getColumnAsLong(const char* cname, int64_t&) const =0;
+    virtual int getColumnAsULong(const char* cname, uint64_t&) const =0;
+    virtual int getColumnAsFloat(const char* cname, float&) const =0;
+    virtual int getColumnAsDouble(const char* cname, double&) const =0;
+    virtual int getColumnAsString(const char* cname, std::string&) const =0;
 
     /// This version of getColumnAsTTT directly use the column number, i.e.,
     /// the position of a column in the list returned by function @c
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
-    virtual int getColumnAsByte(size_t cnum, char& val) const=0;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char& val) const=0;
-    virtual int getColumnAsShort(size_t cnum, int16_t& val) const=0;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t& val) const=0;
-    virtual int getColumnAsInt(size_t cnum, int32_t& val) const=0;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t& val) const=0;
-    virtual int getColumnAsLong(size_t cnum, int64_t& val) const=0;
-    virtual int getColumnAsULong(size_t cnum, uint64_t& val) const=0;
-    virtual int getColumnAsFloat(size_t cnum, float& val) const=0;
-    virtual int getColumnAsDouble(size_t cnum, double& val) const=0;
-    virtual int getColumnAsString(size_t cnum, std::string& val) const=0;
+    virtual int getColumnAsByte(size_t cnum, char& val) const =0;
+    virtual int getColumnAsUByte(size_t cnum, unsigned char& val) const =0;
+    virtual int getColumnAsShort(size_t cnum, int16_t& val) const =0;
+    virtual int getColumnAsUShort(size_t cnum, uint16_t& val) const =0;
+    virtual int getColumnAsInt(size_t cnum, int32_t& val) const =0;
+    virtual int getColumnAsUInt(size_t cnum, uint32_t& val) const =0;
+    virtual int getColumnAsLong(size_t cnum, int64_t& val) const =0;
+    virtual int getColumnAsULong(size_t cnum, uint64_t& val) const =0;
+    virtual int getColumnAsFloat(size_t cnum, float& val) const =0;
+    virtual int getColumnAsDouble(size_t cnum, double& val) const =0;
+    virtual int getColumnAsString(size_t cnum, std::string& val) const =0;
 
 protected:
     cursor() {};

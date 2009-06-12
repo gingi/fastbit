@@ -13,90 +13,39 @@
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
 
-/// Return value 0 == success, -1 == invalid name or type, 1 == specified
-/// name already in the list of columns.
-int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct) {
-    if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::addColumn(" << cn << ", " << ct
-	    << ") can not proceed because of invalid parameters";
-	return -1;
-    }
-    columnList::const_iterator it = cols.find(cn);
-    if (it != cols.end()) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "tafel::addColumn(" << cn << ", " << ct
-	    << ") -- name already in the data partition";
-	return 1;
-    }
-
-    column* col = new column();
-    col->name = cn;
-    col->type = ct;
-    switch (ct) {
-    case ibis::BYTE:
-	col->values = new array_t<signed char>();
-	break;
-    case ibis::UBYTE:
-	col->values = new array_t<unsigned char>();
-	break;
-    case ibis::SHORT:
-	col->values = new array_t<int16_t>();
-	break;
-    case ibis::USHORT:
-	col->values = new array_t<uint16_t>();
-	break;
-    case ibis::INT:
-	col->values = new array_t<int32_t>();
-	break;
-    case ibis::UINT:
-	col->values = new array_t<uint32_t>();
-	break;
-    case ibis::LONG:
-	col->values = new array_t<int64_t>();
-	break;
-    case ibis::ULONG:
-	col->values = new array_t<uint64_t>();
-	break;
-    case ibis::FLOAT:
-	col->values = new array_t<float>();
-	break;
-    case ibis::DOUBLE:
-	col->values = new array_t<double>();
-	break;
-    case ibis::TEXT:
-    case ibis::CATEGORY:
-	col->values = new std::vector<std::string>();
-	break;
-    default:
-	break;
-    }
-    cols[col->name.c_str()] = col;
-    colorder.push_back(col);
-    return 0;
-} // ibis::tafel::addColumn
-
+/// Add metadata about a new column.
+/// Return value
+/// -  0 == success,
+/// - -2 == invalid name or type,
+/// -  1 == name already in the list of columns, same type,
+/// - -1 == existing column with different type.
 int ibis::tafel::addColumn(const char* cn, ibis::TYPE_T ct,
-			   const char* cd) {
-    if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE ||
-	cd == 0 || *cd == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::addColumn(" << cn << ", " << ct << ", " << cd
-	    << ") can not proceed because of invalid parameters";
-	return -1;
+			   const char* cd, const char* idx) {
+    if (cn == 0 || *cn == 0 || ct == ibis::UNKNOWN_TYPE) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- tafel::addColumn(" << (void*)cn << ", "
+	    << (void*)ct << ", " << (void*)cd << ", " << (void*)idx
+	    << ") expects a valid name (1st arguement) and type (2nd argument)";
+	return -2;
     }
-    columnList::const_iterator it = cols.find(cn);
+    columnList::iterator it = cols.find(cn);
     if (it != cols.end()) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "tafel::addColumn(" << cn << ", " << ct << ", " << cd
+	    << "tafel::addColumn(" << cn << ", " << ct
 	    << ") -- name already in the data partition";
-	return 1;
+	if (cd != 0 && *cd != 0)
+	    it->second->desc = cd;
+	if (idx != 0 && *idx != 0)
+	    it->second->indexSpec = idx;
+	return (ct == it->second->type ? 1 : -1);
     }
 
     column* col = new column();
     col->name = cn;
     col->type = ct;
-    col->desc = cd;
+    col->desc = (cd && *cd ? cd : cn);
+    if (idx != 0 && *idx != 0)
+	col->indexSpec = idx;
     switch (ct) {
     case ibis::BYTE:
 	col->values = new array_t<signed char>();
@@ -918,6 +867,154 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
     return jnew;
 } // ibis::tafel::appendRows
 
+/// Write the metadata file if no metadata file already exists in the given
+/// directory.
+/// Return error code:
+/// - number of columns: successful completion.  The return value of this
+///   function should match the return of mColumns.
+/// -  0: a metadata file already exists.  The content of the existing
+///    metadata file is not checked.
+/// - -1: no directory specified.
+/// - -3: unable to open the metadata file.
+int ibis::tafel::writeMetaData(const char* dir, const char* tname,
+			       const char* tdesc, const char* idx) const {
+    if (cols.empty()) return 0; // nothing new to write
+    if (dir == 0 || *dir == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- tafel::writeMetaData needs a valid output directory name";
+	return -1; // dir must be specified
+    }
+    std::string mdfile = dir;
+    mdfile += DIRSEP;
+    mdfile += "-part.txt";
+    if (ibis::util::getFileSize(mdfile.c_str()) > 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "tafel::writeMetaData detects an existing -part.txt in " << dir
+	    << ", retun now";
+	return 0;
+    }
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0)
+	timer.start();
+
+    std::string oldnm, olddesc;
+    time_t currtime = time(0); // current time
+    char stamp[28];
+    ibis::util::secondsToString(currtime, stamp);
+    if (tdesc == 0 || *tdesc == 0) { // generate a description
+	std::ostringstream oss;
+	oss << "Metadata written with ibis::tablex::writeMetaData on "
+	    << stamp << " with " << cols.size() << " column"
+	    << (cols.size() > 1 ? "s" : "");
+	olddesc = oss.str();
+	tdesc = olddesc.c_str();
+    }
+    if (tname == 0 || *tname == 0) { // use the directory name as table name
+	tname = strrchr(dir, DIRSEP);
+	if (tname == 0)
+	    tname = strrchr(dir, '/');
+	if (tname != 0) {
+	    if (tname[1] != 0) {
+		++ tname;
+	    }
+	    else { // dir ends with DIRSEP
+		oldnm = dir;
+		oldnm.erase(oldnm.size()-1); // remove the last DIRSEP
+		size_t j = 1 + oldnm.rfind(DIRSEP);
+		if (j > oldnm.size())
+		    j = 1 + oldnm.rfind('/');
+		if (j < oldnm.size())
+		    oldnm.erase(0, j);
+		if (! oldnm.empty())
+		    tname = oldnm.c_str();
+		else
+		    tname = 0;
+	    }
+	}
+	else if (tname == 0 && *dir != '.') { // no directory separator
+	    tname = dir;
+	}
+	if (tname == 0) {
+	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
+	    ibis::util::int2string(oldnm, sum);
+	    if (! isalpha(oldnm[0]))
+		oldnm[0] = 'A' + (oldnm[0] % 26);
+	}
+    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "tafel::writeMetaData starting to write " << cols.size()
+	<< " column" << (cols.size()>1?"s":"") << " to " << dir << " as "
+	<< " data partition " << tname;
+
+    std::ofstream md(mdfile.c_str());
+    if (! md) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::writeMetaData(" << dir
+	    << ") failed to open metadata file \"-part.txt\"";
+	return -3; // metadata file not ready
+    }
+
+    md << "# meta data for data partition " << tname
+       << " written by ibis::tafel::writeMetaData on " << stamp << "\n\n"
+       << "BEGIN HEADER\nName = " << tname << "\nDescription = "
+       << tdesc << "\nNumber_of_rows = 0"
+       << "\nNumber_of_columns = " << cols.size()
+       << "\nTimestamp = " << currtime;
+    if (idx != 0 && *idx != 0) {
+	md << "\nindex = " << idx;
+    }
+    else { // try to find the default index specification
+	std::string idxkey = "ibis.";
+	idxkey += tname;
+	idxkey += ".index";
+	const char* str = ibis::gParameters()[idxkey.c_str()];
+	if (str != 0 && *str != 0)
+	    md << "\nindex = " << str;
+    }
+    md << "\nEND HEADER\n";
+
+    int ierr = 0;
+    for (columnList::const_iterator it = cols.begin();
+	 it != cols.end(); ++ it) {
+	const column& col = *((*it).second);
+	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
+	   << ibis::TYPESTRING[(int) col.type];
+	if (!col.desc.empty())
+	    md << "\ndescription = " << col.desc;
+	if (! col.indexSpec.empty()) {
+	    md << "\nindex = " << col.indexSpec;
+	}
+	else if (col.type == ibis::TEXT) {
+	    md << "\nindex = none";
+	}
+	else {
+	    std::string idxkey = "ibis.";
+	    idxkey += tname;
+	    idxkey += ".";
+	    idxkey += (*it).first;
+	    idxkey += ".index";
+	    const char* str = ibis::gParameters()[idxkey.c_str()];
+	    if (str != 0)
+		md << "\nindex = " << str;
+	}
+	md << "\nEnd Column\n";
+    }
+    md.close(); // close the file
+    ibis::fileManager::instance().flushDir(dir);
+    if (ibis::gVerbose > 0) {
+	timer.stop();
+	ibis::util::logger().buffer()
+	    << "tafel::writeMetaData completed writing partition " 
+	    << tname << " (" << tdesc << ") with " << cols.size()
+	    << " column" << (cols.size()>1 ? "s" : "") << " to " << dir
+	    << " using " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
+    }
+
+    return cols.size();
+} // ibis::tafel::writeMetaData
+
+/// Write the data values and update the metadata file.
 /// Return error code:
 /// -  0: successful completion.
 /// - -1: no directory specified.
@@ -926,18 +1023,18 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 /// - -4: unable to open a data file.
 /// - -5: failed to write the expected number of records.
 int ibis::tafel::write(const char* dir, const char* tname,
-		       const char* tdesc) const {
+		       const char* tdesc, const char* idx) const {
     if (cols.empty() || mrows == 0) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::write needs a valid output directory name to proceed";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- tafel::write needs a valid output directory name";
 	return -1; // dir must be specified
     }
     ibis::horometer timer;
     if (ibis::gVerbose > 0)
 	timer.start();
 
-    std::string oldnm, olddesc;
+    std::string oldnm, olddesc, oldidx;
     ibis::bitvector::word_t nold = 0;
     { // read the existing meta data file in the directory dir
 	ibis::part tmp(dir, static_cast<const char*>(0));
@@ -952,6 +1049,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		tdesc = olddesc.c_str();
 	    }
 
+	    if (tmp.indexSpec() != 0 && *(tmp.indexSpec()) != 0)
+		oldidx = tmp.indexSpec();
 	    unsigned nconflicts = 0;
 	    for (columnList::const_iterator it = cols.begin();
 		 it != cols.end(); ++ it) {
@@ -1022,7 +1121,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     ibis::util::secondsToString(currtime, stamp);
     if (tdesc == 0 || *tdesc == 0) { // generate a description
 	std::ostringstream oss;
-	oss << "Table constructed with ibis::tablex interface on "
+	oss << "Data partition constructed with ibis::tablex interface on "
 	    << stamp << " with " << cols.size() << " column"
 	    << (cols.size() > 1 ? "s" : "") << " and " << nold + mrows
 	    << " row" << (nold+mrows>1 ? "s" : "");
@@ -1062,7 +1161,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	}
     }
     LOGGER(ibis::gVerbose > 1)
-	<< "tafel::write starting to wrote " << mrows << " row"
+	<< "tafel::write starting to write " << mrows << " row"
 	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
 	<< (cols.size()>1?"s":"") << " to " << dir << " as "
 	<< " data partition " << tname;
@@ -1084,12 +1183,18 @@ int ibis::tafel::write(const char* dir, const char* tname,
        << tdesc << "\nNumber_of_rows = " << nold+mrows
        << "\nNumber_of_columns = " << cols.size()
        << "\nTimestamp = " << currtime;
-    { // try to find the default index specification
+    if (idx != 0 && *idx != 0) {
+	md << "\nindex = " << idx;
+    }
+    else if (! oldidx.empty()) {
+	md << "\nindex = " << oldidx;
+    }
+    else { // try to find the default index specification
 	std::string idxkey = "ibis.";
 	idxkey += tname;
 	idxkey += ".index";
 	const char* str = ibis::gParameters()[idxkey.c_str()];
-	if (str != 0)
+	if (str != 0 && *str != 0)
 	    md << "\nindex = " << str;
     }
     md << "\nEND HEADER\n";
@@ -1207,14 +1312,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 
 	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
 	   << ibis::TYPESTRING[(int) col.type];
-	if (col.type == ibis::TEXT) {
+	if (! col.indexSpec.empty()) {
+	    md << "\nindex = " << col.indexSpec;
+	}
+	else if (col.type == ibis::TEXT) {
 	    md << "\nindex=none";
 	}
-	else if (col.type == ibis::BYTE  || col.type == ibis::UBYTE ||
-		 col.type == ibis::SHORT || col.type == ibis::USHORT ||
-		 col.type == ibis::INT   || col.type == ibis::UINT ||
-		 col.type == ibis::LONG  || col.type == ibis::ULONG ||
-		 col.type == ibis::FLOAT || col.type == ibis::DOUBLE) {
+	else {
 	    std::string idxkey = "ibis.";
 	    idxkey += tname;
 	    idxkey += ".";

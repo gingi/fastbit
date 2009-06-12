@@ -2550,7 +2550,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
     ibis::bitvector mask;
     col->getNullMask(mask);
     if (count > 0 && (mask.size() > 10000000 || count <
-		      (mask.size() >> (col->elementSize() <= 4 ? 11 : 10))) {
+		      (mask.size() >> (col->elementSize() <= 4 ? 11 : 10)))) {
 	ibis::bitvector pgm; // page mask
 	const unsigned ntot = mask.size();
 	const unsigned multip = ((ntot >> 12)>count ? (ntot >> 10)/count : 4);

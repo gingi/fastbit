@@ -301,12 +301,17 @@ ibis::part::part(const char* adir, const char* bdir) :
 
     if (adir == 0) return;
     //if (*adir != DIRSEP) return;
+    int maxLength = 0;
     activeDir = ibis::util::strnewdup(adir);
     ibis::util::removeTail(activeDir, DIRSEP);
     { // make sure activeDir exists, extra block to limit the scope of tmp
 	Stat_T tmp;
 	if (UnixStat(activeDir, &tmp) == 0) {
-	    if ((tmp.st_mode&S_IFDIR) != S_IFDIR) {
+	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR) {
+		// read the metadata file in activeDir
+		maxLength = readMetaData(nEvents, columns, activeDir);
+	    }
+	    else {
 		ibis::util::logMessage("Warning", "ibis::part::ctor(%s): "
 				       "stat.st_mode=%d is not a directory",
 				       adir, static_cast<int>(tmp.st_mode));
@@ -314,28 +319,21 @@ ibis::part::part(const char* adir, const char* bdir) :
 	    }
 	}
 	else {
-	    if (ibis::gVerbose > 5 || errno != ENOENT)
-		ibis::util::logMessage("Warning", "ibis::part::ctor(%s): "
-				       "stat(%s) failed ... %s", adir, adir,
-				       strerror(errno));
 	    if (errno == ENOENT) { // no such directory, make one
 		int ierr = ibis::util::makeDir(adir);
 		if (ierr < 0)
 		    throw "Can NOT generate the necessary directory for data";
-
-		activeDir = ibis::util::strnewdup(adir);
-		myCleaner = new ibis::part::cleaner(this);
-		ibis::fileManager::instance().addCleaner(myCleaner);
-		return;
 	    }
-	    else {
+	    else if (errno != 0) {
+		LOGGER(ibis::gVerbose > 5 || errno != ENOENT)
+		    << "Warning -- ibis::part::part(" << (void*)adir << ", "
+		    << (void*)bdir << ") stat(" << adir << ") failed ... "
+		    << strerror(errno);
 		throw "ibis::part::ctor -- named directory does not exist.";
 	    }
 	}
     }
 
-    // read the metadata file in activeDir
-    int maxLength = readMetaData(nEvents, columns, activeDir);
     if (maxLength > 0) {
 	// read in the RIDs
 	readRIDs();

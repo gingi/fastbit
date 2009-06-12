@@ -24,9 +24,8 @@ public:
     tafel() : mrows(0U) {}
     virtual ~tafel() {clear();}
 
-    virtual int addColumn(const char* cname, ibis::TYPE_T ctype);
     virtual int addColumn(const char* cname, ibis::TYPE_T ctype,
-			  const char* cdesc);
+			  const char* cdesc, const char* idx);
     virtual int append(const char* cname, uint64_t begin, uint64_t end,
 		       void* values);
     virtual int appendRow(const ibis::table::row&);
@@ -35,7 +34,9 @@ public:
     virtual int readCSV(const char* filename, const int maxrows=0,
 			const char* delimiters=0);
     virtual int write(const char* dir, const char* tname,
-		      const char* tdesc) const;
+		      const char* tdesc, const char* idx) const;
+    virtual int writeMetaData(const char* dir, const char* tname,
+			      const char* tdesc, const char* idx) const;
     virtual void clearData();
     virtual int32_t reserveSpace(uint32_t);
     virtual uint32_t capacity() const;
@@ -50,6 +51,8 @@ public:
 	std::string name;
 	/// Description of the column.
 	std::string desc;
+	/// Index specification for the column
+	std::string indexSpec;
 	/// Type of the data.
 	ibis::TYPE_T type;
 	/// Pointer to the in-memory storage.  For fix-sized elements, this
