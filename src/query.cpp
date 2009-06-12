@@ -1922,7 +1922,7 @@ ibis::query::~query() {
 /// are a base-64 representation of three integers computed from (A) the
 /// Fletcher chechsum of the user id, (B) the current time stamp reported
 /// by the function @c time, and (C) a monotonically increasing counter
-/// provided by the function ibis::util::uniqueNumber.
+/// provided by the function ibis::util::serialNumber.
 char* ibis::query::newToken(const char *uid) {
     uint32_t ta, tb, tc;
     char* name = new char[ibis::query::tokenLength()+1];
@@ -1943,7 +1943,7 @@ char* ibis::query::newToken(const char *uid) {
 	time(&tmp);			// the current time
 	tb = static_cast<uint32_t>(tmp);
     }
-    tc = ibis::util::uniqueNumber();	// a counter
+    tc = ibis::util::serialNumber();	// a counter
 
     if (ibis::gVerbose > 6)
 	ibis::util::logMessage("newToken", "constructing token from "

@@ -854,16 +854,11 @@ void ibis::util::setNaN(double& val) {
     val = std::numeric_limits<double>::quiet_NaN();
 } // ibis::util::setNaN
 
-// return a number that is different each time
-unsigned long ibis::util::uniqueNumber() {
-    static unsigned long int cnt = 0;
-    static pthread_mutex_t numMutex = PTHREAD_MUTEX_INITIALIZER;
-
-    ibis::util::mutexLock lock(&numMutex, "uniqueNumber");
-    unsigned long int tmp = cnt;
-    ++ cnt;
-    return tmp;
-} // ibis::util::uniqueNumber
+/// This implementation uses a 32-bit shared integer.
+uint32_t ibis::util::serialNumber() {
+    static sharedInt32 cnt;
+    return ++cnt;
+} // ibis::util::serialNumber
 
 // return a denominator and numerator pair to compute a uniform
 // distribution of numbers in a given range

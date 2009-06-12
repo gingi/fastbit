@@ -108,11 +108,16 @@ extern "C" {
 		 j = myList->cnt()) {
 		++ mycnt;
 		qq.setWhereClause(myList->conds[j].c_str());
-		int ierr = qq.evaluate();
+		const int ierr = qq.evaluate();
 		if (ierr == 0) {
 		    myList->hits[j] = qq.getNumHits();
 		}
 		else {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- thread " << myid
+			<< " received error code " << ierr
+			<< " while evaluating \"" << myList->conds[j]
+			<< "\" on data partition " << et0->name();
 		    ++ myerr;
 		}
 	    }
@@ -1698,20 +1703,16 @@ void ibis::part::readRIDs() const {
     fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (ibis::fileManager::instance().getFile(fn.c_str(), *rids)) {
-	if (ibis::gVerbose > 3)
-	    ibis::util::logMessage("ibis::part::readRIDs", "the file "
-				   "manager failed to read file "
-				   "\"%s\".  There is no RIDs.",
-				   fn.c_str());
+	LOGGER(ibis::gVerbose > 4)
+	    << "part[" << m_name << "]::readRIDs -- the file manager "
+	    "failed to read file \"" << fn << "\".  There is no RIDs.";
 	rids->clear();
     }
     if (nEvents != rids->size() && rids->size() > 0) {
-	if (ibis::gVerbose > 2) {
-	    ibis::util::logMessage("Warning",  "nEvents (%lu) is different "
-				   "from the number of RIDs (%lu).",
-				   static_cast<long unsigned>(nEvents),
-				   static_cast<long unsigned>(rids->size()));
-	}
+	LOGGER(ibis::gVerbose > 2)
+	    <<  "part[" << m_name << "]::readRIDs -- nEvents (" << nEvents
+	    << ") is different from the number of RIDs (" << rids->size()
+	    << ").";
     }
 } // ibis::part::readRIDs
 
@@ -5531,7 +5532,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 		const unsigned nc =
 		    (columns.size() > 2 ?
 		     columns.size() - (columns.size() >> 1) : columns.size());
-		unsigned nq = (63 & ibis::fileManager::instance().iBeat()) +
+		unsigned nq = (63 & ibis::util::serialNumber()) +
 		    7 * ibis::gVerbose;
 		nq *= (nth + 1);
 		if (nEvents >= 104857600)
@@ -5609,7 +5610,7 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
 
     // select a colum to perform the test on
     int i = (static_cast<int>(ibis::util::rand() * columns.size()) +
-	     ibis::fileManager::instance().iBeat()) % columns.size();
+	     ibis::util::serialNumber()) % columns.size();
     columnList::const_iterator it = columns.begin();
     while (i > 0) {++it; --i;}
     for (i = 0; static_cast<unsigned>(i) < columns.size() &&
@@ -5714,7 +5715,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     columnList::const_iterator it = columns.begin();
     {
 	int i = (static_cast<int>(ibis::util::rand() * columns.size()) +
-		 ibis::fileManager::instance().iBeat()) % columns.size();
+		 ibis::util::serialNumber()) % columns.size();
 	while (i) {++it; --i;};
 	for (i = 0; static_cast<unsigned>(i) < columns.size() &&
 		 ((*it).second->type() == ibis::TEXT ||

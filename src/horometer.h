@@ -76,10 +76,14 @@ public:
 	totalRealTime = 0.0;
 	totalCPUTime = 0.0;
     };
-    /// Stop the timer.  May resume later.
+    /// Stop the timer.  Record the duration.  May resume later.
     void stop() {
-	totalRealTime += readWallClock() - startRealTime;
-	totalCPUTime += readCPUClock() - startCPUTime;
+	double tmpr = readWallClock() - startRealTime;
+	double tmpc = readCPUClock() - startCPUTime;
+	if (tmpr > 0.0)
+	    totalRealTime += tmpr;
+	if (tmpc > 0.0)
+	    totalCPUTime += tmpc;
     };
     /// Continue after being stopped.
     void resume() {

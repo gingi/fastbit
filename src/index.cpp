@@ -590,7 +590,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    case ibis::INT: {
 			double amin = c->lowerBound();
 			double amax = c->upperBound();
-			if (amin >= amax || amin >= 0) {
+			if (amin >= amax && amin >= 0) {
 			    c->computeMinMax(c->partition()->currentDataDir(),
 					     amin, amax);
 			}
@@ -915,7 +915,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		case ibis::INT: {
 		    double amin = c->lowerBound();
 		    double amax = c->upperBound();
-		    if (amin >= amax || amin >= 0) {
+		    if (amin >= amax && amin >= 0) {
 			c->computeMinMax(c->partition()->currentDataDir(),
 					 amin, amax);
 		    }
@@ -2526,13 +2526,16 @@ long ibis::index::getCumulativeDistribution
 /// the number of values in the data files, all values are used, otherwise,
 /// approximately @c count values will be sampled with nearly uniform
 /// distances from each other.
-
+///
 /// @note IMPROTANT ASSUMPTION.
 /// A value of any supported type is supposed to be able to fit in a
 /// double with no rounding, no approximation and no overflow.
 void ibis::index::mapValues(const char* f, histogram& hist,
 			    uint32_t count) const {
     uint32_t i, k, nev = col->partition()->nRows();
+// TODO: implement a different algorith, like sort the values first, to
+// make memory usage more predictable.  The numerous dynamically allocated
+// elements used by histogram really could slow down this function!
 
     horometer timer;
     std::string fnm; // name of the data file
@@ -2546,10 +2549,11 @@ void ibis::index::mapValues(const char* f, histogram& hist,
     histogram::iterator it;
     ibis::bitvector mask;
     col->getNullMask(mask);
-    if (count > 0 && count < (mask.size() >> 11)) {
+    if (count > 0 && (mask.size() > 10000000 || count <
+		      (mask.size() >> (col->elementSize() <= 4 ? 11 : 10))) {
 	ibis::bitvector pgm; // page mask
 	const unsigned ntot = mask.size();
-	const unsigned multip = ((ntot >> 10) / count);
+	const unsigned multip = ((ntot >> 12)>count ? (ntot >> 10)/count : 4);
 	const unsigned stride = 1024 * multip;
 	if (ibis::gVerbose > 2)
 	    col->logMessage("mapValues", "will sample 1024 values out of "
@@ -3070,6 +3074,12 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			    ++ ((*it).second);
 			}
 			else {
+#if defined(DEBUG) && DEBUG+0>1
+			    LOGGER(ibis::gVerbose > 5)
+				<< "DEBUG -- index::mapValues adding value "
+				<< val[i] << " to the histogram of size "
+				<< hist.size();
+#endif
 			    hist[val[i]] = 1;
 			}
 		    }

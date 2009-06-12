@@ -438,7 +438,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     }
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
@@ -503,7 +503,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     sort();
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
@@ -551,7 +551,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
     sort();
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::bundle1 -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)
@@ -966,7 +966,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
     }
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "query[" << q.id()
 		    << "]::bundles -- generated the bundle\n";
 	if (rids == 0) {
@@ -1023,7 +1023,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     sort();
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
@@ -1071,7 +1071,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
     sort();
 
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(5);
+	ibis::util::logger lg;
 	lg.buffer() << "ibis::bundles -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)

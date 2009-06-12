@@ -11,7 +11,7 @@ ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
 	std::istringstream iss(clause_);
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	selectLexer lx(&iss, &(lg.buffer()));
 	selectParser parser(*this);
 	lexer = &lx;
@@ -68,7 +68,7 @@ int ibis::selectClause::parse(const char *cl) {
 	clear();
 	clause_ = cl;
 	std::istringstream iss(clause_);
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	selectLexer lx(&iss, &(lg.buffer()));
 	selectParser parser(*this);
 	lexer = &lx;

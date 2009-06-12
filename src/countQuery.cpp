@@ -102,7 +102,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	}
 	
 	if (ibis::gVerbose > 1) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << "countQuery::setWhereClause -- ";
 	    if (conds.getString() != 0)
 		lg.buffer() << "replace the where clause \""
@@ -226,7 +226,7 @@ int ibis::countQuery::estimate() {
     }
 
     if (ibis::gVerbose > 1) {
-	ibis::util::logger lg(1);
+	ibis::util::logger lg;
 	lg.buffer() << "countQuery::estimate -- number of hits ";
 	if (hits != 0) {
 	    if (cand != 0)

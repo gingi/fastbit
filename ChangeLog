@@ -1,3 +1,15 @@
+2009-06-11 John Wu <John.Wu at ACM.org>
+	* src/index.cpp:2549 change the test to use sampled histogram in
+	more cases (in a case with 20 million unique values, the histogram
+	data structure caused segmentation violations)
+
+2009-06-10 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: print the error code if the query evaluation fails
+	in ibis_part_threadedTestFun2
+	* src/category.cpp: add timer to text::startPositions
+	* src/column.cpp: add log statements to the constructors to pair
+	up with the log statement in the destructor
+
 2009-06-09 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: in column::getNullMask comparisons involving
 	mask.size() need to taking into account of the state of data
@@ -11,6 +23,12 @@
 	subdirectories should be saved)
 	* src/ixbylt.cpp: bylt::evaluate used c0 incorrectly when the
 	query range is open to the right side
+	* src/*.cpp: remove the integer constants passed to the
+	constructor of ibis::util::logger class to make the printout more
+	uniform
+	* src/util.h, src/util.cpp: change util::uniqueNumber to
+	util::serialNumber and use sharedInt32 instead of explicitly using
+	a mutex lock
 
 2009-06-08 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: warn about file size over 2GB in

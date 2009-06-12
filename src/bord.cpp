@@ -1175,7 +1175,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     }
     if (sel.size() == 0) {
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << "ibis::bord::part::groupby -- none of the names "
 		"given in \"" << keys[0];
 	    for (size_t i = 1; i < keys.size(); ++ i)
@@ -1200,7 +1200,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     const size_t nr = bdl->size();
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg(0);
+	    ibis::util::logger lg;
 	    lg.buffer() << "Warning -- ibis::bord::part::groupby("
 			<< keys[0];
 	    for (size_t i = 1; i < keys.size(); ++ i)

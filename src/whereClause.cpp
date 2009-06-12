@@ -16,7 +16,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
     if (cl != 0 && *cl != 0) {
 	clause_ = cl;
 	std::istringstream iss(clause_);
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	whereLexer lx(&iss, &(lg.buffer()));
 	whereParser parser(*this);
 	lexer = &lx;
@@ -55,7 +55,7 @@ int ibis::whereClause::parse(const char* cl) {
     if (cl != 0 && *cl != 0) {
 	clause_ = cl;
 	std::istringstream iss(clause_);
-	ibis::util::logger lg(0);
+	ibis::util::logger lg;
 	whereLexer lx(&iss, &(lg.buffer()));
 	whereParser parser(*this);
 	lexer = &lx;

@@ -1041,6 +1041,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	return;
     }
 
+    std::string evt = "text[";
+    evt += thePart->name();
+    evt += '.';
+    evt += m_name;
+    evt += "]::startPositions";
     long ierr = fseek(fdata, 0, SEEK_END);
     int64_t dfbytes = ftell(fdata);
     if (dfbytes <= 0) { // empty data file
@@ -1050,6 +1055,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	return;
     }
 
+    ibis::util::timer mytimer(evt.c_str(), 3);
     ibis::fileManager::buffer<char> mybuf(nbuf != 0);
     if (nbuf == 0) {
 	nbuf = mybuf.size();
@@ -1108,15 +1114,13 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
 		if (*s == 0) { // find a terminator
 		    if (1 > fwrite(&last, sizeof(last), 1, fsp))
-			if (ibis::gVerbose >= 0)
-			    logWarning("startPositions", "unable to write an "
-				       "integer of %ld to file \"%s\"",
-				       last, spfile.c_str());
+			LOGGER(ibis::gVerbose >= 0)
+			    << evt << " -- unable to write integer value "
+			    << last << " to file \"" << spfile << "\"";
 		    last = pos+1;
 		    ++ nnew;
 		    LOGGER(ibis::gVerbose > 2 && nnew % 1000000 == 0)
-			<< "text[" << thePart->name() << "." << m_name
-			<< "]::startPositions -- processed "
+			<< evt << " -- processed "
 			<< nnew << " strings from " << dfile;
 		}
 	    }
@@ -1145,18 +1149,15 @@ void ibis::text::startPositions(const char *dir, char *buf,
 			if (jsps >
 			    fwrite(sps.address(), sizeof(last), jsps, fsp)) {
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "text[" << thePart->name() << "." << m_name
-				<< "]startPositions -- failed to write "
-				<< jsps << " integers to file \"" << spfile
-				<< "\"";
+				<< evt << " -- failed to write " << jsps
+				<< " integers to file \"" << spfile << "\"";
 			}
 			jsps = 0;
 		    }
 		    last = pos+1;
 		    ++ nnew;
 		    LOGGER(ibis::gVerbose > 2 && nnew % 1000000 == 0)
-			<< "text[" << thePart->name() << "." << m_name
-			<< "]::startPositions -- processed "
+			<< evt << " -- processed "
 			<< nnew << " strings from " << dfile;
 		}
 	    }
@@ -1175,10 +1176,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    if (jsps >
 		fwrite(sps.address(), sizeof(last), jsps, fsp)) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "text[" << thePart->name() << "." << m_name
-		    << "]startPositions -- failed to write "
-		    << jsps << " integers to file \"" << spfile
-		    << "\"";
+		    << evt << " -- failed to write " << jsps
+		    << " integers to file \"" << spfile << "\"";
 	    }
 	}
     }
@@ -1209,8 +1208,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
     (void) fclose(fsp);
 
     LOGGER(ibis::gVerbose > 2)
-	<< "ibis::text::startPositions located the starting positions of "
-	<< nnew << " new string" << (nnew > 1 ? "s" : "") << ", file " << spfile
+	<< evt << " located the starting positions of " << nnew
+	<< " new string" << (nnew > 1 ? "s" : "") << ", file " << spfile
 	<< " now has " << (nnew+nold+1) << " 64-bit integers (total "
 	<< sizeof(int64_t)*(nnew+nold+1) << " bytes)";
 
@@ -1223,9 +1222,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(int64_t));
 	truncate(dfile.c_str(), pos);
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::text::startPositions truncated files "
-	    << dfile << " and " << spfile << " to contain only "
-	    << thePart->nRows() << " record"
+	    << evt << " truncated files " << dfile << " and " << spfile
+	    << " to contain only " << thePart->nRows() << " record"
 	    << (thePart->nRows() > 1 ? "s" : "");
     }
 } // ibis::text::startPositions

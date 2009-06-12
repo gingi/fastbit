@@ -49,6 +49,8 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 	throw "ibis::column::ctor unable to initialize the mutex";
     }
     if (m_desc.empty()) m_desc = name;
+    LOGGER(ibis::gVerbose > 3 && !m_name.empty() && thePart != 0)
+	<< "initialized column " << name << " for partition " << tbl->name();
 } // ibis::column::column
 
 /// Read the basic information about a column from file.
@@ -259,6 +261,10 @@ ibis::column::column(const part* tbl, FILE* file)
 			       "valid name or type");
 	m_name.erase(); // make sure the name is empty
     }
+    LOGGER(ibis::gVerbose > 3 && thePart != 0)
+	<< "read info about column "
+	<< (m_name.empty() ? "???" : m_name.c_str()) << " for partition "
+	<< thePart->name();
 } // ibis::column::column
 
 /// The copy constructor.
@@ -275,6 +281,9 @@ ibis::column::column(const ibis::column& rhs) :
     if (pthread_mutex_init(&mutex, 0)) {
 	throw "ibis::column::ctor unable to initialize the mutex";
     }
+    LOGGER(ibis::gVerbose > 3 && !m_name.empty() && thePart != 0)
+	<< "made a new copy of column "
+	<< (m_name.empty() ? "???" : m_name.c_str());
 } // copy constructor
 
 ibis::column::~column() {
@@ -4772,7 +4781,7 @@ long ibis::column::indexSize() const {
 void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
     if (idx != 0) {
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	idx->speedTest(lg.buffer());
     }
 } // ibis::column::indexSpeedTest

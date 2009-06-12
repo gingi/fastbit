@@ -402,7 +402,7 @@ namespace ibis {
 	/// Return the user name.
 	FASTBIT_CXX_DLLSPEC const char* userName();
 	/// Return an integer that is always increasing.
-	unsigned long uniqueNumber();
+	uint32_t serialNumber();
 	/// Compute a denominator and numerator pair to compute a uniform
 	/// distribution of numbers in a given range.
 	void uniformFraction(const long unsigned idx,
