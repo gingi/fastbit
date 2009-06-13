@@ -15,6 +15,9 @@
 ///
 /// @note For functions that returns pointers, they return a nil
 /// pointer in case of error.
+///
+/// An example of using these functions is in <A
+/// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/tcapi_8c.html">examples/tcapi.c</A>.
 
 #if _MSC_VER >= 1000
 #pragma once

@@ -61,9 +61,11 @@ namespace ibis {
 /// This is an abstract base class that defines the common operations on a
 /// data table.  Conceptually, data records in a table is organized into
 /// rows and columns.  A query on a table produces a filtered version of
-/// the table.  In many database systems this is known as a view on a
+/// the table.  In many database systems this is known as a view of a
 /// table.  All data tables and views are logically treated as
-/// specialization of this ibis::table class.
+/// specialization of this class.  An example of using this class can be
+/// found in <A
+/// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/thula_8cpp.html">examples/thula.cpp</A>.
 class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
     /// Create a table object from the specified data directory.  If the
@@ -334,7 +336,14 @@ private:
 
 /// @ingroup FastBitMain
 /// The class for expandable tables.
-/// @note Each function that returns an integer returns 0 in case of
+/// It is designed to temporarily store data in memory and then write the
+/// records out through the function write.  After creating a object of
+/// this type, the user must first add columns by calling addColumn.  New
+/// data records may be added one column at a time or one row at a time.
+/// An example of using this class is in <A
+/// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/ardea_8cpp.html">examples/ardea.cpp</A>.
+///
+/// @note Most functions that return an integer return 0 in case of
 /// success, a negative value in case error and a positive number as
 /// advisory information.
 class FASTBIT_CXX_DLLSPEC ibis::tablex {
@@ -456,9 +465,9 @@ public:
     /// metadata file containing the column information and index
     /// specifications if no metadata file already exists.  It returns the
     /// number of columns written to the metadata file upon successful
-    /// completion, returns 0 if a metadata file already exists or no
-    /// columns has been specified, returns a negative number to indicate
-    /// errors.
+    /// completion, returns 0 if a metadata file already exists, and
+    /// returns a negative number to indicate errors.  If there is no
+    /// column in memory, nothing is written to the output directory.
     virtual int writeMetaData(const char* dir, const char* tname=0,
 			      const char* tdesc=0, const char* idx=0) const =0;
 
@@ -476,12 +485,17 @@ public:
     /// The intention is to mimize the number of dynamic memory allocations
     /// needed expand memory used to hold the data.  The implementation of
     /// this function is not required, and the user is not required to call
-    /// this function as long as the new data can be held in memory.
+    /// this function.
     virtual int32_t reserveSpace(uint32_t) {return 0;}
     /// Capacity of the memory cache.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it
     /// does not know about its capacity.
+    ///
+    /// @note For string valued columns, the resvation is not necessarily
+    /// allocating space required for the actual string values.  Thus it is
+    /// possible to run out of memory before the number of rows reported by
+    /// mRows reaches the value returned by this function.
     virtual uint32_t capacity() const {return 0;}
 
     /// The maximum number of rows in any column.

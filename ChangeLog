@@ -4,6 +4,12 @@
 	ibis::tablex::writeMetaData
 	* src/part.cpp: remove the special case for creating new directory
 	from the constructor that takes two directory names as arguments
+	* src/ibis.h: update the acknowledgement section in the doxygen
+	documentation
+	* src/column.h, src/column.cpp: move the decision of whether to
+	load index under a mutex lock in the constructor of indexLock and
+	in function loadIndex.  This should prevent an thread from using a
+	partially constructed index (being created by another thread)
 
 2009-06-11 John Wu <John.Wu at ACM.org>
 	* src/index.cpp:2549 change the test to use sampled histogram in

@@ -4616,6 +4616,7 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
     fflush(fptr);
 } // ibis::column::logMessage
 
+/// Load the index associated with the column.
 /// @param opt This option is passed to ibis::index::create to be used if a
 /// new index is to be created.
 /// @param readall If this argument is greater than zero, all metadata and
@@ -4634,15 +4635,16 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
     if (idx != 0 || thePart->nRows() == 0)
 	return;
 
+    ibis::index* tmp = idx;
     try { // if an index is not available, create one
 	if (ibis::gVerbose > 7)
 	    logMessage("loadIndex", "loading the index from %s",
 		       thePart->currentDataDir());
-	if (idx == 0) {
-	    idx = ibis::index::create(this, thePart->currentDataDir(),
+	if (tmp == 0) {
+	    tmp = ibis::index::create(this, thePart->currentDataDir(),
 				      opt, readall);
 	}
-	if (idx == 0) { // failed to create index, try again
+	if (tmp == 0) { // failed to create index
 	    purgeIndexFile(); // remove any left over index file
 	    const_cast<column*>(this)->m_bins = "noindex";
 	    std::string key = thePart->name();
@@ -4655,9 +4657,8 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    }
 	    return;
 	}
-	if (idx == 0) return; // failed twice
 
-	if (idx->getNRows()
+	if (tmp->getNRows()
 #if defined(DELETE_INDEX_ON_SIZE_MISMATCH)
 	    !=
 #else
@@ -4668,36 +4669,49 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 		logMessage("loadIndex", "found an index with nRows=%lu, "
 			   "but the data partition nRows=%lu, try to "
 			   "recreate the index",
-			   static_cast<unsigned long>(idx->getNRows()),
+			   static_cast<unsigned long>(tmp->getNRows()),
 			   static_cast<unsigned long>(thePart->nRows()));
-	    delete idx;
+	    delete tmp;
 	    // create a brand new index from data in the current working
 	    // directory
-	    idx = ibis::index::create(this, static_cast<const char*>(0), opt);
-	    if (idx->getNRows() != thePart->nRows()) {
+	    tmp = ibis::index::create(this, static_cast<const char*>(0), opt);
+	    if (tmp->getNRows() != thePart->nRows()) {
 		if (ibis::gVerbose > 0)
 		    logWarning("loadIndex",
 			       "created an index with nRows=%lu, "
 			       "but the data partition nRows=%lu, "
 			       "failed on retry!",
-			       static_cast<unsigned long>(idx->getNRows()),
+			       static_cast<unsigned long>(tmp->getNRows()),
 			       static_cast<unsigned long>
 			       (thePart->nRows()));
-		delete idx;
-		idx = 0;
+		delete tmp;
 		purgeIndexFile();
 	    }
 	}
-	if (idx != 0 && ibis::gVerbose > 10) {
-	    ibis::util::logger lg;
-	    idx->print(lg.buffer());
+	if (tmp != 0) {
+	    if (ibis::gVerbose > 10) {
+		ibis::util::logger lg;
+		tmp->print(lg.buffer());
+	    }
+
+	    mutexLock lck2(this, "loadIndex");
+	    if (idx == 0) {
+		idx = tmp;
+	    }
+	    else { // somehow another thread has created an index
+		LOGGER(ibis::gVerbose >= 0)
+		    << "column[" << (thePart ? thePart->name() : "?") << '.'
+		    << m_name << "]::loadIndex found an index (" << idx->name()
+		    << ") for this column after building another one ("
+		    << tmp->name() << "), discarding the new one";
+		delete tmp;
+	    }
 	}
     }
     catch (const char* s) {
 	logWarning("loadIndex", "index::ceate(%s) throw "
 		   "the following exception\n%s", name(), s);
-	delete idx;
-	idx = 0;
+	delete tmp;
 // 	    std::string key = thePart->name();
 // 	    key += '.';
 // 	    key += m_name;
@@ -4712,20 +4726,20 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
     catch (const std::exception& e) {
 	logWarning("loadIndex", "index::create(%s) failed "
 		   "to create a new index -- %s", name(), e.what());
-	delete idx;
-	idx = 0;
+	delete tmp;
     }
     catch (...) {
 	logWarning("loadIndex", "index::create(%s) failed "
 		   "to create a new index -- unexpected exception",
 		   name());
-	delete idx;
-	idx = 0;
+	delete tmp;
     }
 } // ibis::column::loadIndex
 
+/// Unload the index associated with the column.
 // This function requires a write lock just like loadIndex.
 void ibis::column::unloadIndex() const {
+    mutexLock mlck(this, "unloadIndex");
     if (0 != idx) {
 	softWriteLock lock(this, "unloadIndex");
 	if (lock.isLocked() && 0 != idx) {
@@ -9492,6 +9506,55 @@ int ibis::column::searchSortedOOCD(const char* fname,
     hits.adjustSize(0, nrows);
     return (ierr > 0 ? 0 : -3);
 } // ibis::column::searchSortedOOCD
+
+/// Constructor of index lock.
+ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
+    : theColumn(col), mesg(m) {
+#if defined(DEBUG) && DEBUG > 0
+    ibis::util::logMessage("column::indexLock",
+			   "locking column %s for %s", col->name(),
+			   (m ? m : "?"));
+#endif
+    bool toload = false;
+    { // only attempt to build the index if idxcnt is zero and idx is zero
+	ibis::column::mutexLock(col, m);
+	toload = (theColumn->idxcnt() == 0 && theColumn->idx == 0);
+    }
+    if (toload)
+	theColumn->loadIndex();
+    if (theColumn->idx != 0) {
+	++ theColumn->idxcnt; // increment counter
+
+	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
+	if (0 != ierr)
+	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for "
+			    "%s returned %d (%s)", m, ierr, strerror(ierr));
+	else if (ibis::gVerbose > 9)
+	    col->logMessage("gainReadAccess",
+			    "pthread_rwlock_rdlock for %s", m);
+    }
+}
+
+/// Destructor of index lock.
+ibis::column::indexLock::~indexLock() {
+#if defined(DEBUG) && DEBUG > 0
+    ibis::util::logMessage("column::indexLock",
+			   "unlocking column %s (%s)", theColumn->name(),
+			   (mesg ? mesg : "?"));
+#endif
+    if (theColumn->idx != 0) {
+	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+	if (ierr)
+	    theColumn->logWarning("releaseReadAccess",
+				  "pthread_rwlock_unlock for %s returned "
+				  "%d (%s)", mesg, ierr, strerror(ierr));
+	else if (ibis::gVerbose > 9)
+	    theColumn->logMessage("releaseReadAccess",
+				  "pthread_rwlock_unlock for %s", mesg);
+
+	-- (theColumn->idxcnt); // decrement counter
+    }
+}
 
 // explicit template instantiation
 template long ibis::column::selectValuesT

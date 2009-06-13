@@ -91,9 +91,7 @@ public:
     virtual void computeMinMax(const char *dir,
 			       double& min, double &max) const;
 
-    /// Load the index associated with the column.
     virtual void loadIndex(const char* opt=0, int readall=0) const throw ();
-    /// Unload the index associated with the column.
     void unloadIndex() const;
     /// Compute the index size (in bytes).
     virtual long indexSize() const;
@@ -418,48 +416,8 @@ public:
 /// and @c idxcnt.
 class ibis::column::indexLock {
 public:
-    indexLock(const ibis::column* col, const char* m)
-	: theColumn(col), mesg(m) {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::indexLock",
-			       "locking column %s for %s", col->name(),
-			       (m ? m : "?"));
-#endif
-	// only attempt to build the index if idxcnt is zero and idx is zero
-	if (theColumn->idxcnt() == 0 && theColumn->idx == 0)
-	    theColumn->loadIndex();
-	if (theColumn->idx != 0) {
-	    ++ theColumn->idxcnt; // increment counter
-
-	    int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-	    if (0 != ierr)
-		col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for "
-				"%s returned %d (%s)", m, ierr, strerror(ierr));
-	    else if (ibis::gVerbose > 9)
-		col->logMessage("gainReadAccess",
-				"pthread_rwlock_rdlock for %s", m);
-	}
-    }
-    ~indexLock() {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::indexLock",
-			       "unlocking column %s (%s)", theColumn->name(),
-			       (mesg ? mesg : "?"));
-#endif
-	if (theColumn->idx != 0) {
-	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	    if (ierr)
-		theColumn->logWarning("releaseReadAccess",
-				      "pthread_rwlock_unlock for %s returned "
-				      "%d (%s)", mesg, ierr, strerror(ierr));
-	    else if (ibis::gVerbose > 9)
-		theColumn->logMessage("releaseReadAccess",
-				      "pthread_rwlock_unlock for %s", mesg);
-
-	    -- (theColumn->idxcnt); // decrement counter
-	}
-    }
-
+    ~indexLock();
+    indexLock(const ibis::column* col, const char* m);
     const ibis::index* getIndex() const {return theColumn->idx;};
 
 private:

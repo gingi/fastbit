@@ -1,3 +1,31 @@
+Fri Jun 12 17:10:16 PDT 2009
+Version ibis1.1.0
+-- automate the line buffer management in function tafel::readCSV to
+   address a problem reported by Nicolae Mihalache <mache at abcpages
+   dot com>
+-- update ibis::tablex and ibis::tafel to work with a genomic
+   application, make it easier to derive from and extend
+-- add column::appendValues and appendStrings to directly work with
+   in-memory data (previous one has to prepare a data partition and then
+   append it to another one)
+-- consistently assign the state of data partition in all constructors
+   of ibis::part to address an issue raised by Jochen Schlosser
+-- fix issues in update column masks when repeated adding new data
+   (reported by Jochen Schlosser)
+-- fix a memory leak (losing the value of activeDir) in the constructor
+   ibis::part (reported by Jochen Schlosser)
+-- change tests to use sampled histograms in more cases in function
+   ibis::index::mapValues (a temporary work-around for issues with very
+   large std::map)
+-- use a mutex lock to protect the statements that access the value of
+   ibis::column::idx in constructor of ibis::column::indexLock and in
+   function ibis::loadIndex (to prevent use of ibis::column::idx while
+   the index is being computed.  In the previous implementation, there
+   could be a long delay between when idx is given a valid memory
+   address and the completion of the index construction, which can cause
+   a partially constructed index to be used by another thread)
+-- update some log messages
+
 Tue May 12 10:07:42 PDT 2009
 Version ibis1.0.9
 -- refine all estimateCost functions (wrong cost estimates have led to a

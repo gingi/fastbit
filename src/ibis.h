@@ -193,7 +193,12 @@ The author gratefully acknowledges the support from Kurt Stockinger, Ekow
 Otoo and Arie Shoshani.  They are crucial in establishing the foundation of
 the FastBit system and applying the software to a number of applications.
 Many thanks to the early users.  Their generous feedbacks and suggestions
-are invaluable to the development of the software.
+are invaluable to the development of the software.  A full list of
+contributors is in the file <A
+HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/AUTHORS?root=fastbit&view=markup">AUTHORS</A>.
+User feedbacks affecting the code or documentation are recorded in <A
+HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>
+along with user names.
 
 This work was supported by the Director, Office of Science, Office of
 Advanced Scientific Computing Research, of the U.S. Department of Energy
