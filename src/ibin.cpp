@@ -5721,7 +5721,7 @@ long ibis::bin::append(const ibis::bin& tail) {
 
 // convert the bitvector mask into bin indices -- used by
 // ibis::category::selectUInt
-array_t<uint32_t>* ibis::bin::indices(const ibis::bitvector& mask) const {
+ibis::array_t<uint32_t>* ibis::bin::indices(const ibis::bitvector& mask) const {
     ibis::bitvector* tmp = 0;
     std::map<uint32_t, uint32_t> ii;
     activate();

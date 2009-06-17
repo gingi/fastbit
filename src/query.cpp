@@ -1449,10 +1449,11 @@ ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// integers.
-array_t<char>* ibis::query::getQualifiedBytes(const char* colname) {
+ibis::array_t<char>*
+ibis::query::getQualifiedBytes(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<char>* res = 0;
+    ibis::array_t<char>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedBytes");
 	res = mypart->selectBytes(colname, *hits);
@@ -1466,10 +1467,11 @@ array_t<char>* ibis::query::getQualifiedBytes(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// unsigned integers.
-array_t<unsigned char>* ibis::query::getQualifiedUBytes(const char* colname) {
+ibis::array_t<unsigned char>*
+ibis::query::getQualifiedUBytes(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<unsigned char>* res = 0;
+    ibis::array_t<unsigned char>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedUBytes");
 	res = mypart->selectUBytes(colname, *hits);
@@ -1483,10 +1485,11 @@ array_t<unsigned char>* ibis::query::getQualifiedUBytes(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// integers.
-array_t<int16_t>* ibis::query::getQualifiedShorts(const char* colname) {
+ibis::array_t<int16_t>*
+ibis::query::getQualifiedShorts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<int16_t>* res = 0;
+    ibis::array_t<int16_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedShorts");
 	res = mypart->selectShorts(colname, *hits);
@@ -1500,10 +1503,11 @@ array_t<int16_t>* ibis::query::getQualifiedShorts(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// unsigned integers.
-array_t<uint16_t>* ibis::query::getQualifiedUShorts(const char* colname) {
+ibis::array_t<uint16_t>*
+ibis::query::getQualifiedUShorts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<uint16_t>* res = 0;
+    ibis::array_t<uint16_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedUShorts");
 	res = mypart->selectUShorts(colname, *hits);
@@ -1517,10 +1521,11 @@ array_t<uint16_t>* ibis::query::getQualifiedUShorts(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// integers.
-array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
+ibis::array_t<int32_t>*
+ibis::query::getQualifiedInts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<int32_t>* res = 0;
+    ibis::array_t<int32_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedInts");
 	res = mypart->selectInts(colname, *hits);
@@ -1534,10 +1539,11 @@ array_t<int32_t>* ibis::query::getQualifiedInts(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// unsigned integers.
-array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
+ibis::array_t<uint32_t>*
+ibis::query::getQualifiedUInts(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<uint32_t>* res = 0;
+    ibis::array_t<uint32_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedUInts");
 	res = mypart->selectUInts(colname, *hits);
@@ -1551,10 +1557,11 @@ array_t<uint32_t>* ibis::query::getQualifiedUInts(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// integers.
-array_t<int64_t>* ibis::query::getQualifiedLongs(const char* colname) {
+ibis::array_t<int64_t>*
+ibis::query::getQualifiedLongs(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<int64_t>* res = 0;
+    ibis::array_t<int64_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedLongs");
 	res = mypart->selectLongs(colname, *hits);
@@ -1568,10 +1575,10 @@ array_t<int64_t>* ibis::query::getQualifiedLongs(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// unsigned integers.
-array_t<uint64_t>* ibis::query::getQualifiedULongs(const char* colname) {
+ibis::array_t<uint64_t>* ibis::query::getQualifiedULongs(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<uint64_t>* res = 0;
+    ibis::array_t<uint64_t>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedULongs");
 	res = mypart->selectULongs(colname, *hits);
@@ -1585,10 +1592,11 @@ array_t<uint64_t>* ibis::query::getQualifiedULongs(const char* colname) {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// floating-point values.
-array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
+ibis::array_t<float>*
+ibis::query::getQualifiedFloats(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<float>* res = 0;
+    ibis::array_t<float>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	const bool newlock = (dslock == 0);
 	if (newlock) {
@@ -1612,10 +1620,10 @@ array_t<float>* ibis::query::getQualifiedFloats(const char* colname) {
 /// type double.  Note that casting from 64-bit integers to double may
 /// cause loss of precision; casting of 32-bit floating-point values to
 /// 64-bit version may lead to spurious precision.
-array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
+ibis::array_t<double>* ibis::query::getQualifiedDoubles(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    array_t<double>* res = 0;
+    ibis::array_t<double>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	const bool newlock = (dslock == 0);
 	if (newlock) {

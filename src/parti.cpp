@@ -702,7 +702,9 @@ long ibis::part::append(const char* dir) {
 	return ierr;
     if (*dir == 0)
 	return ierr;
-    if (activeDir == 0 || *activeDir == 0)
+    if (activeDir == 0)
+	return -1;
+    if (*activeDir == 0)
 	return -1;
 
     mutexLock lock(this, "append");
@@ -765,13 +767,13 @@ long ibis::part::append1(const char *dir) {
     // assign backupDir so that appendToBackup will work correctly
     if (backupDir != activeDir)
 	delete [] backupDir;
-    backupDir = activeDir;
+    backupDir = activeDir; activeDir = 0;
 
     // do the work of copying data
     ierr = appendToBackup(dir);
 
     // reset backupDir to null
-    backupDir = 0;
+    activeDir = backupDir; backupDir = 0;
 
     // retrieve the new column list
     readMetaData(nEvents, columns, activeDir);

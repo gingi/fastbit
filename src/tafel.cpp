@@ -2640,7 +2640,7 @@ int ibis::tablex::readNamesAndTypes(const char* filename) {
     return ret;
 } // ibis::tablex::readNamesAndTypes
 
-/// A column name must start with an alphabet or a underscore (_), and
+/// A column name must start with an alphabet or a underscore (_); it can be
 /// followed by any number of alphanumeric characters (including
 /// underscores).  For each built-in data types, the type names recognized
 /// are as follows:

@@ -385,8 +385,7 @@ namespace ibis { // forward definition of all the classes in IBIS
     /// Verbosity level.  The larger the value, the more is printed.
     /// Default value is 0.  A negative value will disable all printing.
     extern FASTBIT_CXX_DLLSPEC int gVerbose;
-} // namespace ibis
 
-// it appears that tmplate can not be in a namespace under gcc 2.95.2
-template<class T> class array_t;
+    template<class T> class array_t;
+} // namespace ibis
 #endif // ifndef IBIS_CONST_H

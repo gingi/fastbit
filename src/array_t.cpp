@@ -27,7 +27,7 @@
 
 /// The default constructor.  It constructs an empty array.
 template<class T>
-array_t<T>::array_t()
+ibis::array_t<T>::array_t()
     : actual(new ibis::fileManager::storage), m_begin(0), m_end(0) {
     if (actual != 0) {
 	m_begin = reinterpret_cast<T*>(actual->begin());
@@ -49,7 +49,7 @@ array_t<T>::array_t()
 
 /// Construct an array with n elements.
 template<class T>
-array_t<T>::array_t(uint32_t n)
+ibis::array_t<T>::array_t(uint32_t n)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
       m_begin(0), m_end(0) {
     if (actual != 0) {
@@ -74,7 +74,7 @@ array_t<T>::array_t(uint32_t n)
 
 /// Construct an array with @c n elements of value @c val.
 template<class T>
-array_t<T>::array_t(uint32_t n, const T& val)
+ibis::array_t<T>::array_t(uint32_t n, const T& val)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
       m_begin(0), m_end(0){
     if (actual != 0) {
@@ -102,7 +102,7 @@ array_t<T>::array_t(uint32_t n, const T& val)
 
 /// Shallow copy.  Should not throw any exception.
 template<class T>
-array_t<T>::array_t(const array_t<T>& rhs)
+ibis::array_t<T>::array_t(const array_t<T>& rhs)
     : actual(rhs.actual), m_begin(rhs.m_begin), m_end(rhs.m_end) {
     if (actual != 0)
 	actual->beginUse();
@@ -118,8 +118,8 @@ array_t<T>::array_t(const array_t<T>& rhs)
 /// A shallow copy constructor.  It makes a new array out of a section of
 /// an existing array.
 template<class T>
-array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
-		    const uint32_t nelm)
+ibis::array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
+			  const uint32_t nelm)
     : actual(rhs.actual), m_begin(rhs.m_begin+offset), m_end(m_begin+nelm) {
     if (m_end > rhs.m_end)
 	m_end = rhs.m_end;
@@ -138,7 +138,7 @@ array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
 /// Turn a raw storage object into an array_t object.  The input storage
 /// object is used by the array.  No new storage is allocated.
 template<class T>
-array_t<T>::array_t(ibis::fileManager::storage& rhs)
+ibis::array_t<T>::array_t(ibis::fileManager::storage& rhs)
     : actual(&rhs), m_begin((T*)(rhs.begin())), m_end((T*)(rhs.end())) {
     if (actual)
 	actual->beginUse();
@@ -149,8 +149,8 @@ array_t<T>::array_t(ibis::fileManager::storage& rhs)
 /// The argument @c start is measured in number of bytes, the second
 /// argument @c nelm is the number of element of type T.
 template<class T>
-array_t<T>::array_t(ibis::fileManager::storage* rhs,
-		    const uint32_t start, const uint32_t nelm)
+ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
+			  const uint32_t start, const uint32_t nelm)
     : actual(rhs), m_begin((T*)(rhs != 0 ? rhs->begin()+start : 0)),
       m_end(m_begin != 0 ? m_begin+nelm : 0) {
     if (actual != 0 && m_begin != 0 && m_end != 0) {
@@ -177,7 +177,7 @@ array_t<T>::array_t(ibis::fileManager::storage* rhs,
 /// attempt to read @c end - @c begin bytes from the file starting at
 /// offset @c begin.
 template<class T>
-array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
+ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
     : actual(new ibis::fileManager::storage(fdes, begin, end)),
       m_begin((T*) (actual != 0 ? actual->begin() : 0)),
       m_end((T*) (actual != 0 ? actual->end() : 0)) {
@@ -197,7 +197,7 @@ array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
 }
 
 template<class T>
-array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
+ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
     : actual(ibis::fileManager::instance().getFileSegment(fn, begin, end)),
       m_begin(actual ? (T*) actual->begin() : (T*)0),
       m_end(actual ? (T*) actual->end() : (T*)0) {
@@ -217,7 +217,7 @@ array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
 
 /// Assignment operator.  It performs a shallow copy.
 template<class T>
-const array_t<T>& array_t<T>::operator=(const array_t<T>& rhs) {
+const ibis::array_t<T>& ibis::array_t<T>::operator=(const array_t<T>& rhs) {
     array_t<T> tmp(rhs); // make a shallow copy
     swap(tmp); // swap, let compiler clean up the old content
     return *this;
@@ -225,7 +225,7 @@ const array_t<T>& array_t<T>::operator=(const array_t<T>& rhs) {
 
 /// The copy function.  It performs a shallow copy.
 template<class T> 
-void array_t<T>::copy(const array_t<T>& rhs) {
+void ibis::array_t<T>::copy(const array_t<T>& rhs) {
     array_t<T> tmp(rhs);
     swap(tmp);
     // let compiler clean up the old content
@@ -233,7 +233,7 @@ void array_t<T>::copy(const array_t<T>& rhs) {
 
 /// The deep copy function.  It makes an in-memory copy of @c rhs.
 template<class T> 
-void array_t<T>::deepCopy(const array_t<T>& rhs) {
+void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
     if (rhs.actual != 0 && rhs.m_begin != 0 && rhs.m_end != 0) {
 	if (actual != 0 && actual->inUse() < 2U &&
 	    actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
@@ -259,7 +259,7 @@ void array_t<T>::deepCopy(const array_t<T>& rhs) {
 /// copy-on-write in all functions that modifies an array, but that may
 /// decrease performance of this class for rare cases of modifications.
 template<class T>
-void array_t<T>::nosharing() {
+void ibis::array_t<T>::nosharing() {
     if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
 	// follow copy-and-swap strategy
 	ibis::fileManager::storage *tmp =
@@ -278,7 +278,7 @@ void array_t<T>::nosharing() {
 /// Assuming @c ind was produced by the sort function,
 /// it returns the smallest i such that @c operator[](ind[i]) >= @c val.
 template<class T>
-uint32_t array_t<T>::find(const array_t<uint32_t>& ind,
+uint32_t ibis::array_t<T>::find(const array_t<uint32_t>& ind,
 			  const T& val) const {
     if (m_begin[ind[0]] >= val)
 	return 0;
@@ -306,7 +306,7 @@ uint32_t array_t<T>::find(const array_t<uint32_t>& ind,
 /// Assuming the array is already sorted in ascending order,
 /// it returns the smallest i such that @c operator[](i) >= @c val.
 template<class T>
-uint32_t array_t<T>::find(const T& val) const {
+uint32_t ibis::array_t<T>::find(const T& val) const {
     if (m_end <= m_begin) return 0; // empty array
     else if (! (*m_begin < val)) return 0; // 1st value is larger than val
 
@@ -336,7 +336,7 @@ uint32_t array_t<T>::find(const T& val) const {
 /// @note The word upper is used in the same sense as in the STL function
 /// std::upper_bound.
 template<class T>
-uint32_t array_t<T>::find_upper(const T& val) const {
+uint32_t ibis::array_t<T>::find_upper(const T& val) const {
     if (m_end <= m_begin) return 0; // empty array
     else if (*m_begin > val) return 0; // 1st value is larger than val
 
@@ -362,7 +362,7 @@ uint32_t array_t<T>::find_upper(const T& val) const {
 /// Merge sort algorithm.  This array is sorted.  The argument @c tmp is
 /// only used as temporary storage.
 template<class T>
-void array_t<T>::stableSort(array_t<T>& tmp) {
+void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
     const uint32_t n = size();
     if (n < 2) return;
 
@@ -425,12 +425,12 @@ void array_t<T>::stableSort(array_t<T>& tmp) {
 /// Use merge sort algorithm to produce an index array so that
 /// array[ind[i]] would in ascending order.
 template<class T>
-void array_t<T>::stableSort(array_t<uint32_t>& ind) const {
+void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     if (size() > 2) {
 	array_t<T> tmp1, tmp2;
 	array_t<uint32_t> itmp;
 	tmp1.deepCopy(*this);
-	array_t<T>::stableSort(tmp1, ind, tmp2, itmp);
+	ibis::array_t<T>::stableSort(tmp1, ind, tmp2, itmp);
     }
     else if (size() == 2) {
 	ind.resize(2);
@@ -460,7 +460,8 @@ void array_t<T>::stableSort(array_t<uint32_t>& ind) const {
 /// initialized to consecutive integers starting from 0 before the actual
 /// sorting is performed.
 template<class T>
-void array_t<T>::stableSort(array_t<uint32_t>& ind, array_t<T>& sorted) const {
+void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind,
+				  array_t<T>& sorted) const {
     if (size() > 2) {
 	array_t<T> tmp;
 	array_t<uint32_t> itmp;
@@ -470,7 +471,7 @@ void array_t<T>::stableSort(array_t<uint32_t>& ind, array_t<T>& sorted) const {
 	    sorted[i] = m_begin[i];
 	    ind[i] = i;
 	}
-	array_t<T>::stableSort(sorted, ind, tmp, itmp);
+	ibis::array_t<T>::stableSort(sorted, ind, tmp, itmp);
     }
     else if (size() == 2) {
 	sorted.resize(2);
@@ -511,8 +512,8 @@ void array_t<T>::stableSort(array_t<uint32_t>& ind, array_t<T>& sorted) const {
 /// If the input array @c val has less than two elements, this function
 /// does nothing, i.e., does not change any of the four arguments.
 template<class T>
-void array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
-			    array_t<T>& tmp, array_t<uint32_t>& itmp) {
+void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
+				  array_t<T>& tmp, array_t<uint32_t>& itmp) {
     const uint32_t n = val.size();
     if (n < 2)
 	return; // nothing to do
@@ -590,7 +591,7 @@ void array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 /// Sort the array to produce @c ind so that array_t[ind[i]] is in
 /// ascending order.
 template<class T>
-void array_t<T>::sort(array_t<uint32_t>& ind) const {
+void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     const uint32_t n = size();
     if (n < 2) {
 	if (n == 1) {
@@ -628,7 +629,7 @@ void array_t<T>::sort(array_t<uint32_t>& ind) const {
 /// indices in the same ascending order.  It should be easy to reverse the
 /// order the indices since it only contains the largest values.
 template<class T>
-void array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
+void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
     uint32_t front = 0;
     uint32_t back = size();
     const uint32_t mark = back - k;
@@ -684,7 +685,7 @@ void array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 /// ind may have less than @c k elements if this array has less than @c k
 /// elements.
 template<class T>
-void array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
+void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
     uint32_t front = 0;
     uint32_t back = size();
     if (back <= k) {
@@ -730,10 +731,10 @@ void array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 
 /// The quick sort procedure.  Sort @c [ind[front:back]] assuming the array
 /// @c ind has been properly initialized.  This is the main function that
-/// implements @c array_t<T>::sort.
+/// implements @c ibis::array_t<T>::sort.
 template<class T>
-void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
-		       uint32_t back, uint32_t lvl) const {
+void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
+			     uint32_t back, uint32_t lvl) const {
     while (back > front + QSORT_MIN) { // more than QSORT_MIN elements
 	// find the pivot
 	uint32_t p = partition(ind, front, back);
@@ -796,8 +797,8 @@ void array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 /// A heapsort function.  This is used as the back up option in case the
 /// quicksort has been consistently picking bad pivots.
 template<class T>
-void array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
-		       uint32_t back) const {
+void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
+			     uint32_t back) const {
     uint32_t n = back;
     uint32_t parent = front + (back-front)/2;
     uint32_t curr, child;
@@ -848,14 +849,14 @@ void array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
 	lg.buffer() << "\n";
     }
 #endif
-} // array_t<T>::hsort
+} // ibis::array_t<T>::hsort
 
 /// Simple insertion sort.  Not a stable sort.  This function is used
-/// instead of the quick sort function array_t<T>::qsort for small
+/// instead of the quick sort function ibis::array_t<T>::qsort for small
 /// arrays.
 template<class T>
-void array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
-		       uint32_t back) const {
+void ibis::array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
+			     uint32_t back) const {
     uint32_t i, j, k;
     for (i = front; i < back-1; ++ i) {
 	// go through [i+1, back-1] to find the smallest element
@@ -894,8 +895,8 @@ void array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
 /// one value that is smaller than others.  If all values are equal, this
 /// function returns the value 'back'.  Caller is to ensure back > front+3.
 template<class T> 
-uint32_t array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
-			       uint32_t back) const {
+uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
+				     uint32_t back) const {
     uint32_t i, j, pivot, tmp;
     T target;
     i = front;
@@ -1048,7 +1049,7 @@ uint32_t array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 
 /// Change the size of the array so it has no less than @n elements.
 template<class T>
-void array_t<T>::resize(uint32_t n) {
+void ibis::array_t<T>::resize(uint32_t n) {
     nosharing();
     if (actual) {
 	if (m_begin < (T*)actual->begin())
@@ -1076,13 +1077,13 @@ void array_t<T>::resize(uint32_t n) {
 	m_begin = (T*)(actual->begin());
 	m_end = m_begin ? (m_begin + n) : 0;
     }
-} // array_t<T>::resize
+} // ibis::array_t<T>::resize
 
 /// Increase the size of the array_t to have the capacity to store at least
 /// @c n elements.  If the current storage object does not have enough
 /// space, enlarge the storage object.
 template<class T>
-void array_t<T>::reserve(uint32_t n) {
+void ibis::array_t<T>::reserve(uint32_t n) {
     nosharing();
     if (actual) {
 	if (m_begin < (T*)(actual->begin()))
@@ -1113,12 +1114,12 @@ void array_t<T>::reserve(uint32_t n) {
 	m_begin = (T*)(actual->begin());
 	m_end = m_begin;
     }
-} // array_t<T>::reserve
+} // ibis::array_t<T>::reserve
 
 /// Insert a single value (val) before p, return the iterator pointing to
 /// the new element.
-template<class T> typename array_t<T>::iterator
-array_t<T>::insert(typename array_t<T>::iterator p, const T& val) {
+template<class T> typename ibis::array_t<T>::iterator
+ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
     if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- array_t(" << actual << ") -- should not insert to "
@@ -1167,7 +1168,8 @@ array_t<T>::insert(typename array_t<T>::iterator p, const T& val) {
 
 /// Insert n copies of a value (val) before p.
 template<class T> void
-array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
+ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
+			 const T& val) {
     LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
 	<< "Warning -- array_t<" << typeid(T).name()
 	<< ">::instert -- should not insert to a shared array";
@@ -1207,9 +1209,9 @@ array_t<T>::insert(typename array_t<T>::iterator p, uint32_t n, const T& val) {
 
 /// insert all values in [front, back) before p.
 template<class T> void
-array_t<T>::insert(typename array_t<T>::iterator p,
-		   typename array_t<T>::const_iterator front,
-		   typename array_t<T>::const_iterator back) {
+ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
+			 typename ibis::array_t<T>::const_iterator front,
+			 typename ibis::array_t<T>::const_iterator back) {
     LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
 	<< "Warning -- array_t<" << typeid(T).name()
 	<< ">::instert -- should not insert to a shared array";
@@ -1247,11 +1249,11 @@ array_t<T>::insert(typename array_t<T>::iterator p,
 	    *i = *back;
 	}
     }
-} // array_t<T>::insert
+} // ibis::array_t<T>::insert
 
 /// Erase one element.
-template<class T> typename array_t<T>::iterator
-array_t<T>::erase(typename array_t<T>::iterator p) {
+template<class T> typename ibis::array_t<T>::iterator
+ibis::array_t<T>::erase(typename ibis::array_t<T>::iterator p) {
     LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
 	<< "Warning -- array_t<" << typeid(T).name()
 	<< ">::erase -- should not erase part of a shared array";
@@ -1268,12 +1270,12 @@ array_t<T>::erase(typename array_t<T>::iterator p) {
 	p = m_end;
     }
     return p;
-} // array_t<T>::earse
+} // ibis::array_t<T>::earse
 
 /// Erase a list of elements.
-template<class T> typename array_t<T>::iterator
-array_t<T>::erase(typename array_t<T>::iterator i,
-		  typename array_t<T>::iterator j) {
+template<class T> typename ibis::array_t<T>::iterator
+ibis::array_t<T>::erase(typename ibis::array_t<T>::iterator i,
+			typename ibis::array_t<T>::iterator j) {
     LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
 	<< "Warning -- array_t<" << typeid(T).name()
 	<< ">::erase -- should not erase part of a shared array";
@@ -1290,11 +1292,11 @@ array_t<T>::erase(typename array_t<T>::iterator i,
 	m_end = p;
 	return i;
     }
-} // array_t<T>::earse
+} // ibis::array_t<T>::earse
 
 /// Read an array from the name file.
 template<class T>
-void array_t<T>::read(const char* file) {
+void ibis::array_t<T>::read(const char* file) {
     if (file == 0 || *file == 0) return;
     freeMemory();
     int ierr = ibis::fileManager::instance().getFile(file, &actual);
@@ -1308,12 +1310,12 @@ void array_t<T>::read(const char* file) {
 	    << "Warning -- array_t<" << typeid(T).name()
 	    << ">::read(" << file << ") failed with ierr=" << ierr;
     }
-} // array_t<T>::read
+} // ibis::array_t<T>::read
 
 /// Read an array from a file already open.
 template<class T>
-off_t array_t<T>::read(const int fdes, const off_t begin,
-		       const off_t end) {
+off_t ibis::array_t<T>::read(const int fdes, const off_t begin,
+			     const off_t end) {
     off_t nread = actual->read(fdes, begin, end);
     if (begin+nread == end) {
 	m_begin = (T*)(actual->begin());
@@ -1326,11 +1328,11 @@ off_t array_t<T>::read(const int fdes, const off_t begin,
 	    << (end-begin) << " bytes, but acutally read " << nread;
     }
     return nread;
-} // array_t<T>::read
+} // ibis::array_t<T>::read
 
 /// Write the content of array to the named file.
 template<class T>
-void array_t<T>::write(const char* file) const {
+void ibis::array_t<T>::write(const char* file) const {
     if (m_end <= m_begin) return; // nothing to write
     off_t n, i;
     FILE *out = fopen(file, "wb");
@@ -1350,11 +1352,11 @@ void array_t<T>::write(const char* file) const {
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << " to \"" << file << "\", but actually wrote " << i;
     }
-} // void array_t<T>::write
+} // void ibis::array_t<T>::write
 
 /// Write the content of the array to a file already opened.
 template<class T>
-void array_t<T>::write(FILE* fptr) const {
+void ibis::array_t<T>::write(FILE* fptr) const {
     if (fptr == 0 || m_end <= m_begin) return;
     off_t n, i;
 
@@ -1366,11 +1368,11 @@ void array_t<T>::write(FILE* fptr) const {
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << ", but actually wrote " << i;
     }
-} // array_t<T>::write
+} // ibis::array_t<T>::write
 
 /// Print internal pointer addresses.
 template<class T>
-void array_t<T>::printStatus(std::ostream& out) const {
+void ibis::array_t<T>::printStatus(std::ostream& out) const {
     out << "array_t: m_begin = " << static_cast<void*>(m_begin)
 	<< ", m_end = " <<  static_cast<void*>(m_end) << ", size = "
 	<< m_end - m_begin << "\n";
@@ -1384,16 +1386,16 @@ void array_t<T>::printStatus(std::ostream& out) const {
 } // printStatus
 
 // explicit instantiation required and have to appear after the definitions
-template class FASTBIT_CXX_DLLSPEC array_t<char>;
-template class FASTBIT_CXX_DLLSPEC array_t<signed char>;
-template class FASTBIT_CXX_DLLSPEC array_t<unsigned char>;
-template class FASTBIT_CXX_DLLSPEC array_t<float>;
-template class FASTBIT_CXX_DLLSPEC array_t<double>;
-template class FASTBIT_CXX_DLLSPEC array_t<int16_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<int32_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<int64_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<uint16_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<uint64_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<ibis::rid_t>;
-template class FASTBIT_CXX_DLLSPEC array_t<array_t<ibis::rid_t>*>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<char>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<signed char>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<unsigned char>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<float>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<double>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<int16_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<int32_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<int64_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint16_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint32_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint64_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::rid_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::array_t<ibis::rid_t>*>;

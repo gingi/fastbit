@@ -592,7 +592,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
@@ -772,7 +772,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
@@ -974,7 +974,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
@@ -2507,7 +2507,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		case ibis::SHORT:
 		case ibis::UINT:
 		case ibis::INT: {
-		    array_t<int32_t>* intarray;
+		    ibis::array_t<int32_t>* intarray;
 		    intarray = aQuery.getQualifiedInts(*it);
 		    ibis::util::logger lg;
 		    if (intarray->size() != static_cast<uint32_t>(num1))
@@ -2518,7 +2518,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			ibis::gVerbose > 30) {
 			lg.buffer() << "selected entries of column " << *it
 				    << "\n";
-			for (array_t<int32_t>::const_iterator ait =
+			for (ibis::array_t<int32_t>::const_iterator ait =
 				 intarray->begin();
 			     ait != intarray->end(); ++ait)
 			    lg.buffer() << *ait << "\n";
@@ -2532,7 +2532,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    break;}
 
 		case ibis::FLOAT: {
-		    array_t<float>* floatarray;
+		    ibis::array_t<float>* floatarray;
 		    floatarray = aQuery.getQualifiedFloats(*it);
 
 		    ibis::util::logger lg;
@@ -2544,7 +2544,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    if (num1 < (2 << ibis::gVerbose) ||
 			ibis::gVerbose > 30) {
 			lg.buffer() << "selected entries of column " << *it;
-			for (array_t<float>::const_iterator ait =
+			for (ibis::array_t<float>::const_iterator ait =
 				 floatarray->begin();
 			     ait != floatarray->end(); ++ait)
 			    lg.buffer() << "\n" << *ait;
@@ -2558,7 +2558,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    break;}
 
 		case ibis::DOUBLE: {
-		    array_t<double>* doublearray;
+		    ibis::array_t<double>* doublearray;
 		    doublearray = aQuery.getQualifiedDoubles(*it);
 
 		    ibis::util::logger lg;
@@ -2569,7 +2569,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 				    << doublearray->size();
 		    if (num1<(2<<ibis::gVerbose) || ibis::gVerbose>30) {
 			lg.buffer() << "selected entries of column " << *it;
-			for (array_t<double>::const_iterator ait =
+			for (ibis::array_t<double>::const_iterator ait =
 				 doublearray->begin();
 			     ait != doublearray->end(); ++ait)
 			    lg.buffer() << "\n" << *ait;
@@ -2616,7 +2616,7 @@ template<typename T>
 void findMissingValuesT(const ibis::column &col,
 			const ibis::bitvector &ht0,
 			const ibis::bitvector &ht1) {
-    array_t<T> vals0, vals1;
+    ibis::array_t<T> vals0, vals1;
     long ierr = col.selectValues(ht0, &vals0);
     if (ierr <= 0 || static_cast<long unsigned>(ierr) < ht0.cnt()) {
 	LOGGER(ibis::gVerbose >= 0)

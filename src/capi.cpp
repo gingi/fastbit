@@ -287,58 +287,58 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
 	     tvit != tv.end(); ++ tvit) {
 	    switch ((ibis::TYPE_T) (*tvit).first) {
 	    case ibis::DOUBLE: {
-		array_t<double> *tmp =
-		    static_cast<array_t<double>*>((*tvit).second);
+		ibis::array_t<double> *tmp =
+		    static_cast<ibis::array_t<double>*>((*tvit).second);
 		delete tmp;
 		break;}
 	    case ibis::FLOAT: {
-		array_t<float> *tmp = 
-		    static_cast<array_t<float>*>((*tvit).second);
+		ibis::array_t<float> *tmp = 
+		    static_cast<ibis::array_t<float>*>((*tvit).second);
 		delete tmp;
 		break;}
 	    case ibis::OID: {
-		array_t<ibis::rid_t> *tmp =
-		    static_cast<array_t<ibis::rid_t>*>((*tvit).second);
+		ibis::array_t<ibis::rid_t> *tmp =
+		    static_cast<ibis::array_t<ibis::rid_t>*>((*tvit).second);
 		delete tmp;
 		break;}
 	    case ibis::BYTE: {
-		array_t<char> *btmp =
-		    static_cast<array_t<char>*>((*tvit).second);
+		ibis::array_t<char> *btmp =
+		    static_cast<ibis::array_t<char>*>((*tvit).second);
 		delete btmp;
 		break;}
 	    case ibis::SHORT: {
-		array_t<int16_t> *stmp =
-		    static_cast<array_t<int16_t>*>((*tvit).second);
+		ibis::array_t<int16_t> *stmp =
+		    static_cast<ibis::array_t<int16_t>*>((*tvit).second);
 		delete stmp;
 		break;}
 	    case ibis::INT: {
-		array_t<int32_t> *tmp =
-		    static_cast<array_t<int32_t>*>((*tvit).second);
+		ibis::array_t<int32_t> *tmp =
+		    static_cast<ibis::array_t<int32_t>*>((*tvit).second);
 		delete tmp;
 		break;}
 	    case ibis::LONG: {
-		array_t<int64_t> *ltmp =
-		    static_cast<array_t<int64_t>*>((*tvit).second);
+		ibis::array_t<int64_t> *ltmp =
+		    static_cast<ibis::array_t<int64_t>*>((*tvit).second);
 		delete ltmp;
 		break;}
 	    case ibis::UBYTE:  {
-		array_t<unsigned char> *btmp =
-		    static_cast<array_t<unsigned char>*>((*tvit).second);
+		ibis::array_t<unsigned char> *btmp =
+		    static_cast<ibis::array_t<unsigned char>*>((*tvit).second);
 		delete btmp;
 		break;}
 	    case ibis::USHORT: {
-		array_t<uint16_t> *stmp =
-		    static_cast<array_t<uint16_t>*>((*tvit).second);
+		ibis::array_t<uint16_t> *stmp =
+		    static_cast<ibis::array_t<uint16_t>*>((*tvit).second);
 		delete stmp;
 		break;}
 	    case ibis::UINT: {
-		array_t<uint32_t> *tmp =
-		    static_cast<array_t<uint32_t>*>((*tvit).second);
+		ibis::array_t<uint32_t> *tmp =
+		    static_cast<ibis::array_t<uint32_t>*>((*tvit).second);
 		delete tmp;
 		break;}
 	    case ibis::ULONG: {
-		array_t<uint64_t> *ltmp =
-		    static_cast<array_t<uint64_t>*>((*tvit).second);
+		ibis::array_t<uint64_t> *ltmp =
+		    static_cast<ibis::array_t<uint64_t>*>((*tvit).second);
 		delete ltmp;
 		break;}
 	    default: {
@@ -442,11 +442,11 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_bytes -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<char>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<char>*>((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<char> *tmp = c->selectBytes(*(qhandle->q.getHitVector()));
+	ibis::array_t<char> *tmp = c->selectBytes(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -510,11 +510,12 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_shorts -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<int16_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<int16_t>*>((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<int16_t> *tmp = c->selectShorts(*(qhandle->q.getHitVector()));
+	ibis::array_t<int16_t> *tmp =
+	    c->selectShorts(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -579,11 +580,12 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ints -- found column \"" << att
 		<< "\" in the existing list";
-	    ret = static_cast<array_t<int32_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<int32_t>*>((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<int32_t> *tmp = c->selectInts(*(qhandle->q.getHitVector()));
+	ibis::array_t<int32_t> *tmp =
+	    c->selectInts(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -657,11 +659,12 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_longs -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<int64_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<int64_t>*>((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<int64_t> *tmp = c->selectLongs(*(qhandle->q.getHitVector()));
+	ibis::array_t<int64_t> *tmp =
+	    c->selectLongs(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -722,12 +725,12 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ubytes -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<unsigned char>*>
+	    ret = static_cast<ibis::array_t<unsigned char>*>
 		((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<unsigned char> *tmp =
+	ibis::array_t<unsigned char> *tmp =
 	    c->selectUBytes(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
@@ -791,11 +794,12 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ushorts -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<uint16_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<uint16_t>*>
+		((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<uint16_t> *tmp =
+	ibis::array_t<uint16_t> *tmp =
 	    c->selectUShorts(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
@@ -861,11 +865,13 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_uints -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<uint32_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<uint32_t>*>
+		((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<uint32_t> *tmp = c->selectUInts(*(qhandle->q.getHitVector()));
+	ibis::array_t<uint32_t> *tmp =
+	    c->selectUInts(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -932,11 +938,13 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<uint64_t>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<uint64_t>*>
+		((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {
-	array_t<uint64_t> *tmp = c->selectULongs(*(qhandle->q.getHitVector()));
+	ibis::array_t<uint64_t> *tmp =
+	    c->selectULongs(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -995,11 +1003,12 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<float>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<float>*>((*tvit).second)->begin();
 	}
     }
     if (ret == 0) {// need to read the files
-	array_t<float> *tmp = c->selectFloats(*(qhandle->q.getHitVector()));
+	ibis::array_t<float> *tmp =
+	    c->selectFloats(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}
@@ -1058,11 +1067,12 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	    LOGGER(ibis::gVerbose > 3)
 		<< "fastbit_get_qualified_ulongs -- found column \""
 		<< att << "\" in the existing list";
-	    ret = static_cast<array_t<double>*>((*tvit).second)->begin();
+	    ret = static_cast<ibis::array_t<double>*>((*tvit).second)->begin();
 	}
     }
     else {
-	array_t<double> *tmp = c->selectDoubles(*(qhandle->q.getHitVector()));
+	ibis::array_t<double> *tmp =
+	    c->selectDoubles(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
 	    delete tmp;
 	}

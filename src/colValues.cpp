@@ -103,7 +103,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 } // ibis::colValues::create
 
 ibis::colInts::colInts(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<int32_t>) {
+    : colValues(c), array(new ibis::array_t<int32_t>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -176,7 +176,7 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 } // ibis::colInts::colInts
 
 ibis::colUInts::colUInts(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<uint32_t>) {
+    : colValues(c), array(new ibis::array_t<uint32_t>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -249,7 +249,7 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
 } // ibis::colUInts::colUInts
 
 ibis::colLongs::colLongs(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<int64_t>) {
+    : colValues(c), array(new ibis::array_t<int64_t>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -322,7 +322,7 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 } // ibis::colLongs::colLongs
 
 ibis::colULongs::colULongs(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<uint64_t>) {
+    : colValues(c), array(new ibis::array_t<uint64_t>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -395,7 +395,7 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 } // ibis::colULongs::colULongs
 
 ibis::colFloats::colFloats(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<float>) {
+    : colValues(c), array(new ibis::array_t<float>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -468,7 +468,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 } // ibis::colFloats::colFloats
 
 ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
-    : colValues(c), array(new array_t<double>) {
+    : colValues(c), array(new ibis::array_t<double>) {
     if (c == 0 || vals == 0) return;
     switch (c->type()) {
     case ibis::UINT: {
@@ -1645,9 +1645,9 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j,
 } // ibis::colDoubles::sort
 
 // mark the start positions of the segments with identical values
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colInts::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     int32_t target = *(array->begin());
@@ -1683,9 +1683,9 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colInts::segment
 
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colUInts::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     uint32_t target = *(array->begin());
@@ -1722,9 +1722,9 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
 } // ibis::colUInts::segment
 
 // mark the start positions of the segments with identical values
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colLongs::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     int64_t target = *(array->begin());
@@ -1760,9 +1760,9 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colLongs::segment
 
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colULongs::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     uint64_t target = *(array->begin());
@@ -1799,9 +1799,9 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
 } // ibis::colULongs::segment
 
 // mark the start positions of the segments with identical values
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colFloats::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     float target = *(array->begin());
@@ -1838,9 +1838,9 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
 } // ibis::colFloats::segment
 
 // mark the start positions of the segments with identical values
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
-    array_t<uint32_t>* res = new array_t<uint32_t>;
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
     res->push_back(0); // the first number is always 0
     uint32_t j = 1;
     double target = *(array->begin());

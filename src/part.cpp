@@ -2033,10 +2033,10 @@ void ibis::part::searchRIDs(const ibis::RIDSet &in,
 /// Retrieve the RIDs corresponding to mask[i] == 1.  If no external row
 /// identifers are provided, this function will use the implicit RIDs which
 /// are simply the positions of the rows numbered from 0 to nRows()-1.
-array_t<ibis::rid_t>*
+ibis::array_t<ibis::rid_t>*
 ibis::part::getRIDs(const ibis::bitvector &mask) const {
     const uint32_t cnt = mask.cnt();
-    array_t<ibis::rid_t>* ret = new array_t<ibis::rid_t>;
+    ibis::array_t<ibis::rid_t>* ret = new array_t<ibis::rid_t>;
     if (cnt == 0)
 	return ret;
     if (rids == 0)
@@ -2253,9 +2253,9 @@ ibis::part::accessHint(const ibis::bitvector &mask,
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<char>* ibis::part::selectBytes
+ibis::array_t<char>* ibis::part::selectBytes
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<char>* res = 0;
+    ibis::array_t<char>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2296,9 +2296,9 @@ array_t<char>* ibis::part::selectBytes
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<unsigned char>* ibis::part::selectUBytes
+ibis::array_t<unsigned char>* ibis::part::selectUBytes
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<unsigned char>* res = 0;
+    ibis::array_t<unsigned char>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2339,9 +2339,9 @@ array_t<unsigned char>* ibis::part::selectUBytes
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<int16_t>* ibis::part::selectShorts
+ibis::array_t<int16_t>* ibis::part::selectShorts
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<int16_t>* res = 0;
+    ibis::array_t<int16_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2382,9 +2382,9 @@ array_t<int16_t>* ibis::part::selectShorts
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<uint16_t>* ibis::part::selectUShorts
+ibis::array_t<uint16_t>* ibis::part::selectUShorts
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<uint16_t>* res = 0;
+    ibis::array_t<uint16_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2425,9 +2425,9 @@ array_t<uint16_t>* ibis::part::selectUShorts
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<int32_t>* ibis::part::selectInts
+ibis::array_t<int32_t>* ibis::part::selectInts
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<int32_t>* res = 0;
+    ibis::array_t<int32_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2468,9 +2468,9 @@ array_t<int32_t>* ibis::part::selectInts
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<uint32_t>* ibis::part::selectUInts
+ibis::array_t<uint32_t>* ibis::part::selectUInts
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<uint32_t>* res = 0;
+    ibis::array_t<uint32_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2511,9 +2511,9 @@ array_t<uint32_t>* ibis::part::selectUInts
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<int64_t>* ibis::part::selectLongs
+ibis::array_t<int64_t>* ibis::part::selectLongs
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<int64_t>* res = 0;
+    ibis::array_t<int64_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2554,9 +2554,9 @@ array_t<int64_t>* ibis::part::selectLongs
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<uint64_t>* ibis::part::selectULongs
+ibis::array_t<uint64_t>* ibis::part::selectULongs
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<uint64_t>* res = 0;
+    ibis::array_t<uint64_t>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2597,9 +2597,9 @@ array_t<uint64_t>* ibis::part::selectULongs
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<float>* ibis::part::selectFloats
+ibis::array_t<float>* ibis::part::selectFloats
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<float>* res = 0;
+    ibis::array_t<float>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -2640,9 +2640,9 @@ array_t<float>* ibis::part::selectFloats
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-array_t<double>* ibis::part::selectDoubles
+ibis::array_t<double>* ibis::part::selectDoubles
 (const char* pname, const ibis::bitvector &mask) const {
-    array_t<double>* res = 0;
+    ibis::array_t<double>* res = 0;
     try {
 	columnList::const_iterator it = columns.find(pname);
 	if (it != columns.end()) { // got it
@@ -3425,7 +3425,7 @@ long ibis::part::estimateMatchAny(const ibis::qAnyAny &cmp,
 void ibis::part::numbersToBitvector(const std::vector<uint32_t> &rows,
 				    ibis::bitvector &msk) const {
     if (rows.size() > 1) {
-	array_t<uint32_t> r(rows.size());
+	ibis::array_t<uint32_t> r(rows.size());
 	std::copy(rows.begin(), rows.end(), r.begin());
 	std::sort(r.begin(), r.end());
 	for (size_t i = 0; i < rows.size() && r[i] < nEvents; ++ i)
@@ -3570,7 +3570,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::LONG: {
 	try {
-	    array_t<int64_t> intarray;
+	    ibis::array_t<int64_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3595,7 +3595,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::ULONG: {
 	try {
-	    array_t<uint64_t> intarray;
+	    ibis::array_t<uint64_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3620,7 +3620,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::INT: {
 	try {
-	    array_t<int32_t> intarray;
+	    ibis::array_t<int32_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3645,7 +3645,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::UINT: {
 	try {
-	    array_t<uint32_t> intarray;
+	    ibis::array_t<uint32_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3670,7 +3670,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::SHORT: {
 	try {
-	    array_t<int16_t> intarray;
+	    ibis::array_t<int16_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3695,7 +3695,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::USHORT: {
 	try {
-	    array_t<uint16_t> intarray;
+	    ibis::array_t<uint16_t> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3720,7 +3720,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::BYTE: {
 	try {
-	    array_t<char> intarray;
+	    ibis::array_t<char> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3745,7 +3745,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::UBYTE: {
 	try {
-	    array_t<unsigned char> intarray;
+	    ibis::array_t<unsigned char> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -3770,7 +3770,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::FLOAT: {
 	try {
-	    array_t<float> floatarray;
+	    ibis::array_t<float> floatarray;
 	    if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan
@@ -3794,7 +3794,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::DOUBLE: {
 	try {
-	    array_t<double> doublearray;
+	    ibis::array_t<double> doublearray;
 	    if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan

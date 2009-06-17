@@ -2100,9 +2100,9 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
     return ierr;
 } // ibis::bord::column::evaluateRange
 
-array_t<int32_t>*
+ibis::array_t<int32_t>*
 ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
-    array_t<int32_t>* array = new array_t<int32_t>;
+    ibis::array_t<int32_t>* array = new array_t<int32_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -2420,7 +2420,7 @@ ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
 
 /// Can be called on columns of unsigned integral types, UINT, CATEGORY,
 /// USHORT, and UBYTE.
-array_t<uint32_t>*
+ibis::array_t<uint32_t>*
 ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
     array_t<uint32_t>* array = new array_t<uint32_t>;
     const uint32_t tot = mask.cnt();
@@ -2611,9 +2611,9 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 /// integers are simply treated as signed integer.  This may cause the
 /// values to be interperted incorrectly.  Shorter version of unsigned
 /// integers are treated correctly as positive values.
-array_t<int64_t>*
+ibis::array_t<int64_t>*
 ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
-    array_t<int64_t>* array = new array_t<int64_t>;
+    ibis::array_t<int64_t>* array = new array_t<int64_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -3107,9 +3107,9 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
 } // ibis::bord::column::selectLongs
 
 /// Put selected values of a float column into an array.
-array_t<float>*
+ibis::array_t<float>*
 ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
-    array_t<float>* array = new array_t<float>;
+    ibis::array_t<float>* array = new array_t<float>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -3401,9 +3401,9 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
 /// @note Any column type could be selected as doubles.  Other selectXXXs
 /// function only work on the same data type.  This is the only function
 /// that allows one to convert to a different type.  This is mainly to 
-array_t<double>*
+ibis::array_t<double>*
 ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
-    array_t<double>* array = new array_t<double>;
+    ibis::array_t<double>* array = new array_t<double>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;

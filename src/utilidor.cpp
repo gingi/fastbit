@@ -2795,8 +2795,9 @@ template void
 ibis::util::reorder<ibis::rid_t>(array_t<ibis::rid_t>&,
 				 const array_t<uint32_t>&);
 template void
-ibis::util::reorder<array_t<ibis::rid_t> >(array_t<array_t<ibis::rid_t>*>&,
-					   const array_t<uint32_t>&);
+ibis::util::reorder<ibis::array_t<ibis::rid_t> >
+(ibis::array_t<ibis::array_t<ibis::rid_t>*>&,
+ const ibis::array_t<uint32_t>&);
 
 template void
 ibis::util::sortAll<int32_t, int32_t>(array_t<int32_t>&, array_t<int32_t>&);

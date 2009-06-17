@@ -21,10 +21,17 @@
 #ifdef __GNUC__
 #pragma interface
 #endif
-template<class T> class array_t {
+template<class T> class ibis::array_t {
 public:
-    typedef T* iterator; // can be used to assign values
-    typedef const T* const_iterator; // used to read from array_t
+    typedef       T* iterator; ///< Iterator type.
+    typedef const T* const_iterator; ///< Const iterator type.
+    typedef       T* pointer; ///< Pointer to a value.
+    typedef const T* const_pointer; ///< Pointer to a constant value.
+    typedef       T& reference; ///< Reference to a value.
+    typedef const T& const_reference; ///< Reference to a constant value.
+    typedef       T  value_type; ///< Type of values.
+    typedef uint32_t size_type; ///< Type of array size. Note: 32-bit only.
+    typedef  int32_t difference_type; ///< Type for difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
@@ -156,7 +163,7 @@ private:
 
 /// Swap the content of two array_t objects.
 template<class T>
-inline void array_t<T>::swap(array_t<T>& rhs) {
+inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
     ibis::fileManager::storage *a = rhs.actual;
     rhs.actual = actual;
     actual = a;
@@ -166,11 +173,11 @@ inline void array_t<T>::swap(array_t<T>& rhs) {
     T* e = rhs.m_end;
     rhs.m_end = m_end;
     m_end = e;
-} // array_t<T>::swap
+} // ibis::array_t<T>::swap
 
 /// Add one element from the back.
 template<class T> 
-inline void array_t<T>::push_back(const T& elm) {
+inline void ibis::array_t<T>::push_back(const T& elm) {
     if (actual == 0) { // allocate storage
 	actual = new ibis::fileManager::storage(3*sizeof(T));
 	actual->beginUse();
@@ -213,11 +220,11 @@ inline void array_t<T>::push_back(const T& elm) {
 	*m_end = elm;
 	++ m_end;
     }
-} // array_t<T>::push_back
+} // ibis::array_t<T>::push_back
 
 /// Free the memory associated with the fileManager::storage.
 template<class T>
-inline void array_t<T>::freeMemory() {
+inline void ibis::array_t<T>::freeMemory() {
     m_end = 0;
     m_begin = 0;
     if (actual) {
@@ -227,11 +234,11 @@ inline void array_t<T>::freeMemory() {
 	    delete actual;
 	actual = 0;
     }
-} // array_t<T>::freeMemory
+} // ibis::array_t<T>::freeMemory
 
 /// The maximum number of elements can be stored with the current memory.
 template <class T>
-inline uint32_t array_t<T>::capacity() const {
+inline uint32_t ibis::array_t<T>::capacity() const {
     return (actual != 0 ? (const T*)actual->end() - m_begin : 0);
-} // array_t<T>::capacity
+} // ibis::array_t<T>::capacity
 #endif // IBIS_ARRAY_T_H

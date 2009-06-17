@@ -653,8 +653,8 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
     }
 } // ibis::column::getNullMask
 
-array_t<int32_t>* ibis::column::getIntArray() const {
-    array_t<int32_t>* array = 0;
+ibis::array_t<int32_t>* ibis::column::getIntArray() const {
+    ibis::array_t<int32_t>* array = 0;
     if (m_type == INT || m_type == UINT) {
 	array = new array_t<int32_t>;
 	std::string sname;
@@ -675,8 +675,8 @@ array_t<int32_t>* ibis::column::getIntArray() const {
     return array;
 } // ibis::column::getIntArray
 
-array_t<float>* ibis::column::getFloatArray() const {
-    array_t<float>* array = 0;
+ibis::array_t<float>* ibis::column::getFloatArray() const {
+    ibis::array_t<float>* array = 0;
     if (m_type == FLOAT) {
 	array = new array_t<float>;
 	std::string sname;
@@ -697,8 +697,8 @@ array_t<float>* ibis::column::getFloatArray() const {
     return array;
 } // ibis::column::getFloatArray
 
-array_t<double>* ibis::column::getDoubleArray() const {
-    array_t<double>* array = 0;
+ibis::array_t<double>* ibis::column::getDoubleArray() const {
+    ibis::array_t<double>* array = 0;
     if (m_type == DOUBLE) {
 	array = new array_t<double>;
 	std::string sname;
@@ -812,9 +812,9 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 ///
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<char>*
+ibis::array_t<char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    array_t<char>* array = new array_t<char>;
+    ibis::array_t<char>* array = new array_t<char>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -915,9 +915,9 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<unsigned char>*
+ibis::array_t<unsigned char>*
 ibis::column::selectUBytes(const ibis::bitvector& mask) const {
-    array_t<unsigned char>* array = new array_t<unsigned char>;
+    ibis::array_t<unsigned char>* array = new array_t<unsigned char>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -1021,9 +1021,9 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 /// of signed integers are treated correctly as positive values.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<int16_t>*
+ibis::array_t<int16_t>*
 ibis::column::selectShorts(const ibis::bitvector& mask) const {
-    array_t<int16_t>* array = new array_t<int16_t>;
+    ibis::array_t<int16_t>* array = new array_t<int16_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -1253,9 +1253,9 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<uint16_t>*
+ibis::array_t<uint16_t>*
 ibis::column::selectUShorts(const ibis::bitvector& mask) const {
-    array_t<uint16_t>* array = new array_t<uint16_t>;
+    ibis::array_t<uint16_t>* array = new array_t<uint16_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -1485,9 +1485,9 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<int32_t>*
+ibis::array_t<int32_t>*
 ibis::column::selectInts(const ibis::bitvector& mask) const {
-    array_t<int32_t>* array = new array_t<int32_t>;
+    ibis::array_t<int32_t>* array = new array_t<int32_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -1883,9 +1883,9 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 /// USHORT, and UBYTE.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
-    const {
-    array_t<uint32_t>* array = new array_t<uint32_t>;
+ibis::array_t<uint32_t>*
+ibis::column::selectUInts(const ibis::bitvector& mask) const {
+    ibis::array_t<uint32_t>* array = new array_t<uint32_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -2124,8 +2124,8 @@ array_t<uint32_t>* ibis::column::selectUInts(const ibis::bitvector& mask)
 /// integers are treated correctly as positive values.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
-    const {
+ibis::array_t<int64_t>*
+ibis::column::selectLongs(const ibis::bitvector& mask) const {
     array_t<int64_t>* array = new array_t<int64_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
@@ -2718,9 +2718,9 @@ array_t<int64_t>* ibis::column::selectLongs(const ibis::bitvector& mask)
 /// Can be called on all unsigned integral types.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
-    const {
-    array_t<uint64_t>* array = new array_t<uint64_t>;
+ibis::array_t<uint64_t>*
+ibis::column::selectULongs(const ibis::bitvector& mask) const {
+    ibis::array_t<uint64_t>* array = new array_t<uint64_t>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -3088,8 +3088,8 @@ array_t<uint64_t>* ibis::column::selectULongs(const ibis::bitvector& mask)
 /// nil array will be returned if the current column can not be converted.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
-    const {
+ibis::array_t<float>*
+ibis::column::selectFloats(const ibis::bitvector& mask) const {
     array_t<float>* array = new array_t<float>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
@@ -3456,8 +3456,8 @@ array_t<float>* ibis::column::selectFloats(const ibis::bitvector& mask)
 /// 64-bit integers this conversion may cause lose of precision.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
-    const {
+ibis::array_t<double>*
+ibis::column::selectDoubles(const ibis::bitvector& mask) const {
     array_t<double>* array = new array_t<double>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
@@ -4089,7 +4089,7 @@ array_t<double>* ibis::column::selectDoubles(const ibis::bitvector& mask)
 /// guaranteed to be in any particular state.
 template <typename T>
 long ibis::column::selectValuesT(const bitvector& mask,
-				 array_t<T>& vals) const {
+				 ibis::array_t<T>& vals) const {
     if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
@@ -4266,8 +4266,8 @@ long ibis::column::selectValuesT(const bitvector& mask,
 /// guaranteed to be in particular state.
 template <typename T>
 long ibis::column::selectValuesT(const bitvector& mask,
-				 array_t<T>& vals,
-				 array_t<uint32_t>& inds) const {
+				 ibis::array_t<T>& vals,
+				 ibis::array_t<uint32_t>& inds) const {
     if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
@@ -4473,14 +4473,14 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
 	    << "]::selectValues is not able to handle data type "
 	    << ibis::TYPESTRING[(int)m_type];
 	return -2L;
-}
+    }
 } // ibis::column::selectValues
 
 /// The caller must provide the correct array_t<type>* for vals!  Not type
 /// casting is performed in this function.  Only elementary numerical types
 /// are supported.
-long ibis::column::selectValues(const bitvector& mask,
-				void* vals, array_t<uint32_t>& inds) const {
+long ibis::column::selectValues(const bitvector& mask, void* vals,
+				ibis::array_t<uint32_t>& inds) const {
     if (vals == 0) return -1L;
     switch (m_type) {
     case ibis::BYTE:
@@ -4514,7 +4514,7 @@ long ibis::column::selectValues(const bitvector& mask,
 	    << "]::selectValues is not able to handle data type "
 	    << ibis::TYPESTRING[(int)m_type];
 	return -2L;
-}
+    }
 } // ibis::column::selectValues
 
 // only write some information about the column

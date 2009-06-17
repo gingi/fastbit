@@ -294,8 +294,8 @@ ibis::category::category(const part* tbl, const char* name,
     }
 } // ibis::category::category
 
-array_t<uint32_t>* ibis::category::selectUInts(const ibis::bitvector& mask)
-    const {
+ibis::array_t<uint32_t>*
+ibis::category::selectUInts(const ibis::bitvector& mask) const {
     indexLock lock(this, "category::selectInts");
     return static_cast<ibis::relic*>(idx)->keys(mask);
 } // ibis::category::selectInts
@@ -1213,7 +1213,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	<< " now has " << (nnew+nold+1) << " 64-bit integers (total "
 	<< sizeof(int64_t)*(nnew+nold+1) << " bytes)";
 
-    if (strcmp(dir, thePart->currentDataDir()) == 0 &&
+    if (thePart->getStateNoLocking() == ibis::part::STABLE_STATE &&
+	strcmp(dir, thePart->currentDataDir()) == 0 &&
 	nold + nnew > thePart->nRows()) {
 	fsp = fopen(spfile.c_str(), "rb");
 	ierr = fseek(fsp, thePart->nRows()*sizeof(int64_t), SEEK_SET);
@@ -1897,8 +1898,8 @@ void ibis::text::print(std::ostream& out) const {
 /// also forces the sorting procedure to produce an order following the
 /// order of the entries in the table.  This makes the print out of an
 /// ibis::text field quite less useful than others!
-array_t<uint32_t>* ibis::text::selectUInts(const ibis::bitvector& mask)
-    const {
+ibis::array_t<uint32_t>*
+ibis::text::selectUInts(const ibis::bitvector& mask) const {
     array_t<uint32_t>* ret = new array_t<uint32_t>;
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
 	 ix.nIndices() > 0; ++ ix) {
@@ -1917,8 +1918,8 @@ array_t<uint32_t>* ibis::text::selectUInts(const ibis::bitvector& mask)
 
 /// The starting positions of the selected string values are stored in the
 /// returned array.
-array_t<int64_t>* ibis::text::selectLongs(const ibis::bitvector& mask)
-    const {
+ibis::array_t<int64_t>*
+ibis::text::selectLongs(const ibis::bitvector& mask) const {
     std::string fnm = thePart->currentDataDir();
     fnm += DIRSEP;
     fnm += m_name;

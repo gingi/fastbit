@@ -1,3 +1,10 @@
+2009-06-16 John Wu <John.Wu at ACM.org>
+	* src/category.cpp:1216 add check for state of the partition
+	before trancating the data file and .sp file in
+	ibis::text::startPositions (a problem noticed by Jochen Schlosser)
+	* src/array_t.h: put array_t template into namespace ibis (a
+	change requested by Matthias Vallentin)
+
 2009-06-12 John Wu <John.Wu at ACM.org>
 	* src/table.h: add optional argument to ibis::tablex::addColumn
 	and ibis::tablex::write to specify indexing options, add function
