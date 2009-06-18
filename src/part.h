@@ -86,9 +86,9 @@ public:
     /// Return the name of the active data directory.
     const char* currentDataDir() const {return activeDir;}
     /// Return the number of attributes in the partition.
-    size_t nColumns() const {return columns.size();}
+    uint32_t nColumns() const {return columns.size();}
     /// Return the number of rows.
-    size_t nRows() const {return nEvents;}
+    uint32_t nRows() const {return nEvents;}
 
     /// Output a description of every column of the data partition.
     void print(std::ostream &out) const;
@@ -659,7 +659,7 @@ protected:
     ibis::resource::vList metaList;	///< Meta tags as name-value pairs.
     mutable array_t<rid_t>* rids;	///< The object IDs (row id).
     columnList columns;		///< List of the columns.
-    size_t nEvents;		///< Number of events (rows) in the partition.
+    uint32_t nEvents;		///< Number of events (rows) in the partition.
     char* activeDir;		///< The active data directory.
     char* backupDir;		///< The backup data directory.
     time_t switchTime;		///< Time of last switch operation.
@@ -678,7 +678,7 @@ protected:
     // protected member functions
     //
     /// Read metadata file -part.txt.
-    int  readMetaData(size_t &nrows, columnList &plist, const char* dir);
+    int  readMetaData(uint32_t &nrows, columnList &plist, const char* dir);
     /// Write metadata file -part.txt.
     void writeMetaData(const uint32_t nrows, const columnList &plist,
 		       const char* dir) const;

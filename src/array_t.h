@@ -8,16 +8,12 @@
 #include "horometer.h"
 #include <iomanip>	// std::setw
 
-///@file
-/// Definition of template array_t.
-///@note array_t is not in the name space ibis because the compilers used
-/// during the early development of this project did not accept templates
-/// inside a name space.
-
-/// Template array_t implements a replacement of std::vector.  The main
-/// difference is that the underlying memory of this object is managed by
-/// ibis::fileManager.  In addition, it also implements read and write
-/// functions that are not present in std::vector.
+/// Template array_t is a replacement of std::vector.  The main difference
+/// is that the underlying memory of this object is managed by
+/// ibis::fileManager.  It is intended to store arrays in memory.  The
+/// memory is allocated in guaranteed to be contiguous, and its maximum
+/// size is limited to be (2^31-1) elements.  It also implements read and
+/// write functions that are not present in std::vector.
 #ifdef __GNUC__
 #pragma interface
 #endif

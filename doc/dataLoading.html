@@ -154,16 +154,22 @@ complete list of data types supported by <code>ardea</code>
 <li><code>short</code>: 16-bit signed integer.
 <li><code>int</code>: 32-bit signed integer.
 <li><code>long</code>: 64-bit signed integer.
+<li><code>unsigned byte</code>: unsigned 8-bit signed integer.
+<li><code>unsigned short</code>: unsigned 16-bit signed integer.
+<li><code>unsigned int</code>: unsigned 32-bit signed integer.
+<li><code>unsigned long</code>: unsigned 64-bit signed integer.
 <li><code>float</code>: 32-bit IEEE floating-point values.
 <li><code>double</code>: 64-bit IEEE floating-point values.
 <li><code>key</code>: String values with a small number of distinct choices.
 <li><code>text</code>: Arbitrary string values.
 </ul>
 
-All above types start with a different letter and <code>ardea</code>
-only test the first letter.  The first letter can be in either upper or
-lower case.  Therefore the example given in <A
-HREF="quickstart.html">quickstart.html</A> can be shorten slightly as
+Except the unsigned integer types, all other types start with a
+different letter and <code>ardea</code> only test the first letter in
+these cases.  The first letter can be in either upper or lower case.
+Therefore the example given
+in <A HREF="quickstart.html">quickstart.html</A> can be shorten slightly
+as
 
 <pre>
 examples/ardea -d tmp -m "a:i,b:f,c:s" -t tests/test0.csv

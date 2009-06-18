@@ -5374,34 +5374,43 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
     return ret;
 } // ibis::column::getUndecidable
 
-/// Append the content of file in @c df to end of file in @c dt.
-///@note
-/// Since this function does not compute the mininimum and the maximum of
-/// the new values, it is important the minimum and the maximum is present
-/// in the corresponding -part.txt file.  For new data without minimum and
-/// maximum, some test functions may fail.
+/// Append the content of file in @c df to end of file in @c dt.  It
+/// returns the number of rows appended or a negative number to indicate
+/// error.
+///
+/// @note This function does not update the mininimum and the maximum of
+/// the column.
 long ibis::column::append(const char* dt, const char* df,
 			  const uint32_t nold, const uint32_t nnew,
 			  const uint32_t nbuf, char* buf) {
     long ret = 0;
-    if (nnew == 0 || thePart == 0 || thePart->currentDataDir() == 0 ||
-	dt == 0 || df == 0 || *dt == 0 || *df == 0 || strcmp(dt, df) == 0)
+    if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
+	strcmp(dt, df) == 0)
 	return ret;
+    std::string evt = "column[";
+    if (thePart != 0)
+	evt += thePart->name();
+    else
+	evt += "?";
+    evt += '.';
+    evt += m_name;
+    evt += "]::append";
     int elem = elementSize();
     if (elem <= 0) {
-	logWarning("append",
-		   "unable to continue because elementSize() is zero");
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " unable to continue, elementSize() is not a positive number";
 	return -1;
     }
     else if (static_cast<uint64_t>((nold+nnew))*elem >= 0x80000000LU) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << '.' << name()
-	    << "]:append -- the new data file will have more than 2GB, nold="
+	    << "Warning -- " << evt
+	    << " -- the new data file will have more than 2GB, nold="
 	    << nold << ", nnew=" << nnew << ", elementSize()=" << elem;
 	return -2;
     }
 
-    writeLock lock(this, "column::append");
+    writeLock lock(this, evt.c_str());
     std::string to;
     std::string from;
     to += dt;
@@ -5411,8 +5420,7 @@ long ibis::column::append(const char* dt, const char* df,
     from += DIRSEP;
     from += m_name;
     LOGGER(ibis::gVerbose > 3)
-	<< "column[" << thePart->name() << '.' << name()
-	<< "]::append -- source \"" << from << "\" --> destination \""
+	<< evt << " -- source \"" << from << "\" --> destination \""
 	<< to << "\", nold=" << nold << ", nnew=" << nnew;
 
     // open destination file, position the file pointer
@@ -5460,8 +5468,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    if (iread + ret > static_cast<long>(tgt)) {
 		// write at most tgt bytes
 		LOGGER(ibis::gVerbose > 1)
-		    << "column[" << thePart->name() << '.' << name()
-		    << "]::append -- read " << iread << " bytes from " << from
+		    << evt << " -- read " << iread << " bytes from " << from
 		    << ", but expected " << (tgt-ret) << ", will use first "
 		    << (tgt-ret) << " bytes";
 		iread = tgt - ret;
@@ -5478,8 +5485,7 @@ long ibis::column::append(const char* dt, const char* df,
 	UnixClose(src);
 	m_sorted = false; // assume no longer sorted
 	LOGGER(ibis::gVerbose > 8)
-	    << "column[" << thePart->name() << '.' << name()
-	    << "]::append -- copied " << ret << " bytes from \"" << from
+	    << evt << " -- copied " << ret << " bytes from \"" << from
 	    << "\" to \"" << to << "\"";
     }
     else if (ibis::gVerbose > 0) { // can not open source file, write 0
@@ -5518,8 +5524,8 @@ long ibis::column::append(const char* dt, const char* df,
     }
 
     ret /= elem;	// convert to the number of elements written
-    if (ibis::gVerbose > 4)
-	logMessage("append", "appended %ld rows", ret);
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << " appended " << ret << " row" << (ret>1?"s":"");
     if (m_type == ibis::OID) {
 	return ret;
     }
@@ -5532,22 +5538,19 @@ long ibis::column::append(const char* dt, const char* df,
     ibis::bitvector mapp;
     try {mapp.read(filename.c_str());} catch (...) {/* ok to continue */}
     mapp.adjustSize(nnew0, nnew);
-    if (ibis::gVerbose > 7)
-	logMessage("append", "mask file \"%s\" contains %lu set bits "
-		   "out of %lu total bits", filename.c_str(),
-		   static_cast<long unsigned>(mapp.cnt()),
-		   static_cast<long unsigned>(mapp.size()));
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " mask file \"" << filename << "\" contains "
+	<< mapp.cnt() << " set bits out of " << mapp.size()
+	<< " total bits";
 
     filename = to;
     filename += ".msk";
     ibis::bitvector mtot;
     try {mtot.read(filename.c_str());} catch (...) {/* ok to continue */}
     mtot.adjustSize(nold0, nold);
-    if (ibis::gVerbose > 7)
-	logMessage("append", "mask file \"%s\" contains %lu set bits "
-		   "out of %lu total bits before append", filename.c_str(),
-		   static_cast<long unsigned>(mtot.cnt()),
-		   static_cast<long unsigned>(mtot.size()));
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " mask file \"" << filename << "\" contains " << mtot.cnt()
+	<< " set bits out of " << mtot.size() << " total bits before append";
 
     mtot += mapp; // append the new ones at the end
     if (mtot.size() != nold+nnew) {
@@ -5578,6 +5581,8 @@ long ibis::column::append(const char* dt, const char* df,
 		       "%lu records are valid", filename.c_str(),
 		       static_cast<long unsigned>(mtot.size()));
     }
+    if (thePart == 0 || thePart->currentDataDir() == 0)
+	return ret;
     if (strcmp(dt, thePart->currentDataDir()) == 0) {
 	// update the mask stored internally
 	mutexLock lck(this, "column::append");
@@ -5593,27 +5598,29 @@ long ibis::column::append(const char* dt, const char* df,
     filename[--j] = 'i';
     j = ibis::util::getFileSize(filename.c_str());
     if (thePart->getState() == ibis::part::TRANSITION_STATE) {
-	// the active directory may have up to date indices
-	std::string ff = thePart->currentDataDir();
-	ff += DIRSEP;
-	ff += m_name;
-	ff += ".idx";
-	Stat_T st;
-	if (UnixStat(ff.c_str(), &st) == 0) {
-	    if (st.st_atime >= thePart->timestamp()) {
-		// copy the fresh index file
-		ibis::util::copy(filename.c_str(), ff.c_str());
-		if (ibis::gVerbose > 6)
-		    logMessage("append",
-			       "copied index file \"%s\" to \"%s\"",
-			       ff.c_str(), filename.c_str());
+	if (thePart->currentDataDir() != 0) {
+	    // the active directory may have up to date indices
+	    std::string ff = thePart->currentDataDir();
+	    ff += DIRSEP;
+	    ff += m_name;
+	    ff += ".idx";
+	    Stat_T st;
+	    if (UnixStat(ff.c_str(), &st) == 0) {
+		if (st.st_atime >= thePart->timestamp()) {
+		    // copy the fresh index file
+		    ibis::util::copy(filename.c_str(), ff.c_str());
+		    if (ibis::gVerbose > 6)
+			logMessage("append",
+				   "copied index file \"%s\" to \"%s\"",
+				   ff.c_str(), filename.c_str());
+		}
+		else if (j > 0) { // remove the stale file
+		    remove(filename.c_str());
+		}
 	    }
-	    else if (j > 0) { // remove the stale file
+	    else if (j > 0) { // remove the stale index file
 		remove(filename.c_str());
 	    }
-	}
-	else if (j > 0) { // remove the stale index file
-	    remove(filename.c_str());
 	}
     }
     else if (thePart->nRows() > 0) {

@@ -1136,12 +1136,12 @@ long ibis::part::appendToBackup(const char* dir) {
 	return ierr;
     if (*dir == 0)
 	return ierr;
-    if (backupDir == 0) // no backup directory to append to
+    if (backupDir == 0 || *backupDir == 0) // no backup directory to append to
 	return -1;
     if (strcmp(dir, backupDir) == 0)
 	return ierr;
 
-    size_t napp;
+    uint32_t napp;
     columnList clist; // combined list of attributes
     columnList::iterator cit, pit;
 

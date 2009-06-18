@@ -1032,7 +1032,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 /// the data files could possibly have the same name (since '-' cann't
 /// appear in any column names).  This file was previously named
 /// "table.tdc" and this function still recognize this old name.
-int ibis::part::readMetaData(size_t &nrows, columnList &plist,
+int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 			     const char* dir) {
     if (dir == 0 || *dir == 0) return -90;
     // clear the content of plist
@@ -1064,7 +1064,7 @@ int ibis::part::readMetaData(size_t &nrows, columnList &plist,
     int  maxLength = 0;
     int  tot_columns = INT_MAX;
     int  num_columns = INT_MAX;
-    bool isActive = (activeDir ? strcmp(activeDir, dir) == 0 : false);
+    const bool isActive = (activeDir ? strcmp(activeDir, dir) == 0 : false);
     std::set<int> selected; // list of selected columns
     char buf[MAX_LINE];
 
@@ -1439,7 +1439,9 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", backupDir);
     }
     else if (isBackup) {
-	fprintf(fptr, "Alternative_Directory = \"%s\"\n", activeDir);
+	if (activeDir != 0 && *activeDir != 0 && backupDir != activeDir &&
+	    strcmp(activeDir, backupDir) != 0)
+	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", activeDir);
     }
     if (isActive || isBackup) {
 	fprintf(fptr, "Timestamp = %lu\n",

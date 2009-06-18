@@ -1,3 +1,17 @@
+2009-06-18 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: writeMetaData check the validity of activeDir
+	before write it as alternative directory
+
+2009-06-17 John Wu <John.Wu at ACM.org>
+	* doc/dataLoading.html: add note about support for unsigned
+	integers
+	* src/array_t.h: update documentation about the class to reflect
+	the change in name space (notice by matthias Vallentin)
+	* src/part.h: change nEvent from type size_t to uint32_t
+	* src/column.cpp: in function append (that takes directory name as
+	input), remove the dependencies on thePart->currentDataDir (a
+	problem reported by Jochen Schlosser)
+
 2009-06-16 John Wu <John.Wu at ACM.org>
 	* src/category.cpp:1216 add check for state of the partition
 	before trancating the data file and .sp file in
