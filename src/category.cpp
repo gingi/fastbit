@@ -1182,8 +1182,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	}
     }
 
-    if (strcmp(dir, thePart->currentDataDir()) == 0 &&
-	nold + nnew < thePart->nRows()) {
+    if (nold + nnew < thePart->nRows() && thePart->currentDataDir() != 0 &&
+	strcmp(dir, thePart->currentDataDir()) == 0) {
 	// make up missing values with a null string
 	char zero = 0;
 	// commit all read operations in preparation for write

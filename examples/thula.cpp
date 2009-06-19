@@ -604,7 +604,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	      << " produced " << n0 << " hit" << (n0>1 ? "s" : "")
 	      << " out of " << n1 << " record" << (n1>1 ? "s" : "")
 	      << "\n";
-    if (ibis::gVerbose > 0 || (xfile.is_open() && xfile.good())) {
+    if (ibis::gVerbose >= 0 || (xfile.is_open() && xfile.good())) {
 	std::cout << "-- begin printing the result table --\n";
 	sel->describe(std::cout); // ask the table to describe itself
 

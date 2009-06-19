@@ -315,7 +315,7 @@ int ibis::countQuery::evaluate() {
     }
     LOGGER(ibis::gVerbose > 0)
 	<< "countQuery::evaluate -- Select count(*) From "
-	<< mypart->name() << " Where " << conds << "\t-->\t" << hits->cnt();
+	<< mypart->name() << " Where " << conds << " --> " << hits->cnt();
     return 0;
 } // ibis::countQuery::evaluate
 

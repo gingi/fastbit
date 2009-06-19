@@ -343,7 +343,7 @@ ibis::part::part(const char* adir, const char* bdir) :
 	    switchTime = time(0);
     }
 
-    if (m_name == 0 && nEvents > 0) {
+    if (m_name == 0) {
 	// copy the directory name as the name of the data part
 	char* tmp = strrchr(activeDir, DIRSEP);
 	if (tmp != 0)

@@ -1,5 +1,5 @@
 FastBit is packaged with GNU build tools.  In most cases, this means you
-only need to run "./configure; make" to build the library and the
+only need to run "./configure && make" to build the library and the
 examples.  The following instructions are for customizing your
 configuration and building process.
 

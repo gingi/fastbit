@@ -307,6 +307,7 @@ public:
     /// Sum of all value in the named column.
     double getColumnSum(const char *name) const;
 
+    /// Histogram functions.
     /// @{
     /// Compute conditional 1D histogram with regularly spaced bins.
     long get1DDistribution(const char *constraints, const char *cname,
@@ -470,6 +471,8 @@ public:
 		   std::vector<ibis::bitvector> &bins) const;
     /// @}
 
+    /// Obsolete histogram functions.  Avoid using these functions.  They
+    /// might be removed without notice.
     /// @{
     /// Compute the binned distribution of the named variable.
     long getDistribution(const char *name,

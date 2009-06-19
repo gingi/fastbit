@@ -1,6 +1,15 @@
+2009-06-19 John Wu <John.Wu at ACM.org>
+	* src/category.cpp:1185 add test for currentDataDir() to prevent
+	strcmp from using nil pointer (a problem reported by Jochen
+	Schlosser)
+	* src/part.cpp:346 remove test on nEvent to generate m_name
+	regardless of the value of nEvents
+
 2009-06-18 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: writeMetaData check the validity of activeDir
 	before write it as alternative directory
+	* examples/thula.cpp:607 allow the selection to be printed without
+	-v option
 
 2009-06-17 John Wu <John.Wu at ACM.org>
 	* doc/dataLoading.html: add note about support for unsigned
