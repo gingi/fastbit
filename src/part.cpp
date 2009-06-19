@@ -3444,9 +3444,14 @@ void ibis::part::numbersToBitvector(const std::vector<uint32_t> &rows,
 /// @note The bitvector may include active as well as inactive rows.
 void ibis::part::stringToBitvector(const char* conds,
 				   ibis::bitvector &msk) const {
-    ibis::query q(ibis::util::userName(), this);
-    q.setWhereClause(conds);
-    q.getExpandedHits(msk);
+    if (nEvents > 0) {
+	ibis::query q(ibis::util::userName(), this);
+	q.setWhereClause(conds);
+	q.getExpandedHits(msk);
+    }
+    else {
+	msk.clear();
+    }
 } // ibis::part::stringToBitvector
 
 // sequential scan without a mask -- the default mask is the NULL mask, in

@@ -1179,7 +1179,7 @@ long ibis::query::countHits() const {
     long int ierr = -1;
     if (hits != 0 && (sup == 0 || sup == hits))
 	ierr = hits->cnt();
-    else if (mypart != 0 && conds.getExpr() != 0 &&
+    else if (mypart != 0 && mypart->nRows() != 0 && conds.getExpr() != 0 &&
 	     (conds->getType() == ibis::qExpr::RANGE ||
 	      conds->getType() == ibis::qExpr::DRANGE))
 	ierr = mypart->countHits(*static_cast<const ibis::qRange*>
@@ -1283,7 +1283,7 @@ long int ibis::query::limit(const char *names, int direction, uint32_t keep,
 /// exact answer yet, has no hit, or is not associated with any data
 /// partition.
 ibis::RIDSet* ibis::query::getRIDs() const {
-    if (mypart == 0 || hits == 0 || hits->cnt() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || hits == 0 || hits->cnt() == 0)
 	return 0;
     if (state != FULL_EVALUATE) {
 	logWarning("getRIDs", "call evaluate() first");
@@ -1429,7 +1429,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 /// with a data partition or the mask contains no bit marked 1.
 ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
     ibis::RIDSet* ridset = 0;
-    if (mypart == 0 || mask.cnt() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || mask.cnt() == 0)
 	return ridset;
 
     ibis::part::readLock tmp(mypart, myID);
@@ -2946,7 +2946,11 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     long ierr;
     readLock lock(this, "getExpandedHits"); // don't change query
-    if (conds.getExpr() != 0) {
+    if (mypart == 0 || mypart->nRows() == 0) {
+	res.clear();
+	ierr = -1;
+    }
+    else if (conds.getExpr() != 0) {
 	ibis::part::readLock lock2(mypart, myID); // don't change data
 	doEvaluate(conds.getExpr(), res);
 	ierr = res.cnt();

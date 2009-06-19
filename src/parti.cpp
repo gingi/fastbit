@@ -1362,7 +1362,7 @@ long ibis::part::reactivate(const ibis::bitvector& rows) {
 /// @note Inactive rows will no longer participate in future query
 /// evaluations.
 long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
-    if (rows.empty()) return 0;
+    if (rows.empty() || nEvents == 0) return 0;
 
     ibis::bitvector msk;
     numbersToBitvector(rows, msk);
@@ -1378,7 +1378,7 @@ long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
 /// @note All inactive rows will no longer participate in any future query
 /// processing.
 long ibis::part::deactivate(const char* conds) {
-    if (conds == 0 || *conds == 0) return 0;
+    if (conds == 0 || *conds == 0 || nEvents == 0) return 0;
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);
@@ -1389,7 +1389,7 @@ long ibis::part::deactivate(const char* conds) {
 } // ibis::part::deactivate
 
 long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
-    if (rows.empty()) return 0;
+    if (rows.empty() || nEvents == 0) return 0;
 
     ibis::bitvector msk;
     numbersToBitvector(rows, msk);
@@ -1400,7 +1400,7 @@ long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
 } // ibis::part::reactivate
 
 long ibis::part::reactivate(const char* conds) {
-    if (conds == 0 || *conds == 0) return 0;
+    if (conds == 0 || *conds == 0 || nEvents == 0) return 0;
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);

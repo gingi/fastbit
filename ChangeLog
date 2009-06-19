@@ -4,6 +4,8 @@
 	Schlosser)
 	* src/part.cpp:346 remove test on nEvent to generate m_name
 	regardless of the value of nEvents
+	* src/part.cpp: add check for nEvents being zero in functions that
+	deactivates rows
 
 2009-06-18 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: writeMetaData check the validity of activeDir
