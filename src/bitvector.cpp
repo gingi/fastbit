@@ -683,12 +683,12 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 	nset += val?1:-1;
 } // ibis::bitvector::setBit
 
-/// Select a subset of the bits.  Bits whose positions are marked 1 are put
-/// together in a new bitvector @c res.
+/// Select a subset of the bits.  Bits whose positions are marked 1 in mask
+/// are put together to form a new bitvector @c res.
 void ibis::bitvector::subset(const ibis::bitvector& mask,
 			     ibis::bitvector& res) const {
     res.clear();
-    if (size() == 0 || mask.cnt()== 0) return;
+    if (mask.size() == 0 || mask.cnt()== 0) return;
     if (all0s() && active.val == 0) { // res is all 0
 	res.set(0, mask.cnt());
 	return;
@@ -706,7 +706,8 @@ void ibis::bitvector::subset(const ibis::bitvector& mask,
 
     run cur, sel;
     cur.it = m_vec.begin();
-    cur.decode();
+    if (cur.it != m_vec.end()) // avoid accessing nil pointer
+	cur.decode();
     for (sel.it = mask.m_vec.begin(); sel.it != mask.m_vec.end(); ++ sel.it) {
 	sel.decode();
 	if (sel.isFill != 0) { // current word in mask is a fill
