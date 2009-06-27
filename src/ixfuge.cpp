@@ -109,7 +109,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	cbits[i] = 0;
 
     if (st->isFileMap()) {
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
 	array_t<ibis::bitvector::word_t>
 	    a0(st, coffsets[0], (coffsets[1] - coffsets[0])
 	       / sizeof(ibis::bitvector::word_t));
@@ -283,7 +283,7 @@ int ibis::fuge::read(const char* f) {
     for (uint32_t i = 0; i < nobs; ++i)
 	bits[i] = 0;
 
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
     if (offsets[1] > offsets[0]) {// read the first bitvector
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);

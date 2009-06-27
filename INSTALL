@@ -111,15 +111,15 @@ WITHOUT_FASTBIT_CONFIG_H
   specific environment (MS windows + VisualStudio), all other platforms
   that can not run the configure script, must define this macro!
 
-FILEMANAGER_UNLOAD_TIME
+FASTBIT_UNLOAD_LIMIT
 
   Defines the amount of time (in seconds) the file manager should wait
   before giving up on waiting when it fails to acquire the desired
   amount of memory.  Presumably, while waiting, other tasks will have
   finished and released the memory being used.  The default time is 600
-  seconds in normal operations or 5 seconds if DEBUG is defined.
+  seconds in normal operations and 5 seconds if DEBUG is defined.
 
-MIN_DOMAP_SIZE
+FASTBIT_MIN_MAP_SIZE
 
   FastBit will attempt to use memory map to read large data files if
   mmap and its associated functions are available.  This defines the
@@ -137,7 +137,7 @@ WAH_CHECK_SIZE
   when they are constructed.  This may be useful if one suspects that
   the WAH compressed bitmap are not what they supposed to be.
 
-ALWAYS_READ_BITVECTOR0
+FASTBIT_READ_BITVECTOR0
 
   In an earlier version of FastBit, it always reads the first bitmap of
   every bitmap index regardless of whether it is actually used.  Because

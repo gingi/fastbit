@@ -269,6 +269,13 @@ private:
 /// The storage class treats all memory as @a char*.
 /// It only uses malloc family of functions to manage the memory allocation
 /// and deallocation.
+///
+/// @note This class intends to hold a piece of memory managed by
+/// ibis::fileManager.  If an object of this type is acquired through
+/// ibis::fileManager::getFile, the ownership of the object belongs to the
+/// file manager, therefore the caller should not delete the object.  Of
+/// course, the object created through explicit call to a constructor is
+/// owned by the user code.
 class ibis::fileManager::storage {
 public:
     storage() : name(0), m_begin(0), m_end(0), nacc(0), nref() {};
@@ -352,16 +359,13 @@ protected:
 /// This class manages content of a whole (read-only) file.
 /// It inherits the basic information stored in fileManager::storage and is
 /// intended to process read-only files.
+///
+/// @note This class intends to hold a piece of memory managed by
+/// ibis::fileManager.  If an object of this type is acquired through
+/// ibis::fileManager::getFile, the ownership of the object belongs to the
+/// file manager, therefore the caller should not delete the object.
 class ibis::fileManager::roFile : public ibis::fileManager::storage {
 public:
-    roFile() : storage(), opened(0), lastUse(0), mapped(0)
-#if defined(_WIN32) && defined(_MSC_VER)
-	       , fdescriptor(INVALID_HANDLE_VALUE), fmap(INVALID_HANDLE_VALUE),
-	       map_begin(0)
-#elif (HAVE_MMAP+0 > 0)
-	, fdescriptor(-1), fsize(0), map_begin(0)
-#endif
-    {};
     virtual ~roFile() {clear();}
 
     // functions for recording access statistics
@@ -377,8 +381,33 @@ public:
     void mapFile(const char* file);
 #endif
 
-    /// The function to give score to a file. Files with smallest scores
-    /// are the target for removal.
+//      // compares storage objects according to file names
+//      struct less : std::binary_function< roFile*, roFile*, bool > {
+//  	bool operator()(const roFile* x, const roFile* y) const {
+//  	    return strcmp(x->filename(), y->filename()) < 0;
+//  	}
+//      };
+protected:
+    roFile() : storage(), opened(0), lastUse(0), mapped(0)
+#if defined(_WIN32) && defined(_MSC_VER)
+	       , fdescriptor(INVALID_HANDLE_VALUE), fmap(INVALID_HANDLE_VALUE),
+	       map_begin(0)
+#elif (HAVE_MMAP+0 > 0)
+	, fdescriptor(-1), fsize(0), map_begin(0)
+#endif
+    {};
+
+    // Read the whole file into memory.
+    void doRead(const char* file);
+    // Read the specified segment of the file into memory.
+    void doRead(const char* file, off_t b, off_t e);
+#if defined(HAVE_FILE_MAP)
+    void doMap(const char* file, off_t b, off_t e, int opt=0);
+#endif
+
+    /// The function assigns a score to a file.  It is used by
+    /// ibis::fileManager::unload to determine what files to remove.  Files
+    /// with the smallest scores are the target for removal.
     float score() const {
 	float sc = FLT_MAX;
 	time_t now = time(0);
@@ -396,22 +425,6 @@ public:
 	}
 	return sc;
     }
-
-//      // compares storage objects according to file names
-//      struct less : std::binary_function< roFile*, roFile*, bool > {
-//  	bool operator()(const roFile* x, const roFile* y) const {
-//  	    return strcmp(x->filename(), y->filename()) < 0;
-//  	}
-//      };
-protected:
-
-    // Read the whole file into memory.
-    void doRead(const char* file);
-    // Read the specified segment of the file into memory.
-    void doRead(const char* file, off_t b, off_t e);
-#if defined(HAVE_FILE_MAP)
-    void doMap(const char* file, off_t b, off_t e, int opt=0);
-#endif
 
     friend class ibis::fileManager;
     virtual void clear(); // free memory/close file
@@ -469,12 +482,12 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
 	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager", "releaseAccess to %s",
+	    ibis::util::logMessage("ibis::fileManager::releaseAccess", "%s",
 				   mesg);
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::releaseAccess "
-			       "to %s" " returned %d -- %s",
+			       "for %s" " returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // ibis::fileManager::releaseAccess
@@ -483,12 +496,12 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
     if (0 == ierr) {
 	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager",
-				   "gainReadAccess to %s", mesg);
+	    ibis::util::logMessage("ibis::fileManager::gainReadAccess",
+				   "%s", mesg);
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::gainReadAccess "
-			       "to %s returned %d -- %s",
+			       "for %s returned %d -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // ibis::fileManager::gainReadAccess
@@ -497,12 +510,12 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     int ierr = pthread_rwlock_wrlock(&lock);
     if (0 == ierr) {
 	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager",
-				   "gainWriteAccess to %s", mesg);
+	    ibis::util::logMessage("ibis::fileManager::gainWriteAccess",
+				   "%s", mesg);
     }
     else {
 	ibis::util::logMessage("Warning", "ibis::fileManager::gainWriteAccess "
-			       "to %s returned %i -- %s",
+			       "for %s returned %i -- %s",
 			       mesg, ierr, strerror(ierr));
     }
 } // ibis::fileManager::gainWriteAccess

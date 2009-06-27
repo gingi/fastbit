@@ -1,3 +1,21 @@
+2009-06-26 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: change the constructor fileManager::roFile
+	so that it is only usable by friends, change macro
+	FILEMANAGER_UNLOAD_TIME to FASTBIT_UNLOAD_LIMIT, MIN_DOMAP_SIZE to
+	FASTBIT_MIN_MAP_SIZE
+	* src/i*.cpp: change the macro ALWAY_READ_BITVECTOR0 to
+	FASTBIT_READ_BITVECTOR0 (the word always was misspelled anyway)
+	* src/mensa.cpp: in doSelect collect data only from unique columns
+	* src/bord.cpp: in the constructor of ibis::bord::part delete the
+	buf of duplicate names (buffer associated with duplicate names are
+	lost, a problem report by Shane Adams)
+
+2009-06-25 John Wu <John.Wu at ACM.org>
+	* src/array_t.cpp: change the constructor of ibis::array_t that
+	takes storage& to take storage* (to match the other one that
+	already accepts storage*, having one of them taking storage& and
+	the other taking sotrage* is confusing to be sure)
+
 2009-06-23 John Wu <John.Wu at ACM.org>
 	* src/bitvector.cpp: in function subset, try to avoid access nil
 	pointer (to address a problem reported by Jochen Schlosser)

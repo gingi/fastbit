@@ -68,19 +68,19 @@
         [-r[id-check] [filename]] [-reorder data_dir]
         [-v[=n]] [-t[est]] [-h[elp]]
 
-   NOTE: options -one-step-evaluation and -estimation-only are mutually
+   @note Options -one-step-evaluation and -estimation-only are mutually
    exclusive, the one that appears later will overwrite the one that
    appears early on the same command line.
 
-   NOTE: option -t is interpreted as self-testing if specified alone, if
-   any query is also specified, it is interpreted as indicating the number
-   of threads to use.
+   @note Option -t is interpreted as self-testing if specified alone;
+   however if any query is also specified, it is interpreted as indicating
+   the number of threads to use.
 
-   NOTE: the select clause of "count(*)" will produce a result table with
+   @note The select clause of "count(*)" will produce a result table with
    one row and one column to hold the content of "count(*)" following the
-   SQL standard.  This may take some getting used too since one might have
-   expect the number of hits to be printed directly as in the case of
-   omitting the select clause.
+   SQL standard.  If no select clause is specified at all, this program
+   will print the number of hits.  In either case, one gets back the number
+   of hits, but the details are a little bit different.
 
    @ingroup FastBitExamples
 */
@@ -2805,7 +2805,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	<< sel1->nRows() << " row" << (sel1->nRows() > 1 ? "s" : "")
 	<< " and " << sel1->nColumns() << " column"
 	<< (sel1->nColumns() > 1 ? "s" : "");
-    if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
+    if (sel1->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
+	// top-K query
 	sel1->orderby(ordkeys);
 	if (direction < 0)
 	    sel1->reverseRows();

@@ -173,7 +173,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
     }
 #endif
 	if (st->isFileMap()) { // only map the first bitvector
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
 	    array_t<ibis::bitvector::word_t>
 		a0(st, offs[0],
 		   (offs[1]-offs[0])/sizeof(ibis::bitvector::word_t));
@@ -438,7 +438,7 @@ int ibis::relic::read(const char* f) {
     bits.resize(dim[1]);
     for (uint32_t i = 0; i < dim[1]; ++i)
 	bits[i] = 0;
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
@@ -482,7 +482,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     for (uint32_t i = 0; i < nobs; ++i)
 	bits[i] = 0;
     if (st->isFileMap()) { // only restore the first bitvector
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
 	if (offsets[1] > offsets[0]) {
 	    array_t<ibis::bitvector::word_t>
 		a0(st, offsets[0], (offsets[1]-offsets[0])/

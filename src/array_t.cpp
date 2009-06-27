@@ -81,7 +81,7 @@ ibis::array_t<T>::array_t(uint32_t n, const T& val)
 	m_begin = reinterpret_cast<T*>(actual->begin());
 	m_end = m_begin + n;
 	actual->beginUse();
-	for (uint32_t i=0; i<n; ++i) {
+	for (uint32_t i = 0; i < n; ++ i) {
 	    m_begin[i] = val;
 	}
 	LOGGER(ibis::gVerbose > 9)
@@ -138,9 +138,9 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
 /// Turn a raw storage object into an array_t object.  The input storage
 /// object is used by the array.  No new storage is allocated.
 template<class T>
-ibis::array_t<T>::array_t(ibis::fileManager::storage& rhs)
-    : actual(&rhs), m_begin((T*)(rhs.begin())), m_end((T*)(rhs.end())) {
-    if (actual)
+ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
+    : actual(rhs), m_begin((T*)(rhs->begin())), m_end((T*)(rhs->end())) {
+    if (actual != 0)
 	actual->beginUse();
     //timer.start();
 }
@@ -185,7 +185,7 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
 	delete actual;
 	throw ibis::bad_alloc("array_t failed to read file segment");
     }
-    if (actual)
+    if (actual != 0)
 	actual->beginUse();
     //timer.start();
     LOGGER(ibis::gVerbose > 9)
@@ -205,7 +205,7 @@ ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
 	delete actual;
 	throw ibis::bad_alloc("array_t failed to read file segment");
     }
-    if (actual)
+    if (actual != 0)
 	actual->beginUse();
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
@@ -279,7 +279,7 @@ void ibis::array_t<T>::nosharing() {
 /// it returns the smallest i such that @c operator[](ind[i]) >= @c val.
 template<class T>
 uint32_t ibis::array_t<T>::find(const array_t<uint32_t>& ind,
-			  const T& val) const {
+				const T& val) const {
     if (m_begin[ind[0]] >= val)
 	return 0;
 
@@ -1051,7 +1051,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 template<class T>
 void ibis::array_t<T>::resize(uint32_t n) {
     nosharing();
-    if (actual) {
+    if (actual != 0) {
 	if (m_begin < (T*)actual->begin())
 	    m_begin = (T*)actual->begin();
 	m_end = m_begin + n;
@@ -1085,7 +1085,7 @@ void ibis::array_t<T>::resize(uint32_t n) {
 template<class T>
 void ibis::array_t<T>::reserve(uint32_t n) {
     nosharing();
-    if (actual) {
+    if (actual != 0) {
 	if (m_begin < (T*)(actual->begin()))
 	    m_begin = (T*)(actual->begin());
 	size_t n0 = (T*)(actual->end()) - m_begin;
@@ -1306,8 +1306,8 @@ void ibis::array_t<T>::read(const char* file) {
 	actual->beginUse();
     }
     else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t<" << typeid(T).name()
+	LOGGER(ibis::gVerbose > 3)
+	    << "array_t<" << typeid(T).name()
 	    << ">::read(" << file << ") failed with ierr=" << ierr;
     }
 } // ibis::array_t<T>::read
@@ -1322,8 +1322,8 @@ off_t ibis::array_t<T>::read(const int fdes, const off_t begin,
 	m_end = (T*)(actual->begin()+nread);
     }
     else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t<" << typeid(T).name() << ">::read("
+	LOGGER(ibis::gVerbose > 3)
+	    << "array_t<" << typeid(T).name() << ">::read("
 	    << fdes << ", " << begin << ", " << end << ") expected to read "
 	    << (end-begin) << " bytes, but acutally read " << nread;
     }
@@ -1338,7 +1338,7 @@ void ibis::array_t<T>::write(const char* file) const {
     FILE *out = fopen(file, "wb");
     if (out == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t<T>::write() is unable open file \"" << file << "\" ... "
+	    << "array_t<T>::write is unable open file \"" << file << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
@@ -1348,7 +1348,7 @@ void ibis::array_t<T>::write(const char* file) const {
     fclose(out); // close the file
     if (i != n) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t<T>::write() expects to write " << n << ' '
+	    << "array_t<T>::write expects to write " << n << ' '
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << " to \"" << file << "\", but actually wrote " << i;
     }

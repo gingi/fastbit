@@ -72,16 +72,16 @@ template int ibis::fileManager::getFile<double>
 (char const*, array_t<double>&, ACCESS_PREFERENCE);
 
 // time to wait for other threads to unload files in use
-#ifndef FILEMANAGER_UNLOAD_TIME
+#ifndef FASTBIT_UNLOAD_LIMIT
 #if defined(DEBUG) || defined(_DEBUG)
-#define FILEMANAGER_UNLOAD_TIME 5
+#define FASTBIT_UNLOAD_LIMIT 5
 #else
-#define FILEMANAGER_UNLOAD_TIME 60
+#define FASTBIT_UNLOAD_LIMIT 60
 #endif
 #endif
 // minimum size for doMap
-#ifndef MIN_DOMAP_SIZE
-#define MIN_DOMAP_SIZE 1048576
+#ifndef FASTBIT_MIN_MAP_SIZE
+#define FASTBIT_MIN_MAP_SIZE 1048576
 #endif
 
 // given the name of a file, returns its content in an array
@@ -92,9 +92,8 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
     int ierr = getFile(name, &st, pref);
     if (ierr == 0) {
 	if (st) {
-	    array_t<T>* tmp = new array_t<T>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<T> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -115,9 +114,8 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
     int ierr = tryGetFile(name, &st, pref);
     if (ierr == 0) {
 	if (st) {
-	    array_t<T>* tmp = new array_t<T>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<T> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -136,9 +134,8 @@ int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<char>* tmp = new array_t<char>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<char> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -157,9 +154,8 @@ int ibis::fileManager::getFile(const char* name,
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<unsigned char>*tmp = new array_t<unsigned char>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<unsigned char> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -178,9 +174,8 @@ int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<int32_t>* tmp = new array_t<int32_t>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<int32_t> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -198,9 +193,8 @@ int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<uint32_t>*tmp = new array_t<uint32_t>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<uint32_t> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -218,9 +212,8 @@ int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<int64_t>* tmp = new array_t<int64_t>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<int64_t> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -238,9 +231,8 @@ int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<uint64_t>*tmp = new array_t<uint64_t>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<uint64_t> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -258,9 +250,8 @@ int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<float>* tmp = new array_t<float>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<float> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -278,9 +269,8 @@ int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<double>* tmp = new array_t<double>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<double> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -298,9 +288,8 @@ int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
     int ierr = getFile(name, &st);
     if (ierr == 0) {
 	if (st) {
-	    array_t<rid_t>* tmp = new array_t<rid_t>(*st);
-	    arr.swap(*tmp);
-	    delete tmp;
+	    array_t<rid_t> tmp(st);
+	    arr.swap(tmp);
 	}
 	else {
 	    arr.clear();
@@ -595,9 +584,9 @@ ibis::fileManager& ibis::fileManager::instance() {
 /// \arg fileManager.minMapSize The minimal size of a file before FastBit
 /// will attempt to use memory map on it.  For smaller files, it is more
 /// efficient to read the whole content into memory rather than keeping a
-/// file open.  The default value is defined by the macro MIN_DOMAP_SIZE.
+/// file open.  The default value is defined by the macro FASTBIT_MIN_MAP_SIZE.
 ibis::fileManager::fileManager()
-    : _hbeat(0), page_count(0), minMapSize(MIN_DOMAP_SIZE), nwaiting(0) {
+    : _hbeat(0), page_count(0), minMapSize(FASTBIT_MIN_MAP_SIZE), nwaiting(0) {
     {
 	unsigned long sz = static_cast<unsigned long>
 	    (ibis::gParameters().getNumber("fileManager.maxBytes"));
@@ -612,7 +601,7 @@ ibis::fileManager::fileManager()
 	if (sz != 0)
 	    minMapSize = sz;
     }
-    if (maxBytes < MIN_DOMAP_SIZE) {
+    if (maxBytes < FASTBIT_MIN_MAP_SIZE) {
 	LOGGER(ibis::gVerbose > 3 && maxBytes > 0)
 	    << "user input parameter fileManager.maxBytes (" << maxBytes
 	    << ") is too small, trying to determine the physical memory "
@@ -834,9 +823,14 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     }
 } // ibis::fileManager::recordFile
 
-// upon successful completion of the task, it returns zero; otherwise, it
-// returns a non-zero value to indicate an error and it does not modify the
-// content of storage object.
+/// Retrieve the file content as a storage object.  The object *st returned
+/// from this function is owned by the fileManager.  The caller should NOT
+/// delete *st!  This function will wait for the fileManager to unload some
+/// in-memory objects if there isn't enough memory for the file.
+///
+/// Upon successful completion of the task, it returns zero; otherwise, it
+/// returns a non-zero value to indicate an error and it does not modify the
+/// content of storage object.
 int ibis::fileManager::getFile(const char* name, storage** st,
 			       ACCESS_PREFERENCE pref) {
     if (name == 0 || *name == 0) return -100;
@@ -965,8 +959,8 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	for (int cnt = 0; cnt < 10 && it != mapped.end(); ++ cnt, ++ it)
 	    if (sz < (*it).second->size())
 		sz = (*it).second->size();
-	if (sz < MIN_DOMAP_SIZE)
-	    sz = MIN_DOMAP_SIZE;
+	if (sz < FASTBIT_MIN_MAP_SIZE)
+	    sz = FASTBIT_MIN_MAP_SIZE;
     }
     if (mapped.size() < maxOpenFiles && 
 	(pref == PREFER_MMAP || (pref == MMAP_LARGE_FILES && bytes >= sz))) {
@@ -1047,6 +1041,11 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     return ierr;
 } // int ibis::fileManager::getFile
 
+/// Try to retrieve the content of the named file.  The storage object *st
+/// returned from this function is owned by the fileManager.  The caller is
+/// NOT to delete *st.  This function will not wait for the fileManager to
+/// free any memory if there is enough free space available.
+///
 /// Returns 1 if there is not enough space to read the whole file into
 /// memory.  Other return values are same as the function @c getFile.
 int ibis::fileManager::tryGetFile(const char* name, storage** st,
@@ -1127,8 +1126,8 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	for (int cnt = 0; cnt < 10 && mit != mapped.end(); ++ cnt, ++ mit)
 	    if (sz < (*it).second->size())
 		sz = (*it).second->size();
-	if (sz < MIN_DOMAP_SIZE)
-	    sz = MIN_DOMAP_SIZE;
+	if (sz < FASTBIT_MIN_MAP_SIZE)
+	    sz = FASTBIT_MIN_MAP_SIZE;
     }
     if (mapped.size() < maxOpenFiles &&
 	(pref == PREFER_MMAP || (pref == MMAP_LARGE_FILES && bytes >= sz))) {
@@ -1263,13 +1262,13 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	int cnt = 0;
 	fileList::const_iterator it = mapped.begin();
 	for (; cnt < 10 && it != mapped.end(); ++ cnt, ++ it)
-	    sz += ((*it).second->size() / MIN_DOMAP_SIZE);
+	    sz += ((*it).second->size() / FASTBIT_MIN_MAP_SIZE);
 	if (cnt > 0)
 	    sz /= cnt;
 	if (sz < 1)
-	    sz = MIN_DOMAP_SIZE;
+	    sz = FASTBIT_MIN_MAP_SIZE;
 	else
-	    sz *= MIN_DOMAP_SIZE;
+	    sz *= FASTBIT_MIN_MAP_SIZE;
     }
     if (mapped.size() < maxOpenFiles && bytes >= sz) {
 	// map the file read-only
@@ -1343,9 +1342,10 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
     return st;
 } // ibis::fileManager::getFileSegment
 
-// unload enough space so that a file of size bytes can be loaded.
-// caller must hold a mutex lock to prevent simutaneous invocation of this
-// function.
+/// Unload enough space so that a file of size bytes can be loaded.  Caller
+/// must hold a mutex lock to prevent simutaneous invocation of this
+/// function.  It will wait a maximum of FASTBIT_UNLOAD_LIMIT seconds if
+/// not enough memory can be freed immediately.
 int ibis::fileManager::unload(size_t size) {
     if (size > 0 && maxBytes > ibis::fileManager::totalBytes() &&
 	size+ibis::fileManager::totalBytes() <= maxBytes) {
@@ -1385,7 +1385,7 @@ int ibis::fileManager::unload(size_t size) {
     time_t startTime = time(0);
     time_t current = startTime;
 
-    while (current < startTime+FILEMANAGER_UNLOAD_TIME) { // will wait
+    while (current < startTime+FASTBIT_UNLOAD_LIMIT) { // will wait
 	size_t sum = 0; // sum of the total bytes that can can be unloaded
 	for (it=mapped.begin(); it!=mapped.end(); ++it) {
 	    if ((*it).second->inUse() == 0 &&
@@ -1523,21 +1523,21 @@ int ibis::fileManager::unload(size_t size) {
 	struct timespec tsp;
 	ierr = clock_gettime(CLOCK_REALTIME, &tsp);
 	if (ierr == 0) {
-	    tsp.tv_sec += (FILEMANAGER_UNLOAD_TIME > 4 ?
-			   (FILEMANAGER_UNLOAD_TIME  >> 2) : 1);
+	    tsp.tv_sec += (FASTBIT_UNLOAD_LIMIT > 4 ?
+			   (FASTBIT_UNLOAD_LIMIT  >> 2) : 1);
 	    ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 	}
 	else {
-	    tsp.tv_sec = current + (FILEMANAGER_UNLOAD_TIME > 4 ?
-				    (FILEMANAGER_UNLOAD_TIME  >> 2) : 1) + 1;
+	    tsp.tv_sec = current + (FASTBIT_UNLOAD_LIMIT > 4 ?
+				    (FASTBIT_UNLOAD_LIMIT  >> 2) : 1) + 1;
 	    tsp.tv_nsec = 0;
 	    ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 	}
 #elif (defined(_WIN32) && defined(_MSC_VER)) || defined(HAVE_STRUCT_TIMESPEC) || defined(__USE_POSIX) || _POSIX_VERSION+0 > 199900
 	// assume pthread implementation has pthread_cond_timedwait
 	struct timespec tsp;
-	tsp.tv_sec = current + (FILEMANAGER_UNLOAD_TIME > 4 ?
-				(FILEMANAGER_UNLOAD_TIME  >> 2) : 1) + 1;
+	tsp.tv_sec = current + (FASTBIT_UNLOAD_LIMIT > 4 ?
+				(FASTBIT_UNLOAD_LIMIT  >> 2) : 1) + 1;
 	tsp.tv_nsec = 0;
 	ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 #else

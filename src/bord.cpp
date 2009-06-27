@@ -981,6 +981,47 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 	    columns[tmp->name()] = tmp;
 	    colorder.push_back(tmp);
 	}
+	else {
+	    // free the buffer because it will not be freed anywhere else
+	    switch (ct[i]) {
+	    case ibis::BYTE: {
+		delete static_cast<array_t<char>*>(buf[i]);
+		break;}
+	    case ibis::UBYTE: {
+		delete static_cast<array_t<unsigned char>*>(buf[i]);
+		break;}
+	    case ibis::SHORT: {
+		delete static_cast<array_t<int16_t>*>(buf[i]);
+		break;}
+	    case ibis::USHORT: {
+		delete static_cast<array_t<uint16_t>*>(buf[i]);
+		break;}
+	    case ibis::INT: {
+		delete static_cast<array_t<int32_t>*>(buf[i]);
+		break;}
+	    case ibis::UINT: {
+		delete static_cast<array_t<uint32_t>*>(buf[i]);
+		break;}
+	    case ibis::LONG: {
+		delete static_cast<array_t<int64_t>*>(buf[i]);
+		break;}
+	    case ibis::ULONG: {
+		delete static_cast<array_t<uint64_t>*>(buf[i]);
+		break;}
+	    case ibis::FLOAT: {
+		delete static_cast<array_t<float>*>(buf[i]);
+		break;}
+	    case ibis::DOUBLE: {
+		delete static_cast<array_t<double>*>(buf[i]);
+		break;}
+	    case ibis::TEXT:
+	    case ibis::CATEGORY: {
+		delete static_cast<std::vector<std::string>*>(buf[i]);
+		break;}
+	    default: {
+		break;}
+	    }
+	}
     }
 
     LOGGER(ibis::gVerbose > 0)
@@ -1817,6 +1858,10 @@ ibis::bord::column::~column() {
 	break;}
     case ibis::DOUBLE: {
 	delete static_cast<array_t<double>*>(buffer);
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	delete static_cast<std::vector<std::string>*>(buffer);
 	break;}
     default: {
 	break;}

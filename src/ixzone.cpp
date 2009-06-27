@@ -461,7 +461,7 @@ int ibis::zone::read(const char* f) {
     bits.resize(nobs);
     for (uint32_t i = 1; i < nobs; ++i)
 	bits[i] = 0;
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t>

@@ -133,6 +133,11 @@ protected:
 			   const array_t<uint32_t>& ind) const;
 	long reorderStrings(std::vector<std::string>& vals,
 			    const array_t<uint32_t>& ind) const;
+
+    private:
+	part();
+	part(const part&);
+	const part& operator=(const part&);
     }; // ibis::bord::part
 
     part mypart; ///< The data partition for an in-memory table.

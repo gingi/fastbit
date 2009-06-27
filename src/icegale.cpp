@@ -390,7 +390,7 @@ int ibis::egale::read(const char* f) {
     for (uint32_t i = 0; i < nbits; ++i)
 	bits[i] = 0;
 
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
     if (offsets[1] > offsets[0]) {// read the first bitvector
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
 	bits[0] = new ibis::bitvector(a0);
@@ -469,7 +469,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 	bits[i] = 0;
 
     if (st->isFileMap()) { // map only the first bitvector
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
 	if (offs[1] > offs[0]) {
 	    array_t<ibis::bitvector::word_t>
 		a0(st, offs[0],

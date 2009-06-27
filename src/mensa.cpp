@@ -15,6 +15,7 @@
 #include "category.h"	// ibis::text
 #include "selectClause.h"//ibis::selectClause
 
+#include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 #include <cmath>	// std::floor
@@ -503,13 +504,61 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     }
 
     // list of names, types, and buffers to hold the temporary content
-    std::vector<std::string> nls(tms.size());
-    ibis::table::typeList tls(tms.size());
-    ibis::bord::bufferList buff(tms.size());
-    for (size_t i = 0; i < tms.size(); ++ i) {
-	tls[i] = ibis::UNKNOWN_TYPE;
-	nls[i] = tms.getName(i);
-	buff[i] = 0;
+    std::vector<std::string> nls;
+    ibis::table::typeList tls;
+    ibis::bord::bufferList buff;
+    std::vector<size_t> tmstouse;
+    std::map<const char*, size_t> uniquenames;
+    if (tms.size() > 0) { // use a block to limit the scope of some variables
+	for (size_t i = 0; i < tms.size(); ++ i) {
+	    const char* tname = tms.getName(i);
+	    if (uniquenames.find(tname) == uniquenames.end())
+		uniquenames[tname] = i;
+	}
+	if (uniquenames.size() >= tms.size()) {
+	    nls.resize(tms.size());
+	    tls.resize(tms.size());
+	    buff.resize(tms.size());
+	    tmstouse.resize(tms.size());
+	    for (size_t i = 0; i < tms.size(); ++ i) {
+		tls[i] = ibis::UNKNOWN_TYPE;
+		nls[i] = tms.getName(i);
+		buff[i] = 0;
+		tmstouse[i] = i;
+	    }
+	}
+	else if (uniquenames.size() > 1) {
+	    const size_t nnames = uniquenames.size();
+	    ibis::array_t<uint32_t> pos;
+	    pos.reserve(nnames);
+	    for (std::map<const char*, size_t>::const_iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		pos.push_back(it->second);
+	    std::sort(pos.begin(), pos.end());
+	    for (std::map<const char*, size_t>::iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		it->second = pos.find(it->second);
+	    nls.resize(nnames);
+	    tls.resize(nnames);
+	    buff.resize(nnames);
+	    tmstouse.resize(nnames);
+	    for (size_t i = 0; i < nnames; ++i) {
+		nls[i] = tms.getName(pos[i]);
+		tls[i] = ibis::UNKNOWN_TYPE;
+		buff[i] = 0;
+		tmstouse[i] = pos[i];
+	    }
+	}
+	else { // only one unique name
+	    nls.resize(1);
+	    tls.resize(1);
+	    buff.resize(1);
+	    tmstouse.resize(1);
+	    nls[0] = tms.getName(0);
+	    tls[0] = ibis::UNKNOWN_TYPE;
+	    buff[0] = 0;
+	    tmstouse[0] = 0;
+	}
     }
 
     size_t nh = 0;
@@ -553,8 +602,9 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	if (hits == 0 || hits->cnt() == 0) continue;
 
 	const size_t nqq = hits->cnt();
-	for (size_t i = 0; i < tms.size(); ++ i) {
-	    const ibis::math::term *aterm = tms.at(i);
+	for (size_t i = 0; i < tmstouse.size(); ++ i) {
+	    const size_t itm = tmstouse[i];
+	    const ibis::math::term *aterm = tms.at(itm);
 	    if (aterm->termType() != ibis::math::VARIABLE) {
 		if (aterm->termType() == ibis::math::UNDEFINED) {
 		    LOGGER(ibis::gVerbose > 1)
@@ -573,17 +623,17 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 		continue;
 	    }
 
-	    const ibis::column* col = (*it)->getColumn(tms.getName(i));
+	    const ibis::column* col = (*it)->getColumn(tms.getName(itm));
 	    if (col == 0) {
 		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- \"" << tms.getName(i)
+		    << mesg << " -- \"" << tms.getName(itm)
 		    << "\" is not a column of partition " << (*it)->name();
 		continue;
 	    }
 
 	    if (tls[i] == ibis::UNKNOWN_TYPE)
 		tls[i] = col->type();
-	    switch (tls[i]) {
+	    switch (col->type()) {
 	    case ibis::BYTE:
 	    case ibis::UBYTE: {
 		array_t<char>* tmp = col->selectBytes(*hits);
@@ -681,7 +731,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 		break;}
 	    default: {
 		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- unable to process column " << tms[i]
+		    << mesg << " -- unable to process column " << tms[itm]
 		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
 		break;}
 	    }
@@ -711,9 +761,10 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     ibis::table::stringList cdesc(nls.size());
     size_t nplain = 0;
     for (size_t i = 0; i < nls.size(); ++ i) {
+	const size_t itm = tmstouse[i];
 	nlsptr[i] = nls[i].c_str();
-	nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
-	tms.describe(i, desc[i]);
+	nplain += (tms.getAggregator(itm) == ibis::selectClause::NIL);
+	tms.describe(itm, desc[i]);
 	cdesc[i] = desc[i].c_str();
     }
 
@@ -722,37 +773,37 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     if (nplain >= tms.size())
 	return brd1;
 
-    std::vector<std::string> aggr(nls.size());
-    ibis::table::stringList caggr(nls.size());
-    for (size_t i = 0; i < nls.size(); ++ i) {
+    std::vector<std::string> aggr(tms.size());
+    ibis::table::stringList caggr(tms.size());
+    for (size_t i = 0; i < tms.size(); ++ i) {
 	switch (tms.getAggregator(i)) {
 	default:
 	case ibis::selectClause::NIL:
-	    aggr[i] = nls[i];
+	    aggr[i] = tms.getName(i);
 	    break;
 	case ibis::selectClause::AVG:
 	    aggr[i] = "AVG(";
-	    aggr[i] += nls[i];
+	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
 	case ibis::selectClause::CNT:
 	    aggr[i] = "COUNT(";
-	    aggr[i] += nls[i];
+	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
 	case ibis::selectClause::MAX:
 	    aggr[i] = "MAX(";
-	    aggr[i] += nls[i];
+	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
 	case ibis::selectClause::MIN:
 	    aggr[i] = "MIN(";
-	    aggr[i] += nls[i];
+	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
 	case ibis::selectClause::SUM:
 	    aggr[i] = "SUM(";
-	    aggr[i] += nls[i];
+	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
 	}

@@ -732,47 +732,47 @@ int ibis::column::getValuesArray(void* vals) const {
     if (tmp != 0) {
 	switch (m_type) {
 	case ibis::BYTE: {
-	    array_t<char> ta(*tmp);
+	    array_t<char> ta(tmp);
 	    static_cast<array_t<char>*>(vals)->swap(ta);
 	    break;}
 	case ibis::UBYTE: {
-	    array_t<unsigned char> ta(*tmp);
+	    array_t<unsigned char> ta(tmp);
 	    static_cast<array_t<unsigned char>*>(vals)->swap(ta);
 	    break;}
 	case ibis::SHORT: {
-	    array_t<int16_t> ta(*tmp);
+	    array_t<int16_t> ta(tmp);
 	    static_cast<array_t<int16_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::USHORT: {
-	    array_t<uint16_t> ta(*tmp);
+	    array_t<uint16_t> ta(tmp);
 	    static_cast<array_t<uint16_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::INT: {
-	    array_t<int32_t> ta(*tmp);
+	    array_t<int32_t> ta(tmp);
 	    static_cast<array_t<int32_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::UINT: {
-	    array_t<uint32_t> ta(*tmp);
+	    array_t<uint32_t> ta(tmp);
 	    static_cast<array_t<uint32_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::LONG: {
-	    array_t<int64_t> ta(*tmp);
+	    array_t<int64_t> ta(tmp);
 	    static_cast<array_t<int64_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::ULONG: {
-	    array_t<uint64_t> ta(*tmp);
+	    array_t<uint64_t> ta(tmp);
 	    static_cast<array_t<uint64_t>*>(vals)->swap(ta);
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float> ta(*tmp);
+	    array_t<float> ta(tmp);
 	    static_cast<array_t<float>*>(vals)->swap(ta);
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double> ta(*tmp);
+	    array_t<double> ta(tmp);
 	    static_cast<array_t<double>*>(vals)->swap(ta);
 	    break;}
 	case ibis::OID: {
-	    array_t<ibis::rid_t> ta(*tmp);
+	    array_t<ibis::rid_t> ta(tmp);
 	    static_cast<array_t<ibis::rid_t>*>(vals)->swap(ta);
 	    break;}
         default: {
@@ -4144,7 +4144,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
-	array_t<T> incore(*raw); // make the raw storage more friendly
+	array_t<T> incore(raw); // make the raw storage more friendly
 	const uint32_t nr = (incore.size() <= mask.size() ?
 			     incore.size() : mask.size());
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
@@ -4319,7 +4319,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
-	array_t<T> incore(*raw); // make the raw storage more friendly
+	array_t<T> incore(raw); // make the raw storage more friendly
 	const uint32_t nr = (incore.size() <= mask.size() ?
 			     incore.size() : mask.size());
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
@@ -6635,7 +6635,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 /// Save only the rows marked 1.  Replace the data file in @c dest.
 long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 				char *buf, uint32_t nbuf) {
-    int elm = elementSize();
+    const int elm = elementSize();
     if (elm <= 0) return -1;
 
     long ierr = 0;

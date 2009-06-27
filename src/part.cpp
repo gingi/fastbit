@@ -473,18 +473,21 @@ ibis::part::part(const char* adir, const char* bdir) :
 		    << (m_name?m_name:"<NULL>");
 	if (! m_desc.empty())
 	    lg.buffer() << " (" << m_desc << ")";
-	lg.buffer() << "\n";
 	if (ibis::gVerbose > 1) {
-	    lg.buffer() << "activeDir = \"" << activeDir << "\"\n";
+	    lg.buffer() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0)
-		lg.buffer() << "backupDir = \"" << backupDir << "\"\n";
+		lg.buffer() << "\nbackupDir = \"" << backupDir << "\"";
 	}
-	if (ibis::gVerbose > 3 && columns.size() > 0) {
-	    print(lg.buffer());
-	}
-	else if (nEvents > 0 && ! columns.empty()) {
-	    lg.buffer() << nEvents << " rows each with "
-			<< columns.size() << " columns\n";
+	if (nEvents > 0 && ! columns.empty()) {
+	    lg.buffer() << "\n";
+	    if (ibis::gVerbose > 3) {
+		print(lg.buffer());
+	    }
+	    else {
+		lg.buffer() << "  " << nEvents << " row" << (nEvents>1?"s":"")
+			    << " and " << columns.size() << " column"
+			    << (columns.size()>1?"s":"");
+	    }
 	}
     }
 } // construct part from the named direcotries
@@ -850,19 +853,20 @@ void ibis::part::init(const char* prefix) {
 	if (nEvents == 0)
 	    lg.buffer() << "empty ";
 	lg.buffer() << "ibis::part named "
-		    << (m_name?m_name:"<NULL>") << ".\n";
+		    << (m_name?m_name:"<NULL>");
 	if (ibis::gVerbose > 1) {
-	    lg.buffer() << "activeDir = \"" << activeDir << "\"\n";
+	    lg.buffer() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0 && *backupDir != 0)
-		lg.buffer() << "backupDir = \"" << backupDir << "\"\n";
+		lg.buffer() << "\nbackupDir = \"" << backupDir << "\"";
 	}
-	if (columns.size() > 0) {
+	if (columns.size() > 0 && nEvents > 0) {
+	    lg.buffer() << "\n";
 	    if (ibis::gVerbose > 3)
 		print(lg.buffer());
-	    else if (nEvents > 0)
-		lg.buffer() << nEvents << " row"<< (nEvents>1 ? "s":"")
-			    << ", " << columns.size() << " column"
-			    << (columns.size()>1 ? "s" : "") << "\n";
+	    else
+		lg.buffer() << "  " << nEvents << " row" << (nEvents>1 ? "s":"")
+			    << " and " << columns.size() << " column"
+			    << (columns.size()>1 ? "s" : "");
 	}
     }
 } // ibis::part::init
@@ -1646,28 +1650,30 @@ void ibis::part::combineNames(ibis::table::namesTypes &metalist) const {
     }
 } // ibis::part::combineNames
 
+/// Print the basic information to the specified output stream.
 void ibis::part::print(std::ostream &out) const {
     //    readLock lock(this, "print");
     if (m_name == 0) return;
-    out << "ibis::part: " << m_name << "\n";
-    if (! m_desc.empty()) out << m_desc << "\n";
+    out << "ibis::part: " << m_name;
+    if (! m_desc.empty())
+	out << " (" << m_desc << ")";
     if (rids != 0 && rids->size() > 0)
-	out << "There are " << rids->size() << " RIDs/rows, "
-	    << columns.size() << " columns" << std::endl;
+	out << " with " << rids->size() << " row" << (rids->size()>1?"s":"")
+	    << ", " << columns.size() << " column" << (columns.size()>1?"s":"");
     else
-	out << "There are " << nEvents << " RIDs/rows, "
-	    << columns.size() << " columns" << std::endl;
+	out << " with " << nEvents << " row" << (nEvents>1?"s":"") << ", "
+	    << columns.size() << " column" << (columns.size()>1?"s":"");
     if (columns.size() > 0) {
-	out << "\nColumn list:\n";
+	out << "\nColumn list:";
 	if (colorder.empty()) {
 	    for (columnList::const_iterator it = columns.begin();
 		 it != columns.end(); ++it) {
-		out << *((*it).second) << "\n";
+		out << "\n" << *((*it).second);
 	    }
 	}
 	else if (colorder.size() == columns.size()) {
 	    for (size_t i = 0; i < columns.size(); ++ i)
-		out << colorder[i]->name() << "\n";
+		out << "\n" << colorder[i]->name();
 	}
 	else {
 	    std::set<const char*, ibis::lessi> names;
@@ -1675,18 +1681,18 @@ void ibis::part::print(std::ostream &out) const {
 		 it != columns.end(); ++ it)
 		names.insert((*it).first);
 	    for (size_t i = 0; i < colorder.size(); ++ i) {
-		out << colorder[i]->name() << "\n";
+		out << "\n" << colorder[i]->name();
 		names.erase(colorder[i]->name());
 	    }
 	    for (std::set<const char*, ibis::lessi>::const_iterator it =
 		     names.begin(); it != names.end(); ++ it)
-		out << *it << "\n";
+		out << "\n" << *it;
 	}
-	out << std::endl;
     }
+    out << std::endl;
 } // ibis::part::print
 
-// a function to retrieve RIDs stored in file
+/// A function to retrieve RIDs stored in file.
 void ibis::part::readRIDs() const {
     if (activeDir == 0) return;
 
@@ -10059,23 +10065,23 @@ long ibis::part::vault::seek(double val) {
 	case ibis::CATEGORY:
 	case ibis::UINT:
 	case ibis::TEXT: { // unsigned integer
-	    array_t<uint32_t> array(*stores[0]);
+	    array_t<uint32_t> array(stores[0]);
 	    unsigned tgt = (val <= 0.0 ? 0 :
 			    static_cast<uint32_t>(ceil(val)));
 	    position = array.find(tgt);
 	    break;}
 	case ibis::INT: { // signed integer
-	    array_t<int32_t> array(*stores[0]);
+	    array_t<int32_t> array(stores[0]);
 	    position = array.find(static_cast<int32_t>(ceil(val)));
 	    break;}
 	case ibis::FLOAT: {
 	    // 4-byte IEEE floating-point values
-	    array_t<float> array(*stores[0]);
+	    array_t<float> array(stores[0]);
 	    position = array.find(static_cast<float>(val));
 	    break;}
 	case ibis::DOUBLE: {
 	    // 8-byte IEEE floating-point values
-	    array_t<double> array(*stores[0]);
+	    array_t<double> array(stores[0]);
 	    position = array.find(val);
 	    break;}
 	case ibis::OID:

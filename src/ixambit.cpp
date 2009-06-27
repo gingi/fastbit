@@ -571,7 +571,7 @@ int ibis::ambit::read(const char* f) {
     bits.resize(nobs);
     for (uint32_t i = 1; i < nobs; ++i)
 	bits[i] = 0;
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t>
 	    a0(fdes, offsets[0], offsets[1]);
@@ -810,7 +810,7 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
     else {
 	for (uint32_t i = 1; i < nobs; ++ i)
 	    bits[i] = 0;
-#if defined(ALWAY_READ_BITVECTOR0)
+#if defined(FASTBIT_READ_BITVECTOR0)
 	// read only the first bitvector
 	if (offsets[1] > offsets[0]) {
 	    array_t<ibis::bitvector::word_t>
