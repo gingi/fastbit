@@ -202,7 +202,7 @@ THULAEXE = $(EXDIR)/thula$(EXEEXT)
 TCAPIEXE = $(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST = test0.csv test1.csv hist0 hist1 hist2 hist3 \
-    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 \
+    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     scripts/fastbit-config.in \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
@@ -515,6 +515,8 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then echo Passed $@ test 2; else echo Did NOT pass $@ test 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 > /dev/null
 	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep 88 - | wc -l` -eq 1 ] ; then echo Passed $@ test 3; else echo Did NOT pass $@ test 3; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ test 4; else echo Did NOT pass $@ test 4; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ test 5; else echo Did NOT pass $@ test 5; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d,lon limit 180" -o $(TESTDIR)/marksdb-1 > /dev/null

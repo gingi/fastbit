@@ -59,16 +59,27 @@
 
 
    Command line options:
-   ibis [-a[ppend] data_dir [to partition_name]]
-	[-c[onf] conf_file] [-d[atadir] data_dir]
-        [-q[uery] [SELECT ...] [FROM ...] WHERE ... [ORDER BY ...] [LIMIT ...]]
-        [-ou[tput-file] filename] [-l logfilename] [-i[nteractive]]
-        [-b[uild-indexes]] [-k[eep-tempory-files]]
- 	[-n[o-estimation]] [-e[stimation-only]] [-s[quential-scan]]
-        [-r[id-check] [filename]] [-reorder data_dir]
-        [-v[=n]] [-t[est]] [-h[elp]]
+        -a[ppend] data_dir [partition_name]
+	-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]
+	-c[onf] conf_file
+	-d[atadir] data_dir
+	-e[stimation-only]
+	-h[elp]
+	-i[nteractive]
+	-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]
+	-k[eep-temporary-files]
+	-l logfilename
+	-n[o-estimation]
+	-o[utput-file] filename
+	-q[uery] [SELECT ...] [FROM ...] WHERE ...
+	-s[quential-scan]
+	-ri[d-check] [filename]
+	-r[eorder] data_dir[:colname1,colname2...]
+	-t[=n]
+	-v[=n]
+	-y[ank] filename|conditions
 
-   @note Options -one-step-evaluation and -estimation-only are mutually
+   @note Options -no-estimation and -estimation-only are mutually
    exclusive, the one that appears later will overwrite the one that
    appears early on the same command line.
 
@@ -169,16 +180,26 @@ namespace ibis {
 
 // printout the usage string
 static void usage(const char* name) {
-    std::cout << "usage:\n" << name << " [-c[onf] conf_file] "
-	"[-d[atadir] data_dir] [-i[nteractive]]\n"
-	"[-q[uery] [SELECT ...] [FROM ...] WHERE ...]\n"
-	"[-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]]\n"
-	"[-ou[tput-file] filename] [-l logfilename] "
-	"[-s[quential-scan]] [-r[id-check] [filename]]\n"
-	"[-n[o-estimation]] [-e[stimation-only]] [-k[eep-temporary-files]]"
-	"[-a[ppend] data_dir [partition_name]] [-reorder data_dir]\n"
-	"[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]\n"
-	"[-v[=n]] [-t[=n]] [-h[elp]] [-y[ank] filename|conditions]\n\n"
+    std::cout << "List of options for " << name
+	      << "\n\t[-a[ppend] data_dir [partition_name]]"
+	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
+	"\n\t[-c[onf] conf_file]"
+	"\n\t[-d[atadir] data_dir]"
+	"\n\t[-e[stimation-only]]"
+	"\n\t[-h[elp]]"
+	"\n\t[-i[nteractive]]"
+	"\n\t[-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]]"
+	"\n\t[-k[eep-temporary-files]]"
+	"\n\t[-l logfilename]"
+	"\n\t[-n[o-estimation]]"
+	"\n\t[-o[utput-file] filename]"
+	"\n\t[-q[uery] [SELECT ...] [FROM ...] WHERE ...]"
+	"\n\t[-s[quential-scan]]"
+	"\n\t[-ri[d-check] [filename]]"
+	"\n\t[-r[eorder] data_dir[:colname1,colname2...]]"
+	"\n\t[-t[=n]]"
+	"\n\t[-v[=n]]"
+	"\n\t[-y[ank] filename|conditions]\n\n"
 	"NOTE: multiple -c -d -q and -v options may be specified.  "
 	"Queries are applied to all data partitions by default.  "
 	"Verboseness levels are cumulated.\n\n"
@@ -197,7 +218,7 @@ static void usage(const char* name) {
 	"is also specified, all inactive rows will be purged permanently "
 	"from the data files.\n\n"
 	"NOTE: option -y is applied to all data partitions known to this "
-        "program.  Use with care.\n\n"
+        "program.  Use with care!\n\n"
 	"NOTE: the output file stores the results selected by queries, the "
 	"log file is for the rest of the messages such error messages and "
 	"debug information\n"
@@ -1663,7 +1684,7 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
 // print some helpful information
 static void print(const char* cmd, const ibis::partList& tlist) {
     if (cmd == 0 || *cmd == 0) return;
-    LOGGER(ibis::gVerbose >= 4) << "\nprint(" << cmd << ") -- ...";
+    LOGGER(ibis::gVerbose > 3) << "\nprint(" << cmd << ") -- ...";
 
     const char* names = cmd;
     if (strnicmp(cmd, "print ", 6) == 0)
@@ -2371,7 +2392,7 @@ static void parse_args(int argc, char** argv,
 			     info->cols[i]->expectedMax);
 	    delete info;   // no use for it any more
 	    if (recompute) {// acutally compute the min and max of attributes
-		LOGGER(ibis::gVerbose >= 2)
+		LOGGER(ibis::gVerbose > 1)
 		    << *argv << ": recomputing the min/max for partition "
 		    << (*it)->name();
 		(*it)->computeMinMax();
@@ -2429,7 +2450,7 @@ ibis::mensa2::~mensa2 () {
 // evaluate a single query -- directly retrieve values of selected columns
 static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     const char* sstr) {
-    LOGGER(ibis::gVerbose >= 1)
+    LOGGER(ibis::gVerbose > 0)
 	<< "xdoQuery -- processing query " << wstr
 	<< " on partition " << tbl->name();
 
@@ -2489,7 +2510,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
     num1 = aQuery.getNumHits();
-    LOGGER(ibis::gVerbose >= 1) << "xdoQuery -- the number of hits = " << num1;
+    LOGGER(ibis::gVerbose > 0) << "xdoQuery -- the number of hits = " << num1;
 
     if (asstr != 0 && *asstr != 0 && num1 > 0) {
 	ibis::nameList names(asstr);
@@ -2497,7 +2518,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	     it != names.end(); ++it) {
 	    ibis::column* col = tbl->getColumn(*it);
 	    if (col) {
-		LOGGER(ibis::gVerbose >= 1)
+		LOGGER(ibis::gVerbose > 0)
 		    << "xdoQuery -- retrieving qualified values of " << *it;
 
 		switch (col->type()) {
@@ -2763,7 +2784,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    ostr << " LIMIT " << limit;
 	sqlstring = ostr.str();
     }
-    LOGGER(ibis::gVerbose >= 2)
+    LOGGER(ibis::gVerbose > 1)
 	<< "tableSelect -- processing \"" << sqlstring << '\"';
 
     ibis::horometer timer;
@@ -2953,7 +2974,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    ostr << " LIMIT " << limit;
 	sqlstring = ostr.str();
     }
-    LOGGER(ibis::gVerbose >= 2)
+    LOGGER(ibis::gVerbose > 1)
 	<< "doQuery -- processing \"" << sqlstring << '\"';
 
     long num1, num2;
@@ -3343,7 +3364,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 // column shapes, i.e., they contain data computed on meshes.
 static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			const char* sstr) {
-    LOGGER(ibis::gVerbose >= 1)
+    LOGGER(ibis::gVerbose > 0)
 	<< "doMeshQuery -- processing query " << wstr
 	<< " on partition " << tbl->name();
 
@@ -3426,11 +3447,11 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     std::vector< std::vector<uint32_t> > ranges;
     num2 = aQuery.getHitsAsBlocks(ranges);
     if (num2 < 0) {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "aQuery.getHitsAsBlocks() returned " << num2;
     }
     else if (ranges.empty()) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "aQuery.getHitsAsBlocks() returned empty ranges";
     }
     else {
@@ -3471,7 +3492,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    << "Warning ** aQuery.getPointsOnBoundary() returned " << num2;
     }
     else if (ranges.empty()) {
-	LOGGER(ibis::gVerbose >= 2)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning ** aQuery.getPointsOnBoundary() "
 	    "returned empty ranges";
     }
@@ -3517,7 +3538,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    std::ofstream output(outputfile,
 				 std::ios::out | std::ios::app);
 	    if (output) {
-		LOGGER(ibis::gVerbose >= 1)
+		LOGGER(ibis::gVerbose > 0)
 		    << "doMeshQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    << outputfile << "\"";
@@ -3681,7 +3702,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	// self test after commit,
 	if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
 	    ierr = tbl->selfTest(0);
-	    LOGGER(ibis::gVerbose >= 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "doAppend(" << dir << "): selfTest on partition \""
 		<< tbl->name() << "\" (after committing " << napp
 		<< (napp > 1 ? " rows" : " row")
@@ -3691,7 +3712,7 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
     }
     else if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
 	ierr = tbl->selfTest(0);
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "doAppend(" << dir << "): selfTest on partition \""
 	    << tbl->name() << "\" (after appending " << napp
 	    << (napp > 1 ? " rows" : " row")
@@ -3809,7 +3830,7 @@ static void doDeletion(ibis::partList& tlist) {
 		<< "\" does not start with integers, integer expected";
 	    return;
 	}
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "doDeletion will invoke deactive on " << tlist.size()
 	    << " data partition" << (tlist.size() > 1 ? "s" : "")
 	    << " with " << rows.size() << " row number"
@@ -3824,7 +3845,7 @@ static void doDeletion(ibis::partList& tlist) {
 	    if (zapping) {
 		ierr = (*it)->purgeInactive();
 		if (ierr < 0) {
-		    LOGGER(ibis::gVerbose >= 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "doDeletion purgeInactive(" << (*it)->name()
 			<< ") returned " << ierr;
 		}
@@ -3832,7 +3853,7 @@ static void doDeletion(ibis::partList& tlist) {
 	}
     }
     else {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "doDeletion will invoke deactive on " << tlist.size()
 	    << " data partition" << (tlist.size() > 1 ? "s" : "")
 	    << " with \"" << yankstring << "\"";
@@ -3846,14 +3867,13 @@ static void doDeletion(ibis::partList& tlist) {
 
 	    if (zapping) {
 		ierr = (*it)->purgeInactive();
-		if (ibis::gVerbose > 0 || ierr < 0) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "doDeletion purgeInactive(" << (*it)->name()
-			<< ") returned " << ierr;
-		}
+		LOGGER(ibis::gVerbose > 0 || ierr < 0)
+		    << "doDeletion purgeInactive(" << (*it)->name()
+		    << ") returned " << ierr;
 	    }
 	}
     }
+    zapping = false;
 } // doDeletion
 
 static void reverseDeletion(ibis::partList& tlist) {
@@ -3869,7 +3889,7 @@ static void reverseDeletion(ibis::partList& tlist) {
 		<< "\" does not start with integers, integer expected";
 	    return;
 	}
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "reverseDeletion will invoke deactive on " << tlist.size()
 	    << " data partition" << (tlist.size() > 1 ? "s" : "")
 	    << " with " << rows.size() << " row number"
@@ -3884,7 +3904,7 @@ static void reverseDeletion(ibis::partList& tlist) {
 	}
     }
     else {
-	LOGGER(ibis::gVerbose >= 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "reverseDeletion will invoke deactive on " << tlist.size()
 	    << " data partition" << (tlist.size() > 1 ? "s" : "")
 	    << " with \"" << keepstring << "\"";
@@ -4207,20 +4227,20 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 	}
 	tlist.clear();
     }
-    LOGGER(ibis::gVerbose >= 2)
+    LOGGER(ibis::gVerbose > 1)
 	<< "Cleaning up the file manager\n"
 	"Total pages accessed through read(unistd.h) is estimated to be "
 	<< ibis::fileManager::instance().pageCount();
 
     if (sane)
 	ibis::fileManager::instance().clear();
-    if (ibis::gVerbose >= 4) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	ibis::fileManager::instance().printStatus(lg.buffer());
     }
 
 #if defined(RUSAGE_SELF) && defined(RUSAGE_CHILDREN)
-    if (ibis::gVerbose >= 2) {
+    if (ibis::gVerbose > 1) {
 	// getrusage might not fill all the fields
 	struct rusage ruse0, ruse1;
 	int ierr = getrusage(RUSAGE_SELF, &ruse0);
@@ -4280,7 +4300,7 @@ int main(int argc, char** argv) {
 
 	// build new indexes
 	if (build_index > 0 && ! tlist.empty()) {
-	    LOGGER(ibis::gVerbose >= 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< *argv << ": start building indexes (nthreads="
 		<< build_index << ", indexingOption="
 		<< (indexingOption ? indexingOption : "-") << ") ...";
@@ -4306,6 +4326,7 @@ int main(int argc, char** argv) {
 		<< " data partition" << (tlist.size()>1 ? "s" : "") << " took "
 		<< timer1.CPUTime() << " CPU seconds, "
 		<< timer1.realTime() << " elapsed seconds\n";
+	    zapping = false;
 	}
 	// sort the specified columns
 	if (slist.size() > 0) {
@@ -4328,7 +4349,7 @@ int main(int argc, char** argv) {
 
 	// performing self test
 	if (testing > 0 && ! tlist.empty()) {
-	    LOGGER(ibis::gVerbose >= 1) << *argv << ": start testing ...";
+	    LOGGER(ibis::gVerbose > 0) << *argv << ": start testing ...";
 	    ibis::horometer timer3;
 	    timer3.start();
 	    for (ibis::partList::const_iterator it = tlist.begin();

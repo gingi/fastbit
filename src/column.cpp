@@ -4675,7 +4675,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    // create a brand new index from data in the current working
 	    // directory
 	    tmp = ibis::index::create(this, static_cast<const char*>(0), opt);
-	    if (tmp->getNRows() != thePart->nRows()) {
+	    if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
 		if (ibis::gVerbose > 0)
 		    logWarning("loadIndex",
 			       "created an index with nRows=%lu, "

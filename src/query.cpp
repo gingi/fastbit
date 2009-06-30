@@ -2983,8 +2983,10 @@ int ibis::query::doScan(const ibis::qExpr* term,
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
 	ierr = doScan(term->getLeft(), ht);
-	if (ierr >= 0)
+	if (ierr >= 0) {
 	    ht.flip();
+	    ierr = ht.cnt();
+	}
 	break;
     }
     case ibis::qExpr::LOGICAL_AND: {
@@ -2999,8 +3001,10 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ierr = doScan(term->getLeft(), ht);
 	if (ierr >= 0) {
 	    ierr = doScan(term->getRight(), b1);
-	    if (ierr >= 0)
+	    if (ierr >= 0) {
 		ht |= b1;
+		ierr = ht.cnt();
+	    }
 	}
 	break;
     }
@@ -3009,8 +3013,10 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ierr = doScan(term->getLeft(), ht);
 	if (ierr >= 0) {
 	    ierr = doScan(term->getRight(), b1);
-	    if (ierr >= 0)
+	    if (ierr >= 0) {
 		ht ^= b1;
+		ierr = ht.cnt();
+	    }
 	}
 	break;
     }
@@ -3019,8 +3025,10 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ierr = doScan(term->getLeft(), ht);
 	if (ierr > 0) {
 	    ierr = doScan(term->getRight(), ht, b1);
-	    if (ierr >= 0)
+	    if (ierr >= 0) {
 		ht -= b1;
+		ierr = ht.cnt();
+	    }
 	}
 	break;
     }

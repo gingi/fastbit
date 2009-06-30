@@ -145,7 +145,7 @@ private:
 /// NULL values.
 class ibis::category : public ibis::text {
 public:
-    virtual ~category() {unloadIndex();};
+    virtual ~category();
     category(const part* tbl, FILE* file);
     category(const part* tbl, const char* name);
     category(const ibis::column& col); // copy from column

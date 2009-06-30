@@ -168,7 +168,7 @@ void ibis::dictionary::read(const char* name) {
     }
 } // ibis::dictionary::read
 
-// write the content of the dictionary to the named file
+/// Write the content of the dictionary to the named file.
 void ibis::dictionary::write(const char* name) const {
     FILE* fptr = fopen(name, "wb");
     if (fptr != 0) {
@@ -293,6 +293,17 @@ ibis::category::category(const part* tbl, const char* name,
 	rlc.write(dir);
     }
 } // ibis::category::category
+
+ibis::category::~category() {
+    unloadIndex();
+    std::string dname;
+    dataFileName(dname);
+    if (! dname.empty()) {
+	dname += ".dic";
+	if (ibis::util::getFileSize(dname.c_str()) <= 0)
+	    dic.write(dname.c_str());
+    }
+} // ibis::category::~category
 
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
@@ -2578,7 +2589,8 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			LOGGER(ibis::gVerbose >= 0)
 			    << "Warning -- " << evt
 			    << " failed to write the value " << pos
-			    << " to " << spto << ", unable to continue";
+			    << " to " << spto << ", "
+			    << (errno ? strerror(errno) : "??");
 			(void) UnixClose(stfile);
 			(void) UnixClose(rtfile);
 			(void) UnixClose(sffile);
@@ -2591,13 +2603,14 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			int bytes = (jtmp+nbuf < pos ? nbuf : pos-jtmp);
 			ierr = UnixRead(rffile, buf, bytes);
 			if (ierr == bytes) {
-			    ierr = UnixWrite(sffile, buf, bytes);
+			    ierr = UnixWrite(rtfile, buf, bytes);
 			    if (ierr != bytes) {
 				LOGGER(ibis::gVerbose >= 0)
 				    << "Warning -- " << evt
 				    << " failed to write " << bytes
 				    << " byte" << (bytes>1?"s":"") << " to "
-				    << to << ", unable to continue";
+				    << to << ", "
+				    << (errno ? strerror(errno) : "??");
 				(void) UnixClose(stfile);
 				(void) UnixClose(rtfile);
 				(void) UnixClose(sffile);
@@ -2609,7 +2622,8 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "Warning -- " << evt << " failed to read "
 				<< bytes << " byte" << (bytes>1?"s":"")
-				<< " from " << from;
+				<< " from " << from << ", "
+				<< (errno ? strerror(errno) : "??");
 			    (void) UnixClose(stfile);
 			    (void) UnixClose(rtfile);
 			    (void) UnixClose(sffile);

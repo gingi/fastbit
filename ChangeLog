@@ -4,7 +4,9 @@
 	* src/parti.cpp: modify part::purgeInactive to use the new
 	function saveSelected
 	* tests/Makefile.am: add test 4 to check-marksdb to exercise
-	group-by functions
+	group-by functions, add test 4 and 5 to check-text to excercise
+	the function to deactivate rows
+	* examples/ibis.cpp: update doxygen documentation
 
 2009-06-29 John Wu <John.Wu at ACM.org>
 	* src/const.h: change macro DIRSEP to FASTBIT_DIRSEP

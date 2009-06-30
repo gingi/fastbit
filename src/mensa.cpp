@@ -743,11 +743,20 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     de += sel;
     de += " FROM ";
     if (mylist.size() > 0) {
+	size_t mp = ((mylist.size() >> ibis::gVerbose) <= 1 ?
+		     mylist.size() :
+		     (ibis::gVerbose > 2 ? (1 << ibis::gVerbose) : 5));
+	if (mp > mylist.size()) mp = mylist.size();
+	size_t jp = 1;
 	ibis::partList::const_iterator it = mylist.begin();
 	de += (*it)->name();
-	for (++ it; it != mylist.end(); ++ it) {
+	for (++ it; jp < mp && it != mylist.end(); ++ it, ++ jp) {
 	    de += ", ";
 	    de += (*it)->name();
+	}
+	if (jp < mylist.size()) {
+	    std::ostringstream oss;
+	    oss << ", ... (" << mylist.size()-jp << " skipped)";
 	}
     }
     else {
