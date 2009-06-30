@@ -493,7 +493,7 @@ int ibis::range::write(const char* dt) const {
     ierr = UnixSeek(fdes, 8+sizeof(uint32_t)*2, SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdes); // write to disk
+    (void) UnixFlush(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);
 
@@ -671,7 +671,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
     std::string fnm; // name of the data file / index file
     if (f == 0) {
 	fnm = col->partition()->currentDataDir();
-	fnm += DIRSEP;
+	fnm += FASTBIT_DIRSEP;
 	fnm += col->name();
     }
     else {
@@ -699,7 +699,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 		else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
 		    // named directory exist
 		    fnm = f;
-		    fnm += DIRSEP;
+		    fnm += FASTBIT_DIRSEP;
 		    fnm += col->name();
 		}
 		else { // given name is the data file name

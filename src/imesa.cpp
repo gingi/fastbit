@@ -182,7 +182,7 @@ int ibis::mesa::write(const char* dt) const {
     ierr = UnixSeek(fdes, 8+sizeof(uint32_t)*2, SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdes); // write to disk
+    (void) UnixFlush(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);
 

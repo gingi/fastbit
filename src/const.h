@@ -268,12 +268,12 @@
 #endif
 
 // things for MS Windows only
-// DIRSEP  == the directory name separator
+// FASTBIT_DIRSEP  == the directory name separator
 // FASTBIT_CXX_DLLSPEC == export/import symbols to/from DLL library under windows system
 #if defined(_WIN32) && defined(_MSC_VER)
-#  define DIRSEP '\\'
+#  define FASTBIT_DIRSEP '\\'
 #else
-#  define DIRSEP '/'
+#  define FASTBIT_DIRSEP '/'
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
 #  if defined(_USRDLL) || defined(CXX_USE_DLL)

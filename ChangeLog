@@ -1,3 +1,17 @@
+2009-06-30 John Wu <John.Wu at ACM.org>
+	* examples/thula.cpp: expand the doxygen documentatation about the
+	program
+	* src/parti.cpp: modify part::purgeInactive to use the new
+	function saveSelected
+	* tests/Makefile.am: add test 4 to check-marksdb to exercise
+	group-by functions
+
+2009-06-29 John Wu <John.Wu at ACM.org>
+	* src/const.h: change macro DIRSEP to FASTBIT_DIRSEP
+	* src/category.h, src/category.cpp: add functions
+	text::saveSelected and text::writeStrings to wrie selected string
+	values
+
 2009-06-26 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: change the constructor fileManager::roFile
 	so that it is only usable by friends, change macro

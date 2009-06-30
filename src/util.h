@@ -73,8 +73,9 @@ int truncate(const char*, uint32_t);
 #define UnixClose ::_close
 #define UnixRead  ::_read
 #define UnixWrite ::_write
-#define UnixSnprintf ::_snprintf
 #define UnixSeek  ::_lseek
+#define UnixFlush  ::_commit
+#define UnixSnprintf ::_snprintf
 #define UnixStat  ::_stat
 #define UnixFStat ::_fstat
 #define Stat_T    struct _stat
@@ -83,8 +84,9 @@ int truncate(const char*, uint32_t);
 #define UnixClose ::close
 #define UnixRead  ::read
 #define UnixWrite ::write
-#define UnixSnprintf ::snprintf
 #define UnixSeek  ::lseek
+#define UnixFlush ::fsync
+#define UnixSnprintf ::snprintf
 #define UnixStat  ::stat
 #define UnixFStat ::fstat
 #define Stat_T    struct stat

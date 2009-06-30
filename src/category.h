@@ -55,6 +55,8 @@ public:
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, const uint32_t nbuf, char* buf);
+    virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
+			      char *buf, uint32_t nbuf);
     /// Return the positions of records marked 1 in the mask.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     /// Return the starting positions of strings marked 1 in the mask.
@@ -78,6 +80,10 @@ protected:
     /// Read one string from an open file.
     int  readString(std::string&, int, long, long, char*, uint32_t,
 		    uint32_t&, off_t&) const;
+    int  writeStrings(const char *to, const char *from,
+		      const char *spto, const char *spfrom,
+		      ibis::bitvector &msk, const ibis::bitvector &sel,
+		      char *buf, uint32_t nbuf) const;
 
 private:
     const text& operator=(const text&);

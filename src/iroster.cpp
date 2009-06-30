@@ -91,18 +91,18 @@ int ibis::roster::write(const char* df) const {
     std::string fnm;
     if (df == 0) {
 	fnm = col->partition()->currentDataDir();
-	fnm += DIRSEP;
+	fnm += FASTBIT_DIRSEP;
     }
     else {
 	fnm = df;
-	uint32_t pos = fnm.rfind(DIRSEP);
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
 	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
-	    fnm += DIRSEP;
+	    fnm += FASTBIT_DIRSEP;
     }
     uint32_t ierr = fnm.size();
-    if (fnm[ierr-1] == DIRSEP)
+    if (fnm[ierr-1] == FASTBIT_DIRSEP)
 	fnm += col->name();
     ierr = fnm.size();
     if (fnm[ierr-4] != '.' || fnm[ierr-3] != 'i' ||
@@ -142,18 +142,18 @@ int ibis::roster::writeSorted(const char *df) const {
     std::string fnm;
     if (df == 0) {
 	fnm = col->partition()->currentDataDir();
-	fnm += DIRSEP;
+	fnm += FASTBIT_DIRSEP;
     }
     else {
 	fnm = df;
-	uint32_t pos = fnm.rfind(DIRSEP);
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
 	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
-	    fnm += DIRSEP;
+	    fnm += FASTBIT_DIRSEP;
     }
     uint32_t ierr = fnm.size();
-    if (fnm[ierr-1] == DIRSEP)
+    if (fnm[ierr-1] == FASTBIT_DIRSEP)
 	fnm += col->name();
     ierr = fnm.size();
     if (fnm[ierr-4] == '.' && fnm[ierr-3] == 'i' &&
@@ -577,18 +577,18 @@ int ibis::roster::read(const char* idxf) {
     std::string fnm;
     if (idxf == 0) {
 	fnm = col->partition()->currentDataDir();
-	fnm += DIRSEP;
+	fnm += FASTBIT_DIRSEP;
     }
     else {
 	fnm = idxf;
-	uint32_t pos = fnm.rfind(DIRSEP);
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
 	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
-	    fnm += DIRSEP;
+	    fnm += FASTBIT_DIRSEP;
     }
     long ierr = fnm.size();
-    if (fnm[ierr-1] == DIRSEP)
+    if (fnm[ierr-1] == FASTBIT_DIRSEP)
 	fnm += col->name();
     ierr = fnm.size();
     if (fnm[ierr-4] != '.' || fnm[ierr-3] != 'i' ||
@@ -640,18 +640,18 @@ void ibis::roster::icSort(const char* fin) {
     std::string fnm;
     if (fin == 0) {
 	fnm = col->partition()->currentDataDir();
-	fnm += DIRSEP;
+	fnm += FASTBIT_DIRSEP;
     }
     else {
 	fnm = fin;
-	uint32_t pos = fnm.rfind(DIRSEP);
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
 	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
-	    fnm += DIRSEP;
+	    fnm += FASTBIT_DIRSEP;
     }
     long ierr = fnm.size();
-    if (fnm[ierr-1] == DIRSEP)
+    if (fnm[ierr-1] == FASTBIT_DIRSEP)
 	fnm += col->name();
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
@@ -948,18 +948,18 @@ void ibis::roster::oocSort(const char *fin) {
     std::string nsrt, nind, msrt, mind;
     if (fin == 0) {
 	nind = col->partition()->currentDataDir();
-	nind += DIRSEP;
+	nind += FASTBIT_DIRSEP;
     }
     else {
 	nind = fin;
-	uint32_t pos = nind.rfind(DIRSEP);
+	uint32_t pos = nind.rfind(FASTBIT_DIRSEP);
 	if (pos >= nind.size()) pos = 0;
 	else ++ pos;
 	if (strcmp(nind.c_str()+pos, col->name()) != 0)
-	    nind += DIRSEP;
+	    nind += FASTBIT_DIRSEP;
     }
     long ierr = nind.size();
-    if (nind[ierr-1] == DIRSEP)
+    if (nind[ierr-1] == FASTBIT_DIRSEP)
 	nind += col->name();
     if (nind[ierr-4] != '.' || nind[ierr-3] != 'i' ||
 	nind[ierr-2] != 'n' || nind[ierr-1] != 'd') {
@@ -992,7 +992,7 @@ void ibis::roster::oocSort(const char *fin) {
     const char *tmp = ibis::gParameters()[mind.c_str()];
     if (tmp != 0) {
 	msrt = tmp;
-	msrt += DIRSEP;
+	msrt += FASTBIT_DIRSEP;
 	msrt += col->partition()->name();
 	msrt += '.';
 	msrt += col->name();
@@ -2337,7 +2337,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     }
 
     std::string fname = col->partition()->currentDataDir();
-    fname += DIRSEP;
+    fname += FASTBIT_DIRSEP;
     fname += col->name();
     int len = fname.size();
     fname += ".srt";
@@ -2415,7 +2415,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     if (ierr < 0) return ierr;
 
     std::string fname = col->partition()->currentDataDir();
-    fname += DIRSEP;
+    fname += FASTBIT_DIRSEP;
     fname += col->name();
     int len = fname.size();
     fname += ".srt";

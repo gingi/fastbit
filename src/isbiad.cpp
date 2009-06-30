@@ -126,7 +126,7 @@ int ibis::sbiad::write(const char* dt) const {
 		    SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdes); // write to disk
+    (void) UnixFlush(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);
     return 0;

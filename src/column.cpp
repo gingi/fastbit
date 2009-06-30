@@ -545,8 +545,8 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
 			thePart!=0 ? thePart->currentDataDir() : 0);
     if (adir != 0 && *adir != 0) {
 	fname = adir;
-	if (fname[fname.size()-1] != DIRSEP)
-	    fname += DIRSEP;
+	if (fname[fname.size()-1] != FASTBIT_DIRSEP)
+	    fname += FASTBIT_DIRSEP;
 	fname += m_name;
 	name = fname.c_str();
     }
@@ -560,7 +560,7 @@ const char* ibis::column::nullMaskName(std::string& fname) const {
     if (thePart == 0 || thePart->currentDataDir() == 0) return 0;
 
     fname = thePart->currentDataDir();
-    fname += DIRSEP;
+    fname += FASTBIT_DIRSEP;
     fname += m_name;
     fname += ".msk";
     return fname.c_str();
@@ -4805,8 +4805,8 @@ void ibis::column::purgeIndexFile(const char *dir) const {
 	return;
     std::string fnm = (dir ? dir : thePart != 0 ? thePart->currentDataDir()
 		       : ".");
-    if (fnm[fnm.size()-1] != DIRSEP)
-	fnm += DIRSEP;
+    if (fnm[fnm.size()-1] != FASTBIT_DIRSEP)
+	fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     const unsigned len = fnm.size() + 1;
     fnm += ".idx";
@@ -5414,10 +5414,10 @@ long ibis::column::append(const char* dt, const char* df,
     std::string to;
     std::string from;
     to += dt;
-    to += DIRSEP;
+    to += FASTBIT_DIRSEP;
     to += m_name;
     from += df;
-    from += DIRSEP;
+    from += FASTBIT_DIRSEP;
     from += m_name;
     LOGGER(ibis::gVerbose > 3)
 	<< evt << " -- source \"" << from << "\" --> destination \""
@@ -5508,7 +5508,7 @@ long ibis::column::append(const char* dt, const char* df,
 	}
     }
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(dest); // write to disk
+    (void) UnixFlush(dest); // write to disk
 #endif
     UnixClose(dest);
     if (j != sz) {
@@ -5601,7 +5601,7 @@ long ibis::column::append(const char* dt, const char* df,
 	if (thePart->currentDataDir() != 0) {
 	    // the active directory may have up to date indices
 	    std::string ff = thePart->currentDataDir();
-	    ff += DIRSEP;
+	    ff += FASTBIT_DIRSEP;
 	    ff += m_name;
 	    ff += ".idx";
 	    Stat_T st;
@@ -5861,7 +5861,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
     evt += typeid(T).name();
     evt += '>';
     std::string fn = thePart->currentDataDir();
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += m_name;
     int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (curr < 0) {
@@ -5938,7 +5938,7 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 
     mutexLock lock(this, evt.c_str());
     std::string fn = thePart->currentDataDir();
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += m_name;
     int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (curr < 0) {
@@ -6015,7 +6015,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     uint32_t nact = 0;
     char fn[PATH_MAX];
     uint32_t ninfile=0;
-    sprintf(fn, "%s%c%s", dir, DIRSEP, m_name.c_str());
+    sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
     FILE *fdat = fopen(fn, "ab");
     if (fdat == 0) {
 	logWarning("writeData", "unable to open \"%s\" for writing ... %s", fn,
@@ -6632,11 +6632,15 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     return nact;
 } // ibis::column::writeData
 
+/// Write the selected records to the specified directory.
 /// Save only the rows marked 1.  Replace the data file in @c dest.
+/// Return the number of rows written to the new file or a negative number
+/// to indicate error.
 long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 				char *buf, uint32_t nbuf) {
     const int elm = elementSize();
-    if (elm <= 0) return -1;
+    if (thePart == 0 || thePart->currentDataDir() == 0 || elm <= 0)
+	return -1;
 
     long ierr = 0;
     ibis::fileManager::buffer<char> mybuf(buf != 0);
@@ -6650,21 +6654,34 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 
     if (dest == 0 || dest == thePart->currentDataDir() ||
 	strcmp(dest, thePart->currentDataDir()) == 0) { // same directory
-	std::string fname = dest;
+	std::string fname = thePart->currentDataDir();
 	if (! fname.empty())
-	    fname += DIRSEP;
+	    fname += FASTBIT_DIRSEP;
 	fname += m_name;
 	ibis::bitvector current;
 	getNullMask(current);
 
 	writeLock lock(this, "saveSelected");
+	if (idx != 0) {
+	    const uint32_t idxc = idxcnt();
+	    if (0 == idxc) {
+		delete idx;
+		idx = 0;
+		purgeIndexFile(thePart->currentDataDir());
+	    }
+	    else {
+		logWarning("saveSelected", "index files are in-use, "
+			   "should not overwrite data files");
+		return -2;
+	    }
+	}
 	ibis::fileManager::instance().flushFile(fname.c_str());
 	FILE* fptr = fopen(fname.c_str(), "r+b");
 	if (fptr == 0) {
 	    if (ibis::gVerbose > -1)
 		logWarning("saveSelected", "failed to open file \"%s\"",
 			   fname.c_str());
-	    return -1;
+	    return -3;
 	}
 
 	off_t pos = 0; // position to write the next byte
@@ -6683,7 +6700,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 					   "%lu in file \"%s\"",
 					   static_cast<long unsigned>(j),
 					   fname.c_str());
-			    ierr = -2;
+			    ierr = -4;
 			    fclose(fptr);
 			    return ierr;
 			}
@@ -6731,7 +6748,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 				   "%lu in file \"%s\"",
 				   static_cast<long unsigned>(*idx * elm),
 				   fname.c_str());
-		    ierr = -3;
+		    ierr = -5;
 		    fclose(fptr);
 		    return ierr;
 		}
@@ -6788,18 +6805,19 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
     else { // different directory
 	std::string sfname = thePart->currentDataDir();
 	std::string dfname = dest;
-	if (! sfname.empty()) sfname += DIRSEP;
-	if (! dfname.empty()) dfname += DIRSEP;
+	if (! sfname.empty()) sfname += FASTBIT_DIRSEP;
+	if (! dfname.empty()) dfname += FASTBIT_DIRSEP;
 	sfname += m_name;
 	dfname += m_name;
 
+	purgeIndexFile(dest);
 	readLock lock(this, "saveSelected");
 	FILE* sfptr = fopen(sfname.c_str(), "rb");
 	if (sfptr == 0) {
 	    if (ibis::gVerbose > 0)
 		logWarning("saveSelected", "failed to open file \"%s\" for "
 			   "reading", sfname.c_str());
-	    return -4;
+	    return -6;
 	}
 	ibis::fileManager::instance().flushFile(dfname.c_str());
 	FILE* dfptr = fopen(dfname.c_str(), "wb");
@@ -6808,7 +6826,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 		logWarning("saveSelected", "failed to open file \"%s\" for "
 			   "writing", dfname.c_str());
 	    fclose(sfptr);
-	    return -5;
+	    return -7;
 	}
 
 	for (ibis::bitvector::indexSet ix = sel.firstIndexSet();
@@ -6822,7 +6840,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 			       sfname.c_str());
 		fclose(sfptr);
 		fclose(dfptr);
-		return -6;
+		return -8;
 	    }
 
 	    if (ix.isRange()) {
@@ -6906,13 +6924,13 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
 	return -1;
     char fn[MAX_LINE];
 #if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
-    ierr = sprintf(fn, "%s%c%s", dir, DIRSEP, m_name.c_str());
+    ierr = sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
 #else
-    ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, DIRSEP, m_name.c_str());
+    ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
 #endif
     if (ierr <= 0 || ierr > MAX_LINE) {
 	logWarning("truncateData", "failed to generate data file name, "
-		   "name (%s%c%s) too long", dir, DIRSEP, m_name.c_str());
+		   "name (%s%c%s) too long", dir, FASTBIT_DIRSEP, m_name.c_str());
 	return -2;
     }
 
@@ -7085,6 +7103,10 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
     return ierr;
 } // ibis::column::truncateData
 
+/// Cast the incoming array into the specified type T before writing the
+/// values to the file for this column.  This function uses assignment
+/// statements to perform the casting operations.  Warning: this function
+/// does not check that the cast values are equal to the incoming values!
 template <typename T>
 long ibis::column::castAndWrite(const array_t<double>& vals,
 				ibis::bitvector& mask, const T special) {

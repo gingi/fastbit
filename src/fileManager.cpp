@@ -381,7 +381,7 @@ void ibis::fileManager::flushDir(const char* name) {
 
     size_t deleted = 0;
     const size_t len = strlen(name);
-    const size_t offset = len + (DIRSEP != name[len-1]);
+    const size_t offset = len + (FASTBIT_DIRSEP != name[len-1]);
 
     while (1) { // loop forever
 	// is there any files within the directory
@@ -390,7 +390,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	while (it != mapped.end()) {
 	    fileList::iterator next = it; ++next;
 	    if (strncmp((*it).first, name, len)==0) {
-		if (strchr((*it).first+offset, DIRSEP) == 0) {
+		if (strchr((*it).first+offset, FASTBIT_DIRSEP) == 0) {
 		    if ((*it).second->inUse() > 0) {
 			++ cnt;
 			ibis::util::logger lg;
@@ -421,7 +421,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	while (it != incore.end()) {
 	    fileList::iterator next = it; ++next;
 	    if (strncmp((*it).first, name, len)==0) {
-		if (strchr((*it).first+offset, DIRSEP) == 0) {
+		if (strchr((*it).first+offset, FASTBIT_DIRSEP) == 0) {
 		    if ((*it).second->inUse()) {
 			++ cnt;
 			ibis::util::logger lg;

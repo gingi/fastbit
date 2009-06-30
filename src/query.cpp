@@ -1374,7 +1374,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
     bool noBundles = true;
     if (myDir != 0) {
 	char* name = new char[strlen(myDir)+16];
-	sprintf(name, "%s%cbundles", myDir, DIRSEP);
+	sprintf(name, "%s%cbundles", myDir, FASTBIT_DIRSEP);
 	noBundles = (ibis::util::getFileSize(name) == 0);
 	delete [] name;
     }
@@ -1863,16 +1863,16 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 ibis::query::query(const char* dir, const ibis::partList& tl) :
     user(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
     myDir(0), rids_in(0), mypart(0), dstime(0) {
-    const char *ptr = strrchr(dir, DIRSEP);
+    const char *ptr = strrchr(dir, FASTBIT_DIRSEP);
     if (ptr == 0) {
 	myID = ibis::util::strnewdup(dir);
 	myDir = new char[strlen(dir)+2];
 	strcpy(myDir, dir);
     }
-    else if (ptr[1] == static_cast<char>(0)) { // dir name ends with DIRSEP
+    else if (ptr[1] == static_cast<char>(0)) { // dir name ends with FASTBIT_DIRSEP
 	myDir = ibis::util::strnewdup(dir);
 	myDir[ptr-dir] = static_cast<char>(0);
-	ptr = strrchr(myDir, DIRSEP);
+	ptr = strrchr(myDir, FASTBIT_DIRSEP);
 	if (ptr != 0) {
 	    myID = ibis::util::strnewdup(ptr+1);
 	}
@@ -1886,7 +1886,7 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 	strcpy(myDir, dir);
     }
     uint32_t j = strlen(myDir);
-    myDir[j] = DIRSEP;
+    myDir[j] = FASTBIT_DIRSEP;
     ++j;
     myDir[j] = static_cast<char>(0);
 
@@ -2267,7 +2267,7 @@ void ibis::query::setMyDir(const char *pref) {
     if (cacheDir) {
 	if (strlen(cacheDir)+strlen(myID)+10<PATH_MAX) {
 	    myDir = new char[strlen(cacheDir)+strlen(myID)+3];
-	    sprintf(myDir, "%s%c%s", cacheDir, DIRSEP, myID);
+	    sprintf(myDir, "%s%c%s", cacheDir, FASTBIT_DIRSEP, myID);
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -2278,10 +2278,10 @@ void ibis::query::setMyDir(const char *pref) {
     }
     else {
 	myDir = new char[10+strlen(myID)];
-	sprintf(myDir, ".ibis%c%s", DIRSEP, myID);
+	sprintf(myDir, ".ibis%c%s", FASTBIT_DIRSEP, myID);
     }
     uint32_t j = strlen(myDir);
-    myDir[j] = DIRSEP;
+    myDir[j] = FASTBIT_DIRSEP;
     myDir[j+1] = static_cast<char>(0);
     ibis::util::makeDir(myDir);
 } /// ibis::query::setMyDir

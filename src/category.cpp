@@ -223,7 +223,7 @@ ibis::category::category(const part* tbl, FILE* file)
     readDictionary();
 
     std::string idxf = thePart->currentDataDir();
-    idxf += DIRSEP;
+    idxf += FASTBIT_DIRSEP;
     idxf += m_name;
     idxf += ".idx";
     idx = new ibis::relic(this, idxf.c_str());
@@ -240,7 +240,7 @@ ibis::category::category(const part* tbl, const char* name)
     readDictionary();
 
     std::string idxf = thePart->currentDataDir();
-    idxf += DIRSEP;
+    idxf += FASTBIT_DIRSEP;
     idxf += m_name;
     idxf += ".idx";
     idx = new ibis::relic(this, idxf.c_str());
@@ -261,7 +261,7 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     upper = dic.size();
 
     std::string idxf = thePart->currentDataDir();
-    idxf += DIRSEP;
+    idxf += FASTBIT_DIRSEP;
     idxf += m_name;
     idxf += ".idx";
     idx = new ibis::relic(this, idxf.c_str());
@@ -282,7 +282,7 @@ ibis::category::category(const part* tbl, const char* name,
     lower = 1;
     upper = 1;
     std::string df = (dir ? dir : tbl->currentDataDir());
-    df += DIRSEP;
+    df += FASTBIT_DIRSEP;
     df += name;
     df += ".dic";
     dic.write(df.c_str());
@@ -316,7 +316,7 @@ void ibis::category::fillIndex(const char *dir) {
     }
     else { // actually read the raw data to build an index
 	std::string data = (dir ? dir : thePart->currentDataDir());
-	data += DIRSEP;
+	data += FASTBIT_DIRSEP;
 	data += m_name; // primary data file name
 	int fdata = UnixOpen(data.c_str(), OPEN_READONLY);
 	if (fdata < 0) {
@@ -402,7 +402,7 @@ void ibis::category::fillIndex(const char *dir) {
     }
 
     std::string dicfile = (dir ? dir : thePart->currentDataDir());
-    dicfile += DIRSEP;
+    dicfile += FASTBIT_DIRSEP;
     dicfile += m_name;
     dicfile += ".dic";
     dic.write(dicfile.c_str());
@@ -618,10 +618,10 @@ long ibis::category::append(const char* dt, const char* df,
     // STEP 1: convert the strings to ibis::relic
     std::string dest = dt;
     std::string src = df;
-    src += DIRSEP;
+    src += FASTBIT_DIRSEP;
     src += name();
     src += ".idx";
-    dest += DIRSEP;
+    dest += FASTBIT_DIRSEP;
     dest += name();
     //dest += ".idx";
     ibis::relic *binp = 0;
@@ -648,7 +648,7 @@ long ibis::category::append(const char* dt, const char* df,
 				   dest.c_str(), ret);
 		}
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-		(void) fsync(fdest); // write to disk
+		(void) UnixFlush(fdest); // write to disk
 #endif
 		ierr = UnixClose(fdest);
 	    }
@@ -757,7 +757,7 @@ long ibis::category::append(const char* dt, const char* df,
 				   dest.c_str(), ret);
 		}
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-		(void) fsync(fdest); // write to disk
+		(void) UnixFlush(fdest); // write to disk
 #endif
 		(void) UnixClose(fdest);
 	    }
@@ -919,7 +919,7 @@ void ibis::category::readDictionary(const char *dir) {
     else { // default to the current dictionary
 	fnm = thePart->currentDataDir();
     }
-    fnm += DIRSEP;
+    fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".dic"; // suffix of the dictionary
     dic.read(fnm.c_str());
@@ -1010,7 +1010,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     if (dir == 0) return;
 
     std::string dfile = dir;
-    dfile += DIRSEP;
+    dfile += FASTBIT_DIRSEP;
     dfile += m_name;
     std::string spfile = dfile;
     spfile += ".sp";
@@ -1257,9 +1257,9 @@ long ibis::text::append(const char* dt, const char* df,
     // step 2: append the content of file in df to that in dt.
     std::string dest = dt;
     std::string src = df;
-    src += DIRSEP;
+    src += FASTBIT_DIRSEP;
     src += name();
-    dest += DIRSEP;
+    dest += FASTBIT_DIRSEP;
     dest += name();
 
     int fsrc = UnixOpen(src.c_str(), OPEN_READONLY);
@@ -1290,7 +1290,7 @@ long ibis::text::append(const char* dt, const char* df,
 	}
     }
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdest); // write to disk
+    (void) UnixFlush(fdest); // write to disk
 #endif
     UnixClose(fdest);
     UnixClose(fsrc);
@@ -1315,7 +1315,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
 
     std::string data = thePart->currentDataDir();
-    data += DIRSEP;
+    data += FASTBIT_DIRSEP;
     data += m_name;
     FILE *fdata = fopen(data.c_str(), "rb");
     if (fdata == 0) {
@@ -1697,7 +1697,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 
     hits.clear();
     std::string data = thePart->currentDataDir();
-    data += DIRSEP;
+    data += FASTBIT_DIRSEP;
     data += m_name;
     FILE *fdata = fopen(data.c_str(), "rb");
     if (fdata == 0) {
@@ -1921,7 +1921,7 @@ ibis::text::selectUInts(const ibis::bitvector& mask) const {
 ibis::array_t<int64_t>*
 ibis::text::selectLongs(const ibis::bitvector& mask) const {
     std::string fnm = thePart->currentDataDir();
-    fnm += DIRSEP;
+    fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".sp"; // starting position file
     array_t<int64_t> sp;
@@ -1960,7 +1960,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0) return res;
 
     std::string fname = thePart->currentDataDir();
-    fname += DIRSEP;
+    fname += FASTBIT_DIRSEP;
     fname += m_name;
     fname += ".sp";
     off_t spsize = ibis::util::getFileSize(fname.c_str());
@@ -2141,7 +2141,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     ret.clear();
     if (i >= thePart->nRows()) return;
     std::string fnm = thePart->currentDataDir();
-    fnm += DIRSEP;
+    fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".sp"; // starting position file
 
@@ -2186,7 +2186,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 /// starting position file open at the same time.
 const char* ibis::text::findString(const char *str) const {
     std::string data = thePart->currentDataDir();
-    data += DIRSEP;
+    data += FASTBIT_DIRSEP;
     data += m_name;
     FILE *fdata = fopen(data.c_str(), "rb");
     if (fdata == 0) {
@@ -2409,3 +2409,358 @@ double ibis::text::estimateCost(const ibis::qMultiString& cmp) const {
 	static_cast<double>(sizeof(uint64_t));
     return ret;
 } // ibis::text::estimateCost
+
+/// Write the selected values to the specified directory.  If the
+/// destination directory is the current data directory, the file
+/// containing existing string values will be renamed to be
+/// column-name.old, otherwise, the file in the destination directory is
+/// simply overwritten.  In case of error, a negative number is returned,
+/// otherwise, the number of rows saved to the new file is returned.
+long ibis::text::saveSelected(const ibis::bitvector& sel, const char *dest,
+			      char *buf, uint32_t nbuf) {
+    if (thePart == 0 || thePart->currentDataDir() == 0)
+	return -1;
+
+    long ierr = 0;
+    ibis::bitvector msk;
+    getNullMask(msk);
+    if (dest == 0 || dest == thePart->currentDataDir() ||
+	strcmp(dest, thePart->currentDataDir()) == 0) {
+	// use the active directory, need a write lock
+	std::string fname = thePart->currentDataDir();
+	fname += FASTBIT_DIRSEP;
+	fname += m_name;
+	std::string gname = fname;
+	gname += ".old";
+	std::string sname = fname;
+	sname += ".sp";
+	std::string tname = sname;
+	tname += ".old";
+
+	writeLock lock(this, "saveSelected");
+	if (idx != 0) {
+	    const uint32_t idxc = idxcnt();
+	    if (0 == idxc) {
+		delete idx;
+		idx = 0;
+		purgeIndexFile(thePart->currentDataDir());
+	    }
+	    else {
+		logWarning("saveSelected", "index files are in-use, "
+			   "should not overwrite data files");
+		return -2;
+	    }
+	}
+	ibis::fileManager::instance().flushFile(fname.c_str());
+
+	ierr = rename(fname.c_str(), gname.c_str());
+	if (ierr != 0) {
+	    logWarning("saveSelected", "failed to rename %s to %s -- %s",
+		       fname.c_str(), gname.c_str(), strerror(errno));
+	    return -3;
+	}
+	ierr = rename(sname.c_str(), tname.c_str());
+	if (ierr != 0) {
+	    logWarning("saveSelected", "failed to rename %s to %s -- %s",
+		       sname.c_str(), tname.c_str(), strerror(errno));
+	    return -4;
+	}
+	ierr = writeStrings(fname.c_str(), gname.c_str(),
+			    sname.c_str(), tname.c_str(),
+			    msk, sel, buf, nbuf);
+    }
+    else {
+	// using two separate sets of files, need a read lock only
+	std::string fname = dest;
+	fname += FASTBIT_DIRSEP;
+	fname += m_name;
+	std::string gname = thePart->currentDataDir();
+	gname += FASTBIT_DIRSEP;
+	gname += m_name;
+	std::string sname = fname;
+	sname += ".sp";
+	std::string tname = gname;
+	tname += ".sp";
+
+	purgeIndexFile(dest);
+	readLock lock(this, "saveSelected");
+	ierr = writeStrings(fname.c_str(), gname.c_str(),
+			    sname.c_str(), tname.c_str(),
+			    msk, sel, buf, nbuf);
+    }
+    return ierr;
+} // ibis::text::saveSelected
+
+/// Write the selected strings.  The caller manages the necessary locks for
+/// accessing this function.
+int ibis::text::writeStrings(const char *to, const char *from,
+			     const char *spto, const char *spfrom,
+			     ibis::bitvector &msk, const ibis::bitvector &sel,
+			     char *buf, uint32_t nbuf) const {
+    std::string evt = "text[";
+    evt += thePart->name();
+    evt += '.';
+    evt += m_name;
+    evt += "]::writeStrings";
+    ibis::fileManager::buffer<char> mybuf(buf != 0);
+    if (buf == 0) { // incoming buf is nil, use mybuf
+	nbuf = mybuf.size();
+	buf = mybuf.address();
+    }
+    if (buf == 0 || to == 0 || from == 0 || spfrom == 0 || spto == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " failed to allocate work space to read strings";
+	return -10;
+    }
+
+    int rffile = UnixOpen(from, OPEN_READONLY);
+    if (rffile < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << from
+	    << " for reading";
+	return -11;
+    }
+    int sffile = UnixOpen(spfrom, OPEN_READONLY);
+    if (sffile < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << spfrom
+	    << " for reading";
+	UnixClose(rffile);
+	return -12;
+    }
+    int rtfile = UnixOpen(to, OPEN_WRITEONLY, OPEN_FILEMODE);
+    if (rtfile < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << to
+	    << " for writing";
+	UnixClose(sffile);
+	UnixClose(rffile);
+	return -13;
+    }
+    int stfile = UnixOpen(spto, OPEN_WRITEONLY, OPEN_FILEMODE);
+    if (rtfile < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to open file " << spto
+	    << " for writing";
+	UnixClose(rtfile);
+	UnixClose(sffile);
+	UnixClose(rffile);
+	return -14;
+    }
+
+    int64_t ierr, pos;
+    for (ibis::bitvector::indexSet ix = sel.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *idx = ix.indices();
+	if (ix.isRange()) { // write many values together
+	    ibis::bitvector::word_t irow = *idx;
+	    pos = *idx * 8;
+	    ierr = UnixSeek(sffile, pos, SEEK_SET);
+	    if (pos == ierr) {
+		// copy one string at a time
+		int64_t rfbegin, rfend;
+		ierr = UnixRead(sffile, &rfbegin, 8);
+		if (ierr == 8) {
+		    ierr = UnixSeek(rffile, rfbegin, SEEK_SET);
+		    if (ierr == rfbegin)
+			ierr = 8;
+		    else
+			ierr = 0;
+		}
+		while (irow < idx[1] && ierr == 8) {
+		    ierr = UnixRead(sffile, &rfend, 8);
+		    if (ierr != 8) break;
+
+		    pos = UnixSeek(rtfile, 0, SEEK_CUR);
+		    ierr = UnixWrite(stfile, &pos, 8);
+		    if (ierr != 8) { // unrecoverable trouble
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- " << evt
+			    << " failed to write the value " << pos
+			    << " to " << spto << ", unable to continue";
+			(void) UnixClose(stfile);
+			(void) UnixClose(rtfile);
+			(void) UnixClose(sffile);
+			(void) UnixClose(rffile);
+			return -15;
+		    }
+
+		    pos = rfend - rfbegin;
+		    for (int jtmp = 0; jtmp < pos; jtmp += nbuf) {
+			int bytes = (jtmp+nbuf < pos ? nbuf : pos-jtmp);
+			ierr = UnixRead(rffile, buf, bytes);
+			if (ierr == bytes) {
+			    ierr = UnixWrite(sffile, buf, bytes);
+			    if (ierr != bytes) {
+				LOGGER(ibis::gVerbose >= 0)
+				    << "Warning -- " << evt
+				    << " failed to write " << bytes
+				    << " byte" << (bytes>1?"s":"") << " to "
+				    << to << ", unable to continue";
+				(void) UnixClose(stfile);
+				(void) UnixClose(rtfile);
+				(void) UnixClose(sffile);
+				(void) UnixClose(rffile);
+				return -16;
+			    }
+			}
+			else {
+			    LOGGER(ibis::gVerbose >= 0)
+				<< "Warning -- " << evt << " failed to read "
+				<< bytes << " byte" << (bytes>1?"s":"")
+				<< " from " << from;
+			    (void) UnixClose(stfile);
+			    (void) UnixClose(rtfile);
+			    (void) UnixClose(sffile);
+			    (void) UnixClose(rffile);
+			    return -17;
+			}
+		    }
+
+		    rfbegin = rfend;
+		    ierr = 8;
+		    ++ irow;
+		} // while (irow
+	    }
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " failed to seek to " << pos
+		    << " in file " << spfrom << ", seek function returned "
+		    << ierr;
+	    }
+
+	    if (irow < idx[1]) {
+		(void) memset(buf, 0, nbuf);
+		pos = UnixSeek(rtfile, 0, SEEK_CUR);
+		for (int jtmp = irow; jtmp < idx[1]; ++ jtmp) {
+		    ierr = UnixWrite(stfile, &pos, 8);
+		    if (ierr != 8) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- " << evt
+			    << " failed to write the value " << pos
+			    << " to " << spto << ", unable to continue";
+			(void) UnixClose(stfile);
+			(void) UnixClose(rtfile);
+			(void) UnixClose(sffile);
+			(void) UnixClose(rffile);
+			return -18;
+		    }
+		}
+		while (irow < idx[1]) {
+		    int bytes = (idx[1]-irow > nbuf ? nbuf : idx[1]-irow);
+		    ierr = UnixWrite(rffile, buf, bytes);
+		    if (ierr != bytes) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- " << evt << " failed to write "
+			    << bytes << " byte" << (bytes>1?"s":"") << " to "
+			    << to << ", unable to continue";
+			(void) UnixClose(stfile);
+			(void) UnixClose(rtfile);
+			(void) UnixClose(sffile);
+			(void) UnixClose(rffile);
+			return -19;
+		    }
+		    irow += bytes;
+		}
+	    }
+	}
+	else {
+	    for (unsigned jdx = 0; jdx < ix.nIndices(); ++ jdx) {
+		pos = UnixSeek(rtfile, 0, SEEK_CUR);
+		ierr = UnixWrite(stfile, &pos, 8);
+		if (ierr != 8) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- " << evt
+			<< " failed to write the value " << pos
+			<< " to " << spto << ", unable to continue";
+		    (void) UnixClose(stfile);
+		    (void) UnixClose(rtfile);
+		    (void) UnixClose(sffile);
+		    (void) UnixClose(rffile);
+		    return -20;
+		}
+
+		pos = idx[jdx] * 8;
+		ierr = UnixSeek(sffile, pos, SEEK_SET);
+		if (ierr == pos) {
+		    int64_t rfbegin;
+		    ierr = UnixRead(sffile, &rfbegin, 8);
+		    if (ierr == 8) {
+			ierr = UnixSeek(rffile, rfbegin, SEEK_SET);
+			bool more = (ierr == rfbegin);
+			if (! more)
+			    ierr = 0;
+			while (more) {
+			    ierr = UnixRead(rffile, buf, nbuf);
+			    for (pos = 0; pos < ierr && buf[pos] != 0; ++ pos);
+			    if (pos < ierr) {
+				more = false;
+				++ pos;
+			    }
+			    if (pos > 0) {
+				ierr = UnixWrite(rtfile, buf, pos);
+				if (ierr == pos) {
+				    ierr = 8;
+				}
+				else {
+				    LOGGER(ibis::gVerbose >= 0)
+					<< "Warning -- " << evt
+					<< " failed to write " << pos
+					<< " byte" << (pos>1?"s":"")
+					<< " to " << to
+					<< ", unable to continue";
+				    (void) UnixClose(stfile);
+				    (void) UnixClose(rtfile);
+				    (void) UnixClose(sffile);
+				    (void) UnixClose(rffile);
+				    return -21;
+				}
+			    }
+			} // while (more)
+		    }
+		}
+		else {
+		    ierr = 0;
+		}
+
+		if (ierr != 8) { // write a null string
+		    buf[0] = 0;
+		    ierr = UnixWrite(rtfile, buf, 1);
+		    if (ierr != 1) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- " << evt
+			    << " failed to write 1 byte to " << to
+			    << ", unable to continue";
+			(void) UnixClose(stfile);
+			(void) UnixClose(rtfile);
+			(void) UnixClose(sffile);
+			(void) UnixClose(rffile);
+			return -22;
+		    }
+		}
+	    } // for (unsigned jdx
+	}
+    } // for (ibis::bitvector::indexSet ix
+
+    pos = UnixSeek(rtfile, 0, SEEK_CUR);
+    ierr = UnixWrite(stfile, &pos, 8);
+    LOGGER(ierr != 8 && ibis::gVerbose >= 0)
+	<< "Warning -- " << evt << " failed to write the last position "
+	<< pos << " to " << spto;
+    (void) UnixClose(stfile);
+    (void) UnixClose(rtfile);
+    (void) UnixClose(sffile);
+    (void) UnixClose(rffile);
+    if (ibis::gVerbose > 1) {
+	int nr = sel.cnt();
+	logMessage("writeStrings", "copied %d string%s from %s to %s",
+		   nr, (nr > 1 ? "s" : ""), from, to);
+    }
+
+    ibis::bitvector bv;
+    msk.subset(sel, bv);
+    bv.adjustSize(0, sel.cnt());
+    bv.swap(msk);
+    return sel.cnt();
+} // ibis::text::writeStrings

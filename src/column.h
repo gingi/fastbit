@@ -234,19 +234,13 @@ public:
     virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,
 			   ibis::bitvector& mask, const void *va1,
 			   const void *va2=0);
-    /// Cast the incoming array into the specified type T before write them
-    /// to a file.
     template <typename T>
     long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
 		      const T special);
-
-    /// Write the selected records to the specified directory.
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
-
-    /// Truncate the number of data entries in the named dir to @c nent.
-    long truncateData(const char* dir, uint32_t nent,
-		      ibis::bitvector& mask) const;
+    virtual long truncateData(const char* dir, uint32_t nent,
+			      ibis::bitvector& mask) const;
 
     /// A group of functions to compute some basic statistics for the
     /// attribute values.
@@ -298,6 +292,8 @@ protected:
     double upper;	///< The maximum value.
     /// The index for this column.  It is not consider as a must-have member.
     mutable ibis::index* idx;
+    /// The number of functions using the index.
+    mutable ibis::util::sharedInt32 idxcnt;
 
     /// Print messages started with "Error" and throw a string exception.
     void logError(const char* event, const char* fmt, ...) const;
@@ -390,8 +386,6 @@ private:
     mutable pthread_rwlock_t rwlock;
     /// The mutual exclusion lock used by indexLock and others.
     mutable pthread_mutex_t mutex;
-    /// The number of functions using the index.
-    mutable ibis::util::sharedInt32 idxcnt;
 
     const column& operator=(const column&); // no assignment
 }; // ibis::column

@@ -236,7 +236,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		}
 	    }
 	    else if ((st0.st_mode & S_IFDIR) == S_IFDIR) { // an existing dir
-		file += DIRSEP;
+		file += FASTBIT_DIRSEP;
 		file += c->name();
 		file += ".idx";
 	    }
@@ -851,7 +851,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		}
 		else if (ind->getNRows() == c->partition()->nRows()) {
 		    // have built a valid index, write out its content
-		    file.erase(file.rfind(DIRSEP));
+		    file.erase(file.rfind(FASTBIT_DIRSEP));
 		    try {
 			ind->write(file.c_str());
 		    }
@@ -859,7 +859,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			c->logWarning("createIndex",
 				      "failed to write the index to %s",
 				      file.c_str());
-			file += DIRSEP;
+			file += FASTBIT_DIRSEP;
 			file += c->name();
 			file += ".idx";
 			remove(file.c_str());
@@ -1192,7 +1192,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 				  "failed to write the index to %s",
 				  c->partition()->currentDataDir());
 		    std::string idxname = c->partition()->currentDataDir();
-		    idxname += DIRSEP;
+		    idxname += FASTBIT_DIRSEP;
 		    idxname += c->name();
 		    idxname += ".idx";
 		    remove(idxname.c_str());
@@ -1333,7 +1333,7 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
 void ibis::index::dataFileName(const char* f, std::string& iname) const {
     if (f == 0) {
 	iname = col->partition()->currentDataDir();
-	iname += DIRSEP;
+	iname += FASTBIT_DIRSEP;
 	iname += col->name();
     }
     else {
@@ -1360,7 +1360,7 @@ void ibis::index::dataFileName(const char* f, std::string& iname) const {
 	    else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
 		// named directory exist
 		iname = f;
-		iname += DIRSEP;
+		iname += FASTBIT_DIRSEP;
 		iname += col->name();
 	    }
 	    else if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' &&
@@ -1379,7 +1379,7 @@ void ibis::index::dataFileName(const char* f, std::string& iname) const {
 void ibis::index::indexFileName(const char* f, std::string& iname) const {
     if (f == 0 || *f == 0) {
 	iname = col->partition()->currentDataDir();
-	iname += DIRSEP;
+	iname += FASTBIT_DIRSEP;
 	iname += col->name();
 	iname += ".idx";
     }
@@ -1391,7 +1391,7 @@ void ibis::index::indexFileName(const char* f, std::string& iname) const {
 	else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
 	    // named directory exist
 	    iname = f;
-	    iname += DIRSEP;
+	    iname += FASTBIT_DIRSEP;
 	    iname += col->name();
 	    iname += ".idx";
 	}
@@ -1408,7 +1408,7 @@ void ibis::index::indexFileName(const char* f, std::string& iname) const {
 		uint32_t i = strlen(col->name());
 		const char* tail = f + (j - i);
 		if (j > i) {
-		    isDFile = ((tail[-1] == DIRSEP) &&
+		    isDFile = ((tail[-1] == FASTBIT_DIRSEP) &&
 			       (strcmp(tail, col->name()) == 0));
 		}
 		else if (j == i) {
@@ -1434,7 +1434,7 @@ void ibis::index::indexFileName(std::string& iname,
 				const char* dir) {
     if (dir == 0 || *dir == 0) {
 	iname = col1->partition()->currentDataDir();
-	iname += DIRSEP;
+	iname += FASTBIT_DIRSEP;
 	iname += col1->name();
 	iname += '-';
 	iname += col2->name();
@@ -1444,30 +1444,30 @@ void ibis::index::indexFileName(std::string& iname,
 	Stat_T st0;
 	if (UnixStat(dir, &st0)) { // stat fails, use the name
 	    iname = dir;
-	    uint32_t j = iname.rfind(DIRSEP);
+	    uint32_t j = iname.rfind(FASTBIT_DIRSEP);
 	    if (j < iname.size()) {
 		++ j;
 		iname.erase(j);
 	    }
 	    else if (iname.size() > 0) {
-		iname += DIRSEP;
+		iname += FASTBIT_DIRSEP;
 	    }
 	}
 	else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
 	    // named directory exist
 	    iname = dir;
-	    if (iname[iname.size()-1] != DIRSEP)
-		iname += DIRSEP;
+	    if (iname[iname.size()-1] != FASTBIT_DIRSEP)
+		iname += FASTBIT_DIRSEP;
 	}
 	else {
 	    iname = dir;
-	    uint32_t j = iname.rfind(DIRSEP);
+	    uint32_t j = iname.rfind(FASTBIT_DIRSEP);
 	    if (j < iname.size()) {
 		++ j;
 		iname.erase(j);
 	    }
 	    else if (iname.size() > 0) {
-		iname += DIRSEP;
+		iname += FASTBIT_DIRSEP;
 	    }
 	}
 	iname += col1->name();

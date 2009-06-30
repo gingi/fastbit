@@ -300,10 +300,10 @@ ibis::part::part(const char* adir, const char* bdir) :
     }
 
     if (adir == 0) return;
-    //if (*adir != DIRSEP) return;
+    //if (*adir != FASTBIT_DIRSEP) return;
     int maxLength = 0;
     activeDir = ibis::util::strnewdup(adir);
-    ibis::util::removeTail(activeDir, DIRSEP);
+    ibis::util::removeTail(activeDir, FASTBIT_DIRSEP);
     { // make sure activeDir exists, extra block to limit the scope of tmp
 	Stat_T tmp;
 	if (UnixStat(activeDir, &tmp) == 0) {
@@ -345,7 +345,7 @@ ibis::part::part(const char* adir, const char* bdir) :
 
     if (m_name == 0) {
 	// copy the directory name as the name of the data part
-	char* tmp = strrchr(activeDir, DIRSEP);
+	char* tmp = strrchr(activeDir, FASTBIT_DIRSEP);
 	if (tmp != 0)
 	    m_name = ibis::util::strnewdup(tmp+1);
 	else
@@ -393,7 +393,7 @@ ibis::part::part(const char* adir, const char* bdir) :
     if (nEvents > 0) { // read mask of the partition
 	std::string mskfile(activeDir);
 	if (! mskfile.empty())
-	    mskfile += DIRSEP;
+	    mskfile += FASTBIT_DIRSEP;
 	mskfile += "-part.msk";
 	try {
 	    amask.read(mskfile.c_str());
@@ -441,7 +441,7 @@ ibis::part::part(const char* adir, const char* bdir) :
     if (j) throw "direcotry names too long";
 
     if (backupDir != 0) {
-	ibis::util::removeTail(backupDir, DIRSEP);
+	ibis::util::removeTail(backupDir, FASTBIT_DIRSEP);
 	// check its header file for consistency
 	if (nEvents > 0) {
 	    if (verifyBackupDir() == 0) {
@@ -658,7 +658,7 @@ void ibis::part::init(const char* prefix) {
 	}
     }
     if (activeDir == 0) {
-	if (DIRSEP == '/') {
+	if (FASTBIT_DIRSEP == '/') {
 	    activeDir = ibis::util::strnewdup(".ibis/dir1");
 	}
 	else {
@@ -666,7 +666,7 @@ void ibis::part::init(const char* prefix) {
 	}
     }
 
-    ibis::util::removeTail(activeDir, DIRSEP);
+    ibis::util::removeTail(activeDir, FASTBIT_DIRSEP);
     try {
 	int ierr = ibis::util::makeDir(activeDir); // make sure it exists
 	if (ierr < 0)
@@ -691,7 +691,7 @@ void ibis::part::init(const char* prefix) {
 
     // read metadata file in activeDir
     int maxLength = readMetaData(nEvents, columns, activeDir);
-    const char *tmp = strrchr(activeDir, DIRSEP);
+    const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
     const bool useDir = (maxLength <=0 &&
 			 (prefix == 0 || *prefix == 0 ||
 			  (tmp != 0 ?			     
@@ -699,7 +699,7 @@ void ibis::part::init(const char* prefix) {
 			   (0 == strcmp(activeDir, prefix)))));
     if (! useDir) { // need a new subdirectory
 	std::string subdir = activeDir;
-	subdir += DIRSEP;
+	subdir += FASTBIT_DIRSEP;
 	subdir += prefix;
 	ibis::util::makeDir(subdir.c_str());
 	delete [] activeDir;
@@ -726,7 +726,7 @@ void ibis::part::init(const char* prefix) {
 	if (ibis::gParameters().isTrue(fn) && backupDir == 0) {
 	    // use backup dir
 	    if (! subdir.empty()) {
-		subdir += DIRSEP;
+		subdir += FASTBIT_DIRSEP;
 		subdir += prefix;
 		int ierr = ibis::util::makeDir(subdir.c_str());
 		if (ierr >= 0)
@@ -748,7 +748,7 @@ void ibis::part::init(const char* prefix) {
 	fillrids += ".fillRIDs";
 	if (nEvents > 0 && ibis::gParameters().isTrue(fillrids.c_str())) {
 	    std::string fname(activeDir);
-	    fname += DIRSEP;
+	    fname += FASTBIT_DIRSEP;
 	    fname += "-rids";
 	    fillRIDs(fname.c_str());
 	}
@@ -774,7 +774,7 @@ void ibis::part::init(const char* prefix) {
 	deriveBackupDirName();
 
     if (backupDir != 0) {
-	ibis::util::removeTail(backupDir, DIRSEP);
+	ibis::util::removeTail(backupDir, FASTBIT_DIRSEP);
 	if (nEvents > 0) {
 	    // check its header file for consistency
 	    if (verifyBackupDir() == 0) {
@@ -797,7 +797,7 @@ void ibis::part::init(const char* prefix) {
     if (nEvents > 0) { // read mask of the partition
 	std::string mskfile(activeDir);
 	if (! mskfile.empty())
-	    mskfile += DIRSEP;
+	    mskfile += FASTBIT_DIRSEP;
 	mskfile += "-part.msk";
 	try {
 	    amask.read(mskfile.c_str());
@@ -885,7 +885,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	return m_tags;
 
     char buf[MAX_LINE];
-    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, DIRSEP);
+    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
     if (ierr < 2 || ierr > MAX_LINE) {
 	ibis::util::logMessage("Warning", "part::readMetaTags failed "
 			       "to generate the metadata file name");
@@ -963,7 +963,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 	return;
 
     char buf[MAX_LINE];
-    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, DIRSEP);
+    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
     if (ierr < 2 || ierr > MAX_LINE) {
 	ibis::util::logMessage("Warning", "ibis::part::readMeshShape "
 			       "failed to generate the metadata file name");
@@ -1046,7 +1046,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     nrows = 0;
 
     std::string tdcname = dir;
-    tdcname += DIRSEP;
+    tdcname += FASTBIT_DIRSEP;
     tdcname += "-part.txt";
     FILE* file = fopen(tdcname.c_str(), "r");
     if (file == 0) {
@@ -1338,7 +1338,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    const char* cur = dir;
 	    const char* lst = dir;
 	    while (*cur != 0) {
-		if (*cur == DIRSEP)
+		if (*cur == FASTBIT_DIRSEP)
 		    lst = cur;
 		++ cur;
 	    }
@@ -1347,7 +1347,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		delete [] m_name;
 		m_name = ibis::util::strnewdup(lst);
 		if (*cur != 0) {
-		    // the incoming dir ended with DIRSEP, need to change
+		    // the incoming dir ended with FASTBIT_DIRSEP, need to change
 		    // it to null
 		    len = cur - lst;
 		    m_name[len-1] = 0;
@@ -1377,7 +1377,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     if (dir == 0 || *dir == 0)
 	return;
     char* filename = new char[strlen(dir)+16];
-    sprintf(filename, "%s%c-part.txt", dir, DIRSEP);
+    sprintf(filename, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
     FILE *fptr = fopen(filename, "w");
     if (fptr == 0) {
 	ibis::util::logMessage
@@ -1705,7 +1705,7 @@ void ibis::part::readRIDs() const {
     }
 
     std::string fn(activeDir);
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (ibis::fileManager::instance().getFile(fn.c_str(), *rids)) {
@@ -1776,7 +1776,7 @@ void ibis::part::sortRIDs() const {
     char name[PATH_MAX];
     mutexLock lck(this, "sortRIDs");
     //ibis::util::mutexLock lck(&ibis::util::envLock, "sortRIDs");
-    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, FASTBIT_DIRSEP);
     uint32_t sz = ibis::util::getFileSize(name);
     if (sz == nEvents*(sizeof(rid_t)+sizeof(uint32_t)))
 	return;
@@ -1860,7 +1860,7 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     // the end of the function call.  This mutex lock helps to resolve the
     // problem.
     //mutexLock lock(this, "searchSortedRIDs");
-    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, FASTBIT_DIRSEP);
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
@@ -1944,7 +1944,7 @@ void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
 				  ibis::bitvector &res) const {
     if (activeDir == 0) return;
     char name[PATH_MAX];
-    sprintf(name, "%s%c-rids.srt", activeDir, DIRSEP);
+    sprintf(name, "%s%c-rids.srt", activeDir, FASTBIT_DIRSEP);
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
@@ -9051,7 +9051,7 @@ long ibis::part::doCount(const array_t<T> &vals,
 // derive backupDir from activeDir
 void ibis::part::deriveBackupDirName() {
     if (activeDir == 0) {
-#if DIRSEP == '/'
+#if FASTBIT_DIRSEP == '/'
 	activeDir = ibis::util::strnewdup(".ibis/dir1");
 	backupDir = ibis::util::strnewdup(".ibis/dir2");
 #else
@@ -9142,7 +9142,7 @@ long ibis::part::verifyBackupDir() {
     Stat_T st;
     uint32_t np = 0;
     std::string fn = backupDir;
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += "-part.txt";
     ierr = UnixStat(fn.c_str(), &st);
     if (ierr != 0) { // try the old file name
@@ -9471,8 +9471,8 @@ long ibis::part::barrel::open(const ibis::part *t) {
 
     std::string dfn = t->currentDataDir();
     uint32_t dirlen = dfn.size();
-    if (dfn[dirlen-1] != DIRSEP) {
-	dfn += DIRSEP;
+    if (dfn[dirlen-1] != FASTBIT_DIRSEP) {
+	dfn += FASTBIT_DIRSEP;
 	++ dirlen;
     }
 
@@ -9774,8 +9774,8 @@ long ibis::part::vault::open(const ibis::part *t) {
 
     std::string dfn = t->currentDataDir();
     uint32_t dirlen = dfn.size();
-    if (dfn[dirlen-1] != DIRSEP) {
-	dfn += DIRSEP;
+    if (dfn[dirlen-1] != FASTBIT_DIRSEP) {
+	dfn += FASTBIT_DIRSEP;
 	++ dirlen;
     }
 
@@ -10270,11 +10270,11 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
 	    ibis::util::logMessage("tablesFromDir",
 				   "name (%s%c%s) too long",
-				   dir1, DIRSEP, ent->d_name);
+				   dir1, FASTBIT_DIRSEP, ent->d_name);
 	    continue;
 	}
 
-	sprintf(nm1, "%s%c%s", dir1, DIRSEP, ent->d_name);
+	sprintf(nm1, "%s%c%s", dir1, FASTBIT_DIRSEP, ent->d_name);
 	Stat_T st1;
 	if (UnixStat(nm1, &st1)==0) {
 	    if ((st1.st_mode  &S_IFDIR) == S_IFDIR) {
@@ -10384,14 +10384,15 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	    continue;
 	}
 	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
-	    logMessage("tablesFromDir",
-		       "name (%s%c%s | %s%c%s) too long",
-		       adir, DIRSEP, ent->d_name, bdir, DIRSEP, ent->d_name);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "util::tablesFromDir name (" << adir << FASTBIT_DIRSEP
+		<< ent->d_name << " | " << bdir << FASTBIT_DIRSEP
+		<< ent->d_name << ") too long";
 	    continue;
 	}
 
-	sprintf(nm1, "%s%c%s", adir, DIRSEP, ent->d_name);
-	sprintf(nm2, "%s%c%s", bdir, DIRSEP, ent->d_name);
+	sprintf(nm1, "%s%c%s", adir, FASTBIT_DIRSEP, ent->d_name);
+	sprintf(nm2, "%s%c%s", bdir, FASTBIT_DIRSEP, ent->d_name);
 	struct stat st1, st2;
 	if (stat(nm1, &st1)==0 && stat(nm2, &st2)==0) {
 	    if (((st1.st_mode  &S_IFDIR) == S_IFDIR) &&

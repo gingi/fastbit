@@ -157,13 +157,13 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	throw "ibis::bundle::readRIDs -- argument dir too long";
     }
 
-    if (dir[len-1] == DIRSEP) {
+    if (dir[len-1] == FASTBIT_DIRSEP) {
 	strcpy(fn, dir);
 	strcat(fn, "bundles");
     }
     else {
 	++len;
-	sprintf(fn, "%s%cbundles", dir, DIRSEP);
+	sprintf(fn, "%s%cbundles", dir, FASTBIT_DIRSEP);
     }
     ibis::fileManager::storage* bdlstore=0;
     int ierr = ibis::fileManager::instance().getFile(fn, &bdlstore);

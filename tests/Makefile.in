@@ -523,6 +523,8 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@if [ `diff -w $(TESTDIR)/marksdb-1 $(TESTDIR)/marksdb-2 | wc -l` -eq 0 ] ; then echo Passed $@ test 2; else echo Did NOT pass $@ test 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon where time = 77328 and 3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) <= 15 order by lat,lon" -o $(TESTDIR)/marksdb-3 > /dev/null
 	@if [ `diff -w marksdb-3 $(TESTDIR)/marksdb-3 | wc -l` -eq 0 ] ; then echo Passed $@ test 3; else echo Did NOT pass $@ test 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select floor(lat), floor(lon), avg(3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2)))) where time = 77328" -o $(TESTDIR)/marksdb-4 > /dev/null
+	@if [ `diff -w marksdb-4 $(TESTDIR)/marksdb-4 | wc -l` -eq 0 ] ; then echo Passed $@ test 4; else echo Did NOT pass $@ test 4; fi
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1

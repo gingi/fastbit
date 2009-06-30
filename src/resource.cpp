@@ -88,10 +88,10 @@ void ibis::resource::read(const char* fn) {
 	name = getenv("HOME");
 	if (name != 0 && *name != 0) {
 #if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
-	    long ierr = sprintf(line, "%s%c.ibisrc", name, DIRSEP);
+	    long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
 #else
 	    long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",
-				     name, DIRSEP);
+				     name, FASTBIT_DIRSEP);
 #endif
 	    if (ierr > 0 && ierr < MAX_LINE &&
 		ibis::util::getFileSize(line) > 0) {

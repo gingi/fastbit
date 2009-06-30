@@ -5073,7 +5073,7 @@ int ibis::bin::write(const char* dt) const {
     (void) UnixSeek(fdes, 8+2*sizeof(uint32_t), SEEK_SET);
     ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdes); // write to disk
+    (void) UnixFlush(fdes); // write to disk
 #endif
     ierr = UnixClose(fdes);
 

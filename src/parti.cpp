@@ -233,7 +233,7 @@ long ibis::part::reorder() {
 	delete rids;
 	rids = 0;
 	std::string fname(activeDir);
-	fname += DIRSEP;
+	fname += FASTBIT_DIRSEP;
 	fname += "-rids";
 	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
@@ -478,7 +478,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	delete rids;
 	rids = 0;
 	std::string fname(activeDir);
-	fname += DIRSEP;
+	fname += FASTBIT_DIRSEP;
 	fname += "-rids";
 	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
@@ -785,7 +785,7 @@ long ibis::part::append1(const char *dir) {
     }
     // retrieve the new RID list
     std::string fn(activeDir);
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (0 != ibis::fileManager::instance().getFile(fn.c_str(),*rids)) {
@@ -809,7 +809,7 @@ long ibis::part::append1(const char *dir) {
 	if (amask.cnt() < amask.size()) {
 	    std::string mskfile(activeDir);
 	    if (! mskfile.empty())
-		mskfile += DIRSEP;
+		mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    amask.write(mskfile.c_str());
 	    ibis::fileManager::instance().flushFile(mskfile.c_str());
@@ -869,7 +869,7 @@ long ibis::part::append2(const char *dir) {
 
 	// make sure that the number of RIDs is as expected
 	std::string fn(backupDir);
-	fn += DIRSEP;
+	fn += FASTBIT_DIRSEP;
 	fn += "-rids";
 	uint32_t nrids = ibis::util::getFileSize(fn.c_str()) /
 	    sizeof(ibis::rid_t);
@@ -915,7 +915,7 @@ long ibis::part::append2(const char *dir) {
 	}
 	// retrieve the new RID list
 	std::string fn(activeDir);
-	fn += DIRSEP;
+	fn += FASTBIT_DIRSEP;
 	fn += "-rids";
 	rids = new array_t<ibis::rid_t>;
 	if (0 != ibis::fileManager::instance().
@@ -940,7 +940,7 @@ long ibis::part::append2(const char *dir) {
 	if (amask.cnt() < amask.size()) {
 	    std::string mskfile(activeDir);
 	    if (! mskfile.empty())
-		mskfile += DIRSEP;
+		mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    amask.write(mskfile.c_str());
 	    ibis::fileManager::instance().flushFile(mskfile.c_str());
@@ -994,7 +994,7 @@ long ibis::part::rollback() {
 	}
 
 	std::string fn(activeDir);
-	fn += DIRSEP;
+	fn += FASTBIT_DIRSEP;
 	fn += "-rids";
 	rids = new ibis::RIDSet;
 	jerr = ibis::fileManager::instance().getFile(fn.c_str(), *rids);
@@ -1022,7 +1022,7 @@ long ibis::part::rollback() {
 	if (amask.cnt() < amask.size()) {
 	    std::string mskfile(activeDir);
 	    if (! mskfile.empty())
-		mskfile += DIRSEP;
+		mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    amask.write(mskfile.c_str());
 	    ibis::fileManager::instance().flushFile(mskfile.c_str());
@@ -1030,7 +1030,7 @@ long ibis::part::rollback() {
 	else {
 	    std::string mskfile(activeDir);
 	    if (! mskfile.empty())
-		mskfile += DIRSEP;
+		mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    remove(mskfile.c_str());
 	}
@@ -1092,7 +1092,7 @@ long ibis::part::commit(const char* dir) {
 	    if (amask.cnt() < amask.size()) {
 		std::string mskfile(backupDir);
 		if (! mskfile.empty())
-		    mskfile += DIRSEP;
+		    mskfile += FASTBIT_DIRSEP;
 		mskfile += "-part.msk";
 		amask.write(mskfile.c_str());
 		ibis::fileManager::instance().flushFile(mskfile.c_str());
@@ -1164,7 +1164,7 @@ long ibis::part::appendToBackup(const char* dir) {
     }
     std::string fn;
     fn = dir;
-    fn += DIRSEP;
+    fn += FASTBIT_DIRSEP;
     fn += "-rids";
     long tmp = ibis::util::getFileSize(fn.c_str());
     if (tmp > 0) {
@@ -1260,7 +1260,7 @@ long ibis::part::appendToBackup(const char* dir) {
 		       "Removing file rids.", static_cast<long unsigned>(napp),
 		       ierr);
 	    fn = backupDir;
-	    fn += DIRSEP;
+	    fn += FASTBIT_DIRSEP;
 	    fn += "-rids";
 	    remove(fn.c_str());
 	    fn += ".srt";
@@ -1324,7 +1324,7 @@ long ibis::part::appendToBackup(const char* dir) {
 long ibis::part::deactivate(const ibis::bitvector& rows) {
     std::string mskfile(activeDir);
     if (! mskfile.empty())
-	mskfile += DIRSEP;
+	mskfile += FASTBIT_DIRSEP;
     mskfile += "-part.msk";
 
     writeLock lock(this, "deactivate");
@@ -1341,7 +1341,7 @@ long ibis::part::deactivate(const ibis::bitvector& rows) {
 long ibis::part::reactivate(const ibis::bitvector& rows) {
     std::string mskfile(activeDir);
     if (! mskfile.empty())
-	mskfile += DIRSEP;
+	mskfile += FASTBIT_DIRSEP;
     mskfile += "-part.msk";
 
     writeLock lock(this, "reactivate");
@@ -1426,36 +1426,18 @@ long ibis::part::purgeInactive() {
 	     it != columns.end();
 	     ++ it) {
 	    ibis::column& col = *((*it).second);
-
-	    switch (col.type()) {
-	    default: {
-		if (ibis::gVerbose > 0)
-		    logWarning("purgeInactive", "unable to process column %s "
-			       "(type %s)", (*it).first, ibis::TYPESTRING
-			       [(int)(col.type())]);
-		ierr = -1;
-		break;}
-	    case ibis::DOUBLE:
-	    case ibis::FLOAT:
-	    case ibis::ULONG:
-	    case ibis::LONG:
-	    case ibis::UINT:
-	    case ibis::INT:
-	    case ibis::USHORT:
-	    case ibis::SHORT:
-	    case ibis::UBYTE:
-	    case ibis::BYTE: {
-		long itmp = col.saveSelected(amask, backupDir, mybuf, nbuf);
-		if (itmp < 0 && ibis::gVerbose > 1)
-		    logMessage("purgeInactive", "saving selected values for "
-			       "column %s failed with error code %ld",
-			       col.name(), itmp);
-		if (itmp < 0)
-		    ierr = itmp;
-		else if (ierr == 0 && itmp == amask.cnt())
-		    ierr = itmp;
-		break;}
-	    } // switch (col.type())
+	    const long itmp = col.saveSelected(amask, backupDir, mybuf, nbuf);
+	    if (itmp < 0 && ibis::gVerbose > 1)
+		logMessage("purgeInactive", "saving selected values for "
+			   "column %s failed with error code %ld",
+			   col.name(), itmp);
+	    if (itmp < 0) {
+		ierr = itmp;
+		break;
+	    }
+	    else if (ierr == 0 && itmp == amask.cnt()) {
+		ierr = itmp;
+	    }
 	}
 
 	if (ierr == (long) amask.cnt()) { // wrote selected values successfully
@@ -1464,7 +1446,7 @@ long ibis::part::purgeInactive() {
 		rcol.saveSelected(amask, backupDir, mybuf, nbuf);
 	    }
 	    std::string mskfile(backupDir);
-	    mskfile += DIRSEP;
+	    mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    remove(mskfile.c_str());
 	    writeMetaData(amask.cnt(), columns, backupDir);
@@ -1480,7 +1462,7 @@ long ibis::part::purgeInactive() {
 	    columns.clear();
 	    amask.set(1, nEvents);
 	    mskfile = activeDir;
-	    mskfile += DIRSEP;
+	    mskfile += FASTBIT_DIRSEP;
 	    mskfile += "-part.msk";
 	    remove(mskfile.c_str());
 
@@ -1491,6 +1473,11 @@ long ibis::part::purgeInactive() {
 	    readMetaData(nEvents, columns, activeDir);
 	    readRIDs();
 	}
+	else {
+	    logWarning("purgeInactive", "operations to permanently remove "
+		       "inactive rows in %s have failed, will restore the "
+		       "content from %s", backupDir, activeDir);
+	}
 
 	makeBackupCopy();
     }
@@ -1500,58 +1487,43 @@ long ibis::part::purgeInactive() {
 	     it != columns.end();
 	     ++ it) {
 	    ibis::column& col = *((*it).second);
-	    col.unloadIndex();
-	    col.purgeIndexFile();
-
-	    switch (col.type()) {
-	    default: {
-		if (ibis::gVerbose > 0)
-		    logWarning("purgeInactive", "unable to process column %s "
-			       "(type %s)", (*it).first, ibis::TYPESTRING
-			       [(int)(col.type())]);
-		ierr = -1;
-		break;}
-	    case ibis::DOUBLE:
-	    case ibis::FLOAT:
-	    case ibis::ULONG:
-	    case ibis::LONG:
-	    case ibis::UINT:
-	    case ibis::INT:
-	    case ibis::USHORT:
-	    case ibis::SHORT:
-	    case ibis::UBYTE:
-	    case ibis::BYTE: {
-		long itmp = col.saveSelected(amask, activeDir, mybuf, nbuf);
-		if (itmp < 0 && ibis::gVerbose > 1)
-		    logMessage("purgeInactive", "saving selected values for "
-			       "column %s failed with error code %ld",
-			       col.name(), itmp);
-		if (itmp < 0)
-		    ierr = itmp;
-		else if (ierr == 0 && itmp == amask.cnt())
-		    ierr = itmp;
-		break;}
-	    } // switch (col.type())
+	    const long itmp = col.saveSelected(amask, activeDir, mybuf, nbuf);
+	    if (itmp < 0 && ibis::gVerbose > 1)
+		logMessage("purgeInactive", "saving selected values for "
+			   "column %s failed with error code %ld",
+			   col.name(), itmp);
+	    if (itmp < 0) {
+		ierr = itmp;
+		break;
+	    }
+	    else if (ierr == 0 && itmp == amask.cnt()) {
+		ierr = itmp;
+	    }
 	}
 
-	if (ierr == (long) amask.cnt() && rids != 0 &&
-	    rids->size() == nEvents) {
-	    ibis::column rcol(this, ibis::OID, "-rids");
-	    rcol.saveSelected(amask, activeDir, mybuf, nbuf);
+	if (ierr == (long) amask.cnt()) {
+	    if (rids != 0 && rids->size() == nEvents) {
+		ibis::column rcol(this, ibis::OID, "-rids");
+		rcol.saveSelected(amask, activeDir, mybuf, nbuf);
 
-	    delete rids;
-	    rids = 0;
-	    readRIDs();
+		delete rids;
+		rids = 0;
+		readRIDs();
+	    }
+	    nEvents = amask.cnt();
+	    amask.set(1, nEvents);
+	    std::string mskfile(activeDir);
+	    if (! mskfile.empty())
+		mskfile += FASTBIT_DIRSEP;
+	    mskfile += "-part.msk";
+	    remove(mskfile.c_str());
+	    writeMetaData(nEvents, columns, activeDir);
 	}
-
-	nEvents = amask.cnt();
-	amask.set(1, nEvents);
-	std::string mskfile(activeDir);
-	if (! mskfile.empty())
-	    mskfile += DIRSEP;
-	mskfile += "-part.msk";
-	remove(mskfile.c_str());
-	writeMetaData(nEvents, columns, activeDir); // rewrite the metadata file
+	else {
+	    logWarning("purgeInactive", "operations to permanently remove "
+		       "inactive rows in %s have failed, the data files are "
+		       "no longer consistent", activeDir);
+	}
     }
 
     return ierr;

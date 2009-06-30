@@ -91,16 +91,16 @@ int ibis::util::makeDir(const char* dir) {
     // separators into null.
     char *buf = ibis::util::strnewdup(dir);
     const char *cdir = buf;
-    if (*buf == DIRSEP)
+    if (*buf == FASTBIT_DIRSEP)
 	cdir = buf + 1;
     else if (buf[1] == ':') // not the same as a typical local directory
 	cdir = buf + 2;
-    while (*cdir == DIRSEP) ++cdir; // look beyond the leading DIRSEP
+    while (*cdir == FASTBIT_DIRSEP) ++cdir; // look beyond the leading DIRSEP
 
     while (cdir != 0 && *cdir != 0) {
-	char* tmp = const_cast<char*>(strchr(cdir, DIRSEP));
+	char* tmp = const_cast<char*>(strchr(cdir, FASTBIT_DIRSEP));
 	if (tmp > cdir)
-	    *tmp = 0; // change DIRSEP to null
+	    *tmp = 0; // change FASTBIT_DIRSEP to null
 	if (UnixStat(buf, &st) != 0) {
 	    int pmode = OPEN_FILEMODE;
 #if defined(S_IXUSR)
@@ -119,9 +119,9 @@ int ibis::util::makeDir(const char* dir) {
 	    }
 	}
 	if (tmp > cdir) {
-	    *tmp = DIRSEP; // change null back to DIRSEP
+	    *tmp = FASTBIT_DIRSEP; // change null back to DIRSEP
 	    cdir = tmp + 1;
-	    while (*cdir == DIRSEP) ++cdir; // skip consecutive DIRSEP
+	    while (*cdir == FASTBIT_DIRSEP) ++cdir; // skip consecutive DIRSEP
 	}
 	else {
 	    cdir = static_cast<const char*>(0);
@@ -572,8 +572,8 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	strcpy(buf, name);
 	len = strlen(buf);
     }
-    if (buf[len-1] != DIRSEP) {
-	buf[len] = DIRSEP;
+    if (buf[len-1] != FASTBIT_DIRSEP) {
+	buf[len] = FASTBIT_DIRSEP;
 	++len;
     }
 

@@ -885,7 +885,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	return -1; // dir must be specified
     }
     std::string mdfile = dir;
-    mdfile += DIRSEP;
+    mdfile += FASTBIT_DIRSEP;
     mdfile += "-part.txt";
     if (ibis::util::getFileSize(mdfile.c_str()) > 0) {
 	LOGGER(ibis::gVerbose > 1)
@@ -910,17 +910,17 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	tdesc = olddesc.c_str();
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
-	tname = strrchr(dir, DIRSEP);
+	tname = strrchr(dir, FASTBIT_DIRSEP);
 	if (tname == 0)
 	    tname = strrchr(dir, '/');
 	if (tname != 0) {
 	    if (tname[1] != 0) {
 		++ tname;
 	    }
-	    else { // dir ends with DIRSEP
+	    else { // dir ends with FASTBIT_DIRSEP
 		oldnm = dir;
-		oldnm.erase(oldnm.size()-1); // remove the last DIRSEP
-		size_t j = 1 + oldnm.rfind(DIRSEP);
+		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
+		size_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
 		if (j > oldnm.size())
 		    j = 1 + oldnm.rfind('/');
 		if (j < oldnm.size())
@@ -1129,17 +1129,17 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	tdesc = olddesc.c_str();
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
-	tname = strrchr(dir, DIRSEP);
+	tname = strrchr(dir, FASTBIT_DIRSEP);
 	if (tname == 0)
 	    tname = strrchr(dir, '/');
 	if (tname != 0) {
 	    if (tname[1] != 0) {
 		++ tname;
 	    }
-	    else { // dir ends with DIRSEP
+	    else { // dir ends with FASTBIT_DIRSEP
 		oldnm = dir;
-		oldnm.erase(oldnm.size()-1); // remove the last DIRSEP
-		size_t j = 1 + oldnm.rfind(DIRSEP);
+		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
+		size_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
 		if (j > oldnm.size())
 		    j = 1 + oldnm.rfind('/');
 		if (j < oldnm.size())
@@ -1167,7 +1167,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	<< " data partition " << tname;
 
     std::string mdfile = dir;
-    mdfile += DIRSEP;
+    mdfile += FASTBIT_DIRSEP;
     mdfile += "-part.txt";
     std::ofstream md(mdfile.c_str());
     if (! md) {
@@ -1204,7 +1204,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	 it != cols.end(); ++ it) {
 	const column& col = *((*it).second);
 	std::string cnm = dir;
-	cnm += DIRSEP;
+	cnm += FASTBIT_DIRSEP;
 	cnm += (*it).first;
 	int fdes = UnixOpen(cnm.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	if (fdes < 0) {
@@ -1291,7 +1291,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	}
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-	(void) fsync(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
 	UnixClose(fdes); // close the data file
 	if (ierr < 0) {

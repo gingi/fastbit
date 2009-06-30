@@ -172,7 +172,7 @@ int ibis::fuge::write(const char* dt) const {
     if (ierr >= 0)
 	ierr = writeCoarse(fdes); // write the coarse level bins
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) fsync(fdes); // write to disk
+    (void) UnixFlush(fdes); // write to disk
 #endif
     (void) UnixClose(fdes);
     return ierr;

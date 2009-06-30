@@ -7,6 +7,17 @@ This is a simple test program for the querying functions of ibis::table.
 The data must already be on disk and all data directories are treated as
 one ibis::table.
 
+Command line arguments
+[-c conf-file] [-d directory_containing_a_dataset] [-s select-clause]
+[-w where-clause] [-f from-clause] [-v[=| ]verbose_level] [-help]
+
+@note All data directories specified through options -d and -c are treated
+as partitions of one data table.
+
+@note Only the last from clause and the last select clause will be used.
+
+@note Multiple where clauses are executed one after another.
+
 Egretta Thula is the Latin name for Snowy Egret, one of John's favorite
 birds, see
 http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
