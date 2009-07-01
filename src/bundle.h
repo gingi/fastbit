@@ -188,7 +188,7 @@ protected:
 private:
     bundle(); // no default constructor
     bundle(const bundle&); // no copy constructor
-    const bundle& operator=(const bundle&); // no assignment operator
+    bundle& operator=(const bundle&); // no assignment operator
 }; // class ibis::bundle
 
 /// The null bundle.  It contains only a list of RIDs.
@@ -280,7 +280,7 @@ private:
 
     bundle1();
     bundle1(const bundle1&);
-    const bundle1& operator=(const bundle1&);
+    bundle1& operator=(const bundle1&);
 }; // ibis::bundle1
 
 /// The bundle with multiple components.
@@ -326,7 +326,7 @@ private:
 
     bundles();
     bundles(const bundles&);
-    const bundles& operator=(const bundles&);
+    bundles& operator=(const bundles&);
 }; // ibis::bundles
 
 /// The class ibis::query::result allows user to retrieve query result one
@@ -417,6 +417,6 @@ private:
 
     result();
     result(const result&);
-    const result& operator=(const result&);
+    result& operator=(const result&);
 }; // ibis::query::result
 #endif // IBIS_BUNDLE_H

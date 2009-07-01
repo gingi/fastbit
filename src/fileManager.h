@@ -185,7 +185,7 @@ protected:
 
     // not implemented, to prevent compiler from generating these functions
     fileManager(const fileManager& rhs);
-    const fileManager& operator=(const fileManager& rhs);
+    fileManager& operator=(const fileManager& rhs);
 
 private:
     typedef std::map< const char*, roFile*,
@@ -226,7 +226,7 @@ private:
 	const char* mesg;
 
 	writeLock(const writeLock&);
-	const writeLock& operator=(const writeLock&);
+	writeLock& operator=(const writeLock&);
     };
     /// Used to prevent simultaneous modification of the two internal
     /// lists.
@@ -260,7 +260,7 @@ private:
 	const char* mesg;
 
 	mutexLock(const mutexLock&);
-	const mutexLock& operator=(const mutexLock&);
+	mutexLock& operator=(const mutexLock&);
     };
     friend class writeLock;
     friend class mutexLock;
@@ -286,7 +286,7 @@ public:
     storage(const int fdes, const off_t begin, const off_t end);
     // the following three functions all make in-memory copies
     storage(const storage& rhs);
-    const storage& operator=(const storage& rhs);
+    storage& operator=(const storage& rhs);
     void copy(const storage& rhs);
     /// Make another copy of the content in the range [begin, end).
     storage(const char* begin, const char* end);
@@ -448,7 +448,7 @@ private:
 
     // not implemented, to prevent automatic generation
     roFile(const roFile&);
-    const roFile& operator=(const roFile&);
+    roFile& operator=(const roFile&);
 }; // class fileManager::roFile
 
 #if defined(HAVE_FILE_MAP)
@@ -464,7 +464,7 @@ public:
 private:
     rofSegment(); // no default constructor
     rofSegment(const rofSegment&); // no copy constructor
-    const rofSegment& operator=(const rofSegment&); // no assignment operator
+    rofSegment& operator=(const rofSegment&); // no assignment operator
 
     std::string filename_; // name of the file
     off_t begin_, end_;    // the start and the end address of the file map

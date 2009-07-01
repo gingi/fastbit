@@ -997,7 +997,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		case ibis::SHORT:
 		case ibis::UINT:
 		case ibis::INT: {
-		    array_t<int32_t>* intarray;
+		    ibis::array_t<int32_t>* intarray;
 		    intarray = aQuery.getQualifiedInts(*it);
 		    ibis::util::logger lg(0);
 		    if (intarray->size() != static_cast<uint32_t>(num1))
@@ -1008,7 +1008,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 			ibis::gVerbose > 30) {
 			lg.buffer() << "selected entries of column " << *it
 				    << "\n";
-			for (array_t<int32_t>::const_iterator ait =
+			for (ibis::array_t<int32_t>::const_iterator ait =
 				 intarray->begin();
 			     ait != intarray->end(); ++ait)
 			    lg.buffer() << *ait << "\n";
@@ -1022,7 +1022,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    break;}
 
 		case ibis::FLOAT: {
-		    array_t<float>* floatarray;
+		    ibis::array_t<float>* floatarray;
 		    floatarray = aQuery.getQualifiedFloats(*it);
 
 		    ibis::util::logger lg(0);
@@ -1034,7 +1034,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    if (num1 < (2 << ibis::gVerbose) ||
 			ibis::gVerbose > 30) {
 			lg.buffer() << "selected entries of column " << *it;
-			for (array_t<float>::const_iterator ait =
+			for (ibis::array_t<float>::const_iterator ait =
 				 floatarray->begin();
 			     ait != floatarray->end(); ++ait)
 			    lg.buffer() << "\n" << *ait;
@@ -1048,7 +1048,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    break;}
 
 		case ibis::DOUBLE: {
-		    array_t<double>* doublearray;
+		    ibis::array_t<double>* doublearray;
 		    doublearray = aQuery.getQualifiedDoubles(*it);
 
 		    ibis::util::logger lg(0);
@@ -1059,7 +1059,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 				    << doublearray->size();
 		    if (num1<(2<<ibis::gVerbose) || ibis::gVerbose>30) {
 			lg.buffer() << "selected entries of column " << *it;
-			for (array_t<double>::const_iterator ait =
+			for (ibis::array_t<double>::const_iterator ait =
 				 doublearray->begin();
 			     ait != doublearray->end(); ++ait)
 			    lg.buffer() << "\n" << *ait;

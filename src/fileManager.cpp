@@ -1963,7 +1963,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 
 /// Assignment operator.  Make an in-memory copy through the copy
 /// constructor.
-const ibis::fileManager::storage&
+ibis::fileManager::storage&
 ibis::fileManager::storage::operator=
 (const ibis::fileManager::storage& rhs) {
     storage tmp(rhs);

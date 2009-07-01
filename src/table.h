@@ -24,7 +24,7 @@ namespace ibis {
 
     /// Supported data types.
     enum TYPE_T {
-	/// Unknown type, can't really do anything with it.
+	/// Unknown type, a place holder.  Can not process data of this type!
 	UNKNOWN_TYPE=0,
 	/// A special eight-byte ID type for internal use.
 	OID,
@@ -68,6 +68,14 @@ namespace ibis {
 /// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/thula_8cpp.html">examples/thula.cpp</A>.
 class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
+    /// Create a simple of container of a partition.  The objective is to
+    /// make the functions of this class available.  The caller retains the
+    /// ownership of the data partition.
+    static ibis::table* create(ibis::part&);
+    /// Create a container of externally managed data partitions.  The
+    /// objective is to make the functions of this class available.  The
+    /// caller retains the ownership of the data partition.
+    static ibis::table* create(const ibis::partList&);
     /// Create a table object from the specified data directory.  If the
     /// argument is a nil pointer, it will examine configuration parameters
     /// to find locations of data patitions.
@@ -331,7 +339,7 @@ protected:
 private:
     // re-enforce the prohibitions on copying and assignment.
     table(const table&);
-    const table& operator=(const table&);
+    table& operator=(const table&);
 }; // class ibis::table
 
 /// @ingroup FastBitMain
@@ -510,7 +518,7 @@ protected:
 
 private:
     tablex(const tablex&); // no copying
-    const tablex& operator=(const tablex&); // no assignment
+    tablex& operator=(const tablex&); // no assignment
 }; // class ibis::tablex
 
 /// A list of tables.  It supports simple lookup through operator[] and
@@ -592,7 +600,7 @@ private:
 
     // Can not copy or assign.
     tableList(const tableList&);
-    const tableList& operator=(const tableList&);
+    tableList& operator=(const tableList&);
 }; // ibis::tableList
 
 /// Cursor class for row-wise data accesses.

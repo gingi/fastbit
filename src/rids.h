@@ -43,6 +43,6 @@ class ibis::ridHandler {
 
 private:
     ridHandler(const ridHandler&);
-    const ridHandler& operator=(const ridHandler&);
+    ridHandler& operator=(const ridHandler&);
 };
 #endif

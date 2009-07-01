@@ -124,6 +124,6 @@ protected:
 
 private:
     tafel(const tafel&);
-    const tafel& operator=(const tafel&);
+    tafel& operator=(const tafel&);
 }; // class ibis::tafel
 #endif // IBIS_TAFEL_H

@@ -387,7 +387,7 @@ private:
     /// The mutual exclusion lock used by indexLock and others.
     mutable pthread_mutex_t mutex;
 
-    const column& operator=(const column&); // no assignment
+    column& operator=(const column&); // no assignment
 }; // ibis::column
 
 /// Some basic information about a column.  Can only be used if the
@@ -420,7 +420,7 @@ private:
 
     indexLock();
     indexLock(const indexLock&);
-    const indexLock& operator=(const indexLock&);
+    indexLock& operator=(const indexLock&);
 }; // ibis::column::indexLock
 
 /// Provide a mutual exclusion lock on an ibis::column.
@@ -453,7 +453,7 @@ private:
 
     mutexLock() {}; // no default constructor
     mutexLock(const mutexLock&) {}; // can not copy
-    const mutexLock& operator=(const mutexLock&);
+    mutexLock& operator=(const mutexLock&);
 }; // ibis::column::mutexLock
 
 /// Provide a write lock on a ibis::column object.
@@ -496,7 +496,7 @@ private:
 
     writeLock();
     writeLock(const writeLock&);
-    const writeLock& operator=(const writeLock&);
+    writeLock& operator=(const writeLock&);
 }; // ibis::column::writeLock
 
 /// Provide a write lock on a ibis::column object.
@@ -540,7 +540,7 @@ private:
 
     softWriteLock();
     softWriteLock(const softWriteLock&);
-    const softWriteLock& operator=(const softWriteLock&);
+    softWriteLock& operator=(const softWriteLock&);
 }; // ibis::column::softWriteLock
 
 /// Provide a write lock on a ibis::column object.
@@ -583,7 +583,7 @@ private:
 
     readLock();
     readLock(const readLock&);
-    const readLock& operator=(const readLock&);
+    readLock& operator=(const readLock&);
 }; // ibis::column::readLock
 
 inline int ibis::column::elementSize() const {

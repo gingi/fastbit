@@ -86,7 +86,7 @@ protected:
 		      char *buf, uint32_t nbuf) const;
 
 private:
-    const text& operator=(const text&);
+    text& operator=(const text&);
 }; // ibis::text
 
 /// Provide a mapping between strings and integers.  A utility class used
@@ -135,7 +135,7 @@ private:
     wordList s2i;
     uint32_t newentry;
 
-    const dictionary& operator=(const dictionary&);
+    dictionary& operator=(const dictionary&);
 }; // ibis::dictionary
 
 /// A specialized low-cardinality text field.  It is also known as control
@@ -179,6 +179,8 @@ public:
 //     std::vector<std::string>* selectStrings(const bitvector& mask) const;
     virtual void getString(uint32_t i, std::string &val) const {val=dic[i];}
 
+    /// Return the number of key values.
+    virtual uint32_t getNumKeys() const {return dic.size();}
     /// Return the ith value in the dictionary.
     virtual const char* getKey(uint32_t i) const {return dic[i];}
     /// Is the given string one of the keys in the dictionary?  Return a
@@ -199,7 +201,7 @@ private:
     /// Build an ibis::relic index using the existing primary data.
     void fillIndex(const char *dir=0);
 
-    const category& operator=(const category&);
+    category& operator=(const category&);
 }; // ibis::category
 
 // return the ith string value

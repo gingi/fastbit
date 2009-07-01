@@ -396,7 +396,7 @@ protected:
 
 private:
     index(const index&); // no copy constructor
-    const index& operator=(const index&); // no assignment operator
+    index& operator=(const index&); // no assignment operator
 }; // ibis::index
 
 

@@ -106,7 +106,7 @@ private:
     uint64_t nrows;
 
     tabula(const tabula&);
-    const tabula& operator=(const tabula&);
+    tabula& operator=(const tabula&);
 }; // ibis::tabula
 
 /// A trivial class for table with one row and one column.  This type of
@@ -215,7 +215,7 @@ private:
     std::string col;
 
     tabele(const tabele&);
-    const tabele& operator=(const tabele&);
+    tabele& operator=(const tabele&);
 
     friend class cursor;
 }; // ibis::tabele

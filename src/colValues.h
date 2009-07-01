@@ -97,7 +97,7 @@ protected:
     colValues(const ibis::column* c) : col(c) {};
 
 private:
-    const colValues& operator=(const colValues&);
+    colValues& operator=(const colValues&);
 }; // ibis::colValues
 
 /// A class to store integer values.
@@ -183,7 +183,7 @@ private:
     array_t<int32_t>* array;
 
     colInts(const colInts&);
-    const colInts& operator=(const colInts&);
+    colInts& operator=(const colInts&);
 }; // ibis::colInts
 
 /// A class to store unsigned integer values.
@@ -283,7 +283,7 @@ private:
     array_t<uint32_t>* array;
 
     colUInts(const colUInts&);
-    const colUInts& operator=(const colUInts&);
+    colUInts& operator=(const colUInts&);
 }; // ibis::colUInts
 
 /// A class to store integer values.
@@ -371,7 +371,7 @@ private:
     array_t<int64_t>* array;
 
     colLongs(const colLongs&);
-    const colLongs& operator=(const colLongs&);
+    colLongs& operator=(const colLongs&);
 }; // ibis::colLongs
 
 /// A class to store unsigned integer values.
@@ -471,7 +471,7 @@ private:
     array_t<uint64_t>* array;
 
     colULongs(const colULongs&);
-    const colULongs& operator=(const colULongs&);
+    colULongs& operator=(const colULongs&);
 }; // ibis::colULongs
 
 /// A class to store single precision float-point values.
@@ -559,7 +559,7 @@ private:
     array_t<float>* array;
 
     colFloats(const colFloats&);
-    const colFloats& operator=(const colFloats&);
+    colFloats& operator=(const colFloats&);
 }; // ibis::colFloats
 
 /// A class to store double precision floating-point values.
@@ -646,6 +646,6 @@ private:
     array_t<double>* array;
 
     colDoubles(const colDoubles&);
-    const colDoubles& operator=(const colDoubles&);
+    colDoubles& operator=(const colDoubles&);
 }; // ibis::colDoubles
 #endif

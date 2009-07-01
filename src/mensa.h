@@ -17,6 +17,7 @@ on ibis::part to the ibis::table interface.
  */
 namespace ibis {
     class mensa;
+    class liga;
 } // namespace ibis
 
 /// Class ibis::mensa contains multiple (horizontal) data partitions (@c
@@ -135,7 +136,7 @@ protected:
 private:
     // disallow copying.
     mensa(const mensa&);
-    const mensa& operator=(const mensa&);
+    mensa& operator=(const mensa&);
 
     friend class cursor;
 }; // ibis::mensa
@@ -218,6 +219,29 @@ private:
     cursor(const cursor&);
     cursor& operator=(const cursor&);
 }; // ibis::mensa::cursor
+
+/// A specialization of class mensa.  It holds a list of data partitions
+/// that it does not own.  It does not create these partitions nor delete
+/// them.  It inherits the public functions of mensa without making any
+/// additions or modifications.
+///
+/// @note About the name: Liga is the Danish translation of the term
+/// "league table."
+class ibis::liga : public ibis::mensa {
+public:
+    liga(ibis::part&);
+    liga(const ibis::partList&);
+    ~liga();
+
+    /// The list of partitions in this class can NOT be expanded or
+    /// otherwise modified.
+    virtual int addPartition(const char*) {return -1;}
+
+private:
+    liga();
+    liga(const liga&);
+    liga& operator=(const liga&);
+}; // ibis::liga
 
 inline int
 ibis::mensa::cursor::getColumnAsByte(const char* cn, char& val) const {

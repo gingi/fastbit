@@ -46,7 +46,7 @@ public:
     /// map if possible.
     array_t<T>(const char *fn, const off_t begin, const off_t end);
 
-    const array_t<T>& operator=(const array_t<T>& rhs);
+    array_t<T>& operator=(const array_t<T>& rhs);
     void copy(const array_t<T>& rhs);
     void deepCopy(const array_t<T>& rhs);
 

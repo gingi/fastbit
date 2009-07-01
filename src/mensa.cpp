@@ -757,6 +757,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	if (jp < mylist.size()) {
 	    std::ostringstream oss;
 	    oss << ", ... (" << mylist.size()-jp << " skipped)";
+	    de += oss.str();
 	}
     }
     else {
@@ -3555,6 +3556,107 @@ int ibis::mensa::cursor::getColumnAsString(size_t j, std::string& val) const {
     }
     return ierr;
 } // ibis::mensa::cursor::getColumnAsString
+
+/// Ibis::liga does not own the data partitions and does not free the
+/// resources in those partitions.
+ibis::liga::~liga () {
+    parts.clear();
+} // ibis::liga::~liga
+
+/// Create an object from an externally managed data partition.
+ibis::liga::liga(ibis::part& p) : ibis::mensa() {
+    if (p.nRows() == 0 || p.nColumns() == 0) return;
+    parts.resize(1);
+    parts[0] = &p;
+    p.combineNames(naty);
+    nrows = p.nRows();
+
+    name_ = "T-";
+    desc_ = "a simple container of data partition ";
+    std::ostringstream oss;
+    oss << "with " << p.nRows() << " row" << (p.nRows()>1 ? "s" : "")
+	<< " and " << p.nColumns() << " column"
+	<< (p.nColumns()>1 ? "s" : "");
+    if (p.name() != 0 && *(p.name()) != 0) {
+	name_ += p.name();
+	desc_ += p.name();
+    }
+    else if (p.description() != 0 && *(p.description()) != 0) {
+	unsigned sum =
+	    ibis::util::checksum(p.description(), strlen(p.description()));
+	std::string tmp;
+	ibis::util::int2string(tmp, sum);
+	name_ += tmp;
+	desc_ += p.description();
+    }
+    else { // produce a random name from the size of the data partition
+	const unsigned v2 = (p.nColumns() ^
+			     ibis::fileManager::instance().iBeat());
+	std::string tmp;
+	ibis::util::int2string(tmp, p.nRows(), v2);
+	desc_ += oss.str();
+    }
+    LOGGER(ibis::gVerbose > 0)
+	<< "ibis::liga -- constructed table " << name_ << " (" << desc_
+	<< ") from a partition " << oss.str();
+} // ibis::liga::liga
+
+/// Create an object from an external list of data partitions.  Note that
+/// this object does not own the partitions and is not reponsible for
+/// freeing the partitions.  It merely provide a container for the
+/// partitions so that one can use the ibis::table API.
+ibis::liga::liga(const ibis::partList &l) : ibis::mensa() {
+    if (l.empty()) return;
+
+    parts.insert(parts.end(), l.begin(), l.end());
+    for (ibis::partList::const_iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	(*it)->combineNames(naty);
+	nrows += (*it)->nRows();
+    }
+    if (! parts.empty()) {
+	// take on the name of the first partition
+	ibis::partList::const_iterator it = parts.begin();
+	name_ = "T-";
+	name_ += (*it)->name();
+	if (desc_.empty()) {
+	    size_t mp = ((l.size() >> ibis::gVerbose) <= 1 ?
+			 l.size() :
+			 (ibis::gVerbose > 2 ? (1 << ibis::gVerbose) : 5));
+	    if (mp > l.size()) mp = l.size();
+	    size_t jp = 1;
+	    desc_ = "a simple list of partitions: ";
+	    desc_ += parts[0]->name();
+	    while (jp < mp) {
+		desc_ += (jp+1 < parts.size() ? ", " : " and ");
+		desc_ += parts[jp]->name();
+	    }
+	    if (jp < parts.size()) {
+		std::ostringstream oss;
+		oss << ", ... (" << parts.size()-jp << " skipped)";
+		desc_ += oss.str();
+	    }
+	}
+    }
+    if (ibis::gVerbose > 0 && ! name_.empty()) {
+	ibis::util::logger lg;
+	lg.buffer() << "ibis::liga -- constructed table "
+		    << name_ << " (" << desc_ << ") from a list of "
+		    << l.size() << " data partition"
+		    << (l.size()>1 ? "s" : "")
+		    << ", with " << naty.size() << " column"
+		    << (naty.size()>1 ? "s" : "") << " and "
+		    << nrows << " row" << (nrows>1 ? "s" : "");
+    }
+} // ibis::liga::liga
+
+ibis::table* ibis::table::create(ibis::part& p) {
+    return new ibis::liga(p);
+} // ibis::table::create
+
+ibis::table* ibis::table::create(const ibis::partList& pl) {
+    return new ibis::liga(pl);
+} // ibis::table::create
 
 ///@note If the incoming directory name is nil or an empty string, it
 ///attempts to use the directories specified in the configuration files.

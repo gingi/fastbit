@@ -102,6 +102,7 @@
 #include <mensa.h>	// ibis::mensa
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::sort
+#include <memory>	// std::auto_ptr
 
 // local data types
 typedef std::vector<const char*> stringList;
@@ -163,19 +164,6 @@ namespace ibis {
 	void print(std::ostream& out) const;
     }; // joinspec
     typedef std::vector<joinspec> joinlist;
-
-    /// A temporary holder of data partitions for query evaluations.
-    class mensa2 : public mensa {
-    public:
-	mensa2(const partList&);
-	~mensa2();
-
-    private:
-	// limit the automatically generated constructors
-	mensa2();
-	mensa2(const mensa2&);
-	mensa2& operator=(const mensa2&);
-    }; // mensa2
 }
 
 // printout the usage string
@@ -2405,48 +2393,6 @@ static void parse_args(int argc, char** argv,
     }
 } // parse_args
 
-/// Ibis::mensa2 is constructed from a list of data partitions.
-ibis::mensa2::mensa2(const ibis::partList &l) : ibis::mensa() {
-    if (l.empty()) return;
-
-    parts.insert(parts.end(), l.begin(), l.end());
-    for (ibis::partList::const_iterator it = parts.begin();
-	 it != parts.end(); ++ it) {
-	(*it)->combineNames(naty);
-	nrows += (*it)->nRows();
-    }
-    if (name_.empty() && ! parts.empty()) {
-	// take on the name of the first partition
-	ibis::partList::const_iterator it = parts.begin();
-	name_ = "T-";
-	name_ += (*it)->name();
-	if (desc_.empty()) {
-	    desc_ = "a simple list of partitions: ";
-	    desc_ += parts[0]->name();
-	    for (size_t j = 1; j < parts.size(); ++ j) {
-		desc_ += (j+1 < parts.size() ? ", " : " and ");
-		desc_ += parts[j]->name();
-	    }
-	}
-    }
-    if (ibis::gVerbose > 0 && ! name_.empty()) {
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::mensa2 -- constructed table "
-		    << name_ << " (" << desc_ << ") from a list of "
-		    << l.size() << " data partition"
-		    << (l.size()>1 ? "s" : "")
-		    << ", with " << naty.size() << " column"
-		    << (naty.size()>1 ? "s" : "") << " and "
-		    << nrows << " row" << (nrows>1 ? "s" : "");
-    }
-} // ibis::mensa2::mensa2
-
-/// Ibis::mensa2 does not own the data partitions and does not free the
-/// resources in those partitions.
-ibis::mensa2::~mensa2 () {
-    parts.clear();
-} // ibis::mensa2::~mensa2
-
 // evaluate a single query -- directly retrieve values of selected columns
 static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     const char* sstr) {
@@ -2764,13 +2710,13 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* wstr, const char* sstr,
 			const char* ordkeys, int direction,
 			uint32_t limit) {
-    ibis::mensa2 tbl(pl); // construct a temporary ibis::table object
+    std::auto_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
     {
 	std::ostringstream ostr;
 	if (sstr != 0 && *sstr != 0)
 	    ostr << "SELECT " << sstr;
-	ostr << " FROM " << tbl.name();
+	ostr << " FROM " << tbl->name();
 	if (wstr != 0 && *wstr != 0)
 	    ostr << " WHERE " << wstr;
 	if (ordkeys && *ordkeys) {
@@ -2792,7 +2738,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
     if (! skip_estimation) {
 	uint64_t num1, num2;
-	tbl.estimate(wstr, num1, num2);
+	tbl->estimate(wstr, num1, num2);
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
 	    lg.buffer() << "tableSelect -- the number of hits is ";
@@ -2812,17 +2758,17 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
     }
 
-    ibis::table *sel1 = tbl.select(sstr, wstr);
+    ibis::table *sel1 = tbl->select(sstr, wstr);
     if (sel1 == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "tableSelect:: select(" << sstr << ", " << wstr
-	    << ") failed on table " << tbl.name();
+	    << ") failed on table " << tbl->name();
 	return;
     }
 
     LOGGER(ibis::gVerbose >= 0)
 	<< "tableSelect -- select(" << sstr << ", " << wstr
-	<< ") on table " << tbl.name() << " produced a table with "
+	<< ") on table " << tbl->name() << " produced a table with "
 	<< sel1->nRows() << " row" << (sel1->nRows() > 1 ? "s" : "")
 	<< " and " << sel1->nColumns() << " column"
 	<< (sel1->nColumns() > 1 ? "s" : "");

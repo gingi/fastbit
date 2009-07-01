@@ -217,7 +217,7 @@ ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
 
 /// Assignment operator.  It performs a shallow copy.
 template<class T>
-const ibis::array_t<T>& ibis::array_t<T>::operator=(const array_t<T>& rhs) {
+ibis::array_t<T>& ibis::array_t<T>::operator=(const array_t<T>& rhs) {
     array_t<T> tmp(rhs); // make a shallow copy
     swap(tmp); // swap, let compiler clean up the old content
     return *this;

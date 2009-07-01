@@ -96,13 +96,7 @@
 #define FASTBIT_STRING "FastBit ibis"
 #endif
 #include <functional>	// std::less, std::binary_function<>
-
-// Compiler independent definitions:
-#define TIME_BUF_LEN 32
-#define MAX_LINE 2048
-// #ifndef mmax
-// #define mmax(x,y) ((x)>(y))?(x):(y)
-// #endif
+#include <vector>	// std::vector
 
 // section to handle errno in a multithread program
 #if defined(__SUNPRO_CC)
@@ -120,6 +114,15 @@
 //       extern int errno;
 //  #  endif /* _MT || _DLL */
 #endif /* errno */
+
+// Compiler independent definitions:
+//#define TIME_BUF_LEN 32
+#ifndef MAX_LINE
+#define MAX_LINE 2048
+#endif
+// #ifndef mmax
+// #define mmax(x,y) ((x)>(y))?(x):(y)
+// #endif
 
 /// PREFERRED_BLOCK_SIZE is the parameter used to determine the logical page
 /// size during some I/O intensive operations, such as nested loop join.
@@ -236,7 +239,7 @@
 // their corresponding MAX values are also defined with #define.  Since the
 // types themselves may be typedefs, the corresponding INTx_MAX are more
 // reliable checks.
-#if !(HAVE_STDINT_H+0 == 0 || defined(unix) || defined(_WIN32) || defined(__APPLE__) || defined(__x86_64__) || defined(_STDINT_H))
+#if !(defined(HAVE_STDINT_H) || defined(unix) || defined(_WIN32) || defined(__APPLE__) || defined(__x86_64__) || defined(_STDINT_H))
 #  ifndef INT16_MAX
 #    define int16_t short int
 #    define INT16_MAX (32767)
@@ -348,6 +351,10 @@ namespace ibis { // forward definition of all the classes in IBIS
     class query;	///< To store information about a query.
     /// @}
 
+    template<class T> class array_t;
+    /// A simple list of data partitions.
+    typedef FASTBIT_CXX_DLLSPEC std::vector< part* > partList;
+
     /// The object identifiers used to distinguish records.
     union FASTBIT_CXX_DLLSPEC rid_t {
 	uint64_t value;	///< As a single 64-bit value.
@@ -385,7 +392,5 @@ namespace ibis { // forward definition of all the classes in IBIS
     /// Verbosity level.  The larger the value, the more is printed.
     /// Default value is 0.  A negative value will disable all printing.
     extern FASTBIT_CXX_DLLSPEC int gVerbose;
-
-    template<class T> class array_t;
 } // namespace ibis
 #endif // ifndef IBIS_CONST_H

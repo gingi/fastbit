@@ -56,7 +56,7 @@ public:
     resource(const resource& rhs) :
 	groups(rhs.groups), values(rhs.values),
 	prefix(ibis::util::strnewdup(rhs.prefix)), context(rhs.context) {}
-    const resource& operator=(const resource& rhs);
+    resource& operator=(const resource& rhs);
 
     /// Locate the named parameter and return its value in raw string form.
     const char* operator[](const char *name) const;

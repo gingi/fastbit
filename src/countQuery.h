@@ -84,7 +84,7 @@ protected:
 
 private:
     countQuery(const countQuery&);
-    const countQuery& operator=(const countQuery&);
+    countQuery& operator=(const countQuery&);
 }; // class ibis::countQuery
 
 inline int ibis::countQuery::setSelectClause(const ibis::selectClause *s) {

@@ -139,7 +139,7 @@ public:
     /// Attempt to convert simplify the query expressions.
     static void simplify(ibis::qExpr*&);
 
-    const qExpr& operator=(const qExpr& rhs) {
+    qExpr& operator=(const qExpr& rhs) {
 	delete left; delete right;
 	type = rhs.type;
 	left = (rhs.left != 0 ? rhs.left->dup() : 0);
@@ -186,7 +186,7 @@ protected:
 
 private:
     qRange(const qRange&) {}; // no copy constructor allowed, must use dup
-    const qRange& operator=(const qRange&);
+    qRange& operator=(const qRange&);
 }; // ibis::qRange
 
 /// Simple range condition.  It is implemented as a derived class of qExpr.
@@ -286,7 +286,7 @@ private:
     double lower, upper;
     COMPARE left_op, right_op;
 
-    const qContinuousRange& operator=(const qContinuousRange&);
+    qContinuousRange& operator=(const qContinuousRange&);
     friend void ibis::qExpr::simplify(ibis::qExpr*&);
 }; // ibis::qContinuousRange
 
@@ -336,7 +336,7 @@ private:
     std::string name;
     std::vector<double> values; ///< values are sorted.
 
-    const qDiscreteRange& operator=(const qDiscreteRange&);
+    qDiscreteRange& operator=(const qDiscreteRange&);
 }; // ibis::qDiscreteRange
 
 /// The class qString encapsulates information for comparing string values.
@@ -369,7 +369,7 @@ private:
     qString(const qString& rhs) : qExpr(STRING),
 				  lstr(ibis::util::strnewdup(rhs.lstr)),
 				  rstr(ibis::util::strnewdup(rhs.rstr)) {}
-    const qString& operator=(const qString&);
+    qString& operator=(const qString&);
 }; // ibis::qString
 
 // A data structure to hold the string-valued version of the IN expression,
@@ -537,7 +537,7 @@ namespace ibis {
 	    mutable barrel* myBar;// the barrel containing it
 	    mutable uint32_t varind;// the token to retrieve value from myBar
 
-	    const variable& operator=(const variable&);
+	    variable& operator=(const variable&);
 	}; // the variable term
 
 	/// A number.
@@ -583,7 +583,7 @@ namespace ibis {
 	    char* str;
 
 	    literal(const literal&);
-	    const literal& operator=(const literal&);
+	    literal& operator=(const literal&);
 	}; // literal
 
 	/// An operator.  Bediener is German for operator.
@@ -752,7 +752,7 @@ private:
     ibis::math::term *expr;
 
     rangeJoin(const rangeJoin&);
-    const rangeJoin& operator=(const rangeJoin&);
+    rangeJoin& operator=(const rangeJoin&);
 }; // class ibis::rangeJoin
 
 /// A user specifies this type of query expression with the following

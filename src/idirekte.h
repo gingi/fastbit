@@ -80,7 +80,7 @@ protected:
 
     direkte();
     direkte(const direkte&);
-    const direkte& operator=(const direkte&);
+    direkte& operator=(const direkte&);
 }; // ibis::direkte
 
 #endif

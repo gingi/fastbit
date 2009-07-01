@@ -387,7 +387,7 @@ void ibis::resource::parseNameValuePairs(const char *in,
 } // ibis::resource::parseNameValuePairs
 
 /// The assignment operator.
-const ibis::resource& ibis::resource::operator=(const ibis::resource& rhs) {
+ibis::resource& ibis::resource::operator=(const ibis::resource& rhs) {
     if (&rhs == this) return *this;
     clear(); // clear the current content first
     groups = rhs.groups;

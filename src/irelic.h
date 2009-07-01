@@ -188,7 +188,7 @@ private:
     }
 
     relic(const relic&);
-    const relic& operator=(const relic&);
+    relic& operator=(const relic&);
 }; // ibis::relic
 
 /// The bit-sliced index (O'Neil).  It used the binary encoding.
@@ -256,7 +256,7 @@ private:
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
 
     slice(const slice&);
-    const slice& operator=(const slice&);
+    slice& operator=(const slice&);
 }; // ibis::slice
 
 /// The multicomponent range-encoded index.  Defined by Chan and Ioannidis
@@ -312,7 +312,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     fade(const fade&);
-    const fade& operator=(const fade&);
+    fade& operator=(const fade&);
 }; // ibis::fade
 
 /// The multicomponent interval encoded index.  Defined by Chan and
@@ -352,7 +352,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     sbiad(const sbiad&);
-    const sbiad& operator=(const sbiad&);
+    sbiad& operator=(const sbiad&);
 }; // ibis::sbiad
 
 /// The multicomponent equality encoded index.
@@ -392,7 +392,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     sapid(const sapid&);
-    const sapid& operator=(const sapid&);
+    sapid& operator=(const sapid&);
 }; // ibis::sapid
 
 /// The two-level interval-equality code.
@@ -447,7 +447,7 @@ private:
     long coarseEvaluate(uint32_t lo, uint32_t hi, ibis::bitvector& res) const;
 
     fuzz(const fuzz&);
-    const fuzz& operator=(const fuzz&);
+    fuzz& operator=(const fuzz&);
 }; // ibis::fuzz
 
 /// The two-level range-equality code.
@@ -496,7 +496,7 @@ private:
     int readCoarse(const char *fn);
 
     bylt(const bylt&);
-    const bylt& operator=(const bylt&);
+    bylt& operator=(const bylt&);
 }; // ibis::bylt
 
 /// The two-level equality-equality code.
@@ -544,6 +544,6 @@ private:
     int readCoarse(const char *fn);
 
     zona(const zona&);
-    const zona& operator=(const zona&);
+    zona& operator=(const zona&);
 }; // ibis::zona
 #endif // IBIS_IRELIC_H

@@ -86,6 +86,6 @@ private:
 
     meshQuery();
     meshQuery(const meshQuery&);
-    const meshQuery& operator=(const meshQuery&);
+    meshQuery& operator=(const meshQuery&);
 }; // class ibis::meshQuery
 #endif // IBIS_MESHQUERY_H

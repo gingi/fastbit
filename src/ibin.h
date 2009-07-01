@@ -282,7 +282,7 @@ protected:
 
 private:
     // private member functions
-    const bin& operator=(const bin&);
+    bin& operator=(const bin&);
 
     unsigned parseScale(const char*) const;
 
@@ -541,7 +541,7 @@ private:
     //       const double& rbound) const;
 
     mesa(const mesa&);
-    const mesa& operator=(const mesa&);
+    mesa& operator=(const mesa&);
 }; // ibis::mesa
 
 /// The multi-level range based (cumulative) index.
@@ -603,7 +603,7 @@ private:
 	      const double& rbound) const;
 
     ambit(const ambit&);
-    const ambit& operator=(const ambit&);
+    ambit& operator=(const ambit&);
 }; // ibis::ambit
 
 /// A two-level index.  Coarse level not cumulative, fine level is
@@ -656,7 +656,7 @@ private:
     int write(int fptr) const;
 
     pale(const pale&);
-    const pale& operator=(const pale&);
+    pale& operator=(const pale&);
 }; // ibis::pale
 
 /// A two-level index.  Coarse level is cumulative, but not the bottom
@@ -713,7 +713,7 @@ private:
     int write(int fptr) const;
 
     pack(const pack&);
-    const pack& operator=(const pack&);
+    pack& operator=(const pack&);
 }; // ibis::pack
 
 /// A two-level index.  Both levels are not cumulative, i.e., both levels
@@ -766,7 +766,7 @@ private:
     int write(int fptr) const;
 
     zone(const zone&);
-    const zone& operator=(const zone&);
+    zone& operator=(const zone&);
 }; // ibis::zone
 
 /// A two-level index.  The top (coarse) level uses the interval encoding
@@ -829,7 +829,7 @@ private:
     long coarseEvaluate(uint32_t lo, uint32_t hi, ibis::bitvector& res) const;
 
     fuge(const fuge&);
-    const fuge& operator=(const fuge&);
+    fuge& operator=(const fuge&);
 }; // ibis::fuge
 
 /// The multicomponent equality code on bins.
@@ -905,7 +905,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     egale(const egale&);
-    const egale& operator=(const egale&);
+    egale& operator=(const egale&);
 }; // ibis::egale
 
 /// The multicomponent range code on bins.
@@ -958,7 +958,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     moins(const moins&);
-    const moins& operator=(const moins&);
+    moins& operator=(const moins&);
 }; // ibis::moins
 
 /// The multicomponent interval code on bins.
@@ -1011,7 +1011,7 @@ private:
     void evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const;
 
     entre(const entre&);
-    const entre& operator=(const entre&);
+    entre& operator=(const entre&);
 }; // ibis::entre
 
 /// Maps each value to a lower prevision (decimal) values and use the the
@@ -1152,7 +1152,7 @@ private:
     void construct(bakMap& bmap);
 
     bak2(const bak2&);
-    const bak2& operator=(const bak2&);
+    bak2& operator=(const bak2&);
 }; // ibis::bak2
 
 #endif // IBIS_IBIN_H

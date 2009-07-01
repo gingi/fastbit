@@ -444,7 +444,7 @@ private:
     void setMyDir(const char *pref);
 
     query(const query&);
-    const query& operator=(const query&);
+    query& operator=(const query&);
 }; // class ibis::query
 
 namespace ibis {

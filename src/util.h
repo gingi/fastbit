@@ -27,7 +27,6 @@
 #include <fcntl.h>	// open, close
 //#endif
 #include <map>		// std::map
-#include <vector>	// std::vector
 #include <string>	// std::string
 
 #include <sstream>	// std::ostringstream used by ibis::util::logger
@@ -271,7 +270,7 @@ namespace ibis {
 	compStore cvec;	// contains pointers to buff, for easier access
 
 	nameList(const nameList&);
-	const nameList& operator=(const nameList&);
+	nameList& operator=(const nameList&);
     }; // class nameList
 
     /// A data structure to store the select clause of a query.  A select
@@ -334,14 +333,12 @@ namespace ibis {
 	void print(size_t i, std::ostream& out) const;
 
 	selected(const selected&);
-	const selected& operator=(const selected&);
+	selected& operator=(const selected&);
     }; // class selected
 
     /// An associative array for data partitions.  Only used internally for
     /// sorting data partitions.
     typedef std::map< const char*, part*, lessi > partAssoc;
-    /// A simple list of data partitions.
-    typedef FASTBIT_CXX_DLLSPEC std::vector< part* > partList;
 
     /// A specialization of std::bad_alloc.
     class bad_alloc : public std::bad_alloc {
@@ -557,7 +554,7 @@ namespace ibis {
 	    static pthread_mutex_t mutex;
 
 	    ioLock(const ioLock&) {}; // can not copy
-	    const ioLock& operator=(const ioLock&);
+	    ioLock& operator=(const ioLock&);
 	};
 
 	/// An wrapper class for perform pthread_mutex_lock/unlock.
@@ -586,7 +583,7 @@ namespace ibis {
 
 	    mutexLock() : mesg(0), lock(0) {}; // no default constructor
 	    mutexLock(const mutexLock&); // can not copy
-	    const mutexLock& operator=(const mutexLock&);
+	    mutexLock& operator=(const mutexLock&);
 	}; // mutexLock
 
 	/// An wrapper class for perform pthread_mutex_lock/unlock.  Avoid
@@ -632,7 +629,7 @@ namespace ibis {
 
 	    readLock() : mesg(0), lock(0) {}; // no default constructor
 	    readLock(const readLock&); // can not copy
-	    const readLock& operator=(const readLock&);
+	    readLock& operator=(const readLock&);
 	}; // readLock
 
 	/// An wrapper class for perform pthread_rwlock_wrlock/unlock.
@@ -658,7 +655,7 @@ namespace ibis {
 
 	    writeLock() : mesg(0), lock(0) {}; // no default constructor
 	    writeLock(const writeLock&); // can not copy
-	    const writeLock& operator=(const writeLock&);
+	    writeLock& operator=(const writeLock&);
 	}; // writeLock
 
 	/// A simple shared counter.  Each time the operator() is called,
@@ -726,7 +723,7 @@ namespace ibis {
 	    /// Copy constructor.  Decleared but not implemented.
 	    counter(const counter&);
 	    /// Assignment operator.  Decleared but not implemented.
-	    const counter& operator=(const counter&);
+	    counter& operator=(const counter&);
 	}; // counter
 
 	/// A shared integer class.  Multiply threads may safely perform

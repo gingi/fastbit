@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../src;C:\Tools\pthread\include"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;../src;."
 				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;_DEBUG;_CONSOLE;CXX_USE_DLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -125,7 +125,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../src;C:\Tools\pthread\include"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;../src;."
 				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;_CONSOLE;CXX_USE_DLL"
 				RuntimeLibrary="0"
 				RuntimeTypeInfo="true"

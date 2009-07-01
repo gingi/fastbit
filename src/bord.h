@@ -137,7 +137,7 @@ protected:
     private:
 	part();
 	part(const part&);
-	const part& operator=(const part&);
+	part& operator=(const part&);
     }; // ibis::bord::part
 
     part mypart; ///< The data partition for an in-memory table.
@@ -150,7 +150,7 @@ protected:
 private:
     // disallow copying.
     bord(const bord&);
-    const bord& operator=(const bord&);
+    bord& operator=(const bord&);
 
     friend class cursor;
 }; // ibis::bord
@@ -201,7 +201,7 @@ public:
 protected:
     void *buffer; // a pointer to an array<T>
 
-    const column& operator=(const column&);
+    column& operator=(const column&);
 }; // ibis::bord::column
 
 class ibis::bord::cursor : public ibis::table::cursor {
@@ -266,7 +266,7 @@ protected:
 private:
     cursor();
     cursor(const cursor&);
-    const cursor& operator=(const cursor&);
+    cursor& operator=(const cursor&);
 }; // ibis::bord::cursor
 
 inline void ibis::bord::describe(std::ostream &out) const {

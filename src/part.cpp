@@ -283,8 +283,9 @@ ibis::part::part(const ibis::resource::vList &mtags) :
 
 /// Construct a partition from the named directories.  Originally, FastBit
 /// was designed to work with a pair of directories, @c adir and @c bdir.
-/// Normally, data is stored only in one directory, specify the directory
-/// as @c adir and leave @c bdir as null.
+/// Therefore, the constructor takes a pair of directory names.  In many
+/// cases, data is stored only in one directory, in which simply give the
+/// data directory as @c adir and leave @c bdir as null.
 ibis::part::part(const char* adir, const char* bdir) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
