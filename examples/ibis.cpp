@@ -2211,7 +2211,7 @@ static void parse_args(int argc, char** argv,
 		// must have an argument after the flag to indicate a file
 		// containing row numbers or a string indicate conditions
 		// on rows to mark as inactive/junk
-		if (i+1 < argc && *argv[i+1] != '-') {
+		if (i+1 < argc) {
 		    yankstring = argv[i+1];
 		    i = i + 1;
 		}

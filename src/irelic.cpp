@@ -1544,12 +1544,17 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
 	uint32_t h0, h1;
 	locate(expr, h0, h1);
 	if (h1 > h0 && offsets.size() > h1 ) {
-	    const int32_t tot = offsets.back() - offsets[0];
-	    const int32_t mid = offsets[h1] - offsets[h0];
-	    if ((tot >> 1) >= mid)
-		ret = mid;
-	    else
-		ret = tot - mid;
+	    if (h1 > h0 + 1) {
+		const int32_t tot = offsets.back() - offsets[0];
+		const int32_t mid = offsets[h1] - offsets[h0];
+		if ((tot >> 1) >= mid)
+		    ret = mid;
+		else
+		    ret = tot - mid;
+	    }
+	    else {// extra discount for a single bitmap
+		ret = 0.5 * (offsets[h1] - offsets[h0]);
+	    }
 	}
     }
     return ret;

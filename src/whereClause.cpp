@@ -137,13 +137,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 			    *static_cast<const ibis::math::variable*>(tm);
 			col = part0.getColumn(var.variableName());
 			if (col != 0) { // use the real name
-			    range = new ibis::qContinuousRange
-				(range->leftBound(), range->leftOperator(),
-				 var.variableName(),
-				 range->rightOperator(), range->rightBound());
-			    delete xp0;
-			    xp0 = range;
-			    ierr += _verify(part0, xp0, sel);
+			    xp0 = standardizeRange(col, range);
 			}
 			break;}
 		    case ibis::math::NUMBER: {
@@ -154,12 +148,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 			    *static_cast<const ibis::math::literal*>(tm);
 			col = part0.getColumn(sval);
 			if (col != 0) { // use the real name
-			    range = new ibis::qContinuousRange
-				(range->leftBound(), range->leftOperator(),
-				 sval,
-				 range->rightOperator(), range->rightBound());
-			    delete xp0;
-			    xp0 = range;
+			    xp0 = standardizeRange(col, range);
 			}
 			break;}
 		    case ibis::math::OPERATOR:
@@ -529,3 +518,70 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
 	    << "ibis::whereClause::amplify -- "
 	    "query expression with additional constraints\n" << *expr_;
 } // ibis::whereClause::amplify
+
+/// Create a simple range expression as the replacement of the incoming
+/// oldr.  It replaces the name of the column if the incoming expression
+/// uses an alias.  It replaces the negative query boundaries with 0 for
+/// unsigned integer columns.
+ibis::qContinuousRange*
+ibis::whereClause::standardizeRange(const ibis::column* col,
+				    ibis::qContinuousRange* oldr) const {
+    ibis::qExpr::COMPARE lop = oldr->leftOperator(),
+	rop = oldr->rightOperator();
+    double lbd = oldr->leftBound(),
+	rbd = oldr->rightBound();
+    if (col->isUnsignedInteger()) {
+	if (oldr->leftBound() < 0.0) {
+	    switch (oldr->leftOperator()) {
+	    default:
+	    case ibis::qExpr::OP_UNDEFINED:
+		lop = ibis::qExpr::OP_UNDEFINED;
+		break;
+	    case ibis::qExpr::OP_LT:
+	    case ibis::qExpr::OP_LE:
+		lop = ibis::qExpr::OP_LE;
+		lbd = 0.0;
+		break;
+	    case ibis::qExpr::OP_GT:
+	    case ibis::qExpr::OP_GE:
+		lop = ibis::qExpr::OP_GT;
+		lbd = 0.0;
+		break;
+	    case ibis::qExpr::OP_EQ:
+		// a unsigned number can not equal to a negative number,
+		// nor can it equal to 0.5
+		lbd = 0.5;
+		break;
+	    }
+	}
+	if (oldr->rightBound() < 0.0) {
+	    switch (oldr->rightOperator()) {
+	    default:
+	    case ibis::qExpr::OP_UNDEFINED:
+		rop = ibis::qExpr::OP_UNDEFINED;
+		break;
+	    case ibis::qExpr::OP_LT:
+	    case ibis::qExpr::OP_LE:
+		rop = ibis::qExpr::OP_LT;
+		rbd = 0.0;
+		break;
+	    case ibis::qExpr::OP_GT:
+	    case ibis::qExpr::OP_GE:
+		rop = ibis::qExpr::OP_GE;
+		rbd = 0.0;
+		break;
+	    case ibis::qExpr::OP_EQ:
+		// a unsigned number can not equal to a negative number,
+		// nor can it equal to 0.5
+		rbd = 0.5;
+		break;
+	    }
+	}
+    }
+
+    delete oldr;
+    ibis::qContinuousRange* ret =
+	new ibis::qContinuousRange(lbd, lop, col->name(), rop, rbd);
+    return ret;
+} // ibis::whereClause::standardizeRange
+

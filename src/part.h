@@ -1530,6 +1530,20 @@ namespace ibis {
     template <> void
     part::equalWeightBins(const array_t<double> &vals,
 			  uint32_t nbins, array_t<double> &bounds);
+
+    template <> long
+    part::doScan(const array_t<float> &,
+		 const ibis::qContinuousRange &,
+		 const ibis::bitvector &, ibis::bitvector &);
+    template <> long
+    part::doScan(const array_t<double> &,
+		 const ibis::qContinuousRange &,
+		 const ibis::bitvector &, ibis::bitvector &);
+
+    template <> long
+    part::doCount<float>(const ibis::qRange&) const;
+    template <> long
+    part::doCount<double>(const ibis::qRange&) const;
 }
 
 /// Return an ibis::part::info object that describes the current partition.

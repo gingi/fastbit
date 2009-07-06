@@ -147,6 +147,8 @@ protected:
     void amplify(const ibis::part&);
     int _verify(const ibis::part&, ibis::qExpr*&,
 		const ibis::selectClause *) const;
+    ibis::qContinuousRange*
+    standardizeRange(const ibis::column*, ibis::qContinuousRange*) const;
 
 private:
     ibis::whereLexer *lexer;	// hold a pointer for the parser

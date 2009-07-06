@@ -4904,7 +4904,6 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    if (high.cnt() > 0) {
 		ierr = thePart->doScan(cmp, high, b2);
 		if (ierr >= 0) {
-		    low.adjustSize(0, mymask.size());
 		    low |= b2;
 		}
 		else {

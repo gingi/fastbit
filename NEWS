@@ -1,3 +1,23 @@
+Mon Jul  6 15:32:26 PDT 2009
+Version ibis1.1.1
+-- put array_t in namespace ibis (requested by Matthias Vallentin)
+-- check the state of the partition before truncating the data files (to
+   address a problem reported by Jochen Schlosser)
+-- in text::startPositioins test for the value fo currentDataDir()
+   before using it in strcmp (to avoid a crash reported by Jochen
+   Schlosser)
+-- in bitvector::subset, avoid accessing a void pointer (to address a
+   crash reported by Jochen Schlosser)
+-- in constructor of ibis::bord::part (and ibis::mensa::doSelect) avoid
+   allocating space to the same column name multiple times (to address a
+   problem reported by Shane Adams)
+-- allow purgeInactive to work with string valued columns
+-- add ibis::liga to provide ibis::table API for arbitrary collection of
+   ibis::part
+-- add code to address query boundaries out side of valid ranges of
+   column values (a problem noted by Jochen Schlosser when using
+   negative values with unsigned integer columns)
+
 Fri Jun 12 17:10:16 PDT 2009
 Version ibis1.1.0
 -- automate the line buffer management in function tafel::readCSV to

@@ -29,6 +29,7 @@
 #include <map>		// std::map
 #include <string>	// std::string
 
+#include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream used by ibis::util::logger
 #include <float.h>
 #include <math.h>	// fabs, floor, ceil, log10, ...
@@ -178,6 +179,16 @@ int truncate(const char*, uint32_t);
 #define OPEN_FILEMODE S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH
 #else
 #define OPEN_FILEMODE S_IRUSR | S_IWUSR
+#endif
+
+#if defined(_WIN32) && defined(_MSC_VER)
+// needed for numeric_limits<>::max, min function calls
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
 #endif
 
 #define LOGGER(v) \
@@ -452,15 +463,23 @@ namespace ibis {
 	/// types, and Tout must be an elementary integral type.
 	template <typename Tin, typename Tout>
 	void round_down(const Tin& inval, Tout& outval) {
-	    outval = static_cast<Tout>(inval);
+	    outval = ((double)std::numeric_limits<Tout>::min() > inval ?
+		      std::numeric_limits<Tout>::min() :
+		      (double)std::numeric_limits<Tout>::max() <= inval ?
+		      std::numeric_limits<Tout>::max() :
+		      static_cast<Tout>(inval));
 	}
 	/// Round the incoming value to the smallest output value that is
 	/// no less than the input.  Both Tin and Tout must be elementary
 	/// data types, and Tout must be an elementary integral type.
 	template <typename Tin, typename Tout>
 	void round_up(const Tin& inval, Tout& outval) {
-	    outval = static_cast<Tout>(inval) +
-		((inval-static_cast<Tin>(static_cast<Tout>(inval))) > 0);
+	    outval = ((double)std::numeric_limits<Tout>::min() >= inval ?
+		      std::numeric_limits<Tout>::min() :
+		      (double) std::numeric_limits<Tout>::max() < inval ?
+		      std::numeric_limits<Tout>::max() :
+		      static_cast<Tout>(inval) +
+		      ((inval-static_cast<Tin>(static_cast<Tout>(inval))) > 0));
 	}
 	/// A specialization of round_up for the output type float.
 	template <typename Tin>

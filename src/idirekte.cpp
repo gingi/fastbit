@@ -546,7 +546,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 
     switch (expr.leftOperator()) {
     case ibis::qExpr::OP_LT: {
-	++ ib;
+	ib += (expr.leftBound() >= ib);
 	switch (expr.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
 	    if (expr.rightBound()>ie)
@@ -662,7 +662,7 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
 	}
 	break;}
     case ibis::qExpr::OP_GE: {
-	++ ib;
+	ib += (expr.leftBound() >= ib);
 	switch (expr.rightOperator()) {
 	case ibis::qExpr::OP_LT: {
 	    if (expr.rightBound() > ie)

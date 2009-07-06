@@ -1,3 +1,22 @@
+2009-07-06 John Wu <John.Wu at ACM.org>
+	* src/util.h: modify round_down and round_up to check for input
+	value out of the range of output value (with the use of
+	std::numeric_limits template) (to address an issue raised by
+	Jochen Schlosser)
+	* tests/Makefile.am: change the type of c from short to unsigned
+	short in t0 and t1, add query boundaries involving negative
+	numbers to catch the error reported by Jochen Schlosser
+	* src/whereClause.h, src/whereClause.cpp: add function
+	standardizeRange to deal with negative boundaries in range
+	expressions involving unsigned integer columns
+	* src/idirekte.cpp: update function locate to work better with
+	ranges including negative boundaries
+	* src/part.cpp: add code in template part::doScan and
+	part::doCount to modify the bounds and operators in case the input
+	boundaries are out of valid range of the data types, add
+	specificalization for float and double for template part::doScan
+	and part::doCount
+
 2009-07-01 John Wu <John.Wu at ACM.org>
 	* src/mensa.h: add ibis::liga as a simple container of externally
 	managed data partitions, it provides the ibis::table API but does
@@ -60,7 +79,7 @@
 	* doc/dataLoading.html: add note about support for unsigned
 	integers
 	* src/array_t.h: update documentation about the class to reflect
-	the change in name space (notice by matthias Vallentin)
+	the change in name space (notice by Matthias Vallentin)
 	* src/part.h: change nEvent from type size_t to uint32_t
 	* src/column.cpp: in function append (that takes directory name as
 	input), remove the dependencies on thePart->currentDataDir (a
@@ -68,7 +87,7 @@
 
 2009-06-16 John Wu <John.Wu at ACM.org>
 	* src/category.cpp:1216 add check for state of the partition
-	before trancating the data file and .sp file in
+	before truncating the data file and .sp file in
 	ibis::text::startPositions (a problem noticed by Jochen Schlosser)
 	* src/array_t.h: put array_t template into namespace ibis (a
 	change requested by Matthias Vallentin)

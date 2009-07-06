@@ -7469,8 +7469,6 @@ long ibis::part::negativeCompare(const char* file,
 /// This static member function works on an array that is provided by the
 /// caller.  Since the values are provided, this function does not check
 /// the name of the variable involved in the range condition.
-/// TODO: fixing the casting problem! For example, i0 >= 10.5 will be
-/// casted to effectively i0 >= 10, which produces too many hits.
 template <typename T>
 long ibis::part::doScan(const array_t<T> &vals,
 			const ibis::qContinuousRange &rng,
@@ -7481,35 +7479,134 @@ long ibis::part::doScan(const array_t<T> &vals,
     if (ibis::gVerbose > 1)
 	timer.start();
     T leftBound, rightBound;
+    ibis::qExpr::COMPARE lop = rng.leftOperator();
+    ibis::qExpr::COMPARE rop = rng.rightOperator();
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
 	break;
+    case ibis::qExpr::OP_LT:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
     case ibis::qExpr::OP_LE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_LT;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_LT;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_GT;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
     case ibis::qExpr::OP_GT:
-	ibis::util::round_up(rng.leftBound(), leftBound);
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_GE;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_GE;
+	}
 	break;
     default:
-	leftBound = static_cast<T>(rng.leftBound());
+	ibis::util::round_down(rng.leftBound(), leftBound);
 	break;
     }
     switch (rng.rightOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	rightBound = 0;
 	break;
-    case ibis::qExpr::OP_GE:
+    case ibis::qExpr::OP_LE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_LT;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
+	break;
     case ibis::qExpr::OP_LT:
-	ibis::util::round_up(rng.rightBound(), rightBound);
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_LE;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_LE;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_GT;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_GT;
+	}
+	break;
+    case ibis::qExpr::OP_GT:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_GE;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
 	break;
     default:
-	rightBound = static_cast<T>(rng.rightBound());
+	ibis::util::round_down(rng.rightBound(), rightBound);
 	break;
     }
 
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-    switch (rng.leftOperator()) {
+    switch (lop) {
     case ibis::qExpr::OP_LT: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound) {
 		if (uncomp)
@@ -7639,7 +7736,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	}
 	break;}
     case ibis::qExpr::OP_LE: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound) {
 		if (uncomp)
@@ -7769,7 +7866,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	}
 	break;}
     case ibis::qExpr::OP_GT: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound <= rightBound) {
 		if (uncomp)
@@ -7899,7 +7996,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	}
 	break;}
     case ibis::qExpr::OP_GE: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound) {
 		if (uncomp)
@@ -8034,7 +8131,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	break;}
     case ibis::qExpr::OP_EQ: {
 	if (leftBound == rng.leftBound()) {
-	    switch (rng.rightOperator()) {
+	    switch (rop) {
 	    case ibis::qExpr::OP_LT: {
 		if (leftBound < rightBound) {
 		    if (uncomp)
@@ -8145,7 +8242,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	}
 	break;}
     default: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (uncomp)
 		ierr = doCompare0(vals,
@@ -8225,6 +8322,1487 @@ long ibis::part::doScan(const array_t<T> &vals,
 	ibis::util::logger lg;
 	lg.buffer() << "part::doScan -- evaluating " << rng
 		    << " on " << mask.cnt() << " " << typeid(T).name()
+		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
+		    << mask.size() << ") took " << timer.realTime()
+		    << " sec elapsed time and produced " << hits.cnt()
+		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
+#if defined(DEBUG) && DEBUG + 0 > 1
+	lg.buffer() << "mask\n" << mask << "\n";
+	lg.buffer() << "hit vector\n" << hits << "\n";
+#endif
+    }
+    return ierr;
+} // ibis::part::doScan
+
+/// A specialization of the template for float arrays.  All comparisons are
+/// performed as doubles.
+template <>
+long ibis::part::doScan(const array_t<float> &vals,
+			const ibis::qContinuousRange &rng,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits) {
+    long ierr = -2;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st<std::less<double> >
+				  (std::less<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st<std::less_equal<double> >
+				  (std::less_equal<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater<double> >
+			 (std::greater<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::greater<double> >
+				  (std::greater<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater<double> >
+			 (std::greater<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater<double> >
+			 (std::greater<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound <= leftBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::equal_to<double> >
+			 (std::equal_to<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::equal_to<double> >
+			 (std::equal_to<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::greater_equal<double> >
+				  (std::greater_equal<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<double> >
+				 (std::greater_equal<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::equal_to<double> >
+				  (std::equal_to<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::less<double> >
+				  (std::less<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::less_equal<double> >
+				  (std::less_equal<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::greater<double> >
+				  (std::greater<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::greater_equal<double> >
+				  (std::greater_equal<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    hits.set(0, mask.size());
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg.buffer() << "part::doScan -- evaluating " << rng
+		    << " on " << mask.cnt() << " float "
+		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
+		    << mask.size() << ") took " << timer.realTime()
+		    << " sec elapsed time and produced " << hits.cnt()
+		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
+#if defined(DEBUG) && DEBUG + 0 > 1
+	lg.buffer() << "mask\n" << mask << "\n";
+	lg.buffer() << "hit vector\n" << hits << "\n";
+#endif
+    }
+    return ierr;
+} // ibis::part::doScan
+
+/// A specialization of the template for double values.
+template <>
+long ibis::part::doScan(const array_t<double> &vals,
+			const ibis::qContinuousRange &rng,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits) {
+    long ierr = -2;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less<double> >
+				      (std::less<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less<double> >
+				     (std::less<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st<std::less<double> >
+				  (std::less<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st<std::less_equal<double> >
+				      (std::less_equal<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st<std::less_equal<double> >
+				     (std::less_equal<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st<std::less_equal<double> >
+				  (std::less_equal<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::greater<double> >
+				      (std::greater<double>(), leftBound),
+				      std::binder2nd<std::greater<double> >
+				      (std::greater<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     std::binder2nd<std::greater<double> >
+				     (std::greater<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater<double> >
+			 (std::greater<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::greater<double> >
+				     (std::greater<double>(), leftBound),
+				     std::binder2nd<std::greater_equal<double> >
+				     (std::greater_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::equal_to<double> >
+				     (std::equal_to<double>(), rightBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::greater<double> >
+				  (std::greater<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less<double> >
+				      (std::less<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less<double> >
+				     (std::less<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 mask, hits);
+	    }
+	    else {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::less_equal<double> >
+				      (std::less_equal<double>(), rightBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder2nd<std::less_equal<double> >
+				     (std::less_equal<double>(), rightBound),
+				     mask, hits);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater<double> >
+			 (std::greater<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater<double> >
+			 (std::greater<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::greater_equal<double> >
+			 (std::greater_equal<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound <= leftBound) {
+		if (uncomp)
+		    ierr = doCompare0
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::equal_to<double> >
+			 (std::equal_to<double>(), rightBound),
+			 mask, hits);
+		else
+		    ierr = doCompare
+			(vals, std::binder1st< std::greater_equal<double> >
+			 (std::greater_equal<double>(), leftBound),
+			 std::binder2nd<std::equal_to<double> >
+			 (std::equal_to<double>(), rightBound),
+			 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::greater_equal<double> >
+				  (std::greater_equal<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<double> >
+				 (std::greater_equal<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder1st< std::equal_to<double> >
+				      (std::equal_to<double>(), leftBound),
+				      mask, hits);
+		else
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<double> >
+				     (std::equal_to<double>(), leftBound),
+				     mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder1st< std::equal_to<double> >
+				  (std::equal_to<double>(), leftBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, hits);
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::less<double> >
+				  (std::less<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::less_equal<double> >
+				  (std::less_equal<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::greater<double> >
+				  (std::greater<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (uncomp)
+		ierr = doCompare0(vals,
+				  std::binder2nd<std::greater_equal<double> >
+				  (std::greater_equal<double>(), rightBound),
+				  mask, hits);
+	    else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, hits);
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		if (uncomp)
+		    ierr = doCompare0(vals,
+				      std::binder2nd<std::equal_to<double> >
+				      (std::equal_to<double>(), rightBound),
+				      mask, hits);
+		else
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, hits);
+	    }
+	    else {
+		hits.set(0, mask.size());
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    hits.set(0, mask.size());
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg.buffer() << "part::doScan -- evaluating " << rng
+		    << " on " << mask.cnt() << " double "
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
@@ -8620,35 +10198,134 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
     const ibis::qContinuousRange &rng =
 	static_cast<const ibis::qContinuousRange&>(cmp);
     T leftBound, rightBound;
+    ibis::qExpr::COMPARE lop = rng.leftOperator();
+    ibis::qExpr::COMPARE rop = rng.rightOperator();
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
 	break;
+    case ibis::qExpr::OP_LT:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
     case ibis::qExpr::OP_LE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_LT;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_LT;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_GT;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
     case ibis::qExpr::OP_GT:
-	ibis::util::round_up(rng.leftBound(), leftBound);
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_GE;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_GE;
+	}
 	break;
     default:
-	leftBound = static_cast<T>(rng.leftBound());
+	ibis::util::round_down(rng.leftBound(), leftBound);
 	break;
     }
     switch (rng.rightOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	rightBound = 0;
 	break;
-    case ibis::qExpr::OP_GE:
+    case ibis::qExpr::OP_LE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_LT;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
+	break;
     case ibis::qExpr::OP_LT:
-	ibis::util::round_up(rng.rightBound(), rightBound);
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_LE;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_LE;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_GT;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_GT;
+	}
+	break;
+    case ibis::qExpr::OP_GT:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_GE;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
 	break;
     default:
-	rightBound = static_cast<T>(rng.rightBound());
+	ibis::util::round_down(rng.rightBound(), rightBound);
 	break;
     }
 
 
-    switch (rng.leftOperator()) {
+    switch (lop) {
     case ibis::qExpr::OP_LT: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound)
 		ierr = doCount(vals, mask,
@@ -8707,7 +10384,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	}
 	break;}
     case ibis::qExpr::OP_LE: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound)
 		ierr = doCount(vals, mask,
@@ -8766,7 +10443,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	}
 	break;}
     case ibis::qExpr::OP_GT: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound <= rightBound)
 		ierr = doCount(vals, mask,
@@ -8825,7 +10502,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	}
 	break;}
     case ibis::qExpr::OP_GE: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    if (leftBound < rightBound)
 		ierr = doCount(vals, mask,
@@ -8887,7 +10564,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	break;}
     case ibis::qExpr::OP_EQ: {
 	if (leftBound == rng.leftBound()) {
-	    switch (rng.rightOperator()) {
+	    switch (rop) {
 	    case ibis::qExpr::OP_LT: {
 		if (leftBound < rightBound) {
 		    ierr = doCount(vals, mask,
@@ -8950,7 +10627,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	}
 	break;}
     default: {
-	switch (rng.rightOperator()) {
+	switch (rop) {
 	case ibis::qExpr::OP_LT: {
 	    ierr = doCount(vals, mask,
 			   std::binder2nd<std::less<T> >
@@ -8976,6 +10653,751 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 		ierr = doCount(vals, mask,
 			       std::binder2nd<std::equal_to<T> >
 			       (std::equal_to<T>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+    return ierr;
+} // ibis::part::doCount
+
+/// A specialization of template part::doCount for float values.  Note that
+/// the comparison are performed as doubles.
+template <>
+long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
+    columnList::const_iterator it = columns.find(cmp.colName());
+    if (it == columns.end()) {
+	return -1;
+    }
+
+    std::string sname;
+    const char* filename = (*it).second->dataFileName(sname);
+    if (filename == 0)
+	return -2;
+
+    array_t<float> vals;
+    long ierr = ibis::fileManager::instance().getFile(filename, vals);
+    if (ierr != 0) {
+	return -3;
+    }
+    ibis::bitvector mask;
+    (*it).second->getNullMask(mask);
+    mask.adjustSize(0, vals.size());
+    if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
+	return doCount(vals, cmp, mask);
+    }
+
+    // a simple continuous range expression
+    const ibis::qContinuousRange &rng =
+	static_cast<const ibis::qContinuousRange&>(cmp);
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound),
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound),
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st<std::less<double> >
+			   (std::less<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound),
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound),
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st<std::less_equal<double> >
+			   (std::less_equal<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound),
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound),
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::greater<double> >
+			   (std::greater<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound > rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::greater_equal<double> >
+			   (std::greater_equal<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::equal_to<double> >
+			   (std::equal_to<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::less<double> >
+			   (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::less_equal<double> >
+			   (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::greater<double> >
+			   (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::greater_equal<double> >
+			   (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+    return ierr;
+} // ibis::part::doCount
+
+/// A specialization of template part::doCount for double values.
+template <>
+long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
+    columnList::const_iterator it = columns.find(cmp.colName());
+    if (it == columns.end()) {
+	return -1;
+    }
+
+    std::string sname;
+    const char* filename = (*it).second->dataFileName(sname);
+    if (filename == 0)
+	return -2;
+
+    array_t<double> vals;
+    long ierr = ibis::fileManager::instance().getFile(filename, vals);
+    if (ierr != 0) {
+	return -3;
+    }
+    ibis::bitvector mask;
+    (*it).second->getNullMask(mask);
+    mask.adjustSize(0, vals.size());
+    if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
+	return doCount(vals, cmp, mask);
+    }
+
+    // a simple continuous range expression
+    const ibis::qContinuousRange &rng =
+	static_cast<const ibis::qContinuousRange&>(cmp);
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound),
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound),
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less<double> >
+			       (std::less<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st<std::less<double> >
+			   (std::less<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound),
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound),
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st<std::less_equal<double> >
+			       (std::less_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st<std::less_equal<double> >
+			   (std::less_equal<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound),
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater<double> >
+			       (std::greater<double>(), leftBound),
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::greater<double> >
+			   (std::greater<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less<double> >
+			       (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound));
+	    else
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::less_equal<double> >
+			       (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::greater<double> >
+			       (std::greater<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound)
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::greater_equal<double> >
+			       (std::greater_equal<double>(), rightBound));
+	    else
+		ierr = 0;
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound > rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::greater_equal<double> >
+			       (std::greater_equal<double>(), leftBound),
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::greater_equal<double> >
+			   (std::greater_equal<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		ierr = doCount(vals, mask,
+			       std::binder1st< std::equal_to<double> >
+			       (std::equal_to<double>(), leftBound));
+	    }
+	    else {
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCount(vals, mask,
+			   std::binder1st< std::equal_to<double> >
+			   (std::equal_to<double>(), leftBound));
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::less<double> >
+			   (std::less<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::less_equal<double> >
+			   (std::less_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::greater<double> >
+			   (std::greater<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ierr = doCount(vals, mask,
+			   std::binder2nd<std::greater_equal<double> >
+			   (std::greater_equal<double>(), rightBound));
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		ierr = doCount(vals, mask,
+			       std::binder2nd<std::equal_to<double> >
+			       (std::equal_to<double>(), rightBound));
 	    }
 	    else {
 		ierr = 0;

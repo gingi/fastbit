@@ -1,5 +1,5 @@
 Column c
-c:  (SHORT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
+c:  (USHORT) [1.79769e+308, -1.79769e+308], actual range <0, 99>
 Histogram [19] under the condition of "c>80"
 (bounds,	# records in bin)
 [81, 82)	2

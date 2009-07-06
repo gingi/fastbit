@@ -59,11 +59,13 @@ public:
     const char* description() const {return m_desc.c_str();}
     const double& lowerBound() const {return lower;}
     const double& upperBound() const {return upper;}
-    inline int elementSize() const; ///< Size of a data element in bytes.
-    inline bool isFloat() const; ///< Is it floating-point values?
-    inline bool isInteger() const; ///< Is it an integer values?
-    inline bool isNumeric() const; ///< Is it a numberical value?
-    bool isSorted() const {return m_sorted;} ///< Are its values sorted?
+    int elementSize() const;
+    bool isFloat() const;
+    bool isInteger() const;
+    bool isSignedInteger() const;
+    bool isUnsignedInteger() const;
+    bool isNumeric() const;
+    bool isSorted() const {return m_sorted;} ///< Are the values sorted?
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
@@ -586,6 +588,7 @@ private:
     readLock& operator=(const readLock&);
 }; // ibis::column::readLock
 
+/// Size of a data element in bytes.
 inline int ibis::column::elementSize() const {
     int sz = -1;
     switch (m_type) {
@@ -607,10 +610,12 @@ inline int ibis::column::elementSize() const {
     return sz;
 } // ibis::column::elementSize
 
+/// Are they floating-point values?
 inline bool ibis::column::isFloat() const {
     return(m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
 } // ibis::column::isFloat
 
+///< Are they integer values?
 inline bool ibis::column::isInteger() const {
     return(m_type == ibis::BYTE || m_type == ibis::UBYTE ||
 	   m_type == ibis::SHORT || m_type == ibis::USHORT ||
@@ -618,6 +623,19 @@ inline bool ibis::column::isInteger() const {
 	   m_type == ibis::LONG || m_type == ibis::ULONG);
 } // ibis::column::isInteger
 
+///< Are they signed integer values?
+inline bool ibis::column::isSignedInteger() const {
+    return(m_type == ibis::BYTE || m_type == ibis::SHORT ||
+	   m_type == ibis::INT || m_type == ibis::LONG);
+} // ibis::column::isSignedInteger
+
+///< Are they unsigned integer values?
+inline bool ibis::column::isUnsignedInteger() const {
+    return(m_type == ibis::UBYTE || m_type == ibis::USHORT ||
+	   m_type == ibis::UINT || m_type == ibis::ULONG);
+} // ibis::column::isUnsignedInteger
+
+///< Are they numberical values?
 inline bool ibis::column::isNumeric() const {
     return(m_type == ibis::BYTE || m_type == ibis::UBYTE ||
 	   m_type == ibis::SHORT || m_type == ibis::USHORT ||
