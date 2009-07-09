@@ -1,3 +1,9 @@
+2009-07-08 John Wu <John.Wu at ACM.org>
+	* INSTALL: clean up the file
+	* src/category.cpp: delay reading of dictionary and generating .sp
+	file as much as possible, define macro FASTBIT_EAGER_INIT_TEXT if
+	eager initialization is desired
+
 2009-07-06 John Wu <John.Wu at ACM.org>
 	* src/util.h: modify round_down and round_up to check for input
 	value out of the range of output value (with the use of

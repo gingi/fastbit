@@ -1,7 +1,7 @@
 FastBit is packaged with GNU build tools.  In most cases, this means you
 only need to run "./configure && make" to build the library and the
-examples.  The following instructions are for customizing your
-configuration and building process.
+examples.  The following instructions are for customization and
+trouble-shooting your configuration and building process.
 
 On systems where make (or gmake) can support parallel builds, it is safe
 to invoke the parallel build options to build the library and the
@@ -20,17 +20,18 @@ If you are compiling with GCC, please choose version 4 for better
 support of the extensive template use.
 
 To place the executable files and libraries in their expected locations,
-execute 'make install'.  One make change where the files are installed
-by specifying a prefix, e.g., (it is usually better to specify
-installation direcotry on the command line of configure, see note 13 )
+execute 'make install'.  As usual, the location of the installed files
+is specified by the variable 'prefix', e.g., (it is usually better to
+specify installation direcotry on the command line of configure, see
+note 13 )
 
 make prefix=${HOME} install
 
 which will put the executables in ${HOME}/bin and libraries in
 ${HOME}/lib.  Prior to installation, the executables and libraries are
 located in various hidden directories selected by libtools.  For
-example, libibis.a is usually located in src/.libs and the executables
-in examples are in examples/.libs.
+example, libfastbit.a is usually located in src/.libs and the
+executables in examples are in examples/.libs.
 
 
 ----------
@@ -39,25 +40,25 @@ Configuration Options
 Run './configure --help' to review all options available.  The majority
 of the options are standard options available to all GNU build tools.
 There are only two additional options
-  --enable-debug [extra debugging option]
+  --enable-debug [debugging option]
   --enable-xopt  [extra optimization option]
 
 The default for the 1st option is left to the configure script itself,
-which in anbsence of any direction will normally enable the debug
-option.  The default for the 2nd option is "no", in which case, the flag
-present in CXXFLAGS or the default determined by the configure script
-will be used.  With --enable-xopt, the optimization flag -O5 will be
-used if the compiler accepts it otherwise -O3 will be append to the list
-of compiler options.  The option -O5 is generally supported by GCC
-compilers and can slightly improve the performance of some query
-operations, but may also introduce errors due to excessive compiler
-"optimization."  In most cases, we suggest that users leave both of
-these options at default values.
+which in absence of any direction will normally enable the debug option.
+The default for the 2nd option is "no", in which case, the flag present
+in CXXFLAGS or the default determined by the configure script will be
+used.  With --enable-xopt, the optimization flag -O5 will be used if the
+compiler accepts it otherwise -O3 will be append to the list of compiler
+options.  The option -O5 is generally supported by GCC compilers and can
+slightly improve the performance of some query operations, but may also
+introduce errors due to excessive compiler "optimization."  In most
+cases, we suggest users to leave both of these options as their default
+values.
 
-If CXXFLAGS is specified on the command line to configure or is present
-as an evironment variable, the configure script will not add its usually
-"-g -O2" options.  If CXXFLAGS is specified, it should include desired
-optimization flags.
+If CXXFLAGS is specified on the command line of configure or is present
+as an evironment variable, the configure script will not add its usual
+default options, which is typically "-g -O2".  If CXXFLAGS is specified,
+it should include desired optimization flags.
 
 
 The configure script will attempt to detect whether a JDK is available
@@ -69,19 +70,19 @@ option of the configure script to explicitly specify the path of JDK,
   --with-java=full-path-to-jdk
 
 On MS Windows with visual studio, the path to JDK must be explicitly
-speicified in the visual studio project for the java project.  Here are
-some steps to take
+speicified in the visual studio for the java project.  Here are some
+steps to take
 
 (1) open the windows explorer, navigate to win directory in your FastBit
     directory, double click on ibis.sln should invoke visual studio if
     your machine have visual studio,
 
-(2) the solution should have 7 projects, right click on the java
-    project, select properties from the menu,
+(2) the solution includes 7 projects, right click on the java project,
+    select properties from the menu,
 
 (3) then select C++ from the list of Configuration Properties for the
     project, modify the "Additional Include Directories" field to
-    include the JDK directory on your machine)
+    include the JDK directory on your machine
 
 NOTE: FastBit requires pthread support, one such library is pthread
       win32 <http://sourceware.org/pthreads-win32/>.  One needs to
@@ -95,29 +96,31 @@ NOTE: FastBit requires pthread support, one such library is pthread
 Compiler Macros
 
 There are a number of compiler macros for controlling certain internal
-FastBit parameters.  Where you find unexpected troubles with FastBit,
+FastBit parameters.  When you find unexpected troubles with FastBit,
 they might come in handy.  Here is a list in the order of potential
 usefulness.
 
 WITHOUT_FASTBIT_CONFIG_H
 
-  This macro should be defined if the system can not run the configure
+  This macro must be defined if the system can not run the configure
   script in the main directory.  The configure script produces the file
-  src/config.h that contains important compiler macros.  When this macro
-  is defined, the source code will not attempt to include src/config.h.
-  The macros defined in it will take on default values.  This option has
+  src/fastbit-config.h that contains macros about the specific compiler
+  and machine setup.  When WITHOUT_FASTBIT_CONFIG_H is defined, the
+  source code will not attempt to include src/fastbit-config.h.  The
+  macros defined in it will take on default values.  This option has
   been mainly tested on MS Windows platform with VisualStudio.  For
-  convenience, we have made sure this macro is not necessary under this
-  specific environment (MS windows + VisualStudio), all other platforms
-  that can not run the configure script, must define this macro!
+  convenience, we have made sure this macro is not necessary under the
+  specific environment of MS windows with VisualStudio, all other
+  platforms that can not run the configure script, must define this
+  macro!
 
 FASTBIT_UNLOAD_LIMIT
 
-  Defines the amount of time (in seconds) the file manager should wait
-  before giving up on waiting when it fails to acquire the desired
-  amount of memory.  Presumably, while waiting, other tasks will have
-  finished and released the memory being used.  The default time is 600
-  seconds in normal operations and 5 seconds if DEBUG is defined.
+  Defines the amount of time (in seconds) the file manager shall wait
+  before giving up on its attempt to acquire the desired amount of
+  memory.  Presumably, while waiting, other tasks would have finished
+  and released the memory being used.  The default time is 600 seconds
+  in normal operations and 5 seconds if DEBUG is defined.
 
 FASTBIT_MIN_MAP_SIZE
 
@@ -128,23 +131,26 @@ FASTBIT_MIN_MAP_SIZE
 DEBUG
 
   Turning on DEBUG will enable FastBit to print a lot of diagnostic
-  message about its internal operations.  It is useful for debugging
+  messages about its internal operations.  It is useful for debugging
   FastBit internal operations.
 
 WAH_CHECK_SIZE
 
-  Instruct WAH compression function to check the size of the bitmaps
+  Instruct WAH compression functions to check the size of the bitmaps
   when they are constructed.  This may be useful if one suspects that
-  the WAH compressed bitmap are not what they supposed to be.
+  the WAH compressed bitmap are not what they supposed to be.  This
+  option was used by the developers for debugging.  If you encounter any
+  problem that require this option to fix, please report such cases to
+  fastbit-users@hpcrdm.lbl.gov.
 
 FASTBIT_READ_BITVECTOR0
 
-  In an earlier version of FastBit, it always reads the first bitmap of
-  every bitmap index regardless of whether it is actually used.  Because
-  of this legacy, it is possible there are functions that still rely on
-  this old behavior.  If you encounter certain unexpected problems,
-  turning this option "on" may resolve them.  Please report such cases
-  to fastbit-users@hpcrdm.lbl.gov.
+  In earlier (pre-release) versions of FastBit, it always reads the
+  first bitmap of every bitmap index regardless of whether it is
+  actually used.  Because of this legacy, it is possible there are
+  functions that still rely on this old behavior.  If you encounter
+  certain unexpected problems, turning this option "on" may resolve
+  them.  Please report such cases to fastbit-users@hpcrdm.lbl.gov.
 
 FASTBIT_EXPAND_ALL_TYPES
 
@@ -158,7 +164,7 @@ FASTBIT_EXPAND_ALL_TYPES
   only increase run time, but will not affect the correctness of the
   program.  However, the last conversion may cause correctness issues if
   the unsigned 64-bit integers actually have the sign bit set to 1,
-  i.e., > 8x2^63 ~ 8x10^18.
+  i.e., > 2^63 (= 9,223,372,036,854,775,808 ~ 9x10^18).
 
 FASTBIT_SYNC_WRITE
 
@@ -173,6 +179,16 @@ FASTBIT_SYNC_WRITE
 ----------
 Known Issues
 
+    If you have encountered an issue with FastBit code, this list of
+    known issues might be of help.  In addition, you might check out the
+    mailing list archive at
+    <https://hpcrdm.lbl.gov/pipermail/fastbit-users/> to see if the
+    issue has already been addressed.  The mail messages are searchable
+    through the search boxes on any of the FastBit web pages and
+    possibly from <http://www.mail-archive.com/> as well.  Of course
+    mail your question to <fastbit-users@hpcrdm.lbl.gov> is always an
+    option.
+
 (1) Many compilers will issue lots of warnings about potential loss of
     data in various assignments, for example, trying to assign a 32-bit
     integer to a 32-bit floating-point number (type float).  In some
@@ -182,15 +198,16 @@ Known Issues
     column as floats by calling ibis::table::getColumnAsFloats.  Callers
     should be aware that such conversion may lose precision.  This type
     of conversion may also occur when comparing two types of columns
-    direct (without indexes), for example if a where clause contains "A
+    directly (without indexes), for example if a where clause contains "A
     < B" and A is a signed integer but B is a unsigned integer.  Users
     should be aware of such problems.
 
 (2) Under cygwin, some times, the read-write lock may print out warning
     messages, but the operations seem to carry on without any problem.
-    We have not tried to figure out what are the causes of the problems,
-    if you have information about them or know how to fix the problem,
-    we would like to hear about them.
+    We have not tried to figure out what are the causes of these
+    problems, if you have information about them or know how to fix the
+    problems, we would like to hear about them.  Email your suggestions
+    to <fastbit-users@hpcrdm.lbl.gov>.
 
 (3) The tests in 'make check' do a very minimal amount of testing.  To
     perform more through testing, use 'make more-check' or 'make
@@ -206,9 +223,8 @@ Known Issues
     which will use /tmp/kwu/tests as the test directory.
 
     Running tests under cygwin takes much longer than on a linux
-    machine.  I don't know of any way to speed up the test under cygwin.
-    Guess, you basically have to use the native file system on MS
-    windows.  Alternatively you may consider MinGW/MinSYS.
+    machine.  If you have any suggestions on improving this setup,
+    please email <fastbit-users@hpcrdm.lbl.gov>.
 
 (4) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
     choke up on a SGI Altix system.  It seems to work fine with newer
@@ -222,8 +238,8 @@ Known Issues
     if-tests), and the program executes correctly.  If this read
     operation does cause trouble, it would probably cause the OS to
     raise an access violation error.  We have never seen this one
-    actually happen and therefore do not know whether it could actually
-    happen.  If you do encounter it, please send a stack trace to
+    actually happen and therefore do not know whether it could happen.
+    If you do encounter it, please send a stack trace to
     <fastbit-users@hpcrdm.lbl.gov> to help use diagnose the problem.
 
 (6) Certain machines with large memory actually limits the amount of
@@ -234,11 +250,12 @@ Known Issues
     should be less than the OS limit, otherwise, FastBit program may
     crash due to memory allocation problem.  For example, on
     jacquard.nersc.gov, the maximum virtual memory allowed per process
-    is 2GB (for certain class of interactive jobs), but there are 6GB of
+    is 2GB for certain class of interactive jobs, but there are 6GB of
     physical memory.  By default, FastBit will attempt to use 3GB of
     memory, which is over the OS assigned memory limit.  In this case,
-    adding an RC file with "fileManager.maxBytes=2GB" is needed to
-    reduce the memory allowed to FastBit.
+    adding an RC file with something like "fileManager.maxBytes=1.8GB"
+    will reduce the memory allowed to FastBit and avoid memory usage
+    problem.
 
 (7) Certain linux clusters do not support shared libraries on compute
     nodes, even though shared libraries are supported on the front end.
@@ -293,7 +310,7 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
      specified at configure command line, otherwise "make install" may
      complain about libfastbitjni.lo can not be installed in any
      directory other than /usr/local/lib (if you have specified --prefix
-     but wanted to isntall in a different directory, you might see a
+     but wanted to install in a different directory, you might see a
      similar message).  The automatic build script apparently remembers
      the path generated by configure script and does not know how to
      make use of the prefix specified on the command line of make.

@@ -220,35 +220,21 @@ void ibis::dictionary::clear() {
 // functions for ibis::category
 ibis::category::category(const part* tbl, FILE* file)
     : text(tbl, file), dic() {
-    readDictionary();
-
-    std::string idxf = thePart->currentDataDir();
-    idxf += FASTBIT_DIRSEP;
-    idxf += m_name;
-    idxf += ".idx";
-    idx = new ibis::relic(this, idxf.c_str());
-    if (idx == 0 || idx->getNRows() != thePart->nRows()) {
-	delete idx;
-	idx = 0;
-	fillIndex();
-    }
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    prepareMembers();
+    lower = 1;
+    upper = dic.size();
+#endif
 } // ibis::category::category
 
 /// Construct a category object from a name.
 ibis::category::category(const part* tbl, const char* name)
     : text(tbl, name, ibis::CATEGORY), dic() {
-    readDictionary();
-
-    std::string idxf = thePart->currentDataDir();
-    idxf += FASTBIT_DIRSEP;
-    idxf += m_name;
-    idxf += ".idx";
-    idx = new ibis::relic(this, idxf.c_str());
-    if (idx == 0 || idx->getNRows() != thePart->nRows()) {
-	delete idx;
-	idx = 0;
-	fillIndex();
-    }
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    parepareIndex();
+    lower = 1;
+    upper = dic.size();
+#endif
 } // ibis::category::category
 
 /// Copy constructor.  Copy from a collumn object with CATEGORY type.
@@ -256,20 +242,11 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     if (m_type != ibis::CATEGORY) {
 	throw ibis::bad_alloc("Must be type CATEGORY");
     }
-    readDictionary();
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    prepareMembers();
     lower = 1;
     upper = dic.size();
-
-    std::string idxf = thePart->currentDataDir();
-    idxf += FASTBIT_DIRSEP;
-    idxf += m_name;
-    idxf += ".idx";
-    idx = new ibis::relic(this, idxf.c_str());
-    if (idx == 0 || idx->getNRows() != thePart->nRows()) {
-	delete idx;
-	idx = 0;
-	fillIndex();
-    }
+#endif
 } // ibis::category::category
 
 /// Construct a column that has only one possible value.  Also build the
@@ -311,11 +288,58 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
     return static_cast<ibis::relic*>(idx)->keys(mask);
 } // ibis::category::selectInts
 
+/// A function to read the dictionary and load the index.  This is a const
+/// function because it only manipulates mutable data members.  This is
+/// necessary to make it callable from const member function of this class.
+void ibis::category::prepareMembers() const {
+    if (thePart == 0 || thePart->currentDataDir() == 0) return;
+    mutexLock lock(this, "category::prepareMembers");
+    if (dic.size() == 0)
+	readDictionary();
+
+    if (idx == 0) {
+	std::string idxf = thePart->currentDataDir();
+	idxf += FASTBIT_DIRSEP;
+	idxf += m_name;
+	idxf += ".idx";
+	idx = new ibis::relic(this, idxf.c_str());
+    }
+    if (idx == 0 || idx->getNRows() != thePart->nRows()) {
+	delete idx;
+	idx = 0;
+	fillIndex();
+    }
+} // ibis::category::prepareMembers
+
+/// Read the dictionary from the specified directory.  If the incoming
+/// argument is nil, the current data directory of the data partition is
+/// used.
+void ibis::category::readDictionary(const char *dir) const {
+    std::string fnm;
+    if (dir != 0 && *dir != 0) {
+	fnm = dir;
+    }
+    else if (thePart != 0) { // default to the current dictionary
+	if (thePart->currentDataDir() != 0)
+	    fnm = thePart->currentDataDir();
+	else
+	    return;
+    }
+    else {
+	return;
+    }
+    fnm += FASTBIT_DIRSEP;
+    fnm += m_name;
+    fnm += ".dic"; // suffix of the dictionary
+    dic.read(fnm.c_str());
+} // ibis::category::readDictionary
+
+/// Build an ibis::relic index using the existing primary data.
 /// If the dictionary exists and the size is one, it builds a dummy index.
 /// Otherwise, it reads the primary data file to update the dictionary and
 /// complete a new ibis::relic index.
-void ibis::category::fillIndex(const char *dir) {
-    if (dir == 0)
+void ibis::category::fillIndex(const char *dir) const {
+    if (dir == 0 && thePart != 0)
 	dir = thePart->currentDataDir();
     if (dir == 0) return;
     if (dic.size() == 0)
@@ -408,8 +432,12 @@ void ibis::category::fillIndex(const char *dir) {
     }
 
     if (rlc) {
-	rlc->write(dir ? dir : thePart->currentDataDir());
-	delete rlc;
+	rlc->write(dir);
+	if (dir == thePart->currentDataDir() ||
+	    strcmp(dir, thePart->currentDataDir()) == 0)
+	    idx = rlc;
+	else
+	    delete rlc;
     }
 
     std::string dicfile = (dir ? dir : thePart->currentDataDir());
@@ -420,6 +448,7 @@ void ibis::category::fillIndex(const char *dir) {
 } // ibis::category::fillIndex
 
 long ibis::category::search(const char* str, ibis::bitvector& hits) const {
+    prepareMembers();
     uint32_t ind = dic[str];
     if (ind == 0) { // null value
 	getNullMask(hits); // mask = 0 if null
@@ -433,14 +462,14 @@ long ibis::category::search(const char* str, ibis::bitvector& hits) const {
 	if (idx != 0) {
 	    ibis::qContinuousRange expr(m_name.c_str(),
 					ibis::qExpr::OP_EQ, ind);
-	    ibis::bitvector high;
-	    idx->estimate(expr, hits, high);
-	    if (high.cnt() > hits.cnt() && ibis::gVerbose >= 0)
-		logWarning("category::search", "expecting an accurate "
-			   "result from the index scan, but high.cnt() "
-			   "= %lu (> hits.cnt() = %lu)",
-			   static_cast<long unsigned>(high.cnt()),
-			   static_cast<long unsigned>(hits.cnt()));
+	    long ierr = idx->evaluate(expr, hits);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- category::search(" << str
+		    << ") failed because idx->evaluate(" << expr
+		    << ") returned " << ierr;
+		return ierr;
+	    }
 	}
 	else {
 	    hits.set(0, thePart->nRows());
@@ -454,6 +483,7 @@ long ibis::category::search(const char* str, ibis::bitvector& hits) const {
 
 long ibis::category::search(const char* str) const {
     long ret;
+    prepareMembers();
     uint32_t ind = dic[str];
     if (ind == 0) { // null value
 	ret = 0;
@@ -480,6 +510,7 @@ long ibis::category::search(const char* str) const {
 
 double ibis::category::estimateCost(const ibis::qString& qstr) const {
     double ret;
+    prepareMembers();
     const char* str = (stricmp(qstr.leftString(), m_name.c_str()) == 0 ?
 		       qstr.rightString() : qstr.leftString());
     uint32_t ind = dic[str];
@@ -502,6 +533,7 @@ double ibis::category::estimateCost(const ibis::qString& qstr) const {
 
 double ibis::category::estimateCost(const ibis::qMultiString& qstr) const {
     double ret = 0;
+    prepareMembers();
     indexLock lock(this, "category::estimateCost");
     if (idx != 0) {
 	const std::vector<std::string>& strs = qstr.valueList();
@@ -531,6 +563,7 @@ long ibis::category::search(const std::vector<std::string>& strs,
     if (strs.size() == 1) // the list contains only one value
 	return search(strs.back().c_str(), hits);
 
+    prepareMembers();
     // there are more than one value in the list
     std::vector<uint32_t> inds;
     inds.reserve(strs.size());
@@ -549,14 +582,14 @@ long ibis::category::search(const std::vector<std::string>& strs,
 	indexLock lock(this, "category::search");
 	if (idx != 0) {
 	    ibis::qDiscreteRange expr(m_name.c_str(), inds);
-	    ibis::bitvector high;
-	    idx->estimate(expr, hits, high);
-	    if (high.cnt() > hits.cnt() && ibis::gVerbose >= 0)
-		logWarning("category::search", "expecting an accurate "
-			   "result from the index scan, but high.cnt() "
-			   "= %lu (> hits.cnt() = %lu)",
-			   static_cast<long unsigned>(high.cnt()),
-			   static_cast<long unsigned>(hits.cnt()));
+	    long ierr = idx->evaluate(expr, hits);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- category::search on " << strs.size()
+		    << " strings failed because idx->evaluate(" << expr
+		    << ") failed with error code " << ierr;
+		return ierr;
+	    }
 	}
 	else { // index must exist! can not proceed
 	    hits.set(0, thePart->nRows());
@@ -578,6 +611,7 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
     }
     else {
 	// there are more than one value in the list
+	prepareMembers();
 	std::vector<uint32_t> inds;
 	inds.reserve(strs.size());
 	for (std::vector<std::string>::const_iterator it = strs.begin();
@@ -625,7 +659,7 @@ long ibis::category::append(const char* dt, const char* df,
 	return ret;
     if (strcmp(dt, df) == 0)
 	return ret;
-
+    prepareMembers();
     // STEP 1: convert the strings to ibis::relic
     std::string dest = dt;
     std::string src = df;
@@ -922,20 +956,6 @@ long ibis::category::append(const char* dt, const char* df,
     return ret;
 } // ibis::category::append
 
-void ibis::category::readDictionary(const char *dir) {
-    std::string fnm;
-    if (dir != 0 && *dir != 0) {
-	fnm = dir;
-    }
-    else { // default to the current dictionary
-	fnm = thePart->currentDataDir();
-    }
-    fnm += FASTBIT_DIRSEP;
-    fnm += m_name;
-    fnm += ".dic"; // suffix of the dictionary
-    dic.read(fnm.c_str());
-} // ibis::category::readDictionary
-
 /// Write the current content to the metadata file for the data partition.
 void ibis::category::write(FILE* file) const {
     fputs("\nBegin Column\n", file);
@@ -985,15 +1005,19 @@ void ibis::category::print(std::ostream& out) const {
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::text
 ibis::text::text(const part* tbl, FILE* file) : column(tbl, file) {
-    if (thePart->nRows() > 0U)
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    if (thePart != 0 && thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
+#endif
 }
 
 /// Construct a text object for a data partition with the given name.
 ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t) :
     column(tbl, t, name) {
-    if (thePart->nRows() > 0U)
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    if (thePart != 0 && thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
+#endif
 }
 
 /// Copy constructor.  Copy from a column with TEXT type.
@@ -1001,8 +1025,10 @@ ibis::text::text(const ibis::column& col) : ibis::column(col) {
     if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
 	throw "Must be either TEXT or CATEGORY";
     }
-    if (thePart->nRows() > 0U)
+#ifdef FASTBIT_EAGER_INIT_TEXT
+    if (thePart != 0 && thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
+#endif
 } // copy constructor
 
 /// Using the data file located in the named directory @c dir.  If @c dir
@@ -1017,7 +1043,7 @@ ibis::text::text(const ibis::column& col) : ibis::column(col) {
 void ibis::text::startPositions(const char *dir, char *buf,
 				uint32_t nbuf) const {
     if (dir == 0) // default to the current data directory
-	dir = thePart->currentDataDir();
+	dir = (thePart != 0 ? thePart->currentDataDir() : 0);
     if (dir == 0) return;
 
     std::string dfile = dir;
@@ -1065,6 +1091,17 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	remove(spfile.c_str());
 	return;
     }
+    const bool isActiveData =
+	(thePart->getStateNoLocking() == ibis::part::STABLE_STATE &&
+	 (dir == thePart->currentDataDir() ||
+	  strcmp(dir, thePart->currentDataDir()) == 0));
+    ierr = fseek(fsp, 0, SEEK_END);
+    ierr = ftell(fsp);
+    if (isActiveData && ierr > (long)(8 * thePart->nRows())) {
+	fclose(fdata);
+	fclose(fsp);
+	return;
+    }
 
     ibis::util::timer mytimer(evt.c_str(), 3);
     ibis::fileManager::buffer<char> mybuf(nbuf != 0);
@@ -1075,8 +1112,6 @@ void ibis::text::startPositions(const char *dir, char *buf,
 
     int64_t pos = 0;
     uint32_t nold = 0;
-    ierr = fseek(fsp, 0, SEEK_END);
-    ierr = ftell(fsp);
     if (ierr > (long)sizeof(uint64_t)) // .sp contains at least two integers
 	ierr = fseek(fsp, -static_cast<long>(sizeof(int64_t)), SEEK_END);
     else
@@ -1224,9 +1259,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	<< " now has " << (nnew+nold+1) << " 64-bit integers (total "
 	<< sizeof(int64_t)*(nnew+nold+1) << " bytes)";
 
-    if (thePart->getStateNoLocking() == ibis::part::STABLE_STATE &&
-	strcmp(dir, thePart->currentDataDir()) == 0 &&
-	nold + nnew > thePart->nRows()) {
+    if (isActiveData && nold + nnew > thePart->nRows()) {
 	fsp = fopen(spfile.c_str(), "rb");
 	ierr = fseek(fsp, thePart->nRows()*sizeof(int64_t), SEEK_SET);
 	ierr = fread(&pos, sizeof(int64_t), 1, fsp);
@@ -1935,6 +1968,9 @@ ibis::text::selectLongs(const ibis::bitvector& mask) const {
     fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".sp"; // starting position file
+    off_t spsize = ibis::util::getFileSize(fnm.c_str());
+    if (spsize < 0 || (size_t)spsize != (mask.size()+1)*sizeof(int64_t))
+	startPositions(thePart->currentDataDir(), (char*)0, 0U);
     array_t<int64_t> sp;
     int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), sp);
     if (ierr != 0) return 0; // can not provide starting positions
@@ -2161,9 +2197,13 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     // open the file explicitly to read two number
     int des = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (des < 0) {
-	logWarning("readString", "failed to open file \"%s\"",
-		   fnm.c_str());
-	return;
+	startPositions(thePart->currentDataDir(), 0, 0);
+	des = UnixOpen(fnm.c_str(), OPEN_READONLY);
+	if (des < 0) {
+	    logWarning("readString", "failed to open file \"%s\"",
+		       fnm.c_str());
+	    return;
+	}
     }
     ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
     ierr = UnixRead(des, &positions, sizeof(positions));

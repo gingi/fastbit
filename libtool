@@ -1,12 +1,12 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.1.1
+# Generated automatically by config.status (fastbit) ibis1.1.1a
 # Libtool was configured on host bit:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
-#                 2006, 2007, 2008 Free Software Foundation, Inc.
+#                 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 #   Written by Gordon Matzigkeit, 1996
 #
 #   This file is part of GNU Libtool.
@@ -40,7 +40,7 @@ available_tags="CXX "
 
 # Which release of libtool.m4 was used?
 macro_version=2.2.7a
-macro_revision=1.3087
+macro_revision=1.3109
 
 # Whether or not to build shared libraries.
 build_libtool_libs=yes
@@ -53,6 +53,12 @@ pic_mode=default
 
 # Whether or not to optimize for fast installation.
 fast_install=needless
+
+# Shell to use when invoking shell scripts.
+SHELL="/bin/sh"
+
+# An echo program that protects backslashes.
+ECHO="printf %s\\n"
 
 # The host system.
 host_alias=
@@ -103,9 +109,8 @@ SP2NL="tr \\040 \\012"
 # turn newlines into spaces.
 NL2SP="tr \\015\\012 \\040\\040"
 
-# How to create reloadable object files.
-reload_flag=" -r"
-reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
+# convert $build paths to $host format.
+to_host_path_cmd=func_noop_path_convert
 
 # An object symbol dumper.
 OBJDUMP="objdump"
@@ -115,6 +120,12 @@ deplibs_check_method="file_magic ^x86 archive import|^x86 DLL"
 
 # Command to use when deplibs_check_method == "file_magic".
 file_magic_cmd="func_win32_libid"
+
+# DLL creation program.
+DLLTOOL="dlltool"
+
+# Command to associate shared and link libraries.
+sharedlib_from_linklib_cmd="func_cygming_dll_for_implib_fallback"
 
 # The archiver.
 AR="ar"
@@ -127,6 +138,9 @@ STRIP="strip"
 RANLIB="ranlib"
 old_postinstall_cmds="chmod 644 \$oldlib~\$RANLIB \$oldlib"
 old_postuninstall_cmds=""
+
+# Whether to use a lock for old archive extraction.
+lock_old_archive_extraction=no
 
 # A C compiler.
 LTCC="gcc"
@@ -141,19 +155,13 @@ global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[	 ][	 ]*
 global_symbol_to_cdecl="sed -n -e 's/^T .* \\(.*\\)\$/extern int \\1();/p' -e 's/^[ABCDGIRSTW]* .* \\(.*\\)\$/extern char \\1;/p'"
 
 # Transform the output of nm in a C name address pair.
-global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p'"
+global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\)[ ]*\$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p'"
 
 # Transform the output of nm in a C name address pair when lib prefix is needed.
-global_symbol_to_c_name_address_lib_prefix="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\(lib[^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"lib\\2\", (void *) \\&\\2},/p'"
+global_symbol_to_c_name_address_lib_prefix="sed -n -e 's/^: \\([^ ]*\\)[ ]*\$/  {\\\"\\1\\\", (void *) 0},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\(lib[^ ]*\\)\$/  {\"\\2\", (void *) \\&\\2},/p' -e 's/^[ABCDGIRSTW]* \\([^ ]*\\) \\([^ ]*\\)\$/  {\"lib\\2\", (void *) \\&\\2},/p'"
 
 # The name of the directory that contains temporary libtool files.
 objdir=.libs
-
-# Shell to use when invoking shell scripts.
-SHELL="/bin/sh"
-
-# An echo program that does not interpret backslashes.
-ECHO="echo"
 
 # Used to examine libraries when file_magic_cmd begins with "file".
 MAGIC_CMD=file
@@ -217,6 +225,9 @@ library_names_spec="\$libname.dll.a"
 # The coded name of the library, if different from the real name.
 soname_spec="\`echo \${libname} | sed -e s/^lib/cyg/\`\`echo \${release} | \$SED -e s/[.]/-/g\`\${versuffix}\${shared_ext}"
 
+# Permission mode override for installation of shared libraries.
+install_override_mode=""
+
 # Command to use after installation of a shared archive.
 postinstall_cmds="base_file=\\\`basename \\\${file}\\\`~
       dlpath=\\\`\$SHELL 2>&1 -c '. \$dir/'\\\${base_file}'i; echo \\\$dlname'\\\`~
@@ -244,7 +255,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/usr/lib /lib/w32api /lib /usr/local/lib"
+sys_lib_search_path_spec="/usr/lib/gcc/i686-pc-cygwin/3.4.4 /usr/lib /lib  /usr/lib/w32api"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/lib /usr/lib"
@@ -265,6 +276,10 @@ striplib="strip --strip-unneeded"
 
 # The linker used to build libraries.
 LD="/usr/i686-pc-cygwin/bin/ld.exe"
+
+# How to create reloadable object files.
+reload_flag=" -r"
+reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
 
 # Commands used to build an old-style archive.
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
@@ -297,7 +312,7 @@ build_libtool_need_lc=yes
 allow_libtool_libs_with_static_runtimes=yes
 
 # Compiler flag to allow reflexive dlopens.
-export_dynamic_flag_spec="\${wl}--export-dynamic"
+export_dynamic_flag_spec="\${wl}--export-all-symbols"
 
 # Compiler flag to generate shared objects directly from archives.
 whole_archive_flag_spec="\${wl}--whole-archive\$convenience \${wl}--no-whole-archive"
@@ -383,10 +398,10 @@ fix_srcfile_path=""
 always_export_symbols=no
 
 # The commands to list exported symbols.
-export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
+export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
 
 # Symbols that should not be listed in the preloaded symbols.
-exclude_expsyms="_head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
+exclude_expsyms="[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
 
 # Symbols that must always be exported.
 include_expsyms=""
@@ -418,7 +433,7 @@ compiler_lib_search_path=""
 
 # Generated from ltmain.m4sh.
 
-# libtool (GNU libtool 1.3087 2008-08-02) 2.2.7a
+# libtool (GNU libtool 1.3109 2009-06-18) 2.2.7a
 # Written by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006,
@@ -488,7 +503,7 @@ compiler_lib_search_path=""
 #         compiler:		$LTCC
 #         compiler flags:		$LTCFLAGS
 #         linker:		$LD (gnu? $with_gnu_ld)
-#         $progname:	(GNU libtool 1.3087 2008-08-02) 2.2.7a
+#         $progname:	(GNU libtool 1.3109 2009-06-18) 2.2.7a
 #         automake:	$automake_version
 #         autoconf:	$autoconf_version
 #
@@ -497,8 +512,8 @@ compiler_lib_search_path=""
 PROGRAM=libtool
 PACKAGE=libtool
 VERSION=2.2.7a
-TIMESTAMP=" 1.3087 2008-08-02"
-package_revision=1.3087
+TIMESTAMP=" 1.3109 2009-06-18"
+package_revision=1.3109
 
 # Be Bourne compatible
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
@@ -3371,15 +3386,19 @@ func_extract_an_archive ()
     $opt_debug
     f_ex_an_ar_dir="$1"; shift
     f_ex_an_ar_oldlib="$1"
-    if test "X$ar_extract_one_by_one" != "Xyes"; then
-      func_show_eval "(cd \$f_ex_an_ar_dir && $AR ${AR_XFLAGS}${AR_SEP}\"\$f_ex_an_ar_oldlib\")" 'exit $?'
-    else
-      $AR ${AR_TFLAGS}${AR_SEP}"$f_ex_an_ar_oldlib" | while read name
-      do
-       func_show_eval "(cd \$f_ex_an_ar_dir && $AR ${AR_XFLAGS}${AR_SEP}\$name \"\$f_ex_an_ar_oldlib\")" 'exit $?'
+    if test "$lock_old_archive_extraction" = yes; then
+      lockfile=$f_ex_an_ar_oldlib.lock
+      until $opt_dry_run || ln "$progpath" "$lockfile" 2>/dev/null; do
+	func_echo "Waiting for $lockfile to be removed"
+	sleep 2
       done
     fi
-    if ($AR ${AR_TFLAGS}${AR_SEP}"$f_ex_an_ar_oldlib" | sort | sort -uc >/dev/null 2>&1); then
+    func_show_eval "(cd \$f_ex_an_ar_dir && $AR x \"\$f_ex_an_ar_oldlib\")" \
+		   'stat=$?; rm -f "$lockfile"; exit $stat'
+    if test "$lock_old_archive_extraction" = yes; then
+      $opt_dry_run || rm -f "$lockfile"
+    fi
+    if ($AR t "$f_ex_an_ar_oldlib" | sort | sort -uc >/dev/null 2>&1); then
      :
     else
       func_fatal_error "object name conflicts in archive: $f_ex_an_ar_dir/$f_ex_an_ar_oldlib"
@@ -3930,18 +3949,6 @@ func_to_host_path ()
 # end func_to_host_path
 
 
-# func_to_tool_path ARG
-# converts the path ARG from $build format to toolchain
-# format.
-func_to_tool_path ()
-{
-  $opt_debug
-  eval '$to_tool_path_cmd "$1"'
-  func_to_tool_path_result=$func_to_host_path_result
-}
-# end func_to_tool_path
-
-
 # func_noop_path_convert ARG
 # A no-op path conversion function for use when $build == $host.
 # or when there is no required (or known) conversion function
@@ -4335,9 +4342,7 @@ EOF
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
-#ifndef __MINGW32CE__
-# include <errno.h>
-#endif
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -4367,7 +4372,7 @@ int setenv (const char *, const char *, int);
 #  define _INTPTR_T_DEFINED
 #  define intptr_t int
 # endif
-#elif defined(__MINGW32__) && !defined(__MINGW32CE__)
+#elif defined(__MINGW32__)
 # define setmode _setmode
 # define stat    _stat
 # define chmod   _chmod
@@ -4742,11 +4747,7 @@ EOF
   if (rval == -1)
     {
       /* failed to start process */
-#ifndef __MINGW32CE__
       LTWRAPPER_DEBUGPRINTF (("(main) failed to launch target \"%s\": errno = %d\n", lt_argv_zero, errno));
-#else
-      LTWRAPPER_DEBUGPRINTF (("(main) failed to launch target \"%s\"\n", lt_argv_zero));
-#endif
       return 127;
     }
   return rval;
@@ -4975,12 +4976,8 @@ chase_symlinks (const char *pathspec)
 	}
       else
 	{
-#ifndef __MINGW32CE__
 	  char *errstr = strerror (errno);
 	  lt_fatal ("Error accessing file %s (%s)", tmp_pathspec, errstr);
-#else
-	  lt_fatal ("Error accessing file %s", tmp_pathspec);
-#endif
 	}
     }
   XFREE (tmp_pathspec);
@@ -5343,6 +5340,32 @@ EOF
 EOF
 }
 # end: func_emit_cwrapperexe_src
+
+# func_emit_exe_manifest
+# emit a Win32 UAC manifest for executable on stdout
+# Must ONLY be called from within func_mode_link because
+# it depends on a number of variable set therein.
+func_emit_exe_manifest ()
+{
+    cat <<EOF
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity version="1.0.0.0"
+     processorArchitecture="X86"
+     name="$host_os.$PROGRAM.$outputname"
+     type="win32"/>
+
+  <!-- Identify the application security requirements. -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+</assembly>
+EOF
+}
 
 # func_win32_import_lib_p ARG
 # True if ARG is an import lib, as indicated by $file_magic_cmd
@@ -6091,8 +6114,9 @@ func_mode_link ()
       # -F/path gives path to uninstalled frameworks, gcc on darwin
       # -p, -pg, --coverage, -fprofile-* pass through profiling flag for GCC
       # @file GCC response files
+      # -tp=* Portland pgcc target processor selection
       -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
-      -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*)
+      -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*|-tp=*)
         func_quote_for_eval "$arg"
 	arg="$func_quote_for_eval_result"
         func_append compile_command " $arg"
@@ -7247,6 +7271,7 @@ func_mode_link ()
 	  if test "$link_all_deplibs" != no; then
 	    # Add the search paths of all dependency libraries
 	    for deplib in $dependency_libs; do
+	      path=
 	      case $deplib in
 	      -L*) path="$deplib" ;;
 	      *.la)
@@ -7548,7 +7573,7 @@ func_mode_link ()
 	    age="$number_minor"
 	    revision="$number_revision"
 	    ;;
-	  freebsd-aout|freebsd-elf|sunos)
+	  freebsd-aout|freebsd-elf|qnx|sunos)
 	    current="$number_major"
 	    revision="$number_minor"
 	    age="0"
@@ -8545,17 +8570,19 @@ EOF
 		  # command to the queue.
 		  if test "$k" -eq 1 ; then
 		    # The first file doesn't have a previous command to add.
-		    eval concat_cmds=\"$reload_cmds $objlist $last_robj\"
+		    reload_objs=$objlist
+		    eval concat_cmds=\"$reload_cmds\"
 		  else
 		    # All subsequent reloadable object files will link in
 		    # the last one created.
-		    eval concat_cmds=\"\$concat_cmds~$reload_cmds $objlist $last_robj~\$RM $last_robj\"
+		    reload_objs="$objlist $last_robj"
+		    eval concat_cmds=\"\$concat_cmds~$reload_cmds~\$RM $last_robj\"
 		  fi
 		  last_robj=$output_objdir/$output_la-${k}.$objext
 		  func_arith $k + 1
 		  k=$func_arith_result
 		  output=$output_objdir/$output_la-${k}.$objext
-		  objlist=$obj
+		  objlist=" $obj"
 		  func_len " $last_robj"
 		  func_arith $len0 + $func_len_result
 		  len=$func_arith_result
@@ -8565,7 +8592,8 @@ EOF
 	      # reloadable object file.  All subsequent reloadable object
 	      # files will link in the last one created.
 	      test -z "$concat_cmds" || concat_cmds=$concat_cmds~
-	      eval concat_cmds=\"\${concat_cmds}$reload_cmds $objlist $last_robj\"
+	      reload_objs="$objlist $last_robj"
+	      eval concat_cmds=\"\${concat_cmds}$reload_cmds\"
 	      if test -n "$last_robj"; then
 	        eval concat_cmds=\"\${concat_cmds}~\$RM $last_robj\"
 	      fi
@@ -9029,14 +9057,14 @@ EOF
 
       wrappers_required=yes
       case $host in
+      *cegcc* | *mingw32ce*)
+        # Disable wrappers for cegcc and mingw32ce hosts, we are cross compiling anyway.
+        wrappers_required=no
+        ;;
       *cygwin* | *mingw* )
         if test "$build_libtool_libs" != yes; then
           wrappers_required=no
         fi
-        ;;
-      *cegcc*)
-        # Disable wrappers for cegcc, we are cross compiling anyway.
-        wrappers_required=no
         ;;
       *)
         if test "$need_relink" = no || test "$build_libtool_libs" != yes; then
@@ -9195,6 +9223,13 @@ EOF
 	    $opt_dry_run || {
 	      # note: this script will not be executed, so do not chmod.
 	      if test "x$build" = "x$host" ; then
+		# Create the UAC manifests first if necessary
+		case $output_name in
+		  *instal*|*patch*|*setup*|*update*)
+		    func_emit_exe_manifest > $cwrapper.manifest
+		    func_emit_exe_manifest > $output_path/$objdir/$output_name.exe.manifest
+		  ;;
+		esac
 		$cwrapper --lt-dump-script > $func_ltwrapper_scriptname_result
 	      else
 		func_emit_wrapper no > $func_ltwrapper_scriptname_result
@@ -9706,55 +9741,6 @@ func_mode_uninstall ()
 { test "$mode" = uninstall || test "$mode" = clean; } &&
     func_mode_uninstall ${1+"$@"}
 
-
-# func_mode_ar arg...
-func_mode_ar ()
-{
-    $opt_debug
-    ar_action="$nonopt"
-    archive=
-    files=
-
-    for arg
-    do
-      if test -z "$archive"; then
-	func_to_host_path "$arg"
-	archive=$func_to_host_path_result
-      else
-	files="$files $arg"
-      fi
-    done
-
-    test -z "$archive" && \
-      func_fatal_help "you must specify an archive"
-
-    case "$ar_action" in
-    cru)
-      test -z "$files" && \
-	func_fatal_help "you must specify some objects"
-      func_show_eval "$AR $AR_FLAGS$AR_SEP$archive $files" 'exit $?'
-      ;;
-    x)
-      if test "x$ar_extract_one_by_one" = xyes; then
-	func_extract_an_archive . "$archive"
-	exit $?
-      else
-	func_show_eval "$AR $AR_XFLAGS$AR_SEP$archive" 'exit $?'
-      fi
-      ;;
-    t)
-      func_show_eval "$AR $AR_TFLAGS$AR_SEP$archive" 'exit $?'
-      ;;
-    *)
-      func_fatal_help "bad archive action, either cru, x or t"
-      ;;
-    esac
-
-    exit $EXIT_SUCCESS
-}
-
-test "$mode" = ar && func_mode_ar ${1+"$@"}
-
 test -z "$mode" && {
   help="$generic_help"
   func_fatal_help "you must specify a MODE"
@@ -9802,6 +9788,10 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 
 # The linker used to build libraries.
 LD="/usr/i686-pc-cygwin/bin/ld.exe"
+
+# How to create reloadable object files.
+reload_flag=" -r"
+reload_cmds="\$LD\$reload_flag -o \$output\$reload_objs"
 
 # Commands used to build an old-style archive.
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
@@ -9920,10 +9910,10 @@ fix_srcfile_path=""
 always_export_symbols=no
 
 # The commands to list exported symbols.
-export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
+export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe | \$SED -e '/^[BCDGRS][ ]/s/.*[ ]\\\\([^ ]*\\\\)/\\\\1 DATA/;s/^.*[ ]__nm__\\\\([^ ]*\\\\)[ ][^ ]*/\\\\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //' | sort | uniq > \$export_symbols"
 
 # Symbols that should not be listed in the preloaded symbols.
-exclude_expsyms="_head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
+exclude_expsyms="[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname"
 
 # Symbols that must always be exported.
 include_expsyms=""

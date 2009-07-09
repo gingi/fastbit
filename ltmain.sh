@@ -1,6 +1,6 @@
 # Generated from ltmain.m4sh.
 
-# libtool (GNU libtool 1.3087 2008-08-02) 2.2.7a
+# libtool (GNU libtool 1.3109 2009-06-18) 2.2.7a
 # Written by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006,
@@ -70,7 +70,7 @@
 #         compiler:		$LTCC
 #         compiler flags:		$LTCFLAGS
 #         linker:		$LD (gnu? $with_gnu_ld)
-#         $progname:	(GNU libtool 1.3087 2008-08-02) 2.2.7a
+#         $progname:	(GNU libtool 1.3109 2009-06-18) 2.2.7a
 #         automake:	$automake_version
 #         autoconf:	$autoconf_version
 #
@@ -79,8 +79,8 @@
 PROGRAM=libtool
 PACKAGE=libtool
 VERSION=2.2.7a
-TIMESTAMP=" 1.3087 2008-08-02"
-package_revision=1.3087
+TIMESTAMP=" 1.3109 2009-06-18"
+package_revision=1.3109
 
 # Be Bourne compatible
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
@@ -2857,15 +2857,19 @@ func_extract_an_archive ()
     $opt_debug
     f_ex_an_ar_dir="$1"; shift
     f_ex_an_ar_oldlib="$1"
-    if test "X$ar_extract_one_by_one" != "Xyes"; then
-      func_show_eval "(cd \$f_ex_an_ar_dir && $AR ${AR_XFLAGS}${AR_SEP}\"\$f_ex_an_ar_oldlib\")" 'exit $?'
-    else
-      $AR ${AR_TFLAGS}${AR_SEP}"$f_ex_an_ar_oldlib" | while read name
-      do
-       func_show_eval "(cd \$f_ex_an_ar_dir && $AR ${AR_XFLAGS}${AR_SEP}\$name \"\$f_ex_an_ar_oldlib\")" 'exit $?'
+    if test "$lock_old_archive_extraction" = yes; then
+      lockfile=$f_ex_an_ar_oldlib.lock
+      until $opt_dry_run || ln "$progpath" "$lockfile" 2>/dev/null; do
+	func_echo "Waiting for $lockfile to be removed"
+	sleep 2
       done
     fi
-    if ($AR ${AR_TFLAGS}${AR_SEP}"$f_ex_an_ar_oldlib" | sort | sort -uc >/dev/null 2>&1); then
+    func_show_eval "(cd \$f_ex_an_ar_dir && $AR x \"\$f_ex_an_ar_oldlib\")" \
+		   'stat=$?; rm -f "$lockfile"; exit $stat'
+    if test "$lock_old_archive_extraction" = yes; then
+      $opt_dry_run || rm -f "$lockfile"
+    fi
+    if ($AR t "$f_ex_an_ar_oldlib" | sort | sort -uc >/dev/null 2>&1); then
      :
     else
       func_fatal_error "object name conflicts in archive: $f_ex_an_ar_dir/$f_ex_an_ar_oldlib"
@@ -3416,18 +3420,6 @@ func_to_host_path ()
 # end func_to_host_path
 
 
-# func_to_tool_path ARG
-# converts the path ARG from $build format to toolchain
-# format.
-func_to_tool_path ()
-{
-  $opt_debug
-  eval '$to_tool_path_cmd "$1"'
-  func_to_tool_path_result=$func_to_host_path_result
-}
-# end func_to_tool_path
-
-
 # func_noop_path_convert ARG
 # A no-op path conversion function for use when $build == $host.
 # or when there is no required (or known) conversion function
@@ -3821,9 +3813,7 @@ EOF
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
-#ifndef __MINGW32CE__
-# include <errno.h>
-#endif
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -3853,7 +3843,7 @@ int setenv (const char *, const char *, int);
 #  define _INTPTR_T_DEFINED
 #  define intptr_t int
 # endif
-#elif defined(__MINGW32__) && !defined(__MINGW32CE__)
+#elif defined(__MINGW32__)
 # define setmode _setmode
 # define stat    _stat
 # define chmod   _chmod
@@ -4228,11 +4218,7 @@ EOF
   if (rval == -1)
     {
       /* failed to start process */
-#ifndef __MINGW32CE__
       LTWRAPPER_DEBUGPRINTF (("(main) failed to launch target \"%s\": errno = %d\n", lt_argv_zero, errno));
-#else
-      LTWRAPPER_DEBUGPRINTF (("(main) failed to launch target \"%s\"\n", lt_argv_zero));
-#endif
       return 127;
     }
   return rval;
@@ -4461,12 +4447,8 @@ chase_symlinks (const char *pathspec)
 	}
       else
 	{
-#ifndef __MINGW32CE__
 	  char *errstr = strerror (errno);
 	  lt_fatal ("Error accessing file %s (%s)", tmp_pathspec, errstr);
-#else
-	  lt_fatal ("Error accessing file %s", tmp_pathspec);
-#endif
 	}
     }
   XFREE (tmp_pathspec);
@@ -4829,6 +4811,32 @@ EOF
 EOF
 }
 # end: func_emit_cwrapperexe_src
+
+# func_emit_exe_manifest
+# emit a Win32 UAC manifest for executable on stdout
+# Must ONLY be called from within func_mode_link because
+# it depends on a number of variable set therein.
+func_emit_exe_manifest ()
+{
+    cat <<EOF
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity version="1.0.0.0"
+     processorArchitecture="X86"
+     name="$host_os.$PROGRAM.$outputname"
+     type="win32"/>
+
+  <!-- Identify the application security requirements. -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+</assembly>
+EOF
+}
 
 # func_win32_import_lib_p ARG
 # True if ARG is an import lib, as indicated by $file_magic_cmd
@@ -5577,8 +5585,9 @@ func_mode_link ()
       # -F/path gives path to uninstalled frameworks, gcc on darwin
       # -p, -pg, --coverage, -fprofile-* pass through profiling flag for GCC
       # @file GCC response files
+      # -tp=* Portland pgcc target processor selection
       -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
-      -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*)
+      -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*|-tp=*)
         func_quote_for_eval "$arg"
 	arg="$func_quote_for_eval_result"
         func_append compile_command " $arg"
@@ -6733,6 +6742,7 @@ func_mode_link ()
 	  if test "$link_all_deplibs" != no; then
 	    # Add the search paths of all dependency libraries
 	    for deplib in $dependency_libs; do
+	      path=
 	      case $deplib in
 	      -L*) path="$deplib" ;;
 	      *.la)
@@ -7034,7 +7044,7 @@ func_mode_link ()
 	    age="$number_minor"
 	    revision="$number_revision"
 	    ;;
-	  freebsd-aout|freebsd-elf|sunos)
+	  freebsd-aout|freebsd-elf|qnx|sunos)
 	    current="$number_major"
 	    revision="$number_minor"
 	    age="0"
@@ -8031,17 +8041,19 @@ EOF
 		  # command to the queue.
 		  if test "$k" -eq 1 ; then
 		    # The first file doesn't have a previous command to add.
-		    eval concat_cmds=\"$reload_cmds $objlist $last_robj\"
+		    reload_objs=$objlist
+		    eval concat_cmds=\"$reload_cmds\"
 		  else
 		    # All subsequent reloadable object files will link in
 		    # the last one created.
-		    eval concat_cmds=\"\$concat_cmds~$reload_cmds $objlist $last_robj~\$RM $last_robj\"
+		    reload_objs="$objlist $last_robj"
+		    eval concat_cmds=\"\$concat_cmds~$reload_cmds~\$RM $last_robj\"
 		  fi
 		  last_robj=$output_objdir/$output_la-${k}.$objext
 		  func_arith $k + 1
 		  k=$func_arith_result
 		  output=$output_objdir/$output_la-${k}.$objext
-		  objlist=$obj
+		  objlist=" $obj"
 		  func_len " $last_robj"
 		  func_arith $len0 + $func_len_result
 		  len=$func_arith_result
@@ -8051,7 +8063,8 @@ EOF
 	      # reloadable object file.  All subsequent reloadable object
 	      # files will link in the last one created.
 	      test -z "$concat_cmds" || concat_cmds=$concat_cmds~
-	      eval concat_cmds=\"\${concat_cmds}$reload_cmds $objlist $last_robj\"
+	      reload_objs="$objlist $last_robj"
+	      eval concat_cmds=\"\${concat_cmds}$reload_cmds\"
 	      if test -n "$last_robj"; then
 	        eval concat_cmds=\"\${concat_cmds}~\$RM $last_robj\"
 	      fi
@@ -8515,14 +8528,14 @@ EOF
 
       wrappers_required=yes
       case $host in
+      *cegcc* | *mingw32ce*)
+        # Disable wrappers for cegcc and mingw32ce hosts, we are cross compiling anyway.
+        wrappers_required=no
+        ;;
       *cygwin* | *mingw* )
         if test "$build_libtool_libs" != yes; then
           wrappers_required=no
         fi
-        ;;
-      *cegcc*)
-        # Disable wrappers for cegcc, we are cross compiling anyway.
-        wrappers_required=no
         ;;
       *)
         if test "$need_relink" = no || test "$build_libtool_libs" != yes; then
@@ -8681,6 +8694,13 @@ EOF
 	    $opt_dry_run || {
 	      # note: this script will not be executed, so do not chmod.
 	      if test "x$build" = "x$host" ; then
+		# Create the UAC manifests first if necessary
+		case $output_name in
+		  *instal*|*patch*|*setup*|*update*)
+		    func_emit_exe_manifest > $cwrapper.manifest
+		    func_emit_exe_manifest > $output_path/$objdir/$output_name.exe.manifest
+		  ;;
+		esac
 		$cwrapper --lt-dump-script > $func_ltwrapper_scriptname_result
 	      else
 		func_emit_wrapper no > $func_ltwrapper_scriptname_result
@@ -9191,55 +9211,6 @@ func_mode_uninstall ()
 
 { test "$mode" = uninstall || test "$mode" = clean; } &&
     func_mode_uninstall ${1+"$@"}
-
-
-# func_mode_ar arg...
-func_mode_ar ()
-{
-    $opt_debug
-    ar_action="$nonopt"
-    archive=
-    files=
-
-    for arg
-    do
-      if test -z "$archive"; then
-	func_to_host_path "$arg"
-	archive=$func_to_host_path_result
-      else
-	files="$files $arg"
-      fi
-    done
-
-    test -z "$archive" && \
-      func_fatal_help "you must specify an archive"
-
-    case "$ar_action" in
-    cru)
-      test -z "$files" && \
-	func_fatal_help "you must specify some objects"
-      func_show_eval "$AR $AR_FLAGS$AR_SEP$archive $files" 'exit $?'
-      ;;
-    x)
-      if test "x$ar_extract_one_by_one" = xyes; then
-	func_extract_an_archive . "$archive"
-	exit $?
-      else
-	func_show_eval "$AR $AR_XFLAGS$AR_SEP$archive" 'exit $?'
-      fi
-      ;;
-    t)
-      func_show_eval "$AR $AR_TFLAGS$AR_SEP$archive" 'exit $?'
-      ;;
-    *)
-      func_fatal_help "bad archive action, either cru, x or t"
-      ;;
-    esac
-
-    exit $EXIT_SUCCESS
-}
-
-test "$mode" = ar && func_mode_ar ${1+"$@"}
 
 test -z "$mode" && {
   help="$generic_help"

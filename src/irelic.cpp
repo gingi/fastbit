@@ -1515,8 +1515,6 @@ long ibis::relic::evaluate(const ibis::qContinuousRange& expr,
     }
 
     locate(expr, hit0, hit1);
-    if (hit1 < hit0)
-	hit1 = hit0;
     sumBins(hit0, hit1, lower);
     return lower.cnt();
 } // ibis::relic::evaluate

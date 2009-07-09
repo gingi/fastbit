@@ -2742,7 +2742,7 @@ int ibis::query::computeHits() {
 	lg.buffer() << "ibis::query[" << myID << "]::computeHits -- "
 	    "starting to compute hits for the query";
 	if (conds.getExpr() != 0)
-	    lg.buffer() << " \""<< *conds.getExpr() << "\"";
+	    lg.buffer() << " \"" << *conds.getExpr() << "\"";
     }
 
     int ierr = 0;

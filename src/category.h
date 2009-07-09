@@ -193,13 +193,15 @@ public:
 
 private:
     // private member variables
-    ibis::dictionary dic;
+
+    // dictionary is mutable in order to delay the reading of dictionary
+    // from disk as late as possible
+    mutable ibis::dictionary dic;
 
     // private member functions
-    void readDictionary(const char *dir=0);
-
-    /// Build an ibis::relic index using the existing primary data.
-    void fillIndex(const char *dir=0);
+    void readDictionary(const char *dir=0) const;
+    void fillIndex(const char *dir=0) const;
+    void prepareMembers() const;
 
     category& operator=(const category&);
 }; // ibis::category
@@ -214,9 +216,9 @@ inline const char* ibis::dictionary::operator[](uint32_t i) const {
     }
 } // int to string
 
-// string to int
-/// Returns 0 for empty (null) strings, 1:dictionary::size() for strings
-/// in the dictionary, and dictionary::size()+1.
+/// Convert a string to integer.  Returns 0 for empty (null) strings,
+/// 1:size() for strings in the dictionary, and dictionary::size()+1 for
+/// unknown values.
 inline uint32_t ibis::dictionary::operator[](const char* str) const {
     if (str == 0) return 0;
     if (*str == 0) return 0;
