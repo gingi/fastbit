@@ -1275,7 +1275,8 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	nms[i] = sel.getTerm(i);
 	nmc[i] = nms[i].c_str();
 	tps[i] = bdl->columnType(i);
-	if (bdl->columnArray(i) == 0) {
+	void *bptr = bdl->columnArray(i);
+	if (bptr == 0) {
 	    buf[i] = 0;
 	    continue;
 	}
@@ -1283,28 +1284,38 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	switch (tps[i]) {
 	case ibis::INT:
 	    buf[i] = new array_t<int32_t>
-		(* static_cast<const array_t<int32_t>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<int32_t>*>(bptr));
 	    break;
 	case ibis::UINT:
 	    buf[i] = new array_t<uint32_t>
-		(* static_cast<const array_t<uint32_t>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<uint32_t>*>(bptr));
 	    break;
 	case ibis::LONG:
 	    buf[i] = new array_t<int64_t>
-		(* static_cast<const array_t<int64_t>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<int64_t>*>(bptr));
 	    break;
 	case ibis::ULONG:
 	    buf[i] = new array_t<uint64_t>
-		(* static_cast<const array_t<uint64_t>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<uint64_t>*>(bptr));
 	    break;
 	case ibis::FLOAT:
 	    buf[i] = new array_t<float>
-		(* static_cast<const array_t<float>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<float>*>(bptr));
 	    break;
 	case ibis::DOUBLE:
 	    buf[i] = new array_t<double>
-		(* static_cast<const array_t<double>*>(bdl->columnArray(i)));
+		(* static_cast<const array_t<double>*>(bptr));
 	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY: {
+	    std::vector<std::string> &bstr =
+		* static_cast<std::vector<std::string>*>(bptr);
+	    std::vector<std::string> *tmp =
+		new std::vector<std::string>(bstr.size());
+	    for (uint32_t j = 0; j < bstr.size(); ++ j)
+		bstr[j].swap((*tmp)[j]);
+	    buf[i] = tmp;
+	    break;}
 	default:
 	    buf[i] = 0;
 	    break;
@@ -1869,7 +1880,7 @@ ibis::bord::column::~column() {
 } // ibis::bord::column::~column
 
 void ibis::bord::column::computeMinMax(const char *,
-				      double &min, double &max) const {
+				       double &min, double &max) const {
     if (buffer == 0) return;
 
     switch (m_type) {

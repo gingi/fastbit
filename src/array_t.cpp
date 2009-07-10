@@ -620,10 +620,12 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 
 /// Sort the @c k largest elements of the array.  Return the indices of the
 /// in sorted values.
+///
 ///@note The resulting array @c ind may have more than @c k elements if the
-/// <code>k</code>th smallest value is not a single value.  The array @c
+/// <code>k</code>th largest value is not a single value.  The array @c
 /// ind may have less than @c k elements if this array has less than @c k
 /// elements.
+///
 ///@note The values are sorted in ascending order, i.e., <code>[ind[i]] <=
 /// [ind[i+1]]</code>.  This is done so that all sorting routines produce
 /// indices in the same ascending order.  It should be easy to reverse the
@@ -632,7 +634,6 @@ template<class T>
 void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
     uint32_t front = 0;
     uint32_t back = size();
-    const uint32_t mark = back - k;
     if (back <= k) {
 	qsort(ind, front, back);
 	return;
@@ -643,6 +644,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
     for (uint32_t i = 0; i < back; ++ i)
 	ind[i] = i;
 
+    const uint32_t mark = back - k;
     // main loop to deal with the case of having more than QSORT_MIN elements
     while (back > front + QSORT_MIN && back > mark) {
 	// find a pivot and partition the values into two groups
@@ -665,7 +667,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 	 -- front);
     if (front > 0) { // not all are sorted
 	// copy the sorted indices to the front of array ind
-	for (back = 0; back < k; ++ front, ++ back)
+	for (back = 0; front < size(); ++ front, ++ back)
 	    ind[back] = ind[front];
 	ind.resize(back); // return only the sorted values
     }
@@ -680,6 +682,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 
 /// Sort the first @c k elemnent of the array.  Return the indices of the
 /// smallest values in array @c ind.
+///
 ///@note The resulting array @c ind may have more than @c k elements if the
 /// <code>k</code>th smallest value is not a single value.  The array @c
 /// ind may have less than @c k elements if this array has less than @c k
@@ -716,7 +719,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
     }
     // where to cut off -- only include values that are exactly the same as
     // [k-1]
-    for (back=k;
+    for (back = k;
 	 back < size() && m_begin[ind[back]] == m_begin[k-1];
 	 ++ back);
     ind.resize(back); // drop the indices of partially sorted indices

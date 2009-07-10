@@ -59,25 +59,28 @@
 
 
    Command line options:
-        -a[ppend] data_dir [partition_name]
-	-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]
-	-c[onf] conf_file
-	-d[atadir] data_dir
-	-e[stimation-only]
-	-h[elp]
-	-i[nteractive]
-	-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]
-	-k[eep-temporary-files]
-	-l logfilename
-	-n[o-estimation]
-	-o[utput-file] filename
-	-q[uery] [SELECT ...] [FROM ...] WHERE ...
-	-s[quential-scan]
-	-ri[d-check] [filename]
-	-r[eorder] data_dir[:colname1,colname2...]
-	-t[=n]
-	-v[=n]
-	-y[ank] filename|conditions
+        -append data_dir [partition_name]
+	-build-indexes [numThreads|indexSpec] -z[ap-existing-indexes]
+	-conf conf_file
+	-datadir data_dir
+	-estimation-only
+	-help
+	-interactive
+	-join part1 part2 join-column conditions1 conditions2 [columns ...]
+	-keep-temporary-files
+	-log logfilename
+	-no-estimation
+	-output-file filename
+	-query [SELECT ...] [FROM ...] WHERE ...
+	-squential-scan
+	-rid-check [filename]
+	-reorder data_dir[:colname1,colname2...]
+	-t[=| ]n
+	-v[=| ]n
+	-yank filename|conditions
+
+   @note Options can be specified with the minimal distinguishing prefixes,
+   which in most cases is just the first letter.
 
    @note Options -no-estimation and -estimation-only are mutually
    exclusive, the one that appears later will overwrite the one that

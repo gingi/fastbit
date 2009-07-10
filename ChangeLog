@@ -1,3 +1,17 @@
+2009-07-10 John Wu <John.Wu at ACM.org>
+
+2009-07-09 John Wu <John.Wu at ACM.org>
+	* src/category.h, src/category.cpp: clean up the documentation
+	about members of ibis::dictionary and consolidate the null strings
+	into a single class variable ibis::dictionary::nullstring.
+	* src/colValues.h: add colStrings
+	* src/colValues.cpp: change all bubble sort code to use selection
+	sort to minimize the data movement
+	* src/bord.cpp: change bord::groupby to make use of the new
+	colStrings for TEXT and CATEGORY.  This makes it possible to
+	perform group by with string valued columns through ibis::table
+	interface (Andrew Olson needed this feature)
+
 2009-07-08 John Wu <John.Wu at ACM.org>
 	* INSTALL: clean up the file
 	* src/category.cpp: delay reading of dictionary and generating .sp

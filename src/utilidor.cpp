@@ -56,21 +56,6 @@ namespace ibis {
 	void sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 			     uint32_t& starteq, uint32_t& startgt);
 
-	/// Quicksort for strings.
-	void sortStrings_quick(std::vector<std::string>& keys,
-			       array_t<uint32_t>& vals, uint32_t begin,
-			       uint32_t end);
-	/// Shell sorting procedure.  To clean up after the quick sort
-	/// procedure.
-	void sortStrings_shell(std::vector<std::string>& keys,
-			       array_t<uint32_t>& vals,
-			       uint32_t begin, uint32_t end);
-	/// The partitioning procedure for quick sort.  It implements the
-	/// standard two-way partitioning with median-of-three pivot.
-	uint32_t sortStrings_partition(std::vector<std::string>& keys,
-				       array_t<uint32_t>& vals,
-				       uint32_t begin, uint32_t end);
-
 	/// LSD Radix sort.  Allocates buffers needed for copying data.
 	/// @{
 	template <typename T>
@@ -94,6 +79,13 @@ namespace ibis {
 	template <typename T>
 	void sort_radix(array_t<double>& keys, array_t<T>& vals);
 	/// @}
+
+	// gaps for shell sort from
+	// http://www.cs.princeton.edu/~rs/shell/shell.c
+	// by R. Sedgewick
+	const uint32_t shellgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
+					4592, 12776, 33936, 86961, 198768,
+					463792, 1391376};
     }
 }
 
@@ -288,13 +280,10 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 template <typename T1, typename T2>
 void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
     // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
-    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
-				    4592, 12776, 33936, 86961, 198768,
-				    463792, 1391376};
     const uint32_t nvals = (arr1.size() <= arr2.size() ?
 			    arr1.size() : arr2.size());
     uint32_t gap = nvals / 2;
-    while (gap >= smallgaps[15]) {
+    while (gap >= shellgaps[15]) {
 	for (uint32_t j = gap; j < nvals; ++j) {
 	    const T1 tmp1 = arr1[j];
 	    const T2 tmp2 = arr2[j];
@@ -312,9 +301,9 @@ void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
     }
 
     int ig = 15;
-    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig > 0 && gap < shellgaps[ig]) -- ig;
     while (ig >= 0) {
-	gap = smallgaps[ig];
+	gap = shellgaps[ig];
 	for (uint32_t j = gap; j < nvals; ++j) {
 	    const T1 tmp1 = arr1[j];
 	    const T2 tmp2 = arr2[j];
@@ -954,14 +943,10 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 
 template <typename T1, typename T2>
 void ibis::util::sort_shell(array_t<T1>& keys, array_t<T2>& vals) {
-    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
-    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
-				    4592, 12776, 33936, 86961, 198768,
-				    463792, 1391376};
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     uint32_t gap = nelm / 2;
-    while (gap >= smallgaps[15]) {
+    while (gap >= shellgaps[15]) {
 	for (uint32_t j = gap; j < nelm; ++ j) {
 	    const T1 ktmp = keys[j];
 	    const T2 vtmp = vals[j];
@@ -978,9 +963,9 @@ void ibis::util::sort_shell(array_t<T1>& keys, array_t<T2>& vals) {
     }
 
     int ig = 15;
-    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig > 0 && gap < shellgaps[ig]) -- ig;
     while (ig >= 0) {
-	gap = smallgaps[ig];
+	gap = shellgaps[ig];
 	for (uint32_t j = gap; j < nelm; ++ j) {
 	    const T1 ktmp = keys[j];
 	    const T2 vtmp = vals[j];
@@ -1086,7 +1071,7 @@ void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
 /// FASTBIT_QSORT_MIN+FASTBIT_QSORT_MIN elements to sort, otherwise, it
 /// uses shell sort.
 ///
-/// @note Obviously, all the arrays and whatever auxiliary data much fit in
+/// @note Obviously, all arrays and whatever auxiliary data much fit in
 /// memory.  Furthermore, FastBit does not track the memory usage of
 /// std::vector nor std::string.
 void ibis::util::sortStrings(std::vector<std::string>& keys,
@@ -1101,7 +1086,7 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
     }
 } // ibis::util::sortStrings
 
-/// Quicck-sort for strings with shell sort as clean-up procedure.
+/// Quick-sort for strings with shell sort as clean-up procedure.
 void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 				   array_t<uint32_t>& vals, uint32_t begin,
 				   uint32_t end) {
@@ -1122,7 +1107,7 @@ void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 	}
     }
 
-    if (end > begin) { // clean up with shellsort
+    if (end > begin) { // clean up with shell sort
 	sortStrings_shell(keys, vals, begin, end);
     }
 #if defined(DEBUG)
@@ -1157,13 +1142,9 @@ void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 				   array_t<uint32_t>& vals, uint32_t begin,
 				   uint32_t end) {
-    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
-    const uint32_t smallgaps[16] = {1, 3, 7, 21, 48, 112, 336, 861, 1968,
-				    4592, 12776, 33936, 86961, 198768,
-				    463792, 1391376};
     const uint32_t nelm = end - begin;
     uint32_t gap = nelm / 2;
-    while (gap >= smallgaps[15]) {
+    while (gap >= shellgaps[15]) {
 	for (uint32_t j = begin+gap; j < end; ++ j) {
 	    const uint32_t vtmp = vals[j];
 	    uint32_t i = j;
@@ -1178,9 +1159,9 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
     }
 
     int ig = 15;
-    while (ig > 0 && gap < smallgaps[ig]) -- ig;
+    while (ig > 0 && gap < shellgaps[ig]) -- ig;
     while (ig >= 0) {
-	gap = smallgaps[ig];
+	gap = shellgaps[ig];
 	for (uint32_t j = begin+gap; j < end; ++ j) {
 	    const uint32_t vtmp = vals[j];
 	    uint32_t i = j;

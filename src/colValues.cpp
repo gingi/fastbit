@@ -20,7 +20,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     case ibis::UINT:
     case ibis::UBYTE:
     case ibis::USHORT:
-    case ibis::TEXT:
     case ibis::CATEGORY:
 	return new colUInts(c, hits);
     case ibis::INT:
@@ -35,9 +34,11 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colFloats(c, hits);
     case ibis::DOUBLE:
 	return new colDoubles(c, hits);
+    case ibis::TEXT:
+	return new colStrings(c, hits);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colValues does not support type "
+	    << "Warning -- ibis::colValues does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
 	return 0;
     }
@@ -68,7 +69,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colDoubles(c, store, start, nelm);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colValues does not yet support type "
+	    << "Warning -- ibis::colValues does not yet support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
 	return 0;
     }
@@ -94,9 +95,12 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colFloats(c, vals);
     case ibis::DOUBLE:
 	return new colDoubles(c, vals);
+    case ibis::TEXT:
+    case ibis::CATEGORY:
+	return new colStrings(c, vals);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colValues does not support type "
+	    << "Warning -- ibis::colValues does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
 	return 0;
     }
@@ -170,8 +174,8 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colInts does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colInts does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colInts::colInts
 
@@ -243,8 +247,8 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colUInts does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colUInts does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colUInts::colUInts
 
@@ -316,8 +320,8 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colLongs does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colLongs does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colLongs::colLongs
 
@@ -389,8 +393,8 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colULongs does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colULongs does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colULongs::colULongs
 
@@ -462,8 +466,8 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colFloats does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colFloats does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colFloats::colFloats
 
@@ -535,22 +539,47 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::colDoubles does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	    << "Warning -- ibis::colDoubles does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colDoubles::colDoubles
 
+/// Construct ibis::colStrings from an existing list of strings.  This
+/// function will take over the actual content of the strings and leave the
+/// incoming vals with empty strings.  Do NOT use vals after invoking this
+/// function.
+ibis::colStrings::colStrings(const ibis::column* c, void* vals)
+    : colValues(c), array(0) {
+    if (c == 0 || vals == 0) return;
+    if (c->type() == ibis::TEXT || c->type() == ibis::CATEGORY) {
+	std::vector<std::string>* arr =
+	    static_cast<std::vector<std::string>*>(vals);
+	array = new std::vector<std::string>(arr->size());
+	for (size_t i = 0; i < arr->size(); ++ i)
+	    (*array)[i].swap((*arr)[i]);
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::colStrings does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
+    }
+} // ibis::colStrings::colStrings
+
 void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    int32_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		int32_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -622,18 +651,22 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			 ibis::colList::iterator head,
 			 ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    int32_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		int32_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -725,16 +758,20 @@ void ibis::colInts::sort(uint32_t i, uint32_t j,
 } // ibis::colInts::sort
 
 void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    uint32_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		uint32_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -806,18 +843,22 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			 ibis::colList::iterator head,
 			 ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    uint32_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		uint32_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -909,16 +950,20 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j,
 } // ibis::colUInts::sort
 
 void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    int64_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		int64_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -990,18 +1035,22 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			 ibis::colList::iterator head,
 			 ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    int64_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		int64_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1093,16 +1142,20 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j,
 } // ibis::colLongs::sort
 
 void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    unsigned tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		uint64_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1174,18 +1227,22 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			 ibis::colList::iterator head,
 			 ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    uint64_t tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		uint64_t tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1277,16 +1334,20 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j,
 } // ibis::colULongs::sort
 
 void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    float tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		float tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1358,18 +1419,22 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			   ibis::colList::iterator head,
 			   ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    float tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		float tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1461,16 +1526,20 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j,
 } // ibis::colFloats::sort
 
 void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    double tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		double tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1542,18 +1611,22 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			    ibis::colList::iterator head,
 			    ibis::colList::iterator tail) {
-    if (i+32 > j) { // use buble sort
-	for (uint32_t i1=j-1; i1>i; --i1)
-	    for (uint32_t i2=i; i2<i1; ++i2)
-		if ((*array)[i2] > (*array)[i2+1]) {
-		    double tmp = (*array)[i2];
-		    (*array)[i2] = (*array)[i2+1];
-		    (*array)[i2+1] = tmp;
-		    if (bdl) bdl->swapRIDs(i2, i2+1);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i2+1);
-		}
-    } // end buble sort
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		double tmp = (*array)[i1];
+		(*array)[i1] = (*array)[imin];
+		(*array)[imin] = tmp;
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
     else { // use quick sort
 	// sort three rows to find the median
 	uint32_t i1=(i+j)/2, i2=j-1;
@@ -1643,6 +1716,294 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j,
 	tmp.sort(ind);
     }
 } // ibis::colDoubles::sort
+
+void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2].compare((*array)[imin]) < 0)
+		    imin = i2;
+	    if (imin > i1) {
+		(*array)[i1].swap((*array)[imin]);
+		if (bdl) bdl->swapRIDs(i1, imin);
+	    }
+	}
+    } // end selection sort
+    else { // use quick sort
+	// sort three rows to find the median
+	uint32_t i1=(i+j)/2, i2=j-1;
+	if ((*array)[i].compare((*array)[i1]) > 0) {
+	    (*array)[i].swap((*array)[i1]);
+	    if (bdl) bdl->swapRIDs(i, i1);
+	}
+	if ((*array)[i1].compare((*array)[i2]) > 0) {
+	    (*array)[i2].swap((*array)[i1]);
+	    if (bdl) bdl->swapRIDs(i2, i1);
+	    if ((*array)[i].compare((*array)[i1]) > 0) {
+		(*array)[i].swap((*array)[i1]);
+		if (bdl) bdl->swapRIDs(i, i1);
+	    }
+	}
+	const std::string& sep = (*array)[i1]; // sep is the median of three
+	i1 = i;
+	i2 = j - 1;
+	while (i1 < i2) {
+	    const bool stayleft  = ((*array)[i1].compare(sep) < 0);
+	    const bool stayright = ((*array)[i2].compare(sep) >= 0);
+	    if (stayleft || stayright) {
+		i1 += (const int)(stayleft);
+		i2 -= (const int)(stayright);
+	    }
+	    else { // both are in the wrong places, swap them
+		(*array)[i2].swap((*array)[i1]);
+		if (bdl) bdl->swapRIDs(i2, i1);
+		++ i1; -- i2;
+	    }
+	}
+	i1 += (int)(sep.compare((*array)[i1]) > 0);
+	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	    sort(i, i1, bdl);
+	    sort(i1, j, bdl);
+	}
+	else { // elements i and (i+j)/2 must be the smallest ones
+	    i1 = i + 1;
+	    i2 = (i+j) / 2;
+	    (*array)[i1].swap((*array)[i2]);
+	    if (bdl) bdl->swapRIDs(i1, i2);
+
+	    // collect all elements equal to (*array)[i1]
+	    i2 = i1 + 1;
+	    while (i2 < j && (*array)[i1].compare((*array)[i2]) == 0)
+		++ i2;
+	    if (i2 < j)
+		sort(i2, j, bdl);
+	}
+    } // end quick sort
+} // colStrings::sort
+
+void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
+			    ibis::colList::iterator head,
+			    ibis::colList::iterator tail) {
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[i2] < (*array)[imin])
+		    imin = i2;
+	    if (imin > i1) {
+		(*array)[i1].swap((*array)[imin]);
+		if (bdl) bdl->swapRIDs(i1, imin);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i1, imin);
+	    }
+	}
+    } // end selection sort
+    else { // use quick sort
+	// sort three rows to find the median
+	uint32_t i1=(i+j)/2, i2=j-1;
+	if ((*array)[i].compare((*array)[i1]) > 0) {
+	    (*array)[i].swap((*array)[i1]);
+	    if (bdl) bdl->swapRIDs(i, i1);
+	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		(*ii)->swap(i, i1);
+	}
+	if ((*array)[i1].compare((*array)[i2]) > 0){
+	    (*array)[i2].swap((*array)[i1]);
+	    if (bdl) bdl->swapRIDs(i2, i1);
+	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		(*ii)->swap(i2, i1);
+	    if ((*array)[i].compare((*array)[i1]) > 0) {
+		(*array)[i].swap((*array)[i1]);
+		if (bdl) bdl->swapRIDs(i, i1);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i, i1);
+	    }
+	}
+	const std::string& sep = (*array)[i1]; // sep is the median of three
+	i1 = i;
+	i2 = j - 1;
+	while (i1 < i2) {
+	    const bool stayleft  = (sep.compare((*array)[i1]) > 0);
+	    const bool stayright = (sep.compare((*array)[i2]) <= 0);
+	    if (stayleft || stayright) { // at least one is in the right place
+		i1 += (const int) stayleft;
+		i2 -= (const int) stayright;
+	    }
+	    else { // both are in the wrong places, swap them
+		(*array)[i2].swap((*array)[i1]);
+		if (bdl) bdl->swapRIDs(i2, i1);
+		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		    (*ii)->swap(i2, i1);
+		++ i1; -- i2;
+	    }
+	}
+	i1 += (int)(sep.compare((*array)[i1]) > 0);
+	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	    sort(i, i1, bdl, head, tail);
+	    sort(i1, j, bdl, head, tail);
+	}
+	else { // elements i and (i+j)/2 must be the smallest ones
+	    i1 = i + 1;
+	    i2 = (i+j) / 2;
+	    (*array)[i1].swap((*array)[i2]);
+	    if (bdl) bdl->swapRIDs(i1, i2);
+	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+		(*ii)->swap(i2, i1);
+
+	    // collect all elements equal to (*array)[i1]
+	    i2 = i1 + 1;
+	    while (i2 < j && (*array)[i1].compare((*array)[i2]) == 0)
+		++ i2;
+	    if (i2 < j)
+		sort(i2, j, bdl, head, tail);
+	}
+    } // end quick sort
+} // colStrings::sort
+
+void ibis::colStrings::sort(uint32_t i, uint32_t j,
+			    array_t<uint32_t>& ind) const {
+    if (i >= j)
+	return;
+    ind.clear();
+    ind.reserve(j-i);
+    for (uint32_t k = i; k < j; ++ k)
+	ind.push_back(k);
+    sortsub(0, j-i, ind);
+} // ibis::colStrings::sort
+
+/// Sort a subset of values specified by the index array ind.  Upon
+/// completion of this operation, (*array)[ind[i:j)] will be in
+/// non-descending order.
+void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
+			       array_t<uint32_t>& ind) const {
+    if (i+32 > j) { // use selection sort
+	for (uint32_t i1=i; i1+1<j; ++i1) {
+	    uint32_t imin = i1;
+	    for (uint32_t i2=i1+1; i2<j; ++i2)
+		if ((*array)[ind[i2]].compare((*array)[ind[imin]]) < 0)
+		    imin = i2;
+	    if (imin > i1) {
+		uint32_t tmp = ind[i1];
+		ind[i1] = ind[imin];
+		ind[imin] = tmp;
+	    }
+	}
+    } // end selection sort
+    else { // use quick sort
+	// sort three rows to find the median
+	uint32_t i1=(i+j)/2, i2=j-1;
+	if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+	    uint32_t tmp = ind[i];
+	    ind[i] = ind[i1];
+	    ind[i1] = tmp;
+	}
+	if ((*array)[ind[i1]].compare((*array)[ind[i2]]) > 0) {
+	    uint32_t tmp = ind[i1];
+	    ind[i1] = ind[i2];
+	    ind[i2] = tmp;
+	    if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+		tmp = ind[i];
+		ind[i] = ind[i1];
+		ind[i1] = tmp;
+	    }
+	}
+	const std::string& sep = (*array)[ind[i1]]; // the median of three
+	i1 = i;
+	i2 = j - 1;
+	while (i1 < i2) {
+	    const bool stayleft  = (sep.compare((*array)[ind[i1]]) > 0);
+	    const bool stayright = (sep.compare((*array)[ind[i2]]) <= 0);
+	    if (stayleft || stayright) {
+		// either i1 or i2 is in the right places
+		i1 += (int)stayleft;
+		i2 -= (int)stayright;
+	    }
+	    else { // both are in the wrong places, swap them
+		uint32_t tmp = ind[i2];
+		ind[i2] = ind[i1];
+		ind[i1] = tmp;
+		++ i1; -- i2;
+	    }
+	}
+	i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
+	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	    sortsub(i, i1, ind);
+	    sortsub(i1, j, ind);
+	}
+	else { // elements i and (i+j)/2 must be the smallest ones
+	    i1 = i + 1;
+	    i2 = (i+j) / 2;
+	    const uint32_t tmp = ind[i1];
+	    ind[i1] = ind[i2];
+	    ind[i2] = tmp;
+
+	    // collect all elements equal to (*array)[ind[i1]]
+	    i2 = i1 + 1;
+	    while (i2 < j && (*array)[ind[i1]].compare((*array)[ind[i2]]) == 0)
+		++ i2;
+	    if (i2 < j)
+		sortsub(i2, j, ind);
+	}
+    } // end quick sort
+} // ibis::colStrings::sortsub
+
+/// The median-of-three parition function.  Upon returning from this
+/// function, the return value partitions the strings into groups where
+/// strings in the first group are lexicographically less than those in the
+/// second group.  If the return value places all strings into one group,
+/// the string values are already sorted.
+uint32_t ibis::colStrings::partitionsub(uint32_t i, uint32_t j,
+					array_t<uint32_t>& ind) const {
+    // sort three strings, i, (i+j)/2 and j-1, to find the median
+    uint32_t i1=(i+j)/2, i2=j-1;
+    if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+	uint32_t tmp = ind[i];
+	ind[i] = ind[i1];
+	ind[i1] = tmp;
+    }
+    if ((*array)[ind[i1]].compare((*array)[ind[i2]]) > 0) {
+	uint32_t tmp = ind[i1];
+	ind[i1] = ind[i2];
+	ind[i2] = tmp;
+	if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+	    tmp = ind[i];
+	    ind[i] = ind[i1];
+	    ind[i1] = tmp;
+	}
+    }
+    const std::string& sep = (*array)[ind[i1]]; // the median of three
+    i1 = i;
+    i2 = j - 1;
+    while (i1 < i2) {
+	const bool stayleft  = (sep.compare((*array)[ind[i1]]) > 0);
+	const bool stayright = (sep.compare((*array)[ind[i2]]) <= 0);
+	if (stayleft || stayright) {
+	    // either i1 or i2 is in the right places
+	    i1 += (int)stayleft;
+	    i2 -= (int)stayright;
+	}
+	else { // both are in the wrong places, swap them
+	    uint32_t tmp = ind[i2];
+	    ind[i2] = ind[i1];
+	    ind[i1] = tmp;
+	    ++ i1; -- i2;
+	}
+    }
+    i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
+    if (i1 <= i+1) { // elements i and (i+j)/2 must be the smallest ones
+	i1 = i + 1;
+	i2 = (i+j) / 2;
+	const uint32_t tmp = ind[i1];
+	ind[i1] = ind[i2];
+	ind[i2] = tmp;
+
+	// collect all elements equal to (*array)[ind[i]]
+	for (++ i1; i1 < j && (*array)[ind[i1]].compare((*array)[ind[i]]) == 0;
+	     ++ i1);
+    }
+    return i1;
+} // ibis::colStrings::partitionsub
 
 // mark the start positions of the segments with identical values
 ibis::array_t<uint32_t>*
@@ -1876,6 +2237,45 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colDoubles::segment
 
+// mark the start positions of the segments with identical values
+ibis::array_t<uint32_t>*
+ibis::colStrings::segment(const array_t<uint32_t>* old) const {
+    ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
+    res->push_back(0); // the first number is always 0
+    uint32_t j = 1;
+    std::vector<std::string>::reference target = array->front();
+    const uint32_t nelm = array->size();
+
+    if (old != 0 && old->size()>2) {
+	// find segments with in the previously defined segments
+	for (uint32_t i=0; i<old->size()-1; ++i) {
+	    do {
+		while (j < (*old)[i+1] && target.compare((*array)[j]) == 0)
+		    ++ j;
+		res->push_back(j);
+		if (j < nelm) {
+		    target = (*array)[j];
+		    ++ j;
+		}
+	    } while (j < (*old)[i+1]);
+	}
+    }
+    else { // start with all elements in one segment
+	while (j < nelm) {
+	    while (j < nelm && target.compare((*array)[j]) == 0)
+		++ j;
+	    res->push_back(j);
+	    if (j < nelm) {
+		target = (*array)[j];
+		++ j;
+	    }
+	}
+    }
+    if (res->back() < nelm)
+	res->push_back(nelm);
+    return res;
+} // ibis::colStrings::segment
+
 // remove the duplicate elements accouting to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
@@ -1923,6 +2323,14 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts) {
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
 } // ibis::colDoubles::reduce
+
+// remove the duplicate elements accouting to the array starts
+void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
+    const uint32_t nseg = starts.size() - 1;
+    for (uint32_t i = 0; i < nseg; ++i) 
+	(*array)[i].swap((*array)[starts[i]]);
+    array->resize(nseg);
+} // ibis::colStrings::reduce
 
 // remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts,
@@ -2227,6 +2635,14 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colDoubles::reduce
 
+void ibis::colStrings::reduce(const array_t<uint32_t>&,
+			      ibis::selected::FUNCTION) {
+    LOGGER(ibis::gVerbose >= 0 && col != 0)
+	<< "Warning -- colStrings::reduce can NOT apply any aggregate "
+	"function on column " << col->name() << " (type "
+	<< ibis::TYPESTRING[(int)(col->type())] << ")";
+} // ibis::colStrings::reduce
+
 double ibis::colInts::getMin() const {
     const uint32_t nelm = array->size();
     int32_t ret = 0x7FFFFFFF;
@@ -2382,3 +2798,129 @@ double ibis::colDoubles::getSum() const {
 	ret += (*array)[i];
     return ret;
 } // ibis::colDoubles::getSum
+
+uint32_t ibis::colStrings::write(FILE* fptr) const {
+    if (array == 0 || col == 0)
+	return 0;
+
+    uint32_t cnt = 0;
+    const uint32_t nelm = array->size();
+    for (uint32_t i = 0; i < nelm; ++ i) {
+	int ierr = fwrite((*array)[i].c_str(), sizeof(char),
+			  (*array)[i].size()+1, fptr);
+	cnt += (int) (ierr > (*array)[i].size());
+	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
+	    << "Warning -- colStrings[" << col->partition()->name() << '.'
+	    << col->name() << "]::write failed to string " << (*array)[i]
+	    << "(# " << i << " out of " << array->size() << ") to file, ierr = "
+	    << ierr;
+    }
+    return cnt;
+} // ibis::colStrings::write
+
+void ibis::colStrings::reorder(const array_t<uint32_t> &ind) {
+    if (array == 0 || col == 0 || ind.size() > array->size())
+	return;
+
+    std::vector<std::string> tmp(array->size());
+    for (uint32_t i = 0; i < ind.size(); ++ i)
+	tmp[i].swap((*array)[ind[i]]);
+    tmp.swap(*array);
+} // ibis::colStrings::reorder
+
+/// Fill the array ind with positions of the k largest elements.  The array
+/// may contain more than k elements, if the kth largest element is not
+/// unique.  The array may contain less than k elements if this object
+/// contains less than k elements.  The array ind contains the largest
+/// element in ascending order with the index to the largest string at the
+/// end.
+void ibis::colStrings::topk(uint32_t k, array_t<uint32_t> &ind) const {
+    ind.clear();
+    if (col == 0 || array == 0)
+	return;
+    if (k >= array->size()) {
+	k = array->size();
+	sort(0, k, ind);
+	return;
+    }
+
+    uint32_t front = 0;
+    uint32_t back = array->size();
+    ind.resize(back);
+    for (uint32_t i = 0; i < back; ++ i)
+	ind[i] = i;
+
+    const uint32_t mark = back - k;
+    while (back > front + 32 && back > mark) {
+	uint32_t p = partitionsub(front, back, ind);
+	if (p >= mark) {
+	    sortsub(p, back, ind);
+	    back = p;
+	}
+	else {
+	    front = p;
+	}
+    }
+    if (back > mark)
+	sortsub(front, back, ind);
+    // find the first value before [mark] that quals to it
+    for (back = mark;
+	 back > 0 && (*array)[mark].compare((*array)[back-1]) == 0;
+	 -- back);
+    if (back > 0) { // move [back:..] to the front of ind
+	for (front = 0; back < array->size(); ++ front, ++ back)
+	    ind[front] = ind[back];
+	ind.resize(front);
+    }
+#if defined(DEBUG) //|| defined(_DEBUG) //&& DEBUG > 2
+    ibis::util::logger lg(4);
+    lg.buffer() << "colStrings::topk(" << k << ")\n";
+    for (uint32_t i = 0; i < back; ++i)
+	lg.buffer() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
+    std::flush(lg.buffer());
+#endif
+} // ibis::colStrings::topk
+
+/// Find positions of the k smallest strings.
+void ibis::colStrings::bottomk(uint32_t k, array_t<uint32_t> &ind) const {
+    ind.clear();
+    if (col == 0 || array == 0)
+	return;
+    if (k >= array->size()) {
+	k = array->size();
+	sort(0, k, ind);
+	return;
+    }
+
+    uint32_t front = 0;
+    uint32_t back = array->size();
+    ind.resize(back);
+    for (uint32_t i = 0; i < back; ++ i)
+	ind[i] = i;
+
+    while (back > front + 32 && back > k) {
+	uint32_t p = partitionsub(front, back, ind);
+	if (p <= k) {
+	    sortsub(front, p, ind);
+	    front = p;
+	}
+	else {
+	    back = p;
+	}
+    }
+    if (front < k)
+	sortsub(front, back, ind);
+    // find the last value after [k-1] that quals to it
+    for (back = k;
+	 back < array->size() && (*array)[k-1].compare((*array)[back]) == 0;
+	 ++ back);
+    ind.resize(back);
+#if defined(DEBUG) //|| defined(_DEBUG) //&& DEBUG > 2
+    ibis::util::logger lg(4);
+    lg.buffer() << "colStrings::bottomk(" << k << ")\n";
+    for (uint32_t i = 0; i < back; ++i)
+	lg.buffer() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
+    std::flush(lg.buffer());
+#endif
+} // ibis::colStrings::bottomk
+

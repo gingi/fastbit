@@ -26,7 +26,7 @@ public:
     static colValues* create(const ibis::column* c, void* vals);
 
     /// Provide a pointer to the column containing the selected values.
-    virtual const ibis::column* operator->() const = 0;
+    virtual const ibis::column* operator->() const {return col;};
     virtual bool empty() const = 0;
     virtual void reduce(const array_t<uint32_t>& starts) = 0;
     virtual void reduce(const array_t<uint32_t>& starts,
@@ -112,7 +112,6 @@ public:
     colInts(const ibis::column* c, void* vals);
     virtual ~colInts() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(int);}
@@ -160,13 +159,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -198,7 +193,6 @@ public:
     colUInts(const ibis::column* c, void* vals);
     virtual ~colUInts() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(unsigned);}
@@ -260,13 +254,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -298,7 +288,6 @@ public:
     colLongs(const ibis::column* c, void* vals);
     virtual ~colLongs() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(int);}
@@ -348,13 +337,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -386,7 +371,6 @@ public:
     colULongs(const ibis::column* c, void* vals);
     virtual ~colULongs() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(unsigned);}
@@ -448,13 +432,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -486,7 +466,6 @@ public:
     colFloats(const ibis::column* c, void* vals);
     virtual ~colFloats() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(float);}
@@ -536,13 +515,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -574,7 +549,6 @@ public:
     colDoubles(const ibis::column* c, void* vals);
     virtual ~colDoubles() {delete array;}
 
-    virtual const  ibis::column* operator->() const {return col;}
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
     virtual uint32_t elementSize() const {return sizeof(double);}
@@ -623,13 +597,9 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep) {
+	if (array->size() > keep)
 	    array->resize(keep);
-	    return keep;
-	}
-	else {
-	    return array->size();
-	}
+	return array->size();
     }
 
     virtual double getMin() const;
@@ -648,4 +618,88 @@ private:
     colDoubles(const colDoubles&);
     colDoubles& operator=(const colDoubles&);
 }; // ibis::colDoubles
+
+/// A class to store string values.
+class FASTBIT_CXX_DLLSPEC ibis::colStrings : public ibis::colValues {
+public:
+    colStrings() : colValues(), array(0) {};
+    colStrings(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectStrings(hits)) {}
+    colStrings(const ibis::column* c, void* vals);
+    virtual ~colStrings() {delete array;}
+
+    virtual bool         empty() const {return (col==0 || array==0);}
+    virtual uint32_t     size() const {return (array ? array->size() : 0);}
+    virtual uint32_t     elementSize() const {return 0;}
+    virtual ibis::TYPE_T getType() const {return col->type();}
+    virtual void*        getArray() const {return array;}
+    virtual void         nosharing() {/* neve shared */}
+
+    virtual void erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void swap(uint32_t i, uint32_t j) {(*array)[i].swap((*array)[j]);}
+
+    void swap(colStrings& rhs) { // swap two colStrings
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	std::vector<std::string>* a = rhs.array; rhs.array = array; array = a;}
+    virtual void   reduce(const array_t<uint32_t>& starts);
+    virtual void   reduce(const array_t<uint32_t>& starts,
+			  ibis::selected::FUNCTION func);
+
+    // write out whole array as binary
+    virtual uint32_t write(FILE* fptr) const;
+    // write ith element as text
+    virtual void write(std::ostream& out, uint32_t i) const {
+	out << (*array)[i];}
+
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
+		      colList::iterator head, colList::iterator tail);
+    virtual void sort(uint32_t i, uint32_t j,
+		      array_t<uint32_t>& neworder) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>* old=0) const;
+    virtual void reorder(const array_t<uint32_t>& ind);
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const;
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
+    virtual long truncate(uint32_t keep) {
+	if (array == 0) return 0;
+	if (array->size() > keep)
+	    array->resize(keep);
+	return array->size();
+    }
+
+    /// Compute the minimum.  NOT implemented.
+    virtual double getMin() const {
+	return std::numeric_limits<double>::quiet_NaN();}
+    /// Compute the maximum.  NOT implemented.
+    virtual double getMax() const {
+	return std::numeric_limits<double>::quiet_NaN();}
+    /// Compute the sum.  NOT implemented.
+    virtual double getSum() const {
+	return std::numeric_limits<double>::quiet_NaN();}
+    /// Return the ith value as int.  NOT implemented.
+    virtual int32_t getInt(uint32_t i) const {return 0;}
+    /// Return the ith value as unsigned int.  NOT implemented.
+    virtual uint32_t getUInt(uint32_t i) const {return 0;}
+    /// Return the ith value as long.  NOT implemented.
+    virtual int64_t getLong(uint32_t i) const {return 0;}
+    /// Return the ith value as unsigned long.  NOT implemented.
+    virtual uint64_t getULong(uint32_t i) const {return 0;}
+    /// Return the ith value as float.  NOT implemented.
+    virtual float getFloat(uint32_t i) const {
+	return  std::numeric_limits<float>::quiet_NaN();}
+    /// Return the ith value as double.  NOT implemented.
+    virtual double getDouble(uint32_t i) const {
+	return std::numeric_limits<double>::quiet_NaN();}
+
+private:
+    /// String values are internally stored as a vector of std::string.
+    std::vector<std::string>* array;
+
+    colStrings(const colStrings&);
+    colStrings& operator=(const colStrings&);
+
+    void sortsub(uint32_t i, uint32_t j, array_t<uint32_t>& ind) const;
+    uint32_t partitionsub(uint32_t, uint32_t, array_t<uint32_t>&) const;
+}; // ibis::colStrings
 #endif

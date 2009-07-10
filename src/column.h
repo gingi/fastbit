@@ -29,6 +29,7 @@ namespace ibis { // additional names to the namespace ibis
     class colULongs;
     class colFloats;
     class colDoubles;
+    class colStrings;
 } // namespace
 
 /// @ingroup FastBitIBIS

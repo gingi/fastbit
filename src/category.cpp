@@ -14,58 +14,62 @@
 #include "ikeywords.h"
 
 ////////////////////////////////////////////////////////////////////////
-// functions for ibis::dictionary
-// copy constructor
-ibis::dictionary::dictionary(const ibis::dictionary& dic) :
-    svec(), s2i(), newentry(0) {
+// for ibis::dictionary
+std::string ibis::dictionary::nullstring = "<NULL>";
+
+/// Copy constructor.  The string hold by 
+ibis::dictionary::dictionary(const ibis::dictionary& old) :
+    svec(), s2i(), ncontig(0) {
     // put in the null string
-    svec.push_back(ibis::util::strnewdup("<NULL>"));
+    svec.push_back(const_cast<char*>(nullstring.c_str()));
     //s2i[svec.back()] = 0;
 
-    // if dic has only one entry, we are done
-    const uint32_t nelm = dic.svec.size();
+    // if old has only one entry, we are done
+    const uint32_t nelm = old.svec.size();
     if (nelm <= 1) return;
 
     // find out the size of the buf to allocate
     uint32_t i, sz = nelm;
     for (i = 1; i < nelm; ++ i)
-	sz += strlen(dic.svec[i]);
+	sz += strlen(old.svec[i]);
     char* buf = new char[sz];
     for (i = 1; i < nelm; ++ i) {
 	svec[i] = buf;
-	for (const char *t = dic.svec[i]; *t != 0; ++ t, ++ buf)
+	for (const char *t = old.svec[i]; *t != 0; ++ t, ++ buf)
 	    *buf = *t;
 	*buf = 0;
 	++ buf;
 	s2i[svec[i]] = i;
     }
-    newentry = nelm;
-} // copy constructory
+    ncontig = nelm;
+} // copy constructor
 
-void ibis::dictionary::copy(const ibis::dictionary& dic) {
+/// Copy function.  Performs a deep copy.  Replaces the existing content.
+/// All strings in old will be placed in one contiguous memory.
+void ibis::dictionary::copy(const ibis::dictionary& old) {
     clear(); // clear the existing content
 
-    // if dic has only one entry, we are done
-    const uint32_t nelm = dic.svec.size();
+    // if old has only one entry, we are done
+    const uint32_t nelm = old.svec.size();
     if (nelm <= 1) return;
 
     // find out the size of the buf to allocate
     uint32_t i, sz = nelm;
     for (i = 1; i < nelm; ++ i)
-	sz += strlen(dic.svec[i]);
+	sz += strlen(old.svec[i]);
     char* buf = new char[sz];
     for (i = 1; i < nelm; ++ i) {
 	svec[i] = buf;
-	for (const char *t = dic.svec[i]; *t != 0; ++ t, ++ buf)
+	for (const char *t = old.svec[i]; *t != 0; ++ t, ++ buf)
 	    *buf = *t;
 	*buf = 0;
 	++ buf;
 	s2i[svec[i]] = i;
     }
-    newentry = nelm;
-} // copy constructory
+    ncontig = nelm;
+} // ibis::dictionary::copy
 
-// read the content of a file
+///< Read the content of the named file.
 void ibis::dictionary::read(const char* name) {
     // open the file to read
     int32_t ierr = 0;
@@ -83,7 +87,7 @@ void ibis::dictionary::read(const char* name) {
 
     if (svec.size() <= 1) { // an empty dictionary to start with
 	if (svec.empty()) // make sure the null element is always there
-	    svec.push_back(ibis::util::strnewdup("<NULL>"));
+	    svec.push_back(const_cast<char*>(nullstring.c_str()));
 
 	ierr = fseek(fptr, 0, SEEK_END);
 	uint32_t sz = ftell(fptr);
@@ -120,7 +124,7 @@ void ibis::dictionary::read(const char* name) {
 		++ tmp;
 	    ++ tmp;	// move tmp to pass the next (char)0
 	}
-	newentry = ind;
+	ncontig = ind;
     }
     else { // append new entries to the end of the dictionary
 	char buf[MAX_LINE];
@@ -168,7 +172,10 @@ void ibis::dictionary::read(const char* name) {
     }
 } // ibis::dictionary::read
 
-/// Write the content of the dictionary to the named file.
+/// Write the content of the dictionary to the named file.  The existing
+/// content in the named file is overwritten.  The content of the file is a
+/// list of string values with their null terminators in the order they
+/// appear in the directionary.
 void ibis::dictionary::write(const char* name) const {
     FILE* fptr = fopen(name, "wb");
     if (fptr != 0) {
@@ -191,16 +198,16 @@ void ibis::dictionary::write(const char* name) const {
     }
 } // ibis::dictionary::write
 
-// clear the allocated memory -- [1:newentry) must be free in one operation
+/// Clear the allocated memory.
 void ibis::dictionary::clear() {
     if (svec.size() > 1) { // leave only the first entry
 	std::vector<char*>::iterator it = svec.begin();
 	++ it; // leave the <NULL> entry alone
-	if (newentry > 1) {
-	    delete [] *it; // all entries from [1:newentry) are deleted here
-	    it += (newentry-1);
+	if (ncontig > 1) {
+	    delete [] *it; // all entries from [1:ncontig) are deleted here
+	    it += (ncontig-1);
 	}
-	if (svec.size() > newentry) {
+	if (svec.size() > ncontig) {
 	    while (it != svec.end()) {
 		delete [] *it;
 		++ it;
@@ -209,11 +216,11 @@ void ibis::dictionary::clear() {
 	svec.resize(1);
     }
     else if (svec.empty()) { // add the NULL entry
-	svec.push_back(ibis::util::strnewdup("<NULL>"));
+	svec.push_back(const_cast<char*>(nullstring.c_str()));
     }
     s2i.clear();
     //s2i[svec.back()] = 0;
-    newentry = 1;
+    ncontig = 1;
 } // ibis::dictioinary::clear
 
 ////////////////////////////////////////////////////////////////////////

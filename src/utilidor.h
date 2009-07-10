@@ -63,6 +63,21 @@ namespace ibis {
 	/// Sorting function with string keys and uint32_t as payload.
 	void sortStrings(std::vector<std::string>& keys,
 			 array_t<uint32_t>& vals);
+
+	/// Quicksort for strings.
+	void sortStrings_quick(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals, uint32_t begin,
+			       uint32_t end);
+	/// Shell sorting procedure.  To clean up after the quick sort
+	/// procedure.
+	void sortStrings_shell(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals,
+			       uint32_t begin, uint32_t end);
+	/// The partitioning procedure for quick sort.  It implements the
+	/// standard two-way partitioning with median-of-three pivot.
+	uint32_t sortStrings_partition(std::vector<std::string>& keys,
+				       array_t<uint32_t>& vals,
+				       uint32_t begin, uint32_t end);
     } // namespace util
 } // namespace ibis
 #endif

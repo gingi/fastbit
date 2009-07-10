@@ -89,52 +89,61 @@ private:
     text& operator=(const text&);
 }; // ibis::text
 
-/// Provide a mapping between strings and integers.  A utility class used
-/// by ibis::category.  The NULL string is always the 0th string.
+/// Provide a dual-directional mapping between strings and integers.  A
+/// utility class used by ibis::category.  The NULL string is always the
+/// 0th string.
 class ibis::dictionary {
 public:
     typedef std::map< const char*, uint32_t, ibis::lessi > wordList;
 
-    ~dictionary() {clear(); delete [] svec.back();}
+    ~dictionary() {clear();}
     dictionary(const dictionary& dic);
-    dictionary() : svec(), s2i(), newentry(1) {
-	// default construct generates one (NULL) entry
-	svec.push_back(ibis::util::strnewdup("<NULL>"));
-	//s2i[svec.back()] = 0;
+    /// Default constructor.  Generates one (NULL) entry.
+    dictionary() : svec(), s2i(), ncontig(1) {
+	svec.push_back(const_cast<char*>(nullstring.c_str()));
     }
 
     /// Return the number of valid (not null) strings in the dictionary.
     uint32_t size() const {return s2i.size();}
-    /// Return a string corresponding to the integer.
     inline const char* operator[](uint32_t i) const;
-    /// Return an integer corresponding to the string.
     inline uint32_t operator[](const char* str) const;
-    /// Insert a string if not in dictionary.
-    inline uint32_t insert(const char* str);
-    /// Insert a string if not in dictionary.  Do not make a copy of the
-    /// input string.  Caller needs to check whether it is a new word in
-    /// the dictionary.  If it is not a new word in the dictionary, the
-    /// dictionary does not take ownership of the string argument.
-    inline uint32_t insertRaw(char* str);
-    /// Is the given string in the dictionary?  Return a null pointer if not.
     inline const char* find(const char* str) const;
+    inline uint32_t insert(const char* str);
+    inline uint32_t insertRaw(char* str);
 
-    void read(const char* name);	///< Read the content of a file.
-    void write(const char* name) const; ///< Write out the dictionary.
     void clear();
+    void read(const char* name);
+    void write(const char* name) const;
 
 protected:
 
-    void copy(const dictionary& rhs);	// replace the current content
+    /// Member variable svec contains pointers to the location of the
+    /// strings and is considered the owner of the memory allocated.
+    ///
+    /// @note The string svec[0] is always saved for the null string.
+    /// Strings svec[1:ncontig-1] are allocated in a single contiguous
+    /// piece of memory.  Strings svec[ncontig:..] are allocated one at a
+    /// time.
+    std::vector<char*> svec;
+    /// Member variable s2i maps each string to its index in svec.
+    wordList s2i;
+    /// The number of contiguous entries.  These entries are contiguous in
+    /// memory and therefore should be freed by a single call to delete [].
+    uint32_t ncontig;
+
+    /// The common null string use in the dictionaries.  A char* of 0 and a
+    /// blank string are interpreted as null strings.
+    ///
+    /// @note The null string is printed out as "<NULL>".  However, it is
+    /// possible for the user to have a string with the same value
+    /// "<NULL>".  If the user insert "<NULL>" to a dictionary, it will
+    /// receive an assignment of number back that is guaranteed to be not
+    /// 0.  Therefore, the user string "<NULL>" is NOT treated as a null
+    /// string.
+    static std::string nullstring;
+    void copy(const dictionary& rhs);
 
 private:
-    /// svec contains pointers to the location of the strings and is
-    /// considered the owner of the memory allocated.
-    std::vector<char*> svec;
-    /// s2i is a std::map that maps string to its index in svec.
-    wordList s2i;
-    uint32_t newentry;
-
     dictionary& operator=(const dictionary&);
 }; // ibis::dictionary
 
@@ -206,7 +215,9 @@ private:
     category& operator=(const category&);
 }; // ibis::category
 
-// return the ith string value
+/// Return a string corresponding to the integer.  If the index is beyond
+/// the valid range, i.e., i > size(), then a null pointer will be
+/// returned.
 inline const char* ibis::dictionary::operator[](uint32_t i) const {
     if (i < svec.size()) {
 	return svec[i];
@@ -237,7 +248,8 @@ inline const char* ibis::dictionary::find(const char* str) const {
     return ret;
 } // ibis::dictionary::find
 
-// insert a string if it is not in dictionary
+/// Insert a string to the dictionary.  Returns the integer value assigned
+/// to the string.  A copy of the string is stored internally.
 inline uint32_t ibis::dictionary::insert(const char* str) {
     if (str == 0) return 0;
     if (*str == 0) return 0;
@@ -254,7 +266,11 @@ inline uint32_t ibis::dictionary::insert(const char* str) {
     }
 } // ibis::dictionary::insert
 
-/// No copying.  Transfers the ownership of @c str to the dictionary.
+/// Non-copying insert.  Do not make a copy of the input string.  Transfers
+/// the ownership of @c str to the dictionary.  Caller needs to check
+/// whether it is a new word in the dictionary.  If it is not a new word in
+/// the dictionary, the dictionary does not take ownership of the string
+/// argument.
 inline uint32_t ibis::dictionary::insertRaw(char* str) {
     if (str == 0) return 0;
     if (*str == 0) return 0;
