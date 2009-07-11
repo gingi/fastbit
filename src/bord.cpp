@@ -961,7 +961,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
     : ibis::part("incore") {
     m_name = ibis::util::strnewdup(tn);
     m_desc = td;
-    nEvents = static_cast<size_t>(nr);
+    nEvents = static_cast<uint32_t>(nr);
     if (nEvents != nr) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "ibis::bord::part::part can not handle " << nr
@@ -1025,10 +1025,10 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
     }
 
     LOGGER(ibis::gVerbose > 0)
-	<< "ibis::bord::part::part(" << (m_name != 0 ? m_name : "<unnamed>")
-	<< ", " << m_desc << ") completed allocating memory for "
-	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "")
-	<< " with " << nr << " row" << (nr > 1U ? "s" : "");
+	<< "ibis::bord::part constructed in-memory data partition "
+	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
+	<< "\nwith " << nr << " row" << (nr > 1U ? "s" : "") << " and "
+	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "");
 } // ibis::bord::part::part
 
 void ibis::bord::part::describe(std::ostream& out) const {
@@ -1189,7 +1189,8 @@ int ibis::bord::part::dump(std::ostream& out, size_t nr,
 
 ibis::table*
 ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
-    if (keys.empty()) return 0;
+    if (keys.empty() || nEvents == 0)
+	return 0;
 
     ibis::selected sel;
     sel.select(keys); // parse the incoming arguments
@@ -1255,7 +1256,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 
     // convert bundle back into a table, first generate the name and
     // description for the new table
-    std::string td = "ORDER BY ";
+    std::string td = "GROUP BY ";
     td += *sel;
     td += " on table ";
     td += m_name;
@@ -4099,6 +4100,31 @@ int ibis::bord::column::limit(size_t nr) {
 	return -1;}
     }
 } // ibis::bord::column::limit
+
+/// Convert the integer representation to string representation.  The
+/// existing data type must be ibis::UINT and the column with the same in
+/// in the given ibis::part prt must be of type ibis::CATEGORY.
+int ibis::bord::column::restoreCategoriesAsStrings(const ibis::part& prt) {
+    if (m_type != ibis::UINT) // must of uint32_t
+	return -2;
+    const ibis::column* ctmp = prt.getColumn(m_name.c_str());
+    if (ctmp == 0)
+	return -3;
+    if (ctmp->type() != ibis::CATEGORY)
+	return -4;
+
+    ibis::array_t<uint32_t> *arrint =
+	static_cast<ibis::array_t<uint32_t>*>(buffer);
+    const int nr = (thePart->nRows() <= arrint->size() ?
+			 thePart->nRows() : arrint->size());
+    std::vector<std::string> *arrstr = new std::vector<std::string>(nr);
+    for (int j = 0; j < nr; ++ j)
+	ctmp->getString((*arrint)[j], (*arrstr)[j]);
+    delete arrint; // free the storage for the integers.
+    m_type = ibis::CATEGORY;
+    buffer = arrstr;
+    return nr;
+} // ibis::bord::column::restoreCategoriesAsStrings
 
 ibis::bord::cursor::cursor(const ibis::bord &t)
     : buffer(t.nColumns()), tab(t), curRow(-1) {

@@ -106,7 +106,7 @@ public:
     typedef std::vector<const char*> stringList;
     /// A list of data types.
     typedef std::vector<ibis::TYPE_T> typeList;
-    /// An associate array of names and types.
+    /// An associative array of names and types.
     typedef std::map<const char*, ibis::TYPE_T, ibis::lessi> namesTypes;
 
     virtual stringList columnNames() const =0; ///< Return column names.

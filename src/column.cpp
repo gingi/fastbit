@@ -50,7 +50,7 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     }
     if (m_desc.empty()) m_desc = name;
     LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
-	<< "initialized column " << name << " for partition " << tbl->name();
+	<< "initialized column " << tbl->name() << '.' << name;
 } // ibis::column::column
 
 /// Read the basic information about a column from file.

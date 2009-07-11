@@ -473,7 +473,7 @@ ibis::part::part(const char* adir, const char* bdir) :
 	lg.buffer() << "ibis::part named "
 		    << (m_name?m_name:"<NULL>");
 	if (! m_desc.empty())
-	    lg.buffer() << " (" << m_desc << ")";
+	    lg.buffer() << " -- " << m_desc;
 	if (ibis::gVerbose > 1) {
 	    lg.buffer() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0)

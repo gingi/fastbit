@@ -292,7 +292,10 @@ ibis::category::~category() {
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
     indexLock lock(this, "category::selectInts");
-    return static_cast<ibis::relic*>(idx)->keys(mask);
+    if (idx != 0)
+	return static_cast<ibis::relic*>(idx)->keys(mask);
+    else
+	return 0;
 } // ibis::category::selectInts
 
 /// A function to read the dictionary and load the index.  This is a const
@@ -314,7 +317,7 @@ void ibis::category::prepareMembers() const {
     if (idx == 0 || idx->getNRows() != thePart->nRows()) {
 	delete idx;
 	idx = 0;
-	fillIndex();
+	(void) fillIndex();
     }
 } // ibis::category::prepareMembers
 
@@ -345,10 +348,46 @@ void ibis::category::readDictionary(const char *dir) const {
 /// If the dictionary exists and the size is one, it builds a dummy index.
 /// Otherwise, it reads the primary data file to update the dictionary and
 /// complete a new ibis::relic index.
-void ibis::category::fillIndex(const char *dir) const {
-    if (dir == 0 && thePart != 0)
+ibis::relic* ibis::category::fillIndex(const char *dir) const {
+    std::string dirstr;
+    if (dir != 0 && *dir != 0) { // the name may be a filename
+	unsigned ldir = strlen(dir);
+	std::string idx = m_name;
+	idx += ".idx";
+	if (ldir > idx.size()) {
+	    unsigned dlen = ldir - idx.size();
+	    if (0 == strcmp(dir+dlen, idx.c_str())) {
+		if (dir[dlen-1] == '/'
+#if defined(_WIN32) && defined(_MSC_VER)
+		    || dir[dlen-1] == '\\'
+#endif
+		    ) {
+		    -- dlen;
+		    for (unsigned i = 0; i < dlen; ++ i)
+			dirstr += dir[i];
+		    dir = dirstr.c_str();
+		}
+	    }
+	}
+	else if (ldir > m_name.size()) {
+	    unsigned dlen = ldir - m_name.size();
+	    if (0 == strcmp(dir+dlen, m_name.c_str()) &&
+		dir[dlen-1] == '/'
+#if defined(_WIN32) && defined(_MSC_VER)
+		|| dir[dlen-1] == '\\'
+#endif
+		) {
+		-- dlen;
+		for (unsigned i = 0; i < dlen; ++ i)
+		    dirstr += dir[i];
+		dir = dirstr.c_str();
+	    }
+	}
+    }
+    else if (thePart != 0) {
 	dir = thePart->currentDataDir();
-    if (dir == 0) return;
+    }
+    if (dir == 0) return 0;
     if (dic.size() == 0)
 	readDictionary(dir);
 
@@ -365,7 +404,7 @@ void ibis::category::fillIndex(const char *dir) const {
 	    if (ibis::gVerbose > 1)
 		logMessage("fillIndex", "unable to open data file %s",
 			   data.c_str());
-	    return;
+	    return 0;
 	}
 
 	int ret;
@@ -441,10 +480,13 @@ void ibis::category::fillIndex(const char *dir) const {
     if (rlc) {
 	rlc->write(dir);
 	if (dir == thePart->currentDataDir() ||
-	    strcmp(dir, thePart->currentDataDir()) == 0)
+	    strcmp(dir, thePart->currentDataDir()) == 0) {
 	    idx = rlc;
-	else
+	}
+	else {
 	    delete rlc;
+	    rlc = 0;
+	}
     }
 
     std::string dicfile = (dir ? dir : thePart->currentDataDir());
@@ -452,6 +494,7 @@ void ibis::category::fillIndex(const char *dir) const {
     dicfile += m_name;
     dicfile += ".dic";
     dic.write(dicfile.c_str());
+    return rlc;
 } // ibis::category::fillIndex
 
 long ibis::category::search(const char* str, ibis::bitvector& hits) const {
@@ -649,6 +692,16 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
     }
     return ret;
 } // ibis::category::search
+
+/// Retrieve the string value represented by the integer i.
+void ibis::category::getString(uint32_t i, std::string &str) const {
+    if (i > dic.size())
+	prepareMembers();
+    if (i > 0 && i <= dic.size())
+	str = dic[i];
+    else
+	str.clear();
+} // ibis::category::getString
 
 // read the string values (terminated with NULL) from the directory "dt" and
 // extend the set of bitvectors representing the strings
@@ -925,7 +978,7 @@ long ibis::category::append(const char* dt, const char* df,
 			       ierr);
 		    if (ind.getNRows() > 0)
 			purgeIndexFile(dt);
-		    fillIndex(dt);
+		    (void) fillIndex(dt);
 		}
 	    }
 	    else if (nold == 0) { // only need to copy the pointer
@@ -940,7 +993,7 @@ long ibis::category::append(const char* dt, const char* df,
 			       static_cast<long unsigned>(ind.getNRows()));
 		if (ind.getNRows() > 0)
 		    purgeIndexFile(dt);
-		fillIndex(dt);
+		(void) fillIndex(dt);
 	    }
 	    delete binp;
 	}
@@ -949,14 +1002,14 @@ long ibis::category::append(const char* dt, const char* df,
 		logMessage("append", "failed to generate the index for "
 			   "data in %s, start scanning all records in %s",
 			   df, dt);
-	    fillIndex(dt);
+	    (void) fillIndex(dt);
 	}
     }
     catch (...) {
 	if (ibis::gVerbose > 2)
 	    logMessage("append", "absorbed an exception while extending "
 		       "the index, start scanning all records in %s", dt);
-	fillIndex(dt);
+	(void) fillIndex(dt);
     }
     ret = cnt;
 

@@ -462,9 +462,10 @@ void ibis::mensa::addStrings(void*& to, const std::vector<std::string>& from,
 	target.insert(target.end(), from.begin(), from.end());
 } // ibis::mensa::addStrings
 
-/// This function expects the first two arguments to be valid and
-/// non-trivial.  It will return a nil pointer if those arguments are nil
-/// pointers or empty strings or blank spaces.
+/// This function handles a general version of select operation.  It
+/// expects the first two arguments to be valid and non-trivial.  It will
+/// return a nil pointer if those arguments are nil pointers or empty
+/// strings or blank spaces.
 ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 				   const ibis::partList& mylist) {
     if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
@@ -503,17 +504,29 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	return 0;
     }
 
+    const ibis::part &repp = *(mylist[0]);
     // list of names, types, and buffers to hold the temporary content
     std::vector<std::string> nls;
-    ibis::table::typeList tls;
-    ibis::bord::bufferList buff;
-    std::vector<size_t> tmstouse;
-    std::map<const char*, size_t> uniquenames;
+    ibis::table::typeList    tls;
+    ibis::bord::bufferList   buff;
+    std::vector<size_t>      tmstouse;
+    size_t                   nplain = 0;
     if (tms.size() > 0) { // use a block to limit the scope of some variables
+	std::map<const char*, size_t> uniquenames;
 	for (size_t i = 0; i < tms.size(); ++ i) {
 	    const char* tname = tms.getName(i);
 	    if (uniquenames.find(tname) == uniquenames.end())
 		uniquenames[tname] = i;
+	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
+	    const ibis::column* col = repp.getColumn(tname);
+	    if (col != 0) {
+		LOGGER((col->type() == ibis::TEXT ||
+			col->type() == ibis::CATEGORY)
+		       && tms.getAggregator(i) != ibis::selectClause::NIL
+		       && ibis::gVerbose >= 0)
+		    << "Warning -- " << mesg
+		    << " can not handle aggregations on strings values";
+	    }
 	}
 	if (uniquenames.size() >= tms.size()) {
 	    nls.resize(tms.size());
@@ -716,8 +729,7 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 		    }
 		}
 		break;}
-	    case ibis::TEXT:
-	    case ibis::CATEGORY: {
+	    case ibis::TEXT: {
 		std::vector<std::string>* tmp = col->selectStrings(*hits);
 		if (tmp != 0) {
 		    if (nh > 0) {
@@ -726,6 +738,35 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 		    }
 		    else {
 			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::CATEGORY: {
+		if (nplain >= tms.size()) { // no aggregation
+		    std::vector<std::string>* tmp = col->selectStrings(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    addStrings(buff[i], *tmp, nh);
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
+		    }
+		}
+		else {
+		    if (tls[i] != ibis::UINT)
+			tls[i] = ibis::UINT;
+		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    addIncoreData(buff[i], *tmp, nh,
+					  static_cast<uint32_t>(0));
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
 		    }
 		}
 		break;}
@@ -738,6 +779,8 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	}
 	nh += nqq;
     }
+    if (nh == 0)
+	return 0;
 
     std::string de = "SELECT ";
     de += sel;
@@ -766,25 +809,23 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     de += " WHERE ";
     de += cond;
     std::string tn = ibis::util::shortName(de);
-    ibis::table::stringList nlsptr(nls.size());
+    ibis::table::stringList  nlsptr(nls.size());
     std::vector<std::string> desc(nls.size());
-    ibis::table::stringList cdesc(nls.size());
-    size_t nplain = 0;
+    ibis::table::stringList  cdesc(nls.size());
     for (size_t i = 0; i < nls.size(); ++ i) {
 	const size_t itm = tmstouse[i];
 	nlsptr[i] = nls[i].c_str();
-	nplain += (tms.getAggregator(itm) == ibis::selectClause::NIL);
 	tms.describe(itm, desc[i]);
 	cdesc[i] = desc[i].c_str();
     }
 
     ibis::bord *brd1 =
 	new ibis::bord(tn.c_str(), de.c_str(), nh, nlsptr, tls, buff, &cdesc);
-    if (nplain >= tms.size())
+    if (nplain >= tms.size() || brd1 == 0)
 	return brd1;
 
     std::vector<std::string> aggr(tms.size());
-    ibis::table::stringList caggr(tms.size());
+    ibis::table::stringList  caggr(tms.size());
     for (size_t i = 0; i < tms.size(); ++ i) {
 	switch (tms.getAggregator(i)) {
 	default:
@@ -821,9 +862,32 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     }
     ibis::table *brd2 = brd1->groupby(caggr);
     delete brd1;
+
+    if (brd2 != 0) {
+	// locate all categorical values and replace the integer representation
+	// with actual string values
+	for (size_t j = 0; j < tms.size(); ++ j) {
+	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
+		const char* nm = tms.getName(j);
+		const ibis::column *col = repp.getColumn(nm);
+		if (col != 0 && col->type() == ibis::CATEGORY) {
+		    const int nr = brd2->nRows();
+		    int ierr = static_cast<ibis::bord*>(brd2)->
+			restoreCategoriesAsStrings(repp, nm);
+		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
+			<< "Warning -- " << mesg << " attempted to convert "
+			<< nr << " integer" << (nr > 1 ? "s" : "")
+			<< " to string" << (nr > 1 ? "s" : "")
+			<< " but restoreCategoriesAsStrings(" << nm
+			<< ") returned " << ierr;
+		}
+	    }
+	}
+    }
     return brd2;
 } // ibis::mensa::doSelect
 
+/// Compute the number of hits from a list of data partitions.
 int64_t ibis::mensa::computeHits(const char* cond, const ibis::partList& pts) {
     if (cond == 0 || *cond == 0)
 	return -1;

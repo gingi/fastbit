@@ -18,6 +18,8 @@
 // Create a bundle from a hit vector and a query object.
 ibis::bundle* ibis::bundle::create(const ibis::query& q,
 				   const ibis::bitvector& hits) {
+    if (hits.size() == 0 || hits.cnt() == 0)
+	return 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
@@ -320,6 +322,9 @@ void ibis::bundle0::printAll(std::ostream& out) const {
 //
 // constructor -- either read from files or use the current hit vector
 ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
+    if (q.getNumHits() == 0)
+	return;
+
     char bdlfile[PATH_MAX];
     const ibis::part* tbl = q.partition();
     if (q.dir()) {
@@ -401,7 +406,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 
     if (starts == 0) { // use the current hit vector
 	const ibis::bitvector* hits = q.getHitVector();
-	if (hits != 0) {
+	if (hits != 0 && hits->cnt() > 0) {
 	    if (rids == 0) {
 		rids = tbl->getRIDs(*hits);
 		if (rids != 0 && rids->size() != hits->cnt()) {
@@ -458,6 +463,9 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 
 ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     : bundle(q, hits) {
+    if (hits.cnt() == 0)
+	return;
+
     const ibis::part* tbl = q.partition();
     if (rids == 0) {
 	rids = tbl->getRIDs(hits);
@@ -524,9 +532,12 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {
+    if (cmps.size() != 1 || vals.size() == 0)
+	return;
+
     id = tbl.name();
     ibis::column* c = tbl.getColumn(cmps[0]);
-    if (c != 0) {
+    if (c != 0 && vals[0] != 0) {
 	if (cmps.nPlain() > 0) { // use column type
 	    col = ibis::colValues::create(c, vals[0]);
 	}
@@ -543,10 +554,10 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 	}
     }
     else {
-	ibis::util::logMessage("Error", "ibis::bundle1::ctor name \"%s\" "
-			       "is not a column in table %s",
-			       cmps[0], tbl.name());
-	throw ibis::bad_alloc("not a valid column name");
+	LOGGER(ibis::gVerbose >= 0)
+		<< "bundle1 constructor skipping a unknown column ("
+		<< cmps[0] << ") or a column without data (" << vals[0] << ")";
+	return;
     }
     sort();
 
@@ -561,7 +572,9 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 
 // print out the bundles (without RIDs)
 void ibis::bundle1::print(std::ostream& out) const {
-    // caller is responsible for locking ibis::util::ioLock lock;
+    if (col == 0)
+	return;
+
     uint32_t nbdl = col->size();
     if (ibis::gVerbose > 0)
 	out << "Bundle1 " << id << " has " << nbdl
@@ -586,6 +599,9 @@ void ibis::bundle1::print(std::ostream& out) const {
 
 // print out the bundles (with RIDs)
 void ibis::bundle1::printAll(std::ostream& out) const {
+    if (col == 0)
+	return;
+
     if (rids != 0 && starts != 0) {
 	ibis::util::ioLock lock;
 	uint32_t nbdl = col->size();
@@ -611,6 +627,8 @@ void ibis::bundle1::printAll(std::ostream& out) const {
 
 // sort the columns, remove the duplicate elements and generate the starts
 void ibis::bundle1::sort() {
+    if (col == 0) return;
+
     const uint32_t nrow = col->size();
     col->nosharing();
 
@@ -645,7 +663,7 @@ void ibis::bundle1::sort() {
 // Change from ascending order to descending order.  Most lines of the code
 // deals with the re-ordering of the RIDs.
 void ibis::bundle1::reverse() {
-    if (starts == 0) return;
+    if (col == 0 || starts == 0) return;
     if (starts->size() <= 2) return;
     const uint32_t ngroups = starts->size() - 1;
 
@@ -704,7 +722,7 @@ void ibis::bundle1::reverse() {
 
 // Reduce the number of bundle to the maximum of @c keep.
 long ibis::bundle1::truncate(uint32_t keep) {
-    if (starts == 0) return 0L;
+    if (col == 0 || starts == 0) return 0L;
     const uint32_t ngroups = starts->size()-1;
     if (keep >= ngroups) return ngroups;
     if (rids != 0) {
@@ -765,7 +783,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
 /// i or j is out of bounds.
 int32_t ibis::bundle1::getInt(uint32_t i, uint32_t j) const {
     int32_t ret = 0x7FFFFFFF;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getInt(i);
     }
     return ret;
@@ -776,7 +794,7 @@ int32_t ibis::bundle1::getInt(uint32_t i, uint32_t j) const {
 /// if either i or j is out of bounds.
 uint32_t ibis::bundle1::getUInt(uint32_t i, uint32_t j) const {
     uint32_t ret = 0xFFFFFFFFU;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getUInt(i);
     }
     return ret;
@@ -787,7 +805,7 @@ uint32_t ibis::bundle1::getUInt(uint32_t i, uint32_t j) const {
 /// i or j is out of bounds.
 int64_t ibis::bundle1::getLong(uint32_t i, uint32_t j) const {
     int64_t ret = 0x7FFFFFFFFFFFFFFFLL;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getLong(i);
     }
     return ret;
@@ -798,7 +816,7 @@ int64_t ibis::bundle1::getLong(uint32_t i, uint32_t j) const {
 /// if either i or j is out of bounds.
 uint64_t ibis::bundle1::getULong(uint32_t i, uint32_t j) const {
     uint64_t ret = 0xFFFFFFFFFFFFFFFFULL;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getULong(i);
     }
     return ret;
@@ -809,7 +827,7 @@ uint64_t ibis::bundle1::getULong(uint32_t i, uint32_t j) const {
 /// wither i or j is out of bounds.
 float ibis::bundle1::getFloat(uint32_t i, uint32_t j) const {
     float ret = FLT_MAX;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getFloat(i);
     }
     return ret;
@@ -820,7 +838,7 @@ float ibis::bundle1::getFloat(uint32_t i, uint32_t j) const {
 /// either i or j is out of bounds.
 double ibis::bundle1::getDouble(uint32_t i, uint32_t j) const {
     double ret = DBL_MAX;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	ret = col->getDouble(i);
     }
     return ret;
@@ -832,7 +850,7 @@ double ibis::bundle1::getDouble(uint32_t i, uint32_t j) const {
 /// value to its string representation through @c std::ostringstream.
 std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
     std::ostringstream oss;
-    if (i < col->size() && j == 0) { // indices i and j are valid
+    if (col != 0 && i < col->size() && j == 0) { // indices i and j are valid
 	col->write(oss, i);
     }
     return oss.str();
@@ -843,6 +861,9 @@ std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
 //
 // constructor -- using the hit vector of the query or read the files
 ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
+    if (q.getNumHits() == 0)
+	return;
+
     char bdlfile[PATH_MAX];
     const ibis::part* tbl = q.partition();
     if (q.dir() != 0) {
@@ -987,6 +1008,9 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 // constructor -- using a hit vector separated from the query
 ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     : bundle(q, hits) {
+    if (hits.cnt() == 0)
+	return;
+
     // need to retrieve the named columns
     const ibis::part* tbl = q.partition();
     const ibis::selected& nlist = q.components();
@@ -1045,9 +1069,11 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {
     id = tbl.name();
-    for (unsigned i = 0; i < cmps.size(); ++ i) {
+    const uint32_t nc = (cmps.size() <= vals.size() ?
+			 cmps.size() : vals.size());
+    for (unsigned i = 0; i < nc; ++ i) {
 	ibis::column* c = tbl.getColumn(cmps[i]);
-	if (c != 0) {
+	if (c != 0 && vals[i] != 0) {
 	    ibis::colValues* cv = 0;
 	    switch (cmps.getFunction(i)) {
 	    case ibis::selected::AVG:
@@ -1062,10 +1088,10 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
 		cols.push_back(cv);
 	}
 	else {
-	    ibis::util::logMessage("Error", "ibis::bundles::ctor name \"%s\" "
-				   "is not a column in table %s",
-				   cmps[i], tbl.name());
-	    throw ibis::bad_alloc("not a valid column name");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "bundles constructor skipping a unknown column (cmps[" << i
+		<< "] = " << cmps[i] << ") or a column without data (vals["
+		<< i << "] = " << vals[i] << ")";
 	}
     }
     sort();
@@ -1083,10 +1109,17 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
 void ibis::bundles::print(std::ostream& out) const {
     // caller must hold an ioLock ibis::util::ioLock lock;
     const uint32_t ncol = cols.size();
-    const uint32_t size = cols[0]->size();
+    const uint32_t size = (cols[0] != 0 ? cols[0]->size() : 0);
     bool distinct = true;
-    for (uint32_t i = 0; i < ncol && distinct; ++ i)
+    for (uint32_t i = 0; i < ncol && distinct; ++ i) {
+	if (cols[i] == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundles::print can not proceed because cols["
+		<< i << "] is nil";
+	    return;
+	}
 	distinct = cols[i]->canSort();
+    }
     if (ibis::gVerbose > 0)
 	out << "Bundle " << id << " contains " << size
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
@@ -1121,8 +1154,15 @@ void ibis::bundles::printAll(std::ostream& out) const {
 
     bool distinct = true;
     const uint32_t ncol = cols.size();
-    for (uint32_t i = 0; i < ncol && distinct; ++ i)
+    for (uint32_t i = 0; i < ncol && distinct; ++ i) {
+	if (cols[i] == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundles::printAll can not proceed because cols["
+		<< i << "] is nil";
+	    return;
+	}
 	distinct = cols[i]->canSort();
+    }
     const uint32_t size = cols[0]->size();
     ibis::util::ioLock lock;
     if (ibis::gVerbose > 0)
@@ -1147,7 +1187,7 @@ void ibis::bundles::printAll(std::ostream& out) const {
 // sort the columns, remove the duplicate elements and generate the starts
 void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
-    const uint32_t nHits = cols[0]->size();
+    const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
     if (nHits < 2) { // not much to do
 	starts = new array_t<uint32_t>(2);

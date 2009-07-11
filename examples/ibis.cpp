@@ -2749,7 +2749,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		lg.buffer() << "between " << num1 << " and ";
 	    lg.buffer() << num2;
 	}
-	if (estimate_only) {
+	if (estimate_only || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;
@@ -2807,8 +2807,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    if (limit > 1)
 		lg.buffer() << limit << " rows ";
 	    else
-		lg.buffer() << " row ";
-	    lg.buffer() << "(out of " << sel1->nRows()
+		lg.buffer() << "row ";
+	    lg.buffer() << "(of " << sel1->nRows()
 			<< ") from the result table for \""
 			<< sqlstring << "\"\n";
 	}
@@ -3012,7 +3012,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg.buffer() << "between " << num1 << " and ";
 	    lg.buffer() << num2;
 	}
-	if (estimate_only) {
+	if (estimate_only || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;

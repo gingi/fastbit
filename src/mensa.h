@@ -121,9 +121,7 @@ protected:
     int64_t computeHits(const char* cond) const {
 	return computeHits(cond, parts);}
 
-    /// Compute he number of hits from a list of data partitions
     static int64_t computeHits(const char* cond, const ibis::partList& pts);
-    /// The function to handle non-trivial version of select operation.
     static table* doSelect(const char* sel, const char* cond,
 			   const ibis::partList& pts);
     /// Append new data (in @c from) to a larger array (pointed to by @c to).

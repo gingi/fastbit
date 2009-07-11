@@ -13,11 +13,10 @@
 #endif
 #include "index.h"
 #include "ibin.h"
-#include "irelic.h"
 #include "idirekte.h"
 #include "ikeywords.h"
 #include "part.h"
-#include "column.h"
+#include "category.h"
 #include "resource.h"
 #include "bitvector64.h"
 #include <queue>	// priority queue
@@ -550,7 +549,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		}
 	    }
 	    else if (c->type() == ibis::CATEGORY) {
-		// there should be an index already!
+		// special handling
+		ind = reinterpret_cast<const ibis::category*>(c)->
+		    fillIndex(file.c_str());
 		return ind;
 	    }
 	    else if (c->type() == ibis::TEXT) {
@@ -612,9 +613,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			ind = new ibis::bin(c, file.c_str());
 			break;}
 		    case ibis::UBYTE:
-		    case ibis::BYTE:
-		    case ibis::CATEGORY: {
+		    case ibis::BYTE: {
 			ind = new ibis::relic(c, file.c_str());
+			break;}
+		    case ibis::CATEGORY: {
+			ind = reinterpret_cast<const ibis::category*>(c)->
+			    fillIndex(file.c_str());
 			break;}
 		    case ibis::TEXT: {
 			const ibis::column* idcol =
@@ -877,7 +881,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    }
 	} // if (dfname != 0)
 	else if (c->type() == ibis::CATEGORY) {
-	    return ind;
+	    return reinterpret_cast<const ibis::category*>(c)->fillIndex();
 	}
 	else if (c->type() == ibis::TEXT) {
 	    const ibis::column* idcol =
@@ -937,9 +941,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    ind = new ibis::bin(c);
 		    break;}
 		case ibis::UBYTE:
-		case ibis::BYTE:
-		case ibis::CATEGORY: {
+		case ibis::BYTE: {
 		    ind = new ibis::relic(c);
+		    break;}
+		case ibis::CATEGORY: {
+		    ind = reinterpret_cast<const ibis::category*>(c)->
+			fillIndex();
 		    break;}
 		case ibis::TEXT: {
 		    const ibis::column* idcol =

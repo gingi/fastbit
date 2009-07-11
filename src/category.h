@@ -186,7 +186,7 @@ public:
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
 //     virtual
 //     std::vector<std::string>* selectStrings(const bitvector& mask) const;
-    virtual void getString(uint32_t i, std::string &val) const {val=dic[i];}
+    virtual void getString(uint32_t i, std::string &val) const;
 
     /// Return the number of key values.
     virtual uint32_t getNumKeys() const {return dic.size();}
@@ -200,6 +200,8 @@ public:
     virtual void write(FILE* file) const; ///< Write the metadata entry.
     virtual void print(std::ostream& out) const; ///< Print header info.
 
+    ibis::relic* fillIndex(const char *dir=0) const;
+
 private:
     // private member variables
 
@@ -208,9 +210,8 @@ private:
     mutable ibis::dictionary dic;
 
     // private member functions
-    void readDictionary(const char *dir=0) const;
-    void fillIndex(const char *dir=0) const;
     void prepareMembers() const;
+    void readDictionary(const char *dir=0) const;
 
     category& operator=(const category&);
 }; // ibis::category

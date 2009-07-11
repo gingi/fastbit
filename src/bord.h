@@ -94,6 +94,8 @@ public:
     /// Create a @c cursor object to perform row-wise data access.
     virtual ibis::table::cursor* createCursor() const;
 
+    int restoreCategoriesAsStrings(const ibis::part&, const char*);
+
 protected:
     class column;
     /// An in-memory data partition.
@@ -134,6 +136,8 @@ protected:
 	long reorderStrings(std::vector<std::string>& vals,
 			    const array_t<uint32_t>& ind) const;
 
+	int restoreCategoriesAsStrings(const ibis::part&, const char*);
+
     private:
 	part();
 	part(const part&);
@@ -156,15 +160,15 @@ private:
 }; // ibis::bord
 
 /// An in-memory version of ibis::column.  For integers and floating-point
-/// values, the buffer (with type void*) points to an array<T> where the
-/// type T is designated by the column type.  For a string-valued column,
-/// the buffer (with type void*) is std::vector<std::string>*.
+/// values, the buffer (with type void*) points to an ibis::array_t<T>
+/// where the type T is designated by the column type.  For a string-valued
+/// column, the buffer (with type void*) is std::vector<std::string>*.
 ///
 /// @note Since the in-memory data tables are typically created at run-time
 /// through select operations, the data types associated with a column is
-/// only known at run-time.  This is a ugly option available in a compiled
-/// C++ program.  The developers welcome suggestions for a better option.
-class ibis::bord::column : virtual public ibis::column {
+/// only known at run-time.  Casting to void* is a ugly option; the
+/// developers welcome suggestions for a replacement.
+class ibis::bord::column : public ibis::column {
 public:
     column(const ibis::bord::part* tbl, ibis::TYPE_T t,
 	   const char* name, void *buf,
@@ -198,8 +202,12 @@ public:
     template <typename T> int getRawData(array_t<T> &vals) const;
     int dump(std::ostream& out, size_t i) const;
 
+    int restoreCategoriesAsStrings(const ibis::part&);
+
 protected:
-    void *buffer; // a pointer to an array<T>
+    /// The in-memory storage.  A pointer to an array<T> or
+    /// std::vector<std::string> depending on data type.
+    void *buffer;
 
     column& operator=(const column&);
 }; // ibis::bord::column
@@ -303,8 +311,29 @@ inline ibis::table::cursor* ibis::bord::createCursor() const {
     return new ibis::bord::cursor(*this);
 } // ibis::bord::createCursor
 
+/// Convert the integer representation to string representation.
+inline int 
+ibis::bord::restoreCategoriesAsStrings(const ibis::part& prt, const char* nm) {
+    return mypart.restoreCategoriesAsStrings(prt, nm);
+} // ibis::bord::restoreCategoriesAsStrings
+
+/// Convert the integer representation to string representation.
+inline int
+ibis::bord::part::restoreCategoriesAsStrings(const ibis::part& prt,
+					     const char* nm) {
+    if (nm == 0 || *nm == 0)
+	return -1;
+    ibis::bord::column *col = static_cast<ibis::bord::column*>(getColumn(nm));
+    if (col == 0)
+	return -2;
+    else
+	return col->restoreCategoriesAsStrings(prt);
+} // ibis::bord::part::restoreCategoriesAsStrings
+
+/// Retrieve the raw data buffer as an ibis::array_t object.
 ///@note NO type check, caller need to make sure the currect type is
-///specified.
+///specified.  In addition, string valued columns are stored as
+///std::vector<std::string> not ibis::array_t!
 template <typename T>
 inline int ibis::bord::column::getRawData(array_t<T> &vals) const {
     array_t<T> tmp(*static_cast<const array_t<T>*>(buffer));

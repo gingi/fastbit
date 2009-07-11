@@ -511,8 +511,12 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then echo Passed $@ test 2; else echo Did NOT pass $@ test 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 > /dev/null
 	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep 88 - | wc -l` -eq 1 ] ; then echo Passed $@ test 3; else echo Did NOT pass $@ test 3; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ test 4; else echo Did NOT pass $@ test 4; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ test 5; else echo Did NOT pass $@ test 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, min(c) where -4 < c < 10" -o $(TESTDIR)/t0-3 > /dev/null
+	@cut -d',' -f1 $(TESTDIR)/t0-0 > $(TESTDIR)/t0-4
+	@cut -d',' -f1 $(TESTDIR)/t0-3 > $(TESTDIR)/t0-5
+	@if [ `diff $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | wc -l` -eq 0 ] ; then echo Passed $@ test 4; else echo Did NOT pass $@ test 4; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ test 5; else echo Did NOT pass $@ test 5; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ test 6; else echo Did NOT pass $@ test 6; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d,lon limit 180" -o $(TESTDIR)/marksdb-1 > /dev/null

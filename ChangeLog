@@ -1,4 +1,10 @@
 2009-07-10 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp, src/bord.cpp: change group by operation involving
+	categorical values to use the integer representation instead of
+	the strings (should be faster than using strings)
+	* tests/Makefile.am: add test case to check-text to exercise group
+	by on categorical values
+	* src/bundle.cpp: add statements to check for nil pointers
 
 2009-07-09 John Wu <John.Wu at ACM.org>
 	* src/category.h, src/category.cpp: clean up the documentation
