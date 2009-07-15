@@ -1401,4 +1401,5 @@ template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint16_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint32_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint64_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::rid_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<const char*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::array_t<ibis::rid_t>*>;

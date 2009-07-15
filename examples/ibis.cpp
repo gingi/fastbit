@@ -2720,8 +2720,33 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	if (sstr != 0 && *sstr != 0)
 	    ostr << "SELECT " << sstr;
 	ostr << " FROM " << tbl->name();
-	if (wstr != 0 && *wstr != 0)
-	    ostr << " WHERE " << wstr;
+	if (wstr != 0 && *wstr != 0) {
+	    const int nwstr = strlen(wstr);
+	    if (nwstr < 80) {
+		ostr << " WHERE " << wstr;
+	    }
+	    else {
+		ostr << " WHERE ";
+		int i = 0;
+		while (i < 40) {
+		    ostr << wstr[i];
+		    ++ i;
+		}
+		while (i < nwstr && isspace(wstr[i]) == 0) {
+		    ostr << wstr[i];
+		    ++ i;
+		}
+		if (i+20 < nwstr) {
+		    ostr << " ...";
+		}
+		else {
+		    while (i < nwstr) {
+			ostr << wstr[i];
+			++ i;
+		    }
+		}
+	    }
+	}
 	if (ordkeys && *ordkeys) {
 	    ostr << " ORDER BY " << ordkeys;
 	    if (direction >= 0)

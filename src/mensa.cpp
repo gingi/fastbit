@@ -166,19 +166,17 @@ int ibis::mensa::addPartition(const char* dir) {
 } // ibis::mensa::addPartition
 
 void ibis::mensa::clear() {
-    LOGGER(ibis::gVerbose > 2)
+    const size_t np = parts.size();
+    LOGGER(ibis::gVerbose > 2 && np > 0)
 	<< "ibis::mensa::clear -- clearing the existing content of "
-	<< parts.size() << " partition"
-	<< (parts.size()>1 ? "s" : "") << " with "
-	<< naty.size() << " column"
-	<< (naty.size()>1 ? "s" : "") << " and "
-	<< nrows << " row" << (nrows>1 ? "s" : "");
+	<< np << " partition" << (np>1 ? "s" : "") << " with "
+	<< naty.size() << " column" << (naty.size()>1 ? "s" : "")
+	<< " and " << nrows << " row" << (nrows>1 ? "s" : "");
 
     nrows = 0;
     naty.clear();
     name_.erase();
     desc_.erase();
-    size_t np = parts.size();
     for (size_t j = 0; j < np; ++ j)
 	delete parts[j];
 } // ibis::mensa::clear
@@ -488,12 +486,19 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	}
     }
 
+    const int ncond = strlen(cond);
     // a single query object is used for different data partitions
     ibis::countQuery qq;
     std::string mesg = "ibis::mensa::doSelect(\"";
     mesg += sel;
     mesg += "\", ";
-    mesg += cond;
+    if (ncond < 40) {
+	mesg += cond;
+    }
+    else {
+	for (int i = 0; i < 20; ++ i)
+	    mesg += cond[i];
+    }
     mesg += ")";
     ibis::util::timer atimer(mesg.c_str(), 2);
     long int ierr = qq.setWhereClause(cond);
@@ -807,7 +812,28 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	de += "???";
     }
     de += " WHERE ";
-    de += cond;
+    if (ncond < 80) {
+	de += cond;
+    }
+    else {
+	std::ostringstream oss;
+	unsigned i = 0;
+	while (i < 40) {
+	    oss << cond[i];
+	    ++ i;
+	}
+	while (i < ncond && isspace(cond[i]) == 0) {
+	    oss << cond[i];
+	    ++ i;
+	}
+	if (i+20 < ncond) {
+	    oss << " ... (" << strlen(cond) - i << " skipped)";
+	    de += oss.str();
+	}
+	else {
+	    de += cond;
+	}
+    }
     std::string tn = ibis::util::shortName(de);
     ibis::table::stringList  nlsptr(nls.size());
     std::vector<std::string> desc(nls.size());
@@ -3082,13 +3108,13 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
 	if (buffer[j].cval == 0) return 0; // null value
 	const signed char *tmp 
 	    = reinterpret_cast<const signed char*>(buffer[j].cval->begin());
-	out << (int) tmp[i];
+	out << (int) (tmp[i]);
 	break;}
     case ibis::UBYTE: {
 	if (buffer[j].cval == 0) return 0; // null value
 	const unsigned char *tmp 
 	    = reinterpret_cast<const unsigned char*>(buffer[j].cval->begin());
-	out << (unsigned int) tmp[i];
+	out << (unsigned int) (tmp[i]);
 	break;}
     case ibis::SHORT: {
 	if (buffer[j].cval == 0) return 0; // null value

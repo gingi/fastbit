@@ -354,13 +354,13 @@ inline int ibis::bord::column::dump(std::ostream& out, size_t i) const {
     case ibis::BYTE: {
 	const array_t<signed char>* vals =
 	    static_cast<const array_t<signed char>*>(buffer);
-	out << (*vals)[i];
+	out << (int)((*vals)[i]);
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* vals =
 	    static_cast<const array_t<unsigned char>*>(buffer);
-	out << (*vals)[i];
+	out << (unsigned)((*vals)[i]);
 	ierr = 0;
 	break;}
     case ibis::SHORT: {
@@ -470,12 +470,12 @@ ibis::bord::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
     case ibis::BYTE: {
 	const array_t<const signed char>* vals =
 	    static_cast<const array_t<const signed char>*>(buffer[j].cval);
-	out << (int) (*vals)[i];
+	out << (int) ((*vals)[i]);
 	break;}
     case ibis::UBYTE: {
 	const array_t<const unsigned char>* vals =
 	    static_cast<const array_t<const unsigned char>*>(buffer[j].cval);
-	out << (unsigned int) (*vals)[i];
+	out << (unsigned int) ((*vals)[i]);
 	break;}
     case ibis::SHORT: {
 	const array_t<const int16_t>* vals =

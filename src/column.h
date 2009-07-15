@@ -115,8 +115,9 @@ public:
     /// Return the string value for the <code>i</code>th row.  Only
     /// implemented for ibis::text and ibis::category.  @sa ibis::text
     virtual void getString(uint32_t i, std::string &val) const {};
-    /// Determine if the input string is one of the records.  If yes,
-    /// return the pointer to the incoming string, otherwise return nil.
+    /// Determine if the input string has appeared in this data partition.
+    /// If yes, return the pointer to the incoming string, otherwise return
+    /// nil.
     virtual const char* findString(const char* str) const
     {return static_cast<const char*>(0);}
 
@@ -144,6 +145,8 @@ public:
     /// Return selected rows of the column in an array_t object.
     virtual array_t<int32_t>*  selectInts(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
+    virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
+    /// Return selected rows of the column in an array_t object.
     virtual array_t<int64_t>*  selectLongs(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
     virtual array_t<uint64_t>* selectULongs(const bitvector& mask) const;
@@ -151,14 +154,11 @@ public:
     virtual array_t<float>*    selectFloats(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
     virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
+    virtual array_t<const char*>* selectCharStars(const bitvector& mask) const;
     virtual std::vector<std::string>*
-	selectStrings(const bitvector& mask) const {return 0;}
-    /// Return selected rows of the column in an array_t object.
-    virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
+	selectStrings(const bitvector& mask) const;
+
     long selectValues(const bitvector& mask, void* vals) const;
-    /// Return selected rows of the column in an array_t object along with
-    /// their positions.
     long selectValues(const bitvector& mask,
 		      void* vals, array_t<uint32_t>& inds) const;
 
@@ -644,6 +644,26 @@ inline bool ibis::column::isNumeric() const {
 	   m_type == ibis::LONG || m_type == ibis::ULONG ||
 	   m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
 } // ibis::column::isNumeric
+
+/// Return selected rows of the column in an array_t object.  It is
+/// intended to work with string-valued columns.  In all other cases, it
+/// simply return a nil pointer.  This version requires the actual string
+/// values to be stored in a separate data structure.  It is possible to 
+inline ibis::array_t<const char*>*
+ibis::column::selectCharStars(const bitvector& mask) const {
+    return 0;
+} // ibis::column::selectCharStars
+
+/// Return select rows of the column in string form.  It is intended to
+/// work with string-valued columns and returns a nil pointer in other
+/// cases.  This version returns a std::vector<std::string>, which
+/// provides wholly self-contained string values.  The drawback is that
+/// it may take too much memory and the memory usage of std::string is
+/// not tracked by FastBit.  It is more efficient to 
+inline std::vector<std::string>*
+ibis::column::selectStrings(const bitvector& mask) const {
+    return 0;
+} // ibis::column::selectStrings
 
 // the operator to print a column to an output stream
 inline std::ostream& operator<<(std::ostream& out, const ibis::column& prop) {

@@ -1044,7 +1044,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 /// Try to retrieve the content of the named file.  The storage object *st
 /// returned from this function is owned by the fileManager.  The caller is
 /// NOT to delete *st.  This function will not wait for the fileManager to
-/// free any memory if there is enough free space available.
+/// free any memory if there isn't enough free space available.
 ///
 /// Returns 1 if there is not enough space to read the whole file into
 /// memory.  Other return values are same as the function @c getFile.
@@ -1197,8 +1197,8 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	ierr = -107;
     }
 
+    reading.erase(name);    // no longer on the list reading
     (void) pthread_cond_broadcast(&readCond); // tell all others
-    reading.erase(name); // no longer on the list reading
     return ierr;
 } // ibis::fileManager::tryGetFile
 

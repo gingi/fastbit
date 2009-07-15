@@ -1,3 +1,12 @@
+2009-07-14 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: in doSelect limit the number of characters from
+	cond is placed in de (to reduce the length of the new table)
+	* src/column.cpp: two versions of function selectValuesT
+	negelected to close fdes
+	* src/bord.h: ibis::bord::cursor::dumpIJ needs to cast char and
+	unsigned char to integers before printing to ensure they are
+	printed as integers
+
 2009-07-10 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp, src/bord.cpp: change group by operation involving
 	categorical values to use the integer representation instead of

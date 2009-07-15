@@ -4079,14 +4079,13 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
     return array;
 } // ibis::column::selectDoubles
 
-/// Select the values marked in the bitvector @c mask.  Select all values
-/// marked 1 in the @c mask and pack them into the output array @c vals and
-/// fill the array @c inds with the positions of the values selected.
+/// Select values marked in the bitvector @c mask.  Pack them into the
+/// output array @c vals.
 ///
-/// On a successful executation, it returns the number of values selected.
-/// If it returns zero (0), the contents of @c vals is not modified.  If it
-/// returns a negative number, the contents of arrays @c vals is not
-/// guaranteed to be in any particular state.
+/// Upon a successful executation, it returns the number of values
+/// selected.  If it returns zero (0), the contents of @c vals is not
+/// modified.  If it returns a negative number, the contents of arrays @c
+/// vals is not guaranteed to be in any particular state.
 template <typename T>
 long ibis::column::selectValuesT(const bitvector& mask,
 				 ibis::array_t<T>& vals) const {
@@ -4100,7 +4099,8 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0) return -3;
+    if (dfn == 0)
+	return -3;
 #ifdef DEBUG
     logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
@@ -4141,9 +4141,10 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	    : ibis::fileManager::MMAP_LARGE_FILES;
 	ierr = ibis::fileManager::instance().getFile(dfn, &raw, apref);
     }
+
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
-	// destructor of incore
+	// destructor of ibis::fileManager::incore
 	array_t<T> incore(raw); // make the raw storage more friendly
 	const uint32_t nr = (incore.size() <= mask.size() ?
 			     incore.size() : mask.size());
@@ -4180,10 +4181,23 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		       dfn, fdes);
 	    return fdes;
 	}
+	LOGGER(ibis::gVerbose > 5)
+	    << "column[" << thePart->name() << '.' << m_name
+	    << "]::selectValuesT opened file " << dfn
+	    << " with file descriptor " << fdes << " for reading "
+	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
+	if (pos < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << thePart->name() << '.' << m_name
+		<< "]::selectValuesT failed to seek to the end of file "
+		<< dfn;
+	    UnixClose(fdes);
+	    return -4;
+	}
+
 	const uint32_t nr = (pos <= static_cast<int32_t>(thePart->nRows()) ?
 			     pos : thePart->nRows());
-
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
 	     ix.nIndices() > 0; ++ ix) {
 	    const ibis::bitvector::word_t *ixval = ix.indices();
@@ -4241,6 +4255,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		}
 	    }
 	} // for (ibis::bitvector::indexSet...
+	(void) UnixClose(fdes);
 	if (ibis::gVerbose > 4)
 	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
 		       "reading file %s",
@@ -4256,14 +4271,15 @@ long ibis::column::selectValuesT(const bitvector& mask,
     return ierr;
 } // ibis::column::selectValuesT
 
-/// Select the values marked in the bitvector @c mask.
-/// Select all values marked 1 in the @c mask and pack them into the
-/// output array @c vals and fill the array @c inds with the positions
-/// of the values selected.  On a successful executation, it returns
-/// the number of values selected.  If it returns zero (0), the
-/// contents of @c vals and @c inds are not modified.  If it returns a
-/// negative number, the contents of arrays @c vals and @c inds are not
-/// guaranteed to be in particular state.
+/// Select the values marked in the bitvector @c mask.  Pack them into the
+/// output array @c vals and fill the array @c inds with the positions of
+/// the values selected.
+///
+/// Upon a successful executation, it returns the number of values
+/// selected.  If it returns zero (0), the contents of @c vals and @c inds
+/// are not modified.  If it returns a negative number, the contents of
+/// arrays @c vals and @c inds are not guaranteed to be in particular
+/// state.
 template <typename T>
 long ibis::column::selectValuesT(const bitvector& mask,
 				 ibis::array_t<T>& vals,
@@ -4357,10 +4373,23 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		       dfn, fdes);
 	    return fdes;
 	}
+	LOGGER(ibis::gVerbose > 5)
+	    << "column[" << thePart->name() << '.' << m_name
+	    << "]::selectValuesT opened file " << dfn
+	    << " with file descriptor " << fdes << " for reading "
+	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
+	if (pos < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << thePart->name() << '.' << m_name
+		<< "]::selectValuesT failed to seek to the end of file "
+		<< dfn;
+	    UnixClose(fdes);
+	    return -4;
+	}
+
 	const uint32_t nr = (pos <= static_cast<int32_t>(thePart->nRows()) ?
 			     pos : thePart->nRows());
-
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
 	     ix.nIndices() > 0; ++ ix) {
 	    const ibis::bitvector::word_t *ixval = ix.indices();
@@ -4421,6 +4450,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		}
 	    }
 	} // for (ibis::bitvector::indexSet...
+	(void) UnixClose(fdes);
 	if (ibis::gVerbose > 4)
 	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
 		       "reading file %s",
@@ -4438,6 +4468,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     return ierr;
 } // ibis::column::selectValuesT
 
+/// Return selected rows of the column in an array_t object.
 /// The caller must provide the correct array_t<type>* for vals!  Not type
 /// casting is performed in this function.  Only elementary numerical types
 /// are supported.
@@ -4476,37 +4507,50 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     }
 } // ibis::column::selectValues
 
+/// Return selected rows of the column in an array_t object along with
+/// their positions.
 /// The caller must provide the correct array_t<type>* for vals!  Not type
 /// casting is performed in this function.  Only elementary numerical types
 /// are supported.
 long ibis::column::selectValues(const bitvector& mask, void* vals,
 				ibis::array_t<uint32_t>& inds) const {
-    if (vals == 0) return -1L;
+    if (vals == 0)
+	return -1L;
+
     switch (m_type) {
     case ibis::BYTE:
-	return selectValuesT(mask, *static_cast<array_t<char>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<char>*>(vals),
+			     inds);
     case ibis::UBYTE:
 	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals),
 			     inds);
     case ibis::SHORT:
-	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals),
+			     inds);
     case ibis::USHORT:
-	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals),
+			     inds);
     case ibis::INT:
-	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals),
+			     inds);
     case ibis::UINT:
-	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals),
+			     inds);
     case ibis::LONG:
-	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals),
+			     inds);
     case ibis::ULONG:
-	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals),
+			     inds);
     case ibis::FLOAT:
-	return selectValuesT(mask, *static_cast<array_t<float>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<float>*>(vals),
+			     inds);
     case ibis::DOUBLE:
-	return selectValuesT(mask, *static_cast<array_t<double>*>(vals), inds);
+	return selectValuesT(mask, *static_cast<array_t<double>*>(vals),
+			     inds);
     case ibis::OID:
 	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals),
-	    inds);
+			     inds);
     default:
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column::selectValues["
