@@ -3845,7 +3845,9 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
-/// This static member function works on an array that is provided by the
+/// A generic scan function that rely on the virtual function
+/// ibis::range::inRange.
+/// This static member function works on an array provided by the
 /// caller.  Since the values are provided, this function does not check
 /// the name of the variable involved in the range condition.
 template <typename E>
@@ -3853,6 +3855,9 @@ long ibis::part::doScan(const array_t<E> &varr,
 			const ibis::qRange &cmp,
 			const ibis::bitvector &mask,
 			ibis::bitvector &hits) {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
     for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	 is.nIndices() > 0; ++ is) {
 	const ibis::bitvector::word_t *iix = is.indices();
@@ -3872,7 +3877,8 @@ long ibis::part::doScan(const array_t<E> &varr,
 		if (iix[i] < varr.size() && cmp.inRange(varr[iix[i]])) {
 		    hits.setBit(i, 1);
 #if defined(DEBUG) && DEBUG + 0 > 1
-		    LOGGER(ibis::gVerbose >= 0) << varr[iix[i]] << " is in " << cmp;
+		    LOGGER(ibis::gVerbose >= 0)
+			<< varr[iix[i]] << " is in " << cmp;
 #endif
 		}
 	    }
@@ -3880,6 +3886,20 @@ long ibis::part::doScan(const array_t<E> &varr,
     } // main loop
 
     hits.adjustSize(0, mask.size());
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg.buffer() << "part::doScan -- evaluating " << cmp << " on "
+		    << mask.cnt() << typeid(E).name()
+		    << (mask.cnt() > 1 ? " values" : " value")
+		    << " (total: " << mask.size() << ") took "
+		    << timer.realTime() << " sec elapsed time and produced "
+		    << hits.cnt() << (hits.cnt() > 1 ? " hits" : " hit");
+#if defined(DEBUG) && DEBUG + 0 > 1
+	lg.buffer() << "\nmask\n" << mask;
+	lg.buffer() << "\nhit vector\n" << hits << "\n";
+#endif
+    }
     return hits.cnt();
 } // ibis::part::doScan
 
@@ -8325,10 +8345,10 @@ long ibis::part::doScan(const array_t<T> &vals,
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
-		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
+		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
+	lg.buffer() << "\nmask\n" << mask;
+	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -9066,10 +9086,10 @@ long ibis::part::doScan(const array_t<float> &vals,
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
-		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
+		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
+	lg.buffer() << "\nmask\n" << mask;
+	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -9806,10 +9826,10 @@ long ibis::part::doScan(const array_t<double> &vals,
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
-		    << (hits.cnt() > 1 ? " hits" : " hit") << "\n";
+		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if defined(DEBUG) && DEBUG + 0 > 1
-	lg.buffer() << "mask\n" << mask << "\n";
-	lg.buffer() << "hit vector\n" << hits << "\n";
+	lg.buffer() << "\nmask\n" << mask;
+	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;

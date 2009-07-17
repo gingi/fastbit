@@ -1,3 +1,21 @@
+2009-07-16 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: doEvaluate and doScan handled the LOGICAL_AND
+	operator incorrectly, when no hit is found, it neglected to set
+	the result bitvector, which causes other expressions to produce
+	incorrect answers (apparently, this is the root cuase of the
+	problem reported by Jochen Schlosser)
+	* tests/scripts/query-count.list: add empty conditions to exercise
+	the changes in query.cpp
+	* src/qExpr.h, src/qExpr.cpp: change print function to only print
+	one node, rename old print function (that recursively prints the
+	whole express tree) to printFull, removed qExpr::printRange
+	* src/category.cpp: call prepareMembers in category::selectUInts
+	(without it, the program ibis occasionally crashes)
+	* src/array_t.cpp: check for k being 0 in topk and bottomk,
+	initialize the array ind before calling qsort in topk and bottomk
+	(the zero value of k causes crashes in bottomk)
+	* src/bundles.cpp: in versions of truncate, make sure keep > 0
+
 2009-07-14 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: in doSelect limit the number of characters from
 	cond is placed in de (to reduce the length of the new table)

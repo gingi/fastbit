@@ -1,10 +1,10 @@
 # the separator between query and hist (;) can not appear in the query expressions
 from test0 where sqrt(i0)*sqrt(i0) > 70 and i1 > 20; 29
-from test0 where i2 > 70 and i1 < 20; 20
-from test0 where i0 > 70 and i1 < 80; 9
+from test0 where (i2 < 0 OR i2 > 70) and i1 < 20; 20
+from test0 where (i0 < 0 OR i0 > 70) and (i1 > 100 OR i1 < 80); 9
 from test0 where i2 > 70 and i1 > 20; 8
 from test0 where i2 > 71 and i1 > 23; 4
-from test0 where i2 > 70 and i1 > 30; 0
+from test0 where (i2 < 0 OR i2 > 70) and i1 > 30; 0
 from test0 where i2 = 70 and i1 > 20; 1
 from test0 where i2 = 50 and i1 = 49; 1
 from test0 where i0 = 30 and i1 = 49; 0

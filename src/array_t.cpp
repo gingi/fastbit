@@ -632,17 +632,21 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 /// order the indices since it only contains the largest values.
 template<class T>
 void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
-    uint32_t front = 0;
-    uint32_t back = size();
-    if (back <= k) {
-	qsort(ind, front, back);
+    if (k == 0) {
+	ind.clear();
 	return;
     }
 
+    uint32_t front = 0;
+    uint32_t back = size();
     // initialize ind array
     ind.resize(back);
     for (uint32_t i = 0; i < back; ++ i)
 	ind[i] = i;
+    if (back <= k) {
+	qsort(ind, front, back);
+	return;
+    }
 
     const uint32_t mark = back - k;
     // main loop to deal with the case of having more than QSORT_MIN elements
@@ -689,17 +693,21 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 /// elements.
 template<class T>
 void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
-    uint32_t front = 0;
-    uint32_t back = size();
-    if (back <= k) {
-	qsort(ind, front, back);
+    if (k == 0) {
+	ind.clear();
 	return;
     }
 
+    uint32_t front = 0;
+    uint32_t back = size();
     // initialize ind array
     ind.resize(back);
     for (uint32_t i = 0; i < back; ++ i)
 	ind[i] = i;
+    if (back <= k) {
+	qsort(ind, front, back);
+	return;
+    }
 
     // main loop to deal with the case of having more than QSORT_MIN elements
     while (back > front + QSORT_MIN && k > front) {

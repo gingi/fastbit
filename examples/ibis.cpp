@@ -57,27 +57,28 @@
    preceeding WHERE clause selected less than or equal to the specified
    number of rows (after applying the implicit group by clause).
 
-
+<pre>
    Command line options:
-        -append data_dir [partition_name]
-	-build-indexes [numThreads|indexSpec] -z[ap-existing-indexes]
-	-conf conf_file
-	-datadir data_dir
-	-estimation-only
-	-help
-	-interactive
-	-join part1 part2 join-column conditions1 conditions2 [columns ...]
-	-keep-temporary-files
-	-log logfilename
-	-no-estimation
-	-output-file filename
-	-query [SELECT ...] [FROM ...] WHERE ...
-	-squential-scan
-	-rid-check [filename]
-	-reorder data_dir[:colname1,colname2...]
-	-t[=| ]n
-	-v[=| ]n
-	-yank filename|conditions
+     -append data_dir [partition_name]
+     -build-indexes [numThreads|indexSpec] -z[ap-existing-indexes]
+     -conf conf_file
+     -datadir data_dir
+     -estimation-only
+     -help
+     -interactive
+     -join part1 part2 join-column conditions1 conditions2 [columns ...]
+     -keep-temporary-files
+     -log logfilename
+     -no-estimation
+     -output-file filename
+     -query [SELECT ...] [FROM ...] WHERE ...
+     -squential-scan
+     -rid-check [filename]
+     -reorder data_dir[:colname1,colname2...]
+     -t[=| ]n
+     -v[=| ]n
+     -yank filename|conditions
+</pre>
 
    @note Options can be specified with the minimal distinguishing prefixes,
    which in most cases is just the first letter.
@@ -3057,10 +3058,11 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    << "\", error code = " << num2;
 	return;
     }
+    num1 = aQuery.getNumHits();
     if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
+	if (limit == 0) limit = num1;
 	aQuery.limit(ordkeys, direction, limit, (verify_rid || testing > 0));
     }
-    num1 = aQuery.getNumHits();
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
 	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
@@ -4087,9 +4089,10 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		  << ") expects the key word LIMIT, but got " << str;
     }
 
-    // remove count(*) from select clause
-    
-    if (! sstr.empty()) {
+    if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
+			   sstr.find(" as ") < sstr.size() ||
+			   verify_rid || !ordkeys.empty())) {
+	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
 	    ibis::partList tl2;
 	    for (unsigned k = 0; k < tlist.size(); ++ k) {
@@ -4110,9 +4113,9 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	}
     }
     else if (! qtables.empty()) {
+	// simple select clauses can be handled through doQuery
 	for (unsigned k = 0; k < tlist.size(); ++ k) {
-	    // go through each partition the user has specified and process
-	    // the queries
+	    // go through each partition the user has specified
 	    for (unsigned j = 0; j < qtables.size(); ++ j) {
 		if (stricmp(tlist[k]->name(), qtables[j]) == 0 ||
 		    ibis::util::strMatch(tlist[k]->name(), qtables[j])) {
@@ -4123,23 +4126,24 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    else
 			doMeshQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
 
-		    if (ibis::gVerbose > 10 || testing > 0)
+		    if (ibis::gVerbose > 7 || testing > 0)
 			xdoQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
 		    break;
 		}
 	    }
 	}
     }
-    else { // go through every partition and process the user query
+    else {
 	for (ibis::partList::iterator tit = tlist.begin();
-	     tit != tlist.end(); ++tit) {
+	     tit != tlist.end(); ++ tit) {
+	    // go through every partition and process the user query
 	    if (verify_rid || sequential_scan || (*tit)->getMeshShape().empty())
 		doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
 			ordkeys.c_str(), direction, limit);
 	    else
 		doMeshQuery((*tit), uid, wstr.c_str(), sstr.c_str());
 
-	    if (ibis::gVerbose > 10 || testing > 0)
+	    if (ibis::gVerbose > 7 || testing > 0)
 		xdoQuery((*tit), uid, wstr.c_str(), sstr.c_str());
 	}
     }

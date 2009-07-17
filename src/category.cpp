@@ -291,6 +291,7 @@ ibis::category::~category() {
 
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
+    prepareMembers();
     indexLock lock(this, "category::selectInts");
     if (idx != 0)
 	return static_cast<ibis::relic*>(idx)->keys(mask);

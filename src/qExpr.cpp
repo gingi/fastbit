@@ -762,48 +762,87 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     }
 } // ibis::qExpr::simplify
 
+/// The short-form of the print function only prints information about the
+/// current node of the query expression tree.
 void ibis::qExpr::print(std::ostream& out) const {
+    out << "(qExpr @ " << static_cast<const void*>(this) << ": ";
+    switch (type) {
+    case LOGICAL_AND: {
+	out << static_cast<const void*>(left) << " AND "
+	    << static_cast<const void*>(right);
+	break;
+    }
+    case LOGICAL_OR: {
+	out << static_cast<const void*>(left) << " OR "
+	    << static_cast<const void*>(right);
+	break;
+    }
+    case LOGICAL_XOR: {
+	out << static_cast<const void*>(left) << " XOR "
+	    << static_cast<const void*>(right);
+	break;
+    }
+    case LOGICAL_MINUS: {
+	out << static_cast<const void*>(left) << " ANDNOT "
+	    << static_cast<const void*>(right);
+	break;
+    }
+    case LOGICAL_NOT: {
+	out << " ! " << static_cast<const void*>(left);
+	break;
+    }
+    default:
+	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
+    }
+    out << ')';
+} // ibis::qExpr::print
+
+/// The long form of the print function recursively prints out the whole
+/// query expression tree.
+void ibis::qExpr::printFull(std::ostream& out) const {
     switch (type) {
     case LOGICAL_AND: {
 	out << '(';
-	left->print(out);
+	left->printFull(out);
 	out << " AND ";
-	right->print(out);
+	right->printFull(out);
 	out << ')';
 	break;
     }
     case LOGICAL_OR: {
 	out << '(';
-	left->print(out);
+	left->printFull(out);
 	out << " OR ";
-	right->print(out);
+	right->printFull(out);
 	out << ')';
 	break;
     }
     case LOGICAL_XOR: {
 	out << '(';
-	left->print(out);
+	left->printFull(out);
 	out << " XOR ";
-	right->print(out);
+	right->printFull(out);
 	out << ')';
 	break;
     }
     case LOGICAL_MINUS: {
 	out << '(';
-	left->print(out);
+	left->printFull(out);
 	out << " ANDNOT ";
-	right->print(out);
+	right->printFull(out);
 	out << ')';
 	break;
     }
     case LOGICAL_NOT: {
-	out << "( ! " << *left << ')';
+	out << "( ! ";
+	left->printFull(out);
+	out << ')';
 	break;
     }
     default:
 	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
-    } // end of outer-mode switch statement
-} // ibis::qExpr::print
+    }
+} // ibis::qExpr::printFull
 
 // make the expression tree lean left
 void ibis::qExpr::adjust() {
@@ -1328,34 +1367,10 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
     } // end of switch right_op
 } // ibis::qContinuousRange::print
 
-void ibis::qContinuousRange::printRange(std::ostream& out) const {
-    if (name == 0) return;
-    if (getLeft() != 0) getLeft()->printRange(out);
-    if (getRight() != 0) getRight()->printRange(out);
-    if (getLeft() == 0 && getRight() == 0 &&
-	(left_op != OP_UNDEFINED || right_op != OP_UNDEFINED)) {
-	out << name << "\t";
-	if (left_op != OP_UNDEFINED) {
-	    uint64_t lval = static_cast<uint64_t>(lower);
-	    if (right_op != OP_UNDEFINED) {
-		uint64_t uval = static_cast<uint64_t>(upper);
-		out << (lval == lower ? lval : lower) << "\t"
-		    << (uval == upper ? uval : upper) << std::endl;
-	    }
-	    else {
-		out << (lval == lower ? lval : lower) << std::endl;
-	    }
-	}
-	else { // right_op must not be OP_UNDEFINED
-	    uint64_t ival = static_cast<uint64_t>(upper);
-	    out << (ival == upper ? ival : upper) << std::endl;
-	}
-    }
-} // ibis::qContinuousRange::printRange
-
-// the constructor of qString.  The string rs must have matching quote if it
-// is quoted.  It may also contain meta character '\' that is used to escape
-// the quote and other characters.  The meta character will also be striped.
+/// The constructor of qString.  The string rs must have matching quote if
+/// it is quoted.  It may also contain meta character '\' that is used to
+/// escape the quote and other characters.  The meta character will also be
+/// striped.
 ibis::qString::qString(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
     // need to remove leading and trailing quote and the meta characters
@@ -2500,17 +2515,6 @@ void ibis::qDiscreteRange::print(std::ostream& out) const {
     out << ')';
 } // ibis::qDiscreteRange::print
 
-void ibis::qDiscreteRange::printRange(std::ostream& out) const {
-    for (uint32_t i = 0; i < values.size(); ++ i) {
-	int64_t ival = static_cast<int64_t>(values[i]);
-	out << name << "\t";
-	if (ival == values[i])
-	    out << ival << "\n";
-	else
-	    out << values[i] << "\n";
-    }
-} // ibis::qDiscreteRange::printRange
-
 ibis::qExpr* ibis::qDiscreteRange::convert() const {
     if (name.empty()) return 0;
     if (values.empty()) { // an empty range
@@ -2712,14 +2716,3 @@ void ibis::qAnyAny::print(std::ostream& out) const {
 	out << "ANY(" << prefix << ")==" << values.back();
     }
 } // ibis::qAnyAny::print
-
-void ibis::qAnyAny::printRange(std::ostream& out) const {
-    for (uint32_t i = 0; i < values.size(); ++ i) {
-	int64_t ival = static_cast<int64_t>(values[i]);
-	out << prefix << "*\t";
-	if (ival == values[i])
-	    out << ival << "\n";
-	else
-	    out << values[i] << "\n";
-    }
-} // ibis::qAnyAny::printRange

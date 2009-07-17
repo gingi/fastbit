@@ -79,15 +79,11 @@ public:
     virtual size_t nItems() const {
 	return 1 + (left != 0 ? left->nItems() : 0) +
 	    (right != 0 ? right->nItems() : 0);}
+
     /// Print out the node in the string form.
     virtual void print(std::ostream&) const;
-
-    /// Print out the attribute name and the constants involved in the
-    /// range expressions.  Only print something is the node is a qRange.
-    virtual void printRange(std::ostream& out) const {
-	if (left) left->printRange(out);
-	if (right) right->printRange(out);
-    };
+    /// Print out the full expression.
+    virtual void printFull(std::ostream& out) const;
 
     /// A functor to be used by the function reorder.
     struct weight {
@@ -275,10 +271,9 @@ public:
     virtual void restrictRange(double left, double right);
     virtual bool empty() const;
 
-    // print the query expression
     virtual void print(std::ostream&) const;
-    virtual void printRange(std::ostream& out) const;
-    // an operator for comparing two query expressions
+    virtual void printFull(std::ostream& out) const {print(out);}
+    /// An operator for comparing two query expressions.
     inline bool operator<(const qContinuousRange& y) const;
 
 private:
@@ -329,8 +324,8 @@ public:
     /// Convert to a sequence of qContinuousRange.
     ibis::qExpr* convert() const;
 
-    virtual void print(std::ostream& out) const;
-    virtual void printRange(std::ostream& out) const;
+    virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
 
 private:
     std::string name;
@@ -361,6 +356,7 @@ public:
 
     virtual qString* dup() const {return new qString(*this);}
     virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
 
 private:
     char* lstr;
@@ -383,6 +379,7 @@ public:
     /// Duplicate the object with the compiler generated copy constructor.
     virtual qMultiString* dup() const {return new qMultiString(*this);}
     virtual void print(std::ostream& out) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
 
     /// Return the column name, the left hand side of the IN operator.
     const char* colName() const {return name.c_str();}
@@ -703,6 +700,7 @@ public:
 	    (expr3 != 0 ? expr3->nItems() : 0);}
     /// Print the query expression.
     virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
 
     virtual bool isSimple() const {return isSimpleRange();}
     /// Is this a simple range expression that can be stored as ibis::qRange?
@@ -733,6 +731,7 @@ public:
     virtual ~rangeJoin() {delete expr;};
 
     virtual void print(std::ostream& out) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
     virtual rangeJoin* dup() const
     {return new rangeJoin(name1.c_str(), name2.c_str(), expr->dup());};
 
@@ -780,7 +779,7 @@ public:
     virtual qExpr* dup() const {return new qAnyAny(*this);}
 
     virtual void print(std::ostream& out) const;
-    virtual void printRange(std::ostream& out) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
 
 private:
     std::string prefix; ///< The prefix of the column names to search.

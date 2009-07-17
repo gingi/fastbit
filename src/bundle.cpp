@@ -722,7 +722,9 @@ void ibis::bundle1::reverse() {
 
 // Reduce the number of bundle to the maximum of @c keep.
 long ibis::bundle1::truncate(uint32_t keep) {
-    if (col == 0 || starts == 0) return 0L;
+    if (keep == 0) return -4L;
+    if (col == 0 || starts == 0) return -2L;
+    if (starts->size() <= 2) return -3L;
     const uint32_t ngroups = starts->size()-1;
     if (keep >= ngroups) return ngroups;
     if (rids != 0) {
@@ -859,7 +861,8 @@ std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::bundles
 //
-// constructor -- using the hit vector of the query or read the files
+/// Constructor.  It will use the hit vector of the query to generate a new
+/// bundle, if it is not able to read the existing bundles.
 ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
     if (q.getNumHits() == 0)
 	return;
@@ -1184,7 +1187,8 @@ void ibis::bundles::printAll(std::ostream& out) const {
     }
 } // ibis::bundles::printAll
 
-// sort the columns, remove the duplicate elements and generate the starts
+/// Sort the columns.  Remove the duplicate elements and generate the
+/// starts.
 void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
@@ -1538,7 +1542,9 @@ void ibis::bundles::reverse() {
 } // ibis::bundles::reverse
 
 long ibis::bundles::truncate(uint32_t keep) {
-    if (starts == 0) return 0L;
+    if (keep == 0) return -4L;
+    if (starts == 0) return -2L;
+    if (starts->size() <= 2) return -3L;
     const uint32_t ngroups = starts->size() - 1;
     if (ngroups <= keep)
 	return ngroups;
@@ -1556,9 +1562,10 @@ long ibis::bundles::truncate(uint32_t keep) {
 /// first @c keep elements.  If @c direction < 0, keep the largest ones,
 /// otherwise keep the smallest ones.
 long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
-    if (names == 0 || *names == 0) return 0L;
-    if (starts == 0) return 0L;
-    if (starts->size() <= 2) return 0L;
+    if (names == 0 || *names == 0) return -1L;
+    if (starts == 0) return -2L;
+    if (starts->size() <= 2) return -3L;
+    if (keep == 0) return -4L;
 
     ibis::selected sortkeys; // the new keys for sorting
     sortkeys.select(names, false); // preserve the order of the sort keys
