@@ -1,3 +1,7 @@
+2009-07-28 John Wu <John.Wu at ACM.org>
+	* src/util.cpp: util::isortRIDs to util::sortRIDsi, fix leftover
+	problems with function names in utilidor.cpp
+
 2009-07-16 John Wu <John.Wu at ACM.org>
 	* src/query.cpp: doEvaluate and doScan handled the LOGICAL_AND
 	operator incorrectly, when no hit is found, it neglected to set

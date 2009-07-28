@@ -91,17 +91,17 @@ namespace ibis {
 
 void ibis::util::sortRIDs(ibis::RIDSet& rids) {
     if (rids.size() > 20)
-	ibis::util::sortRIDs(rids, 0, rids.size());
+	ibis::util::sortRIDsq(rids, 0, rids.size());
     else if (rids.size() > 1)
-	ibis::util::isortRIDs(rids, 0, rids.size());
+	ibis::util::sortRIDsi(rids, 0, rids.size());
 }
 
-// sort RIDs in the range of [i, j)
-void ibis::util::sortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
+/// Sort RIDs in the range of [i, j).
+void ibis::util::sortRIDsq(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
     if (i >= j) return;
     std::less<ibis::rid_t> cmp;
     if (i+32 >= j) { // use buble sort
-	isortRIDs(rids, i, j);
+	sortRIDsi(rids, i, j);
     }
     else { // use quick sort
 	ibis::rid_t tgt = rids[(i+j)/2];
@@ -138,8 +138,8 @@ void ibis::util::sortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
 	i1 += (left); // if left is true, rids[i1] should be on the left side
 	// everything below i1 is less than tgt
 	if (i1 > i) {
-	    sortRIDs(rids, i, i1);
-	    sortRIDs(rids, i1, j);
+	    sortRIDsq(rids, i, i1);
+	    sortRIDsq(rids, i1, j);
 	}
 	else { // nothing has been swapped, i.e., tgt is the smallest
 	    while (i1 < j &&
@@ -152,21 +152,21 @@ void ibis::util::sortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
 		rids[i1] = tmp;
 		++ i1;
 	    }
-	    sortRIDs(rids, i1, j);
+	    sortRIDsq(rids, i1, j);
 	}
     }
 #ifdef DEBUG
     int cnt = 0;
     ibis::util::logger lg(4);
     ibis::RIDSet::const_iterator it;
-    lg.buffer() << "sortRIDs(..., " << i << ", " << j << "):\n";
+    lg.buffer() << "sortRIDsq(..., " << i << ", " << j << "):\n";
     for (it = rids.begin(); it != rids.end(); ++ it, ++ cnt)
 	lg.buffer() << cnt << "\t" << *it << "\n";
 #endif
-} // ibis::util::sortRIDs
+} // ibis::util::sortRIDsq
 
-// insertion sort
-void ibis::util::isortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
+/// Sort RIDs in the range of [i, j).
+void ibis::util::sortRIDsi(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
     uint32_t i1, i2, i3;
     ibis::rid_t tmp;
     for (i1 = i; i1 < j-1; ++i1) {
@@ -191,7 +191,7 @@ void ibis::util::isortRIDs(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
 	    }
 	}
     }
-} // isortRIDs
+} // ibis::util::sortRIDsi
 
 template<class T>
 void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
