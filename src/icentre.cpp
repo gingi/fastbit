@@ -132,7 +132,7 @@ void ibis::entre::convert() {
     // store the current bitvectors in simple
     std::vector<ibis::bitvector*> simple(bits);
 
-    if (ibis::gVerbose > 5) {
+    if (ibis::gVerbose > 3) {
 	col->logMessage("entre::convert", "converting %lu-bin "
 			"%lu-component index from equality encoding to "
 			"interval encoding (using %lu bitvectors)",

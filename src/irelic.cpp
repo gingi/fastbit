@@ -123,14 +123,14 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 /// Reconstruct from content of fileManager::storage.
 /**
    The content of the file (following the 8-byte header) is
-   nrows(uint32_t) -- number of bits in each bit sequences
-   nobs (uint32_t) -- number of bit sequences
-   card (uint32_t) -- the number of distinct values, i.e., cardinality
-   (padding to ensure the next data element is on 8-byte boundary)
-   values (double[card]) -- the values as doubles
-   offset (uint32_t[nobs+1]) -- the starting positions of the bit sequences (as
-   bit vectors)
-   bitvectors -- the bitvectors one after another
+   - nrows(uint32_t) -- number of bits in each bit sequences
+   - nobs (uint32_t) -- number of bit sequences
+   - card (uint32_t) -- the number of distinct values, i.e., cardinality
+   - (padding to ensure the next data element is on 8-byte boundary)
+   - values (double[card]) -- the values as doubles
+   - offset (uint32_t[nobs+1]) -- the starting positions of the bit sequences (as
+     bit vectors)
+   - bitvectors -- the bitvectors one after another
 */
 ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		   uint32_t start)
@@ -1538,22 +1538,33 @@ uint32_t ibis::relic::estimate(const ibis::qContinuousRange& expr) const {
 /// answer is in the number of bytes needed from this index.
 double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
     double ret = 0.0;
-    if (offsets.size() > bits.size()) {
-	uint32_t h0, h1;
-	locate(expr, h0, h1);
-	if (h1 > h0 && offsets.size() > h1 ) {
-	    if (h1 > h0 + 1) {
-		const int32_t tot = offsets.back() - offsets[0];
-		const int32_t mid = offsets[h1] - offsets[h0];
-		if ((tot >> 1) >= mid)
-		    ret = mid;
-		else
-		    ret = tot - mid;
-	    }
-	    else {// extra discount for a single bitmap
-		ret = 0.5 * (offsets[h1] - offsets[h0]);
-	    }
+    uint32_t h0, h1;
+    locate(expr, h0, h1);
+    if (h0 >= h1) {
+	ret = 0.0;
+    }
+    else if (offsets.size() > bits.size() && offsets.size() > h1 ) {
+	if (h1 > h0 + 1) {
+	    const int32_t tot = offsets.back() - offsets[0];
+	    const int32_t mid = offsets[h1] - offsets[h0];
+	    if ((tot >> 1) >= mid)
+		ret = mid;
+	    else
+		ret = tot - mid;
 	}
+	else {// extra discount for a single bitmap
+	    ret = 0.5 * (offsets[h1] - offsets[h0]);
+	}
+    }
+    else if (h1 > h0 + 1) {
+	if (h1 > bits.size())
+	    h1 = bits.size();
+	for (uint32_t i = h0; i < h1; ++ i)
+	    if (bits[i] != 0)
+		ret += bits[i]->bytes();
+    }
+    else if (h0 < bits.size() && bits[h0] != 0) {
+	ret = 0.5 * bits[h0]->bytes();
     }
     return ret;
 } // ibis::relic::estimateCost
@@ -1562,12 +1573,19 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
 /// answer is in the number of bytes needed from this index.
 double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
+    const std::vector<double>& varr = expr.getValues();
     if (offsets.size() > bits.size()) {
-	const std::vector<double>& varr = expr.getValues();
 	for (unsigned j = 0; j < varr.size(); ++ j) {
 	    uint32_t itmp = locate(varr[j]);
 	    if (itmp < bits.size())
 		ret += offsets[itmp+1] - offsets[itmp];
+	}
+    }
+    else {
+	for (unsigned j = 0; j < varr.size(); ++ j) {
+	    uint32_t itmp = locate(varr[j]);
+	    if (itmp < bits.size() && bits[itmp] != 0 )
+		ret += bits[itmp]->bytes();
 	}
     }
     return ret;

@@ -1,6 +1,17 @@
+2009-07-29 John Wu <John.Wu at ACM.org>
+	* src/irelic.cpp: change estimateCost to attempt to use bits
+	directly if offsets is not available
+	* src/countQuery.cpp: update doScan and doEvaluate to correct
+	error involving query conditions that return no hit (the same
+	problems in query.cpp were fixed on 7/16), make doScan and
+	doEvaluate consistently return the number of hits
+
 2009-07-28 John Wu <John.Wu at ACM.org>
 	* src/util.cpp: util::isortRIDs to util::sortRIDsi, fix leftover
 	problems with function names in utilidor.cpp
+	* src/index.cpp:7140 remove the if-block that preventing basis
+	size 2 being used, add case to handle base size 2 for all
+	components
 
 2009-07-16 John Wu <John.Wu at ACM.org>
 	* src/query.cpp: doEvaluate and doScan handled the LOGICAL_AND

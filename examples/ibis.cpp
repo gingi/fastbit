@@ -1833,7 +1833,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 	if (*buf != 0 || *buf != '#') { // line started with # is a comment
 	    char *ch = buf;
 	    while (*ch != 0 && isspace(*ch)) ++ ch; // skip leading space
-	    if (ch != buf)
+	    if (ch != buf || ! qtemp.empty())
 		qtemp += ' '; // add a space
 
 	    while (*ch != 0) {

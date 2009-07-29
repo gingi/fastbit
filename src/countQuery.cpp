@@ -12,7 +12,8 @@
 #include "selectClause.h"	// ibis::selectClause
 #include "query.h"		// ibis::query
 
-#include <sstream>		// std::ostringstream
+#include <memory>	// std::auto_ptr
+#include <sstream>	// std::ostringstream
 
 ////////////////////////////////////////////////////////////
 // public functions of ibis::countQuery
@@ -541,19 +542,20 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     case ibis::qExpr::LOGICAL_NOT: {
 	ierr = doScan(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
-	    ibis::bitvector* tmp = mask - ht;
+	    std::auto_ptr<ibis::bitvector> tmp(mask - ht);
 	    ht.copy(*tmp);
-	    delete tmp;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::LOGICAL_AND: {
-	ibis::bitvector b1;
-	ierr = doScan(term->getLeft(), mask, b1);
-	if (ierr >= 0)
-	    ierr = doScan(term->getRight(), b1, ht);
-	break;
-    }
+	ierr = doScan(term->getLeft(), mask, ht);
+	if (ierr > 0) {
+	    ibis::bitvector b1;
+	    ierr = doScan(term->getRight(), ht, b1);
+	    if (ierr >= 0)
+		ht.swap(b1);
+	}
+	break;}
     case ibis::qExpr::LOGICAL_OR: {
 	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), mask, ht);
@@ -569,7 +571,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	// to ht.cnt()
 	// since there are no good estimates on the coefficients, we will
 	// simply directly compare the two
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		ibis::bitvector* newmask = mask - ht;
 		ierr = doScan(term->getRight(), *newmask, b1);
@@ -580,63 +582,57 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	    }
 	    if (ierr >= 0)
 		ht |= b1;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::LOGICAL_XOR: {
-	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
+	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), mask, b1);
 	    if (ierr >= 0)
 		ht ^= b1;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::LOGICAL_MINUS: {
-	ibis::bitvector b1;
 	ierr = doScan(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
+	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::RANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qRange*>(term)), mask, ht);
-	break;
-    }
+	break;}
     case ibis::qExpr::DRANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
-	break;
-    }
+	break;}
     case ibis::qExpr::ANYANY: {
 	ierr = mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), mask, ht);
-	break;
-    }
+	break;}
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
 	LOGGER(ibis::gVerbose > 1)
 	    << "countQuery::doScan -- scanning the index for strings";
-	break;
-    }
+	break;}
     case ibis::qExpr::COMPRANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
-	break;
-    }
+	break;}
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = -2;
-	break;
-    }
+	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "countQuery::doScan -- unable to evaluate query term of "
@@ -648,8 +644,8 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     if (ierr < 0) // no confirmed hits
 	ht.set(0, mypart->nRows());
     LOGGER(ibis::gVerbose > 4)
-	<< "countQuery::doScan(" << *term << ") --> " << ht.cnt()
-	<< ", ierr = " << ierr;
+	<< "countQuery::doScan(" << static_cast<const void*>(term) << ": "
+	<< *term << ") --> " << ht.cnt() << ", ierr = " << ierr;
     return ierr;
 } // ibis::countQuery::doScan
 
@@ -676,20 +672,22 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ht.flip();
 	    ht &= mask;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::LOGICAL_AND: {
-	ibis::bitvector b1;
-	ierr = doEvaluate(term->getLeft(), mask, b1);
-	if (ierr >= 0)
-	    ierr = doEvaluate(term->getRight(), b1, ht);
-	break;
-    }
-    case ibis::qExpr::LOGICAL_OR: {
-	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
+	    ibis::bitvector b1;
+	    ierr = doEvaluate(term->getRight(), ht, b1);
+	    if (ierr >= 0)
+		ht.swap(b1);
+	}
+	break;}
+    case ibis::qExpr::LOGICAL_OR: {
+	ierr = doEvaluate(term->getLeft(), mask, ht);
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		ibis::bitvector* newmask = mask - ht;
 		ierr = doEvaluate(term->getRight(), *newmask, b1);
@@ -700,29 +698,30 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    }
 	    if (ierr >= 0)
 		ht |= b1;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::LOGICAL_XOR: {
-	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
+	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
 	    if (ierr >= 0)
 		ht ^= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
     case ibis::qExpr::LOGICAL_MINUS: {
-	ibis::bitvector b1;
 	ierr = doEvaluate(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
+	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::RANGE: {
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
@@ -749,10 +748,10 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 		    if (ierr >= 0)
 			ht |= res;
 		}
+		ierr = ht.cnt();
 	    }
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::DRANGE: { // try evaluateRange, then doScan
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
@@ -779,20 +778,18 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 			ht |= res;
 		}
 	    }
+	    ierr = ht.cnt();
 	}
-	break;
-    }
+	break;}
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
-	break;
-    }
+	break;}
     case ibis::qExpr::COMPRANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
-	break;
-    }
+	break;}
     case ibis::qExpr::ANYANY: {
 	const ibis::qAnyAny *tmp =
 	    reinterpret_cast<const ibis::qAnyAny*>(term);
@@ -808,23 +805,25 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 		ht |= res;
 	    }
 	}
-	break;
-    }
+	ierr = ht.cnt();
+	break;}
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.copy(mask);
-	break;
-    }
-    default:
+	ierr = mask.cnt();
+	break;}
+    default: {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- countQuery::doEvaluate unable to evaluate a "
 	    "query term of unexpected type, copy the mask as the solution";
 	ht.set(0, mask.size());
 	ierr = -1;
-}
+	break;}
+    }
 #ifdef DEBUG
     ibis::util::logger lg;
-    lg.buffer() << "countQuery::doEvaluate(" << *term
+    lg.buffer() << "countQuery::doEvaluate("
+		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
@@ -835,7 +834,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "countQuery::doEvaluate(" << *term << ", mask.cnt()="
+	<< "countQuery::doEvaluate("
+	<< static_cast<const void*>(term) << ": " << *term << ", mask.cnt()="
 	<< mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;

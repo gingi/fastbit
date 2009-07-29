@@ -149,7 +149,7 @@ void ibis::moins::convert() {
     bits.resize(nbits);
     for (i = 0; i < nbits; ++i)
 	bits[i] = 0;
-    if (ibis::gVerbose > 5) {
+    if (ibis::gVerbose > 3) {
 	col->logMessage("moins::convert", "converting %lu-bin %lu-component "
 			"index from equality encoding to range encoding "
 			"(using %lu bitvectors)",

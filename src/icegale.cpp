@@ -519,7 +519,7 @@ void ibis::egale::convert() {
     for (i = 0; i < nbits; ++i)
 	bits[i] = 0;
     cnts.resize(nobs);
-    if (ibis::gVerbose > 5) {
+    if (ibis::gVerbose > 3) {
 	col->logMessage("egale::convert", "initialized the array of "
 			"bitvectors, start converting %lu bitmaps into %lu-"
 			"component equality code (with %lu bitvectors)",

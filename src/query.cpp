@@ -2446,7 +2446,7 @@ bool ibis::query::hasBundles() const {
     else {
 	return false;
     }
-} // ibis::query::hasBundles()
+} // ibis::query::hasBundles
 
 // reorder the query expression to minimize the work of evaluation
 // (assuming the query expression is evaluated from left to right)
@@ -2455,9 +2455,12 @@ void ibis::query::reorderExpr() {
 
     // call qExpr::reorder to do the actual work
     double ret = conds->reorder(wt);
-    LOGGER(ibis::gVerbose > 5)
-	<< "query[" << myID << "]:reorderExpr returns " << ret
-	<< ".  The new query expression is \n" << *conds.getExpr();
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "query[" << myID << "]:reorderExpr returns " << ret
+		    << ".  The new query expression is \n";
+	conds.getExpr()->printFull(lg.buffer());
+    }
 } // ibis::query::reorderExpr
 
 void ibis::query::getBounds() {
@@ -2720,7 +2723,8 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
     }
 #ifdef DEBUG
     LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::query[" << myID << "]::doEstimate(" << *term
+	<< "ibis::query[" << myID << "]::doEstimate("
+	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", " << high.cnt() << "]";
 #if DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0) << "low \n" << low
@@ -2734,7 +2738,8 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doEstimate(" << *term
+	<< "ibis::query[" << myID << "]::doEstimate("
+	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", "
 	<< (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
 #endif
@@ -3078,7 +3083,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
     return ierr;
 } // ibis::query::doScan
 
-// masked sequential scan
+/// Masked sequential scan.
 int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 			ibis::bitvector& ht) const {
     int ierr = 0;
@@ -3098,6 +3103,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	if (ierr >= 0) {
 	    std::auto_ptr<ibis::bitvector> tmp(mask - ht);
 	    ht.copy(*tmp);
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3125,7 +3131,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	// to ht.cnt()
 	// since there are no good estimates on the coefficients, we will
 	// simply directly compare the two
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
@@ -3136,6 +3142,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	    }
 	    if (ierr >= 0)
 		ht |= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3146,6 +3153,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	    ierr = doScan(term->getRight(), mask, b1);
 	    if (ierr >= 0)
 		ht ^= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3156,6 +3164,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	    ierr = doScan(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3421,7 +3430,8 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mypart->nRows());
 #ifdef DEBUG
     ibis::util::logger lg(4);
-    lg.buffer() << "ibis::query[" << myID << "]::doScan(" << *term
+    lg.buffer() << "ibis::query[" << myID << "]::doScan("
+		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
@@ -3431,13 +3441,15 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doScan(" << *term
+	<< "ibis::query[" << myID << "]::doScan("
+	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doScan
 
-// combines the operations on index and the sequential scan in one function
+/// Evaluate the query expression.
+/// Combines the operations on index and the sequential scan in one function.
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    ibis::bitvector& ht) const {
     if (term == 0) { // no hits
@@ -3473,6 +3485,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), b1);
 	    if (ierr >= 0)
 		ht |= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3483,6 +3496,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), b1);
 	    if (ierr >= 0)
 		ht ^= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3493,6 +3507,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3516,6 +3531,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
 		if (ierr >= 0)
 		    ht |= res;
+		ierr = ht.cnt();
 	    }
 	}
 	break;
@@ -3539,6 +3555,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
 		if (ierr >= 0)
 		    ht |= res;
+		ierr = ht.cnt();
 	    }
 	}
 	break;
@@ -3566,6 +3583,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		ht |= res;
 	    }
 	}
+	ierr = ht.cnt();
 	break;
     }
     case ibis::qExpr::TOPK:
@@ -3581,7 +3599,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
 #ifdef DEBUG
     ibis::util::logger lg(4);
-    lg.buffer() << "ibis::query[" << myID << "]::doEvaluate(" << *term
+    lg.buffer() << "ibis::query[" << myID << "]::doEvaluate("
+		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
@@ -3591,13 +3610,15 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
+	<< "ibis::query[" << myID << "]::doEvaluate("
+	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doEvaluate
 
-// combines the operations on index and the sequential scan in one function
+/// Evaluate the query expression with mask.
+/// Combines the operations on index and the sequential scan in one function.
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    const ibis::bitvector& mask,
 			    ibis::bitvector& ht) const {
@@ -3635,7 +3656,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
@@ -3646,6 +3667,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    }
 	    if (ierr >= 0)
 		ht |= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3666,6 +3688,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht -= b1;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3695,6 +3718,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    if (ierr >= 0)
 			ht |= res;
 		}
+		ierr = ht.cnt();
 	    }
 	}
 	break;
@@ -3724,6 +3748,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    if (ierr >= 0)
 			ht |= res;
 		}
+		ierr = ht.cnt();
 	    }
 	}
 	break;
@@ -3754,11 +3779,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		ht |= res;
 	    }
 	}
+	ierr = ht.cnt();
 	break;
     }
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.copy(mask);
+	ierr = ht.cnt();
 	break;
     }
     default:
@@ -3769,7 +3796,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
 #ifdef DEBUG
     ibis::util::logger lg(4);
-    lg.buffer() << "ibis::query[" << myID << "]::doEvaluate(" << *term
+    lg.buffer() << "ibis::query[" << myID << "]::doEvaluate("
+		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1
@@ -3780,23 +3808,24 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "ibis::query[" << myID << "]::doEvaluate(" << *term
+	<< "ibis::query[" << myID << "]::doEvaluate("
+	<< static_cast<const void*>(term) << ": " << *term
 	<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 	<< ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::query::doEvaluate
 
-// a function to read the query file in a directory -- used by the
-// constructor that takes a directory name as the argument
-// the file contains:
-// user id
-// dataset name
-// list of components
-// query state
-// time stamp on the dataset
-// query condition or <NULL>
-// list of OIDs
+/// A function to read the query file in a directory -- used by the
+/// constructor that takes a directory name as the argument
+/// the file contains:
+/// - user id
+/// - dataset name
+/// - list of components
+/// - query state
+/// - time stamp on the dataset
+/// - query condition or <NULL>
+/// - list of OIDs
 void ibis::query::readQuery(const ibis::partList& tl) {
     if (myDir == 0)
 	return;
@@ -3893,7 +3922,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     fclose(fptr);
 } // ibis::query::readQuery
 
-// write the content of the current query into a file
+/// Write the content of the current query into a file.
 void ibis::query::writeQuery() {
     if (myDir == 0)
 	return;

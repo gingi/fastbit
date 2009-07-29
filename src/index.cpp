@@ -6,7 +6,7 @@
 // The primary function from the database point of view is a functioin
 // called estimate.  It evaluates a given range condition and produces
 // two bit vectors representing the range where the actual solution lies.
-// The bulk of the code is devoted to maintain and update the indices.
+// The bulk of the code is devoted to maintain and update the indexes.
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -88,7 +88,7 @@ namespace std { // specialize the std::less struct
 ///\endverbatim
 /// FastBit always compresses every bitmap it ever generates.  The
 /// compression option is to instruct it to uncompress some bitmaps or
-/// not compress indices at all.  The compress option is usually not
+/// not compress indexes at all.  The compress option is usually not
 /// used.
 ///
 /// If the argument @c spec is not specified, this function checks the
@@ -7127,7 +7127,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 } // ibis::index::sumBits
 
 /// Fill the array bases with the values that cover the range [0, card).
-/// Assumes at least two components.  For one component case use indices
+/// Assumes at least two components.  For one component case use indexes
 /// defined explicit for one component cases.
 void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 			   uint32_t nbase) {
@@ -7137,44 +7137,44 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 	return;
     }
 
-    if (nbase > 2) {
-	// more than two components, make sure each base size is no less
-	// than 2
-	uint32_t b = static_cast<uint32_t>
-	    (log(static_cast<double>(card)) / log(2.0));
-	if (b <= 1 && card >= 4)
-	    b = 2;
-	if (b < nbase)
-	    nbase = b;
-    }
-    else if (nbase == 2 && card < 4) {
-	nbase = 1;
-    }
     if (nbase > 2) { // more than two components
-	uint32_t b = static_cast<uint32_t>(ceil(pow(card, 1.0/nbase)));
-	bases.resize(nbase);
-	uint32_t tot = 1;
-	for (uint32_t i = 0; i < nbase; ++i) {
-	    bases[i] = b;
-	    tot *= b;
-	}
-	for (uint32_t i = 0; i < nbase; ++i) {
-	    if ((tot/b)*(b-1) >= card) {
-		bases[nbase-i-1] = b - 1;
-		tot /= b;
-		tot *= b - 1;
+	uint32_t b = static_cast<uint32_t>(ceil(pow((double)card, 1.0/nbase)));
+	if (b > 2) {
+	    bases.resize(nbase);
+	    uint32_t tot = 1;
+	    for (uint32_t i = 0; i < nbase; ++i) {
+		bases[i] = b;
+		tot *= b;
 	    }
-	    else {
-		break; // do not examine the rest of the bases
+	    for (uint32_t i = 0; i < nbase; ++i) {
+		if ((tot/b)*(b-1) >= card) {
+		    bases[nbase-i-1] = b - 1;
+		    tot /= b;
+		    tot *= b - 1;
+		}
+		else {
+		    break; // do not examine the rest of the bases
+		}
 	    }
+	    // remove the last few bases that are one
+	    while (nbase > 0 && bases[nbase-1] == 1)
+		-- nbase;
+	    bases.resize(nbase);
 	}
-	// remove the last few bases that are one
-	while (nbase > 0 && bases[nbase-1] == 1)
-	    -- nbase;
-	bases.resize(nbase);
+	else { // use base size 2
+	    bases.reserve(nbase);
+	    uint32_t tot = 1;
+	    for (uint32_t i = 0; i < nbase && tot < card; ++ i) {
+		bases.push_back(2);
+		tot <<= 1;
+	    }
+	    if (tot < card)
+		bases[0] = (uint32_t)(ceil(2.0 * card / tot));
+	}
     }
     else if (card > 2 && nbase > 1) { // assume two components
-	uint32_t b = static_cast<uint32_t>(ceil(sqrt(static_cast<double>(card))));
+	uint32_t b =
+	    static_cast<uint32_t>(ceil(sqrt(static_cast<double>(card))));
 	bases.resize(2);
 	bases[0] = static_cast<uint32_t>
 	    (ceil(static_cast<double>(card)/static_cast<double>(b)));

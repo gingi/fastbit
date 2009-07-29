@@ -26,7 +26,7 @@
 ////////////////////////////////////////////////////////////////////////
 // functions of ibis::fade
 //
-// construct a bitmap index from current data
+/// Construct a bitmap index from current data.
 ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
     : ibis::relic(0) {
     if (c == 0) return;  // nothing can be done
@@ -53,19 +53,21 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
     }
 } // constructor
 
-// reconstruct from content of fileManager::storage
-// the content of the file (following the 8-byte header) is
-// nrows(uint32_t) -- the number of bits in each bit sequence
-// nobs (uint32_t) -- the number of bit sequences
-// card (uint32_t) -- the number of distinct values, i.e., cardinality
-// (padding to ensure the next data element is on 8-byte boundary)
-// values (double[card])  -- the distinct values as doubles
-// offset(int32_t[nobs+1]) -- the starting positions of the bit sequences (as
-//				bit vectors)
-// nbases(uint32_t) -- the number of components (bases) used
-// cnts (uint32_t[card])    -- the counts for each distinct value
-// bases(uint32_t[nbases])  -- the bases sizes
-// bitvectors -- the bitvectors one after another
+/// Reconstruct from content of fileManager::storage.
+/**
+ The content of the file (following the 8-byte header) is
+ - nrows(uint32_t) -- the number of bits in each bit sequence
+ - nobs (uint32_t) -- the number of bit sequences
+ - card (uint32_t) -- the number of distinct values, i.e., cardinality
+ - (padding to ensure the next data element is on 8-byte boundary)
+ - values (double[card])  -- the distinct values as doubles
+ - offset(int32_t[nobs+1]) -- the starting positions of the bit sequences (as
+				bit vectors)
+ - nbases(uint32_t) -- the number of components (bases) used
+ - cnts (uint32_t[card])    -- the counts for each distinct value
+ - bases(uint32_t[nbases])  -- the bases sizes
+ - bitvectors -- the bitvectors one after another
+*/
 ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t offset)
     : ibis::relic(c, st, offset),
@@ -88,7 +90,8 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
     }
 } // reconstruct data from content of a file
 
-// the argument is the name of the directory or the index file name
+/// Write the content of this index to a file.
+/// The argument is the name of the directory or the index file name.
 int ibis::fade::write(const char* dt) const {
     if (vals.empty()) return -1;
 
@@ -159,7 +162,7 @@ int ibis::fade::write(const char* dt) const {
     return 0;
 } // ibis::fade::write
 
-// write the content to a file already opened
+/// Write the content to a file already opened.
 int ibis::fade::write(int fdes) const {
     if (vals.empty()) return -1;
     if (fname != 0 || str != 0)

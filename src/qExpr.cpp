@@ -765,7 +765,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 /// The short-form of the print function only prints information about the
 /// current node of the query expression tree.
 void ibis::qExpr::print(std::ostream& out) const {
-    out << "(qExpr @ " << static_cast<const void*>(this) << ": ";
+    out << '(';
     switch (type) {
     case LOGICAL_AND: {
 	out << static_cast<const void*>(left) << " AND "
@@ -783,7 +783,7 @@ void ibis::qExpr::print(std::ostream& out) const {
 	break;
     }
     case LOGICAL_MINUS: {
-	out << static_cast<const void*>(left) << " ANDNOT "
+	out << static_cast<const void*>(left) << " AND NOT "
 	    << static_cast<const void*>(right);
 	break;
     }
@@ -828,7 +828,7 @@ void ibis::qExpr::printFull(std::ostream& out) const {
     case LOGICAL_MINUS: {
 	out << '(';
 	left->printFull(out);
-	out << " ANDNOT ";
+	out << " AND NOT ";
 	right->printFull(out);
 	out << ')';
 	break;
@@ -884,8 +884,11 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 
     if (ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::qExpr::reorder -- input: ";
-	print(lg.buffer());
+	lg.buffer() << "qExpr::reorder -- input: ";
+	if (ibis::gVerbose > 8)
+	    printFull(lg.buffer());
+	else
+	    print(lg.buffer());
     }
 
     adjust(); // to make sure the evaluation tree is a chain
@@ -909,9 +912,16 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	    // loop for left child of the same type
 	    if (ptr->right->directEval()) {
 		tmp = wt(ptr->right);
+		LOGGER(ibis::gVerbose > 8)
+		    << "qExpr::reorder -- adding term " << *(ptr->right)
+		    << " with weight " << tmp;
 	    }
 	    else {
 		tmp = ptr->right->reorder(wt);
+		LOGGER(ibis::gVerbose > 8)
+		    << "qExpr::reorder -- adding subexpression "
+		    << static_cast<const void*>(ptr->right)
+		    << " with weight " << tmp;
 	    }
 	    terms.push_back(ptr->right);
 	    wgt.push_back(tmp);
@@ -994,7 +1004,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	}
 
 #ifdef DEBUG
-	if (ibis::gVerbose > 0) {
+	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG: qExpr::reorder(" << *this
 			<< ") -- (expression:weight,...)\n";
@@ -1019,8 +1029,11 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 
     if (ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::qExpr::reorder -- output: ";
-	print(lg.buffer());
+	lg.buffer() << "qExpr::reorder -- output (" << ret << "): ";
+	if (ibis::gVerbose > 8)
+	    printFull(lg.buffer());
+	else
+	    print(lg.buffer());
     }
     return ret;
 } // ibis::qExpr::reorder
@@ -1033,7 +1046,7 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 				ibis::qExpr *&tail) const {
     if (ibis::gVerbose > 12) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::qExpr::separateSimple -- input: ";
+	lg.buffer() << "qExpr::separateSimple -- input: ";
 	print(lg.buffer());
     }
 
@@ -1138,23 +1151,23 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 	default:
 	case 0:
 	    if (simple) {
-		lg.buffer() << "ibis::qExpr::separateSimple -- simple  "
+		lg.buffer() << "qExpr::separateSimple -- simple  "
 		    "conditions: ";
 		simple->print(lg.buffer());
 		lg.buffer() << "\n";
 	    }
 	    if (tail) {
-		lg.buffer()<< "ibis::qExpr::separateSimple -- complex "
+		lg.buffer()<< "qExpr::separateSimple -- complex "
 		    "conditions: ";
 		tail->print(lg.buffer());
 		lg.buffer() << "\n";
 	    }
 	    break;
 	case -1:
-	    lg.buffer() << "ibis::qExpr::separateSimple -- no simple terms";
+	    lg.buffer() << "qExpr::separateSimple -- no simple terms";
 	    break;
 	case 1:
-	    lg.buffer() << "ibis::qExpr::separateSimple -- all simple terms";
+	    lg.buffer() << "qExpr::separateSimple -- all simple terms";
 	    break;
 	}
     }
@@ -1323,23 +1336,23 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
 
     switch (left_op) {
     case OP_EQ: {
-	out << lower << "==";
+	out << lower << " == ";
 	break;
     }
     case OP_LT: {
-	out << lower << '<';
+	out << lower << " < ";
 	break;
     } // case OP_LT
     case OP_LE: {
-	out << lower << "<=";
+	out << lower << " <= ";
 	break;
     } // case OP_LE
     case OP_GT: {
-	out << lower << '>';
+	out << lower << " > ";
 	break;
     } // case OP_GT
     case OP_GE: {
-	out << lower << ">=";
+	out << lower << " >= ";
 	break;
     } // case OP_GE
     default:
@@ -1348,19 +1361,19 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
     out << name;
     switch (right_op) {
     case OP_EQ:
-	out << "==" << upper;
+	out << " == " << upper;
 	break;
     case OP_LT:
-	out << '<' << upper;
+	out << " < " << upper;
 	break;
     case OP_LE:
-	out << "<=" << upper;
+	out << " <= " << upper;
 	break;
     case OP_GT:
-	out << '>' << upper;
+	out << " > " << upper;
 	break;
     case OP_GE:
-	out << ">=" << upper;
+	out << " >= " << upper;
 	break;
     default:
 	break;
