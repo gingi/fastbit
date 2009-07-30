@@ -43,6 +43,11 @@ long ibis::part::count2DBins(array_t<T1> &vals1,
 } // ibis::part::count2DBins
 
 /// Count the number of values in 2D regular bins.
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
+///
 /// @sa ibis::part::get1DDistribution
 /// @sa ibis::table::getHistogram2D
 long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
@@ -134,6 +139,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -188,6 +194,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
@@ -210,6 +217,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -285,6 +293,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -359,6 +368,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -433,6 +443,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -533,6 +544,11 @@ long ibis::part::count2DWeights(array_t<T1> &vals1,
 } // ibis::part::count2DWeights
 
 /// Count the weights of 2D regular bins.
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
+///
 /// @sa ibis::part::get1DDistribution
 /// @sa ibis::table::getHistogram2D
 long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
@@ -637,6 +653,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -691,6 +708,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
@@ -713,6 +731,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -788,6 +807,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -862,6 +882,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -936,6 +957,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -1219,13 +1241,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col2.type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col2.type() == ibis::UINT) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
@@ -1339,6 +1358,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 /// (1 + floor((end1-begin1)/stride1)) * (1 + floor((end2-begin2)/stride2)).
 /// @endcode
 /// This function returns a negative value to indicate errors.
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
 long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
@@ -1500,13 +1523,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col1->type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col1->type() == ibis::UINT) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
@@ -1827,13 +1847,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col2.type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col2.type() == ibis::UINT) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
@@ -1939,6 +1956,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 /// This version returns a vector of pointers to bitmaps.  Because the
 /// empty bitmaps are left as null pointers, it can reduce the memory usage
 /// and the execution time if the majority of the bins are empty.
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
 long ibis::part::get2DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
@@ -2100,13 +2121,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col1->type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col1->type() == ibis::UINT) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
@@ -2446,13 +2464,10 @@ ibis::part::fill2DBinsWeighted2(const ibis::bitvector &mask,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col2.type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col2.type() == ibis::UINT) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
@@ -2752,13 +2767,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col1->type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col1->type() == ibis::UINT) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
@@ -3220,6 +3232,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3280,6 +3293,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1.selectUInts(mask);
 	if (vals1 == 0) {
@@ -3304,6 +3318,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3387,6 +3402,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3469,6 +3485,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3549,6 +3566,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3787,6 +3805,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3841,6 +3860,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1.selectUInts(mask);
 	if (vals1 == 0) {
@@ -3863,6 +3883,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -3938,6 +3959,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -4012,6 +4034,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {
@@ -4086,6 +4109,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
 	    if (vals2 == 0) {

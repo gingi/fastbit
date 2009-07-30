@@ -122,8 +122,8 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) ../tests/test0.csv
 	rm -rf $(TESTDIR)/t1
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:short" -t ../tests/test0.csv
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:short" -t ../tests/test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 
@@ -228,7 +228,7 @@ column.o: ../src/column.cpp ../src/resource.h ../src/util.h \
   ../src/const.h ../src/category.h ../src/irelic.h ../src/index.h \
   ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/column.h ../src/table.h ../src/part.h \
-  ../src/utilidor.h
+  ../src/utilidor.h ../src/iroster.h
 	$(CXX) $(CCFLAGS) -c -o column.o ../src/column.cpp
 countQuery.o: ../src/countQuery.cpp ../src/countQuery.h ../src/part.h \
   ../src/column.h ../src/table.h ../src/const.h ../src/fileManager.h \

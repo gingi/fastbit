@@ -324,10 +324,10 @@ ibis::bord::part::restoreCategoriesAsStrings(const ibis::part& prt,
     if (nm == 0 || *nm == 0)
 	return -1;
     ibis::bord::column *col = static_cast<ibis::bord::column*>(getColumn(nm));
-    if (col == 0)
-	return -2;
-    else
+    if (col != 0)
 	return col->restoreCategoriesAsStrings(prt);
+    else
+	return -2;
 } // ibis::bord::part::restoreCategoriesAsStrings
 
 /// Retrieve the raw data buffer as an ibis::array_t object.

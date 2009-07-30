@@ -150,8 +150,9 @@ private:
 /// A specialized low-cardinality text field.  It is also known as control
 /// values, or categorical values.  This implementation directly converts
 /// string values into bitvectors (as ibis::relic), and does not store
-/// integer version of the string.  @note Value zero (0) is reserved for
-/// NULL values.
+/// integer version of the string.
+///
+/// @note The integer zero (0) is reserved for NULL values.
 class ibis::category : public ibis::text {
 public:
     virtual ~category();

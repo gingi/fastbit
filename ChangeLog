@@ -1,4 +1,14 @@
 2009-07-29 John Wu <John.Wu at ACM.org>
+	* src/parth*.cpp: add ibis::CATEGORY to cases for ibis::UINT.
+	This allows categorical values to be used in histogram functions.
+	Previously, only some of the cases for UINT has CATEGORY as well.
+	The inconsistency was revealed after Andrew Olson raised the
+	question about possibility of using categorical values in
+	histograms.
+	* win/MinGW.mak: change column type of t1/c from short to ushort
+	to match the changes in tests/Makefile.am
+
+2009-07-29 John Wu <John.Wu at ACM.org>
 	* src/irelic.cpp: change estimateCost to attempt to use bits
 	directly if offsets is not available
 	* src/countQuery.cpp: update doScan and doEvaluate to correct

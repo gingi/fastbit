@@ -81,6 +81,10 @@ long ibis::part::count3DBins(const array_t<T1> &vals1,
 /// On successful completion of this function, the return value shall be
 /// the number of bins.  Any other value indicates an error.
 ///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
+///
 /// @sa ibis::part::get1DDistribution
 /// @sa ibis::table::getHistogram2D
 long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
@@ -194,6 +198,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -256,6 +261,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -280,6 +286,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -365,6 +372,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -449,6 +457,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -533,6 +542,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -606,6 +616,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
@@ -640,6 +651,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -702,6 +714,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -726,6 +739,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -811,6 +825,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -895,6 +910,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -979,6 +995,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1085,6 +1102,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1147,6 +1165,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -1171,6 +1190,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1256,6 +1276,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1340,6 +1361,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1424,6 +1446,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1529,6 +1552,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1591,6 +1615,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -1615,6 +1640,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1700,6 +1726,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1784,6 +1811,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1868,6 +1896,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -1973,6 +2002,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2035,6 +2065,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -2059,6 +2090,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2144,6 +2176,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2228,6 +2261,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2312,6 +2346,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2598,6 +2633,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2664,6 +2700,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -2689,6 +2726,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2779,6 +2817,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2868,6 +2907,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -2957,6 +2997,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3034,6 +3075,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
 	if (vals1 == 0) {
@@ -3069,6 +3111,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3135,6 +3178,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -3160,6 +3204,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3250,6 +3295,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3339,6 +3385,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3428,6 +3475,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3539,6 +3587,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3605,6 +3654,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -3630,6 +3680,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3720,6 +3771,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3809,6 +3861,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -3898,6 +3951,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4008,6 +4062,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4074,6 +4129,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -4099,6 +4155,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4189,6 +4246,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4278,6 +4336,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4367,6 +4426,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4477,6 +4537,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4543,6 +4604,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
+	case ibis::CATEGORY:
 	case ibis::UINT: {
 	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
 	    if (vals2 == 0) {
@@ -4568,6 +4630,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4658,6 +4721,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4747,6 +4811,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);
@@ -4836,6 +4901,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 		break;}
 	    case ibis::UBYTE:
 	    case ibis::USHORT:
+	    case ibis::CATEGORY:
 	    case ibis::UINT: {
 		array_t<uint32_t>* vals3 =
 		    col3->selectUInts(hits);

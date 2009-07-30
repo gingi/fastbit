@@ -47,6 +47,10 @@
 /// constraint"), but cname must be the name of a valid column in the data
 /// partition.
 ///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
+///
 /// @sa ibis::table::getHistogram
 long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 				   double begin, double end, double stride,
@@ -115,6 +119,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    ierr = -4;
 	}
 	break;}
+    case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
@@ -215,6 +220,11 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 /// however both cname and wtname must be valid column names of this data
 /// partition.  Futhermore, both column must be numerical values, not
 /// string values.
+///
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
 long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 				   double begin, double end, double stride,
 				   const char *wtname,
@@ -299,6 +309,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	    ierr = -4;
 	}
 	break;}
+    case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
@@ -469,6 +480,11 @@ long ibis::part::fill1DBins(const ibis::bitvector &mask,
 /// the same underlying storage.  The caller should avoid mixing these
 /// empty bitmaps with others.
 ///
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
+///
 /// @sa ibis::part::fill1DBins
 long ibis::part::get1DBins(const char *constraints, const char *cname,
 			   double begin, double end, double stride,
@@ -620,9 +636,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = -4;
 	}
 	break;}
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (col->type() == ibis::UINT && mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
@@ -979,9 +996,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = -4;
 	}
 	break;}
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (col->type() == ibis::UINT && mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
@@ -1383,9 +1401,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    ierr = -4;
 	}
 	break;}
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* vals;
-	if (mask.cnt() > (nEvents >> 4)) {
+	if (col->type() == ibis::UINT && mask.cnt() > (nEvents >> 4)) {
 	    vals = new array_t<uint32_t>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
@@ -1822,6 +1841,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	    ierr = adaptiveFloats(*vals, vmin, vmax, nbins, bounds, counts);
 	delete vals;
 	break;}
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> *vals = col->selectUInts(mask);
 	if (vals == 0) {

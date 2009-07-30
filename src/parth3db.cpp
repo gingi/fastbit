@@ -277,13 +277,10 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val3;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col3.type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col3.type() == ibis::UINT) {
 	    val3 = new array_t<uint32_t>;
 	    ierr = col3.getValuesArray(val3);
 	    if (ierr < 0) {
@@ -517,13 +514,10 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val2;
-	if (mask.cnt() > (nEvents >> 4)
-#ifdef FASTBIT_EXPAND_ALL_TYPES
-	    && col2.type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col2.type() == ibis::UINT) {
 	    val2 = new array_t<uint32_t>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
@@ -642,6 +636,10 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
 /// It returns a negative value to indicate error.  Please refer to the
 /// documentation of ibis::part::fill3DBins for additional information
 /// about the objects returned in bins.
+///
+/// @note This function is intended to work with numerical values.  It
+/// treats categorical values as unsigned ints.  Passing the name of text
+/// column to this function will result in a negative return value.
 long ibis::part::get3DBins(const char *constraints, const char *cname1,
 			   double begin1, double end1, double stride1,
 			   const char *cname2,
@@ -667,7 +665,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
 	    << "ibis::part[" << (m_name ? m_name : "")
-	    << "]::get3DDistribution attempting to compute a histogram of "
+	    << "]::get3DBins attempting to compute a histogram of "
 	    << cname1 << ", " << cname2 << ", and " << cname3
 	    << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -817,13 +815,10 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     case ibis::UBYTE:
     case ibis::USHORT:
 #endif
+    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t>* val1;
-	if (mask.cnt() > (nEvents >> 4)
-#ifndef FASTBIT_EXPAND_ALL_TYPES
-	    && col1->type() == ibis::UINT
-#endif
-	    ) {
+	if (mask.cnt() > (nEvents >> 4) && col1->type() == ibis::UINT) {
 	    val1 = new array_t<uint32_t>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
