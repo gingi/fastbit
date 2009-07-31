@@ -1414,9 +1414,7 @@ ibis::qString::qString(const char* ls, const char* rs) :
 
 void ibis::qString::print(std::ostream& out) const {
     if (lstr && rstr)
-	out << '(' << lstr << " == \"" << rstr << "\")";
-    else
-	out << "NULL";
+	out << lstr << " == \"" << rstr << "\"";
 }
 
 /// Record all variables in @c term recursively.

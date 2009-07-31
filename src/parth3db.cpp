@@ -3,7 +3,7 @@
 // Copyright 2009-2009 the Regents of the University of California
 //
 // Implements ibis::part::get3DBins that returns vector<bitvector>.
-#include "query.h"	// ibis::query
+#include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 #include <cmath>	// std::floor
 #include <typeinfo>	// typeid
@@ -677,14 +677,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     long ierr;
     ibis::bitvector mask;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	std::string sel = cname1;
-	sel += ',';
-	sel += cname2;
-	sel += ',';
-	sel += cname3;
-	qq.setSelectClause(sel.c_str());
-
+	ibis::countQuery qq(this);
 	// add constraints on the two selected variables
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
@@ -696,7 +689,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << std::setprecision(18)
 	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();

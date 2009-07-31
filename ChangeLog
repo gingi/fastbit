@@ -1,3 +1,12 @@
+2009-07-31 John Wu <John.Wu at ACM.org>
+	* src/parth*.cpp: in function adaptivexDBins, decrement the scaling
+	factor after inversion to ensure it is small enough to never cause
+	the indices computed to be out of bounds.  The out of bounds
+	indices appared to be the root cause of the problem of the crashes
+	reported by Andrew Olson.
+	* src/parth*.cpp: replace all instances of ibis::query with
+	ibis::countQuery (which is simpler than ibis::query class)
+
 2009-07-30 John Wu <John.Wu at ACM.org>
 	* src/qExpr.cpp: change the print statements in qExpr::simplify
 	and qExpr::reorder to use the same verboseness level

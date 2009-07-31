@@ -4,7 +4,7 @@
 //
 // Implements ibis::part histogram functions.
 #include "index.h"	// ibis::index::divideCounts
-#include "query.h"	// ibis::query
+#include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 
 #include <cmath>	// std::ceil, std::log, ...
@@ -85,8 +85,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     long ierr;
     ibis::bitvector mask;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	qq.setSelectClause(cname);
+	ibis::countQuery qq(this);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -94,7 +93,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -265,8 +264,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	std::string sel = bname;
 	sel += ", ";
 	sel += wtname;
-	ibis::query qq(ibis::util::userName(), this);
-	qq.setSelectClause(sel.c_str());
+	ibis::countQuery qq(this);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -274,7 +272,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -512,8 +510,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
     long ierr;
     ibis::bitvector mask;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	qq.setSelectClause(cname);
+	ibis::countQuery qq(this);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -521,7 +518,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -872,8 +869,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
     long ierr;
     ibis::bitvector mask;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	qq.setSelectClause(cname);
+	ibis::countQuery qq(this);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -881,7 +877,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -1250,13 +1246,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
     long ierr;
     ibis::bitvector mask;
     { // use a block to limit the lifespan of the query object
-	ibis::query qq(ibis::util::userName(), this);
-	std::string sel;
-	sel = cname;
-	sel += ',';
-	sel += wtname;
-	qq.setSelectClause(sel.c_str());
-
+	ibis::countQuery qq(this);
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
 	    oss << "(" << constraints << ") AND ";
@@ -1264,7 +1254,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -1658,16 +1648,13 @@ long ibis::part::get1DDistribution(const char* constraints,
     long ierr;
     ibis::bitvector mask;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	ierr = qq.setSelectClause(cname);
-	if (ierr < 0)
-	    return -3;
+	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0) {
 	    return -4;
 	}
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0) {
 	    return -5;
 	}
@@ -2174,9 +2161,8 @@ ibis::part::adaptiveFloats(const array_t<T> &vals, const T vmin,
 	(std::sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
-    double scale = 1.0 /
-	(ibis::util::incrDouble((double)vmin + (double)(vmax - vmin) /
-				nfine) - vmin);
+    double scale = ibis::util::decrDouble
+	((double)nfine / (double)(vmax - vmin));
     LOGGER(ibis::gVerbose > 4)
 	<< "ibis::part::adaptiveFloats<" << typeid(T).name() << "> using "
 	<< nfine << " fine bins to compute " << nbins
@@ -3526,14 +3512,11 @@ long ibis::part::get1DBins(const char *constraints, const char *cname1,
 	col1->getNullMask(mask);
     }
     else { // process the constraints to compute the mask
-	ibis::query qq(ibis::util::userName(), this);
-	ierr = qq.setSelectClause(cname1);
-	if (ierr < 0)
-	    return -3L;
+	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
 	    return -4L;
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return -5L;
 
@@ -3668,9 +3651,9 @@ ibis::part::getDistribution(const char *constraints,
     mask.set(1, nEvents);
     const ibis::column *col = (*it).second;
     if (constraints != 0 && *constraints != 0) {
-	ibis::query q(ibis::util::userName(), this);
+	ibis::countQuery q(this);
 	q.setWhereClause(constraints);
-	ierr = q.evaluate(false);
+	ierr = q.evaluate();
 	if (ierr < 0) {
 	    ierr = -2;
 	    return ierr;
@@ -4018,9 +4001,9 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	ibis::bitvector hits;
 	const ibis::column *col = (*it).second;
 	{
-	    ibis::query q(ibis::util::userName(), this);
+	    ibis::countQuery q(this);
 	    q.setWhereClause(constraints);
-	    ierr = q.evaluate(false);
+	    ierr = q.evaluate();
 	    if (ierr < 0)
 		return ierr;
 	    hits.copy(*(q.getHitVector()));

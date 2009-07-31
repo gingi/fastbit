@@ -4,7 +4,7 @@
 //
 // Implements ibis::part 3D histogram functions.
 #include "index.h"	// ibis::index::divideCounts
-#include "query.h"	// ibis::query
+#include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 
 #include <cmath>	// std::ceil, std::log, ...
@@ -133,14 +133,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     long ierr;
     ibis::bitvector hits;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	std::string sel = cname1;
-	sel += ',';
-	sel += cname2;
-	sel += ',';
-	sel += cname3;
-	qq.setSelectClause(sel.c_str());
-
+	ibis::countQuery qq(this);
 	// add constraints on the two selected variables
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
@@ -152,7 +145,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << std::setprecision(18)
 	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -2556,16 +2549,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     long ierr;
     ibis::bitvector hits;
     {
-	ibis::query qq(ibis::util::userName(), this);
-	std::string sel = cname1;
-	sel += ',';
-	sel += cname2;
-	sel += ',';
-	sel += cname3;
-	sel += ',';
-	sel += wtname;
-	qq.setSelectClause(sel.c_str());
-
+	ibis::countQuery qq(this);
 	// add constraints on the two selected variables
 	std::ostringstream oss;
 	if (constraints != 0 && *constraints != 0)
@@ -2577,7 +2561,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << std::setprecision(18)
 	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -5162,15 +5146,12 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
     const uint32_t nfine3 = static_cast<uint32_t>(0.5 + tmp * nb3);
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
-    const double scale1 = 1.0 /
-	(ibis::util::incrDouble((double)vmin1 + (double)(vmax1 - vmin1) /
-				nfine1) - vmin1);
-    const double scale2 = 1.0 /
-	(ibis::util::incrDouble((double)vmin2 + (double)(vmax2 - vmin2) /
-				nfine2) - vmin2);
-    const double scale3 = 1.0 /
-	(ibis::util::incrDouble((double)vmin3 + (double)(vmax3 - vmin3) /
-				nfine3) - vmin3);
+    const double scale1 = ibis::util::decrDouble
+	((double) nfine1 / (double)(vmax1 - vmin1));
+    const double scale2 = ibis::util::decrDouble
+	((double)nfine2 / (double)(vmax2 - vmin2));
+    const double scale3 = ibis::util::decrDouble
+	((double)nfine3 / (double)(vmax3 - vmin3));
     LOGGER(ibis::gVerbose > 3)
 	<< mesg << " internally uses "<< nfine1 << " x " << nfine2 << " x " 
 	<< nfine3 << " uniform bins for " << nrows
@@ -5379,20 +5360,12 @@ long ibis::part::get3DDistribution(const char *constraints,
     long ierr;
     ibis::bitvector mask;
     { // a block for finding out which records satisfy the constraints
-	std::string sel = cname1;
-	sel += ", ";
-	sel += cname2;
-	sel += ", ";
-	sel += cname3;
-	ibis::query qq(ibis::util::userName(), this);
-	ierr = qq.setSelectClause(sel.c_str());
-	if (ierr < 0)
-	    return -2L;
+	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
 	    return -3L;
 
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return -4L;
 	if (qq.getNumHits() == 0) {
@@ -6020,19 +5993,11 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	mask &= tmp;
     }
     else { // process the constraints to compute the mask
-	ibis::query qq(ibis::util::userName(), this);
-	std::string sel = cname1;
-	sel += ", ";
-	sel += cname2;
-	sel += ", ";
-	sel += cname3;
-	ierr = qq.setSelectClause(sel.c_str());
-	if (ierr < 0)
-	    return -3L;
+	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
 	    return -4L;
-	ierr = qq.evaluate(false);
+	ierr = qq.evaluate();
 	if (ierr < 0)
 	    return -5L;
 
