@@ -621,6 +621,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
+	ierr = ht.cnt();
 	LOGGER(ibis::gVerbose > 1)
 	    << "countQuery::doScan -- scanning the index for strings";
 	break;}
@@ -663,8 +664,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	return ierr;
     }
     LOGGER(ibis::gVerbose > 7)
-	<< "countQuery::doEvaluate -- starting to evaluate "
-	<< *term;
+	<< "countQuery::doEvaluate -- starting to evaluate " << *term;
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
@@ -785,6 +785,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
+	ierr = ht.cnt();
 	break;}
     case ibis::qExpr::COMPRANGE: {
 	ierr = mypart->doScan

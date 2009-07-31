@@ -513,10 +513,12 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
     }
 
     ibis::qExpr::simplify(expr_);
-    if (expr_ != 0) // may become nil pointer after simplify
-	LOGGER(ibis::gVerbose > 6)
-	    << "ibis::whereClause::amplify -- "
-	    "query expression with additional constraints\n" << *expr_;
+    if (expr_ != 0 && ibis::gVerbose > 6) {
+	ibis::util::logger lg;
+	lg.buffer() << "ibis::whereClause::amplify -- "
+	    "query expression with additional constraints\n";
+	expr_->printFull(lg.buffer());
+    }
 } // ibis::whereClause::amplify
 
 /// Create a simple range expression as the replacement of the incoming

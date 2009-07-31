@@ -2763,14 +2763,14 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
     return hits.cnt();
 } // ibis::part::evaluateRIDSet
 
-// qString contains only two string values without any indication as what
-// they represent.  This function actually uses the two string and decide
-// what they are.  It first tries to match the left string against known
-// column names of this part.  If the name matches one that is of type
-// STRING or KEY, the search is performed on this column.  Otherwise the
-// right string is compared against the column names, if a match is found,
-// the search is performed on this column.  If both failed, the search
-// returns no hit.
+/// The object qString contains only two string values without any
+/// indication as what they represent.  This function actually uses the two
+/// string and decide what they are.  It first tries to match the left
+/// string against known column names of this part.  If the name matches
+/// one that is of type STRING or KEY, the search is performed on this
+/// column.  Otherwise the right string is compared against the column
+/// names, if a match is found, the search is performed on this column.  If
+/// both failed, the search returns no hit.
 long ibis::part::lookforString(const ibis::qString &cmp,
 			       ibis::bitvector &low) const {
     long ierr = 0;

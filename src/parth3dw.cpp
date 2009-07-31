@@ -1,4 +1,4 @@
-// File $Id: parth3dw.cpp,v 1.4 2009/07/30 01:49:47 kewu Exp $
+// File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2009-2009 the Regents of the University of California
 //
@@ -742,7 +742,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << std::setprecision(18)
 	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();

@@ -3403,6 +3403,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
+	ierr = ht.cnt();
 	if (ibis::gVerbose > 1)
 	    logMessage("doScan", "NOTE -- scanning the index for "
 		       "string comparisons");
@@ -3561,7 +3562,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::STRING: {
-	mypart->lookforString
+	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	break;
     }
@@ -3757,6 +3758,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	ht &= mask;
+	ierr = ht.cnt();
 	break;
     }
     case ibis::qExpr::COMPRANGE: {

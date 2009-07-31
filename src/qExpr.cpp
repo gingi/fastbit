@@ -52,7 +52,7 @@ bool ibis::math::preserveInputExpressions = false;
 /// ibis::math::preserveInputExpressions to true.
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
-    LOGGER(ibis::gVerbose > 4)
+    LOGGER(ibis::gVerbose > 5)
 	<< "ibis::qExpr::simplify --  input expression " << *expr;
 
     switch (expr->getType()) {
@@ -752,13 +752,19 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	break;}
     } // switch(...
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::qExpr::simplify -- output expression ";
-	if (expr)
-	    lg.buffer() << *expr;
-	else
+	if (expr) {
+	    lg.buffer() << "(@" << static_cast<const void*>(expr) << ") ";
+	    if (ibis::gVerbose > 8)
+		expr->printFull(lg.buffer());
+	    else
+		expr->print(lg.buffer());
+	}
+	else {
 	    lg.buffer() << "is nil";
+	}
     }
 } // ibis::qExpr::simplify
 
@@ -882,7 +888,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	return ret;
     }
 
-    if (ibis::gVerbose > 6) {
+    if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg.buffer() << "qExpr::reorder -- input: ";
 	if (ibis::gVerbose > 8)
@@ -1027,9 +1033,10 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	ret += right->reorder(wt);
     } // else if (type == LOGICAL_MINUS)
 
-    if (ibis::gVerbose > 6) {
+    if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "qExpr::reorder -- output (" << ret << "): ";
+	lg.buffer() << "qExpr::reorder -- output (" << ret << ", @"
+		    << static_cast<const void*>(this) << "): ";
 	if (ibis::gVerbose > 8)
 	    printFull(lg.buffer());
 	else
@@ -1903,7 +1910,7 @@ void ibis::math::bediener::reorder() {
     // reduce the use of operator - and operator /
     convertConstants();
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
-    LOGGER(ibis::gVerbose > 6)
+    LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- bediener::reorder  input:  " << *this;
 #endif
 
@@ -1953,7 +1960,7 @@ void ibis::math::bediener::reorder() {
 	ptr->setLeft(terms[j]);
     }
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
-    LOGGER(ibis::gVerbose > 6)
+    ,    LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- bediener::reorder output:  " << *this;
 #endif
 } // ibis::math::bediener::reorder
@@ -2428,9 +2435,10 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	std::copy(tmp.begin(), tmp.end(), values.begin());
     }
 #endif
-    if (values.size() < val.size()) {
+    if (values.size() < val.size() && ibis::gVerbose > 1) {
 	unsigned j = val.size() - values.size();
-	LOGGER(ibis::gVerbose > 1)
+	ibis::util::logger lg;
+	lg.buffer()
 	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
@@ -2460,9 +2468,10 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
     ++ j;
     values.resize(j);
-    if (j < val.size()) {
+    if (j < val.size() && ibis::gVerbose > 1) {
 	j = val.size() - j;
-	LOGGER(ibis::gVerbose > 1)
+	ibis::util::logger lg;
+	lg.buffer()
 	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
@@ -2499,9 +2508,10 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
     ++ j;
     values.resize(j);
-    if (j < val.size()) {
+    if (j < val.size() && ibis::gVerbose > 1) {
 	j = val.size() - j;
-	LOGGER(ibis::gVerbose > 1)
+	ibis::util::logger lg;
+	lg.buffer()
 	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");

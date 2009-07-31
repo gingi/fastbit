@@ -105,7 +105,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -611,7 +611,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -1409,7 +1409,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -2007,7 +2007,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -2631,7 +2631,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	    << begin2 << " and " << std::setprecision(18) << end2;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -4532,7 +4532,7 @@ long ibis::part::get2DDistribution(const char *constraints,
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
 	q.setWhereClause(constraints);
-	ierr = q.evaluate();
+	ierr = q.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	const ibis::bitvector *hits = q.getHitVector();
@@ -5214,7 +5214,7 @@ long ibis::part::old2DDistribution(const char *constraints,
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
 	q.setWhereClause(constraints);
-	ierr = q.evaluate();
+	ierr = q.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	const ibis::bitvector *hits = q.getHitVector();
@@ -5675,7 +5675,7 @@ long ibis::part::get2DBins(const char *constraints,
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
 	    return -4L;
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return -5L;
 
@@ -5978,7 +5978,7 @@ ibis::part::getJointDistribution(const char *constraints,
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
 	q.setWhereClause(constraints);
-	ierr = q.evaluate();
+	ierr = q.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	const ibis::bitvector *hits = q.getHitVector();

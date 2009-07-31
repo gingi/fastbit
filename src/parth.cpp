@@ -94,7 +94,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -274,7 +274,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -521,7 +521,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -881,7 +881,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -1264,7 +1264,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	    << " and " << std::setprecision(18) << end;
 	qq.setWhereClause(oss.str().c_str());
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
@@ -1667,7 +1667,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	    return -4;
 	}
 
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0) {
 	    return -5;
 	}
@@ -3533,7 +3533,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname1,
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
 	    return -4L;
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return -5L;
 
@@ -3670,7 +3670,7 @@ ibis::part::getDistribution(const char *constraints,
     if (constraints != 0 && *constraints != 0) {
 	ibis::query q(ibis::util::userName(), this);
 	q.setWhereClause(constraints);
-	ierr = q.evaluate();
+	ierr = q.evaluate(false);
 	if (ierr < 0) {
 	    ierr = -2;
 	    return ierr;
@@ -4020,7 +4020,7 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	{
 	    ibis::query q(ibis::util::userName(), this);
 	    q.setWhereClause(constraints);
-	    ierr = q.evaluate();
+	    ierr = q.evaluate(false);
 	    if (ierr < 0)
 		return ierr;
 	    hits.copy(*(q.getHitVector()));

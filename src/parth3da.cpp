@@ -699,7 +699,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    << " AND " << cname3 << " between " << std::setprecision(18)
 	    << begin3 << " and " << std::setprecision(18) << end3;
 	qq.setWhereClause(oss.str().c_str());
-	ierr = qq.evaluate();
+	ierr = qq.evaluate(false);
 	if (ierr < 0)
 	    return ierr;
 	ierr = qq.getNumHits();
