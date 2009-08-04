@@ -163,18 +163,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -185,18 +190,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -207,23 +217,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1 = new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -250,18 +265,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -272,18 +292,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -294,23 +319,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1 = new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -338,18 +368,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -360,18 +395,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -382,23 +422,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1 = new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -425,18 +470,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -447,18 +497,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -469,23 +524,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1 = new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -512,18 +572,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -534,18 +599,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -556,23 +626,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1 = new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -599,18 +674,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[i], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[i] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(i, 1);
-			    if (grn.min0 > val[i]) grn.min0 = val[i];
-			    if (grn.max0 < val[i]) grn.max0 = val[i];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(i, 1);
-			    if (grn.min1 > val[i]) grn.min1 = val[i];
-			    if (grn.max1 < val[i]) grn.max1 = val[i];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
 			}
 		    }
 		}
@@ -621,18 +701,23 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			double key = ibis::util::coarsen(val[k], prec);
 			ibis::bak2::grain& grn = bmap[key];
 			if (val[k] < key) {
-			    if (grn.loc0 == 0)
-				grn.loc0 = new ibis::bitvector;
-			    grn.loc0->setBit(k, 1);
-			    if (grn.min0 > val[k]) grn.min0 = val[k];
-			    if (grn.max0 < val[k]) grn.max0 = val[k];
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
 			}
 			else {
-			    if (grn.loc1 == 0)
-				grn.loc1 = new ibis::bitvector;
-			    grn.loc1->setBit(k, 1);
-			    if (grn.min1 > val[k]) grn.min1 = val[k];
-			    if (grn.max1 < val[k]) grn.max1 = val[k];
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
 			}
 		    }
 		}
@@ -643,23 +728,28 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			    double key = ibis::util::coarsen(val[k], prec);
 			    ibis::bak2::grain& grn = bmap[key];
 			    if (val[k] < key) {
-				if (grn.loc0 == 0)
-				    grn.loc0 = new ibis::bitvector;
-				grn.loc0->setBit(k, 1);
-				if (grn.min0 > val[k]) grn.min0 = val[k];
-				if (grn.max0 < val[k]) grn.max0 = val[k];
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp= new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
 			    }
 			    else {
-				if (grn.loc1 == 0)
-				    grn.loc1= new ibis::bitvector;
-				grn.loc1->setBit(k, 1);
-				if (grn.min1 > val[k]) grn.min1 = val[k];
-				if (grn.max1 < val[k]) grn.max1 = val[k];
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
 			    }
 			}
 		    }
 		}
-		++iset;
+		++ iset;
 		nind = iset.nIndices();
 		if (*iix >= nev) nind = 0;
 	    } // while (nind)
@@ -679,11 +769,12 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
     // make sure all bit vectors are the same size
     for (ibis::bak2::bakMap::iterator it = bmap.begin();
 	 it != bmap.end(); ++ it) {
-	if ((*it).second.loc0)
-	    (*it).second.loc0->adjustSize(0, nev);
-	if ((*it).second.loc1)
-	    (*it).second.loc1->adjustSize(0, nev);
-	//	(*it).second.loc->compress();
+	if ((*it).second.locm)
+	    (*it).second.locm->adjustSize(0, nev);
+	if ((*it).second.loce)
+	    (*it).second.loce->adjustSize(0, nev);
+	if ((*it).second.locp)
+	    (*it).second.locp->adjustSize(0, nev);
     }
 
     // write out the current content
@@ -715,7 +806,7 @@ void ibis::bak2::printMap(std::ostream& out,
 			  const ibis::bak2::bakMap& bmap) const {
     out << "bak2::printMap(" << bmap.size()
 	<< (bmap.size() > 1 ? " entries" : " entry")
-	<< " [key, min_, max_, count_, min^, max^, count^]"
+	<< " [key, min_, max_, count_, count=, min^, max^, count^]"
 	<< std::endl;
     uint32_t prt = (ibis::gVerbose > 30 ? bmap.size() : (1 << ibis::gVerbose));
     if (prt < 5) prt = 5;
@@ -723,16 +814,19 @@ void ibis::bak2::printMap(std::ostream& out,
 	for (ibis::bak2::bakMap::const_iterator it = bmap.begin();
 	     it != bmap.end(); ++ it) {
 	    out << (*it).first << ",\t";
-	    if ((*it).second.loc0)
-		out << (*it).second.min0 << ",\t"
-		    << (*it).second.max0 << ",\t"
-		    << (*it).second.loc0->cnt();
+	    if ((*it).second.locm != 0)
+		out << (*it).second.minm << ",\t"
+		    << (*it).second.maxm << ",\t"
+		    << (*it).second.locm->cnt();
 	    else
 		out << ",\t,\t";
-	    if ((*it).second.loc1)
-		out << ",\t" << (*it).second.min1
-		    << ",\t" << (*it).second.max1
-		    << ",\t" << (*it).second.loc1->cnt() << "\n";
+	    out << ",\t";
+	    if ((*it).second.loce != 0)
+		out << (*it).second.loce->cnt();
+	    if ((*it).second.locp != 0)
+		out << ",\t" << (*it).second.minp
+		    << ",\t" << (*it).second.maxp
+		    << ",\t" << (*it).second.locp->cnt() << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -741,16 +835,19 @@ void ibis::bak2::printMap(std::ostream& out,
 	ibis::bak2::bakMap::const_iterator it = bmap.begin();
 	for (uint32_t i = 0; i < prt; ++i, ++it) {
 	    out << (*it).first << ",\t";
-	    if ((*it).second.loc0)
-		out << (*it).second.min0 << ",\t"
-		    << (*it).second.max0 << ",\t"
-		    << (*it).second.loc0->cnt();
+	    if ((*it).second.locm != 0)
+		out << (*it).second.minm << ",\t"
+		    << (*it).second.maxm << ",\t"
+		    << (*it).second.locm->cnt();
 	    else
 		out << ",\t,\t";
-	    if ((*it).second.loc1)
-		out << ",\t" << (*it).second.min1
-		    << ",\t" << (*it).second.max1
-		    << ",\t" << (*it).second.loc1->cnt() << "\n";
+	    out << ",\t";
+	    if ((*it).second.loce != 0)
+		out << (*it).second.loce->cnt();
+	    if ((*it).second.locp != 0)
+		out << ",\t" << (*it).second.minp
+		    << ",\t" << (*it).second.maxp
+		    << ",\t" << (*it).second.locp->cnt() << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -760,16 +857,19 @@ void ibis::bak2::printMap(std::ostream& out,
 	out << "...\n" << prt << (prt > 1 ? " entries" : " entry")
 	    << " omitted\n...\n";
 	out << (*it).first << ",\t";
-	if ((*it).second.loc0)
-	    out << (*it).second.min0 << ",\t"
-		<< (*it).second.max0 << ",\t"
-		<< (*it).second.loc0->cnt();
+	if ((*it).second.locm)
+	    out << (*it).second.minm << ",\t"
+		<< (*it).second.maxm << ",\t"
+		<< (*it).second.locm->cnt();
 	else
 	    out << ",\t,\t";
-	if ((*it).second.loc1)
-	    out << ",\t" << (*it).second.min1
-		<< ",\t" << (*it).second.max1
-		<< ",\t" << (*it).second.loc1->cnt() << "\n";
+	out << ",\t";
+	if ((*it).second.loce != 0)
+	    out << (*it).second.loce->cnt();
+	if ((*it).second.locp)
+	    out << ",\t" << (*it).second.minp
+		<< ",\t" << (*it).second.maxp
+		<< ",\t" << (*it).second.locp->cnt() << "\n";
 	else
 	    out << ",\t,\t,\t\n";
     }
@@ -841,9 +941,9 @@ int ibis::bak2::write(const char* dt) const {
     return 0;
 } // ibis::bak2::write
 
-// covert the hash structure in bakMap into the array structure in ibis::bin
-// NOTE: the pointers to bitvectors in bakMap is copied! Those pointers
-// should NOT be deleted when freeing the bakMap!
+/// Covert the content of bakMap into the array structure defined in
+/// ibis::bin The pointers to bitvectors in bakMap are moved!  Upon
+/// returning from this function, all pointers in bakMap should be nil!
 void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     // clear the existing content
     clear();
@@ -852,8 +952,9 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     nobs = 0;
     for (ibis::bak2::bakMap::const_iterator ir = bmap.begin();
 	 ir != bmap.end(); ++ ir) {
-	nobs += static_cast<unsigned>((*ir).second.loc0 != 0)
-	    + static_cast<unsigned>((*ir).second.loc1 != 0);
+	nobs += static_cast<unsigned>((*ir).second.locm != 0)
+	    + static_cast<unsigned>((*ir).second.loce != 0)
+	    + static_cast<unsigned>((*ir).second.locp != 0);
     }
     // initialize the arrays
     bits.resize(nobs);
@@ -864,29 +965,40 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
     // copy the values
     ibis::bak2::bakMap::iterator it = bmap.begin();
     for (uint32_t i = 0; i < nobs; ++it) {
-	if ((*it).second.loc0 != 0) {
-	    bits[i] = (*it).second.loc0;
+	if ((*it).second.locm != 0) {
+	    bits[i] = (*it).second.locm;
 	    if (i > 0)
 		bounds[i] = ibis::util::compactValue
-		    (maxval[i-1], (*it).second.min0);
+		    (maxval[i-1], (*it).second.minm);
 	    else
 		bounds[i] = ibis::util::compactValue
-		    (-DBL_MAX, (*it).second.min0);
+		    (-DBL_MAX, (*it).second.minm);
 	    if (nrows == 0)
-		nrows = (*it).second.loc0->size();
-	    minval[i] = (*it).second.min0;
-	    maxval[i] = (*it).second.max0;
-	    (*it).second.loc0 = 0;
+		nrows = (*it).second.locm->size();
+	    minval[i] = (*it).second.minm;
+	    maxval[i] = (*it).second.maxm;
+	    (*it).second.locm = 0;
 	    ++ i;
 	}
-	if ((*it).second.loc1 != 0) {
-	    bits[i] = (*it).second.loc1;
-	    bounds[i] = (*it).second.min1;
-	    minval[i] = (*it).second.min1;
-	    maxval[i] = (*it).second.max1;
+	if ((*it).second.loce != 0) {
 	    if (nrows == 0)
-		nrows = (*it).second.loc1->size();
-	    (*it).second.loc1 = 0;
+		nrows = (*it).second.loce->size();
+	    bits[i] = (*it).second.loce;
+	    bounds[i] = (*it).first;
+	    minval[i] = (*it).first;
+	    maxval[i] = (*it).first;
+	    (*it).second.loce = 0;
+	    ++ i;
+	}
+	if ((*it).second.locp != 0) {
+	    if (nrows == 0)
+		nrows = (*it).second.locp->size();
+	    bits[i] = (*it).second.locp;
+	    (*it).second.locp = 0;
+	    bounds[i] = (i==0 && maxval[i-1] < (*it).first ? (*it).first :
+			 ibis::util::incrDouble((*it).first));
+	    minval[i] = (*it).second.minp;
+	    maxval[i] = (*it).second.maxp;
 	    ++ i;
 	}
     }

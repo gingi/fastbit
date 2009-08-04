@@ -446,7 +446,7 @@ int main(int argc, char** argv) {
     FILE *fptr = fopen(argv[1], "r");
     if (fptr == 0) {
 	std::cerr << *argv << " failed to open file " << argv[1]
-		  << "for reading\n" << std::endl;
+		  << " for reading\n" << std::endl;
 	return -4;
     }
 

@@ -1112,18 +1112,19 @@ public:
     long append(const ibis::bin& tail);
 
     /// A simple structure to record the position of the values mapped to
-    /// the same value.  The ibis::bitvector marked the locations of the
-    /// values and the min and max record the actual minimum and maximum
-    /// value encountered.
+    /// the same low-precision target value.  The ibis::bitvector marked
+    /// the locations of the values and the min and max record the actual
+    /// minimum and maximum value encountered.
     struct grain {
-	double min0, max0, min1, max1;
-	ibis::bitvector* loc0;
-	ibis::bitvector* loc1;
+	double minm, maxm, minp, maxp;
+	ibis::bitvector* locm; ///< Values less than the target.
+	ibis::bitvector* loce; ///< Values exactly equal to the target.
+	ibis::bitvector* locp; ///< Values greater than the target.
 
 	// the default construct, user to explicitly allocated the bitvector
-	grain() : min0(DBL_MAX), max0(-DBL_MAX), min1(DBL_MAX), max1(-DBL_MAX),
-		  loc0(0), loc1(0) {}
-	~grain() {delete loc0; delete loc1;}
+	grain() : minm(DBL_MAX), maxm(-DBL_MAX), minp(DBL_MAX), maxp(-DBL_MAX),
+		  locm(0), loce(0), locp(0) {}
+	~grain() {delete locm; delete loce; delete locp;}
     };
 
     typedef std::map< double, grain > bakMap;

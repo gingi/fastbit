@@ -1,3 +1,11 @@
+2009-08-04 John Wu <John.Wu at ACM.org>
+	* src/idbak2.cpp: add bit vector to capture the locations of
+	values exactly equal to the low-precision target value.  This is
+	necessary to make the index resolve all boundary bonditions
+	involve low-precision values without needing candidate checks.
+	The previous implementation can resolve conditions such as "A >=
+	a" and "a <= A < b", but not "A = a", "A <= a", or "a <= A <= b".
+
 2009-08-02 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: move the statement that increment idxcnt and
 	decrement idxcnt to be under the protection of a read lock on the
