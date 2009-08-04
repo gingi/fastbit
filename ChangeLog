@@ -1,3 +1,16 @@
+2009-08-02 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: move the statement that increment idxcnt and
+	decrement idxcnt to be under the protection of a read lock on the
+	column to avoid possible confusion about the idxcnt in function
+	unloadIndex.  This and the change from yesterday together address
+	the issue of deadlock when the cleaner is invoked while activating
+	new bitmap of the bitmap index.  Because the activate function
+	holds a mutex lock which prevent the acquisition of mutex lock in
+	functioin unload.
+
+2009-08-01 John Wu <John.Wu at ACM.org>
+	* src/column.cpp:4786 remove the mutex lock from column::unloadIndex
+
 2009-07-31 John Wu <John.Wu at ACM.org>
 	* src/parth*.cpp: in function adaptivexDBins, decrement the scaling
 	factor after inversion to ensure it is small enough to never cause

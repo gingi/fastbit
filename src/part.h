@@ -59,9 +59,7 @@ public:
     void buildSorted(const char* colname) const;
     /// Load indexes of all columns.
     void loadIndexes(const char* opt=0, int readall=0) const;
-    /// Unload indexes of all columns.
     void unloadIndexes() const;
-    /// Remove existing index files!
     void purgeIndexFiles() const;
 
     /// Return the name of the partition.

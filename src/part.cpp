@@ -5357,7 +5357,7 @@ void ibis::part::loadIndexes(const char* opt, int readall) const {
     }
 } // ibis::part::loadIndexes
 
-// unload index
+/// Unload indexes of all columns.
 void ibis::part::unloadIndexes() const {
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
@@ -5368,7 +5368,8 @@ void ibis::part::unloadIndexes() const {
 		   "unloaded all indexes of this data partition");
 } // ibis::part::unloadIndexes
 
-/// @note The indices will be rebuilt next time they are needed.  This
+/// Remove existing index files!
+/// The indexes will be rebuilt next time they are needed.  This
 /// function is useful after changing the index specification before
 /// rebuilding a set of new indices.
 void ibis::part::purgeIndexFiles() const {

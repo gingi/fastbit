@@ -4783,23 +4783,22 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 /// Unload the index associated with the column.
 // This function requires a write lock just like loadIndex.
 void ibis::column::unloadIndex() const {
-    mutexLock mlck(this, "unloadIndex");
-    if (0 != idx) {
-	softWriteLock lock(this, "unloadIndex");
-	if (lock.isLocked() && 0 != idx) {
-	    const uint32_t idxc = idxcnt();
-	    if (0 == idxc) {
-		delete idx;
-		idx = 0;
-		if (ibis::gVerbose > 7)
-		    logMessage("unloadIndex", "successfully removed the index");
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- ibis::column[" << thePart->name()
-		    << "." << name() << "]::unloadIndex failed because "
-		    "idxcnt (" << idxc << ") is not zero";
-	    }
+    if (0 == idx) return;
+
+    softWriteLock lock(this, "unloadIndex");
+    if (lock.isLocked() && 0 != idx) {
+	const uint32_t idxc = idxcnt();
+	if (0 == idxc) {
+	    delete idx;
+	    idx = 0;
+	    if (ibis::gVerbose > 7)
+		logMessage("unloadIndex", "successfully removed the index");
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- ibis::column[" << thePart->name()
+		<< "." << name() << "]::unloadIndex failed because "
+		"idxcnt (" << idxc << ") is not zero";
 	}
     }
 } // ibis::column::unloadIndex
@@ -9595,8 +9594,6 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     if (toload)
 	theColumn->loadIndex();
     if (theColumn->idx != 0) {
-	++ theColumn->idxcnt; // increment counter
-
 	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
 	if (0 != ierr)
 	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for "
@@ -9604,6 +9601,8 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 	else if (ibis::gVerbose > 9)
 	    col->logMessage("gainReadAccess",
 			    "pthread_rwlock_rdlock for %s", m);
+
+	++ theColumn->idxcnt; // increment counter
     }
 }
 
@@ -9615,6 +9614,8 @@ ibis::column::indexLock::~indexLock() {
 			   (mesg ? mesg : "?"));
 #endif
     if (theColumn->idx != 0) {
+	-- (theColumn->idxcnt); // decrement counter
+
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
 	if (ierr)
 	    theColumn->logWarning("releaseReadAccess",
@@ -9623,8 +9624,6 @@ ibis::column::indexLock::~indexLock() {
 	else if (ibis::gVerbose > 9)
 	    theColumn->logMessage("releaseReadAccess",
 				  "pthread_rwlock_unlock for %s", mesg);
-
-	-- (theColumn->idxcnt); // decrement counter
     }
 }
 
