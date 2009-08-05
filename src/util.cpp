@@ -1260,9 +1260,11 @@ ibis::util::logger::~logger() {
     }
 } // ibis::util::logger::~logger
 
-/// The caller must provide a message string.  If ibis::gVerbose is no less
-/// than lvl, it will create an ibis::horometer object to keep the time and
-/// print a brief message from the constructor and the destructor.
+/// Constructor.  The caller must provide a message string.  If
+/// ibis::gVerbose is no less than lvl, it will create an ibis::horometer
+/// object to keep the time and print the duration of the timer in the
+/// destructor.  If ibis::gVerbose is no less than lvl+2, it will also
+/// print a message from the constructor.
 ///
 /// @note This class holds a private copy of the message to avoid relying on
 /// the incoming message being present at the destruction time.
@@ -1273,14 +1275,15 @@ ibis::util::timer::timer(const char* msg, int lvl) :
     mesg_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ? msg : "") {
     if (chrono_ != 0) {
 	chrono_->start();
-	ibis::util::logger(2).buffer()
-	    << mesg_ << " -- start timer ...";
+	if (ibis::gVerbose > lvl+1)
+	    ibis::util::logger(2).buffer()
+		<< mesg_ << " -- start timer ...";
     }
 } // ibis::util::timer::timer
 
-///  It reports the time used since the constructor was called.  Use
-/// ibis::horometer directly if more control on the timing information is
-/// desired.
+/// Destructor.  It reports the time elapsed since the constructor was
+/// called.  Use ibis::horometer directly if more control on the timing
+/// information is desired.
 ibis::util::timer::~timer() {
     if (chrono_ != 0) {
 	chrono_->stop();

@@ -1,3 +1,27 @@
+Wed Aug  5 09:32:18 PDT 2009
+Version ibis1.1.2
+-- delay the reading of dictionary and index for categorical values to
+   speed up the start up
+-- add ibis::colStrings to enable group by operations involve string
+   valued sorting keys (a feature requested by Andrew Olson)
+-- query::doEvaluate, query::doScan, countQuery::doEvaluate and
+   countQuery::doScan handle empty query conditions incorrectly (a bug
+   reported by Jochen Schlosser)
+-- allow categorical values to be used as unsigned integers for
+   histogram functions
+-- adaptive binning functions computed an internal scaling factor
+   incorrectly and causes the bin number to be out of bounds (the cause
+   of error reported by Andrew Olson)
+-- change ibis::bak2::grain to use three bitvectors to store whether the
+   incoming value >, =, < than the target low-precision value.  This
+   allows for the binned index to resolve all possible range conditions
+   involving low-precision query boundaries
+-- add support for "count(*)" in select clause, allow aliases to be used
+   in the select clauses and in aggregation functions
+-- bug fixes: check for nil point in bundle.cpp, cast to char and
+   unsigned char (which are interpreted as 8-bit integers) to int before
+   printing, make sure the value of k in top-k and bottom-k are not 0
+
 Mon Jul  6 15:32:26 PDT 2009
 Version ibis1.1.1
 -- put array_t in namespace ibis (requested by Matthias Vallentin)

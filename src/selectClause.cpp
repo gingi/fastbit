@@ -127,7 +127,7 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
     str = oss.str();
 } // ibis::selectClause::describe
 
-/// Fill the names array.  If an alias is present, it is used, if the term
+/// Fill array names_.  If an alias is present, it is used, if the term
 /// is a variable, the variable name is used, otherwise, a name of the form
 /// "shhh" is generated where "hhh" is the hexadecimal number.
 void ibis::selectClause::fillNames() {
@@ -253,8 +253,11 @@ void ibis::selectClause::print(std::ostream& out) const {
     }
 } // ibis::selectClause::print
 
-/// This function also simplifies the arithmetic expression if
-/// ibis::term::preserveInputExpression is not set.
+/// Are all the variables are present in the specified data partition?
+/// Returns the number of variables that are not.  This function also
+/// simplifies the arithmetic expression if
+/// ibis::math::preserveInputExpression is not set.
+///
 /// @note Simplifying the arithmetic expressions typically reduces the time
 /// needed for evaluations, but may introduces a different set of round-off
 /// erros in the evaluation process than the original expression.
@@ -272,6 +275,22 @@ int ibis::selectClause::verify(const ibis::part& part0) {
     }
     return ierr;
 } // ibis::selectClause::verify
+
+int ibis::selectClause::verifySome(const ibis::part& part0,
+				   const std::vector<size_t>& touse) {
+    int ierr = 0;
+    for (size_t j = 0; j < touse.size(); ++ j) {
+	if (ibis::math::preserveInputExpressions == false) {
+	    ibis::math::term *tmp = terms_[touse[j]]->reduce();
+	    if (tmp != terms_[touse[j]]) {
+		delete terms_[touse[j]];
+		terms_[touse[j]] = tmp;
+	    }
+	}
+	ierr += ibis::selectClause::_verify(part0, *(terms_[touse[j]]));
+    }
+    return ierr;
+} // ibis::selectClause::verifySome
 
 int ibis::selectClause::_verify(const ibis::part& part0,
 				const ibis::math::term& xp0) const {

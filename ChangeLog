@@ -5,6 +5,18 @@
 	involve low-precision values without needing candidate checks.
 	The previous implementation can resolve conditions such as "A >=
 	a" and "a <= A < b", but not "A = a", "A <= a", or "a <= A <= b".
+	* win/Win.mak, win/MinGW.mak: update the dependencies in the make
+	files
+	* src/util.cpp: change the constructor of ibis::util::timer to
+	only print a message if gVerbose level is no less than lvl+2
+	* src/selectClause.h, src/selectClause.cpp: add function to verify
+	some terms (instead of all terms)
+	* src/mensa.cpp:587 verify only those terms that are used for
+	retrieving values from the original data (which make it possible
+	to use aliases defined earlier in the select clauses)
+	* src/selectParser.yy: add special aggregator function
+	"count(*)".  Note: since the keyword "unique" is not supported,
+	all count() function calls are treated as "count(*)"!
 
 2009-08-02 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: move the statement that increment idxcnt and

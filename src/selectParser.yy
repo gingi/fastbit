@@ -91,6 +91,14 @@ sterm: AVGOP '(' mathExpr ')' ',' {
     driver.terms_.push_back($3);
     driver.aggr_.push_back(ibis::selectClause::CNT);
 }
+| CNTOP '(' MULTOP ')' ',' {
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
+}
+| CNTOP '(' MULTOP ')' END {
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
+}
 | MAXOP '(' mathExpr ')' ',' {
     driver.terms_.push_back($3);
     driver.aggr_.push_back(ibis::selectClause::MAX);
@@ -141,6 +149,16 @@ sterm: AVGOP '(' mathExpr ')' ',' {
 | CNTOP '(' mathExpr ')' ASOP NOUNSTR END {
     driver.alias_[*$6] = driver.terms_.size();
     driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::CNT);
+}
+| CNTOP '(' MULTOP ')' ASOP NOUNSTR ',' {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
+}
+| CNTOP '(' MULTOP ')' ASOP NOUNSTR END {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
     driver.aggr_.push_back(ibis::selectClause::CNT);
 }
 | MAXOP '(' mathExpr ')' ASOP NOUNSTR ',' {

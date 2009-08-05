@@ -519,10 +519,15 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     if (tms.size() > 0) { // use a block to limit the scope of some variables
 	std::map<const char*, size_t> uniquenames;
 	for (size_t i = 0; i < tms.size(); ++ i) {
+	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
+
 	    const char* tname = tms.getName(i);
+	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
+		*tname == '*') // skip count(*)
+		continue;
+
 	    if (uniquenames.find(tname) == uniquenames.end())
 		uniquenames[tname] = i;
-	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
 	    const ibis::column* col = repp.getColumn(tname);
 	    if (col != 0) {
 		LOGGER((col->type() == ibis::TEXT ||
@@ -583,7 +588,10 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
     // main loop through each data partition
     for (ibis::partList::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
-	ierr = tms.verify(**it);
+	if (tmstouse.size() >= tms.size())
+	    ierr = tms.verify(**it);
+	else
+	    ierr = tms.verifySome(**it, tmstouse);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- select clause (" << sel
@@ -851,7 +859,8 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	return brd1;
 
     std::vector<std::string> aggr(tms.size());
-    ibis::table::stringList  caggr(tms.size());
+    ibis::table::stringList  caggr;
+    caggr.reserve(tms.size());
     for (size_t i = 0; i < tms.size(); ++ i) {
 	switch (tms.getAggregator(i)) {
 	default:
@@ -884,7 +893,8 @@ ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
 	    aggr[i] += ")";
 	    break;
 	}
-	caggr[i] = aggr[i].c_str();
+	if (tms.getAggregator(i) != ibis::selectClause::CNT)
+	    caggr.push_back(aggr[i].c_str());
     }
     ibis::table *brd2 = brd1->groupby(caggr);
     delete brd1;

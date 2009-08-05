@@ -167,334 +167,365 @@ trydll.exe: ../src/ibis.h ../src/meshQuery.h ../src/query.h \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/bundle.h ../src/colValues.h ../src/rids.h
-ardea.o: ../examples/ardea.cpp ../src/table.h ../src/const.h \
-  ../src/resource.h ../src/util.h
-	$(CXX) $(CCFLAGS) -c -o ardea.o ../examples/ardea.cpp
-ibis.o: ../examples/ibis.cpp ../src/ibis.h ../src/meshQuery.h \
-  ../src/query.h ../src/part.h ../src/column.h ../src/table.h \
-  ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
-  ../src/bundle.h ../src/colValues.h ../src/join.h ../src/rids.h \
-  ../src/mensa.h
-	$(CXX) $(CCFLAGS) -c -o ibis.o ../examples/ibis.cpp
-thula.o: ../examples/thula.cpp ../src/table.h ../src/const.h \
-  ../src/resource.h ../src/util.h ../src/mensa.h ../src/table.h \
-  ../src/fileManager.h
-	$(CXX) $(CCFLAGS) -c -o thula.o ../examples/thula.cpp
-tcapi.o: ../examples/tcapi.c ../src/capi.h
-	$(CXX) $(CCFLAGS) -c -o tcapi.o ../examples/tcapi.c
 array_t.o: ../src/array_t.cpp ../src/array_t.h ../src/fileManager.h \
-  ../src/util.h ../src/const.h ../src/horometer.h
+  ../src/util.h ../src/const.h  ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o array_t.o ../src/array_t.cpp
 bitvector.o: ../src/bitvector.cpp ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/util.h ../src/const.h ../src/horometer.h
+  ../src/fileManager.h ../src/util.h ../src/const.h \
+  ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o bitvector.o ../src/bitvector.cpp
 bitvector64.o: ../src/bitvector64.cpp ../src/bitvector64.h \
   ../src/array_t.h ../src/fileManager.h ../src/util.h ../src/const.h \
   ../src/horometer.h ../src/bitvector.h
 	$(CXX) $(CCFLAGS) -c -o bitvector64.o ../src/bitvector64.cpp
 bord.o: ../src/bord.cpp ../src/tab.h ../src/table.h ../src/const.h \
-  ../src/bord.h ../src/util.h ../src/part.h ../src/column.h \
-  ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/query.h \
-  ../src/whereClause.h ../src/bundle.h ../src/colValues.h
+  ../src/bord.h ../src/util.h ../src/part.h \
+  ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h ../src/bundle.h \
+  ../src/colValues.h
 	$(CXX) $(CCFLAGS) -c -o bord.o ../src/bord.cpp
 bundle.o: ../src/bundle.cpp ../src/bundle.h ../src/util.h ../src/const.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/query.h \
-  ../src/part.h ../src/column.h ../src/table.h ../src/qExpr.h \
-  ../src/bitvector.h ../src/resource.h ../src/utilidor.h \
-  ../src/whereClause.h ../src/colValues.h
+   ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
+  ../src/table.h ../src/qExpr.h ../src/bitvector.h ../src/resource.h \
+  ../src/utilidor.h ../src/whereClause.h ../src/colValues.h
 	$(CXX) $(CCFLAGS) -c -o bundle.o ../src/bundle.cpp
-capi.o: ../src/capi.cpp ../src/capi.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/const.h ../src/qExpr.h ../src/util.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/query.h \
-  ../src/whereClause.h ../src/bundle.h ../src/colValues.h ../src/tafel.h
+capi.o: ../src/capi.cpp ../src/capi.h  \
+  ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h ../src/bundle.h \
+  ../src/colValues.h ../src/tafel.h
 	$(CXX) $(CCFLAGS) -c -o capi.o ../src/capi.cpp
 category.o: ../src/category.cpp ../src/part.h ../src/column.h \
-  ../src/table.h ../src/const.h ../src/qExpr.h ../src/util.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/table.h ../src/const.h  ../src/qExpr.h \
+  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/resource.h ../src/utilidor.h \
   ../src/category.h ../src/irelic.h ../src/index.h ../src/ikeywords.h
 	$(CXX) $(CCFLAGS) -c -o category.o ../src/category.cpp
 colValues.o: ../src/colValues.cpp ../src/bundle.h ../src/util.h \
-  ../src/const.h ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/query.h ../src/part.h ../src/column.h ../src/table.h \
-  ../src/qExpr.h ../src/bitvector.h ../src/resource.h ../src/utilidor.h \
-  ../src/whereClause.h ../src/colValues.h
+  ../src/const.h  ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/query.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/qExpr.h ../src/bitvector.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
+  ../src/colValues.h
 	$(CXX) $(CCFLAGS) -c -o colValues.o ../src/colValues.cpp
 column.o: ../src/column.cpp ../src/resource.h ../src/util.h \
-  ../src/const.h ../src/category.h ../src/irelic.h ../src/index.h \
-  ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/column.h ../src/table.h ../src/part.h \
-  ../src/utilidor.h ../src/iroster.h
+  ../src/const.h  ../src/category.h \
+  ../src/irelic.h ../src/index.h ../src/qExpr.h ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/column.h ../src/table.h ../src/part.h ../src/utilidor.h \
+  ../src/iroster.h
 	$(CXX) $(CCFLAGS) -c -o column.o ../src/column.cpp
 countQuery.o: ../src/countQuery.cpp ../src/countQuery.h ../src/part.h \
-  ../src/column.h ../src/table.h ../src/const.h ../src/fileManager.h \
+  ../src/column.h ../src/table.h ../src/const.h  \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
-  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
-  ../src/selectClause.h ../src/query.h
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/whereClause.h ../src/selectClause.h \
+  ../src/query.h
 	$(CXX) $(CCFLAGS) -c ../src/countQuery.cpp
 fileManager.o: ../src/fileManager.cpp ../src/fileManager.h ../src/util.h \
-  ../src/const.h ../src/resource.h ../src/array_t.h ../src/horometer.h
+  ../src/const.h  ../src/resource.h \
+  ../src/array_t.h ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o fileManager.o ../src/fileManager.cpp
 ibin.o: ../src/ibin.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/bitvector64.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h \
+  ../src/bitvector64.h
 	$(CXX) $(CCFLAGS) -c -o ibin.o ../src/ibin.cpp
 icegale.o: ../src/icegale.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c -o icegale.o ../src/icegale.cpp
-icentre.o: ../src/icentre.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c -o icentre.o ../src/icentre.cpp
-icmoins.o: ../src/icmoins.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c -o icmoins.o ../src/icmoins.cpp
-idbak.o: ../src/idbak.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c -o idbak.o ../src/idbak.cpp
-idbak2.o: ../src/idbak2.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c -o idbak2.o ../src/idbak2.cpp
-idirekte.o: ../src/idirekte.cpp ../src/idirekte.h ../src/index.h \
-  ../src/qExpr.h ../src/util.h ../src/const.h ../src/bitvector.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
   ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c -o icegale.o ../src/icegale.cpp
+icentre.o: ../src/icentre.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c -o icentre.o ../src/icentre.cpp
+icmoins.o: ../src/icmoins.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c -o icmoins.o ../src/icmoins.cpp
+idbak.o: ../src/idbak.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c -o idbak.o ../src/idbak.cpp
+idbak2.o: ../src/idbak2.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c -o idbak2.o ../src/idbak2.cpp
+idirekte.o: ../src/idirekte.cpp ../src/idirekte.h ../src/index.h \
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/part.h ../src/column.h ../src/table.h \
+  ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o idirekte.o ../src/idirekte.cpp
 ifade.o: ../src/ifade.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ifade.o ../src/ifade.cpp
 ikeywords.o: ../src/ikeywords.cpp ../src/ikeywords.h ../src/index.h \
-  ../src/qExpr.h ../src/util.h ../src/const.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/category.h ../src/irelic.h ../src/column.h ../src/table.h \
-  ../src/iroster.h ../src/part.h ../src/resource.h ../src/utilidor.h
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/category.h ../src/irelic.h ../src/column.h \
+  ../src/table.h ../src/iroster.h ../src/part.h ../src/resource.h \
+  ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ikeywords.o ../src/ikeywords.cpp
 imesa.o: ../src/imesa.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o imesa.o ../src/imesa.cpp
 index.o: ../src/index.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/ibin.h ../src/irelic.h ../src/idirekte.h \
-  ../src/ikeywords.h ../src/category.h ../src/column.h ../src/table.h \
-  ../src/part.h ../src/resource.h ../src/utilidor.h ../src/bitvector64.h
+  ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/ibin.h \
+  ../src/idirekte.h ../src/ikeywords.h ../src/category.h ../src/irelic.h \
+  ../src/column.h ../src/table.h ../src/part.h ../src/resource.h \
+  ../src/utilidor.h ../src/bitvector64.h
 	$(CXX) $(CCFLAGS) -c -o index.o ../src/index.cpp
 irange.o: ../src/irange.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o irange.o ../src/irange.cpp
 irelic.o: ../src/irelic.cpp ../src/bitvector64.h ../src/array_t.h \
-  ../src/fileManager.h ../src/util.h ../src/const.h ../src/horometer.h \
-  ../src/irelic.h ../src/index.h ../src/qExpr.h ../src/bitvector.h \
-  ../src/part.h ../src/column.h ../src/table.h ../src/resource.h \
-  ../src/utilidor.h
+  ../src/fileManager.h ../src/util.h ../src/const.h \
+  ../src/horometer.h ../src/irelic.h \
+  ../src/index.h ../src/qExpr.h ../src/bitvector.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o irelic.o ../src/irelic.cpp
 iroster.o: ../src/iroster.cpp ../src/iroster.h ../src/array_t.h \
-  ../src/fileManager.h ../src/util.h ../src/const.h ../src/horometer.h \
-  ../src/column.h ../src/table.h ../src/qExpr.h ../src/bitvector.h \
-  ../src/part.h ../src/resource.h ../src/utilidor.h
+  ../src/fileManager.h ../src/util.h ../src/const.h \
+  ../src/horometer.h ../src/column.h \
+  ../src/table.h ../src/qExpr.h ../src/bitvector.h ../src/part.h \
+  ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o iroster.o ../src/iroster.cpp
 isapid.o: ../src/isapid.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o isapid.o ../src/isapid.cpp
 isbiad.o: ../src/isbiad.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o isbiad.o ../src/isbiad.cpp
 islice.o: ../src/islice.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o islice.o ../src/islice.cpp
 ixambit.o: ../src/ixambit.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixambit.o ../src/ixambit.cpp
 ixbylt.o: ../src/ixbylt.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixbylt.o ../src/ixbylt.cpp
 ixfuge.o: ../src/ixfuge.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixfuge.o ../src/ixfuge.cpp
 ixfuzz.o: ../src/ixfuzz.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixfuzz.o ../src/ixfuzz.cpp
 ixpack.o: ../src/ixpack.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixpack.o ../src/ixpack.cpp
 ixpale.o: ../src/ixpale.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixpale.o ../src/ixpale.cpp
 ixzona.o: ../src/ixzona.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixzona.o ../src/ixzona.cpp
 ixzone.o: ../src/ixzone.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
-  ../src/util.h ../src/const.h ../src/bitvector.h ../src/array_t.h \
-  ../src/fileManager.h ../src/horometer.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixzone.o ../src/ixzone.cpp
 joinin.o: ../src/joinin.cpp ../src/joinin.h ../src/join.h ../src/table.h \
-  ../src/const.h ../src/part.h ../src/column.h ../src/qExpr.h \
-  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/query.h \
-  ../src/whereClause.h
+  ../src/const.h  ../src/part.h ../src/column.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o joinin.o ../src/joinin.cpp
 mensa.o: ../src/mensa.cpp ../src/tab.h ../src/table.h ../src/const.h \
-  ../src/bord.h ../src/util.h ../src/part.h ../src/column.h \
-  ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/mensa.h \
-  ../src/countQuery.h ../src/whereClause.h ../src/index.h ../src/category.h \
-  ../src/irelic.h ../src/selectClause.h ../src/countQuery.h
+  ../src/bord.h ../src/util.h ../src/part.h \
+  ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/mensa.h ../src/countQuery.h \
+  ../src/whereClause.h ../src/index.h ../src/category.h ../src/irelic.h \
+  ../src/selectClause.h
 	$(CXX) $(CCFLAGS) -c -o mensa.o ../src/mensa.cpp
 meshQuery.o: ../src/meshQuery.cpp ../src/meshQuery.h ../src/query.h \
   ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
+   ../src/qExpr.h ../src/util.h ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o meshQuery.o ../src/meshQuery.cpp
+part.o: ../src/part.cpp ../src/qExpr.h ../src/util.h ../src/const.h \
+   ../src/category.h ../src/irelic.h \
+  ../src/index.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/column.h ../src/table.h ../src/query.h \
+  ../src/part.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
+  ../src/countQuery.h ../src/iroster.h ../src/twister.h
+	$(CXX) $(CCFLAGS) -c -o part.o ../src/part.cpp
+parth.o: ../src/parth.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/countQuery.h ../src/part.h ../src/column.h ../src/table.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth.o ../src/parth.cpp
+parth2d.o: ../src/parth2d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/countQuery.h ../src/part.h ../src/column.h ../src/table.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth2d.o ../src/parth2d.cpp
+parth3d.o: ../src/parth3d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/countQuery.h ../src/part.h ../src/column.h ../src/table.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o parth3d.o ../src/parth3d.cpp
+parth3da.o: ../src/parth3da.cpp ../src/countQuery.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/const.h  \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o meshQuery.o ../src/meshQuery.cpp
-part.o: ../src/part.cpp ../src/qExpr.h ../src/util.h ../src/const.h \
-  ../src/category.h ../src/irelic.h ../src/index.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
-  ../src/column.h ../src/table.h ../src/query.h ../src/countQuery.h \
-  ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
-  ../src/iroster.h
-	$(CXX) $(CCFLAGS) -c -o part.o ../src/part.cpp
-parth.o: ../src/parth.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o parth.o ../src/parth.cpp
-parth2d.o: ../src/parth2d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o parth2d.o ../src/parth2d.cpp
-parth3d.o: ../src/parth3d.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o parth3d.o ../src/parth3d.cpp
-parth3da.o: ../src/parth3da.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o parth3da.o ../src/parth3da.cpp
-parth3db.o: ../src/parth3db.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+parth3db.o: ../src/parth3db.cpp ../src/countQuery.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/const.h  \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o parth3db.o ../src/parth3db.cpp
-parth3dw.o: ../src/parth3dw.cpp ../src/index.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
-  ../src/horometer.h ../src/countQuery.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+parth3dw.o: ../src/parth3dw.cpp ../src/countQuery.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/const.h  \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/whereClause.h
 	$(CXX) $(CCFLAGS) -c -o parth3dw.o ../src/parth3dw.cpp
 parti.o: ../src/parti.cpp ../src/part.h ../src/column.h ../src/table.h \
-  ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/resource.h ../src/utilidor.h ../src/category.h ../src/irelic.h \
-  ../src/index.h
+  ../src/const.h  ../src/qExpr.h ../src/util.h \
+  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/resource.h ../src/utilidor.h \
+  ../src/category.h ../src/irelic.h ../src/index.h ../src/selectClause.h
 	$(CXX) $(CCFLAGS) -c -o parti.o ../src/parti.cpp
 party.o: ../src/party.cpp ../src/part.h ../src/column.h ../src/table.h \
-  ../src/const.h ../src/qExpr.h ../src/util.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/resource.h ../src/utilidor.h ../src/iroster.h \
+  ../src/const.h  ../src/qExpr.h ../src/util.h \
+  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/resource.h ../src/utilidor.h ../src/iroster.h \
   ../src/bitvector64.h
 	$(CXX) $(CCFLAGS) -c -o party.o ../src/party.cpp
-qExpr.o: ../src/qExpr.cpp ../src/util.h ../src/const.h ../src/part.h \
-  ../src/column.h ../src/table.h ../src/qExpr.h ../src/bitvector.h \
-  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
-  ../src/resource.h ../src/utilidor.h
+qExpr.o: ../src/qExpr.cpp ../src/util.h ../src/const.h \
+   ../src/part.h ../src/column.h ../src/table.h \
+  ../src/qExpr.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o qExpr.o ../src/qExpr.cpp
 query.o: ../src/query.cpp ../src/query.h ../src/part.h ../src/column.h \
-  ../src/table.h ../src/const.h ../src/qExpr.h ../src/util.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/table.h ../src/const.h  ../src/qExpr.h \
+  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/resource.h ../src/utilidor.h \
   ../src/whereClause.h ../src/bundle.h ../src/colValues.h ../src/ibin.h \
   ../src/index.h ../src/iroster.h ../src/irelic.h ../src/bitvector64.h
 	$(CXX) $(CCFLAGS) -c -o query.o ../src/query.cpp
 resource.o: ../src/resource.cpp ../src/util.h ../src/const.h \
-  ../src/resource.h
+   ../src/resource.h
 	$(CXX) $(CCFLAGS) -c -o resource.o ../src/resource.cpp
 rids.o: ../src/rids.cpp ../src/rids.h ../src/utilidor.h ../src/array_t.h \
-  ../src/fileManager.h ../src/util.h ../src/const.h ../src/horometer.h
+  ../src/fileManager.h ../src/util.h ../src/const.h \
+   ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o rids.o ../src/rids.cpp
 selectClause.o: ../src/selectClause.cpp ../src/part.h ../src/column.h \
-  ../src/table.h ../src/const.h ../src/qExpr.h ../src/util.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/table.h ../src/const.h  ../src/qExpr.h \
+  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/resource.h ../src/utilidor.h \
   ../src/selectLexer.h ../src/selectParser.hh ../src/stack.hh \
-  ../src/selectClause.h ../src/location.hh ../src/position.hh
+  ../src/selectClause.h ../src/location.hh ../src/position.hh \
+  ./FlexLexer.h
 	$(CXX) $(CCFLAGS) -c -o selectClause.o ../src/selectClause.cpp
 tafel.o: ../src/tafel.cpp ../src/tafel.h ../src/table.h ../src/const.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h ../src/util.h \
-  ../src/horometer.h ../src/part.h ../src/column.h ../src/qExpr.h \
-  ../src/resource.h ../src/utilidor.h
+   ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/util.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/qExpr.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o tafel.o ../src/tafel.cpp
-util.o: ../src/util.cpp ../src/util.h ../src/const.h ../src/horometer.h \
-  ../src/resource.h
+util.o: ../src/util.cpp ../src/util.h ../src/const.h \
+   ../src/horometer.h ../src/resource.h
 	$(CXX) $(CCFLAGS) -c -o util.o ../src/util.cpp
 utilidor.o: ../src/utilidor.cpp ../src/utilidor.h ../src/array_t.h \
-  ../src/fileManager.h ../src/util.h ../src/const.h ../src/horometer.h
+  ../src/fileManager.h ../src/util.h ../src/const.h \
+   ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o utilidor.o ../src/utilidor.cpp
 whereClause.o: ../src/whereClause.cpp ../src/part.h ../src/column.h \
-  ../src/table.h ../src/const.h ../src/qExpr.h ../src/util.h \
-  ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/table.h ../src/const.h  ../src/qExpr.h \
+  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/resource.h ../src/utilidor.h \
   ../src/whereLexer.h ../src/whereParser.hh ../src/stack.hh \
-  ../src/whereClause.h ../src/location.hh ../src/position.hh
+  ../src/whereClause.h ../src/location.hh ../src/position.hh \
+  ./FlexLexer.h ../src/selectClause.h
 	$(CXX) $(CCFLAGS) -c -o whereClause.o ../src/whereClause.cpp
 selectLexer.o: ../src/selectLexer.cc ./FlexLexer.h ../src/selectLexer.h \
   ../src/selectParser.hh ../src/stack.hh ../src/selectClause.h \
-  ../src/qExpr.h ../src/util.h ../src/const.h ../src/location.hh \
-  ../src/position.hh
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/location.hh ../src/position.hh
 	$(CXX) $(CCFLAGS) -c -o selectLexer.o ../src/selectLexer.cc
 selectParser.o: ../src/selectParser.cc ../src/selectParser.hh \
   ../src/stack.hh ../src/selectClause.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/location.hh ../src/position.hh \
-  ../src/selectLexer.h ./FlexLexer.h
+  ../src/const.h  ../src/location.hh \
+  ../src/position.hh ../src/selectLexer.h ./FlexLexer.h
 	$(CXX) $(CCFLAGS) -c -o selectParser.o ../src/selectParser.cc
 whereLexer.o: ../src/whereLexer.cc ./FlexLexer.h ../src/whereLexer.h \
   ../src/whereParser.hh ../src/stack.hh ../src/whereClause.h \
-  ../src/qExpr.h ../src/util.h ../src/const.h ../src/location.hh \
-  ../src/position.hh
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/location.hh ../src/position.hh
 	$(CXX) $(CCFLAGS) -c -o whereLexer.o ../src/whereLexer.cc
 whereParser.o: ../src/whereParser.cc ../src/whereParser.hh \
   ../src/stack.hh ../src/whereClause.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h ../src/location.hh ../src/position.hh \
-  ../src/whereLexer.h ./FlexLexer.h
+  ../src/const.h  ../src/location.hh \
+  ../src/position.hh ../src/whereLexer.h ./FlexLexer.h
 	$(CXX) $(CCFLAGS) -c -o whereParser.o ../src/whereParser.cc
+ardea.o: ../examples/ardea.cpp ../src/table.h ../src/const.h \
+   ../src/resource.h ../src/util.h
+	$(CXX) $(CCFLAGS) -c -o ardea.o ../examples/ardea.cpp
+ibis.o: ../examples/ibis.cpp ../src/ibis.h ../src/countQuery.h \
+  ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
+  ../src/meshQuery.h ../src/query.h ../src/bundle.h ../src/colValues.h \
+  ../src/join.h ../src/rids.h ../src/mensa.h
+	$(CXX) $(CCFLAGS) -c -o ibis.o ../examples/ibis.cpp
+rara.o: ../examples/rara.cpp ../src/ibis.h ../src/countQuery.h \
+  ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
+  ../src/meshQuery.h ../src/query.h ../src/bundle.h ../src/colValues.h \
+  ../src/join.h ../src/rids.h
+	$(CXX) $(CCFLAGS) -c  -o rara.o ../examples/rara.cpp
+thula.o: ../examples/thula.cpp ../src/table.h ../src/const.h \
+  ../src/resource.h ../src/util.h ../src/mensa.h \
+  ../src/table.h ../src/fileManager.h
+	$(CXX) $(CCFLAGS) -c -o thula.o ../examples/thula.cpp
+tcapi.o: ../examples/tcapi.c ../src/capi.h
+	$(CXX) $(CCFLAGS) -c -o tcapi.o ../examples/tcapi.c

@@ -987,9 +987,7 @@ namespace ibis {
 	/// the constructor.
 	class timer {
 	public:
-	    /// Constructor.
 	    explicit timer(const char* msg, int lvl=1);
-	    /// Destructor.
 	    ~timer();
 
 	private:

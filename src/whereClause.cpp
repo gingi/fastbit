@@ -124,7 +124,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
     case ibis::qExpr::RANGE: {
 	ibis::qContinuousRange* range =
 	    static_cast<ibis::qContinuousRange*>(xp0);
-	if (range->colName()) { // allow name to be NULL
+	if (range->colName() != 0) { // allow name to be NULL
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(range->colName());

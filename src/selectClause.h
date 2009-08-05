@@ -62,9 +62,8 @@ public:
     enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM};
     AGREGADO getAggregator(size_t i) const {return aggr_[i];}
 
-    /// Are all the variables are present in the specified data
-    /// partition?  Returns the number of variables that are not. 
     int verify(const ibis::part&);
+    int verifySome(const ibis::part&, const std::vector<size_t>&);
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Assignment operator.
