@@ -1,3 +1,7 @@
+2009-08-06 John Wu <John.Wu at ACM.org>
+	* src/idbak2.cpp:998 change && to || (this error can cause crashes
+	on some machines)
+
 2009-08-04 John Wu <John.Wu at ACM.org>
 	* src/idbak2.cpp: add bit vector to capture the locations of
 	values exactly equal to the low-precision target value.  This is

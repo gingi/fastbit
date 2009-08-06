@@ -995,7 +995,7 @@ void ibis::bak2::construct(ibis::bak2::bakMap& bmap) {
 		nrows = (*it).second.locp->size();
 	    bits[i] = (*it).second.locp;
 	    (*it).second.locp = 0;
-	    bounds[i] = (i==0 && maxval[i-1] < (*it).first ? (*it).first :
+	    bounds[i] = (i==0 || maxval[i-1] < (*it).first ? (*it).first :
 			 ibis::util::incrDouble((*it).first));
 	    minval[i] = (*it).second.minp;
 	    maxval[i] = (*it).second.maxp;
