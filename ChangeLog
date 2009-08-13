@@ -1,3 +1,10 @@
+2009-08-12 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp: print the result from function ibis::bin::locate
+	* src/util.h: update to the implementation of util::coarsen to
+	cope with round-off errors that may cause the same value to come
+	out differently, for example, 1e-14 and 10 x 1e-15 are observed to
+	come out slightly differently.
+
 2009-08-06 John Wu <John.Wu at ACM.org>
 	* src/idbak2.cpp:998 change && to || (this error can cause crashes
 	on some machines)

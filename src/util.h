@@ -1154,23 +1154,42 @@ inline char* ibis::util::trim(char* str) {
     return head;
 } // ibis::util::trim
 
-// reduce the precision of the incoming floating-point value
+/// In an attempt to compute small values more consistently, small values
+/// are computed through division of integer values.  Since these integer
+/// values are computed through the function pow, the accuracy of the
+/// results depend on the implementation of the math library.
+///
+/// The value zero is always rounded to zero.   Incoming value less than
+/// 1E-300 or greater than 1E300 is rounded to zero.
 inline double ibis::util::coarsen(const double in, const unsigned prec) {
-    if (in == 0.0) return in;
-    if (prec > 15) return in;
-
-    double tmp = floor(log10(fabs(in)));
-    if (tmp < -307) {
-	tmp = 0.0;
+    double ret;
+    if (prec > 15) {
+	ret = in;
     }
-    else if (! (tmp < 309)) {
-	tmp = in;
+    else if (in == 0.0) {
+	ret = in;
     }
     else {
-	const double xp = pow(1e1, tmp - (prec > 1 ? prec-1 : 0));
-	tmp = floor(in / xp + 0.5) * xp;
+	ret = abs(in);
+	if (ret < 1e-300) {
+	    ret = 0.0;
+	}
+	else if (ret < 1e300) {
+	    ret = log10(ret);
+	    const int ixp = static_cast<int>(ret) - static_cast<int>(prec);
+	    ret = floor(0.5 + pow(1e1, ret-ixp));
+	    if (ixp > 0)
+		ret *= pow(1e1, ixp);
+	    else if (ixp < 0)
+		ret /= pow(1e1, -ixp);
+	    if (in < 0.0)
+		ret = -ret;
+	}
+	else {
+	    ret = in;
+	}
     }
-    return tmp;
+    return ret;
 } // ibis::util::coarsen
 
 inline std::string ibis::util::shortName(const std::string& de) {

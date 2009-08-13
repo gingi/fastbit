@@ -713,42 +713,31 @@ uint32_t ibis::bin::locate(const double& val) const {
 	    it = (i0 + i1) / 2;
 	}
 #if defined(DEBUG) && DEBUG + 0 > 1
-	ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu", val,
-			       bounds[i0], bounds[i1],
-			       static_cast<long unsigned>(i1));
+	col->logMessage("bin::locate", "element %lu (%g) out of %lu is no "
+			"less than %g",
+			static_cast<long unsigned>(i1), bounds[i1],
+			static_cast<long unsigned>(bounds.size()), val);
 #endif
-#if defined(DEBUG)
-	ibis::util::logMessage("ibis::bin::locate",
-			       "searching in an array of "
-			       "%lu doubles found element %lu (%g) to be no "
-			       "less than %g",
-			       static_cast<long unsigned>(bounds.size()),
-			       static_cast<long unsigned>(i1),
-			       bounds[i1], val);
-#endif
+	if (ibis::gVerbose > 7)
+	    col->logMessage("bin::locate", "%g in [%g, %g) ==> %lu",
+			    val, bounds[i0], bounds[i1],
+			    static_cast<long unsigned>(i1));
 	return i1;
     }
     else { // do linear search
-	for (uint32_t i = 0; i < nobs; ++i) {
+	for (uint32_t i = 1; i < nobs; ++i) {
 	    if (val < bounds[i]) {
 #if defined(DEBUG) && DEBUG + 0 > 1
-		if (i > 0)
-		    ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu",
-					   val, bounds[i-1], bounds[i],
-					   static_cast<long unsigned>(i));
-		else
-		    ibis::util::logMessage("locate", "%g in (..., %g) ==> 0",
-					   val, bounds[i]);
-#endif
-#if defined(DEBUG)
-		ibis::util::logMessage
-		    ("ibis::bin::locate", "searching in an array of "
-		     "%lu doubles found element %lu (%g) to be no "
+		col->logMessage
+		    ("bin::locate", "element %lu (%g) out of %lu is no "
 		     "less than %g",
-		     static_cast<long unsigned>(bounds.size()),
-		     static_cast<long unsigned>(i),
-		     bounds[i], val);
+		     static_cast<long unsigned>(i), bounds[i],
+		     static_cast<long unsigned>(bounds.size()), val);
 #endif
+		if (ibis::gVerbose > 7)
+		    col->logMessage("bin::locate", "%g in [%g, %g) ==> %lu",
+				    val, bounds[i-1], bounds[i],
+				    static_cast<long unsigned>(i));
 		return i;
 	    }
 	}
@@ -5299,12 +5288,11 @@ void ibis::bin::print(std::ostream& out) const {
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
     if (ibis::gVerbose > 4) { // print the long form
-	uint32_t i, nb = 0, cnt = 0;
+	uint32_t i, cnt = 0;
 	if (bits[0]) {
 	    out << "0: " << bits[0]->cnt() << "\t(..., " << bounds[0]
 		<< ")\t[" << minval[0] << ", " << maxval[0] << "]\n";
 	    cnt += bits[0]->cnt();
-	    ++ nb;
 	}
 	for (i = 1; i < nobs; ++i) {
 	    if (bits[i]) {
@@ -5317,7 +5305,6 @@ void ibis::bin::print(std::ostream& out) const {
 		    ++ omt;
 		// out << *(bits[i]);
 		cnt += bits[i]->cnt();
-		++ nb;
 	    }
 	    else {
 		++ omt;
@@ -5334,7 +5321,7 @@ void ibis::bin::print(std::ostream& out) const {
 		<< nrows << " bits in an index for " << col->name()
 		<< std::endl;
 	}
-	else if (nrows > cnt && nb >= nobs) {
+	else if (nrows > cnt) {
 	    out << "There are a total " << cnt << " set bits out of "
 		<< nrows
 		<< " bits -- there are probably NULL values in column "
@@ -5370,12 +5357,12 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 
     // print only the first npr bins
     uint32_t npr = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : nobs);
-    npr = (npr > nobs ? nobs : npr);
+    npr = (npr+npr >= nobs ? nobs : npr);
     uint32_t omt = 0;
 
     //activate(); -- may cause another invocation of ioLock
     if (ibis::gVerbose > 4) { // long format
-	uint32_t i, nb = 0, cnt = 0;
+	uint32_t i, cnt = 0;
 	out << "\trange [" << lbound << ", " << rbound
 	    << ") is subdivided into " << nobs << " bins\n";
 	if (bits[0]) {
@@ -5383,7 +5370,6 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 		<< bounds[0] << ")\t[" << minval[0] << ", " << maxval[0]
 		<< "]\n";
 	    cnt += bits[0]->cnt();
-	    ++ nb;
 	    if (nrows != bits[0]->size())
 		out << "Warning: bits[0] contains "
 		    << bits[0]->size()
@@ -5394,7 +5380,6 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 		++ omt;
 		continue;
 	    }
-	    ++ nb;
 	    cnt += bits[i]->cnt();
 	    if (i < npr)
 		out << "\t" << bits[i]->cnt() << "\t[" << bounds[i-1]
@@ -5410,7 +5395,7 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 	if (rbound != bounds.back())
 	    out << "Warning: rbound(" << rbound << ") should be the same as "
 		<< bounds.back() << ", but is not\n";
-	if (cnt != tot && nb >= nobs)
+	if (cnt != tot)
 	    out << "Warning: " << tot << "bits are expected in [" << lbound
 		<< ", " << rbound << "), but " << cnt << " are found";
     }
