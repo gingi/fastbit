@@ -1170,7 +1170,7 @@ inline double ibis::util::coarsen(const double in, const unsigned prec) {
 	ret = in;
     }
     else {
-	ret = abs(in);
+	ret = fabs(in);
 	if (ret < 1e-300) {
 	    ret = 0.0;
 	}

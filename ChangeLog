@@ -1,3 +1,8 @@
+2009-08-13 John Wu <John.Wu at ACM.org>
+	* src/util.h:1173 change abs to fabs, apparently fabs is the only
+	name guaranteed to work on double values, the function abs may be
+	resolved to work with integers on some versions of libm
+
 2009-08-12 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp: print the result from function ibis::bin::locate
 	* src/util.h: update to the implementation of util::coarsen to
