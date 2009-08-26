@@ -100,6 +100,25 @@ ibis::array_t<T>::array_t(uint32_t n, const T& val)
     }
 }
 
+/// Copy the values from a vector to array_t.
+template<class T>
+ibis::array_t<T>::array_t(const std::vector<T>& rhs)
+    : actual(new ibis::fileManager::storage(rhs.size()*sizeof(T))),
+      m_begin(0), m_end(0) {
+    if (actual != 0) {
+	actual->beginUse();
+	m_begin = reinterpret_cast<T*>(actual->begin());
+	m_end = m_begin + rhs.size();
+	std::copy(rhs.begin(), rhs.end(), m_begin);
+    }
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", copied from "
+	<< static_cast<const void*>(&rhs);
+}
+
 /// Shallow copy.  Should not throw any exception.
 template<class T>
 ibis::array_t<T>::array_t(const array_t<T>& rhs)

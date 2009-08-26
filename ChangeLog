@@ -1,3 +1,33 @@
+2009-08-26 John Wu <John.Wu at ACM.org>
+	* src/table.h, src/mensa.h, src/mensa.cpp: rename
+	ibis::mensa::computeHits to ibis::table::computeHits, rename
+	ibis::mensa::doSelect to ibis::table::select.  Move the list of
+	data partitions to the from of the argument lists in these two
+	functions.  This change addresses a need brought up by Andrew
+	Olson.
+	* src/table.h, src/mensa.h: add a version of table::select and
+	table::computeHits that accept qExpr directly
+	* examples/thula.cpp: add a minimal test for the class functions
+	ibis::table::select
+
+2009-08-25 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h: change values in ibis::qDiscreteRange and
+	ibis::qAnyAny from type std::vector<double> to
+	ibis::array_t<double> to better track the memory usage, change
+	related functions to use the new data type
+	* src/table.h: add function getPartitions to return a list of
+	ibis::part
+	* src/bitvector.h: modify all 8 versions of bitwise logical
+	operators to make sure the two operands represent the same number
+	of bits (to address problems reported by David Reynolds < David
+	dot Reynolds at 3ds dot com>)
+	* src/bitvector.h: rename setSize to sloppySize and clarify its
+	functionality
+
+2009-08-24 John Wu <John.Wu at ACM.org>
+	* src/table.h: clarify that ibis::tablex::write also updates
+	metadata
+
 2009-08-13 John Wu <John.Wu at ACM.org>
 	* src/util.h:1173 change abs to fabs, apparently fabs is the only
 	name guaranteed to work on double values, the function abs may be

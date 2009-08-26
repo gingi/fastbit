@@ -150,9 +150,7 @@ public:
 
     /// Return the total number of bits in the bit sequence.
     inline word_t size() const throw();
-    /// Explicitly set the size of the bitvector.  Caller is responsible
-    /// for ensuring the size assigned is actually correct.
-    inline void setSize(word_t n) const;
+    inline void sloppySize(word_t n) const;
     /// Return the number of bits that are one.
     inline word_t cnt() const;
     /// Return the number of fill words.
@@ -183,11 +181,6 @@ public:
     ///@sa markovSize.
     static double clusteringFactor(word_t nb, word_t nc, word_t sz);
 
-    /// Adjust the size of the bit sequence.  If current size is less than
-    /// @c nv, append enough 1 bits so that it has @c nv bits.  If the
-    /// resulting total number of bits is less than @c nt, append 0 bits
-    /// so that there are @c nt total bits.  The final result always
-    /// contains @c nt bits.
     void adjustSize(word_t nv, word_t nt);
     /// Reserve enough space for a bit vector with nb bits with nc set bits.
     void reserve(unsigned nb, unsigned nc, double cf=0.0);
@@ -472,18 +465,24 @@ private:
     friend iterator ibis::bitvector::end();
 }; // end class ibis::bitvector::iterator
 
-inline void ibis::bitvector::setSize(word_t n) const {
+/// Explicitly set the size of the bitvector.  This is intended to be used
+/// by indexing functions to avoid counting the number of bits.  Caller is
+/// responsible for ensuring the size assigned is actually correct.  It
+/// does not the number of bits actually represented by this data
+/// structure.  To change the number of bits represented by this data
+/// structure use the function adjustSize instead.
+inline void ibis::bitvector::sloppySize(word_t n) const {
     nbits = n-active.nbits;
 #if defined(WAH_CHECK_SIZE)
     word_t nb = do_cnt();
     if (nb != nbits) {
 	const_cast<ibis::bitvector*>(this)->adjustSize(0, nbits);
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bitvector::setSize -- adjust the number of bits to"
+	    << "ibis::bitvector::sloppySize -- adjust the number of bits to"
 	    << n;
     }
 #endif
-} // ibis::bitvector::setSize
+} // ibis::bitvector::sloppySize
 
 /// Are all bits in regular words 0?
 inline bool ibis::bitvector::all0s() const {

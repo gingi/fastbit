@@ -114,7 +114,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	    a0(st, coffsets[0], (coffsets[1] - coffsets[0])
 	       / sizeof(ibis::bitvector::word_t));
 	cbits[0] = new ibis::bitvector(a0);
-	cbits[0]->setSize(nrows);
+	cbits[0]->sloppySize(nrows);
 #endif
     }
     else { // all bytes in memory already
@@ -124,7 +124,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 		    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
 		      / sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 	    }
 	}
     }
@@ -297,7 +297,7 @@ int ibis::fuge::read(const char* f) {
 			    fnm.c_str(),
 			    static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows)
+	tmp->sloppySize(nrows)
 #endif
 	    }
     else {
@@ -382,7 +382,7 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
 			    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
 			      / sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a);
-			cbits[i]->setSize(nrows);
+			cbits[i]->sloppySize(nrows);
 		    }
 		    else {
 			cbits[i] = 0;
@@ -920,7 +920,7 @@ void ibis::fuge::activateCoarse() const {
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 	    }
 	}
     }
@@ -957,7 +957,7 @@ void ibis::fuge::activateCoarse() const {
 				   (coffsets[i+1]-coffsets[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
-			    bits[i]->setSize(nrows);
+			    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "fuge::activateCoarse -- "
@@ -1011,7 +1011,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
 	cbits[i] = new ibis::bitvector(a);
-	cbits[i]->setSize(nrows);
+	cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 	LOGGER(ibis::gVerbose >= 0)
 	    << "fuge::activateCoarse(" << i
@@ -1034,7 +1034,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	    array_t<ibis::bitvector::word_t> a0(fdes, coffsets[i],
 						coffsets[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
-	    cbits[i]->setSize(nrows);
+	    cbits[i]->sloppySize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
@@ -1086,7 +1086,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 		LOGGER(ibis::gVerbose >= 0)
 		    << "fuge::activateCoarse(" << i
@@ -1132,7 +1132,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 				       (coffsets[i+1]-coffsets[i])/
 				       sizeof(ibis::bitvector::word_t));
 				cbits[i] = new ibis::bitvector(a1);
-				cbits[i]->setSize(nrows);
+				cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 				LOGGER(ibis::gVerbose >= 0)
 				    << "fuge::activateCoarse(" << i

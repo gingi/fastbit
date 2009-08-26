@@ -1,4 +1,4 @@
-// File $Id$
+// $Id$ FILE
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2007-2009 the Regents of the University of California
 //
@@ -164,6 +164,13 @@ int ibis::mensa::addPartition(const char* dir) {
 	<< naty.size();
     return newparts;
 } // ibis::mensa::addPartition
+
+int ibis::mensa::getPartitions(std::vector<const ibis::part*> &lst) const {
+    lst.resize(parts.size());
+    for (size_t i = 0; i < parts.size(); ++ i)
+	lst[i] = parts[i];
+    return parts.size();
+} // ibis::mensa::getPartitions
 
 void ibis::mensa::clear() {
     const size_t np = parts.size();
@@ -355,7 +362,9 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
     }
     else {
 	// handle the non-trivial case in a separate function
-	return doSelect(sel, cond, parts);
+	return ibis::table::select
+	    (reinterpret_cast<const std::vector<const ibis::part*>&>(parts),
+	     sel, cond);
     }
 } // ibis::mensa::select
 
@@ -374,7 +383,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	return 0;
     }
 
-    ibis::partList mylist;
+    std::vector<const ibis::part*> mylist;
     for (unsigned k = 0; k < parts.size(); ++ k) {
 	for (unsigned j = 0; j < patterns.size(); ++ j) {
 	    const char* pat = patterns[j];
@@ -396,7 +405,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
     }
 
     if (sel == 0 || *sel == 0) {
-	int64_t nhits = computeHits(cond, mylist);
+	int64_t nhits = ibis::table::computeHits(mylist, cond);
 	if (nhits < 0) {
 	    return 0;
 	}
@@ -410,7 +419,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	}
     }
     else if (strnicmp(sel, "count(", 6) == 0) { // count(*)
-	int64_t nhits = computeHits(cond, mylist);
+	int64_t nhits = ibis::table::computeHits(mylist, cond);
 	if (nhits < 0) {
 	    return 0;
 	}
@@ -424,527 +433,10 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	}
     }
     else {
-	return doSelect(sel, cond, mylist);
+	return ibis::table::select(mylist, sel, cond);
     }
     return 0;
 } // ibis::mensa::select2
-
-template <typename T>
-void ibis::mensa::addIncoreData(void*& to, const array_t<T>& from,
-				size_t nold, const T special) {
-    const size_t nqq = from.size();
-
-    if (to == 0)
-	to = new array_t<T>();
-    array_t<T>& target = * (static_cast<array_t<T>*>(to));
-    target.reserve(nold+nqq);
-    if (nold > target.size())
-	target.insert(target.end(), nold-target.size(), special);
-    if (nqq > 0)
-	target.insert(target.end(), from.begin(), from.end());
-} // ibis::mensa::addIncoreData
-
-void ibis::mensa::addStrings(void*& to, const std::vector<std::string>& from,
-			     size_t nold) {
-    const size_t nqq = from.size();
-    if (to == 0)
-	to = new std::vector<std::string>();
-    std::vector<std::string>& target =
-	* (static_cast<std::vector<std::string>*>(to));
-    target.reserve(nold+nqq);
-    if (nold > target.size()) {
-	const std::string dummy;
-	target.insert(target.end(), nold-target.size(), dummy);
-    }
-    if (nqq > 0)
-	target.insert(target.end(), from.begin(), from.end());
-} // ibis::mensa::addStrings
-
-/// This function handles a general version of select operation.  It
-/// expects the first two arguments to be valid and non-trivial.  It will
-/// return a nil pointer if those arguments are nil pointers or empty
-/// strings or blank spaces.
-ibis::table* ibis::mensa::doSelect(const char *sel, const char *cond,
-				   const ibis::partList& mylist) {
-    if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
-	return 0;
-
-    ibis::selectClause tms(sel);
-    if (tms.size() == 0) {
-	int64_t nhits = computeHits(cond, mylist);
-	if (nhits < 0) {
-	    return 0;
-	}
-	else {
-	    std::string des = "from data partitions --";
-	    for (ibis::partList::const_iterator it = mylist.begin();
-		 it != mylist.end(); ++ it) {
-		des += " ";
-		des += (*it)->name();
-	    }
-	    return new ibis::tabula(cond, des.c_str(), nhits);
-	}
-    }
-
-    const int ncond = strlen(cond);
-    // a single query object is used for different data partitions
-    ibis::countQuery qq;
-    std::string mesg = "ibis::mensa::doSelect(\"";
-    mesg += sel;
-    mesg += "\", ";
-    if (ncond < 40) {
-	mesg += cond;
-    }
-    else {
-	for (int i = 0; i < 20; ++ i)
-	    mesg += cond[i];
-    }
-    mesg += ")";
-    ibis::util::timer atimer(mesg.c_str(), 2);
-    long int ierr = qq.setWhereClause(cond);
-    if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << mesg << " -- can not parse \"" << cond
-	    << "\" into a valid query expression";
-	return 0;
-    }
-
-    const ibis::part &repp = *(mylist[0]);
-    // list of names, types, and buffers to hold the temporary content
-    std::vector<std::string> nls;
-    ibis::table::typeList    tls;
-    ibis::bord::bufferList   buff;
-    std::vector<size_t>      tmstouse;
-    size_t                   nplain = 0;
-    if (tms.size() > 0) { // use a block to limit the scope of some variables
-	std::map<const char*, size_t> uniquenames;
-	for (size_t i = 0; i < tms.size(); ++ i) {
-	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
-
-	    const char* tname = tms.getName(i);
-	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
-		*tname == '*') // skip count(*)
-		continue;
-
-	    if (uniquenames.find(tname) == uniquenames.end())
-		uniquenames[tname] = i;
-	    const ibis::column* col = repp.getColumn(tname);
-	    if (col != 0) {
-		LOGGER((col->type() == ibis::TEXT ||
-			col->type() == ibis::CATEGORY)
-		       && tms.getAggregator(i) != ibis::selectClause::NIL
-		       && ibis::gVerbose >= 0)
-		    << "Warning -- " << mesg
-		    << " can not handle aggregations on strings values";
-	    }
-	}
-	if (uniquenames.size() >= tms.size()) {
-	    nls.resize(tms.size());
-	    tls.resize(tms.size());
-	    buff.resize(tms.size());
-	    tmstouse.resize(tms.size());
-	    for (size_t i = 0; i < tms.size(); ++ i) {
-		tls[i] = ibis::UNKNOWN_TYPE;
-		nls[i] = tms.getName(i);
-		buff[i] = 0;
-		tmstouse[i] = i;
-	    }
-	}
-	else if (uniquenames.size() > 1) {
-	    const size_t nnames = uniquenames.size();
-	    ibis::array_t<uint32_t> pos;
-	    pos.reserve(nnames);
-	    for (std::map<const char*, size_t>::const_iterator it =
-		     uniquenames.begin(); it != uniquenames.end(); ++ it)
-		pos.push_back(it->second);
-	    std::sort(pos.begin(), pos.end());
-	    for (std::map<const char*, size_t>::iterator it =
-		     uniquenames.begin(); it != uniquenames.end(); ++ it)
-		it->second = pos.find(it->second);
-	    nls.resize(nnames);
-	    tls.resize(nnames);
-	    buff.resize(nnames);
-	    tmstouse.resize(nnames);
-	    for (size_t i = 0; i < nnames; ++i) {
-		nls[i] = tms.getName(pos[i]);
-		tls[i] = ibis::UNKNOWN_TYPE;
-		buff[i] = 0;
-		tmstouse[i] = pos[i];
-	    }
-	}
-	else { // only one unique name
-	    nls.resize(1);
-	    tls.resize(1);
-	    buff.resize(1);
-	    tmstouse.resize(1);
-	    nls[0] = tms.getName(0);
-	    tls[0] = ibis::UNKNOWN_TYPE;
-	    buff[0] = 0;
-	    tmstouse[0] = 0;
-	}
-    }
-
-    size_t nh = 0;
-    // main loop through each data partition
-    for (ibis::partList::const_iterator it = mylist.begin();
-	 it != mylist.end(); ++ it) {
-	if (tmstouse.size() >= tms.size())
-	    ierr = tms.verify(**it);
-	else
-	    ierr = tms.verifySome(**it, tmstouse);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- select clause (" << sel
-		<< ") contains variables that are not in data partition "
-		<< (*it)->name();
-	    continue;
-	}
-	ierr = qq.setSelectClause(&tms);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- failed to modify the select clause of "
-		<< "the countQuery object (" << qq.getWhereClause()
-		<< ") on data partition " << (*it)->name();
-	    continue;
-	}
-
-	ierr = qq.setPartition(*it);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- query[" << cond << "].setPartition("
-		<< (*it)->name() << ") failed with error " << ierr;
-	    continue;
-	}
-
-	ierr = qq.evaluate();
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- failed to evaluate conditions ("
-		<< cond << ") on data partition " << (*it)->name();
-	    continue;
-	}
-
-	const ibis::bitvector* hits = qq.getHitVector();
-	if (hits == 0 || hits->cnt() == 0) continue;
-
-	const size_t nqq = hits->cnt();
-	for (size_t i = 0; i < tmstouse.size(); ++ i) {
-	    const size_t itm = tmstouse[i];
-	    const ibis::math::term *aterm = tms.at(itm);
-	    if (aterm->termType() != ibis::math::VARIABLE) {
-		if (aterm->termType() == ibis::math::UNDEFINED) {
-		    LOGGER(ibis::gVerbose > 1)
-			<< mesg << " -- can not handle a math::term "
-			"of undefined type";
-		}
-		else {
-		    if (tls[i] == ibis::UNKNOWN_TYPE)
-			tls[i] = ibis::DOUBLE;
-
-		    array_t<double> tmp;
-		    ierr = (*it)->calculate(*aterm, *hits, tmp);
-		    addIncoreData(buff[i], tmp, nh,
-				  std::numeric_limits<double>::quiet_NaN());
-		}
-		continue;
-	    }
-
-	    const ibis::column* col = (*it)->getColumn(tms.getName(itm));
-	    if (col == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- \"" << tms.getName(itm)
-		    << "\" is not a column of partition " << (*it)->name();
-		continue;
-	    }
-
-	    if (tls[i] == ibis::UNKNOWN_TYPE)
-		tls[i] = col->type();
-	    switch (col->type()) {
-	    case ibis::BYTE:
-	    case ibis::UBYTE: {
-		array_t<char>* tmp = col->selectBytes(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addIncoreData(buff[i], *tmp, nh,
-				      static_cast<char>(0x7F));
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::SHORT:
-	    case ibis::USHORT: {
-		array_t<int16_t>* tmp = col->selectShorts(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addIncoreData(buff[i], *tmp, nh,
-				      static_cast<int16_t>(0x7FFF));
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::UINT:
-	    case ibis::INT: {
-		array_t<int32_t>* tmp = col->selectInts(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addIncoreData(buff[i], *tmp, nh,
-				      static_cast<int32_t>(0x7FFFFFFF));
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::LONG:
-	    case ibis::ULONG: {
-		array_t<int64_t>* tmp = col->selectLongs(*hits);
-		if (tmp != 0) {
-		    if (tmp != 0) {
-			addIncoreData(buff[i], *tmp, nh, static_cast<int64_t>
-				      (0x7FFFFFFFFFFFFFFFLL));
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* tmp = col->selectFloats(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addIncoreData(buff[i], *tmp, nh,
-				      std::numeric_limits<float>::quiet_NaN());
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* tmp = col->selectDoubles(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addIncoreData(buff[i], *tmp, nh,
-				      std::numeric_limits<double>::quiet_NaN());
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::TEXT: {
-		std::vector<std::string>* tmp = col->selectStrings(*hits);
-		if (tmp != 0) {
-		    if (nh > 0) {
-			addStrings(buff[i], *tmp, nh);
-			delete tmp;
-		    }
-		    else {
-			buff[i] = tmp;
-		    }
-		}
-		break;}
-	    case ibis::CATEGORY: {
-		if (nplain >= tms.size()) { // no aggregation
-		    std::vector<std::string>* tmp = col->selectStrings(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    addStrings(buff[i], *tmp, nh);
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
-		    }
-		}
-		else {
-		    if (tls[i] != ibis::UINT)
-			tls[i] = ibis::UINT;
-		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    addIncoreData(buff[i], *tmp, nh,
-					  static_cast<uint32_t>(0));
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
-		    }
-		}
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- unable to process column " << tms[itm]
-		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
-		break;}
-	    }
-	}
-	nh += nqq;
-    }
-    if (nh == 0)
-	return 0;
-
-    std::string de = "SELECT ";
-    de += sel;
-    de += " FROM ";
-    if (mylist.size() > 0) {
-	size_t mp = ((mylist.size() >> ibis::gVerbose) <= 1 ?
-		     mylist.size() :
-		     (ibis::gVerbose > 2 ? (1 << ibis::gVerbose) : 5));
-	if (mp > mylist.size()) mp = mylist.size();
-	size_t jp = 1;
-	ibis::partList::const_iterator it = mylist.begin();
-	de += (*it)->name();
-	for (++ it; jp < mp && it != mylist.end(); ++ it, ++ jp) {
-	    de += ", ";
-	    de += (*it)->name();
-	}
-	if (jp < mylist.size()) {
-	    std::ostringstream oss;
-	    oss << ", ... (" << mylist.size()-jp << " skipped)";
-	    de += oss.str();
-	}
-    }
-    else {
-	de += "???";
-    }
-    de += " WHERE ";
-    if (ncond < 80) {
-	de += cond;
-    }
-    else {
-	std::ostringstream oss;
-	unsigned i = 0;
-	while (i < 40) {
-	    oss << cond[i];
-	    ++ i;
-	}
-	while (i < ncond && isspace(cond[i]) == 0) {
-	    oss << cond[i];
-	    ++ i;
-	}
-	if (i+20 < ncond) {
-	    oss << " ... (" << strlen(cond) - i << " skipped)";
-	    de += oss.str();
-	}
-	else {
-	    de += cond;
-	}
-    }
-    std::string tn = ibis::util::shortName(de);
-    ibis::table::stringList  nlsptr(nls.size());
-    std::vector<std::string> desc(nls.size());
-    ibis::table::stringList  cdesc(nls.size());
-    for (size_t i = 0; i < nls.size(); ++ i) {
-	const size_t itm = tmstouse[i];
-	nlsptr[i] = nls[i].c_str();
-	tms.describe(itm, desc[i]);
-	cdesc[i] = desc[i].c_str();
-    }
-
-    ibis::bord *brd1 =
-	new ibis::bord(tn.c_str(), de.c_str(), nh, nlsptr, tls, buff, &cdesc);
-    if (nplain >= tms.size() || brd1 == 0)
-	return brd1;
-
-    std::vector<std::string> aggr(tms.size());
-    ibis::table::stringList  caggr;
-    caggr.reserve(tms.size());
-    for (size_t i = 0; i < tms.size(); ++ i) {
-	switch (tms.getAggregator(i)) {
-	default:
-	case ibis::selectClause::NIL:
-	    aggr[i] = tms.getName(i);
-	    break;
-	case ibis::selectClause::AVG:
-	    aggr[i] = "AVG(";
-	    aggr[i] += tms.getName(i);
-	    aggr[i] += ")";
-	    break;
-	case ibis::selectClause::CNT:
-	    aggr[i] = "COUNT(";
-	    aggr[i] += tms.getName(i);
-	    aggr[i] += ")";
-	    break;
-	case ibis::selectClause::MAX:
-	    aggr[i] = "MAX(";
-	    aggr[i] += tms.getName(i);
-	    aggr[i] += ")";
-	    break;
-	case ibis::selectClause::MIN:
-	    aggr[i] = "MIN(";
-	    aggr[i] += tms.getName(i);
-	    aggr[i] += ")";
-	    break;
-	case ibis::selectClause::SUM:
-	    aggr[i] = "SUM(";
-	    aggr[i] += tms.getName(i);
-	    aggr[i] += ")";
-	    break;
-	}
-	if (tms.getAggregator(i) != ibis::selectClause::CNT)
-	    caggr.push_back(aggr[i].c_str());
-    }
-    ibis::table *brd2 = brd1->groupby(caggr);
-    delete brd1;
-
-    if (brd2 != 0) {
-	// locate all categorical values and replace the integer representation
-	// with actual string values
-	for (size_t j = 0; j < tms.size(); ++ j) {
-	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
-		const char* nm = tms.getName(j);
-		const ibis::column *col = repp.getColumn(nm);
-		if (col != 0 && col->type() == ibis::CATEGORY) {
-		    const int nr = brd2->nRows();
-		    int ierr = static_cast<ibis::bord*>(brd2)->
-			restoreCategoriesAsStrings(repp, nm);
-		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
-			<< "Warning -- " << mesg << " attempted to convert "
-			<< nr << " integer" << (nr > 1 ? "s" : "")
-			<< " to string" << (nr > 1 ? "s" : "")
-			<< " but restoreCategoriesAsStrings(" << nm
-			<< ") returned " << ierr;
-		}
-	    }
-	}
-    }
-    return brd2;
-} // ibis::mensa::doSelect
-
-/// Compute the number of hits from a list of data partitions.
-int64_t ibis::mensa::computeHits(const char* cond, const ibis::partList& pts) {
-    if (cond == 0 || *cond == 0)
-	return -1;
-
-    int ierr;
-    uint64_t nhits = 0;
-    ibis::countQuery qq;
-    ierr = qq.setWhereClause(cond);
-    if (ierr < 0)
-	return ierr;
-
-    for (ibis::partList::const_iterator it = pts.begin();
-	 it != pts.end(); ++ it) {
-	ierr = qq.setPartition(*it);
-	if (ierr < 0) continue;
-	ierr = qq.evaluate();
-	if (ierr == 0)
-	    nhits += qq.getNumHits();
-    }
-    return nhits;
-} // ibis::mensa::computeHits
 
 /// Reordering the rows using the specified columns.  Each data partition
 /// is reordered separately.
@@ -3852,3 +3344,996 @@ void ibis::table::orderby(const char* str) {
     orderby(lst);
     delete [] buf;
 } // ibis::table::orderby
+
+/// Upon successful completion of this function, it produce an in-memory
+/// data partition holding the selected data records.  It will fail if the
+/// selected records can not fit in available memory.
+///
+/// It expects the arguments sel and cond to be valid and non-trivial.  It
+/// will return a nil pointer if those arguments are nil pointers or empty
+/// strings or blank spaces.
+ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
+				 const char *sel, const char *cond) {
+    if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
+	return 0;
+
+    ibis::selectClause tms(sel);
+    if (tms.size() == 0) {
+	int64_t nhits = ibis::table::computeHits(mylist, cond);
+	if (nhits < 0) {
+	    return 0;
+	}
+	else {
+	    std::string des = "from data partitions --";
+	    for (std::vector<const ibis::part*>::const_iterator it =
+		     mylist.begin();
+		 it != mylist.end(); ++ it) {
+		des += " ";
+		des += (*it)->name();
+	    }
+	    return new ibis::tabula(cond, des.c_str(), nhits);
+	}
+    }
+
+    const int ncond = strlen(cond);
+    // a single query object is used for different data partitions
+    ibis::countQuery qq;
+    std::string mesg = "table::select(\"";
+    mesg += sel;
+    mesg += "\", ";
+    if (ncond < 40) {
+	mesg += cond;
+    }
+    else {
+	for (int i = 0; i < 20; ++ i)
+	    mesg += cond[i];
+    }
+    mesg += ")";
+    ibis::util::timer atimer(mesg.c_str(), 2);
+    long int ierr = qq.setWhereClause(cond);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << mesg << " -- can not parse \"" << cond
+	    << "\" into a valid query expression";
+	return 0;
+    }
+
+    const ibis::part &repp = *(mylist[0]);
+    // list of names, types, and buffers to hold the temporary content
+    std::vector<std::string> nls;
+    ibis::table::typeList    tls;
+    ibis::bord::bufferList   buff;
+    std::vector<size_t>      tmstouse;
+    size_t                   nplain = 0;
+    if (tms.size() > 0) { // use a block to limit the scope of some variables
+	std::map<const char*, size_t> uniquenames;
+	for (size_t i = 0; i < tms.size(); ++ i) {
+	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
+
+	    const char* tname = tms.getName(i);
+	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
+		*tname == '*') // skip count(*)
+		continue;
+
+	    if (uniquenames.find(tname) == uniquenames.end())
+		uniquenames[tname] = i;
+	    const ibis::column* col = repp.getColumn(tname);
+	    if (col != 0) {
+		LOGGER((col->type() == ibis::TEXT ||
+			col->type() == ibis::CATEGORY)
+		       && tms.getAggregator(i) != ibis::selectClause::NIL
+		       && ibis::gVerbose >= 0)
+		    << "Warning -- " << mesg
+		    << " can not handle aggregations on strings values";
+	    }
+	}
+	if (uniquenames.size() >= tms.size()) {
+	    nls.resize(tms.size());
+	    tls.resize(tms.size());
+	    buff.resize(tms.size());
+	    tmstouse.resize(tms.size());
+	    for (size_t i = 0; i < tms.size(); ++ i) {
+		tls[i] = ibis::UNKNOWN_TYPE;
+		nls[i] = tms.getName(i);
+		buff[i] = 0;
+		tmstouse[i] = i;
+	    }
+	}
+	else if (uniquenames.size() > 1) {
+	    const size_t nnames = uniquenames.size();
+	    ibis::array_t<uint32_t> pos;
+	    pos.reserve(nnames);
+	    for (std::map<const char*, size_t>::const_iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		pos.push_back(it->second);
+	    std::sort(pos.begin(), pos.end());
+	    for (std::map<const char*, size_t>::iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		it->second = pos.find(it->second);
+	    nls.resize(nnames);
+	    tls.resize(nnames);
+	    buff.resize(nnames);
+	    tmstouse.resize(nnames);
+	    for (size_t i = 0; i < nnames; ++i) {
+		nls[i] = tms.getName(pos[i]);
+		tls[i] = ibis::UNKNOWN_TYPE;
+		buff[i] = 0;
+		tmstouse[i] = pos[i];
+	    }
+	}
+	else { // only one unique name
+	    nls.resize(1);
+	    tls.resize(1);
+	    buff.resize(1);
+	    tmstouse.resize(1);
+	    nls[0] = tms.getName(0);
+	    tls[0] = ibis::UNKNOWN_TYPE;
+	    buff[0] = 0;
+	    tmstouse[0] = 0;
+	}
+    }
+
+    size_t nh = 0;
+    // main loop through each data partition
+    for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();
+	 it != mylist.end(); ++ it) {
+	if (tmstouse.size() >= tms.size())
+	    ierr = tms.verify(**it);
+	else
+	    ierr = tms.verifySome(**it, tmstouse);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << sel
+		<< ") contains variables that are not in data partition "
+		<< (*it)->name();
+	    continue;
+	}
+	ierr = qq.setSelectClause(&tms);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to modify the select clause of "
+		<< "the countQuery object (" << qq.getWhereClause()
+		<< ") on data partition " << (*it)->name();
+	    continue;
+	}
+
+	ierr = qq.setPartition(*it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- query.setPartition(" << (*it)->name()
+		<< ") failed with error code " << ierr;
+	    continue;
+	}
+
+	ierr = qq.evaluate();
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to process query on data partition "
+		<< (*it)->name();
+	    continue;
+	}
+
+	const ibis::bitvector* hits = qq.getHitVector();
+	if (hits == 0 || hits->cnt() == 0) continue;
+
+	const size_t nqq = hits->cnt();
+	for (size_t i = 0; i < tmstouse.size(); ++ i) {
+	    const size_t itm = tmstouse[i];
+	    const ibis::math::term *aterm = tms.at(itm);
+	    if (aterm->termType() != ibis::math::VARIABLE) {
+		if (aterm->termType() == ibis::math::UNDEFINED) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< mesg << " -- can not handle a math::term "
+			"of undefined type";
+		}
+		else {
+		    if (tls[i] == ibis::UNKNOWN_TYPE)
+			tls[i] = ibis::DOUBLE;
+
+		    array_t<double> tmp;
+		    ierr = (*it)->calculate(*aterm, *hits, tmp);
+		    ibis::util::addIncoreData
+			(buff[i], tmp, nh,
+			 std::numeric_limits<double>::quiet_NaN());
+		}
+		continue;
+	    }
+
+	    const ibis::column* col = (*it)->getColumn(tms.getName(itm));
+	    if (col == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << mesg << " -- \"" << tms.getName(itm)
+		    << "\" is not a column of partition " << (*it)->name();
+		continue;
+	    }
+
+	    if (tls[i] == ibis::UNKNOWN_TYPE)
+		tls[i] = col->type();
+	    switch (col->type()) {
+	    case ibis::BYTE:
+	    case ibis::UBYTE: {
+		array_t<char>* tmp = col->selectBytes(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData(buff[i], *tmp, nh,
+						  static_cast<char>(0x7F));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::SHORT:
+	    case ibis::USHORT: {
+		array_t<int16_t>* tmp = col->selectShorts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData(buff[i], *tmp, nh,
+						  static_cast<int16_t>(0x7FFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::UINT:
+	    case ibis::INT: {
+		array_t<int32_t>* tmp = col->selectInts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     static_cast<int32_t>(0x7FFFFFFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::LONG:
+	    case ibis::ULONG: {
+		array_t<int64_t>* tmp = col->selectLongs(*hits);
+		if (tmp != 0) {
+		    if (tmp != 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<int64_t>
+			     (0x7FFFFFFFFFFFFFFFLL));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::FLOAT: {
+		array_t<float>* tmp = col->selectFloats(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     std::numeric_limits<float>::quiet_NaN());
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::DOUBLE: {
+		array_t<double>* tmp = col->selectDoubles(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     std::numeric_limits<double>::quiet_NaN());
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::TEXT: {
+		std::vector<std::string>* tmp = col->selectStrings(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addStrings(buff[i], *tmp, nh);
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::CATEGORY: {
+		if (nplain >= tms.size()) { // no aggregation
+		    std::vector<std::string>* tmp = col->selectStrings(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    ibis::util::addStrings(buff[i], *tmp, nh);
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
+		    }
+		}
+		else {
+		    if (tls[i] != ibis::UINT)
+			tls[i] = ibis::UINT;
+		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    ibis::util::addIncoreData
+				(buff[i], *tmp, nh, static_cast<uint32_t>(0));
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
+		    }
+		}
+		break;}
+	    default: {
+		LOGGER(ibis::gVerbose > 1)
+		    << mesg << " -- unable to process column " << tms[itm]
+		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
+		break;}
+	    }
+	}
+	nh += nqq;
+    }
+    if (nh == 0)
+	return 0;
+
+    std::string de = "SELECT ";
+    de += sel;
+    de += " FROM ";
+    if (mylist.size() > 0) {
+	size_t mp = ((mylist.size() >> ibis::gVerbose) <= 1 ?
+		     mylist.size() :
+		     (ibis::gVerbose > 2 ? (1 << ibis::gVerbose) : 5));
+	if (mp > mylist.size()) mp = mylist.size();
+	size_t jp = 1;
+	std::vector<const ibis::part*>::const_iterator it = mylist.begin();
+	de += (*it)->name();
+	for (++ it; jp < mp && it != mylist.end(); ++ it, ++ jp) {
+	    de += ", ";
+	    de += (*it)->name();
+	}
+	if (jp < mylist.size()) {
+	    std::ostringstream oss;
+	    oss << ", ... (" << mylist.size()-jp << " skipped)";
+	    de += oss.str();
+	}
+    }
+    else {
+	de += "???";
+    }
+    de += " WHERE ";
+    if (ncond < 80) {
+	de += cond;
+    }
+    else {
+	std::ostringstream oss;
+	unsigned i = 0;
+	while (i < 40) {
+	    oss << cond[i];
+	    ++ i;
+	}
+	while (i < ncond && isspace(cond[i]) == 0) {
+	    oss << cond[i];
+	    ++ i;
+	}
+	if (i+20 < ncond) {
+	    oss << " ... (" << strlen(cond) - i << " skipped)";
+	    de += oss.str();
+	}
+	else {
+	    de += cond;
+	}
+    }
+    std::string tn = ibis::util::shortName(de);
+    ibis::table::stringList  nlsptr(nls.size());
+    std::vector<std::string> desc(nls.size());
+    ibis::table::stringList  cdesc(nls.size());
+    for (size_t i = 0; i < nls.size(); ++ i) {
+	const size_t itm = tmstouse[i];
+	nlsptr[i] = nls[i].c_str();
+	tms.describe(itm, desc[i]);
+	cdesc[i] = desc[i].c_str();
+    }
+
+    ibis::bord *brd1 =
+	new ibis::bord(tn.c_str(), de.c_str(), nh, nlsptr, tls, buff, &cdesc);
+    if (nplain >= tms.size() || brd1 == 0)
+	return brd1;
+
+    std::vector<std::string> aggr(tms.size());
+    ibis::table::stringList  caggr;
+    caggr.reserve(tms.size());
+    for (size_t i = 0; i < tms.size(); ++ i) {
+	switch (tms.getAggregator(i)) {
+	default:
+	case ibis::selectClause::NIL:
+	    aggr[i] = tms.getName(i);
+	    break;
+	case ibis::selectClause::AVG:
+	    aggr[i] = "AVG(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::CNT:
+	    aggr[i] = "COUNT(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::MAX:
+	    aggr[i] = "MAX(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::MIN:
+	    aggr[i] = "MIN(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::SUM:
+	    aggr[i] = "SUM(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	}
+	if (tms.getAggregator(i) != ibis::selectClause::CNT)
+	    caggr.push_back(aggr[i].c_str());
+    }
+    ibis::table *brd2 = brd1->groupby(caggr);
+    delete brd1;
+
+    if (brd2 != 0) {
+	// locate all categorical values and replace the integer representation
+	// with actual string values
+	for (size_t j = 0; j < tms.size(); ++ j) {
+	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
+		const char* nm = tms.getName(j);
+		const ibis::column *col = repp.getColumn(nm);
+		if (col != 0 && col->type() == ibis::CATEGORY) {
+		    const int nr = brd2->nRows();
+		    int ierr = static_cast<ibis::bord*>(brd2)->
+			restoreCategoriesAsStrings(repp, nm);
+		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
+			<< "Warning -- " << mesg << " attempted to convert "
+			<< nr << " integer" << (nr > 1 ? "s" : "")
+			<< " to string" << (nr > 1 ? "s" : "")
+			<< " but restoreCategoriesAsStrings(" << nm
+			<< ") returned " << ierr;
+		}
+	    }
+	}
+    }
+    return brd2;
+} // ibis::table::select
+
+/// Upon successful completion of this function, it produce an in-memory
+/// data partition holding the selected data records.  It will fail if the
+/// selected records can not fit in available memory.
+///
+/// It expects the arguments sel and cond to be valid and non-trivial.  It
+/// will return a nil pointer if those arguments are nil pointers or empty
+/// strings or blank spaces.
+ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
+				 const char *sel, const ibis::qExpr *cond) {
+    if (sel == 0 || cond == 0 || *sel == 0 || mylist.empty())
+	return 0;
+
+    ibis::selectClause tms(sel);
+    if (tms.size() == 0) {
+	int64_t nhits = ibis::table::computeHits(mylist, cond);
+	if (nhits < 0) {
+	    return 0;
+	}
+	else {
+	    std::ostringstream oss;
+	    oss << "select count(*) from";
+	    for (std::vector<const ibis::part*>::const_iterator it =
+		     mylist.begin();
+		 it != mylist.end(); ++ it) {
+		if (it != mylist.begin())
+		    oss << ",";
+		oss << " " << (*it)->name();
+	    }
+	    oss << " where ";
+	    cond->printFull(oss);
+	    std::string nm = ibis::util::shortName(oss.str());
+	    return new ibis::tabula(nm.c_str(), oss.str().c_str(), nhits);
+	}
+    }
+
+    std::string mesg = "table::select";
+    if (ibis::gVerbose > 1) {
+	std::ostringstream oss;
+	oss << "(\"" << mylist.size() << " data partition"
+	    << (mylist.size() > 1 ? "s" : "") << ", " << sel
+	    << ", qExpr @" << static_cast<const void*>(cond) << ')';
+	mesg += oss.str();
+    }
+
+    ibis::util::timer atimer(mesg.c_str(), 2);
+    // a single query object is used for different data partitions
+    ibis::countQuery qq;
+    long int ierr = qq.setWhereClause(cond);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << " failed to assign externally "
+	    "provided query expression \"" << *cond
+	    << "\" to a ibis::countQuery object, ierr=" << ierr;
+	return 0;
+    }
+
+    const ibis::part &repp = *(mylist[0]);
+    // list of names, types, and buffers to hold the temporary content
+    std::vector<std::string> nls;
+    ibis::table::typeList    tls;
+    ibis::bord::bufferList   buff;
+    std::vector<size_t>      tmstouse;
+    size_t                   nplain = 0;
+    if (tms.size() > 0) { // use a block to limit the scope of some variables
+	std::map<const char*, size_t> uniquenames;
+	for (size_t i = 0; i < tms.size(); ++ i) {
+	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
+
+	    const char* tname = tms.getName(i);
+	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
+		*tname == '*') // skip count(*)
+		continue;
+
+	    if (uniquenames.find(tname) == uniquenames.end())
+		uniquenames[tname] = i;
+	    const ibis::column* col = repp.getColumn(tname);
+	    if (col != 0) {
+		LOGGER((col->type() == ibis::TEXT ||
+			col->type() == ibis::CATEGORY)
+		       && tms.getAggregator(i) != ibis::selectClause::NIL
+		       && ibis::gVerbose >= 0)
+		    << "Warning -- " << mesg
+		    << " can not handle aggregations on strings values";
+	    }
+	}
+	if (uniquenames.size() >= tms.size()) {
+	    nls.resize(tms.size());
+	    tls.resize(tms.size());
+	    buff.resize(tms.size());
+	    tmstouse.resize(tms.size());
+	    for (size_t i = 0; i < tms.size(); ++ i) {
+		tls[i] = ibis::UNKNOWN_TYPE;
+		nls[i] = tms.getName(i);
+		buff[i] = 0;
+		tmstouse[i] = i;
+	    }
+	}
+	else if (uniquenames.size() > 1) {
+	    const size_t nnames = uniquenames.size();
+	    ibis::array_t<uint32_t> pos;
+	    pos.reserve(nnames);
+	    for (std::map<const char*, size_t>::const_iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		pos.push_back(it->second);
+	    std::sort(pos.begin(), pos.end());
+	    for (std::map<const char*, size_t>::iterator it =
+		     uniquenames.begin(); it != uniquenames.end(); ++ it)
+		it->second = pos.find(it->second);
+	    nls.resize(nnames);
+	    tls.resize(nnames);
+	    buff.resize(nnames);
+	    tmstouse.resize(nnames);
+	    for (size_t i = 0; i < nnames; ++i) {
+		nls[i] = tms.getName(pos[i]);
+		tls[i] = ibis::UNKNOWN_TYPE;
+		buff[i] = 0;
+		tmstouse[i] = pos[i];
+	    }
+	}
+	else { // only one unique name
+	    nls.resize(1);
+	    tls.resize(1);
+	    buff.resize(1);
+	    tmstouse.resize(1);
+	    nls[0] = tms.getName(0);
+	    tls[0] = ibis::UNKNOWN_TYPE;
+	    buff[0] = 0;
+	    tmstouse[0] = 0;
+	}
+    }
+
+    size_t nh = 0;
+    // main loop through each data partition
+    for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();
+	 it != mylist.end(); ++ it) {
+	if (tmstouse.size() >= tms.size())
+	    ierr = tms.verify(**it);
+	else
+	    ierr = tms.verifySome(**it, tmstouse);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << sel
+		<< ") contains variables that are not in data partition "
+		<< (*it)->name();
+	    continue;
+	}
+	ierr = qq.setSelectClause(&tms);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to modify the select clause of "
+		<< "the countQuery object (" << qq.getWhereClause()
+		<< ") on data partition " << (*it)->name();
+	    continue;
+	}
+
+	ierr = qq.setPartition(*it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- query.setPartition(" << (*it)->name()
+		<< ") failed with error code " << ierr;
+	    continue;
+	}
+
+	ierr = qq.evaluate();
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to process query on data partition "
+		<< (*it)->name();
+	    continue;
+	}
+
+	const ibis::bitvector* hits = qq.getHitVector();
+	if (hits == 0 || hits->cnt() == 0) continue;
+
+	const size_t nqq = hits->cnt();
+	for (size_t i = 0; i < tmstouse.size(); ++ i) {
+	    const size_t itm = tmstouse[i];
+	    const ibis::math::term *aterm = tms.at(itm);
+	    if (aterm->termType() != ibis::math::VARIABLE) {
+		if (aterm->termType() == ibis::math::UNDEFINED) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< mesg << " -- can not handle a math::term "
+			"of undefined type";
+		}
+		else {
+		    if (tls[i] == ibis::UNKNOWN_TYPE)
+			tls[i] = ibis::DOUBLE;
+
+		    array_t<double> tmp;
+		    ierr = (*it)->calculate(*aterm, *hits, tmp);
+		    ibis::util::addIncoreData
+			(buff[i], tmp, nh,
+			 std::numeric_limits<double>::quiet_NaN());
+		}
+		continue;
+	    }
+
+	    const ibis::column* col = (*it)->getColumn(tms.getName(itm));
+	    if (col == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << mesg << " -- \"" << tms.getName(itm)
+		    << "\" is not a column of partition " << (*it)->name();
+		continue;
+	    }
+
+	    if (tls[i] == ibis::UNKNOWN_TYPE)
+		tls[i] = col->type();
+	    switch (col->type()) {
+	    case ibis::BYTE:
+	    case ibis::UBYTE: {
+		array_t<char>* tmp = col->selectBytes(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData(buff[i], *tmp, nh,
+						  static_cast<char>(0x7F));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::SHORT:
+	    case ibis::USHORT: {
+		array_t<int16_t>* tmp = col->selectShorts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData(buff[i], *tmp, nh,
+						  static_cast<int16_t>(0x7FFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::UINT:
+	    case ibis::INT: {
+		array_t<int32_t>* tmp = col->selectInts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     static_cast<int32_t>(0x7FFFFFFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::LONG:
+	    case ibis::ULONG: {
+		array_t<int64_t>* tmp = col->selectLongs(*hits);
+		if (tmp != 0) {
+		    if (tmp != 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<int64_t>
+			     (0x7FFFFFFFFFFFFFFFLL));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::FLOAT: {
+		array_t<float>* tmp = col->selectFloats(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     std::numeric_limits<float>::quiet_NaN());
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::DOUBLE: {
+		array_t<double>* tmp = col->selectDoubles(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     std::numeric_limits<double>::quiet_NaN());
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::TEXT: {
+		std::vector<std::string>* tmp = col->selectStrings(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addStrings(buff[i], *tmp, nh);
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::CATEGORY: {
+		if (nplain >= tms.size()) { // no aggregation
+		    std::vector<std::string>* tmp = col->selectStrings(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    ibis::util::addStrings(buff[i], *tmp, nh);
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
+		    }
+		}
+		else {
+		    if (tls[i] != ibis::UINT)
+			tls[i] = ibis::UINT;
+		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		    if (tmp != 0) {
+			if (nh > 0) {
+			    ibis::util::addIncoreData
+				(buff[i], *tmp, nh, static_cast<uint32_t>(0));
+			    delete tmp;
+			}
+			else {
+			    buff[i] = tmp;
+			}
+		    }
+		}
+		break;}
+	    default: {
+		LOGGER(ibis::gVerbose > 1)
+		    << mesg << " -- unable to process column " << tms[itm]
+		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
+		break;}
+	    }
+	}
+	nh += nqq;
+    }
+    if (nh == 0)
+	return 0;
+
+    std::string tn = ibis::util::shortName(mesg);
+    ibis::table::stringList  nlsptr(nls.size());
+    std::vector<std::string> desc(nls.size());
+    ibis::table::stringList  cdesc(nls.size());
+    for (size_t i = 0; i < nls.size(); ++ i) {
+	const size_t itm = tmstouse[i];
+	nlsptr[i] = nls[i].c_str();
+	tms.describe(itm, desc[i]);
+	cdesc[i] = desc[i].c_str();
+    }
+
+    ibis::bord *brd1 =
+	new ibis::bord(tn.c_str(), mesg.c_str(), nh, nlsptr, tls, buff, &cdesc);
+    if (nplain >= tms.size() || brd1 == 0)
+	return brd1;
+
+    std::vector<std::string> aggr(tms.size());
+    ibis::table::stringList  caggr;
+    caggr.reserve(tms.size());
+    for (size_t i = 0; i < tms.size(); ++ i) {
+	switch (tms.getAggregator(i)) {
+	default:
+	case ibis::selectClause::NIL:
+	    aggr[i] = tms.getName(i);
+	    break;
+	case ibis::selectClause::AVG:
+	    aggr[i] = "AVG(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::CNT:
+	    aggr[i] = "COUNT(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::MAX:
+	    aggr[i] = "MAX(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::MIN:
+	    aggr[i] = "MIN(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::SUM:
+	    aggr[i] = "SUM(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	}
+	if (tms.getAggregator(i) != ibis::selectClause::CNT)
+	    caggr.push_back(aggr[i].c_str());
+    }
+    ibis::table *brd2 = brd1->groupby(caggr);
+    delete brd1;
+
+    if (brd2 != 0) {
+	// locate all categorical values and replace the integer representation
+	// with actual string values
+	for (size_t j = 0; j < tms.size(); ++ j) {
+	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
+		const char* nm = tms.getName(j);
+		const ibis::column *col = repp.getColumn(nm);
+		if (col != 0 && col->type() == ibis::CATEGORY) {
+		    const int nr = brd2->nRows();
+		    int ierr = static_cast<ibis::bord*>(brd2)->
+			restoreCategoriesAsStrings(repp, nm);
+		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
+			<< "Warning -- " << mesg << " attempted to convert "
+			<< nr << " integer" << (nr > 1 ? "s" : "")
+			<< " to string" << (nr > 1 ? "s" : "")
+			<< " but restoreCategoriesAsStrings(" << nm
+			<< ") returned " << ierr;
+		}
+	    }
+	}
+    }
+    return brd2;
+} // ibis::table::select
+
+/// It iterates through all data partitions to compute the number of hits.
+int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
+				 const char* cond) {
+    if (cond == 0 || *cond == 0)
+	return -1;
+
+    int ierr;
+    uint64_t nhits = 0;
+    ibis::countQuery qq;
+    ierr = qq.setWhereClause(cond);
+    if (ierr < 0)
+	return ierr;
+
+    for (std::vector<const ibis::part*>::const_iterator it = pts.begin();
+	 it != pts.end(); ++ it) {
+	ierr = qq.setPartition(*it);
+	if (ierr < 0) continue;
+	ierr = qq.evaluate();
+	if (ierr == 0) {
+	    nhits += qq.getNumHits();
+	}
+	else if (ibis::gVerbose > 1) {
+	    ibis::util::logger lg;
+	    lg.buffer() << "Warning -- table::computeHits failed to evaluate \""
+			<< cond << "\" on data partition " << (*it)->name()
+			<< ", query::evaluate returned " << ierr;
+	}
+    }
+    return nhits;
+} // ibis::table::computeHits
+
+/// It iterates through all data partitions to compute the number of hits.
+int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
+				 const ibis::qExpr* cond) {
+    if (cond == 0)
+	return -1;
+
+    int ierr;
+    uint64_t nhits = 0;
+    ibis::countQuery qq;
+    ierr = qq.setWhereClause(cond);
+    if (ierr < 0)
+	return ierr;
+
+    for (std::vector<const ibis::part*>::const_iterator it = pts.begin();
+	 it != pts.end(); ++ it) {
+	ierr = qq.setPartition(*it);
+	if (ierr < 0) continue;
+	ierr = qq.evaluate();
+	if (ierr == 0) {
+	    nhits += qq.getNumHits();
+	}
+	else if (ibis::gVerbose > 1) {
+	    ibis::util::logger lg;
+	    lg.buffer() << "Warning -- table::computeHits failed to evaluate \""
+			<< *cond << "\" on data partition " << (*it)->name()
+			<< ", query::evaluate returned " << ierr;
+	}
+    }
+    return nhits;
+} // ibis::table::computeHits
+
+template <typename T>
+void ibis::util::addIncoreData(void*& to, const array_t<T>& from,
+			       size_t nold, const T special) {
+    const size_t nqq = from.size();
+
+    if (to == 0)
+	to = new array_t<T>();
+    array_t<T>& target = * (static_cast<array_t<T>*>(to));
+    target.reserve(nold+nqq);
+    if (nold > target.size())
+	target.insert(target.end(), nold-target.size(), special);
+    if (nqq > 0)
+	target.insert(target.end(), from.begin(), from.end());
+} // ibis::util::addIncoreData
+
+void ibis::util::addStrings(void*& to, const std::vector<std::string>& from,
+			    size_t nold) {
+    const size_t nqq = from.size();
+    if (to == 0)
+	to = new std::vector<std::string>();
+    std::vector<std::string>& target =
+	* (static_cast<std::vector<std::string>*>(to));
+    target.reserve(nold+nqq);
+    if (nold > target.size()) {
+	const std::string dummy;
+	target.insert(target.end(), nold-target.size(), dummy);
+    }
+    if (nqq > 0)
+	target.insert(target.end(), from.begin(), from.end());
+} // ibis::util::addStrings

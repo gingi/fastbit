@@ -35,6 +35,7 @@ public:
     explicit array_t<T>(uint32_t n); // donot convert integer to array_t
     array_t<T>(uint32_t n, const T& val);
     array_t<T>(const array_t<T>& rhs);
+    array_t<T>(const std::vector<T>& rhs);
     array_t<T>(const array_t<T>& rhs, const uint32_t offset,
 	       const uint32_t nelm=0);
     array_t<T>(ibis::fileManager::storage* rhs);

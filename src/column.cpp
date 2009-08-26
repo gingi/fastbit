@@ -9458,7 +9458,7 @@ template<typename T>
 int ibis::column::searchSortedICD(const array_t<T>& vals,
 				  const ibis::qDiscreteRange& rng,
 				  ibis::bitvector& hits) const {
-    const std::vector<double>& u = rng.getValues();
+    const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
     if (ibis::gVerbose >= 5) {
 	std::ostringstream oss;
@@ -9510,7 +9510,7 @@ template<typename T>
 int ibis::column::searchSortedOOCD(const char* fname,
 				   const ibis::qDiscreteRange& rng,
 				   ibis::bitvector& hits) const {
-    const std::vector<double>& u = rng.getValues();
+    const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
     if (ibis::gVerbose >= 5) {
 	std::ostringstream oss;

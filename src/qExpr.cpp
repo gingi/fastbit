@@ -2351,6 +2351,7 @@ ibis::qContinuousRange* ibis::compRange::simpleRange() const {
     return res;
 } // ibis::compRange::simpleRange
 
+/// Construct a discrete range from two strings.  Used by the parser.
 ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
     : ibis::qRange(ibis::qExpr::DRANGE) {
     if (col == 0 || *col == 0) return;
@@ -2388,7 +2389,9 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
     }
 } // qDiscreteRange ctor
 
-/// Construct a qDiscreteRange object from a vector of unsigned 32-bit integers.
+/// Construct a qDiscreteRange object from a vector of unsigned 32-bit
+/// integers.  Initially used to convert qMultiString to qDiscreteRange,
+/// but made visible to public upon user request.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<uint32_t>& val)
     : ibis::qRange(ibis::qExpr::DRANGE) {
@@ -2443,6 +2446,44 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     }
 } // qDiscreteRange ctor
 
+/// Construct a qDiscreteRange from an array of 32-bit integers.
+/// @note The incoming array is modified by this funciton.  On return, it
+/// will be sorted and contains only unique values.
+ibis::qDiscreteRange::qDiscreteRange(const char *col,
+				     ibis::array_t<uint32_t>& val)
+    : ibis::qRange(ibis::qExpr::DRANGE) {
+    if (col == 0 || *col == 0) return;
+    name = col;
+    if (val.empty()) return;
+    if (val.size() == 1) {
+	values.resize(1);
+	values[0] = val[0];
+	return;
+    }
+
+    // sort the incoming values
+    std::sort(val.begin(), val.end());
+    size_t j = 0;
+    for (size_t i = 1; i < val.size(); ++ i) { // copy unique values
+	if (val[i] > val[j]) {
+	    ++ j;
+	    val[j] = val[i];
+	}
+    }
+    val.resize(j+1);
+    values.resize(j+1);
+    std::copy(val.begin(), val.end(), values.begin());
+
+    if (values.size() < val.size() && ibis::gVerbose > 1) {
+	unsigned j = val.size() - values.size();
+	ibis::util::logger lg;
+	lg.buffer()
+	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
+	    << val.size() << " elements, removed " << j
+	    << " duplicate value" << (j > 1 ? "s" : "");
+    }
+} // qDiscreteRange ctor
+
 /// Construct a qDiscreteRange object from a vector of double values.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<double>& val)
@@ -2453,7 +2494,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     for (size_t i = 1; sorted && i < val.size()-1; ++ i)
 	sorted = (values[i] <= values[i+1]);
     if (sorted == false) {
-	/// Sort the incoming values and remove duplicates.
+	/// Sort the incoming values
 	std::sort(values.begin(), values.end());
     }
     size_t j = 0;
@@ -2477,41 +2518,49 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 } // ibis::qDiscreteRange::qDiscreteRange
 
 /// Construct a qDiscreteRange object from an array of double values.
+/// @note The incoming values are sorted and only the unique ones are kept
+/// on returning from this function.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
-				     const array_t<double>& val)
+				     ibis::array_t<double>& val)
     : ibis::qRange(ibis::qExpr::DRANGE), name(col) {
     if (val.empty()) return;
-    values.resize(val.size());
-    values[0] = val[0];
     if (val.size() <= 1U) return;
 
+    const size_t oldsize = val.size();
     bool sorted = (val[0] <= val[1]);
-    values[1] = val[1];
-    for (size_t i = 2; i < val.size(); ++ i) {
-	values[i] = val[i];
-	sorted = sorted && (val[i-1] <= val[i]);
+    bool distinct = (val[0] < val[1]);
+    for (size_t i = 2; sorted && i < oldsize; ++ i) {
+	sorted = (val[i-1] <= val[i]);
+	distinct = distinct && (val[i-1] < val[i]);
     }
 
     if (sorted == false) {
-	/// Sort the incoming values and remove duplicates.
-	std::sort(values.begin(), values.end());
+	/// Sort the incoming values
+	std::sort(val.begin(), val.end());
     }
     size_t j = 0;
-    for (size_t i = 1; i < val.size(); ++ i) {
-	// loop to copy unique values to the beginning of the array
-	if (values[i] > values[j]) {
-	    ++ j;
-	    values[j] = values[i];
+    if (distinct == false) {
+	for (size_t i = 1; i < oldsize; ++ i) {
+	    // loop to copy unique values to the beginning of the array
+	    if (val[i] > val[j]) {
+		++ j;
+		val[j] = val[i];
+	    }
 	}
+	++ j;
+	val.resize(j);
     }
-    ++ j;
-    values.resize(j);
-    if (j < val.size() && ibis::gVerbose > 1) {
-	j = val.size() - j;
+    else {
+	j = oldsize;
+    }
+    values.copy(val);
+
+    if (j < oldsize && ibis::gVerbose > 1) {
+	j = oldsize - j;
 	ibis::util::logger lg;
 	lg.buffer()
 	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
-	    << val.size() << " elements, removed " << j
+	    << oldsize << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
     }
 } // ibis::qDiscreteRange::qDiscreteRange

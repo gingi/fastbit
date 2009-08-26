@@ -264,7 +264,7 @@ int ibis::slice::read(const char* f) {
 		  (offsets[j]-offsets[0])/sizeof(ibis::bitvector::word_t),
 		  (offsets[j+1]-offsets[j])/sizeof(ibis::bitvector::word_t));
 	    bits[j] = new ibis::bitvector(a);
-	    bits[j]->setSize(nrows);
+	    bits[j]->sloppySize(nrows);
 	}
 	else {
 	    bits[j] = 0;
@@ -310,7 +310,7 @@ int ibis::slice::read(ibis::fileManager::storage* st) {
 		  (offs[i+1]-offs[i])/sizeof(ibis::bitvector::word_t));
 	    ibis::bitvector* btmp = new ibis::bitvector(a);
 	    bits[i] = btmp;
-	    bits[i]->setSize(nrows);
+	    bits[i]->sloppySize(nrows);
 	}
     }
     return 0;
@@ -1151,7 +1151,7 @@ long ibis::slice::evaluate(const ibis::qContinuousRange& expr,
 // Evaluate a set of discrete range conditions.
 long ibis::slice::evaluate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& lower) const {
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     lower.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);

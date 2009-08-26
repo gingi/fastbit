@@ -88,7 +88,7 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 	    a0(st, coffsets[0], (coffsets[1] - coffsets[0])
 	       / sizeof(ibis::bitvector::word_t));
 	cbits[0] = new ibis::bitvector(a0);
-	cbits[0]->setSize(nrows);
+	cbits[0]->sloppySize(nrows);
 #endif
     }
     else { // all bytes in memory already
@@ -98,7 +98,7 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 		    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
 		      / sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 	    }
 	}
     }
@@ -207,7 +207,7 @@ void ibis::zona::activateCoarse() const {
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 	    }
 	}
     }
@@ -244,7 +244,7 @@ void ibis::zona::activateCoarse() const {
 				   (coffsets[i+1]-coffsets[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
-			    bits[i]->setSize(nrows);
+			    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "zona::activateCoarse -- "
@@ -298,7 +298,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
 	cbits[i] = new ibis::bitvector(a);
-	cbits[i]->setSize(nrows);
+	cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 	LOGGER(ibis::gVerbose >= 0)
 	    << "zona::activateCoarse(" << i
@@ -321,7 +321,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 	    array_t<ibis::bitvector::word_t> a0(fdes, coffsets[i],
 						coffsets[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
-	    cbits[i]->setSize(nrows);
+	    cbits[i]->sloppySize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
@@ -373,7 +373,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->setSize(nrows);
+		cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 		LOGGER(ibis::gVerbose >= 0)
 		    << "zona::activateCoarse(" << i << ", " << j
@@ -419,7 +419,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 				       (coffsets[i+1]-coffsets[i])/
 				       sizeof(ibis::bitvector::word_t));
 				cbits[i] = new ibis::bitvector(a1);
-				cbits[i]->setSize(nrows);
+				cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 				LOGGER(ibis::gVerbose >= 0)
 				    << "zona::activateCoarse(" << i
@@ -982,7 +982,7 @@ int ibis::zona::read(const char* f) {
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
 	bits[0] = new ibis::bitvector(a0);
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
     }
     else {
 	bits[0] = new ibis::bitvector;
@@ -1098,7 +1098,7 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 		a0(st, offs[0], (offs[1]-offs[0])/
 		   sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
-	    bits[0]->setSize(nrows);
+	    bits[0]->sloppySize(nrows);
 	}
 	else {
 	    bits[0] = new ibis::bitvector;
@@ -1133,7 +1133,7 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 		    a(st, offs[i], (offs[i+1]-offs[i])/
 		      sizeof(ibis::bitvector::word_t));
 		ibis::bitvector* btmp = new ibis::bitvector(a);
-		btmp->setSize(nrows);
+		btmp->sloppySize(nrows);
 		bits[i] = btmp;
 	    }
 	    else if (ibis::gVerbose > 0) {
@@ -1167,7 +1167,7 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 			    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
 			      / sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a);
-			cbits[i]->setSize(nrows);
+			cbits[i]->sloppySize(nrows);
 		    }
 		    else {
 			cbits[i] = 0;

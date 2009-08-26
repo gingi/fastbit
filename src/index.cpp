@@ -4068,7 +4068,7 @@ void ibis::index::activate() const {
 		    a(str, offsets[i], (offsets[i+1]-offsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		bits[i] = new ibis::bitvector(a);
-		bits[i]->setSize(nrows);
+		bits[i]->sloppySize(nrows);
 	    }
 	}
     }
@@ -4104,7 +4104,7 @@ void ibis::index::activate() const {
 				   (offsets[i+1]-offsets[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
-			    bits[i]->setSize(nrows);
+			    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			    if (ibis::gVerbose > 5) {
 				LOGGER(ibis::gVerbose >= 0)
@@ -4158,7 +4158,7 @@ void ibis::index::activate(uint32_t i) const {
 	    a(str, offsets[i], (offsets[i+1]-offsets[i]) /
 	      sizeof(ibis::bitvector::word_t));
 	bits[i] = new ibis::bitvector(a);
-	bits[i]->setSize(nrows);
+	bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 	if (ibis::gVerbose > 5) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -4184,7 +4184,7 @@ void ibis::index::activate(uint32_t i) const {
 						offsets[i+1]);
 	    bits[i] = new ibis::bitvector(a0);
 	    UnixClose(fdes);
-	    bits[i]->setSize(nrows);
+	    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 	    if (ibis::gVerbose > 5) {
 		LOGGER(ibis::gVerbose >= 0)
@@ -4239,7 +4239,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		    a(str, offsets[i], (offsets[i+1]-offsets[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		bits[i] = new ibis::bitvector(a);
-		bits[i]->setSize(nrows);
+		bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 		if (ibis::gVerbose > 5) {
 		    LOGGER(ibis::gVerbose >= 0)
@@ -4287,7 +4287,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 				       (offsets[i+1]-offsets[i])/
 				       sizeof(ibis::bitvector::word_t));
 				bits[i] = new ibis::bitvector(a1);
-				bits[i]->setSize(nrows);
+				bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 				if (ibis::gVerbose > 5) {
 				    LOGGER(ibis::gVerbose >= 0)

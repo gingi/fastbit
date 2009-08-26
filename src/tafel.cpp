@@ -881,7 +881,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     if (cols.empty()) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- tafel::writeMetaData needs a valid output directory name";
+	    << "Warning -- tafel::writeMetaData needs a valid output directory";
 	return -1; // dir must be specified
     }
     std::string mdfile = dir;

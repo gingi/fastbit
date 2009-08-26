@@ -632,7 +632,43 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
     }
     std::cout << std::endl;
 
-    // test the function groupby on the table sel
+    // exercise the class function ibis::table::select
+    if (ibis::gVerbose > 2 && sstr != 0 && *sstr != 0 && n0 > 0 &&
+	sel->nColumns() > 0 && (fstr == 0 || *fstr == 0)) {
+	std::cout << "\n-- *** extra test for class function "
+	    "ibis::table::select *** --\n";
+	std::vector<const ibis::part*> parts;
+	int ierr = tbl.getPartitions(parts);
+	if (ierr <= 0) {
+	    std::cout << "Warning -- " << mesg << " tbl.getPartitions failed "
+		"with error code " << ierr << ", can not proceed with the "
+		"test on class function ibis::table::select\n" << std::endl;
+	}
+	else {
+	    ibis::table* sel2 = ibis::table::select(parts, sstr, wstr);
+	    if (sel2 == 0) {
+		std::cout << "Warning -- " << mesg
+			  << "class function ibis::table::select failed\n"
+			  << std::endl;
+	    }
+	    else if (sel2->nRows() != n0 ||
+		     sel2->nColumns() != sel->nColumns()) {
+		std::cout << "Warning -- " << mesg << " class function "
+		    "ibis::table::select return a table with " << sel2->nRows()
+			  << " row" << (sel2->nRows()>1?"s":"") << " and "
+			  << sel2->nColumns() << " column"
+			  << (sel2->nColumns()>1?"s":"") << ", but the member "
+		    "function version returned a table of " << n0 << " x "
+			  << sel->nColumns() << "\n" << std::endl;
+	    }
+	    else {
+		std::cout << mesg << " passed the test on class function "
+		    "ibis::table::select\n" << std::endl;
+	    }
+	}
+    }
+
+    // exercise function groupby on the table sel
     if (sel->nColumns() > 0 && ibis::gVerbose > 0 && sstr != 0 && *sstr != 0
 	&& strchr(sstr, '(') == 0) {
 	std::cout << "\n-- *** extra test for function groupby *** --\n";

@@ -29,32 +29,32 @@ namespace ibis {
 /// ranges, one-sided range conditions and two-sided range conditions.
 ///
 /// - An equality condition is defined by the equal operator and its two
-/// operands can be arithematic expressions, column names, numbers or
-/// string literals.  On string valued columns, FastBit currently only
-/// supports equality comparisons.  In such a case, the comparison is of
-/// the form "column_name = column_value".  Internally, when FastBit detect
-/// that the type of the column named "column_name" is ibis::CATEGORY or
-/// ibis::TEXT, it will interpret the other side as literal string value to
-/// be compared.  Note that if the left operand of the equality operator is
-/// not a known column name, the evaluation function will examine the right
-/// operand to see if it is a column name.  If the right operand is the
-/// name of string-valued column, the left operand will be used as string
-/// literal.
+///   operands can be arithematic expressions, column names, numbers or
+///   string literals.  On string valued columns, FastBit currently only
+///   supports equality comparisons.  In such a case, the comparison is of
+///   the form "column_name = column_value".  Internally, when FastBit
+///   detect that the type of the column named "column_name" is
+///   ibis::CATEGORY or ibis::TEXT, it will interpret the other side as
+///   literal string value to be compared.  Note that if the left operand
+///   of the equality operator is not a known column name, the evaluation
+///   function will examine the right operand to see if it is a column
+///   name.  If the right operand is the name of string-valued column, the
+///   left operand will be used as string literal.
 ///
 /// - A discrete range is defined by the operator "IN", e.g.,
-/// @code
-/// column_name IN ( list_of_strings_or_numbers )
-/// @endcode
-/// Note unquoted string values must start with an alphabet or a
-/// underscore.  Strings starting with anything else must be quoted.
+///   @code
+///   column_name IN ( list_of_strings_or_numbers )
+///   @endcode
+///   Note unquoted string values must start with an alphabet or a
+///   underscore.  Strings starting with anything else must be quoted.
 ///
 /// - A one-side range condtion can be defined with any of the following
-/// operators, <, <=, >, and >=.  The two operands of the operator can be
-/// any arithmetic expressions, column names or numbers.
+///   operators, <, <=, >, and >=.  The two operands of the operator can be
+///   any arithmetic expressions, column names or numbers.
 ///
 /// - A two-sided range condtion can be defined with two operators selected
-/// from <, <=, >, and >=, if their directions much agree.  Alternatively,
-/// they can be defined with operators "... between ... and ...", where
+///   from <, <=, >, and >=, if their directions much agree.  Alternatively,
+///   they can be defined with operators "... between ... and ...", where
 /// @code
 /// A between B and C
 /// @endcode
@@ -62,13 +62,14 @@ namespace ibis {
 /// @code
 /// B <= A <= C
 /// @endcode
-/// In this example, A, B, and C can be any arithematic expression, column
-/// name or number.
+///   In this example, A, B, and C can be any arithematic expression, column
+///   name or number.
 ///
 /// An arithematic expression may contain operators +, -, *, /, %, ^, and
 /// **, as well as common one-argument and two-argument functions defined
 /// in the header file math.h.  Both operators ^ and ** denote the
 /// exponential operation.
+///
 /// @note Operators & and | are reserved for bitwise logical operations.
 /// These two operators are currently recognized but their operations are
 /// not supported.
@@ -118,6 +119,10 @@ public:
     ///@note Functions that modify this object may invalidate the pointer
     /// returned by this function.
     const ibis::qExpr* getExpr(void) const {return expr_;}
+    /// Return a pointer to the root of the expression tree for the where
+    /// clause.
+    ///@note Functions that modify this object may invalidate the pointer
+    /// returned by this function.
     ibis::qExpr* getExpr(void) {return expr_;}
     /// Simplify the query expression.
     void simplify() {ibis::qExpr::simplify(expr_);}

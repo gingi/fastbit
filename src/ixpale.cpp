@@ -471,7 +471,7 @@ int ibis::pale::read(const char* f) {
 			    fnm.c_str(),
 			    static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows);
+	tmp->sloppySize(nrows);
 #endif
     }
     else {

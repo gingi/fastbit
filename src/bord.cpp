@@ -953,6 +953,12 @@ int64_t ibis::bord::computeHits(const char *cond) const {
     return res;
 } // ibis::bord::computeHits
 
+int ibis::bord::getPartitions(std::vector<const ibis::part*> &lst) const {
+    lst.resize(1);
+    lst[0] = &mypart;
+    return 1;
+} // ibis::bord::getPartitions
+
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList &cn,
 		       const ibis::table::typeList   &ct,

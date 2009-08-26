@@ -48,6 +48,20 @@ public:
     /// case of success.
     /// The input values are assumed to be sorted in ascending order.
     template <typename T>
+    int locate(const ibis::array_t<T>& vals,
+	       ibis::bitvector& positions) const;
+    /// Locate the values and set their positions in the bitvector.
+    /// Return the positions as a list of 32-bit integers.
+    template <typename T>
+    int locate(const ibis::array_t<T>& vals,
+	       std::vector<uint32_t>& positions) const;
+
+    /// Locate the values and set their positions in the bitvector.
+    /// Return the positions of the matching entries as a bitvector.
+    /// Return a negative value for error, zero or a positive value for in
+    /// case of success.
+    /// The input values are assumed to be sorted in ascending order.
+    template <typename T>
     int locate(const std::vector<T>& vals,
 	       ibis::bitvector& positions) const;
     /// Locate the values and set their positions in the bitvector.
@@ -90,6 +104,12 @@ protected:
     oocSearch(const std::vector<T>& vals, std::vector<uint32_t>& pos) const;
     template <typename inT, typename myT> int
     locate2(const std::vector<inT>&, std::vector<uint32_t>&) const;
+    template <typename T> int
+    icSearch(const ibis::array_t<T>& vals, std::vector<uint32_t>& pos) const;
+    template <typename T> int
+    oocSearch(const ibis::array_t<T>& vals, std::vector<uint32_t>& pos) const;
+    template <typename inT, typename myT> int
+    locate2(const ibis::array_t<inT>&, std::vector<uint32_t>&) const;
 
 private:
     // private member variables
@@ -126,6 +146,8 @@ private:
 namespace ibis {
     template <> int
     roster::locate(const std::vector<double>&, ibis::bitvector&) const;
+    template <> int
+    roster::locate(const ibis::array_t<double>&, ibis::bitvector&) const;
 }
 
 /// Return the row number of the ith smallest value.

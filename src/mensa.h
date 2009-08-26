@@ -102,6 +102,7 @@ public:
     virtual int buildIndexes(const char*);
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
+    virtual int getPartitions(std::vector<const ibis::part*> &) const;
 
     // Cursor class for row-wise data accesses.
     class cursor;
@@ -119,17 +120,9 @@ protected:
     void clear();
     /// Compute the number of hits.
     int64_t computeHits(const char* cond) const {
-	return computeHits(cond, parts);}
-
-    static int64_t computeHits(const char* cond, const ibis::partList& pts);
-    static table* doSelect(const char* sel, const char* cond,
-			   const ibis::partList& pts);
-    /// Append new data (in @c from) to a larger array (pointed to by @c to).
-    template <typename T> static void 
-    addIncoreData(void*& to, const array_t<T>& from,
-		  size_t nold, const T special);
-    static void
-    addStrings(void*&, const std::vector<std::string>&, size_t);
+	return ibis::table::computeHits
+	    (reinterpret_cast<const std::vector<const ibis::part*>&>(parts),
+	     cond);}
 
 private:
     // disallow copying.
@@ -240,6 +233,18 @@ private:
     liga(const liga&);
     liga& operator=(const liga&);
 }; // ibis::liga
+
+namespace ibis {
+    namespace util {
+	/// Append new data (in @c from) to a larger array (pointed to by
+	/// @c to).
+	template <typename T> static void 
+	addIncoreData(void*& to, const array_t<T>& from,
+		      size_t nold, const T special);
+	static void
+	addStrings(void*&, const std::vector<std::string>&, size_t);
+    }
+}
 
 inline int
 ibis::mensa::cursor::getColumnAsByte(const char* cn, char& val) const {

@@ -2329,6 +2329,262 @@ uint32_t ibis::roster::locate(const double& v) const {
 /// @note This function only adds more positions to pos.  The caller needs
 /// to initialize the output array if necessary.
 template <typename T> int
+ibis::roster::icSearch(const ibis::array_t<T>& vals,
+		       std::vector<uint32_t>& pos) const {
+    const uint32_t nrows = col->partition()->nRows();
+    if (ind.size() != nrows) { // not a valid index array
+	return -1;
+    }
+
+    std::string fname = col->partition()->currentDataDir();
+    fname += FASTBIT_DIRSEP;
+    fname += col->name();
+    int len = fname.size();
+    fname += ".srt";
+
+    uint32_t iv = 0;
+    uint32_t it = 0;
+    const uint32_t nvals = vals.size();
+    array_t<T> tmp;
+    int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
+    if (ierr == 0) { // got the sorted values
+	while (iv < nvals && it < nrows) {
+	    // move iv so that vals[iv] is not less than tmp[it]
+	    while (iv < nvals && vals[iv] < tmp[it])
+		++ iv;
+	    if (iv >= nvals)
+		return 0;
+	    // move it so that tmp[it] is not less than vals[iv]
+	    while (it < nrows && vals[iv] > tmp[it])
+		++ it;
+
+	    while (it < nrows && vals[iv] == tmp[it]) { // found a match
+		pos.push_back(ind[it]);
+		++ it;
+	    }
+	}
+	return 0;
+    }
+    else {
+	LOGGER(ibis::gVerbose > 3)
+	    << "roster::icSearch<" << typeid(T).name()
+	    << "> failed to read data file " << fname
+	    << ", see whether the base data file is usable";
+    }
+
+    // try to read the base data
+    fname.erase(len);
+    ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
+    if (ierr == 0) { // got the base data in memory
+	while (iv < nvals && it < nrows) {
+	    // move iv so that vals[iv] is not less than tmp[ind[it]]
+	    while (iv < nvals && vals[iv] < tmp[ind[it]])
+		++ iv;
+	    if (iv >= nvals)
+		return 0;
+	    // move it so that tmp[ind[it]] is not less than vals[iv]
+	    while (it < nrows && vals[iv] > tmp[ind[it]])
+		++ it;
+
+	    // found a match
+	    while (it < nrows && vals[iv] == tmp[ind[it]]) {
+		pos.push_back(ind[it]);
+		++ it;
+	    }
+	}
+    }
+    else {
+	LOGGER(ibis::gVerbose > 1)
+	    << "roster::icSearch<" << typeid(T).name()
+	    << "> failed to read data files " << fname << ".srt and " << fname;
+	return -2;
+    }
+    return 0;
+} // ibis::roster::icSearch
+
+/// Out-of-core search function.  It requires at least .ind file to be in
+/// memory.  Need to implement a version that can read both .ind and .srt
+/// files during search.
+/// @note This function only adds more positions to pos.  The caller needs
+/// to initialize the output array if necessary.
+template <typename T> int
+ibis::roster::oocSearch(const ibis::array_t<T>& vals,
+			std::vector<uint32_t>& pos) const {
+    // explicitly generate the sorted values
+    int ierr = writeSorted(static_cast<const char*>(0));
+    if (ierr < 0) return ierr;
+
+    std::string fname = col->partition()->currentDataDir();
+    fname += FASTBIT_DIRSEP;
+    fname += col->name();
+    int len = fname.size();
+    fname += ".srt";
+
+    const uint32_t nvals = vals.size();
+    const uint32_t nrows = col->partition()->nRows();
+    int srtdes = UnixOpen(fname.c_str(), OPEN_READONLY);
+    if (srtdes < 0) {
+	ibis::util::logMessage("Warning", "failed to open the file "
+			       "containing sorted values (%s)", fname.c_str());
+	return -5;
+    }
+
+    uint32_t iv = 0; // index for vals
+    uint32_t ir = 0; // index for the rows to be read
+    const unsigned int tbytes = sizeof(T);
+
+    ibis::fileManager::buffer<T> mybuf;
+    char *cbuf = reinterpret_cast<char*>(mybuf.address());
+    const uint32_t ncbuf = tbytes * mybuf.size();
+    const uint32_t nbuf = mybuf.size();
+    if (nbuf > 0 && ind.size() == nrows) {
+	// each read operation fills the buffer, use in-memory ind array
+	while (iv < nvals && ir < nrows) {
+	    ierr = UnixRead(srtdes, cbuf, ncbuf);
+	    if (ierr < static_cast<int>(tbytes)) {
+		return -6;
+	    }
+
+	    const T* curr = reinterpret_cast<const T*>(cbuf);
+	    const T* end = curr + ierr / tbytes;
+	    while (curr < end) {
+		while (iv < nvals && vals[iv] < *curr)
+		    ++ iv;
+		if (iv >= nvals) {
+		    return 0;
+		}
+		while (curr < end && vals[iv] > *curr) {
+		    ++ curr;
+		    ++ ir;
+		}
+		while (curr < end && vals[iv] == *curr) {
+		    pos.push_back(ind[ir]);
+		    ++ curr;
+		    ++ ir;
+		}
+	    }
+	}
+
+	return 0;
+    }
+
+    if (inddes < 0) {
+	fname.erase(len);
+	fname += ".ind";
+	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
+	if (inddes < 0) {
+	    ibis::util::logMessage("Warning", "ibis::roster::oocSearch failed "
+				   "to open index file %s",
+				   fname.c_str());
+	    return -7;
+	}
+    }
+    if (nbuf > 0 && inddes > 0) {
+	// bulk read, also need to read ind array
+	while (iv < nvals && ir < nrows) {
+	    ierr = UnixRead(srtdes, cbuf, ncbuf);
+	    if (ierr < static_cast<int>(tbytes)) {
+		return -8;
+	    }
+
+	    const T* curr = reinterpret_cast<const T*>(cbuf);
+	    const T* end = curr + ierr / tbytes;
+	    while (curr < end) {
+		while (iv < nvals && vals[iv] < *curr)
+		    ++ iv;
+		if (iv >= nvals) {
+		    return 0;
+		}
+		while (curr < end && vals[iv] > *curr) {
+		    ++ curr;
+		    ++ ir;
+		}
+		while (curr < end && vals[iv] == *curr) {
+		    uint32_t tmp;
+		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
+		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
+		    if (ierr <= 0) {
+			ibis::util::logMessage
+			    ("Warning", "ibis::roster::oocSearch "
+			     "failed to %lu-th index value",
+			     static_cast<long unsigned>(ir));
+			return -9;
+		    }
+		    pos.push_back(tmp);
+		    ++ curr;
+		    ++ ir;
+		}
+	    }
+	}
+    }
+    else { // read one value at a time, very slow!
+	cbuf = 0;
+
+	T curr;
+	ierr = UnixRead(srtdes, &curr, tbytes);
+	if (ierr < static_cast<int>(tbytes)) {
+	    ibis::util::logMessage
+		("Warning", "ibis::roster::oocSearch failed to read "
+		 "value %lu from the sorted file",
+		 static_cast<long unsigned>(ir));
+	    return -10;
+	}
+
+	while (iv < nvals && ir < nrows) {
+	    while (iv < nvals && vals[iv] < curr)
+		++ iv;
+	    if (iv >= nvals)
+		return 0;
+
+	    while (ir < nrows && vals[iv] > curr) {
+		ierr = UnixRead(srtdes, &curr, tbytes);
+		if (ierr < static_cast<int>(tbytes)) {
+		    ibis::util::logMessage
+			("Warning", "ibis::roster::oocSearch failed to read "
+			 "value %lu from the sorted file",
+			 static_cast<long unsigned>(ir));
+		    return -11;
+		}
+		++ ir;
+	    }
+	    while (ir < nrows && vals[iv] == curr) {
+		if (ind.size() == nrows) {
+		    pos.push_back(ind[ir]);
+		}
+		else {
+		    uint32_t tmp;
+		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
+		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
+		    if (ierr <= 0) {
+			ibis::util::logMessage
+			    ("Warning", "ibis::roster::oocSearch "
+			     "failed to %lu-th index value",
+			     static_cast<long unsigned>(ir));
+			return -12;
+		    }
+		    pos.push_back(tmp);
+		}
+		ierr = UnixRead(srtdes, &curr, tbytes);
+		if (ierr < static_cast<int>(tbytes)) {
+		    ibis::util::logMessage
+			("Warning", "ibis::roster::oocSearch failed to read "
+			 "value %lu from the sorted file",
+			 static_cast<long unsigned>(ir));
+		    return -13;
+		}
+		++ ir;
+	    }
+	}
+    }
+    return 0;
+} // ibis::roster::oocSearch
+
+/// In-core searching function.  Attempts to read .ind and .srt into
+/// memory.  Returns a negative value if it fails to read the necessary
+/// data files into memory.
+/// @note This function only adds more positions to pos.  The caller needs
+/// to initialize the output array if necessary.
+template <typename T> int
 ibis::roster::icSearch(const std::vector<T>& vals,
 		       std::vector<uint32_t>& pos) const {
     const uint32_t nrows = col->partition()->nRows();
@@ -2584,6 +2840,204 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 /// - -2: internal error, no column associated with the @c roster object.
 /// - -3: failed both in-core and out-of-core search operations.
 template <typename T> int
+ibis::roster::locate(const ibis::array_t<T>& vals,
+		     std::vector<uint32_t>& positions) const {
+    int ierr = 0;
+    if (col == 0 || (ind.size() != col->partition()->nRows() && inddes < 0)) {
+	ierr = -2;
+	return ierr;
+    }
+    if (col->elementSize() != static_cast<int>(sizeof(T))) {
+	ierr = -1;
+	return ierr;
+    }
+
+    positions.clear();
+    ierr = icSearch(vals, positions);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "column[" << col->partition()->name() << "." << col->name()
+	    << "]::roster::locate<" << typeid(T).name() << ">(" << vals.size()
+	    << ") failed icSearch with ierr = " << ierr
+	    << ", attempting oocSearch";
+
+	positions.clear();
+	ierr = oocSearch(vals, positions);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << col->partition()->name() << "." << col->name()
+		<< "]::roster::locate<" << typeid(T).name() << ">("
+		<< vals.size() << ") failed oocSearch with ierr = " << ierr;
+	    return -3;
+	}
+    }
+    return ierr;
+} // ibis::roster::locate
+
+/// This explicit specialization of the locate function does not require
+/// column type to match the incoming data type.  Instead, it casts the
+/// incoming data type explicitly before performing any comparisons.
+template <> int
+ibis::roster::locate(const ibis::array_t<double>& vals,
+		     ibis::bitvector& positions) const {
+    int ierr = 0;
+    if (col == 0 || (ind.size() != col->partition()->nRows() && inddes < 0)) {
+	ierr = -2;
+	return ierr;
+    }
+
+    std::string evt;
+    if (ibis::gVerbose >= 0) {
+	std::ostringstream oss;
+	oss << "column[" << col->partition()->name() << '.' << col->name()
+	    << "]::roster::locate<double>(" << vals.size() << ')';
+	evt = oss.str();
+    }
+    ibis::util::timer mytime(evt.c_str(), 3);
+    std::vector<uint32_t> ipos; // integer positions
+    switch (col->type()) {
+    default: {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " -- no roster list for column type "
+	    << ibis::TYPESTRING[static_cast<int>(col->type())];
+	break;}
+    case ibis::BYTE: {
+	ierr = locate2<double, signed char>(vals, ipos);
+	break;}
+    case ibis::UBYTE: {
+	ierr = locate2<double, unsigned char>(vals, ipos);
+	break;}
+    case ibis::SHORT: {
+	ierr = locate2<double, int16_t>(vals, ipos);
+	break;}
+    case ibis::USHORT: {
+	ierr = locate2<double, uint16_t>(vals, ipos);
+	break;}
+    case ibis::INT: {
+	ierr = locate2<double, int32_t>(vals, ipos);
+	break;}
+    case ibis::UINT: {
+	ierr = locate2<double, uint32_t>(vals, ipos);
+	break;}
+    case ibis::LONG: {
+	ierr = locate2<double, int64_t>(vals, ipos);
+	break;}
+    case ibis::ULONG: {
+	ierr = locate2<double, uint64_t>(vals, ipos);
+	break;}
+    case ibis::FLOAT: {
+	ierr = locate2<double, float>(vals, ipos);
+	break;}
+    case ibis::DOUBLE: {
+	ierr = locate<double>(vals, ipos);
+	break;}
+    }
+
+    if (ipos.size() >= (col->partition()->nRows() >> 7)) {
+	positions.set(0, col->partition()->nRows());
+	positions.decompress();
+	for (std::vector<uint32_t>::const_iterator it = ipos.begin();
+	     it != ipos.end(); ++ it)
+	    positions.setBit(*it, 1);
+    }
+    else {
+	std::sort(ipos.begin(), ipos.end());
+	for (std::vector<uint32_t>::const_iterator it = ipos.begin();
+	     it != ipos.end(); ++ it)
+	    positions.setBit(*it, 1);
+	positions.adjustSize(0, col->partition()->nRows());
+    }
+
+    return ierr;
+} // ibis::roster::locate
+
+/// Cast the incoming values into the type of the column (myT) and then
+/// locate the positions of the records that match one of the values.
+template <typename inT, typename myT> int
+ibis::roster::locate2(const ibis::array_t<inT>& vals,
+		      std::vector<uint32_t>& positions) const {
+    int ierr;
+    if (strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
+	std::vector<myT> myvals; // copy values to the correct type
+	myvals.reserve(vals.size());
+	for (size_t j = 0; j < vals.size(); ++ j) {
+	    myT tmp = static_cast<myT>(vals[j]);
+	    if (static_cast<inT>(tmp) == vals[j])
+		myvals.push_back(tmp);
+	}
+	ierr = locate<myT>(myvals, positions);
+    }
+    else {
+	ierr = locate<inT>(vals, positions);
+    }
+    return ierr;
+} // ibis::roster::locate2
+
+template <typename T> int
+ibis::roster::locate(const ibis::array_t<T>& vals,
+		     ibis::bitvector& positions) const {
+    int ierr = 0;
+    if (col == 0 || (ind.size() != col->partition()->nRows() && inddes < 0)) {
+	ierr = -2;
+	return ierr;
+    }
+    if (col->elementSize() != static_cast<int>(sizeof(T))) {
+	ierr = -1;
+	return ierr;
+    }
+    positions.clear();
+    if (vals.empty())
+	return ierr;
+
+    std::string evt;
+    if (ibis::gVerbose >= 0) {
+	std::ostringstream oss;
+	oss << "column[" << col->partition()->name() << '.' << col->name()
+	    << "]::roster::locate<" << typeid(T).name()<< ">("
+	    << vals.size() << ')';
+	evt = oss.str();
+    }
+    ibis::util::timer mytime(evt.c_str(), 3);
+    std::vector<uint32_t> ipos; // integer positions
+    ierr = icSearch(vals, ipos);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed icSearch with ierr = " << ierr
+	    << ", attempting oocSearch";
+
+	ipos.clear();
+	ierr = oocSearch(vals, ipos);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " failed oocSearch with ierr = "
+		<< ierr;
+	    return -3;
+	}
+    }
+
+    if (ipos.size() >= (col->partition()->nRows() >> 7)) {
+	positions.set(0, col->partition()->nRows());
+	positions.decompress();
+	for (std::vector<uint32_t>::const_iterator it = ipos.begin();
+	     it != ipos.end(); ++ it)
+	    positions.setBit(*it, 1);
+    }
+    else {
+	std::sort(ipos.begin(), ipos.end());
+	for (std::vector<uint32_t>::const_iterator it = ipos.begin();
+	     it != ipos.end(); ++ it)
+	    positions.setBit(*it, 1);
+	positions.adjustSize(0, col->partition()->nRows());
+    }
+
+    return ierr;
+} // ibis::roster::locate
+
+/// Error code:
+/// - -1: incorrect type of @c vals.
+/// - -2: internal error, no column associated with the @c roster object.
+/// - -3: failed both in-core and out-of-core search operations.
+template <typename T> int
 ibis::roster::locate(const std::vector<T>& vals,
 		     std::vector<uint32_t>& positions) const {
     int ierr = 0;
@@ -2698,7 +3152,7 @@ ibis::roster::locate2(const std::vector<inT>& vals,
 	ierr = locate<inT>(vals, positions);
     }
     return ierr;
-} // ibis::roster::locate
+} // ibis::roster::locate2
 
 /// This explicit specialization of the locate function does not require
 /// column type to match the incoming data type.  Instead, it casts the

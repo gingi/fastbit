@@ -473,7 +473,7 @@ int ibis::keywords::read(const char* f) {
 			    fnm.c_str(), static_cast<long unsigned>(nrows));
 	}
 #else
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
 #endif
     }
     else {
@@ -521,7 +521,7 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
 				static_cast<long unsigned>(nrows));
 	    }
 #else
-	    bits[0]->setSize(nrows);
+	    bits[0]->sloppySize(nrows);
 #endif
 	}
 	else {
@@ -549,7 +549,7 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
 				    static_cast<long unsigned>(nrows));
 		}
 #else
-		btmp->setSize(nrows);
+		btmp->sloppySize(nrows);
 #endif
 	    }
 	}
@@ -639,7 +639,7 @@ double ibis::keywords::estimateCost(const ibis::qContinuousRange& expr) const {
 double ibis::keywords::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
     if (offsets.size() > bits.size()) {
-	const std::vector<double>& vals = expr.getValues();
+	const ibis::array_t<double>& vals = expr.getValues();
 	for (unsigned j = 0; j < vals.size(); ++ j) {
 	    uint32_t itmp = static_cast<uint32_t>(vals[j]);
 	    if (itmp < bits.size())

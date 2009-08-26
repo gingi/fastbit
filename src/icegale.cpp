@@ -403,7 +403,7 @@ int ibis::egale::read(const char* f) {
 			    fnm.c_str(),
 			    static_cast<long unsigned>(nrows));
 #else
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
 #endif
     }
     else {
@@ -475,7 +475,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 		a0(st, offs[0],
 		   (offs[1] - offs[0]) / sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
-	    bits[0]->setSize(nrows);
+	    bits[0]->sloppySize(nrows);
 	}
 	else {
 	    bits[0] = new ibis::bitvector;
@@ -491,7 +491,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 		a(st, offs[i], (offs[i+1] - offs[i]) /
 		  sizeof(ibis::bitvector::word_t));
 	    bits[i] = new ibis::bitvector(a);
-	    bits[i]->setSize(nrows);
+	    bits[i]->sloppySize(nrows);
 	}
 	str = 0;
     }

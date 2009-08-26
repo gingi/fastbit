@@ -88,6 +88,7 @@ public:
     virtual int buildIndexes(const char*) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
+    virtual int getPartitions(std::vector<const ibis::part*> &) const;
 
     // Cursor class for row-wise data accesses.
     class cursor;
@@ -99,7 +100,7 @@ public:
 protected:
     class column;
     /// An in-memory data partition.
-    class part : virtual public ibis::part {
+    class part : public ibis::part {
     public:
 	part(const char *tn, const char *td, uint64_t nr,
 	     const ibis::table::stringList &cn,

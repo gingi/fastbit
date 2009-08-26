@@ -181,7 +181,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 		    a0(st, offs[0], (offs[1]-offs[0]) /
 		       sizeof(ibis::bitvector::word_t));
 		bits[0] = new ibis::bitvector(a0);
-		bits[0]->setSize(nrows);
+		bits[0]->sloppySize(nrows);
 	    }
 	    else {
 		bits[0] = new ibis::bitvector;
@@ -207,7 +207,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 				      static_cast<long unsigned>(nrows));
 		    }
 #else
-		    btmp->setSize(nrows);
+		    btmp->sloppySize(nrows);
 #endif
 		}
 	    }
@@ -270,7 +270,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 		    a0(st, offs[0], (offs[1]-offs[0])/
 		       sizeof(ibis::bitvector::word_t));
 		bits[0] = new ibis::bitvector(a0);
-		bits[0]->setSize(nrows);
+		bits[0]->sloppySize(nrows);
 	    }
 	    else {
 		bits[0] = new ibis::bitvector;
@@ -296,7 +296,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 				      static_cast<long unsigned>(nrows));
 		    }
 #else
-		    btmp->setSize(nrows);
+		    btmp->sloppySize(nrows);
 #endif
 		}
 		else {
@@ -431,7 +431,7 @@ int ibis::bin::read(const char* f) {
 			    fnm.c_str(),
 			    static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows)
+	tmp->sloppySize(nrows)
 #endif
 	    }
     else {
@@ -538,7 +538,7 @@ int ibis::bin::read(int fdes, uint32_t start, const char *fn) {
 		array_t<ibis::bitvector::word_t>
 		    a0(fdes, offsets[i], offsets[i+1]);
 		ibis::bitvector* tmp = new ibis::bitvector(a0);
-		tmp->setSize(nrows);
+		tmp->sloppySize(nrows);
 		bits[i] = tmp;
 		if (tmp->size() != nrows)
 		    col->logWarning("readIndex", "the length (%lu) of "
@@ -568,7 +568,7 @@ int ibis::bin::read(int fdes, uint32_t start, const char *fn) {
 			    static_cast<long unsigned>(tmp->size()),
 			    static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows);
+	tmp->sloppySize(nrows);
 #endif
     }
     else {
@@ -625,7 +625,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 			    static_cast<long unsigned>(nrows));
 	}
 #else
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
 #endif
 #endif
 	offsets.copy(offs);
@@ -649,7 +649,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 				    static_cast<long unsigned>(nrows));
 		}
 #else
-		btmp->setSize(nrows);
+		btmp->sloppySize(nrows);
 #endif
 	    }
 	}
@@ -5777,7 +5777,7 @@ double ibis::bin::estimateCost(const ibis::qContinuousRange& expr) const {
 
 double ibis::bin::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0;
-    const std::vector<double>& vals = expr.getValues();
+    const ibis::array_t<double>& vals = expr.getValues();
     if (offsets.size() > bits.size()) {
 	std::vector<uint32_t> bins(vals.size());
 	for (unsigned j = 0; j < vals.size(); ++ j)

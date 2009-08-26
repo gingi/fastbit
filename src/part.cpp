@@ -3370,7 +3370,7 @@ long ibis::part::estimateMatchAny(const ibis::qAnyAny &cmp,
     high.set(0, nEvents);
     const char *pref = cmp.getPrefix();
     const int   len = strlen(pref);
-    const std::vector<double> &vals = cmp.getValues();
+    const ibis::array_t<double> &vals = cmp.getValues();
     columnList::const_iterator it = columns.lower_bound(pref);
     if (vals.size() > 1) { // multiple values, use discrete range query
 	// TODO: to implement the proper functions to handle discrete
@@ -3570,7 +3570,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		hits.setBit(i, 1);
 	}
 	else {
-	    const std::vector<double> &vals =
+	    const ibis::array_t<double> &vals =
 		reinterpret_cast<const ibis::qDiscreteRange&>
 		(cmp).getValues();
 	    for (uint32_t i = 0; i < vals.size(); ++ i) {
@@ -5080,7 +5080,7 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
     hits.set(0, mask.size());
     const char* pref = cmp.getPrefix();
     const int len = strlen(pref);
-    const std::vector<double> &vals = cmp.getValues();
+    ibis::array_t<double> vals(cmp.getValues());
     columnList::const_iterator it = columns.lower_bound(pref);
     if (vals.size() > 1) { // more than one value
 	while (it != columns.end() &&
@@ -5090,9 +5090,10 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 	    (*it).second->getNullMask(msk);
 	    msk &= mask;
 	    ibis::qDiscreteRange ex((*it).first, vals);
-	    // TODO: some way to decide whether to do this
-	    if (hits.cnt() > hits.bytes())
+	    if (hits.cnt() > hits.bytes()) {
 		msk -= hits;
+		msk.compress();
+	    }
 	    doScan(ex, msk, res);
 	    if (res.size() == hits.size())
 		hits |= res;

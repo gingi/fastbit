@@ -10,7 +10,7 @@
 /// Define the query expression.
 ///
 #include "util.h"
-#include <functional>	// std::less, std::binary_function<>
+#include "array_t.h"
 
 namespace ibis { // additional names related to qExpr
     class qRange;	///< A simple range defined on a single attribute.
@@ -291,15 +291,11 @@ class ibis::qDiscreteRange : public ibis::qRange {
 public:
     /// Construct an empty dicrete range expression.
     qDiscreteRange() : qRange(DRANGE) {};
-    /// Construct a discrete range from two strings.  Used by the parser.
     qDiscreteRange(const char *col, const char *nums);
-    /// Construct a discrete range expression from a list of integers.  Used to
-    /// convert qMultiString to qDiscreteRange.
     qDiscreteRange(const char *col, const std::vector<uint32_t>& val);
-    /// Construct a discrete range expression from a list of floating-point
-    /// values.
     qDiscreteRange(const char *col, const std::vector<double>& val);
-    qDiscreteRange(const char *col, const array_t<double>& val);
+    qDiscreteRange(const char *col, ibis::array_t<uint32_t>& val);
+    qDiscreteRange(const char *col, ibis::array_t<double>& val);
 
     /// Copy constructor.
     qDiscreteRange(const qDiscreteRange& dr)
@@ -308,8 +304,8 @@ public:
 
     // main access functions
     virtual const char* colName() const {return name.c_str();}
-    const std::vector<double>& getValues() const {return values;}
-    std::vector<double>& getValues() {return values;}
+    const ibis::array_t<double>& getValues() const {return values;}
+    ibis::array_t<double>& getValues() {return values;}
 
     /// Duplicate thy self.
     virtual qDiscreteRange* dup() const {return new qDiscreteRange(*this);}
@@ -329,7 +325,7 @@ public:
 
 private:
     std::string name;
-    std::vector<double> values; ///< values are sorted.
+    ibis::array_t<double> values; ///< values are sorted.
 
     qDiscreteRange& operator=(const qDiscreteRange&);
 }; // ibis::qDiscreteRange
@@ -773,7 +769,7 @@ public:
     ~qAnyAny() {}; // all data members can delete themselves.
 
     const char* getPrefix() const {return prefix.c_str();}
-    const std::vector<double>& getValues() const {return values;}
+    const ibis::array_t<double>& getValues() const {return values;}
 
     // Use the compiler generated copy constructor to perform duplication.
     virtual qExpr* dup() const {return new qAnyAny(*this);}
@@ -783,7 +779,7 @@ public:
 
 private:
     std::string prefix; ///< The prefix of the column names to search.
-    std::vector<double> values; ///< The list of values to match.
+    ibis::array_t<double> values; ///< The list of values to match.
 }; // class ibis::qAnyAny
 
 // return 1 if the incoming value is in the specified range

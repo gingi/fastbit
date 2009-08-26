@@ -131,6 +131,19 @@ public:
     /// compute another table that represents the selected values.
     virtual table* select(const char* sel, const char* cond) const =0;
 
+    /// Perform the select operation on a list of data partitions.
+    static table* select(const std::vector<const ibis::part*>& parts,
+			 const char* sel, const char* cond);
+    /// Perform select operation using a user-supplied query expression.
+    static table* select(const std::vector<const ibis::part*>& parts,
+			 const char* sel, const ibis::qExpr* cond);
+    /// Compute the number of rows satisfying the specified conditions.
+    static int64_t computeHits(const std::vector<const ibis::part*>& parts,
+			       const char* cond);
+    /// Compute the number of rows satisfying the specified query expression.
+    static int64_t computeHits(const std::vector<const ibis::part*>& parts,
+			       const ibis::qExpr* cond);
+
     /// Perform aggregate functions on the current table.  It produces a
     /// new table.  The list of strings passed to this function are
     /// interpreted as a set of names followed by a set of functions.
@@ -167,6 +180,9 @@ public:
     /// subdirecories when possible.  Therefore it may find an arbitrary
     /// number of data partitions.
     virtual int addPartition(const char* dir) {return -1;}
+    /// Retrieve the list of partitions.
+    virtual int getPartitions(std::vector<const ibis::part*>&) const {
+	return -1;}
 
     /// The following functions deal with auxillary data for accelerating
     /// query processing, primarily for building indexes.
@@ -455,18 +471,19 @@ public:
     /// Parse names and data types in string form.
     virtual int parseNamesAndTypes(const char* txt);
 
-    /// Write the in-memory data records to the specified directory on
-    /// disk.  If the table name (@c tname) is a null string or an empty
-    /// string, the last component of the directory name is used.  If the
-    /// description (@c tdesc) is a null string or an empty string, a time
-    /// stamp will be printed in its place.  If the specified directory
-    /// already contains data, the new records will be appended to the
-    /// existing data.  In this case, the table name specified here will
-    /// overwrite the existing name, but the existing name and description
-    /// will be retained if the current arguments are null strings or empty
-    /// strings.  The data type associated with this table will overwrite
-    /// the existing data type information.  If the index specification is
-    /// not null, the existing index specification will be overwritten.
+    /// Write the in-memory data records to the specified directory and
+    /// update the metadata on disk.  If the table name (@c tname) is a
+    /// null string or an empty string, the last component of the directory
+    /// name is used.  If the description (@c tdesc) is a null string or an
+    /// empty string, a time stamp will be printed in its place.  If the
+    /// specified directory already contains data, the new records will be
+    /// appended to the existing data.  In this case, the table name
+    /// specified here will overwrite the existing name, but the existing
+    /// name and description will be retained if the current arguments are
+    /// null strings or empty strings.  The data type associated with this
+    /// table will overwrite the existing data type information.  If the
+    /// index specification is not null, the existing index specification
+    /// will be overwritten.
     virtual int write(const char* dir, const char* tname=0,
 		      const char* tdesc=0, const char* idx=0) const =0;
     /// Write out the information about the columns.  It will write the

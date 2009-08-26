@@ -1019,6 +1019,15 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator&=: A=" << *this << "B=" << rhs;
     }
 #endif
+    if (size() > rhs.size()) { // make a copy of RHS and extend its size
+	ibis::bitvector tmp(rhs);
+	tmp.adjustSize(0, size());
+	operator&=(tmp);
+	return;
+    }
+    else if (size() < rhs.size()) {
+	adjustSize(0, rhs.size());
+    }
 
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
@@ -1034,13 +1043,33 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 	swap(tmp);
 	and_d1(tmp);
     }
-    else if (all0s() || rhs.all1s()) { // nothing to do
-	active.val &= rhs.active.val;
+    else if (all0s() || rhs.all1s()) { // deal with active words
+	if (active.nbits == rhs.active.nbits) {
+	    active.val &= rhs.active.val;
+	}
+	else if (active.nbits > rhs.active.nbits) {
+	    active.val &= (rhs.active.val << (active.nbits - rhs.active.nbits));
+	}
+	else {
+	    active.val = (active.val << (rhs.active.nbits - active.nbits))
+		& rhs.active.val;
+	    active.nbits = rhs.active.nbits;
+	}
     }
     else if (rhs.all0s() || all1s()) { // copy rhs
 	nset = rhs.nset;
 	m_vec.copy(rhs.m_vec);
-	active.val &= rhs.active.val;
+	if (active.nbits == rhs.active.nbits) {
+	    active.val &= rhs.active.val;
+	}
+	else if (active.nbits > rhs.active.nbits) {
+	    active.val &= (rhs.active.val << (active.nbits - rhs.active.nbits));
+	}
+	else {
+	    active.val = (active.val << (rhs.active.nbits - active.nbits))
+		& rhs.active.val;
+	    active.nbits = rhs.active.nbits;
+	}
     }
     else if ((m_vec.size()+rhs.m_vec.size())*MAXBITS >= rhs.nbits) {
 	// if the total size of the two operands are large, generate an
@@ -1090,19 +1119,84 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
+    if (size() > rhs.size()) {
+	res->copy(rhs);
+	res->adjustSize(0, size());
+	*res &= *this;
+	return res;
+    }
+    else if (size() < rhs.size()) {
+	res->copy(*this);
+	res->adjustSize(0, rhs.size());
+	*res &= rhs;
+	return res;
+    }
+
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
-	res->m_vec.resize(m_vec.size());
-	array_t<word_t>::iterator i = res->m_vec.begin();
-	array_t<word_t>::const_iterator j = m_vec.begin();
-	array_t<word_t>::const_iterator k = rhs.m_vec.begin();
-	while (i != res->m_vec.end()) {
-	    *i = *j & *k; ++i; ++j; ++k;
+	const word_t nw = (m_vec.size() >= rhs.m_vec.size() ?
+			   m_vec.size() : rhs.m_vec.size());
+	res->m_vec.resize(nw);
+	if (m_vec.size() == rhs.m_vec.size()) {
+	    array_t<word_t>::iterator i = res->m_vec.begin();
+	    array_t<word_t>::const_iterator j = m_vec.begin();
+	    array_t<word_t>::const_iterator k = rhs.m_vec.begin();
+	    while (i != res->m_vec.end()) {
+		*i = *j & *k; ++i; ++j; ++k;
+	    }
+	    res->nbits = nbits;
+	    if (active.nbits == rhs.active.nbits) {
+		res->active.val = active.val & rhs.active.val;
+		res->active.nbits = active.nbits;
+	    }
+	    else if (active.nbits > rhs.active.nbits) {
+		res->active.val = active.val &
+		    (rhs.active.val << (active.nbits - rhs.active.nbits));
+		res->active.nbits = active.nbits;
+	    }
+	    else {
+		res->active.val = rhs.active.val &
+		    (active.val << (rhs.active.nbits - active.nbits));
+		res->active.nbits = rhs.active.nbits;
+	    }
 	}
-	res->active.val = active.val & rhs.active.val;
-	res->active.nbits = active.nbits;
-	res->nbits = nbits;
+	else if (m_vec.size() > rhs.m_vec.size()) {
+	    word_t j = 0;
+	    while (j < rhs.m_vec.size()) {
+		res->m_vec[j] = m_vec[j] & rhs.m_vec[j];
+		++ j;
+	    }
+	    if (rhs.active.nbits > 0) {
+		res->m_vec[j] = m_vec[j] &
+		    (rhs.active.val << (MAXBITS - rhs.active.nbits));
+		++ j;
+	    }
+	    while (j < nw) {
+		res->m_vec[j] = 0;
+		++ j;
+	    }
+	    res->active.nbits = active.nbits;
+	    res->active.val = 0;
+	}
+	else {
+	    word_t j = 0;
+	    while (j < m_vec.size()) {
+		res->m_vec[j] = m_vec[j] & rhs.m_vec[j];
+		++ j;
+	    }
+	    if (active.nbits > 0) {
+		res->m_vec[j] = (active.val << (MAXBITS - active.nbits))
+		    & rhs.m_vec[j];
+		++ j;
+	    }
+	    while (j < nw) {
+		res->m_vec[j] = 0;
+		++ j;
+	    }
+	    res->active.nbits = rhs.active.nbits;
+	    res->active.val = 0;
+	}
     }
     else if (ca) {
 	rhs.and_c1(*this, *res);
@@ -1159,6 +1253,15 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator|=: A=" << *this << "B=" << rhs;
     }
 #endif
+    if (size() > rhs.size()) {
+	ibis::bitvector tmp(rhs);
+	tmp.adjustSize(0, size());
+	operator|=(tmp);
+	return;
+    }
+    else if (size() < rhs.size()) {
+	adjustSize(0, rhs.size());
+    }
 
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
@@ -1228,6 +1331,19 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
+    if (size() > rhs.size()) {
+	res->copy(rhs);
+	res->adjustSize(0, size());
+	*res |= *this;
+	return res;
+    }
+    else if (size() < rhs.size()) {
+	res->copy(*this);
+	res->adjustSize(0, rhs.size());
+	*res |= rhs;
+	return res;
+    }
+
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
@@ -1297,6 +1413,15 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator^=: A=" << *this << "B=" << rhs;
     }
 #endif
+    if (size() > rhs.size()) {
+	ibis::bitvector tmp(rhs);
+	tmp.adjustSize(0, size());
+	operator^=(tmp);
+	return;
+    }
+    else if (size() < rhs.size()) {
+	adjustSize(0, rhs.size());
+    }
 
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
@@ -1357,6 +1482,19 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
+    if (size() > rhs.size()) {
+	res->copy(rhs);
+	res->adjustSize(0, size());
+	*res ^= *this;
+	return res;
+    }
+    else if (size() < rhs.size()) {
+	res->copy(*this);
+	res->adjustSize(0, rhs.size());
+	*res ^= rhs;
+	return res;
+    }
+
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca && cb) {
@@ -1418,6 +1556,16 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator-=: A=" << *this << "B=" << rhs;
     }
 #endif
+    if (size() > rhs.size()) {
+	ibis::bitvector tmp(rhs);
+	tmp.adjustSize(0, size());
+	operator-=(tmp);
+	return;
+    }
+    else if (size() < rhs.size()) {
+	adjustSize(0, rhs.size());
+    }
+
     const bool ca = (m_vec.size()*MAXBITS == nbits && nbits > 0);
     const bool cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits && rhs.nbits > 0);
     if (ca) {
@@ -1494,6 +1642,19 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
     }
 #endif
     ibis::bitvector *res = new ibis::bitvector;
+    if (size() > rhs.size()) {
+	res->copy(rhs);
+	res->adjustSize(0, size());
+	*res -= *this;
+	return res;
+    }
+    else if (size() < rhs.size()) {
+	res->copy(*this);
+	res->adjustSize(0, rhs.size());
+	*res -= rhs;
+	return res;
+    }
+
     int ca = (m_vec.size()*MAXBITS == nbits);
     int cb = (rhs.m_vec.size()*MAXBITS == rhs.nbits);
     if (ca && cb) {
@@ -3662,10 +3823,11 @@ void ibis::bitvector::minus_c0(const ibis::bitvector& rhs) {
 #endif
 } // ibis::bitvector::minus_c0
 
-// Adjust the size of bit sequence. if current size is less than nv,
-// append enough 1 bits so that it has nv bits.  If the resulting total
-// number of bits is less than nt, append 0 bits to that there are nt
-// total bits.  The final result always contains nt bits.
+/// Adjust the size of the bit sequence.  If current size is less than @c
+/// nv, append enough 1s so that it has @c nv bits.  If the resulting total
+/// number of bits is less than @c nt, append 0 bits so that there are @c
+/// nt total bits.  If there are more than @c nt bits, only the first @c nt
+/// bits are kept.  The final result always contains @c nt bits.
 void ibis::bitvector::adjustSize(word_t nv, word_t nt) {
     if (nbits == 0 || nbits < m_vec.size() * MAXBITS)
 	nbits = do_cnt();

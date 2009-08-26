@@ -314,7 +314,7 @@ int ibis::fade::read(const char* f) {
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
 	bits[0] = new ibis::bitvector(a0);
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
     }
     else {
 	bits[0] = new ibis::bitvector;
@@ -371,7 +371,7 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
 	    a0(st, offs[0], (offs[1]-offs[0])/
 	       sizeof(ibis::bitvector::word_t));
 	bits[0] = new ibis::bitvector(a0);
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
 #endif
 	offsets.swap(offs);
 	str = st;
@@ -383,7 +383,7 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
 		    a(st, offs[i], (offs[i+1]-offs[i])/
 		      sizeof(ibis::bitvector::word_t));
 		ibis::bitvector* btmp = new ibis::bitvector(a);
-		btmp->setSize(nrows);
+		btmp->sloppySize(nrows);
 		bits[i] = btmp;
 	    }
 	}
@@ -1442,7 +1442,7 @@ long ibis::fade::evaluate(const ibis::qContinuousRange& expr,
 // Evaluate a set of discrete range conditions.
 long ibis::fade::evaluate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& lower) const {
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     lower.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);

@@ -349,6 +349,7 @@ namespace ibis { // forward definition of all the classes in IBIS
     /// @{
     class part;		///< To store information about a data partition.
     class query;	///< To store information about a query.
+    class qExpr;	///< The base class of query expressions.
     /// @}
 
     template<class T> class array_t;

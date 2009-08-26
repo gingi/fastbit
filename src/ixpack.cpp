@@ -490,7 +490,7 @@ int ibis::pack::read(const char* f) {
 			    fnm.c_str(),
 			    static_cast<long unsigned>(nrows));
 #else
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
 #endif
     }
     else {

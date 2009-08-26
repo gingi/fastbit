@@ -1276,15 +1276,15 @@ namespace ibis {
     namespace util {
 	/// Look for data directories in the given pair of directories.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList &tables,
+	tablesFromDir(ibis::partList &parts,
 		      const char *adir, const char *bdir);
 	/// Look into the given directory for table.tdc files
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList &tables, const char *adir);
+	tablesFromDir(ibis::partList &parts, const char *adir);
 	/// Reconstruct partitions using data directories specified in the
 	/// resources.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromResources(ibis::partList &tables, const ibis::resource &res);
+	tablesFromResources(ibis::partList &parts, const ibis::resource &res);
     } // namespace util
 } // namespace ibis
 

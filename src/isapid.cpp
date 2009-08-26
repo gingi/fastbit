@@ -1333,7 +1333,7 @@ long ibis::sapid::evaluate(const ibis::qContinuousRange& expr,
 // Evaluate a set of discrete range conditions.
 long ibis::sapid::evaluate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& lower) const {
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     lower.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);

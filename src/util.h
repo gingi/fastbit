@@ -231,7 +231,6 @@ namespace ibis {
     class fileManager;	///< A simple file manager.
     class horometer;	///< A timer class.
     class index;	///< The base class of indices.
-    class qExpr;	///< The base class of query expressions.
     class roster;	///< A projection of a column in ascending order.
     class bitvector64;	///< The 64-bit version of bitvector class.
 

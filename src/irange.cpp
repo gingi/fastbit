@@ -264,7 +264,7 @@ int ibis::range::read(const char* f) {
 			    static_cast<long unsigned>(tmp->size()),
 			    fnm.c_str(), static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows);
+	tmp->sloppySize(nrows);
 #endif
     }
     else {
@@ -397,7 +397,7 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
 				    static_cast<long unsigned>(i),
 				    static_cast<long unsigned>(nrows));
 #else
-		tmp->setSize(nrows);
+		tmp->sloppySize(nrows);
 #endif
 	    }
 	    else if (i == 0) {
@@ -421,7 +421,7 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
 			    static_cast<long unsigned>(tmp->size()),
 			    static_cast<long unsigned>(nrows));
 #else
-	tmp->setSize(nrows);
+	tmp->sloppySize(nrows);
 #endif
     }
     else {

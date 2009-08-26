@@ -372,8 +372,8 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    }
 	    else if (col->type() == ibis::FLOAT) {
 		// reduce the precision of the bounds
-		std::vector<double>& val = range->getValues();
-		for (std::vector<double>::iterator it = val.begin();
+		ibis::array_t<double>& val = range->getValues();
+		for (ibis::array_t<double>::iterator it = val.begin();
 		     it != val.end(); ++ it)
 		    *it = static_cast<float>(*it);
 	    }

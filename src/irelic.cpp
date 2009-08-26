@@ -178,7 +178,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		a0(st, offs[0],
 		   (offs[1]-offs[0])/sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
-	    bits[0]->setSize(nrows);
+	    bits[0]->sloppySize(nrows);
 #endif
 	    str = st;
 	}
@@ -189,7 +189,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 			a(st, offs[i], (offs[i+1]-offs[i])/
 			  sizeof(ibis::bitvector::word_t));
 		    ibis::bitvector* btmp = new ibis::bitvector(a);
-		    btmp->setSize(nrows);
+		    btmp->sloppySize(nrows);
 		    bits[i] = btmp;
 		}
 		else if (ibis::gVerbose > 0) {
@@ -443,7 +443,7 @@ int ibis::relic::read(const char* f) {
     if (offsets[1] > offsets[0]) {
 	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
 	bits[0] = new ibis::bitvector(a0);
-	bits[0]->setSize(nrows);
+	bits[0]->sloppySize(nrows);
     }
     else {
 	bits[0] = new ibis::bitvector;
@@ -488,7 +488,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 		a0(st, offsets[0], (offsets[1]-offsets[0])/
 		   sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
-	    bits[0]->setSize(nrows);
+	    bits[0]->sloppySize(nrows);
 	}
 	else {
 	    bits[0] = new ibis::bitvector;
@@ -504,7 +504,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 		    a(st, offsets[i], (offsets[i+1]-offsets[i])/
 		      sizeof(ibis::bitvector::word_t));
 		ibis::bitvector* btmp = new ibis::bitvector(a);
-		btmp->setSize(nrows);
+		btmp->sloppySize(nrows);
 		bits[i] = btmp;
 	    }
 	    else if (ibis::gVerbose > 0) {
@@ -1573,7 +1573,7 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
 /// answer is in the number of bytes needed from this index.
 double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     if (offsets.size() > bits.size()) {
 	for (unsigned j = 0; j < varr.size(); ++ j) {
 	    uint32_t itmp = locate(varr[j]);
@@ -1595,7 +1595,7 @@ double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
 /// the rows satisfying the range conditions.
 long ibis::relic::evaluate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& answer) const {
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     answer.set(0, nrows);
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);
@@ -1612,7 +1612,7 @@ long ibis::relic::evaluate(const ibis::qDiscreteRange& expr,
 
 /// Compute the number of hits satisfying the discrete range expression.
 uint32_t ibis::relic::estimate(const ibis::qDiscreteRange& expr) const {
-    const std::vector<double>& varr = expr.getValues();
+    const ibis::array_t<double>& varr = expr.getValues();
     uint32_t cnt = 0;
     for (unsigned i = 0; i < varr.size(); ++ i) {
 	unsigned int itmp = locate(varr[i]);
