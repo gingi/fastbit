@@ -83,6 +83,8 @@ public:
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    virtual void estimate(const ibis::qExpr* cond,
+			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}
@@ -188,6 +190,8 @@ public:
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    virtual void estimate(const ibis::qExpr* cond,
+			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}
@@ -239,6 +243,13 @@ inline void ibis::tabula::describe(std::ostream& out) const {
 
 inline void
 ibis::tabula::estimate(const char*, uint64_t& nmin, uint64_t& nmax) const {
+    nmin = 0;
+    nmax = nrows;
+}
+
+inline void
+ibis::tabula::estimate(const ibis::qExpr*,
+		       uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
     nmax = nrows;
 }
@@ -328,6 +339,13 @@ inline int ibis::tabele::dump(std::ostream& out, const char *) const {
 
 inline void
 ibis::tabele::estimate(const char*, uint64_t& nmin, uint64_t& nmax) const {
+    nmin = 0;
+    nmax = 1;
+}
+
+inline void
+ibis::tabele::estimate(const ibis::qExpr*,
+		       uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
     nmax = 1;
 }

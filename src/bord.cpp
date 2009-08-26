@@ -9,6 +9,7 @@
 #include "tab.h"	// ibis::tabula and ibis::tabele
 #include "bord.h"	// ibis::bord
 #include "query.h"	// ibis::query
+#include "countQuery.h"	// ibis::countQuery
 #include "bundle.h"	// ibis::bundle
 #include <algorithm>	// std::reverse, std::copy
 #include <sstream>	// std::ostringstream
@@ -815,16 +816,37 @@ long ibis::bord::getHistogram3D(const char *constraints,
 
 void ibis::bord::estimate(const char *cond,
 			  uint64_t &nmin, uint64_t &nmax) const {
-    ibis::query q(ibis::util::userName(), &mypart);
-    q.setWhereClause(cond);
-    int ierr = q.estimate();
+    nmin = 0;
+    nmax = mypart.nRows();
+    ibis::countQuery q;
+    int ierr = q.setWhereClause(cond);
+    if (ierr < 0) return;
+
+    ierr = q.setPartition(&mypart);
+    if (ierr < 0) return;
+
+    ierr = q.estimate();
     if (ierr >= 0) {
 	nmin = q.getMinNumHits();
 	nmax = q.getMaxNumHits();
     }
-    else {
-	nmin = 0;
-	nmax = mypart.nRows();
+} // ibis::bord::estimate
+
+void ibis::bord::estimate(const ibis::qExpr *cond,
+			  uint64_t &nmin, uint64_t &nmax) const {
+    nmin = 0;
+    nmax = mypart.nRows();
+    ibis::countQuery q;
+    int ierr = q.setWhereClause(cond);
+    if (ierr < 0) return;
+
+    ierr = q.setPartition(&mypart);
+    if (ierr < 0) return;
+
+    ierr = q.estimate();
+    if (ierr >= 0) {
+	nmin = q.getMinNumHits();
+	nmax = q.getMaxNumHits();
     }
 } // ibis::bord::estimate
 
@@ -833,13 +855,19 @@ ibis::table* ibis::bord::select(const char *sel, const char *cond) const {
     if (sel != 0) // skip leading space
 	while (isspace(*sel)) ++ sel;
 
+    int ierr;
     ibis::query q(ibis::util::userName(), &mypart);
     if (sel != 0 && *sel != 0 && strnicmp(sel, "count(", 6) != 0) {
-	q.setSelectClause(sel);
+	ierr = q.setSelectClause(sel);
+	if (ierr < 0)
+	    return 0;
 	sel = q.getSelectClause();
     }
-    q.setWhereClause(cond);
-    int ierr = q.evaluate();
+    ierr = q.setWhereClause(cond);
+    if (ierr < 0)
+	return 0;
+
+    ierr = q.evaluate();
     if (ierr < 0) {
 	return 0; // something went badly wrong
     }

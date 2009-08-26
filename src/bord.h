@@ -73,6 +73,8 @@ public:
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    virtual void estimate(const ibis::qExpr* cond,
+			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
     virtual table* groupby(const char* str) const {

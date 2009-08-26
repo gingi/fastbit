@@ -79,6 +79,8 @@ public:
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    virtual void estimate(const ibis::qExpr* cond,
+			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char* sel, const char* cond) const;
     /// A variation of the function select defined in ibis::table.  It
     /// accepts an extra argument for caller to specify a list of names of

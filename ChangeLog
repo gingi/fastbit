@@ -9,6 +9,9 @@
 	table::computeHits that accept qExpr directly
 	* examples/thula.cpp: add a minimal test for the class functions
 	ibis::table::select
+	* src/table.h: add versions of the member function
+	ibis::table::estiamte and ibis::table::select to take query
+	expression in the form of ibis::qExpr*.
 
 2009-08-25 John Wu <John.Wu at ACM.org>
 	* src/qExpr.h: change values in ibis::qDiscreteRange and

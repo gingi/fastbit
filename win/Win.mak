@@ -134,7 +134,7 @@ bitvector64.obj: ../src/bitvector64.cpp ../src/bitvector64.h \
   ../src/horometer.h ../src/bitvector.h
 	$(CXX) $(CCFLAGS) -c -o bitvector64.o ../src/bitvector64.cpp
 bord.obj: ../src/bord.cpp ../src/tab.h ../src/table.h ../src/const.h \
-  ../src/bord.h ../src/util.h ../src/part.h \
+  ../src/bord.h ../src/util.h ../src/part.h ../src/countQuery.h \
   ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/query.h ../src/whereClause.h ../src/bundle.h \

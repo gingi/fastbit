@@ -124,12 +124,19 @@ public:
     virtual int dump(std::ostream& out, uint64_t nr,
 		     const char* del=", ") const =0;
     /// Estimate the number of rows satisfying the selection conditions.
-    /// The number of rows is between [@c nmin, @c nmax].
+    /// The number of rows is between [@c nmin, @c nmax] (inclusive).
     virtual void estimate(const char* cond,
+			  uint64_t& nmin, uint64_t& nmax) const =0;
+    /// Estimate the number of rows satisfying the selection conditions.
+    /// The number of rows is between [@c nmin, @c nmax] (inclusive).
+    virtual void estimate(const ibis::qExpr* cond,
 			  uint64_t& nmin, uint64_t& nmax) const =0;
     /// Given a set of column names and a set of selection conditions,
     /// compute another table that represents the selected values.
     virtual table* select(const char* sel, const char* cond) const =0;
+    /// Process the selection conditions and generate another table to hold
+    /// the answer.
+    virtual table* select(const char* sel, const ibis::qExpr* cond) const;
 
     /// Perform the select operation on a list of data partitions.
     static table* select(const std::vector<const ibis::part*>& parts,

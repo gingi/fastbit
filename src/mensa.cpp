@@ -303,6 +303,47 @@ void ibis::mensa::estimate(const char* cond,
     nmax = 0;
     ibis::countQuery qq;
     int ierr = qq.setWhereClause(cond);
+    if (ierr < 0) {
+	nmax = nRows();
+	return;
+    }
+
+    for (ibis::partList::const_iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	if (ierr >= 0) {
+	    ierr = qq.setPartition(*it);
+	    if (ierr >= 0) {
+		ierr = qq.estimate();
+		if (ierr >= 0) {
+		    nmin += qq.getMinNumHits();
+		    nmax += qq.getMaxNumHits();
+		}
+		else {
+		    nmax += (*it)->nRows();
+		}
+	    }
+	    else {
+		nmax += (*it)->nRows();
+	    }
+	    ierr = 0;
+	}
+	else {
+	    nmax += (*it)->nRows();
+	}
+    }
+} // ibis::mensa::estimate
+
+void ibis::mensa::estimate(const ibis::qExpr* cond,
+			   uint64_t& nmin, uint64_t& nmax) const {
+    nmin = 0;
+    nmax = 0;
+    ibis::countQuery qq;
+    int ierr = qq.setWhereClause(cond);
+    if (ierr < 0) {
+	nmax = nRows();
+	return;
+    }
+
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	if (ierr >= 0) {
@@ -3250,8 +3291,29 @@ ibis::table* ibis::table::create(const ibis::partList& pl) {
     return new ibis::liga(pl);
 } // ibis::table::create
 
-///@note If the incoming directory name is nil or an empty string, it
-///attempts to use the directories specified in the configuration files.
+/// This implementation uses the class function ibis::table::select that
+/// accepts query conditions in the form of a pointer to ibis::qExpr.
+/// Unlike the version that accepts the query conditions as a string, this
+/// function returns a nil table of the select clause is empty of nil.
+ibis::table*
+ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
+    if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
+	return 0;
+
+    std::vector<const ibis::part*> parts;
+    int ierr = getPartitions(parts);
+    if (ierr <= 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::table::select failed to getPartitions, ierr="
+	    << ierr;
+	return 0;
+    }
+
+    return ibis::table::select(parts, sel, cond);
+} // ibis::table::select
+
+/// If the incoming directory name is nil or an empty string, it attempts
+/// to use the directories specified in the configuration files.
 ibis::table* ibis::table::create(const char* dir) {
     return new ibis::mensa(dir);
 } // ibis::table::create
