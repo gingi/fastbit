@@ -15,7 +15,8 @@
 #include "irelic.h"
 #include "column.h"
 
-/// A minimalistic structure for storing arbitrary text fields.
+/// A data structure for storing null-terminated text.  The only type of
+/// search supported on this type of data is keyword search.
 /// The keyword search operation is implemented through a boolean
 /// term-document matrix (ibis::keywords) that has to be generated
 /// externally.
@@ -54,7 +55,7 @@ public:
 	return ibis::column::estimateCost(cmp);}
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
-			const uint32_t nnew, const uint32_t nbuf, char* buf);
+			const uint32_t nnew, uint32_t nbuf, char* buf);
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
     /// Return the positions of records marked 1 in the mask.
@@ -148,7 +149,7 @@ private:
 }; // ibis::dictionary
 
 /// A specialized low-cardinality text field.  It is also known as control
-/// values, or categorical values.  This implementation directly converts
+/// values or categorical values.  This implementation directly converts
 /// string values into bitvectors (as ibis::relic), and does not store
 /// integer version of the string.
 ///
@@ -182,7 +183,7 @@ public:
 
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
-			const uint32_t nnew, const uint32_t nbuf, char* buf);
+			const uint32_t nnew, uint32_t nbuf, char* buf);
     /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
 //     virtual
@@ -216,6 +217,77 @@ private:
 
     category& operator=(const category&);
 }; // ibis::category
+
+/// A class to provide minimal support for byte arrays.  Since a byte array
+/// may contain any arbitrary byte values, we can not rely on the null
+/// terminator any more, nor use std::string as the container for each
+/// array.  It is intended to store opaque data that can not be searched.
+class ibis::blob : public ibis::column {
+public:
+    virtual ~blob() {};
+    blob(const part*, FILE*);
+    blob(const part*, const char*, ibis::TYPE_T t=ibis::BLOB);
+    blob(const ibis::column&);
+
+    virtual long search(const char*, ibis::bitvector&) const {return -1;}
+
+    virtual void computeMinMax() {}
+    virtual void computeMinMax(const char*) {}
+    virtual void computeMinMax(const char*, double&, double&) const {}
+    virtual void loadIndex(const char*, int) const throw () {}
+    virtual long indexSize() const {return -1;}
+    virtual int  getValuesArray(void*) const {return -1;}
+
+    virtual array_t<char>* selectBytes(const bitvector&) const {return 0;}
+    virtual array_t<unsigned char>* selectUBytes(const bitvector&) const {return 0;}
+    virtual array_t<int16_t>* selectShorts(const bitvector&) const {return 0;}
+    virtual array_t<uint16_t>* selectUShorts(const bitvector&) const {return 0;}
+    virtual array_t<int32_t>* selectInts(const bitvector&) const {return 0;}
+    virtual array_t<uint32_t>* selectUInts(const bitvector&) const {return 0;}
+    virtual array_t<int64_t>* selectLongs(const bitvector&) const {return 0;}
+    virtual array_t<uint64_t>* selectULongs(const bitvector&) const {return 0;}
+    virtual array_t<float>* selectFloats(const bitvector&) const {return 0;}
+    virtual array_t<double>* selectDoubles(const bitvector&) const {return 0;}
+    virtual std::vector<std::string>* selectStrings(const bitvector&) const {return 0;}
+
+    virtual long estimateRange(const ibis::qContinuousRange&,
+			       ibis::bitvector&,
+			       ibis::bitvector&) const {return -1;}
+    virtual long estimateRange(const ibis::qDiscreteRange&,
+			       ibis::bitvector&,
+			       ibis::bitvector&) const {return -1;}
+    virtual long evaluateRange(const ibis::qContinuousRange&,
+			       const ibis::bitvector&,
+			       ibis::bitvector&) const {return -1;}
+    virtual long evaluateRange(const ibis::qDiscreteRange&,
+			       const ibis::bitvector&,
+			       ibis::bitvector&) const {return -1;}
+    virtual long estimateRange(const ibis::qContinuousRange&) const {return -1;}
+    virtual long estimateRange(const ibis::qDiscreteRange&) const {return -1;}
+    virtual double estimateCost(const ibis::qContinuousRange&) const {return 0;}
+    virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {return 0;}
+    virtual double estimateCost(const ibis::qString&) const {return 0;}
+    virtual double estimateCost(const ibis::qMultiString&) const {return 0;}
+
+    virtual float getUndecidable(const ibis::qContinuousRange&,
+				 ibis::bitvector&) const {return 1;}
+    virtual float getUndecidable(const ibis::qDiscreteRange&,
+				 ibis::bitvector&) const {return 1;}
+
+    virtual double getActualMin() const {return DBL_MAX;}
+    virtual double getActualMax() const {return -DBL_MAX;}
+    virtual double getSum() const {return 0;}
+    virtual long append(const void*, const ibis::bitvector&) {return -1;}
+
+    virtual long append(const char* dt, const char* df, const uint32_t nold,
+			const uint32_t nnew, uint32_t nbuf, char* buf);
+    virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,
+			   ibis::bitvector& mask, const void *va1,
+			   void *va2);
+
+    virtual void write(FILE*) const;
+    virtual void print(std::ostream&) const;
+}; // ibis::blob
 
 /// Return a string corresponding to the integer.  If the index is beyond
 /// the valid range, i.e., i > size(), then a null pointer will be

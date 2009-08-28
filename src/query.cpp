@@ -7026,9 +7026,6 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 	UnixClose(indes);
 	return -3;
     }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(outdes, _O_BINARY);
-#endif
 
     int olddes = UnixOpen(oldfile.c_str(), OPEN_READONLY);
     if (olddes < 0) {
@@ -7038,6 +7035,11 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 	UnixClose(indes);
 	return -4;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(indes, _O_BINARY);
+    (void)_setmode(outdes, _O_BINARY);
+    (void)_setmode(olddes, _O_BINARY);
+#endif
 
     ierr = UnixRead(indes, buf1, idsize);
     ierr += UnixRead(olddes, buf2, idsize);

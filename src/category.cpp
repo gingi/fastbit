@@ -407,6 +407,9 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 			   data.c_str());
 	    return 0;
 	}
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdata, _O_BINARY);
+#endif
 
 	int ret;
 	ibis::fileManager::buffer<char> mybuf;
@@ -708,7 +711,7 @@ void ibis::category::getString(uint32_t i, std::string &str) const {
 // extend the set of bitvectors representing the strings
 long ibis::category::append(const char* dt, const char* df,
 			    const uint32_t nold, const uint32_t nnew,
-			    const uint32_t nbuf, char* buf) {
+			    uint32_t nbuf, char* buf) {
     long ret = 0; // the return value
     long ierr = 0;
     uint32_t cnt = 0;
@@ -744,8 +747,14 @@ long ibis::category::append(const char* dt, const char* df,
 	// copy the raw bytes to dt
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fptr, _O_BINARY);
+#endif
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
+#if defined(_WIN32) && defined(_MSC_VER)
+		(void)_setmode(fdest, _O_BINARY);
+#endif
 		while ((ierr = UnixRead(fptr, buf, nbuf))) {
 		    ret = UnixWrite(fdest, buf, ierr);
 		    if (ret != ierr && ibis::gVerbose > 2)
@@ -775,6 +784,9 @@ long ibis::category::append(const char* dt, const char* df,
 	// first time accessing these strings, need to parse them
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fptr, _O_BINARY);
+#endif
 	    ret = 0;
 	    array_t<uint32_t> ints;
 	    do { // loop through the content of the file
@@ -853,6 +865,9 @@ long ibis::category::append(const char* dt, const char* df,
 
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
+#if defined(_WIN32) && defined(_MSC_VER)
+		(void)_setmode(fdest, _O_BINARY);
+#endif
 		ierr = UnixSeek(fptr, 0, SEEK_SET);
 		if (ierr < 0) return -2;
 		while ((ierr = UnixRead(fptr, buf, nbuf)) > 0) {
@@ -1342,7 +1357,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 /// misaligned.
 long ibis::text::append(const char* dt, const char* df,
 			const uint32_t nold, const uint32_t nnew,
-			const uint32_t nbuf, char* buf) {
+			uint32_t nbuf, char* buf) {
     long ret = 0; // the return value
     long ierr = 0;
 
@@ -1374,6 +1389,9 @@ long ibis::text::append(const char* dt, const char* df,
 		       src.c_str());
 	return -1;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fsrc, _O_BINARY);
+#endif
     int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (fdest < 0) {
 	UnixClose(fsrc);
@@ -1383,6 +1401,9 @@ long ibis::text::append(const char* dt, const char* df,
 	}
 	return -2;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdest, _O_BINARY);
+#endif
 
     while (0 < (ierr = UnixRead(fsrc, buf, nbuf))) {
 	ret = UnixWrite(fdest, buf, ierr);
@@ -2086,6 +2107,9 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 	delete res;
 	return 0;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdata, _O_BINARY);
+#endif
 
     int ierr;
     std::string tmp;
@@ -2266,6 +2290,9 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	    return;
 	}
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(des, _O_BINARY);
+#endif
     ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
     ierr = UnixRead(des, &positions, sizeof(positions));
     ierr = UnixClose(des);
@@ -2279,6 +2306,9 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 		   fnm.c_str());
 	return;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(datafile, _O_BINARY);
+#endif
     ierr = UnixSeek(datafile, positions[0], SEEK_SET);
     char buf[1025];
     buf[1024] = 0;
@@ -2633,33 +2663,46 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    << " for reading";
 	return -11;
     }
+    ibis::util::guard grffile = ibis::util::makeGuard(UnixClose, rffile);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(rffile, _O_BINARY);
+#endif
+
     int sffile = UnixOpen(spfrom, OPEN_READONLY);
     if (sffile < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << spfrom
 	    << " for reading";
-	UnixClose(rffile);
 	return -12;
     }
+    ibis::util::guard gsffile = ibis::util::makeGuard(UnixClose, sffile);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(sffile, _O_BINARY);
+#endif
+
     int rtfile = UnixOpen(to, OPEN_WRITEONLY, OPEN_FILEMODE);
     if (rtfile < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << to
 	    << " for writing";
-	UnixClose(sffile);
-	UnixClose(rffile);
 	return -13;
     }
+    ibis::util::guard grtfile = ibis::util::makeGuard(UnixClose, rtfile);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(rtfile, _O_BINARY);
+#endif
+
     int stfile = UnixOpen(spto, OPEN_WRITEONLY, OPEN_FILEMODE);
     if (rtfile < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << spto
 	    << " for writing";
-	UnixClose(rtfile);
-	UnixClose(sffile);
-	UnixClose(rffile);
 	return -14;
     }
+    ibis::util::guard gstfile = ibis::util::makeGuard(UnixClose, stfile);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(stfile, _O_BINARY);
+#endif
 
     int64_t ierr, pos;
     for (ibis::bitvector::indexSet ix = sel.firstIndexSet();
@@ -2692,10 +2735,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			    << " failed to write the value " << pos
 			    << " to " << spto << ", "
 			    << (errno ? strerror(errno) : "??");
-			(void) UnixClose(stfile);
-			(void) UnixClose(rtfile);
-			(void) UnixClose(sffile);
-			(void) UnixClose(rffile);
 			return -15;
 		    }
 
@@ -2712,10 +2751,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 				    << " byte" << (bytes>1?"s":"") << " to "
 				    << to << ", "
 				    << (errno ? strerror(errno) : "??");
-				(void) UnixClose(stfile);
-				(void) UnixClose(rtfile);
-				(void) UnixClose(sffile);
-				(void) UnixClose(rffile);
 				return -16;
 			    }
 			}
@@ -2725,10 +2760,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 				<< bytes << " byte" << (bytes>1?"s":"")
 				<< " from " << from << ", "
 				<< (errno ? strerror(errno) : "??");
-			    (void) UnixClose(stfile);
-			    (void) UnixClose(rtfile);
-			    (void) UnixClose(sffile);
-			    (void) UnixClose(rffile);
 			    return -17;
 			}
 		    }
@@ -2755,10 +2786,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			    << "Warning -- " << evt
 			    << " failed to write the value " << pos
 			    << " to " << spto << ", unable to continue";
-			(void) UnixClose(stfile);
-			(void) UnixClose(rtfile);
-			(void) UnixClose(sffile);
-			(void) UnixClose(rffile);
 			return -18;
 		    }
 		}
@@ -2770,10 +2797,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			    << "Warning -- " << evt << " failed to write "
 			    << bytes << " byte" << (bytes>1?"s":"") << " to "
 			    << to << ", unable to continue";
-			(void) UnixClose(stfile);
-			(void) UnixClose(rtfile);
-			(void) UnixClose(sffile);
-			(void) UnixClose(rffile);
 			return -19;
 		    }
 		    irow += bytes;
@@ -2789,10 +2812,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			<< "Warning -- " << evt
 			<< " failed to write the value " << pos
 			<< " to " << spto << ", unable to continue";
-		    (void) UnixClose(stfile);
-		    (void) UnixClose(rtfile);
-		    (void) UnixClose(sffile);
-		    (void) UnixClose(rffile);
 		    return -20;
 		}
 
@@ -2825,10 +2844,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 					<< " byte" << (pos>1?"s":"")
 					<< " to " << to
 					<< ", unable to continue";
-				    (void) UnixClose(stfile);
-				    (void) UnixClose(rtfile);
-				    (void) UnixClose(sffile);
-				    (void) UnixClose(rffile);
 				    return -21;
 				}
 			    }
@@ -2847,10 +2862,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
 			    << "Warning -- " << evt
 			    << " failed to write 1 byte to " << to
 			    << ", unable to continue";
-			(void) UnixClose(stfile);
-			(void) UnixClose(rtfile);
-			(void) UnixClose(sffile);
-			(void) UnixClose(rffile);
 			return -22;
 		    }
 		}
@@ -2863,10 +2874,6 @@ int ibis::text::writeStrings(const char *to, const char *from,
     LOGGER(ierr != 8 && ibis::gVerbose >= 0)
 	<< "Warning -- " << evt << " failed to write the last position "
 	<< pos << " to " << spto;
-    (void) UnixClose(stfile);
-    (void) UnixClose(rtfile);
-    (void) UnixClose(sffile);
-    (void) UnixClose(rffile);
     if (ibis::gVerbose > 1) {
 	int nr = sel.cnt();
 	logMessage("writeStrings", "copied %d string%s from %s to %s",
@@ -2879,3 +2886,586 @@ int ibis::text::writeStrings(const char *to, const char *from,
     bv.swap(msk);
     return sel.cnt();
 } // ibis::text::writeStrings
+
+/// Write metadata about the column.
+void ibis::blob::write(FILE *fptr) const {
+    fprintf(fptr, "\nBegin Column\nname = %s\ndescription = %s\ntype = blob\n"
+	    "End Column\n", m_name.c_str(),
+	    (m_desc.empty() ? m_name.c_str() : m_desc.c_str()));
+} // ibis::blob::write
+
+/// Print information about this column.
+void ibis::blob::print(std::ostream& out) const {
+    out << m_name << ": " << m_desc << " (BLOB)";
+} // ibis::blob::print
+
+/// Append the content in @c df to the end of files in @c dt.  It returns
+/// the number of rows appended or a negative number to indicate error
+/// conditions.
+long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
+			const uint32_t nnew, uint32_t nbuf, char* buf) {
+    if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
+	dt == df || strcmp(dt, df) == 0)
+	return 0;
+    std::string evt = "blob[";
+    if (thePart != 0)
+	evt += thePart->name();
+    else
+	evt += "?";
+    evt += '.';
+    evt += m_name;
+    evt += "]::append";
+
+    const unsigned spelem = 8; // starting positions are 8-byte intergers
+    writeLock lock(this, evt.c_str());
+    std::string datadest, spdest;
+    std::string datasrc, spfrom;
+    datadest += dt;
+    datadest += FASTBIT_DIRSEP;
+    datadest += m_name;
+    datasrc += df;
+    datasrc += FASTBIT_DIRSEP;
+    datasrc += m_name;
+    spdest = datadest;
+    spdest += ".sp";
+    spfrom = datasrc;
+    spfrom += ".sp";
+    LOGGER(ibis::gVerbose > 3)
+	<< evt << " -- source \"" << datasrc << "\" --> destination \""
+	<< datadest << "\", nold=" << nold << ", nnew=" << nnew;
+
+    // rely on .sp file for existing data size
+    int sdest = UnixOpen(spdest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (sdest < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to open file \"" << spdest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -2;
+    }
+    ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(sdest, _O_BINARY);
+#endif
+
+    // verify the existing sizes of data file and start positions match
+    uint32_t sj = UnixSeek(sdest, 0, SEEK_END);
+    if (sj % spelem != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects file " << spdest
+	    << " to have a multiple of " << spelem << " bytes, but it is "
+	    << sj << ", will not continue with corrupt data files";
+	return -3;
+    }
+    int ierr;
+    const uint32_t nsold = sj / spelem;
+    const uint32_t nold0 = (nsold > 1 ? nsold-1 : 0);
+    int64_t dfsize = 0;
+    if (nsold == 0) {
+	ierr = UnixWrite(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects to write " << spelem
+		<< " to " << spdest << ", but the write function returned "
+		<< ierr;
+	    return -4;
+	}
+    }
+    else if (nold0 < nold) {
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- data file " << spdest << " is expected to have"
+	    << nold+1 << " entries, but found only " << nsold
+	    << ", attempt to extend the file with the last value in it";
+
+	ierr = UnixSeek(sdest, -spelem, SEEK_END);
+	if (ierr < (int) (sj - spelem)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to seek to position "
+		<< sj-spelem << " in file " << spdest;
+	    return -5;
+	}
+	ierr = UnixRead(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read the last "
+		<< spelem << " bytes from " << spdest;
+	    return -6;
+	}
+	for (unsigned j = nold0; j < nold; ++ j) {
+	    ierr = UnixWrite(sdest, &dfsize, spelem);
+	    if (ierr < (int)spelem) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to write the value "
+		    << dfsize << " to the end of " << spdest;
+		return -7;
+	    }
+	}
+    }
+    else if (nold0 > nold) {
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- data file " << spdest << " is expected to have "
+	    << nold+1 << " entries, but found " << nsold
+	    << ", the extra entries will be overwritten";
+
+	ierr = UnixSeek(sdest, spelem*nold, SEEK_SET);
+	if (ierr < (int) (spelem*nold)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to seek to " << spelem*nold
+		<< " in file " << spdest;
+	    return -8;
+	}
+	ierr = UnixRead(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read " << spelem
+		<< " bytes from position " << nold*spelem << " in file "
+		<< spdest;
+	    return -9;
+	}
+    }
+
+    // .sp file pointer should at at spelem*(nold+1)
+    ierr = UnixSeek(sdest, 0, SEEK_CUR);
+    if ((unsigned) ierr != spelem*(nold+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects file pointer to be at "
+	    << spelem*(nold+1) << ", but it is actually at " << ierr;
+	return -10;
+    }
+
+    int ssrc = UnixOpen(spfrom.c_str(), OPEN_READONLY);
+    if (ssrc < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file " << spfrom
+	    << " for reading -- "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gssrc = ibis::util::makeGuard(UnixClose, ssrc);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(ssrc, _O_BINARY);
+#endif
+
+    // a buffer object is always decleared, but may be only 1-byte in size
+    ibis::fileManager::buffer<char> dbuff((nbuf != 0));
+    if (nbuf == 0) {
+	nbuf = dbuff.size();
+	buf = dbuff.address();
+    }
+    if (nbuf <= spelem) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to continue because of "
+	    "insufficient amount of available buffer space";
+	return -1;
+    }
+    if ((unsigned long)nold+nnew >= INT_MAX / spelem) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to continue because the "
+	    "resulting .sp will be too large";
+	return -1;
+    }
+
+    const uint32_t nspbuf = nbuf / spelem;
+    uint64_t *spbuf = (uint64_t*) buf;
+    int64_t dj = 0;
+    uint32_t nnew0 = 0;
+    for (uint32_t j = 0; j <= nnew; j += nspbuf) {
+	ierr = UnixRead(ssrc, spbuf, nbuf);
+	if (ierr <= 0) {
+	    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read from "
+		<< spfrom << ", function read returned " << ierr;
+	    break;
+	}
+	int iread = ierr;
+	if (j == 0) {
+	    dj = dfsize - *spbuf;
+	    iread -= spelem;
+	    for (unsigned i = 0; i < iread/spelem; ++ i)
+		spbuf[i] = spbuf[i+1] + dj;
+	}
+	else {
+	    for (unsigned i = 0; i < iread/spelem; ++ i)
+		spbuf[i] += dj;
+	}
+	int iwrite = UnixWrite(sdest, spbuf, iread);
+	if (iwrite < iread) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects to write " << iread
+		<< " byte" << (iread>1?"s":"") << ", but only wrote " << iwrite;
+	    return -12;
+	}
+	nnew0 = iwrite / spelem;
+    }
+    // explicit close the read source file to reduce the number of open files
+    (void) UnixClose(ssrc);
+    gssrc.dismiss();
+
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+    (void) UnixFlush(sdest); // write to disk
+#endif
+    // close the destination .sp file just in case we need to truncate it
+    UnixClose(sdest);
+    gsdest.dismiss();
+    if (sj > spelem*(nold+nnew0)) {
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " truncating extra bytes in file " << spdest;
+	truncate(spdest.c_str(), spelem*(nold+nnew0));
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << " appended " << nnew0 << " element" << (nnew0>1?"s":"")
+	<< " from " << spfrom << " to " << spdest;
+
+    // open destination data file
+    int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (ddest < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to open file \"" << datadest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -13;
+    }
+    // this statement guarantees UnixClose will be called on ddest upon
+    // termination of this function
+    ibis::util::guard gddest = ibis::util::makeGuard(UnixClose, ddest);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(ddest, _O_BINARY);
+#endif
+    dj = UnixSeek(ddest, 0, SEEK_END);
+    if (dj != dfsize) {
+	if (dj < dfsize) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects " << datadest
+		<< " to have " << dfsize << " byte" << (dfsize>1 ? "s" : "")
+		<< ", but it actually has " << dj;
+	    return -14;
+	}
+	else {
+	    dj = UnixSeek(ddest, dfsize, SEEK_SET);
+	    if (dj != dfsize) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to seek to " << dfsize
+		    << " in file " << datadest << ", function seek returned "
+		    << dj;
+		return -15;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 1)
+		    << evt << " will overwrite the content after position "
+		    << dfsize << " in file " << datadest;
+	    }
+	}
+    }
+
+    int dsrc = UnixOpen(datasrc.c_str(), OPEN_READONLY);
+    if (dsrc < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file \"" << datasrc
+	    << "\" for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -16;
+    }
+    ibis::util::guard gdsrc = ibis::util::makeGuard(UnixClose, dsrc);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(dsrc, _O_BINARY);
+#endif
+    while ((ierr = UnixRead(dsrc, buf, nbuf)) > 0) {
+	int iwrite = UnixWrite(ddest, buf, ierr);
+	LOGGER(ibis::gVerbose > 1 && iwrite < ierr)
+	    << "Warning -- " << evt << " expects to write " << ierr
+	    << " byte" << (ierr > 1 ? "s" : "") << ", but only wrote "
+	    << iwrite;
+    }
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+    (void) UnixFlush(ddest); // write to disk
+#endif
+    (void) UnixClose(dsrc);
+    gdsrc.dismiss();
+    (void) UnixClose(ddest);
+    gddest.dismiss();
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << " appended " << nnew0 << " row" << (nnew0>1?"s":"");
+
+    //////////////////////////////////////////////////
+    // deals with the masks
+    std::string filename;
+    filename = datasrc;
+    filename += ".msk";
+    ibis::bitvector mapp;
+    try {mapp.read(filename.c_str());} catch (...) {/* ok to continue */}
+    mapp.adjustSize(nnew0, nnew0);
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " mask file \"" << filename << "\" contains "
+	<< mapp.cnt() << " set bits out of " << mapp.size()
+	<< " total bits";
+
+    filename = datadest;
+    filename += ".msk";
+    ibis::bitvector mtot;
+    try {mtot.read(filename.c_str());} catch (...) {/* ok to continue */}
+    mtot.adjustSize(nold0, nold);
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " mask file \"" << filename << "\" contains " << mtot.cnt()
+	<< " set bits out of " << mtot.size() << " total bits before append";
+
+    mtot += mapp; // append the new ones at the end
+    if (mtot.size() != nold+nnew0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects the combined mask to have "
+	    << nold+nnew0 << " bits, but has " << mtot.size();
+	mtot.adjustSize(nold+nnew0, nold+nnew0);
+    }
+    if (mtot.cnt() != mtot.size()) {
+	mtot.write(filename.c_str());
+	if (ibis::gVerbose > 6) {
+	    logMessage("append", "mask file \"%s\" indicates %lu valid "
+		       "records out of %lu", filename.c_str(),
+		       static_cast<long unsigned>(mtot.cnt()),
+		       static_cast<long unsigned>(mtot.size()));
+#if defined(DEBUG)
+	    LOGGER(ibis::gVerbose >= 0) << mtot;
+#endif
+	}
+    }
+    else {
+	remove(filename.c_str()); // no need to have the file
+	if (ibis::gVerbose > 6)
+	    logMessage("append", "mask file \"%s\" removed, all "
+		       "%lu records are valid", filename.c_str(),
+		       static_cast<long unsigned>(mtot.size()));
+    }
+    if (thePart == 0 || thePart->currentDataDir() == 0)
+	return nnew0;
+    if (strcmp(dt, thePart->currentDataDir()) == 0) {
+	// update the mask stored internally
+	mutexLock lck(this, "column::append");
+	mask_.swap(mtot);
+    }
+
+    return nnew0;
+} // ibis::blob::append
+
+/// Write the content of BLOBs packed into two arrays va1 and va2.  All
+/// BLOBs are packed together one after another in va1 and their starting
+/// positions are stored in va2.  The last element of va2 is the total
+/// number of bytes in va1.  The array va2 is expected to hold (nnew+1)
+/// 64-bit integers.
+///
+/// @note The array va2 is modified in this function to have a starting
+/// position that is the end of the existing data file.
+long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
+			   ibis::bitvector& mask, const void *va1, void *va2) {
+    if (nnew == 0 || va1 == 0 || va2 == 0 || dir == 0 || *dir == 0)
+	return 0;
+
+    std::string evt = "blob[";
+    if (thePart != 0)
+	evt += thePart->name();
+    else
+	evt += "?";
+    evt += '.';
+    evt += m_name;
+    evt += "]::writeData";
+
+    const unsigned spelem = 8; // starting positions are 8-byte intergers
+    int64_t *sparray = static_cast<int64_t*>(va2);
+    int ierr;
+    int64_t dfsize = 0;
+    std::string datadest, spdest;
+    datadest += dir;
+    datadest += FASTBIT_DIRSEP;
+    datadest += m_name;
+    spdest = datadest;
+    spdest += ".sp";
+    LOGGER(ibis::gVerbose > 3)
+	<< evt << " starting to write " << nnew << " blob" << (nnew>1?"s":"")
+	<< " to \"" << datadest << "\", nold=" << nold;
+
+    // rely on .sp file for existing data size
+    int sdest = UnixOpen(spdest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (sdest < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to open file \"" << spdest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -2;
+    }
+    ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(sdest, _O_BINARY);
+#endif
+
+    // make sure there are right number of start positions
+    uint32_t sj = UnixSeek(sdest, 0, SEEK_END);
+    if (sj % spelem != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects file " << spdest
+	    << " to have a multiple of " << spelem << " bytes, but it is "
+	    << sj << ", will not continue with corrupt data files";
+	return -3;
+    }
+    const uint32_t nsold = sj / spelem;
+    const uint32_t nold0 = (nsold > 1 ? nsold-1 : 0);
+    if (nsold == 0) {
+	ierr = UnixWrite(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects to write " << spelem
+		<< " to " << spdest << ", but the write function returned "
+		<< ierr;
+	    return -4;
+	}
+    }
+    else if (nold0 < nold) {
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- data file " << spdest << " is expected to have"
+	    << nold+1 << " entries, but found only " << nsold
+	    << ", attempt to extend the file with the last value in it";
+
+	ierr = UnixSeek(sdest, -spelem, SEEK_END);
+	if (ierr < (int) (sj - spelem)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to seek to position "
+		<< sj-spelem << " in file " << spdest;
+	    return -5;
+	}
+	ierr = UnixRead(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read the last "
+		<< spelem << " bytes from " << spdest;
+	    return -6;
+	}
+	for (unsigned j = nold0; j < nold; ++ j) {
+	    ierr = UnixWrite(sdest, &dfsize, spelem);
+	    if (ierr < (int)spelem) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to write the value "
+		    << dfsize << " to the end of " << spdest;
+		return -7;
+	    }
+	}
+    }
+    else if (nold0 > nold) {
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " -- data file " << spdest << " is expected to have "
+	    << nold+1 << " entries, but found " << nsold
+	    << ", the extra entries will be overwritten";
+
+	ierr = UnixSeek(sdest, spelem*nold, SEEK_SET);
+	if (ierr < (int) (spelem*nold)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to seek to " << spelem*nold
+		<< " in file " << spdest;
+	    return -8;
+	}
+	ierr = UnixRead(sdest, &dfsize, spelem);
+	if (ierr < (int)spelem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read " << spelem
+		<< " bytes from position " << nold*spelem << " in file "
+		<< spdest;
+	    return -9;
+	}
+    }
+
+    // .sp file pointer should at at spelem*(nold+1)
+    ierr = UnixSeek(sdest, 0, SEEK_CUR);
+    if ((unsigned) ierr != spelem*(nold+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects file pointer to be at "
+	    << spelem*(nold+1) << ", but it is actually at " << ierr;
+	return -10;
+    }
+
+    if (dfsize != *sparray) {
+	int64_t offset = dfsize - *sparray;
+	for (unsigned j = 0; j <= nnew; ++ j)
+	    sparray[j] += offset;
+    }
+    int64_t dj = UnixWrite(sdest, sparray+1, spelem*nnew);
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+    (void) UnixFlush(sdest); // write to disk
+#endif
+    if (dj < (long)(spelem*nnew)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects to write " << spelem*nnew
+	    << " bytes to " << spdest << ", but the function write returned "
+	    << dj;
+	return -11;
+    }
+
+    // close the destination .sp file just in case we need to truncate it
+    UnixClose(sdest);
+    gsdest.dismiss();
+    if (sj > spelem*(nold+nnew)) {
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " truncating extra bytes in file " << spdest;
+	truncate(spdest.c_str(), spelem*(nold+nnew));
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << " appended " << nnew << " element" << (nnew>1?"s":"")
+	<< " to " << spdest;
+
+    // open destination data file
+    int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    if (ddest < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " unable to open file \"" << datadest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -13;
+    }
+    // this statement guarantees UnixClose will be called on ddest upon
+    // termination of this function
+    ibis::util::guard gddest = ibis::util::makeGuard(UnixClose, ddest);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(ddest, _O_BINARY);
+#endif
+    dj = UnixSeek(ddest, 0, SEEK_END);
+    if (dj != dfsize) {
+	if (dj < dfsize) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects " << datadest
+		<< " to have " << dfsize << " byte" << (dfsize>1 ? "s" : "")
+		<< ", but it actually has " << dj;
+	    return -14;
+	}
+	else {
+	    dj = UnixSeek(ddest, dfsize, SEEK_SET);
+	    if (dj != dfsize) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to seek to " << dfsize
+		    << " in file " << datadest << ", function seek returned "
+		    << dj;
+		return -15;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 1)
+		    << evt << " will overwrite the content after position "
+		    << dfsize << " in file " << datadest;
+	    }
+	}
+    }
+
+    dfsize = sparray[nnew] - *sparray;
+    dj = UnixWrite(ddest, va1, dfsize);
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+    (void) UnixFlush(ddest); // write to disk
+#endif
+    if (dj < dfsize) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects to write " << dfsize
+	    << " byte" << (dfsize>1?"s":"") << " to " << datadest
+	    << ", but the function write returned " << dj;
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << " appended " << nnew << " row" << (nnew>1?"s":"");
+
+    //////////////////////////////////////////////////
+    // deals with the masks
+    mask.adjustSize(nold0, nold);
+    mask.adjustSize(nold+nnew, nold+nnew);
+
+    return nnew;
+} // ibis::blob::writeData

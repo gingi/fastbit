@@ -17,8 +17,9 @@
 
 namespace ibis { // additional names to the namespace ibis
     // derived classes of ibis::column, implemented in category.cpp
-    class category; // for categorical values (low-cardinality text fields)
-    class text;     // arbitrary cardinality text fields
+    class category;   // for categorical values (low-cardinality text fields)
+    class text;       // arbitrary cardinality text fields
+    class blob;       // text may contain null characters
     class dictionary; // maps string to integer, use by text and category
 
     // the following are used for storing selected values of different types
@@ -231,12 +232,12 @@ public:
 
     /// Append new data in directory df to the end of existing data in dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
-			const uint32_t nnew, const uint32_t nbuf, char* buf);
+			const uint32_t nnew, uint32_t nbuf, char* buf);
 
     virtual long append(const void* vals, const ibis::bitvector& msk);
     virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,
 			   ibis::bitvector& mask, const void *va1,
-			   const void *va2=0);
+			   void *va2=0);
     template <typename T>
     long castAndWrite(const array_t<double>& vals, ibis::bitvector& mask,
 		      const T special);

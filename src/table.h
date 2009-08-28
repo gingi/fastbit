@@ -44,7 +44,12 @@ namespace ibis {
 	/// Arbitrary null-terminated strings.  Strings are internally
 	/// stored with the null terminators, therefore null can not be
 	/// part of a string.
-	TEXT
+	TEXT,
+	/// Byte array.  Also known as Binary Large Object (blob).  A
+	/// column of this type requires special handling for input and
+	/// output.  It can not be used as a part of any searching
+	/// criteria.
+	BLOB
     };
     /// Human readable version of the enumeration types.
     FASTBIT_CXX_DLLSPEC extern const char** TYPESTRING;

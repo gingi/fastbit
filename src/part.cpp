@@ -1810,6 +1810,7 @@ void ibis::part::sortRIDs() const {
 		   name, (errno ? strerror(errno) : "no free stdio stream"));
 	return;
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1826,12 +1827,10 @@ void ibis::part::sortRIDs() const {
 		       "file %s", static_cast<long unsigned>(buf[0]),
 		       static_cast<long unsigned>(buf[1]),
 		       static_cast<long unsigned>((*it).second), name);
-	    UnixClose(fdes);
 	    remove(name);
 	    return;
 	}
     }
-    UnixClose(fdes);
     timer.stop();
     if (ibis::gVerbose > 4)
 	logMessage("sortRIDs", "sorting %lu RIDs took  %g sec(CPU), %g "
@@ -6918,6 +6917,7 @@ long ibis::part::doCompare(const char* file,
 	hits.set(0, mask.size());
 	return -1;
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -6953,7 +6953,6 @@ long ibis::part::doCompare(const char* file,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "ibis::part::doCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -2;
 		}
@@ -6991,7 +6990,6 @@ long ibis::part::doCompare(const char* file,
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
-			UnixClose(fdes);
 			hits.clear();
 			return -3;
 		    }
@@ -7023,7 +7021,6 @@ long ibis::part::doCompare(const char* file,
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to seek to " << diff;
-			    UnixClose(fdes);
 			    hits.clear();
 			    return -4;
 			}
@@ -7055,7 +7052,6 @@ long ibis::part::doCompare(const char* file,
 			<< (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -4;
 		}
@@ -7089,7 +7085,6 @@ long ibis::part::doCompare(const char* file,
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -5;
 		}
@@ -7114,7 +7109,6 @@ long ibis::part::doCompare(const char* file,
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << diff;
-			UnixClose(fdes);
 			hits.clear();
 			return -6;
 		    }
@@ -7132,7 +7126,6 @@ long ibis::part::doCompare(const char* file,
 	} // while (idx.nIndices() > 0)
     }
 
-    UnixClose(fdes);
     if (uncomp)
 	hits.compress();
     else if (hits.size() < nEvents)
@@ -7252,6 +7245,7 @@ long ibis::part::negativeCompare(const char* file,
 	hits.set(0, mask.size());
 	return -1;
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -7288,7 +7282,6 @@ long ibis::part::negativeCompare(const char* file,
 			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -3;
 		}
@@ -7328,7 +7321,6 @@ long ibis::part::negativeCompare(const char* file,
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
-			UnixClose(fdes);
 			hits.clear();
 			return -4;
 		    }
@@ -7365,7 +7357,6 @@ long ibis::part::negativeCompare(const char* file,
 				<< (m_name ? m_name : "?")
 				<< "]::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
-			    UnixClose(fdes);
 			    hits.clear();
 			    return -5;
 			}
@@ -7390,7 +7381,6 @@ long ibis::part::negativeCompare(const char* file,
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -6;
 		}
@@ -7419,7 +7409,6 @@ long ibis::part::negativeCompare(const char* file,
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
-		    UnixClose(fdes);
 		    hits.clear();
 		    return -7;
 		}
@@ -7445,7 +7434,6 @@ long ibis::part::negativeCompare(const char* file,
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
-			UnixClose(fdes);
 			hits.clear();
 			return -8;
 		    }
@@ -7464,7 +7452,6 @@ long ibis::part::negativeCompare(const char* file,
 	} // while (idx.nIndices() > 0)
     }
 
-    UnixClose(fdes);
     if (uncomp)
 	hits.compress();
     else if (hits.size() < nEvents)
@@ -11950,6 +11937,9 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		ierr = -3;
 		return ierr;
 	    }
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fdes[i], _O_BINARY);
+#endif
 	}
 	if (size() > 1)
 	    dfn.erase(dirlen);
@@ -12254,6 +12244,9 @@ long ibis::part::vault::open(const ibis::part *t) {
 		ierr = -3;
 		return ierr;
 	    }
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fdes[0], _O_BINARY);
+#endif
 	}
 	if (ibis::gVerbose > 5) {
 	    if (stores[0])
@@ -12302,6 +12295,9 @@ long ibis::part::vault::open(const ibis::part *t) {
 		ierr = -3;
 		return ierr;
 	    }
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fdes[i], _O_BINARY);
+#endif
 	}
 	dfn.erase(dirlen);
 	cols[i] = col;

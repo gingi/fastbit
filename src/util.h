@@ -997,6 +997,127 @@ namespace ibis {
 	    timer(const timer&); // no copying
 	    timer& operator=(const timer&); // no assignment
 	}; // timer
+
+	/// A class hierarchy for clean up after durable resources.  It is
+	/// similar in spirit to Loki::ScopeGuard, but simpler.
+	class guardBase {
+	public:
+	    /// Tell the guard that the user has manually invoked the
+	    /// cleanup function.
+	    void dismiss() const {done_ = true;}
+
+	protected:
+	    mutable volatile bool done_;
+
+	    ~guardBase() {}; ///< Destructor.  No need to be virtual.
+	    guardBase() : done_(false) {}; ///< Default constructor.
+	    /// Copy constructor.
+	    guardBase(const guardBase& rhs) : done_(rhs.done_) {
+		rhs.dismiss();
+	    }
+
+	    /// A template function to absorb all exceptions.
+	    template <typename T>
+	    static void cleanup(T& task) throw () {
+		if (task.done_)
+		    return;
+
+		try {
+		    task.execute();
+		}
+		catch (const std::exception& e) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a std::exception (" << e.what()
+			<< ") in util::gard";
+		}
+		catch (const char* s) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a string exception (" << s
+			<< ") in util::guard";
+		}
+		catch (...) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a unknown exception in util::guard";
+		}
+		task.done_ = true;
+	    }
+	}; // guardBase
+
+	/// The type to be used by client code.  User code uses type
+	/// ibis::util::guard along with the overloaded function
+	/// ibis::util::makeGuard, as in
+	/// @code
+	/// ibis::util::guard myguard = ibis::util::makeGuard...;
+	/// @endcode
+	typedef const guardBase& guard;
+
+	/// A concrete class for cleanup jobs that take a function without
+	/// any argument.
+	template <typename F>
+	class guardImpl0 : public guardBase {
+	public:
+	    static guardImpl0<F> makeGuard(F f) {
+		return guardImpl0<F>(f);
+	    }
+
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl0() {cleanup(*this);}
+
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_();}
+
+	    /// Construct a guard object from a function.
+	    explicit guardImpl0(F f) : fun_(f) {}
+
+	private:
+	    /// Copy of the function pointer.
+	    F fun_;
+
+	    guardImpl0();
+	    //guardImpl0(const guardImpl0&);
+	    guardImpl0& operator=(const guardImpl0&);
+	}; // guardImpl0
+
+	template <typename F>
+	inline guardImpl0<F> makeGuard(F f) {
+	    return guardImpl0<F>::makeGuard(f);
+	}
+
+	/// A concrete class for cleanup jobs that take a function with one
+	/// argument.
+	template <typename F, typename A>
+	class guardImpl1 : public guardBase {
+	public:
+	    static guardImpl1<F, A> makeGuard(F f, A a) {
+		return guardImpl1<F, A>(f, a);
+	    }
+
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl1() {cleanup(*this);}
+
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_(arg_);}
+
+	    /// Construct a guard object from a function.
+	    explicit guardImpl1(F f, A a) : fun_(f), arg_(a) {}
+
+	private:
+	    /// The function pinter.
+	    F fun_;
+	    /// The argument to the function.
+	    A arg_;
+
+	    guardImpl1();
+	    //guardImpl1(const guardImpl1&);
+	    guardImpl1& operator=(const guardImpl1&);
+	}; // guardImpl1
+
+	template <typename F, typename A>
+	inline guardImpl1<F, A> makeGuard(F f, A a) {
+	    return guardImpl1<F, A>::makeGuard(f, a);
+	}
     } // namespace util
 } // namespace ibis
 

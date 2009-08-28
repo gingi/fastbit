@@ -613,15 +613,15 @@ int ibis::roster::read(const char* idxf) {
     }
     else {
 	inddes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-#if defined(_WIN32) && defined(_MSC_VER)
-	(void)_setmode(inddes, _O_BINARY);
-#endif
 	if (inddes < 0)
 	    col->logMessage("roster", "Warning -- read(%s) failed to open "
 			    "the name file", fnm.c_str());
 	else if (ibis::gVerbose > 4)
 	    col->logMessage("roster", "successfully openned file %s for "
 			    "future read operations", fnm.c_str());
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(inddes, _O_BINARY);
+#endif
     }
     return 0;
 } // ibis::roster::read
@@ -1956,6 +1956,7 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdsrc, _O_BINARY);
     (void)_setmode(fdout, _O_BINARY);
 #endif
 
@@ -2428,6 +2429,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 			       "containing sorted values (%s)", fname.c_str());
 	return -5;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(srtdes, _O_BINARY);
+#endif
 
     uint32_t iv = 0; // index for vals
     uint32_t ir = 0; // index for the rows to be read
@@ -2479,6 +2483,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    return -7;
 	}
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(inddes, _O_BINARY);
+#endif
     if (nbuf > 0 && inddes > 0) {
 	// bulk read, also need to read ind array
 	while (iv < nvals && ir < nrows) {
@@ -2684,6 +2691,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 			       "containing sorted values (%s)", fname.c_str());
 	return -5;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(srtdes, _O_BINARY);
+#endif
 
     uint32_t iv = 0; // index for vals
     uint32_t ir = 0; // index for the rows to be read
@@ -2735,6 +2745,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    return -7;
 	}
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(inddes, _O_BINARY);
+#endif
     if (nbuf > 0 && inddes > 0) {
 	// bulk read, also need to read ind array
 	while (iv < nvals && ir < nrows) {

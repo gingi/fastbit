@@ -28,10 +28,10 @@
 #endif
 
 // constants defined for type name and type code used in the metadata file
-const char* ibis::TYPECODE   = "?OBAHGIULVRDCS";
+const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQ";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
-    "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT"
+    "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB"
 };
 const char** ibis::TYPESTRING = _ibis_TYPESTRING_local;
 
@@ -4181,6 +4181,9 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		       dfn, fdes);
 	    return fdes;
 	}
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
 	LOGGER(ibis::gVerbose > 5)
 	    << "column[" << thePart->name() << '.' << m_name
 	    << "]::selectValuesT opened file " << dfn
@@ -4373,6 +4376,9 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		       dfn, fdes);
 	    return fdes;
 	}
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
 	LOGGER(ibis::gVerbose > 5)
 	    << "column[" << thePart->name() << '.' << m_name
 	    << "]::selectValuesT opened file " << dfn
@@ -5420,14 +5426,16 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
 /// returns the number of rows appended or a negative number to indicate
 /// error.
 ///
+/// @note The directories @c dt and @c df can not be same.
+///
 /// @note This function does not update the mininimum and the maximum of
 /// the column.
 long ibis::column::append(const char* dt, const char* df,
 			  const uint32_t nold, const uint32_t nnew,
-			  const uint32_t nbuf, char* buf) {
+			  uint32_t nbuf, char* buf) {
     long ret = 0;
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
-	strcmp(dt, df) == 0)
+	df == dt || strcmp(dt, df) == 0)
 	return ret;
     std::string evt = "column[";
     if (thePart != 0)
@@ -5912,6 +5920,9 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
 	return -5L;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(curr, _O_BINARY);
+#endif
 
     long ierr = 0;
     const unsigned elem = sizeof(T);
@@ -5989,6 +6000,9 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
 	return -5L;
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(curr, _O_BINARY);
+#endif
 
     long ierr = 0;
     if (mask_.size() < thePart->nRows()) {
@@ -6050,7 +6064,7 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 /// extends the mask.  Write out the mask if not all the bits are set.
 long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 			     ibis::bitvector& mask, const void *va1,
-			     const void *va2) {
+			     void *va2) {
     long ierr = 0;
     if (dir == 0 || nnew  == 0 || va1 == 0) return ierr;
 

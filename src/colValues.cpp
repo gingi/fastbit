@@ -2009,15 +2009,19 @@ uint32_t ibis::colStrings::partitionsub(uint32_t i, uint32_t j,
 ibis::array_t<uint32_t>*
 ibis::colInts::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    int32_t target = *(array->begin());
+    uint32_t j;
+    int32_t target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2025,10 +2029,13 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2041,21 +2048,54 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colInts::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colInts::segment
 
 ibis::array_t<uint32_t>*
 ibis::colUInts::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    uint32_t target = *(array->begin());
+    uint32_t j;
+    uint32_t target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2063,10 +2103,13 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2079,6 +2122,35 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colUInts::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colUInts::segment
 
@@ -2086,15 +2158,19 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
 ibis::array_t<uint32_t>*
 ibis::colLongs::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    int64_t target = *(array->begin());
+    uint32_t j;
+    int64_t target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2102,10 +2178,13 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2118,21 +2197,54 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colLongs::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colLongs::segment
 
 ibis::array_t<uint32_t>*
 ibis::colULongs::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    uint64_t target = *(array->begin());
+    uint32_t j;
+    uint64_t target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2140,10 +2252,13 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2156,6 +2271,35 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colULongs::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colULongs::segment
 
@@ -2163,15 +2307,19 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
 ibis::array_t<uint32_t>*
 ibis::colFloats::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    float target = *(array->begin());
+    uint32_t j;
+    float target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2179,10 +2327,13 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2195,6 +2346,35 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colFloats::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colFloats::segment
 
@@ -2202,15 +2382,19 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
 ibis::array_t<uint32_t>*
 ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    double target = *(array->begin());
+    uint32_t j;
+    double target;
     const uint32_t nelm = array->size();
+    const uint32_t nold = (old != 0 ? old->size() : 0);
 
-    if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
-	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+    if (nold > 2) {
+	// find segments within the previously defined segments
+	for (uint32_t i = 0; i < nold-1; ++ i) {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
@@ -2218,10 +2402,13 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	j = 1;
+	res->push_back(0); // the first number is always 0
+	target = *(array->begin());
 	while (j < nelm) {
 	    while (j < nelm && (*array)[j] == target)
 		++ j;
@@ -2234,6 +2421,35 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if defined(_DEBUG) //_DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg.buffer() << "DEBUG -- colDoubles::segment: old groups "
+		<< (old != 0 ? nold-1 : 0) << ", new groups "
+		<< res->size()-1;
+    if (nold > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg.buffer() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg.buffer() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colDoubles::segment
 
@@ -2241,15 +2457,17 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
 ibis::array_t<uint32_t>*
 ibis::colStrings::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
-    res->push_back(0); // the first number is always 0
-    uint32_t j = 1;
-    std::vector<std::string>::reference target = array->front();
+    uint32_t j;
     const uint32_t nelm = array->size();
 
     if (old != 0 && old->size()>2) {
-	// find segments with in the previously defined segments
+	// find segments within the previously defined segments
 	for (uint32_t i=0; i<old->size()-1; ++i) {
-	    do {
+	    j = (*old)[i];
+	    if (i == 0 || res->back() < j)
+		res->push_back(j);
+	    std::vector<std::string>::reference target = (*array)[j];
+	    for (++ j; j < (*old)[i+1]; ++ j) {
 		while (j < (*old)[i+1] && target.compare((*array)[j]) == 0)
 		    ++ j;
 		res->push_back(j);
@@ -2257,10 +2475,13 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
 		    target = (*array)[j];
 		    ++ j;
 		}
-	    } while (j < (*old)[i+1]);
+	    }
 	}
     }
     else { // start with all elements in one segment
+	std::vector<std::string>::reference target = array->front();
+	res->push_back(0); // the first number is always 0
+	j = 1;
 	while (j < nelm) {
 	    while (j < nelm && target.compare((*array)[j]) == 0)
 		++ j;

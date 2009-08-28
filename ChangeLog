@@ -1,3 +1,20 @@
+2009-08-27 John Wu <John.Wu at ACM.org>
+	* src/table.h: add column type BLOB
+	* src/category.h, src/category.cpp: add column type ibis::blob
+	* src/util.h: add ibis::util::guard, ibis::util::makeGuard and
+	supporting functions to implement objects for clean up after
+	resources such as file pointers.  This is to simply the handling
+	of file pointers used in functions such as ibis::blob::append.
+	* src/colValues.cpp: rearrange the loops in all versions of
+	ibis::colValues::segement to initialize the segmentation process
+	within each existing segement, to address an issue reported by
+	Alexandre Maurel <alexandre dot maurel at gmail dot com>, who also
+	provided a fix ibis::colFloats::segement
+
+2009-08-27 Alexandre Maurel <alexandre dot maurel at gmail dot com>
+	* src/colValues.cpp: fix ibis::colFloats::segment to correct
+	handle existing segments with the same values
+
 2009-08-26 John Wu <John.Wu at ACM.org>
 	* src/table.h, src/mensa.h, src/mensa.cpp: rename
 	ibis::mensa::computeHits to ibis::table::computeHits, rename
