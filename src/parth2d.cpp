@@ -25,9 +25,9 @@ long ibis::part::count2DBins(array_t<T1> &vals1,
 			     const double &begin2, const double &end2,
 			     const double &stride2,
 			     std::vector<uint32_t> &counts) const {
-    const size_t dim2 = 1+
+    const uint32_t dim2 = 1+
 	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
-    const size_t nr = (vals1.size() <= vals2.size() ?
+    const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
     ibis::util::sortall(vals1, vals2);
@@ -35,7 +35,7 @@ long ibis::part::count2DBins(array_t<T1> &vals1,
 //     if (counts.size() > 4096)
 // 	ibis::util::sortall(vals1, vals2);
 #endif
-    for (size_t ir = 0; ir < nr; ++ ir) {
+    for (uint32_t ir = 0; ir < nr; ++ ir) {
 	++ counts[dim2 * static_cast<uint32_t>((vals1[ir]-begin1)/stride1) +
 		  static_cast<uint32_t>((vals2[ir]-begin2)/stride2)];
     }
@@ -77,12 +77,12 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << (constraints ? constraints : "");
 	timer.start();
     }
-    const size_t nbins =
+    const uint32_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
-	for (size_t i = 0; i < nbins; ++i)
+	for (uint32_t i = 0; i < nbins; ++i)
 	    counts[i] = 0;
     }
 
@@ -520,9 +520,9 @@ long ibis::part::count2DWeights(array_t<T1> &vals1,
 				const double &stride2,
 				array_t<double> &wts,
 				std::vector<double> &weights) const {
-    const size_t dim2 = 1+
+    const uint32_t dim2 = 1+
 	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
-    const size_t nr = (vals1.size() <= vals2.size() ?
+    const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
     ibis::util::sortall(vals1, vals2);
@@ -530,7 +530,7 @@ long ibis::part::count2DWeights(array_t<T1> &vals1,
 //     if (counts.size() > 4096)
 // 	ibis::util::sortall(vals1, vals2);
 #endif
-    for (size_t ir = 0; ir < nr; ++ ir) {
+    for (uint32_t ir = 0; ir < nr; ++ ir) {
 	weights[dim2 * static_cast<uint32_t>((vals1[ir]-begin1)/stride1) +
 		static_cast<uint32_t>((vals2[ir]-begin2)/stride2)]
 	    += wts[ir];
@@ -576,12 +576,12 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    << (constraints ? constraints : "") << " weighted with " << wtname;
 	timer.start();
     }
-    const size_t nbins =
+    const uint32_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
     if (weights.size() != nbins) {
 	weights.resize(nbins);
-	for (size_t i = 0; i < nbins; ++i)
+	for (uint32_t i = 0; i < nbins; ++i)
 	    weights[i] = 0.0;
     }
 
@@ -1044,10 +1044,10 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
     if ((end1-begin1) * (end2-begin2) > 1e9 * stride1 * stride2 ||
 	(end1-begin1) * stride1 < 0.0 || (end2-begin2) * stride2 < 0.0)
 	return -10L;
-    const size_t nbin2 = (1 + static_cast<size_t>((end2-begin2)/stride2));
-    const size_t nbins = (1 + static_cast<size_t>((end1-begin1)/stride1)) *
+    const uint32_t nbin2 = (1 + static_cast<uint32_t>((end2-begin2)/stride2));
+    const uint32_t nbins = (1 + static_cast<uint32_t>((end1-begin1)/stride1)) *
 	nbin2;
-    size_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
+    uint32_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
     if (mask.size() == nvals) {
 	bins.resize(nbins);
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
@@ -1055,55 +1055,55 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++ j) {
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[j]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[j]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    bins[ibin1*nbin2+ibin2].setBit(j, 1);
 		}
 	    }
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[j]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[j]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    bins[ibin1*nbin2+ibin2].setBit(j, 1);
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i].size() > 0)
 		bins[i].adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals) {
 	bins.resize(nbins);
-	size_t ivals = 0;
+	uint32_t ivals = 0;
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    bins[ibin1*nbin2+ibin2].setBit(j, 1);
 		}
 	    }
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    bins[ibin1*nbin2+ibin2].setBit(j, 1);
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i].size() > 0)
 		bins[i].adjustSize(0, mask.size());
     }
@@ -1636,22 +1636,22 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
     if ((end1-begin1) * (end2-begin2) > 1e9 * stride1 * stride2 ||
 	(end1-begin1) * stride1 < 0.0 || (end2-begin2) * stride2 < 0.0)
 	return -10L;
-    const size_t nbin2 = (1 + static_cast<size_t>((end2-begin2)/stride2));
-    const size_t nbins = (1 + static_cast<size_t>((end1-begin1)/stride1)) *
+    const uint32_t nbin2 = (1 + static_cast<uint32_t>((end2-begin2)/stride2));
+    const uint32_t nbins = (1 + static_cast<uint32_t>((end1-begin1)/stride1)) *
 	nbin2;
-    size_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
+    uint32_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
     if (mask.size() == nvals) {
 	bins.resize(nbins);
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    bins[i] = 0;
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++ j) {
-		    const size_t ibin =
-			nbin2 * static_cast<size_t>((vals1[j]-begin1)/stride1) +
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin =
+			nbin2 * static_cast<uint32_t>((vals1[j]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -1660,32 +1660,32 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin =
-			nbin2*static_cast<size_t>((vals1[j]-begin1)/stride1)+
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin =
+			nbin2*static_cast<uint32_t>((vals1[j]-begin1)/stride1)+
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i] != 0)
 		bins[i]->adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals) {
 	bins.resize(nbins);
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    bins[i] = 0;
-	size_t ivals = 0;
+	uint32_t ivals = 0;
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
-		    const size_t ibin =	nbin2 * 
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin =	nbin2 * 
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -1694,16 +1694,16 @@ long ibis::part::fill2DBins(const ibis::bitvector &mask,
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin = nbin2 *
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin = nbin2 *
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i] != 0)
 		bins[i]->adjustSize(0, mask.size());
     }
@@ -2231,14 +2231,14 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
     if ((end1-begin1) * (end2-begin2) > 1e9 * stride1 * stride2 ||
 	(end1-begin1) * stride1 < 0.0 || (end2-begin2) * stride2 < 0.0)
 	return -10L;
-    const size_t nbin2 = (1 + static_cast<size_t>((end2-begin2)/stride2));
-    const size_t nbins = (1 + static_cast<size_t>((end1-begin1)/stride1)) *
+    const uint32_t nbin2 = (1 + static_cast<uint32_t>((end2-begin2)/stride2));
+    const uint32_t nbins = (1 + static_cast<uint32_t>((end1-begin1)/stride1)) *
 	nbin2;
-    size_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
+    uint32_t nvals = (vals1.size() <= vals2.size() ? vals1.size() : vals2.size());
     if (mask.size() == nvals && wts.size() == nvals) {
 	bins.resize(nbins);
 	weights.resize(nbins);
-	for (size_t i = 0; i < nbins; ++ i) {
+	for (uint32_t i = 0; i < nbins; ++ i) {
 	    weights[i] = 0.0;
 	    bins[i] = 0;
 	}
@@ -2247,9 +2247,9 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++ j) {
-		    const size_t ibin =
-			nbin2 * static_cast<size_t>((vals1[j]-begin1)/stride1) +
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin =
+			nbin2 * static_cast<uint32_t>((vals1[j]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -2259,9 +2259,9 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin =
-			nbin2*static_cast<size_t>((vals1[j]-begin1)/stride1)+
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin =
+			nbin2*static_cast<uint32_t>((vals1[j]-begin1)/stride1)+
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -2269,26 +2269,26 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i] != 0)
 		bins[i]->adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals && wts.size() == nvals) {
 	bins.resize(nbins);
 	weights.resize(nbins);
-	for (size_t i = 0; i < nbins; ++ i) {
+	for (uint32_t i = 0; i < nbins; ++ i) {
 	    weights[i] = 0.0;
 	    bins[i] = 0;
 	}
-	size_t ivals = 0;
+	uint32_t ivals = 0;
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
-		    const size_t ibin =	nbin2 * 
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin =	nbin2 * 
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -2298,9 +2298,9 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin = nbin2 *
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1) +
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin = nbin2 *
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1) +
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
 		    if (bins[ibin] == 0)
 			bins[ibin] = new ibis::bitvector;
 		    bins[ibin]->setBit(j, 1);
@@ -2308,7 +2308,7 @@ long ibis::part::fill2DBinsWeighted(const ibis::bitvector &mask,
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i] != 0)
 		bins[i]->adjustSize(0, mask.size());
     }
@@ -3210,7 +3210,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
@@ -3225,7 +3225,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
@@ -3238,7 +3238,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -3271,7 +3271,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	}
 	delete vals1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::UBYTE:
@@ -3296,7 +3296,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
@@ -3311,7 +3311,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
@@ -3323,7 +3323,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    }
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    delete vals2;
 	    break;}
@@ -3357,7 +3357,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	}
 	delete vals1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::ULONG:
@@ -3380,7 +3380,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
@@ -3395,7 +3395,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
@@ -3408,7 +3408,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -3441,7 +3441,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	}
 	delete vals1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::FLOAT: {
@@ -3463,7 +3463,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
@@ -3478,7 +3478,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
@@ -3491,7 +3491,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -3544,7 +3544,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
@@ -3559,7 +3559,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
@@ -3572,7 +3572,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete vals2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -3715,7 +3715,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	nb2 = static_cast<uint32_t>(1.0 + end2 - begin2);
 	stride2 = 1.0;
     }
-    const size_t nbins =
+    const uint32_t nbins =
 	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
     if (nbins != nb1 * nb2) {
@@ -3754,7 +3754,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 
     long ierr;
     counts.resize(nbins);
-    for (size_t i = 0; i < nbins; ++i)
+    for (uint32_t i = 0; i < nbins; ++i)
 	counts[i] = 0;
     bounds1.resize(nb1+1);
     for (uint32_t i = 0; i <= nb1; ++ i)
@@ -4345,7 +4345,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	rng1.leftOperator() = ibis::qExpr::OP_LE;
 	rng1.rightOperator() = ibis::qExpr::OP_LT;
 	for (unsigned j = 1; j < bounds1.size()-2; ++ j) {
-	    size_t jc = j * bins2.size();
+	    uint32_t jc = j * bins2.size();
 	    rng1.leftBound() = bounds1[j];
 	    rng1.rightBound() = bounds1[j+1];
 	    LOGGER(ibis::gVerbose > 4)
@@ -4403,7 +4403,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    return -6L;
 	}
 	if (ierr > 0) {
-	    const size_t jc = (bounds1.size()-2) * bins2.size();
+	    const uint32_t jc = (bounds1.size()-2) * bins2.size();
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
 		counts[jc + i] = bv.count(*bins2[i]);
 #if defined(DEBUG)
@@ -4427,7 +4427,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    }
 	}
 	else {
-	    const size_t jc = (bounds1.size()-2) * bins2.size();
+	    const uint32_t jc = (bounds1.size()-2) * bins2.size();
 	    for (unsigned i = 0; i < bins2.size(); ++ i)
 		counts[jc + i] = 0;
 	}
@@ -4559,7 +4559,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -4575,7 +4575,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
@@ -4588,7 +4588,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -4601,7 +4601,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -4634,7 +4634,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	}
 	delete val1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::USHORT:
@@ -4661,7 +4661,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -4677,7 +4677,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
@@ -4690,7 +4690,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -4703,7 +4703,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -4735,7 +4735,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	}
 	delete val1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::LONG: {
@@ -4758,7 +4758,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -4774,7 +4774,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
@@ -4787,7 +4787,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -4800,7 +4800,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -4833,7 +4833,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	}
 	delete val1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::ULONG: {
@@ -4857,7 +4857,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -4873,7 +4873,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
@@ -4886,7 +4886,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -4899,7 +4899,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -4931,7 +4931,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	}
 	delete val1;
-	for (size_t i = 0; i < bounds1.size(); ++ i)
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
 	    bounds1[i] = std::ceil(bounds1[i]);
 	break;}
     case ibis::FLOAT: {
@@ -4955,7 +4955,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -4970,7 +4970,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    delete val2;
 	    break;}
@@ -4984,7 +4984,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -4997,7 +4997,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -5051,7 +5051,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
@@ -5067,7 +5067,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
@@ -5080,7 +5080,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
@@ -5093,7 +5093,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    delete val2;
-	    for (size_t i = 0; i < bounds2.size(); ++ i)
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
 		bounds2[i] = std::ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
@@ -5726,7 +5726,7 @@ void ibis::part::mapValues(array_t<E1> &val1, array_t<E2> &val2,
 			   std::vector<uint32_t> &cnts) {
     if (val1.size() == 0 || val2.size() == 0 || val1.size() != val2.size())
 	return;
-    const size_t nr = (val1.size() <= val2.size() ?
+    const uint32_t nr = (val1.size() <= val2.size() ?
 		       val1.size() : val2.size());
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
@@ -5783,7 +5783,7 @@ void ibis::part::equalWeightBins(const array_t<T> &vals, uint32_t nbins,
 				 array_t<T> &bounds) {
     typename std::map<T, uint32_t> hist;
     ibis::part::mapValues(vals, hist);
-    const size_t ncard = hist.size();
+    const uint32_t ncard = hist.size();
     array_t<uint32_t> ctmp;
     array_t<T> vtmp;
     ctmp.reserve(ncard);
@@ -5800,7 +5800,7 @@ void ibis::part::equalWeightBins(const array_t<T> &vals, uint32_t nbins,
     bounds.clear();
     bounds.reserve(hbnd.size()+1);
     bounds.push_back(vtmp[0]);
-    for (size_t i = 0; i < hbnd.size() && hbnd[i] < ncard; ++ i)
+    for (uint32_t i = 0; i < hbnd.size() && hbnd[i] < ncard; ++ i)
 	bounds.push_back(vtmp[hbnd[i]]);
 
     if (bounds.size() > 1) {
@@ -5817,7 +5817,7 @@ void ibis::part::equalWeightBins(const array_t<T> &vals, uint32_t nbins,
 template <typename T>
 void ibis::part::mapValues(const array_t<T> &vals,
 			   std::map<T, uint32_t> &hist) {
-    for (size_t i = 0; i < vals.size(); ++ i) {
+    for (uint32_t i = 0; i < vals.size(); ++ i) {
 	typename std::map<T, uint32_t>::iterator it = hist.find(vals[i]);
 	if (it != hist.end())
 	    ++ (*it).second;
@@ -5860,7 +5860,7 @@ void ibis::part::equalWeightBins(const array_t<float> &vals,
     bounds.clear();
     bounds.reserve(hbnd.size()+1);
     bounds.push_back(amin);
-    for (size_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
+    for (uint32_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
 	bounds.push_back(amin + stride *hbnd[i]);
     bounds.push_back(amin+stride*nb2);
 } // ibis::part::equalWeightBins
@@ -5899,7 +5899,7 @@ void ibis::part::equalWeightBins(const array_t<double> &vals,
     bounds.clear();
     bounds.reserve(hbnd.size()+1);
     bounds.push_back(amin);
-    for (size_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
+    for (uint32_t i = 0; i < hbnd.size() && hbnd[i] < nb2; ++ i)
 	bounds.push_back(amin + stride *hbnd[i]);
     bounds.push_back(amin+stride*nb2);
 } // ibis::part::equalWeightBins

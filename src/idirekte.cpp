@@ -950,7 +950,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	    if (bits.size() < idxf->bits.size()) {
 		bits.reserve(idxf->bits.size());
 	    }
-	    size_t j = 0;
+	    uint32_t j = 0;
 	    while (j < idxf->bits.size()) {
 		if (j >= bits.size()) {
 		    bits.push_back(new ibis::bitvector);

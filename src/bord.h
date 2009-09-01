@@ -30,7 +30,7 @@ public:
     virtual ~bord() {clear();}
 
     virtual uint64_t nRows() const {return mypart.nRows();}
-    virtual size_t nColumns() const {return mypart.nColumns();}
+    virtual uint32_t nColumns() const {return mypart.nColumns();}
 
     virtual ibis::table::stringList columnNames() const;
     virtual ibis::table::typeList columnTypes() const;
@@ -57,19 +57,19 @@ public:
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
-			      std::vector<size_t>&) const;
+			      std::vector<uint32_t>&) const;
     virtual long getHistogram2D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const;
+				std::vector<uint32_t>&) const;
     virtual long getHistogram3D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const;
+				std::vector<uint32_t>&) const;
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
@@ -121,12 +121,12 @@ protected:
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
 
-	virtual int dump(std::ostream&, size_t, const char*) const;
+	virtual int dump(std::ostream&, uint32_t, const char*) const;
 
 	void describe(std::ostream&) const;
 	void dumpNames(std::ostream&, const char*) const;
 	void reverseRows();
-	int limit(size_t);
+	int limit(uint32_t);
 
 	template <typename T>
 	long reorderValues(array_t<T>& vals,
@@ -199,11 +199,11 @@ public:
     virtual void getString(uint32_t i, std::string &val) const;
 
     void reverseRows();
-    int  limit(size_t nr);
+    int  limit(uint32_t nr);
 
     void* getArray() const {return buffer;}
     template <typename T> int getRawData(array_t<T> &vals) const;
-    int dump(std::ostream& out, size_t i) const;
+    int dump(std::ostream& out, uint32_t i) const;
 
     int restoreCategoriesAsStrings(const ibis::part&);
 
@@ -221,7 +221,7 @@ public:
     virtual ~cursor() {};
 
     virtual uint64_t nRows() const {return tab.nRows();}
-    virtual size_t nColumns() const {return tab.nColumns();}
+    virtual uint32_t nColumns() const {return tab.nColumns();}
     virtual ibis::table::stringList columnNames() const {
 	return tab.columnNames();}
     virtual ibis::table::typeList columnTypes() const {
@@ -245,17 +245,17 @@ public:
     virtual int getColumnAsDouble(const char*, double&) const;
     virtual int getColumnAsString(const char*, std::string&) const;
 
-    virtual int getColumnAsByte(size_t, char&) const;
-    virtual int getColumnAsUByte(size_t, unsigned char&) const;
-    virtual int getColumnAsShort(size_t, int16_t&) const;
-    virtual int getColumnAsUShort(size_t, uint16_t&) const;
-    virtual int getColumnAsInt(size_t, int32_t&) const;
-    virtual int getColumnAsUInt(size_t, uint32_t&) const;
-    virtual int getColumnAsLong(size_t, int64_t&) const;
-    virtual int getColumnAsULong(size_t, uint64_t&) const;
-    virtual int getColumnAsFloat(size_t, float&) const;
-    virtual int getColumnAsDouble(size_t, double&) const;
-    virtual int getColumnAsString(size_t, std::string&) const;
+    virtual int getColumnAsByte(uint32_t, char&) const;
+    virtual int getColumnAsUByte(uint32_t, unsigned char&) const;
+    virtual int getColumnAsShort(uint32_t, int16_t&) const;
+    virtual int getColumnAsUShort(uint32_t, uint16_t&) const;
+    virtual int getColumnAsInt(uint32_t, int32_t&) const;
+    virtual int getColumnAsUInt(uint32_t, uint32_t&) const;
+    virtual int getColumnAsLong(uint32_t, int64_t&) const;
+    virtual int getColumnAsULong(uint32_t, uint64_t&) const;
+    virtual int getColumnAsFloat(uint32_t, float&) const;
+    virtual int getColumnAsDouble(uint32_t, double&) const;
+    virtual int getColumnAsString(uint32_t, std::string&) const;
 
 protected:
     struct bufferElement {
@@ -265,14 +265,14 @@ protected:
 
 	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
     }; // bufferElement
-    typedef std::map<const char*, size_t, ibis::lessi> bufferMap;
+    typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;
     bufferMap bufmap;
     const ibis::bord& tab;
     int64_t curRow; // the current row number
 
     void fillRow(ibis::table::row& res) const;
-    int dumpIJ(std::ostream&, size_t, size_t) const;
+    int dumpIJ(std::ostream&, uint32_t, uint32_t) const;
 
 private:
     cursor();
@@ -294,7 +294,7 @@ inline int ibis::bord::dump(std::ostream &out, const char* del) const {
 
 inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
 			    const char* del) const {
-    return mypart.dump(out, static_cast<size_t>(nr), del);
+    return mypart.dump(out, static_cast<uint32_t>(nr), del);
 } // ibis::bord::dump
 
 inline ibis::table* 
@@ -349,7 +349,7 @@ ibis::bord::column::getRawData() const {
     return 0;
 } // ibis::bord::column::getRawData
 
-inline int ibis::bord::column::dump(std::ostream& out, size_t i) const {
+inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     int ierr = -1;
     if (buffer == 0) return ierr;
 
@@ -466,7 +466,8 @@ inline int ibis::bord::cursor::fetch(uint64_t irow, ibis::table::row& res) {
 } // ibis::bord::cursor::fetch
 
 inline int
-ibis::bord::cursor::dumpIJ(std::ostream& out, size_t i, size_t j) const {
+ibis::bord::cursor::dumpIJ(std::ostream& out, uint32_t i,
+			   uint32_t j) const {
     if (buffer[j].cval == 0) return -1;
 
     switch (buffer[j].ctype) {

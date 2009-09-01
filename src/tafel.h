@@ -42,7 +42,7 @@ public:
     virtual uint32_t capacity() const;
 
     virtual uint32_t mRows() const {return mrows;}
-    virtual size_t mColumns() const {return cols.size();}
+    virtual uint32_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
 
     /// In-memory version of a column.

@@ -254,7 +254,7 @@ namespace ibis {
 
 	bool empty() const {return cstr == 0;}
 	const char* operator*() const {return cstr;};
-	size_t size() const {return cvec.size();};
+	uint32_t size() const {return cvec.size();};
 
 	/// Replace existing content with these names.  Remove existing names.
 	void select(const char* str);
@@ -263,9 +263,9 @@ namespace ibis {
 	/// Find the order of the @c key in the list.  If the @c key is in
 	/// the list it returns the position of the @c key, otherwise it
 	/// returns the size of the name list.
-	size_t find(const char* key) const;
+	uint32_t find(const char* key) const;
 
-	const char* operator[](size_t i) const {return cvec[i];}
+	const char* operator[](uint32_t i) const {return cvec[i];}
 	typedef std::vector< const char* >::const_iterator const_iterator;
 	const_iterator begin() const {return cvec.begin();}
 	const_iterator end() const {return cvec.end();}
@@ -294,8 +294,8 @@ namespace ibis {
 	~selected() {};
 
 	bool empty() const {return names.empty();}
-	size_t size() const {return names.size();}
-	size_t nPlain() const {return nplain;}
+	uint32_t size() const {return names.size();}
+	uint32_t nPlain() const {return nplain;}
 
 	/// Parse the select clause.  By default, place the functions last.
 	void select(const char *str, bool sort=true);
@@ -305,11 +305,11 @@ namespace ibis {
 	/// Return the first occurrence of the string.  Returns the value of
 	/// @c size if the given @c key in not in the list of selected
 	/// components.
-	size_t find(const char *key) const;
+	uint32_t find(const char *key) const;
 	void clear() {
 	    names.clear(); functions.clear(); mystr_.erase(); nplain=0;}
 	/// Remove the entries specified.
-	void remove(const std::vector<size_t>& ents);
+	void remove(const std::vector<uint32_t>& ents);
 
 	/// Output a stringlized version of the select clause.
 	const char* operator*() const {return mystr_.c_str();}
@@ -318,12 +318,12 @@ namespace ibis {
 	/// function, it returns the name of the argument rather than the
 	/// whole function.  This operator is only intended to be used to
 	/// extract the column values.
-	const char* getName(size_t i) const {return names[i].c_str();};
-	const char* operator[](size_t i) const {return names[i].c_str();};
+	const char* getName(uint32_t i) const {return names[i].c_str();};
+	const char* operator[](uint32_t i) const {return names[i].c_str();};
 	/// Return all unique column names.
 	std::string uniqueNames() const;
 	/// Return the ith term, with the function name.
-	std::string getTerm(size_t i) const;
+	std::string getTerm(uint32_t i) const;
 
 	/// An iterator through the column names of the select clause.
 	typedef std::vector<std::string>::const_iterator const_iterator;
@@ -331,7 +331,7 @@ namespace ibis {
 	const_iterator end() const {return names.end();}
 
 	enum FUNCTION {NIL, AVG, MAX, MIN, SUM};
-	FUNCTION getFunction(size_t i) const {return functions[i];}
+	FUNCTION getFunction(uint32_t i) const {return functions[i];}
 
     private:
 	std::vector<std::string> names;
@@ -340,7 +340,7 @@ namespace ibis {
 	uint32_t nplain;
 
 	void toString(std::string& str) const;
-	void print(size_t i, std::ostream& out) const;
+	void print(uint32_t i, std::ostream& out) const;
 
 	selected(const selected&);
 	selected& operator=(const selected&);
@@ -1234,7 +1234,7 @@ inline char* ibis::util::strnewdup(const char* s) {
 inline char* ibis::util::strnewdup(const char* s, const uint32_t n) {
     char* str = 0;
     if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
-	size_t len = strlen(s);
+	uint32_t len = strlen(s);
 	if (n < len)
 	    len = n;
 	str = new char[len+1];
@@ -1246,7 +1246,7 @@ inline char* ibis::util::strnewdup(const char* s, const uint32_t n) {
 
 // remove all the trailing char 'tail'
 inline void ibis::util::removeTail(char* str, char tail) {
-    size_t j = strlen(str);
+    uint32_t j = strlen(str);
     while (j > 0 && str[j-1] == tail) {
 	-- j;
 	str[j] = static_cast<char>(0);
@@ -1314,7 +1314,7 @@ inline double ibis::util::coarsen(const double in, const unsigned prec) {
 
 inline std::string ibis::util::shortName(const std::string& de) {
     std::string tn;
-    size_t tmp = ibis::util::checksum(de.c_str(), de.size());
+    uint32_t tmp = ibis::util::checksum(de.c_str(), de.size());
     ibis::util::int2string(tn, tmp);
     std::swap(tn[0], tn[5]);
     if (! isalpha(tn[0]))

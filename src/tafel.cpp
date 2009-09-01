@@ -576,7 +576,7 @@ void ibis::tafel::locate(ibis::TYPE_T t, std::vector<array_t<T>*>& buf,
 			 std::vector<ibis::bitvector*>& msk) const {
     buf.clear();
     msk.clear();
-    for (size_t i = 0; i < colorder.size(); ++ i) {
+    for (uint32_t i = 0; i < colorder.size(); ++ i) {
 	if (colorder[i]->type == t) {
 	    buf.push_back(static_cast<array_t<T>*>(colorder[i]->values));
 	    msk.push_back(&(colorder[i]->mask));
@@ -590,7 +590,7 @@ void ibis::tafel::locateString(ibis::TYPE_T t,
 			       std::vector<ibis::bitvector*>& msk) const {
     buf.clear();
     msk.clear();
-    for (size_t i = 0; i < colorder.size(); ++ i) {
+    for (uint32_t i = 0; i < colorder.size(); ++ i) {
 	if (colorder[i]->type == t) {
 	    buf.push_back(static_cast<std::vector<std::string>*>
 			  (colorder[i]->values));
@@ -609,8 +609,8 @@ void ibis::tafel::append(const std::vector<std::string>& nm,
 			 const std::vector<T>& va,
 			 std::vector<array_t<T>*>& buf,
 			 std::vector<ibis::bitvector*>& msk) {
-    const size_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
-    for (size_t i = 0; i < n1; ++ i) {
+    const uint32_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
+    for (uint32_t i = 0; i < n1; ++ i) {
 	if (nm[i].empty()) {
 	    if (buf.size() > i && buf[i] != 0)
 		buf[i]->push_back(va[i]);
@@ -630,8 +630,8 @@ void ibis::tafel::append(const std::vector<std::string>& nm,
 	}
     }
 
-    const size_t n2 = (va.size() <= buf.size() ? va.size() : buf.size());    
-    for (size_t i = n1; i < n2; ++ i) {
+    const uint32_t n2 = (va.size() <= buf.size() ? va.size() : buf.size());    
+    for (uint32_t i = n1; i < n2; ++ i) {
 	if (buf[i] != 0)
 	    buf[i]->push_back(va[i]);
 	if (msk.size() > i && msk[i] != 0)
@@ -648,8 +648,8 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 			       const std::vector<std::string>& va,
 			       std::vector<std::vector<std::string>*>& buf,
 			       std::vector<ibis::bitvector*>& msk) {
-    const size_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
-    for (size_t i = 0; i < n1; ++ i) {
+    const uint32_t n1 = (nm.size() <= va.size() ? nm.size() : va.size());
+    for (uint32_t i = 0; i < n1; ++ i) {
 	if (nm[i].empty()) {
 	    if (buf.size() > i && buf[i] != 0)
 		buf[i]->push_back(va[i]);
@@ -669,8 +669,8 @@ void ibis::tafel::appendString(const std::vector<std::string>& nm,
 	}
     }
 
-    const size_t n2 = (va.size() <= buf.size() ? va.size() : buf.size());    
-    for (size_t i = n1; i < n2; ++ i) {
+    const uint32_t n2 = (va.size() <= buf.size() ? va.size() : buf.size());    
+    for (uint32_t i = n1; i < n2; ++ i) {
 	if (buf[i] != 0)
 	    buf[i]->push_back(va[i]);
 	if (msk.size() > i && msk[i] != 0)
@@ -799,10 +799,10 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
     std::vector<std::vector<std::string>*> textsptr;
     locateString(ibis::TEXT, textsptr, textsmsk);
 
-    const size_t ncols = cols.size();
-    size_t cnt = 0;
+    const uint32_t ncols = cols.size();
+    uint32_t cnt = 0;
     int jnew = 0;
-    for (size_t i = 0; i < rs.size(); ++ i) {
+    for (uint32_t i = 0; i < rs.size(); ++ i) {
 	if (cnt < ncols)
 	    normalize();
 
@@ -920,7 +920,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	    else { // dir ends with FASTBIT_DIRSEP
 		oldnm = dir;
 		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
-		size_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
+		uint32_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
 		if (j > oldnm.size())
 		    j = 1 + oldnm.rfind('/');
 		if (j < oldnm.size())
@@ -1139,7 +1139,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    else { // dir ends with FASTBIT_DIRSEP
 		oldnm = dir;
 		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
-		size_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
+		uint32_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
 		if (j > oldnm.size())
 		    j = 1 + oldnm.rfind('/');
 		if (j < oldnm.size())
@@ -1353,7 +1353,7 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 			     const array_t<T>& vals, const T& fill,
 			     ibis::bitvector& totmask,
 			     const ibis::bitvector& newmask) const {
-    const size_t elem = sizeof(T);
+    const uint32_t elem = sizeof(T);
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
     if (pos < 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -1362,13 +1362,13 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	    "the end of the file";
 	return -3; // failed to find the EOF position
     }
-    if ((size_t) pos < nold*elem) {
-	const size_t n1 = (size_t)pos / elem;
+    if ((uint32_t) pos < nold*elem) {
+	const uint32_t n1 = (uint32_t)pos / elem;
 	totmask.adjustSize(n1, nold);
-	for (size_t j = n1; j < nold; ++ j)
+	for (uint32_t j = n1; j < nold; ++ j)
 	    UnixWrite(fdes, &fill, elem);
     }
-    else if ((size_t) pos > nold*elem) {
+    else if ((uint32_t) pos > nold*elem) {
 	pos = UnixSeek(fdes, nold*elem, SEEK_SET);
 	totmask.adjustSize(nold, nold);
     }
@@ -1382,7 +1382,7 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
     }
     else {
 	pos = UnixWrite(fdes, vals.begin(), vals.size()*elem);
-	for (size_t j = vals.size(); j < nnew; ++ j)
+	for (uint32_t j = vals.size(); j < nnew; ++ j)
 	    pos += UnixWrite(fdes, &fill, elem);
 	totmask += newmask;
     }
@@ -1395,7 +1395,7 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	    lg.buffer() << "mask for new records: " << newmask << "\n";
 	lg.buffer() << "Overall bit mask: "<< totmask;
     }
-    return (-5 * ((size_t) pos != nnew*elem));
+    return (-5 * ((uint32_t) pos != nnew*elem));
 } // ibis::tafel::writeColumn
 
 int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
@@ -1414,15 +1414,15 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
     pos = 0;
     totmask.adjustSize(nold, nold);
     if (vals.size() >= nnew) {
-	for (size_t j = 0; j < nnew; ++ j)
+	for (uint32_t j = 0; j < nnew; ++ j)
 	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
     }
     else {
-	for (size_t j = 0; j < vals.size(); ++ j)
+	for (uint32_t j = 0; j < vals.size(); ++ j)
 	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
 	char buf[MAX_LINE];
 	memset(buf, 0, MAX_LINE);
-	for (size_t j = vals.size(); j < nnew; j += MAX_LINE)
+	for (uint32_t j = vals.size(); j < nnew; j += MAX_LINE)
 	    pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
     }
 
@@ -1434,14 +1434,14 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 		    << " strings (" << nnew << " expected)\n";
 #if DEBUG+0>0
 	lg.buffer() << "vals[" << vals.size() << "]:\n"
-	for (size_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size()); ++ j)
+	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size()); ++ j)
 	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
 #endif
 	if (ibis::gVerbose > 6)
 	    lg.buffer() << "mask for new records: " << newmask << "\n";
 	lg.buffer() << "Overall bit mask: " << totmask;
     }
-    return (-5 * ((size_t) pos != nnew));
+    return (-5 * ((uint32_t) pos != nnew));
 } // ibis::tafel::writeString
 
 void ibis::tafel::clearData() {
@@ -1847,10 +1847,10 @@ uint32_t ibis::tafel::capacity() const {
 } // ibis::tafel::capacity
 
 void ibis::tafel::clear() {
-    const size_t ncol = colorder.size();
+    const uint32_t ncol = colorder.size();
     LOGGER(ibis::gVerbose > 1)
 	<< "tafel::clear clearing content of " << (void*)this;
-    for (size_t i = 0; i < ncol; ++ i)
+    for (uint32_t i = 0; i < ncol; ++ i)
 	delete colorder[i];
     colorder.clear();
     cols.clear();
@@ -1865,8 +1865,8 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     int64_t itmp;
     double dtmp;
     std::string stmp;
-    const size_t ncol = colorder.size();
-    for (size_t i = 0; i < ncol; ++ i) {
+    const uint32_t ncol = colorder.size();
+    for (uint32_t i = 0; i < ncol; ++ i) {
 	column& col = *(colorder[i]);
 	switch (col.type) {
 	case ibis::BYTE: {
@@ -2190,14 +2190,14 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     int64_t itmp;
     double dtmp;
     std::string stmp;
-    size_t cnt = 0;
-    size_t iline = 0;
+    uint32_t cnt = 0;
+    uint32_t iline = 0;
     bool more = true;
-    const size_t pline = (ibis::gVerbose < 3 ? 1000000 :
+    const uint32_t pline = (ibis::gVerbose < 3 ? 1000000 :
 			  ibis::gVerbose < 5 ? 100000 :
 			  ibis::gVerbose < 7 ? 10000 : 1000);
     char* str; // pointer to next character to be processed
-    const size_t ncol = colorder.size();
+    const uint32_t ncol = colorder.size();
     while (more) {
 	++ iline;
 	std::streampos linestart = csv.tellg();
@@ -2246,7 +2246,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 	    normalize();
 
 	cnt = 0; // initialize cnt to zero!
-	for (size_t i = 0; i < ncol; ++ i) {
+	for (uint32_t i = 0; i < ncol; ++ i) {
 	    column& col = *(colorder[i]);
 	    switch (col.type) {
 	    case ibis::BYTE: {

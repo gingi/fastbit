@@ -21,7 +21,7 @@ ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
 	parser.set_debug_stream(lg.buffer());
 	ierr = parser.parse();
 	if (ierr == 0) {
-	    for (size_t it = 0; it < terms_.size(); ++ it) {
+	    for (uint32_t it = 0; it < terms_.size(); ++ it) {
 		ibis::qExpr *tmp = terms_[it];
 		ibis::qExpr::simplify(tmp);
 		if (tmp != terms_[it]) {
@@ -43,7 +43,7 @@ ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
 ibis::selectClause::selectClause(const ibis::selectClause& rhs)
     : terms_(rhs.terms_.size()), aggr_(rhs.aggr_.size()),
       clause_(rhs.clause_), lexer(0) {
-    for (size_t i = 0; i < rhs.terms_.size(); ++ i) {
+    for (uint32_t i = 0; i < rhs.terms_.size(); ++ i) {
 	terms_[i] = rhs.terms_[i]->dup();
 	aggr_[i] = rhs.aggr_[i];
     }
@@ -55,7 +55,7 @@ ibis::selectClause::~selectClause() {
 }
 
 void ibis::selectClause::clear() {
-    for (size_t i = 0; i < terms_.size(); ++ i)
+    for (uint32_t i = 0; i < terms_.size(); ++ i)
 	delete terms_[i];
     terms_.clear();
     aggr_.clear();
@@ -78,7 +78,7 @@ int ibis::selectClause::parse(const char *cl) {
 	parser.set_debug_stream(lg.buffer());
 	ierr = parser.parse();
 	if (ierr == 0) {
-	    for (size_t it = 0; it < terms_.size(); ++ it) {
+	    for (uint32_t it = 0; it < terms_.size(); ++ it) {
 		ibis::qExpr *tmp = terms_[it];
 		ibis::qExpr::simplify(tmp);
 		if (tmp != terms_[it]) {
@@ -134,8 +134,8 @@ void ibis::selectClause::fillNames() {
     names_.clear();
     if (terms_.size() == 0) return;
 
-    size_t prec = 0;
-    for (size_t j = terms_.size(); j > 0; j >>= 4)
+    uint32_t prec = 0;
+    for (uint32_t j = terms_.size(); j > 0; j >>= 4)
 	++ prec;
 
     names_.resize(terms_.size());
@@ -145,7 +145,7 @@ void ibis::selectClause::fillNames() {
 	names_[it->second] = it->first;
 
     // fill those without a specified name
-    for (size_t j = 0; j < terms_.size(); ++ j) {
+    for (uint32_t j = 0; j < terms_.size(); ++ j) {
 	if (names_[j].empty()) {
 	    if (terms_[j]->termType() == ibis::math::VARIABLE) {
 		names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
@@ -225,7 +225,7 @@ void ibis::selectClause::print(std::ostream& out) const {
 	aliases[(*it).second] = &(it->first);
     }
 
-    for (size_t i = 0; i < terms_.size(); ++ i) {
+    for (uint32_t i = 0; i < terms_.size(); ++ i) {
 	switch (aggr_[i]) {
 	default:
 	    out << *(terms_[i]);
@@ -263,7 +263,7 @@ void ibis::selectClause::print(std::ostream& out) const {
 /// erros in the evaluation process than the original expression.
 int ibis::selectClause::verify(const ibis::part& part0) {
     int ierr = 0;
-    for (size_t j = 0; j < terms_.size(); ++ j) {
+    for (uint32_t j = 0; j < terms_.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = terms_[j]->reduce();
 	    if (tmp != terms_[j]) {
@@ -277,9 +277,9 @@ int ibis::selectClause::verify(const ibis::part& part0) {
 } // ibis::selectClause::verify
 
 int ibis::selectClause::verifySome(const ibis::part& part0,
-				   const std::vector<size_t>& touse) {
+				   const std::vector<uint32_t>& touse) {
     int ierr = 0;
-    for (size_t j = 0; j < touse.size(); ++ j) {
+    for (uint32_t j = 0; j < touse.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = terms_[touse[j]]->reduce();
 	    if (tmp != terms_[touse[j]]) {
@@ -331,7 +331,7 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
     mask.copy(part0.getNullMask());
     if (terms_.size() > 0) {
 	ibis::part::barrel bar(&part0);
-	for (size_t j = 0; j < terms_.size(); ++ j)
+	for (uint32_t j = 0; j < terms_.size(); ++ j)
 	    bar.recordVariable(terms_[j]);
 	ibis::bitvector tmp;
 	bar.getNullMask(tmp);

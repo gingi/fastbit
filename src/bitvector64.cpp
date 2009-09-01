@@ -289,11 +289,11 @@ void ibis::bitvector64::decompress(array_t<ibis::bitvector64::word_t>& tmp)
 	if ((*i0) > ALLONES) {
 	    cnt = (*i0 & MAXCNT);
 	    if ((*i0)>=HEADER1) {
-		for (size_t j=0; j<cnt; j++, it++)
+		for (uint32_t j=0; j<cnt; j++, it++)
 		    *it = ALLONES;
 	    }
 	    else {
-		for (size_t j=0; j<cnt; j++, it++)
+		for (uint32_t j=0; j<cnt; j++, it++)
 		    *it = 0;
 	    }
 	}
@@ -317,11 +317,11 @@ ibis::bitvector64::copy_comp(array_t<ibis::bitvector64::word_t>& tmp) const {
 	if ((*i0) > ALLONES) {
 	    cnt = (*i0 & MAXCNT);
 	    if ((*i0)>=HEADER1) {
-		for (size_t j=0; j<cnt; j++, it++)
+		for (uint32_t j=0; j<cnt; j++, it++)
 		    *it = 0;
 	    }
 	    else {
-		for (size_t j=0; j<cnt; j++, it++)
+		for (uint32_t j=0; j<cnt; j++, it++)
 		    *it = ALLONES;
 	    }
 	}

@@ -177,12 +177,12 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     uint32_t ncol, nbdl, offset;
     bdlstore->beginUse(); // obtain a read lock on dblstore
     { // get the first two numbers out of bdlstore
-	array_t<uint32_t> tmp(bdlstore, 0, 2);
+	ibis::array_t<uint32_t> tmp(bdlstore, 0, 2);
 	nbdl = tmp[0];
 	ncol = tmp[1];
     }
     { // verify the file contains the right number of bytes
-	array_t<uint32_t> sizes(bdlstore, 2*sizeof(uint32_t), ncol);
+	ibis::array_t<uint32_t> sizes(bdlstore, 2*sizeof(uint32_t), ncol);
 	uint32_t expected = sizeof(uint32_t)*(ncol+3+nbdl);
 	for (uint32_t i0 = 0; i0 < ncol; ++i0)
 	    expected += sizes[i0] * nbdl;
@@ -197,7 +197,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	offset = expected - sizeof(uint32_t)*(nbdl+1);
     }
 
-    array_t<uint32_t> starts(bdlstore, offset, nbdl+1);
+    ibis::array_t<uint32_t> starts(bdlstore, offset, nbdl+1);
     bdlstore->endUse(); // this function no longer needs the read lock
     if (i < nbdl) { // open the rid file and read the selected segment
 	ibis::RIDSet* res = new ibis::RIDSet;
@@ -371,7 +371,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	// no need to explicitly call beginUse() because array_t sizes will
 	// hold a read lock long enough until starts holds another one for
 	// the life time of this object
-	array_t<uint32_t> sizes(bdlstore, 0, 3);
+	ibis::array_t<uint32_t> sizes(bdlstore, 0, 3);
 	uint32_t expected = sizeof(uint32_t)*(sizes[0]+4) + sizes[0]*sizes[2];
 	if (bdlstore->bytes() == expected) {
 	    if (cmps.nPlain() > 0) {
@@ -391,7 +391,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 		    break;
 		}
 	    }
-	    starts = new array_t<uint32_t>
+	    starts = new ibis::array_t<uint32_t>
 		(bdlstore, 3*sizeof(uint32_t)+sizes[0]*sizes[2], sizes[0]+1);
 	    infile = true;
 	}
@@ -633,7 +633,7 @@ void ibis::bundle1::sort() {
     col->nosharing();
 
     if (nrow < 2) { // not much to do
-	starts = new array_t<uint32_t>(2);
+	starts = new array_t<uint32_t>((uint32_t)2);
 	(*starts)[1] = nrow;
 	(*starts)[0] = 0;
     }
@@ -653,7 +653,7 @@ void ibis::bundle1::sort() {
 	}
     }
     else { // a function is involved
-	starts = new array_t<uint32_t>(2);
+	starts = new array_t<uint32_t>((uint32_t)2);
 	(*starts)[1] = nrow;
 	(*starts)[0] = 0;
 	col->reduce(*starts, comps.getFunction(0));
@@ -932,7 +932,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    throw ibis::bad_alloc("unknown column name");
 		}
 	    }
-	    starts = new array_t<uint32_t>(bdlstore, start, sizes[0]+1);
+	    starts = new ibis::array_t<uint32_t>(bdlstore, start, sizes[0]+1);
 	    infile = true;
 	}
 	else {
@@ -1194,7 +1194,7 @@ void ibis::bundles::sort() {
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
     if (nHits < 2) { // not much to do
-	starts = new array_t<uint32_t>(2);
+	starts = new ibis::array_t<uint32_t>(2);
 	(*starts)[1] = nHits;
 	(*starts)[0] = 0;
     }
@@ -1398,7 +1398,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	    (*starts)[i] = (*starts)[i+1] - (*starts)[i];
 	starts->resize(ngroups);
 	if (sortkeys.size() > 1) {
-	    array_t<uint32_t> gb;
+	    ibis::array_t<uint32_t> gb;
 	    gb.reserve(ngroups);
 	    gb.push_back(0);
 	    gb.push_back(ngroups);
@@ -1408,11 +1408,11 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		const uint32_t j = comps.find(sortkeys[i]);
 		if (j >= comps.size()) continue;
 
-		array_t<uint32_t> ind0; // indices over all ngroups
+		ibis::array_t<uint32_t> ind0; // indices over all ngroups
 		ind0.reserve(ngroups);
 		for (uint32_t g = 0; g < gb.size()-1; ++ g) {
 		    if (gb[g+1] > gb[g]+1) { // more than one group
-			array_t<uint32_t> ind1; // indices for group g
+			ibis::array_t<uint32_t> ind1; // indices for group g
 			cols[j]->sort(gb[g], gb[g+1], ind1);
 			ind0.insert(ind0.end(), ind1.begin(), ind1.end());
 		    }
@@ -1425,7 +1425,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		ibis::util::reorder(*(starts), ind0);
 
 		{
-		    array_t<uint32_t> *tmp = cols[j]->segment(&gb);
+		    ibis::array_t<uint32_t> *tmp = cols[j]->segment(&gb);
 		    gb.swap(*tmp);
 		    delete tmp;
 		}
@@ -1434,7 +1434,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.size()) {
-		array_t<uint32_t> ind;
+		ibis::array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);

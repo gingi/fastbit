@@ -30,7 +30,7 @@ void ibis::bord::clear() {
 /// The caller should not attempt to free these pointers.
 ibis::table::stringList ibis::bord::columnNames() const {
     ibis::table::stringList res(mypart.nColumns());
-    for (size_t i = 0; i < mypart.nColumns(); ++ i) {
+    for (uint32_t i = 0; i < mypart.nColumns(); ++ i) {
 	ibis::column* col = mypart.getColumn(i);
 	res[i] = (col != 0 ? col->name() : static_cast<const char*>(0));
     }
@@ -39,7 +39,7 @@ ibis::table::stringList ibis::bord::columnNames() const {
 
 ibis::table::typeList ibis::bord::columnTypes() const {
     ibis::table::typeList res(mypart.nColumns());
-    for (size_t i = 0; i < mypart.nColumns(); ++ i) {
+    for (uint32_t i = 0; i < mypart.nColumns(); ++ i) {
 	ibis::column* col = mypart.getColumn(i);
 	res[i] = (col != 0 ? col->type() : ibis::UNKNOWN_TYPE);
     }
@@ -56,7 +56,7 @@ int64_t ibis::bord::getColumnAsBytes(const char *cn, char *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -77,7 +77,7 @@ ibis::bord::getColumnAsUBytes(const char *cn, unsigned char *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -97,7 +97,7 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -106,7 +106,7 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -115,7 +115,7 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -135,7 +135,7 @@ int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -144,7 +144,7 @@ int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -164,7 +164,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -173,7 +173,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -182,7 +182,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -191,7 +191,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -200,7 +200,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -220,7 +220,7 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -229,7 +229,7 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -238,7 +238,7 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -258,7 +258,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<int64_t>* arr =
 	    static_cast<const array_t<int64_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -267,7 +267,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -276,7 +276,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -285,7 +285,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -294,7 +294,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -303,7 +303,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -312,7 +312,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -332,7 +332,7 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
 	const array_t<uint64_t>* arr =
 	    static_cast<const array_t<uint64_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -341,7 +341,7 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -350,7 +350,7 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -359,7 +359,7 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
@@ -380,7 +380,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -388,7 +388,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -396,7 +396,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -404,7 +404,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -412,7 +412,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -433,7 +433,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<double>* arr =
 	    static_cast<const array_t<double>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -441,7 +441,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -449,7 +449,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -457,7 +457,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -465,7 +465,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -473,7 +473,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -481,7 +481,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -489,7 +489,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;}
@@ -511,7 +511,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<double>* arr =
 	    static_cast<const array_t<double>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -520,7 +520,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -529,7 +529,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -538,7 +538,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -547,7 +547,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -556,7 +556,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -565,7 +565,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -574,7 +574,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const size_t sz = (mypart.nRows() <= arr->size() ? 
+	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
 			   mypart.nRows() : arr->size());
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
@@ -599,7 +599,7 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const std::vector<std::string>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
 	std::copy(arr->begin(), arr->end(), vals.begin());
 	return sz;}
@@ -608,9 +608,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<double>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -621,9 +621,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -634,9 +634,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int64_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -647,9 +647,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint64_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -660,9 +660,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -673,9 +673,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -686,9 +686,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -699,9 +699,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << (*arr)[i];
 	    vals[i] = oss.str();
@@ -712,9 +712,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << static_cast<int>((*arr)[i]);
 	    vals[i] = oss.str();
@@ -725,9 +725,9 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const size_t sz = arr->size();
+	const uint32_t sz = arr->size();
 	vals.resize(sz);
-	for (size_t i = 0; i < sz; ++ i) {
+	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
 	    oss << static_cast<int>((*arr)[i]);
 	    vals[i] = oss.str();
@@ -742,8 +742,8 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 long ibis::bord::getHistogram(const char *constraints,
 			     const char *cname,
 			     double begin, double end, double stride,
-			     std::vector<size_t>& counts) const {
-    if (sizeof(size_t) == sizeof(uint32_t)) {
+			     std::vector<uint32_t>& counts) const {
+    if (sizeof(uint32_t) == sizeof(uint32_t)) {
 	return mypart.get1DDistribution
 	    (constraints, cname, begin, end, stride,
 	     reinterpret_cast<std::vector<uint32_t>&>(counts));
@@ -765,8 +765,8 @@ long ibis::bord::getHistogram2D(const char *constraints,
 				double begin1, double end1, double stride1,
 				const char* cname2,
 				double begin2, double end2, double stride2,
-				std::vector<size_t>& counts) const {
-    if (sizeof(size_t) == sizeof(uint32_t)) {
+				std::vector<uint32_t>& counts) const {
+    if (sizeof(uint32_t) == sizeof(uint32_t)) {
 	return mypart.get2DDistribution
 	    (constraints, cname1, begin1, end1, stride1,
 	     cname2, begin2, end2, stride2,
@@ -792,8 +792,8 @@ long ibis::bord::getHistogram3D(const char *constraints,
 				double begin2, double end2, double stride2,
 				const char *cname3,
 				double begin3, double end3, double stride3,
-				std::vector<size_t>& counts) const {
-    if (sizeof(size_t) == sizeof(uint32_t)) {
+				std::vector<uint32_t>& counts) const {
+    if (sizeof(uint32_t) == sizeof(uint32_t)) {
 	return mypart.get3DDistribution
 	    (constraints, cname1, begin1, end1, stride1,
 	     cname2, begin2, end2, stride2,
@@ -903,7 +903,7 @@ ibis::table* ibis::bord::select(const char *sel, const char *cond) const {
 	ibis::table::typeList tp;
 	const ibis::nameList nms(sel);
 	ibis::bord::bufferList buf;
-	for (size_t i = 0; i < nms.size(); ++ i) {
+	for (uint32_t i = 0; i < nms.size(); ++ i) {
 	    const ibis::column *col = mypart.getColumn(nms[i]);
 	    if (col != 0) {
 		switch (col->type()) {
@@ -1003,8 +1003,8 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 	throw "Too many rows for an in-memory table";
     }
 
-    const size_t nc = (cn.size()<=ct.size() ? cn.size() : ct.size());
-    for (size_t i = 0; i < nc; ++ i) {
+    const uint32_t nc = (cn.size()<=ct.size() ? cn.size() : ct.size());
+    for (uint32_t i = 0; i < nc; ++ i) {
 	if (columns.find(cn[i]) == columns.end()) {
 	    ibis::column *tmp;
 	    if (cdesc != 0 && cdesc->size() > i)
@@ -1077,7 +1077,7 @@ void ibis::bord::part::describe(std::ostream& out) const {
 		<< ibis::TYPESTRING[(int)(*it).second->type()];
     }
     else if (colorder.size() == columns.size()) {
-	for (size_t i = 0; i < columns.size(); ++ i)
+	for (uint32_t i = 0; i < columns.size(); ++ i)
 	    out << "\n" << colorder[i]->name() << "\t"
 		<< ibis::TYPESTRING[(int)colorder[i]->type()];
     }
@@ -1086,7 +1086,7 @@ void ibis::bord::part::describe(std::ostream& out) const {
 	for (ibis::part::columnList::const_iterator it = columns.begin();
 	     it != columns.end(); ++ it)
 	    names.insert((*it).first);
-	for (size_t i = 0; i < colorder.size(); ++ i) {
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
 	    out << "\n" << colorder[i]->name() << "\t"
 		<< ibis::TYPESTRING[(int)colorder[i]->type()];
 	    names.erase(colorder[i]->name());
@@ -1114,7 +1114,7 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
     }
     else if (colorder.size() == columns.size()) {
 	out << colorder[0]->name();
-	for (size_t i = 1; i < columns.size(); ++ i)
+	for (uint32_t i = 1; i < columns.size(); ++ i)
 	    out << del << colorder[i]->name();
     }
     else {
@@ -1122,7 +1122,7 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
 	for (ibis::part::columnList::const_iterator it = columns.begin();
 	     it != columns.end(); ++ it)
 	    names.insert((*it).first);
-	for (size_t i = 0; i < colorder.size(); ++ i) {
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
 	    if (i > 0)
 		out << del;
 	    out << colorder[i]->name();
@@ -1145,9 +1145,9 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
   -3  -- some columns not ibis::bord::column (not in-memory)
   -4  -- error in the output stream
  */
-int ibis::bord::part::dump(std::ostream& out, size_t nr,
+int ibis::bord::part::dump(std::ostream& out, uint32_t nr,
 			   const char* del) const {
-    const size_t ncol = columns.size();
+    const uint32_t ncol = columns.size();
     if (ncol == 0 || nr == 0) return 0;
     if (del == 0) del = ",";
 
@@ -1162,7 +1162,7 @@ int ibis::bord::part::dump(std::ostream& out, size_t nr,
 	}
     }
     else if (colorder.size() == ncol) { // use external order
-	for (size_t i = 0; i < ncol; ++ i) {
+	for (uint32_t i = 0; i < ncol; ++ i) {
 	    const ibis::bord::column* col =
 		dynamic_cast<const ibis::bord::column*>(colorder[i]);
 	    if (col != 0)
@@ -1174,7 +1174,7 @@ int ibis::bord::part::dump(std::ostream& out, size_t nr,
 	for (ibis::part::columnList::const_iterator it = columns.begin();
 	     it != columns.end(); ++ it)
 	    names.insert((*it).first);
-	for (size_t i = 0; i < colorder.size(); ++ i) {
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
 	    const ibis::bord::column* col =
 		dynamic_cast<const ibis::bord::column*>(colorder[i]);
 	    if (col != 0) {
@@ -1198,7 +1198,7 @@ int ibis::bord::part::dump(std::ostream& out, size_t nr,
     // print the first row with error checking
     ierr = clist[0]->dump(out, 0U);
     if (ierr < 0) return ierr;
-    for (size_t j = 1; j < ncol; ++ j) {
+    for (uint32_t j = 1; j < ncol; ++ j) {
 	out << del;
 	ierr = clist[j]->dump(out, 0U);
 	if (ierr < 0) return ierr;
@@ -1208,9 +1208,9 @@ int ibis::bord::part::dump(std::ostream& out, size_t nr,
     // print the remaining rows without checking the return values from
     // functions called
     if (nr > nEvents) nr = nEvents;
-    for (size_t i = 1; i < nr; ++ i) {
+    for (uint32_t i = 1; i < nr; ++ i) {
 	(void) clist[0]->dump(out, i);
-	for (size_t j = 1; j < ncol; ++ j) {
+	for (uint32_t j = 1; j < ncol; ++ j) {
 	    out << del;
 	    (void) clist[j]->dump(out, i);
 	}
@@ -1230,10 +1230,10 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     sel.select(keys); // parse the incoming arguments
     if (sel.size() == 0) return 0;
 
-    std::vector<size_t> bad;
+    std::vector<uint32_t> bad;
     ibis::bord::bufferList buf;
     buf.reserve(sel.size());
-    for (size_t i = 0; i < sel.size(); ++ i) {
+    for (uint32_t i = 0; i < sel.size(); ++ i) {
 	columnList::const_iterator it = columns.find(sel.getName(i));
 	if (it != columns.end()) {
 	    const ibis::bord::column* col =
@@ -1254,7 +1254,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	    ibis::util::logger lg;
 	    lg.buffer() << "ibis::bord::part::groupby -- none of the names "
 		"given in \"" << keys[0];
-	    for (size_t i = 1; i < keys.size(); ++ i)
+	    for (uint32_t i = 1; i < keys.size(); ++ i)
 		lg.buffer() << ", " << keys[i];
 	    lg.buffer() << "\" are valid columns names with in-memory data";
 	}
@@ -1272,14 +1272,14 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 
 	return 0;
     }
-    const size_t nc = bdl->width();
-    const size_t nr = bdl->size();
+    const uint32_t nc = bdl->width();
+    const uint32_t nr = bdl->size();
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
 	    lg.buffer() << "Warning -- ibis::bord::part::groupby("
 			<< keys[0];
-	    for (size_t i = 1; i < keys.size(); ++ i)
+	    for (uint32_t i = 1; i < keys.size(); ++ i)
 		lg.buffer() << ", " << keys[i];
 	    lg.buffer() << ") produced no answer on a table with nRows = "
 			<< nEvents;
@@ -1306,7 +1306,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     std::vector<const char*> nmc(nc);
     ibis::table::typeList tps(nc);
     buf.resize(nc);
-    for (size_t i = 0; i < nc; ++ i) {
+    for (uint32_t i = 0; i < nc; ++ i) {
 	nms[i] = sel.getTerm(i);
 	nmc[i] = nms[i].c_str();
 	tps[i] = bdl->columnType(i);
@@ -1456,7 +1456,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	    colVector tmp(keys.size());
 	    array_t<uint32_t> idx;
 	    width.sort(idx);
-	    for (size_t i = 0; i < keys.size(); ++ i)
+	    for (uint32_t i = 0; i < keys.size(); ++ i)
 		tmp[i] = keys[idx[i]];
 	    tmp.swap(keys);
 	}
@@ -1792,7 +1792,7 @@ void ibis::bord::part::reverseRows() {
     }
 } // ibis::bord::reverseRows
 
-int ibis::bord::part::limit(size_t nr) {
+int ibis::bord::part::limit(uint32_t nr) {
     int ierr = 0;
     if (nEvents <= nr) return ierr;
 
@@ -4076,7 +4076,7 @@ void ibis::bord::column::reverseRows() {
     }
 } // ibis::bord::column::reverseRows
 
-int ibis::bord::column::limit(size_t nr) {
+int ibis::bord::column::limit(uint32_t nr) {
     switch(m_type) {
     case ibis::ULONG: {
 	array_t<uint64_t> &prop =
@@ -4139,7 +4139,7 @@ int ibis::bord::column::limit(size_t nr) {
 /// existing data type must be ibis::UINT and the column with the same in
 /// in the given ibis::part prt must be of type ibis::CATEGORY.
 int ibis::bord::column::restoreCategoriesAsStrings(const ibis::part& prt) {
-    if (m_type != ibis::UINT) // must of uint32_t
+    if (m_type != ibis::UINT) // must be uint32_t
 	return -2;
     const ibis::column* ctmp = prt.getColumn(m_name.c_str());
     if (ctmp == 0)
@@ -4163,7 +4163,7 @@ int ibis::bord::column::restoreCategoriesAsStrings(const ibis::part& prt) {
 ibis::bord::cursor::cursor(const ibis::bord &t)
     : buffer(t.nColumns()), tab(t), curRow(-1) {
     if (buffer.empty()) return;
-    for (size_t j = 0; j < t.nColumns(); ++ j) {
+    for (uint32_t j = 0; j < t.nColumns(); ++ j) {
 	const ibis::bord::column *col =
 	    dynamic_cast<const ibis::bord::column*>(t.mypart.getColumn(j));
 	buffer[j].cname = col->name();
@@ -4178,11 +4178,11 @@ int ibis::bord::cursor::dump(std::ostream& out, const char* del) const {
 	return -1;
     if (! out) return -4;
 
-    const size_t cr = static_cast<size_t>(curRow);
+    const uint32_t cr = static_cast<uint32_t>(curRow);
     int ierr = dumpIJ(out, cr, 0U);
     if (ierr < 0) return ierr;
     if (del == 0) del = ", ";
-    for (size_t j = 1; j < buffer.size(); ++ j) {
+    for (uint32_t j = 1; j < buffer.size(); ++ j) {
 	out << del;
 	ierr = dumpIJ(out, cr, j);
 	if (ierr < 0) return ierr;
@@ -4193,7 +4193,7 @@ int ibis::bord::cursor::dump(std::ostream& out, const char* del) const {
 
 void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
     res.clear();
-    for (size_t j = 0; j < buffer.size(); ++ j) {
+    for (uint32_t j = 0; j < buffer.size(); ++ j) {
 	switch (buffer[j].ctype) {
 	case ibis::BYTE: {
 	    res.bytesnames.push_back(buffer[j].cname);
@@ -4340,7 +4340,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
     }
 } // ibis::bord::cursor::fillRow
 
-int ibis::bord::cursor::getColumnAsByte(size_t j, char& val) const {
+int ibis::bord::cursor::getColumnAsByte(uint32_t j, char& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4360,7 +4360,7 @@ int ibis::bord::cursor::getColumnAsByte(size_t j, char& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsByte
 
-int ibis::bord::cursor::getColumnAsUByte(size_t j, unsigned char& val) const {
+int ibis::bord::cursor::getColumnAsUByte(uint32_t j, unsigned char& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4381,7 +4381,7 @@ int ibis::bord::cursor::getColumnAsUByte(size_t j, unsigned char& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsUByte
 
-int ibis::bord::cursor::getColumnAsShort(size_t j, int16_t& val) const {
+int ibis::bord::cursor::getColumnAsShort(uint32_t j, int16_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4411,7 +4411,7 @@ int ibis::bord::cursor::getColumnAsShort(size_t j, int16_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsShort
 
-int ibis::bord::cursor::getColumnAsUShort(size_t j, uint16_t& val) const {
+int ibis::bord::cursor::getColumnAsUShort(uint32_t j, uint16_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4437,7 +4437,7 @@ int ibis::bord::cursor::getColumnAsUShort(size_t j, uint16_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsUShort
 
-int ibis::bord::cursor::getColumnAsInt(size_t j, int32_t& val) const {
+int ibis::bord::cursor::getColumnAsInt(uint32_t j, int32_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4477,7 +4477,7 @@ int ibis::bord::cursor::getColumnAsInt(size_t j, int32_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsInt
 
-int ibis::bord::cursor::getColumnAsUInt(size_t j, uint32_t& val) const {
+int ibis::bord::cursor::getColumnAsUInt(uint32_t j, uint32_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4510,7 +4510,7 @@ int ibis::bord::cursor::getColumnAsUInt(size_t j, uint32_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsUInt
 
-int ibis::bord::cursor::getColumnAsLong(size_t j, int64_t& val) const {
+int ibis::bord::cursor::getColumnAsLong(uint32_t j, int64_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4560,7 +4560,7 @@ int ibis::bord::cursor::getColumnAsLong(size_t j, int64_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsLong
 
-int ibis::bord::cursor::getColumnAsULong(size_t j, uint64_t& val) const {
+int ibis::bord::cursor::getColumnAsULong(uint32_t j, uint64_t& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4599,7 +4599,7 @@ int ibis::bord::cursor::getColumnAsULong(size_t j, uint64_t& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsULong
 
-int ibis::bord::cursor::getColumnAsFloat(size_t j, float& val) const {
+int ibis::bord::cursor::getColumnAsFloat(uint32_t j, float& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4638,7 +4638,7 @@ int ibis::bord::cursor::getColumnAsFloat(size_t j, float& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsFloat
 
-int ibis::bord::cursor::getColumnAsDouble(size_t j, double& val) const {
+int ibis::bord::cursor::getColumnAsDouble(uint32_t j, double& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4686,7 +4686,7 @@ int ibis::bord::cursor::getColumnAsDouble(size_t j, double& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsDouble
 
-int ibis::bord::cursor::getColumnAsString(size_t j, std::string& val) const {
+int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;
     if (buffer[j].cval == 0)
@@ -4760,7 +4760,7 @@ int ibis::bord::cursor::getColumnAsString(size_t j, std::string& val) const {
     case ibis::TEXT: {
 	const ibis::column* col = tab.mypart.getColumn(buffer[j].cname);
 	if (col != 0) {
-	    col->getString(static_cast<size_t>(curRow), val);
+	    col->getString(static_cast<uint32_t>(curRow), val);
 	    ierr = 0;
 	}
 	else {

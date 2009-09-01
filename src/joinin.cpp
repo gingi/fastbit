@@ -460,10 +460,10 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 			     const std::vector<const char*>& colnames)
     : jin_(jin), endR_(jin.maskR_.cnt()), endS_(jin.maskS_.cnt()),
       currR_(0), currS_(0), blockR_(0), blockS_(0), startS_(0) {
-    const size_t rnamelen = strlen(jin.R_.name());
-    const size_t snamelen = strlen(jin.S_.name());
+    const uint32_t rnamelen = strlen(jin.R_.name());
+    const uint32_t snamelen = strlen(jin.S_.name());
     ipToPos.resize(colnames.size());
-    for (size_t j = 0; j < colnames.size(); ++ j) {
+    for (uint32_t j = 0; j < colnames.size(); ++ j) {
 	ipToPos[j] = colnames.size()+1;
 	const char* cn = colnames[j];
 	if (strnicmp(cn, jin.R_.name(), rnamelen) == 0) {
@@ -472,7 +472,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 	    const ibis::column *col = jin.R_.getColumn(cn);
 	    if (col != 0) {
 		bool add = true;
-		for (size_t i = 0; i < colR_.size(); ++ i) {
+		for (uint32_t i = 0; i < colR_.size(); ++ i) {
 		    if (col == colR_[i]) {
 			add = false;
 			break;
@@ -497,7 +497,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 	    const ibis::column *col = jin.S_.getColumn(cn);
 	    if (col != 0) {
 		bool add = true;
-		for (size_t i = 0; i < colS_.size(); ++ i) {
+		for (uint32_t i = 0; i < colS_.size(); ++ i) {
 		    if (col == colS_[i]) {
 			add = false;
 			break;
@@ -520,7 +520,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 	    const ibis::column* col = jin.R_.getColumn(cn);
 	    if (col != 0) {
 		bool savetor = true;
-		for (size_t i = 0; i < colR_.size(); ++ i) {
+		for (uint32_t i = 0; i < colR_.size(); ++ i) {
 		    if (col == colR_[i]) {
 			savetor = false;
 			break;
@@ -543,7 +543,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 		col = jin.S_.getColumn(cn);
 		if (col != 0) {
 		    bool add = true;
-		    for (size_t i = 0; i < colS_.size(); ++ i) {
+		    for (uint32_t i = 0; i < colS_.size(); ++ i) {
 			if (col == colS_[i]) {
 			    add = false;
 			    break;
@@ -567,7 +567,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 		}
 	    }
 	}
-    } // for (size_t j = 0; j < colnames.size();
+    } // for (uint32_t j = 0; j < colnames.size();
 
     if (colR_.empty() || colS_.empty()) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -580,7 +580,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
     }
 
     // change Pos values for columns in S to have offset colR_.size()
-    for (size_t j = 0; j < colnames.size(); ++j) {
+    for (uint32_t j = 0; j < colnames.size(); ++j) {
 	if (ipToPos[j] <= colnames.size() && ipToPos[j] >= colR_.size())
 	    ipToPos[j] = (colnames.size() - ipToPos[j]) + colR_.size();
     }
@@ -588,7 +588,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
     // retrieve values from R_
     valR_.resize(colR_.size());
     typeR_.resize(colR_.size());
-    for (size_t j = 0; j < colR_.size(); ++ j) {
+    for (uint32_t j = 0; j < colR_.size(); ++ j) {
 	typeR_[j] = colR_[j]->type();
 	switch (typeR_[j]) {
 	default:
@@ -637,7 +637,7 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
     // retrieve values from S_
     valS_.resize(colS_.size());
     typeS_.resize(colS_.size());
-    for (size_t j = 0; j < colS_.size(); ++ j) {
+    for (uint32_t j = 0; j < colS_.size(); ++ j) {
 	typeS_[j] = colS_[j]->type();
 	switch (typeS_[j]) {
 	default:
@@ -688,10 +688,10 @@ ibis::joinIN::result::result(const ibis::joinIN& jin,
 } // ibis::joinIN::result::result
 
 ibis::joinIN::result::~result() {
-    for (size_t j = 0; j < valR_.size(); ++ j) {
+    for (uint32_t j = 0; j < valR_.size(); ++ j) {
 	ibis::joinIN::freeBuffer(valR_[j], typeR_[j]);
     }
-    for (size_t j = 0; j < valS_.size(); ++ j) {
+    for (uint32_t j = 0; j < valS_.size(); ++ j) {
 	ibis::joinIN::freeBuffer(valS_[j], typeS_[j]);
     }
     LOGGER(ibis::gVerbose > 5)
@@ -699,11 +699,11 @@ ibis::joinIN::result::~result() {
 } // ibis::joinIN::result::~result
 
 void ibis::joinIN::result::describe(std::ostream& out) const {
-    const size_t ncols = colR_.size() + colS_.size();
+    const uint32_t ncols = colR_.size() + colS_.size();
     out << "Result of selecting " << ncols << " column"
 	<< (ncols>1?"s":"") << " from " << jin_.desc_ << " ("
 	<< jin_.nrows << " row" << (jin_.nrows>1?"s":"") << ")\n";
-    for (size_t j = 0; j < ipToPos.size(); ++ j) {
+    for (uint32_t j = 0; j < ipToPos.size(); ++ j) {
 	uint32_t i = ipToPos[j];
 	if (i < colR_.size()) {
 	    out << jin_.R_.name() << "." << colR_[i]->name() << "\t"
@@ -720,13 +720,13 @@ void ibis::joinIN::result::describe(std::ostream& out) const {
 
 std::vector<std::string> ibis::joinIN::result::columnNames() const {
     std::vector<std::string> res;
-    for (size_t j = 0; j < colR_.size(); ++ j) {
+    for (uint32_t j = 0; j < colR_.size(); ++ j) {
 	std::string name = jin_.R_.name();
 	name += '.';
 	name += colR_[j]->name();
 	res.push_back(name);
     }
-    for (size_t j = 0; j < colS_.size(); ++ j) {
+    for (uint32_t j = 0; j < colS_.size(); ++ j) {
 	std::string name = jin_.S_.name();
 	name += '.';
 	name += colS_[j]->name();
@@ -737,9 +737,9 @@ std::vector<std::string> ibis::joinIN::result::columnNames() const {
 
 ibis::table::typeList ibis::joinIN::result::columnTypes() const {
     ibis::table::typeList res;
-    for (size_t j = 0; j < typeR_.size(); ++ j)
+    for (uint32_t j = 0; j < typeR_.size(); ++ j)
 	res.push_back(typeR_[j]);
-    for (size_t j = 0; j < typeS_.size(); ++ j)
+    for (uint32_t j = 0; j < typeS_.size(); ++ j)
 	res.push_back(typeS_[j]);
     return res;
 } // ibis::joinIN::result::columnTypes
@@ -931,7 +931,7 @@ int ibis::joinIN::result::stringMatch(const std::vector<std::string>& col1,
 int ibis::joinIN::result::dump(std::ostream& out, const char* del) const {
     if (currR_ >= blockR_ || currS_ >= blockS_) return -1;
     if (del != 0 && *del != 0) {
-	for (size_t j = 0; j < ipToPos.size(); ++ j) {
+	for (uint32_t j = 0; j < ipToPos.size(); ++ j) {
 	    uint32_t i = ipToPos[j];
 	    if (i < colR_.size()) {
 		dumpR(out, i);
@@ -949,7 +949,7 @@ int ibis::joinIN::result::dump(std::ostream& out, const char* del) const {
 	}
     }
     else {
-	for (size_t j = 0; j < ipToPos.size(); ++ j) {
+	for (uint32_t j = 0; j < ipToPos.size(); ++ j) {
 	    uint32_t i = ipToPos[j];
 	    if (i < colR_.size()) {
 		dumpR(out, i);
@@ -970,7 +970,7 @@ int ibis::joinIN::result::dump(std::ostream& out, const char* del) const {
     return 0;
 } // ibis::joinIN::result::dump
 
-int ibis::joinIN::result::getColumnAsString(size_t cnum,
+int ibis::joinIN::result::getColumnAsString(uint32_t cnum,
 					    std::string& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;

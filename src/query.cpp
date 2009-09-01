@@ -160,8 +160,8 @@ void ibis::nameList::add(const char* str) {
 } // ibis::nameList::select
 
 // the list of names are sorted
-size_t ibis::nameList::find(const char* key) const {
-    const size_t sz = cvec.size();
+uint32_t ibis::nameList::find(const char* key) const {
+    const uint32_t sz = cvec.size();
     if (sz < 8) { // linear search
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    int tmp = stricmp(cvec[i], key);
@@ -174,9 +174,9 @@ size_t ibis::nameList::find(const char* key) const {
 	}
     }
     else { // binary search
-	size_t i = 0;
-	size_t j = sz;
-	size_t k = (i + j) / 2;
+	uint32_t i = 0;
+	uint32_t j = sz;
+	uint32_t k = (i + j) / 2;
 	while (i < k) {
 	    int tmp = stricmp(cvec[k], key);
 	    if (tmp == 0) { // found a match
@@ -282,8 +282,8 @@ int ibis::query::setPartition(const part* tbl) {
     }
 
     mypart = tbl;
-    std::vector<size_t> badnames;
-    for (size_t i = 0; i < comps.size(); ++i) {
+    std::vector<uint32_t> badnames;
+    for (uint32_t i = 0; i < comps.size(); ++i) {
 	if (0 == mypart->getColumn(comps[i])) {
 	    badnames.push_back(i);
 	    logWarning("setPartition", "partition %s does not contain a "
@@ -375,8 +375,8 @@ int ibis::query::setSelectClause(const char* str) {
     }
 
     comps.select(str);
-    std::vector<size_t> badnames;
-    for (size_t i = 0; mypart != 0 && i < comps.size(); ++i) {
+    std::vector<uint32_t> badnames;
+    for (uint32_t i = 0; mypart != 0 && i < comps.size(); ++i) {
 	if (0 == mypart->getColumn(comps[i])) {
 	    badnames.push_back(i);
 	    logWarning("setSelectClause", "partition %s does not contain a "
@@ -517,7 +517,7 @@ int ibis::query::setWhereClause(const char* str) {
 int ibis::query::setWhereClause(const std::vector<const char*>& names,
 				const std::vector<double>& lbounds,
 				const std::vector<double>& rbounds) {
-    size_t nts = names.size();
+    uint32_t nts = names.size();
     if (rbounds.size() <= lbounds.size()) {
 	if (nts > lbounds.size())
 	    nts = lbounds.size();
@@ -546,7 +546,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	expr = new ibis::qContinuousRange(names[0], ibis::qExpr::OP_LE,
 					  rbounds[0]);
     }
-    for (size_t i = 1; i < nts; ++ i) {
+    for (uint32_t i = 1; i < nts; ++ i) {
 	ibis::qExpr *tmp = new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
 	tmp->setLeft(expr);
 	expr = tmp;
@@ -2778,7 +2778,7 @@ int ibis::query::computeHits() {
 	    hits = new ibis::bitvector;
 	    if (hits == 0) return -1;
 	    hits->set(1, mypart->nRows());
-	    for (size_t i = 0; i < comps.size(); ++ i) {
+	    for (uint32_t i = 0; i < comps.size(); ++ i) {
 		const ibis::column *col = mypart->getColumn(comps[i]);
 		if (col != 0) {
 		    ibis::bitvector tmp;
@@ -3865,7 +3865,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	*ptr = 0;
 	-- ptr;
     }
-    for (size_t j = 0; j < tl.size(); ++ j) {
+    for (uint32_t j = 0; j < tl.size(); ++ j) {
 	if (stricmp(fn, tl[j]->name()) == 0) {
 	    mypart = tl[j];
 	    break;
@@ -4220,7 +4220,7 @@ uint32_t ibis::query::countPages(unsigned wordsize) const {
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::query[" << myID << "]::countPages(" << wordsize
 		    << ") page numbers: ";
-	for (size_t i = 0; ix.nIndices() > 0 && (i >> ibis::gVerbose) == 0;
+	for (uint32_t i = 0; ix.nIndices() > 0 && (i >> ibis::gVerbose) == 0;
 	     ++ i) {
 	    const ibis::bitvector::word_t *ind = ix.indices();
 	    const uint32_t p0 = *ind / wpp;
@@ -7239,13 +7239,13 @@ void ibis::selected::select(const std::vector<const char*>& nl, bool sort) {
     functions.clear();
     names.clear();
     nplain = 0;
-    for (size_t i = 0; i < nl.size(); ++ i) {
+    for (uint32_t i = 0; i < nl.size(); ++ i) {
 	const char* tmp = strchr(nl[i], '(');
 	if (tmp > nl[i]) { // try to determine the function
 	    for (++ tmp; *tmp != 0 && isspace(*tmp) != 0; ++ tmp);
 	    if (*tmp == 0) continue;
 	    names.push_back(tmp);
-	    size_t pos = names.back().find(')');
+	    uint32_t pos = names.back().find(')');
 	    if (pos < names.back().size())
 		names.back().erase(pos);
 	    if (names.back().empty()) { // can not use an empty string
@@ -7320,15 +7320,15 @@ void ibis::selected::select(const std::vector<const char*>& nl, bool sort) {
 } // ibis::selected::select
 
 /// Use a simple linear search to locate the desired column name.
-size_t ibis::selected::find(const char *key) const {
-    size_t i;
+uint32_t ibis::selected::find(const char *key) const {
+    uint32_t i;
     for (i = 0; i < names.size(); ++ i)
 	if (stricmp(names[i].c_str(), key) == 0)
 	    break;
     return i;
 } // ibis::selected::find
 
-std::string ibis::selected::getTerm(size_t i) const {
+std::string ibis::selected::getTerm(uint32_t i) const {
     std::string res;
     if (i < names.size()) {
 	if (functions[i] == AVG) {
@@ -7369,7 +7369,7 @@ std::string ibis::selected::uniqueNames() const {
     else {
 	std::set<const char*, ibis::lessi> unames;
 	unames.insert(names[0].c_str());
-	for (size_t i = 1; i < names.size(); ++ i)
+	for (uint32_t i = 1; i < names.size(); ++ i)
 	    unames.insert(names[i].c_str());
 
 	std::set<const char*, ibis::lessi>::const_iterator it = unames.begin();
@@ -7394,21 +7394,21 @@ void ibis::selected::toString(std::string& str) const {
     }
 } // ibis::selected::toString
 
-void ibis::selected::remove(const std::vector<size_t>& ents) {
-    const size_t size0 = names.size();
-    size_t terms = 0;
+void ibis::selected::remove(const std::vector<uint32_t>& ents) {
+    const uint32_t size0 = names.size();
+    uint32_t terms = 0;
     if (ents.size() >= size0) {
 	clear();
 	return;
     }
     else {
 	// erase the names to be removed;
-	for (size_t i = 0; i < ents.size(); ++ i)
+	for (uint32_t i = 0; i < ents.size(); ++ i)
 	    if (ents[i] < size0)
 		names[ents[i]].erase();
 	// pack the two arrays names and functions, update variable nplain
 	nplain = 0;
-	for (size_t i = 0; i < size0; ++ i) {
+	for (uint32_t i = 0; i < size0; ++ i) {
 	    if (! names[i].empty()) {
 		if (terms < i) // swap the name
 		    names[i].swap(names[terms]);
@@ -7428,7 +7428,7 @@ void ibis::selected::remove(const std::vector<size_t>& ents) {
 			       static_cast<long unsigned>(terms));
 } // ibis::selected::remove
 
-void ibis::selected::print(size_t i, std::ostream& out) const {
+void ibis::selected::print(uint32_t i, std::ostream& out) const {
     switch (functions[i]) {
     default:
     case NIL:

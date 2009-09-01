@@ -31,10 +31,10 @@ class ibis::tabula : public ibis::table {
 public:
     tabula(const char* na, const char* de, uint64_t nr) :
 	table(na, de), nrows(nr) {};
-    explicit tabula(size_t nr=0) : nrows(nr) {};
+    explicit tabula(uint32_t nr=0) : nrows(nr) {};
     virtual ~tabula() {};
     virtual uint64_t nRows() const {return nrows;}
-    virtual size_t nColumns() const {return 0;}
+    virtual uint32_t nColumns() const {return 0;}
 
     virtual stringList columnNames() const;
     virtual typeList columnTypes() const;
@@ -67,19 +67,19 @@ public:
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
-			      std::vector<size_t>&) const {return -1;}
+			      std::vector<uint32_t>&) const {return -1;}
     virtual long getHistogram2D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const {return -1;}
+				std::vector<uint32_t>&) const {return -1;}
     virtual long getHistogram3D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const {return -1;}
+				std::vector<uint32_t>&) const {return -1;}
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
@@ -124,7 +124,7 @@ public:
 	nrows(nr), col(nm && *nm ? nm : "nrows") {};
     virtual ~tabele() {};
     virtual uint64_t nRows() const {return 1U;}
-    virtual size_t nColumns() const {return 1U;}
+    virtual uint32_t nColumns() const {return 1U;}
 
     virtual stringList columnNames() const;
     virtual typeList columnTypes() const;
@@ -174,19 +174,19 @@ public:
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
-			      std::vector<size_t>&) const {return -1;}
+			      std::vector<uint32_t>&) const {return -1;}
     virtual long getHistogram2D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const {return -1;}
+				std::vector<uint32_t>&) const {return -1;}
     virtual long getHistogram3D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const {return -1;}
+				std::vector<uint32_t>&) const {return -1;}
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
@@ -260,7 +260,7 @@ public:
     virtual ~cursor() {};
 
     virtual uint64_t nRows() const {return tab.nRows();}
-    virtual size_t nColumns() const {return tab.nColumns();}
+    virtual uint32_t nColumns() const {return tab.nColumns();}
     virtual ibis::table::stringList columnNames() const {
 	return tab.columnNames();}
     virtual ibis::table::typeList columnTypes() const {
@@ -285,17 +285,17 @@ public:
     virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
 
-    virtual int getColumnAsByte(size_t, char&) const {return -1;}
-    virtual int getColumnAsUByte(size_t, unsigned char&) const {return -1;}
-    virtual int getColumnAsShort(size_t, int16_t&) const {return -1;}
-    virtual int getColumnAsUShort(size_t, uint16_t&) const {return -1;}
-    virtual int getColumnAsInt(size_t, int32_t&) const {return -1;}
-    virtual int getColumnAsUInt(size_t, uint32_t&) const {return -1;}
-    virtual int getColumnAsLong(size_t, int64_t&) const {return -1;}
-    virtual int getColumnAsULong(size_t, uint64_t&) const {return -1;}
-    virtual int getColumnAsFloat(size_t, float&) const {return -1;}
-    virtual int getColumnAsDouble(size_t, double&) const {return -1;}
-    virtual int getColumnAsString(size_t, std::string&) const {return -1;}
+    virtual int getColumnAsByte(uint32_t, char&) const {return -1;}
+    virtual int getColumnAsUByte(uint32_t, unsigned char&) const {return -1;}
+    virtual int getColumnAsShort(uint32_t, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(uint32_t, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(uint32_t, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(uint32_t, uint32_t&) const {return -1;}
+    virtual int getColumnAsLong(uint32_t, int64_t&) const {return -1;}
+    virtual int getColumnAsULong(uint32_t, uint64_t&) const {return -1;}
+    virtual int getColumnAsFloat(uint32_t, float&) const {return -1;}
+    virtual int getColumnAsDouble(uint32_t, double&) const {return -1;}
+    virtual int getColumnAsString(uint32_t, std::string&) const {return -1;}
 
 private:
     const ibis::tabula& tab;
@@ -356,7 +356,7 @@ public:
     virtual ~cursor() {};
 
     virtual uint64_t nRows() const {return tab.nRows();}
-    virtual size_t nColumns() const {return tab.nColumns();}
+    virtual uint32_t nColumns() const {return tab.nColumns();}
     virtual ibis::table::stringList columnNames() const {
 	return tab.columnNames();}
     virtual ibis::table::typeList columnTypes() const {
@@ -435,30 +435,30 @@ public:
     virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
 
-    virtual int getColumnAsByte(size_t, char&) const {return -1;}
-    virtual int getColumnAsUByte(size_t, unsigned char&) const {return -1;}
-    virtual int getColumnAsShort(size_t, int16_t&) const {return -1;}
-    virtual int getColumnAsUShort(size_t, uint16_t&) const {return -1;}
-    virtual int getColumnAsInt(size_t, int32_t&) const {return -1;}
-    virtual int getColumnAsUInt(size_t cn, uint32_t&) const {
+    virtual int getColumnAsByte(uint32_t, char&) const {return -1;}
+    virtual int getColumnAsUByte(uint32_t, unsigned char&) const {return -1;}
+    virtual int getColumnAsShort(uint32_t, int16_t&) const {return -1;}
+    virtual int getColumnAsUShort(uint32_t, uint16_t&) const {return -1;}
+    virtual int getColumnAsInt(uint32_t, int32_t&) const {return -1;}
+    virtual int getColumnAsUInt(uint32_t cn, uint32_t&) const {
 	return -1;}
-    virtual int getColumnAsLong(size_t cn, int64_t& val) const {
+    virtual int getColumnAsLong(uint32_t cn, int64_t& val) const {
 	if (current == 0 && cn == 0) {
 	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}}
-    virtual int getColumnAsULong(size_t cn, uint64_t& val) const {
+    virtual int getColumnAsULong(uint32_t cn, uint64_t& val) const {
 	if (current == 0 && cn == 0) {
 	    val = tab.nRows();
 	    return 1;}
 	else {
 	    return -1;
 	}}
-    virtual int getColumnAsFloat(size_t, float&) const {return -1;}
-    virtual int getColumnAsDouble(size_t, double&) const {return -1;}
-    virtual int getColumnAsString(size_t, std::string&) const {return -1;}
+    virtual int getColumnAsFloat(uint32_t, float&) const {return -1;}
+    virtual int getColumnAsDouble(uint32_t, double&) const {return -1;}
+    virtual int getColumnAsString(uint32_t, std::string&) const {return -1;}
 
 private:
     const ibis::tabele& tab;

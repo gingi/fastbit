@@ -76,8 +76,8 @@ namespace ibis {
 	/// The partitioning procedure for quick sort.  It implements the
 	/// standard two-way partitioning with median-of-three pivot.
 	uint32_t sortStrings_partition(std::vector<std::string>& keys,
-				       array_t<uint32_t>& vals,
-				       uint32_t begin, uint32_t end);
+				     array_t<uint32_t>& vals,
+				     uint32_t begin, uint32_t end);
     } // namespace util
 } // namespace ibis
 #endif

@@ -1259,8 +1259,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	}
     }
     else {
-	const size_t nsps = sps.size();
-	size_t jsps = 0;
+	const uint32_t nsps = sps.size();
+	uint32_t jsps = 0;
 	while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
 	    const char* const end = buf + offset + ierr;
 	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
@@ -1493,7 +1493,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     }
     if (spbuf.size() > 1 && (str == 0 || *str == 0)) {
 	// match empty strings, with a buffer for starting positions
-	size_t jsp, nsp;
+	uint32_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -1562,10 +1562,10 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     }
     else if (spbuf.size() > 1)  { // normal strings, use the second buffer
 	std::string pat = str; // convert the string to be search to lower case
-	for (size_t i = 0; i < pat.length(); ++ i)
+	for (uint32_t i = 0; i < pat.length(); ++ i)
 	    pat[i] = tolower(pat[i]);
-	const size_t slen = pat.length() + 1;
-	size_t jsp, nsp;
+	const uint32_t slen = pat.length() + 1;
+	uint32_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -1722,9 +1722,9 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
     }
     else { // normal null-terminated strings
 	std::string pat = str; // convert the string to be search to lower case
-	for (size_t i = 0; i < pat.length(); ++ i)
+	for (uint32_t i = 0; i < pat.length(); ++ i)
 	    pat[i] = tolower(pat[i]);
-	const size_t slen = pat.length() + 1;
+	const uint32_t slen = pat.length() + 1;
 	fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
@@ -1874,7 +1874,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 
     ibis::fileManager::buffer<int64_t> spbuf;
     if (spbuf.size() > 1) { // try to use the spbuf for starting positions
-	size_t jsp, nsp;
+	uint32_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -2051,7 +2051,7 @@ ibis::text::selectLongs(const ibis::bitvector& mask) const {
     fnm += m_name;
     fnm += ".sp"; // starting position file
     off_t spsize = ibis::util::getFileSize(fnm.c_str());
-    if (spsize < 0 || (size_t)spsize != (mask.size()+1)*sizeof(int64_t))
+    if (spsize < 0 || (uint32_t)spsize != (mask.size()+1)*sizeof(int64_t))
 	startPositions(thePart->currentDataDir(), (char*)0, 0U);
     array_t<int64_t> sp;
     int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), sp);
@@ -2093,7 +2093,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     fname += m_name;
     fname += ".sp";
     off_t spsize = ibis::util::getFileSize(fname.c_str());
-    if (spsize < 0 || (size_t)spsize != (mask.size()+1)*sizeof(int64_t))
+    if (spsize < 0 || (uint32_t)spsize != (mask.size()+1)*sizeof(int64_t))
 	startPositions(thePart->currentDataDir(), (char*)0, 0U);
 
     const array_t<int64_t>
@@ -2916,7 +2916,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     evt += m_name;
     evt += "]::append";
 
-    const unsigned spelem = 8; // starting positions are 8-byte intergers
+    const char spelem = 8; // starting positions are 8-byte intergers
     writeLock lock(this, evt.c_str());
     std::string datadest, spdest;
     std::string datasrc, spfrom;
@@ -2949,8 +2949,8 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 #endif
 
     // verify the existing sizes of data file and start positions match
-    uint32_t sj = UnixSeek(sdest, 0, SEEK_END);
-    if (sj % spelem != 0) {
+    long sj = UnixSeek(sdest, 0, SEEK_END);
+    if (sj < 0 || sj % spelem != 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expects file " << spdest
 	    << " to have a multiple of " << spelem << " bytes, but it is "
@@ -3267,7 +3267,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     evt += m_name;
     evt += "]::writeData";
 
-    const unsigned spelem = 8; // starting positions are 8-byte intergers
+    const char spelem = 8; // starting positions are 8-byte intergers
     int64_t *sparray = static_cast<int64_t*>(va2);
     int ierr;
     int64_t dfsize = 0;
@@ -3296,8 +3296,8 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
 #endif
 
     // make sure there are right number of start positions
-    uint32_t sj = UnixSeek(sdest, 0, SEEK_END);
-    if (sj % spelem != 0) {
+    long sj = UnixSeek(sdest, 0, SEEK_END);
+    if (sj < 0 || sj % spelem != 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expects file " << spdest
 	    << " to have a multiple of " << spelem << " bytes, but it is "
@@ -3469,3 +3469,685 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
 
     return nnew;
 } // ibis::blob::writeData
+
+/// Count the number of bytes in the blobs selected by the mask.  This
+/// function can be used to compute the memory requirement before actually
+/// retrieving the blobs.
+///
+/// It returns a negative number in case of error.
+long ibis::blob::countRawBytes(const ibis::bitvector& mask) const {
+    if (mask.cnt() == 0)
+	return 0;
+    if (thePart == 0)
+	return -1;
+    if (mask.size() > thePart->nRows())
+	return -2;
+
+    const char* dir = thePart->currentDataDir();
+    if (dir == 0 || *dir == 0)
+	return -3;
+
+    std::string spfile = dir;
+    spfile += FASTBIT_DIRSEP;
+    spfile += m_name;
+    spfile += ".sp";
+    array_t<int64_t> starts;
+    long sum = 0;
+    int ierr = ibis::fileManager::instance().getFile(spfile.c_str(), starts);
+    if (ierr >= 0) {
+	if (starts.size() <= thePart->nRows())
+	    starts.clear();
+    }
+    else {
+	starts.clear();
+    }
+
+    if (starts.size() > mask.size()) { // start positions are usable
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *idx = ix.indices();
+	    if (ix.isRange()) {
+		sum += starts[idx[1]] - starts[*idx];
+	    }
+	    else {
+		for (unsigned jdx = 0; jdx < ix.nIndices(); ++ jdx) {
+		    sum += starts[idx[jdx]+1] - starts[idx[jdx]];
+		}
+	    }
+	}
+    }
+    else { // have to open the .sp file to read the starting positions
+	int fsp = UnixOpen(spfile.c_str(), OPEN_READONLY);
+	if (fsp < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- blob::countRawBytes failed to open file "
+		<< spfile << " for reading ... "
+		<< (errno ? strerror(errno) : "no free stdio stream");
+	    return -4;
+	}
+	ibis::util::guard gfsp = ibis::util::makeGuard(UnixClose, fsp);
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fsp, _O_BINARY);
+#endif
+
+	const char spelem = 8;
+	long pos;
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *idx = ix.indices();
+	    if (ix.isRange()) {
+		int64_t start, end;
+		pos = *idx * spelem;
+		ierr = UnixSeek(fsp, pos, SEEK_SET);
+		if (ierr != pos) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- blob::countRawBytes failed to seek to "
+			<< pos << " in " << spfile;
+		    return -5;
+		}
+		ierr = UnixRead(fsp, &start, spelem);
+		if (ierr < spelem) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- blob::countRawBytes failed to read "
+			<< spelem << " bytes from position " << pos
+			<< " in " << spfile;
+		    return -6;
+		}
+		pos = idx[1] * spelem; 
+		ierr = UnixSeek(fsp, pos, SEEK_SET);
+		if (ierr != pos) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- blob::countRawBytes failed to seek to "
+			<< pos << " in " << spfile;
+		    return -7;
+		}
+		ierr = UnixRead(fsp, &end, spelem);
+		if (ierr < spelem) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- blob::countRawBytes failed to read "
+			<< spelem << " bytes from position " << pos
+			<< " in " << spfile;
+		    return -8;
+		}
+		sum += (end - start);
+	    }
+	    else {
+		int64_t buf[2];
+		for (unsigned jdx = 0; jdx < ix.nIndices(); ++ jdx) {
+		    pos = idx[jdx] * spelem;
+		    ierr = UnixSeek(fsp, pos, SEEK_SET);
+		    if (ierr != pos) {
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- blob::countRawBytes failed to "
+			    "seek to" << pos << " in " << spfile;
+			return -9;
+		    }
+		    ierr = UnixRead(fsp, buf, sizeof(buf));
+		    if (ierr < (int)sizeof(buf)) {
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- blob::countRawBytes failed to"
+			    " read " << sizeof(buf) << " bytes from position "
+			    << pos << " in " << spfile;
+			return -10;
+		    }
+		    sum += (buf[1] - buf[0]);
+		}
+	    }
+	}
+    }
+    return sum;
+} // ibis::blob::countRawBytes
+
+/// Extract the blobs from the rows marked 1 in the mask.  Upon successful
+/// completion, buffer will contain all the raw bytes packed together,
+/// positions will contain the starting positions of all blobs, and the
+/// return value will be the number of blobs retrieved.  The positions are
+/// intentionally chosen to be 32-bit integers, so that it would not be
+/// possible to retrieve very large objects this way.  The number of blobs
+/// retrieved may be less than the number of rows marked 1 in mask if do so
+/// will cause buffer to be more 4GB in size.  On a typical machine,
+/// retrieving this function will attempt to use no more than half of the
+/// free memory available to ibis::fileManager upon entering this function,
+/// which usually would be much less than 4GB.  To determine how much
+/// memory would be needed by the buffer to full retrieve all blobs marked
+/// 1, use function ibis::blob::countRawBytes.
+///
+/// A negative value will be returned in case of error.
+int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
+			       ibis::array_t<char>& buffer,
+			       ibis::array_t<uint32_t>& positions) const {
+    buffer.clear();
+    positions.clear();
+    if (mask.cnt() == 0)
+	return 0;
+    if (thePart == 0)
+	return -1;
+    if (mask.size() > thePart->nRows())
+	return -2;
+
+    const char* dir = thePart->currentDataDir();
+    if (dir == 0 || *dir == 0)
+	return -3;
+
+    std::string datafile = dir;
+    datafile += FASTBIT_DIRSEP;
+    datafile += m_name;
+    std::string spfile = datafile;
+    spfile += ".sp";
+
+    // we intend for buffer to not use more than bufferlimit number of bytes.
+    const int64_t bufferlimit = buffer.capacity() +
+	(ibis::fileManager::bytesFree() >> 1);
+    array_t<int64_t> starts;
+    int ierr = ibis::fileManager::instance().getFile(spfile.c_str(), starts);
+    if (ierr >= 0) {
+	if (starts.size() <= thePart->nRows())
+	    starts.clear();
+    }
+    else {
+	starts.clear();
+    }
+
+    try {
+	uint32_t sum = 0;
+	positions.reserve(mask.size()+1);
+	if (starts.size() > mask.size()) { // array starts usable
+	    // first determine the size of buffer
+	    bool small = true;
+	    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+		 ix.nIndices() > 0 && small; ++ ix) {
+		const ibis::bitvector::word_t *idx = ix.indices();
+		if (ix.isRange()) {
+		    if (sum + (starts[idx[1]] - starts[*idx]) <= bufferlimit) {
+			sum += (starts[idx[1]] - starts[*idx]);
+		    }
+		    else {
+			for (unsigned jdx = *idx; small && jdx < idx[1];
+			     ++ jdx) {
+			    if (sum + (starts[jdx+1] - starts[jdx]) <=
+				bufferlimit)
+				sum += (starts[jdx+1] - starts[jdx]);
+			    else
+				small = false;
+			}
+		    }
+		}
+		else {
+		    for (unsigned jdx = 0; jdx < ix.nIndices() && small;
+			 ++ jdx) {
+			if (sum + (starts[idx[jdx]+1] - starts[idx[jdx]]) <=
+			    bufferlimit)
+			    sum += starts[idx[jdx]+1] - starts[idx[jdx]];
+			else
+			    small = false;
+		    }
+		}
+	    }
+
+	    // reserve space for buffer
+	    buffer.reserve(sum);
+	    // attempt to put all bytes of datafile into an array_t
+	    array_t<char> raw;
+	    ierr = ibis::fileManager::instance().getFile(datafile.c_str(), raw);
+	    if (ierr < 0) {
+		raw.clear();
+		LOGGER(ibis::gVerbose > 3)
+		    << "blob::countRawBytes getFile(" << datafile
+		    << ") returned " << ierr << ", will explicit read the file";
+	    }
+	    else if (raw.size() < starts.back()) {
+		raw.clear();
+		LOGGER(ibis::gVerbose > 3)
+		    << "blob::countRawBytes getFile(" << datafile
+		    << " returned an array with " << raw.size()
+		    << " bytes, but " << starts.back()
+		    << " are expected, will try explicitly reading the file";
+	    }
+	    if (small) {
+		if (raw.size() >= starts.back())
+		    ierr = extractAll(mask, buffer, positions, raw, starts);
+		else
+		    ierr = extractAll(mask, buffer, positions,
+				      datafile.c_str(), starts);
+	    }
+	    else {
+		if (raw.size() >= starts.back())
+		    ierr = extractSome(mask, buffer, positions, raw, starts,
+				       sum);
+		else
+		    ierr = extractSome(mask, buffer, positions,
+				       datafile.c_str(), starts, sum);
+	    }
+	}
+	else { // have to open the .sp file to read the starting positions
+	    buffer.reserve(bufferlimit);
+	    ierr = extractSome(mask, buffer, positions, datafile.c_str(),
+			       spfile.c_str(), bufferlimit);
+	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::selectRawBytes (" << datafile
+	    << ") terminating due to a std::exception -- " << e.what();
+	ierr = -4;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::selectRawBytes (" << datafile
+	    << ") terminating due to a string exceptioin -- " << s;
+	ierr = -5;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::selectRawBytes (" << datafile
+	    << ") terminating due to a unknown exception";
+	ierr = -6;
+    }
+
+    if (ierr >= 0)
+	ierr = (positions.size() > 1 ? positions.size() - 1 : 0);
+    return ierr;
+} // ibis::blob::selectRawBytes
+
+/// Extract entries marked 1 in mask from raw to buffer.  Fill positions to
+/// indicate the start and end positions of each raw binary object.  Caller
+/// has determined that there is sufficient amount of space to perform this
+/// operations and have reserved enough space for buffer.  Even though that
+/// may not be a guarantee, we proceed as if it is.
+int ibis::blob::extractAll(const ibis::bitvector& mask,
+			   ibis::array_t<char>& buffer,
+			   ibis::array_t<uint32_t>& positions,
+			   const ibis::array_t<char>& raw,
+			   const ibis::array_t<int64_t>& starts) const {
+    positions.resize(1);
+    positions[0] = 0;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *ids = ix.indices();
+	if (ix.isRange()) {
+	    buffer.insert(buffer.end(), raw.begin()+starts[*ids],
+			  raw.begin()+starts[ids[1]]);
+	    for (unsigned j = *ids; j < ids[1]; ++ j) {
+		positions.push_back(positions.back()+(starts[j+1]-starts[j]));
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		buffer.insert(buffer.end(), raw.begin()+starts[ids[j]],
+			      raw.begin()+starts[1+ids[j]]);
+		positions.push_back(positions.back() +
+				    (starts[1+ids[j]]-starts[ids[j]]));
+	    }
+	}
+    }
+    return (starts.size()-1);
+} // ibis::blob::extractAll
+
+/// Extract entries marked 1 in mask from raw to buffer subject to a limit
+/// on the buffer size.  Fill positions to indicate the start and end
+/// positions of each raw binary object.  Caller has determined that there
+/// is the amount of space to perform this operations and have reserved
+/// enough space for buffer.  Even though that may not be a guarantee, we
+/// proceed as if it is.
+int ibis::blob::extractSome(const ibis::bitvector& mask,
+			    ibis::array_t<char>& buffer,
+			    ibis::array_t<uint32_t>& positions,
+			    const ibis::array_t<char>& raw,
+			    const ibis::array_t<int64_t>& starts,
+			    const uint32_t limit) const {
+    positions.resize(1);
+    positions[0] = 0;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0 && buffer.size() < limit; ++ ix) {
+	const ibis::bitvector::word_t *ids = ix.indices();
+	if (ix.isRange()) {
+	    for (unsigned j = *ids; j < ids[1] && buffer.size() < limit; ++ j) {
+		buffer.insert(buffer.end(), raw.begin()+starts[j],
+			      raw.begin()+starts[j+1]);
+		positions.push_back(positions.back()+(starts[j+1]-starts[j]));
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices() && buffer.size() < limit;
+		 ++ j) {
+		buffer.insert(buffer.end(), raw.begin()+starts[ids[j]],
+			      raw.begin()+starts[1+ids[j]]);
+		positions.push_back(positions.back() +
+				    (starts[1+ids[j]]-starts[ids[j]]));
+	    }
+	}
+    }
+    return (starts.size()-1);
+} // ibis::blob::extractSome
+
+/// Retrieve all binary objects marked 1 in the mask.  The caller has
+/// reserved enough space for buffer and positions.  This function simply
+/// needs to open rawfile and read the content into buffer.  It also
+/// assigns values in starts to mark the boundaries of the binary objects.
+int ibis::blob::extractAll(const ibis::bitvector& mask,
+			   ibis::array_t<char>& buffer,
+			   ibis::array_t<uint32_t>& positions,
+			   const char* rawfile,
+			   const ibis::array_t<int64_t>& starts) const {
+    int fdes = UnixOpen(rawfile, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::extractAll failed to open " << rawfile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    positions.resize(1);
+    positions[0] = 0;
+    int64_t ierr;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *ids = ix.indices();
+	if (ix.isRange()) {
+	    ierr = UnixSeek(fdes, starts[*ids], SEEK_SET);
+	    if (ierr != starts[*ids]) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractAll failed to seek to position "
+		    << starts[*ids] << " in " << rawfile
+		    << " to retrieve record # " << *ids << " -- " << ids[1];
+		return -12;
+	    }
+
+	    const int64_t bytes = starts[ids[1]] - starts[*ids];
+	    const uint32_t bsize = buffer.size();
+	    buffer.resize(bsize+bytes);
+	    ierr = UnixRead(fdes, buffer.begin()+bsize, bytes);
+	    if (ierr < bytes) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractAll expects to read " << bytes
+		    << " byte" << (bytes>1?"s":"")
+		    << ", but the read function returned " << ierr
+		    << ", (reading started at " << starts[*ids]
+		    << " in " << rawfile << ")";
+		return -13;
+	    }
+	    for (unsigned j = *ids; j < ids[1]; ++ j) {
+		positions.push_back(positions.back()+(starts[j+1]-starts[j]));
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		int64_t curr = starts[ids[j]];
+		ierr = UnixSeek(fdes, curr, SEEK_SET);
+		if (ierr != curr) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractAll failed to seek to "
+			<< curr << " in " << rawfile
+			<< " to retrieve record # " << ids[j];
+		    return -14;
+		}
+
+		const int64_t bytes = starts[1+ids[j]] - starts[ids[j]];
+		const uint32_t bsize = buffer.size();
+		buffer.resize(bsize+bytes);
+		ierr = UnixRead(fdes, buffer.begin()+bsize, bytes);
+		if (ierr < bytes) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractAll expects to read "
+			<< bytes << " byte" << (bytes>1?"s":"")
+			<< ", but the read function returned " << ierr
+			<< ", (reading started at " << curr
+			<< " in " << rawfile << ")";
+		    return -15;
+		}
+		positions.push_back(positions.back() + bytes);
+	    }
+	}
+    }
+    return (positions.size()-1);
+} // ibis::blob::extractAll
+
+/// Retrieve binary objects marked 1 in the mask subject to the specified
+/// limit on buffer size.  The caller has reserved enough space for buffer
+/// and positions.  This function simply needs to open rawfile and read the
+/// content into buffer.  It also assigns values in starts to mark the
+/// boundaries of the binary objects.
+int ibis::blob::extractSome(const ibis::bitvector& mask,
+			    ibis::array_t<char>& buffer,
+			    ibis::array_t<uint32_t>& positions,
+			    const char* rawfile,
+			    const ibis::array_t<int64_t>& starts,
+			    const uint32_t limit) const {
+    int fdes = UnixOpen(rawfile, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::extractSome failed to open " << rawfile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    int64_t ierr;
+    positions.resize(1);
+    positions[0] = 0;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0 && buffer.size() < limit; ++ ix) {
+	const ibis::bitvector::word_t *ids = ix.indices();
+	if (ix.isRange()) {
+	    ierr = UnixSeek(fdes, starts[*ids], SEEK_SET);
+	    if (ierr != starts[*ids]) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractSome failed to seek to "
+		    << starts[*ids] << " in " << rawfile
+		    << " to retrieve record # " << *ids << " -- " << ids[1];
+		return -12;
+	    }
+
+	    for (unsigned j = *ids; j < ids[1] && buffer.size() < limit; ++ j) {
+		const int64_t bytes = starts[j+1] - starts[j];
+		const uint32_t bsize = buffer.size();
+		buffer.resize(bsize+bytes);
+		ierr = UnixRead(fdes, buffer.begin()+bsize, bytes);
+		if (ierr < bytes) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome expects to read "
+			<< bytes << " byte" << (bytes>1?"s":"")
+			<< ", but the read function returned " << ierr
+			<< ", (reading started at " << starts[*ids]
+			<< " in " << rawfile << ")";
+		    return -13;
+		}
+		positions.push_back(bsize+bytes);
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices() && buffer.size() < limit;
+		 ++ j) {
+		int64_t curr = starts[ids[j]];
+		ierr = UnixSeek(fdes, curr, SEEK_SET);
+		if (ierr != curr) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome failed to seek to "
+			<< curr << " in " << rawfile
+			<< " to retrieve record # " << ids[j];
+		    return -14;
+		}
+
+		const int64_t bytes = starts[1+ids[j]] - starts[ids[j]];
+		const uint32_t bsize = buffer.size();
+		buffer.resize(bsize+bytes);
+		ierr = UnixRead(fdes, buffer.begin()+bsize, bytes);
+		if (ierr < bytes) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome expects to read "
+			<< bytes << " byte" << (bytes>1?"s":"")
+			<< ", but the read function returned " << ierr
+			<< ", (reading started at " << curr
+			<< " in " << rawfile << ")";
+		    return -15;
+		}
+		positions.push_back(positions.back() + bytes);
+	    }
+	}
+    }
+    return (positions.size()-1);
+} // ibis::blob::extractSome
+
+/// Retrieve binary objects marked 1 in the mask subject to the specified
+/// limit on buffer size.  The caller has reserved enough space for buffer
+/// and positions.  This function needs to open both rawfile and spfile.
+/// It reads starting positions in spfile to determine where to read the
+/// content from rawfile into buffer.  It also assigns values in starts to
+/// mark the boundaries of the binary objects in buffer.
+int ibis::blob::extractSome(const ibis::bitvector& mask,
+			    ibis::array_t<char>& buffer,
+			    ibis::array_t<uint32_t>& positions,
+			    const char* rawfile,
+			    const char* spfile,
+			    const uint32_t limit) const {
+    // sdes - for spfile
+    int sdes = UnixOpen(spfile, OPEN_READONLY);
+    if (sdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::extractSome failed to open " << spfile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(sdes, _O_BINARY);
+#endif
+
+    // rdes - for rawfile
+    int rdes = UnixOpen(rawfile, OPEN_READONLY);
+    if (rdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::extractSome failed to open " << rawfile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -12;
+    }
+    ibis::util::guard grdes = ibis::util::makeGuard(UnixClose, rdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(rdes, _O_BINARY);
+#endif
+
+    positions.resize(1);
+    positions[0] = 0;
+    int64_t ierr, stmp[2];
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *ids = ix.indices();
+	if (ix.isRange()) {
+	    stmp[0] = 8 * *ids;
+	    ierr = UnixSeek(sdes, stmp[0], SEEK_SET);
+	    if (ierr != stmp[0]) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractSome failed to seek to "
+		    << stmp[0] << " in " << spfile
+		    << " to retrieve the starting positions for blob " << *ids;
+		return -13;
+	    }
+	    ierr = UnixRead(sdes, stmp, 16);
+	    if (ierr < 16) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractSome failed to read start "
+		    "and end positions for blob " << *ids << " from " << spfile;
+		return -14;
+	    }
+	    ierr = UnixSeek(rdes, stmp[0], SEEK_SET);
+	    if (ierr != stmp[0]) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- blob::extractSome failed to seek to "
+		    << stmp[0] << " in " << rawfile
+		    << " to retrieve record # " << *ids << " -- " << ids[1];
+		return -15;
+	    }
+
+	    for (unsigned j = *ids; j < ids[1]; ++ j) {
+		const int64_t bytes = stmp[1] - stmp[0];
+		const uint32_t bsize = buffer.size();
+		if (bsize+bytes > limit)
+		    return (positions.size()-1);
+
+		buffer.resize(bsize+bytes);
+		ierr = UnixRead(rdes, buffer.begin()+bsize, bytes);
+		if (ierr < bytes) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome expects to read "
+			<< bytes << " byte" << (bytes>1?"s":"") << " from "
+			<< rawfile << ", but the read function returned "
+			<< ierr;
+		    return -16;
+		}
+		positions.push_back(bsize+bytes);
+
+		if (j+1 < ids[1]) { // read next end positions
+		    stmp[0] = stmp[1];
+		    ierr = UnixRead(sdes, stmp+1, 8);
+		    if (ierr < 8) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- blob::extractSome failed to read "
+			    "the ending position of blob " << j+1 << " from "
+			    << spfile;
+			return -17;
+		    }
+		}
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		stmp[0] = 8 * ids[j];
+		ierr = UnixSeek(sdes, stmp[0], SEEK_SET);
+		if (ierr != stmp[0]) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome failed to seek to "
+			<< stmp[0] << " in " << spfile
+			<< " to retrieve positions of blob " << ids[j];
+		    return -18;
+		}
+		ierr = UnixRead(sdes, stmp, 16);
+		if (ierr < 16) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome failed to read "
+			"start and end positions of blob " << ids[j]
+			<< " from " << spfile;
+		    return -19;
+		}
+		const int64_t bytes = stmp[1] - stmp[0];
+		const uint32_t bsize = buffer.size();
+		if (bsize+bytes > limit) {
+		    return (positions.size()-1);
+		}
+
+		ierr = UnixSeek(rdes, stmp[0], SEEK_SET);
+		if (ierr != stmp[0]) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome failed to seek to "
+			<< stmp[0] << " in " << rawfile
+			<< " to retrieve blob " << ids[j];
+		    return -20;
+		}
+
+		buffer.resize(bsize+bytes);
+		ierr = UnixRead(rdes, buffer.begin()+bsize, bytes);
+		if (ierr < bytes) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- blob::extractSome expects to read "
+			<< bytes << " byte" << (bytes>1?"s":"")
+			<< ", but the read function returned " << ierr
+			<< ", (reading started at " << stmp[0]
+			<< " in " << rawfile << ")";
+		    return -21;
+		}
+		positions.push_back(positions.back() + bytes);
+	    }
+	}
+    }
+    return (positions.size()-1);
+} // ibis::blob::extractSome

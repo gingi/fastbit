@@ -90,8 +90,8 @@ public:
     /// number of pages involved.  Used by derived classes to record page
     /// accesses.
     inline void recordPages(off_t start, off_t stop);
-    static inline void increaseUse(size_t inc, const char* evt);
-    static inline void decreaseUse(size_t dec, const char* evt);
+    static inline void increaseUse(uint32_t inc, const char* evt);
+    static inline void decreaseUse(uint32_t dec, const char* evt);
     /// Signal to the file manager that some memory have been freed.
     void signalMemoryAvailable() const;
 
@@ -212,7 +212,7 @@ private:
     mutable pthread_mutex_t mutex; // control access to incore and mapped
     mutable pthread_cond_t cond;   // conditional variable -- unload(), etc..
 
-    int unload(size_t size);	// try to unload size bytes
+    int unload(uint32_t size);	// try to unload size bytes
     void invokeCleaners() const;// invoke external cleaners
     inline void gainWriteAccess(const char* m) const;
     /// A write lock for controlling access to the two interval lists.
@@ -279,7 +279,7 @@ private:
 class ibis::fileManager::storage {
 public:
     storage() : name(0), m_begin(0), m_end(0), nacc(0), nref() {};
-    explicit storage(size_t n); // allocate n bytes
+    explicit storage(uint32_t n); // allocate n bytes
     virtual ~storage() {clear();}
 
     /// Read part of a file [start, end).
@@ -305,7 +305,7 @@ public:
     size_t bytes() const {return (m_begin >= m_end ? 0 : m_end - m_begin);}
     /// Enlarge the current array by 61.8% if @c nelm is smaller than the
     /// current size, otherwise enlarge to the specified size.
-    void enlarge(size_t nelm=0);
+    void enlarge(uint32_t nelm=0);
 
     /// Starting address of the storage object.
     char* begin() {return m_begin;}
@@ -331,7 +331,7 @@ public:
     /// Is the storage a file map ?
     virtual bool isFileMap() const {return false;}
     // IO functions
-    virtual size_t printStatus(std::ostream& out) const;
+    virtual uint32_t printStatus(std::ostream& out) const;
     /// Read part of an open file.  Return the number of bytes read.
     off_t read(const int fdes, const off_t begin, const off_t end);
     /// Write the content to the named file.
@@ -375,7 +375,7 @@ public:
     virtual bool isFileMap() const {return (mapped != 0);}
 
     // IO functions
-    virtual size_t printStatus(std::ostream& out) const;
+    virtual uint32_t printStatus(std::ostream& out) const;
     void read(const char* file);
 #if defined(HAVE_FILE_MAP)
     void mapFile(const char* file);
@@ -429,7 +429,7 @@ protected:
     friend class ibis::fileManager;
     virtual void clear(); // free memory/close file
 
-    size_t printBody(std::ostream& out) const;
+    uint32_t printBody(std::ostream& out) const;
 
 private:
     time_t opened; // time first created, presumably when the file was opened
@@ -442,7 +442,7 @@ private:
     LPVOID map_begin; // actual address returned by MapViewOfFile
 #elif (HAVE_MMAP+0 > 0)
     int fdescriptor; // descriptor of the open file
-    size_t fsize;    // the size of the mapped portion of file
+    uint32_t fsize;    // the size of the mapped portion of file
     void *map_begin; // actual address returned by mmap
 #endif
 
@@ -459,7 +459,7 @@ class ibis::fileManager::rofSegment : public ibis::fileManager::roFile {
 public:
     rofSegment(const char *fn, off_t b, off_t e);
     virtual ~rofSegment() {};
-    virtual size_t printStatus(std::ostream& out) const;
+    virtual uint32_t printStatus(std::ostream& out) const;
 
 private:
     rofSegment(); // no default constructor
@@ -531,7 +531,7 @@ inline void ibis::fileManager::recordPages(off_t start, off_t stop) {
 } // ibis::fileManager::recordPages
 
 inline void
-ibis::fileManager::increaseUse(size_t inc, const char* evt) {
+ibis::fileManager::increaseUse(uint32_t inc, const char* evt) {
     if (inc > 0) {
 	ibis::fileManager::totalBytes += inc;
 	LOGGER(evt && ibis::gVerbose > 9)
@@ -541,7 +541,7 @@ ibis::fileManager::increaseUse(size_t inc, const char* evt) {
 } // ibis::fileManager::increaseUse
 
 inline void
-ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
+ibis::fileManager::decreaseUse(uint32_t dec, const char* evt) {
     if (dec > 0) {
 	ibis::fileManager::totalBytes -= dec;
 	LOGGER(evt && ibis::gVerbose > 9)

@@ -2424,8 +2424,8 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
       // passing them to values
 	std::vector<uint32_t> tmp(val);
 	std::sort(tmp.begin(), tmp.end());
-	size_t j = 0;
-	for (size_t i = 1; i < tmp.size(); ++ i) {
+	uint32_t j = 0;
+	for (uint32_t i = 1; i < tmp.size(); ++ i) {
 	    if (tmp[i] > tmp[j]) {
 		++ j;
 		tmp[j] = tmp[i];
@@ -2463,8 +2463,8 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 
     // sort the incoming values
     std::sort(val.begin(), val.end());
-    size_t j = 0;
-    for (size_t i = 1; i < val.size(); ++ i) { // copy unique values
+    uint32_t j = 0;
+    for (uint32_t i = 1; i < val.size(); ++ i) { // copy unique values
 	if (val[i] > val[j]) {
 	    ++ j;
 	    val[j] = val[i];
@@ -2491,14 +2491,14 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (val.size() <= 1U) return;
 
     bool sorted = (values[0] <= values[1]);
-    for (size_t i = 1; sorted && i < val.size()-1; ++ i)
+    for (uint32_t i = 1; sorted && i < val.size()-1; ++ i)
 	sorted = (values[i] <= values[i+1]);
     if (sorted == false) {
 	/// Sort the incoming values
 	std::sort(values.begin(), values.end());
     }
-    size_t j = 0;
-    for (size_t i = 1; i < val.size(); ++ i) {
+    uint32_t j = 0;
+    for (uint32_t i = 1; i < val.size(); ++ i) {
 	// loop to copy unique values to the beginning of the array
 	if (values[i] > values[j]) {
 	    ++ j;
@@ -2526,10 +2526,10 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (val.empty()) return;
     if (val.size() <= 1U) return;
 
-    const size_t oldsize = val.size();
+    const uint32_t oldsize = val.size();
     bool sorted = (val[0] <= val[1]);
     bool distinct = (val[0] < val[1]);
-    for (size_t i = 2; sorted && i < oldsize; ++ i) {
+    for (uint32_t i = 2; sorted && i < oldsize; ++ i) {
 	sorted = (val[i-1] <= val[i]);
 	distinct = distinct && (val[i-1] < val[i]);
     }
@@ -2538,9 +2538,9 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	/// Sort the incoming values
 	std::sort(val.begin(), val.end());
     }
-    size_t j = 0;
+    uint32_t j = 0;
     if (distinct == false) {
-	for (size_t i = 1; i < oldsize; ++ i) {
+	for (uint32_t i = 1; i < oldsize; ++ i) {
 	    // loop to copy unique values to the beginning of the array
 	    if (val[i] > val[j]) {
 		++ j;
@@ -2570,7 +2570,7 @@ void ibis::qDiscreteRange::print(std::ostream& out) const {
 //     std::copy(values.begin(), values.end(),
 // 	      std::ostream_iterator<double>(out, ", "));
     if (values.size() > 0) {
-	size_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
+	uint32_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
 	    (1U << ibis::gVerbose) : values.size();
 	if (prt == 0)
 	    prt = 1;

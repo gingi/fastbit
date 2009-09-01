@@ -601,7 +601,7 @@ int ibis::roster::read(const char* idxf) {
 	fnm += ".ind";
     }
 
-    size_t nbytes = sizeof(uint32_t)*col->partition()->nRows();
+    uint32_t nbytes = sizeof(uint32_t)*col->partition()->nRows();
     if (ibis::util::getFileSize(fnm.c_str()) != (off_t)nbytes)
 	return -1;
 
@@ -660,15 +660,16 @@ void ibis::roster::icSort(const char* fin) {
 			"of file (%s) in memory", fnm.c_str());
     }
 
+    array_t<uint32_t> indim;
     switch (col->type()) {
     case ibis::UBYTE: { // unsigned char
 	array_t<unsigned char> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<unsigned char>&>(val).stableSort(ind);
+	    const_cast<const array_t<unsigned char>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    unsigned char tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -689,10 +690,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<char> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<char>&>(val).stableSort(ind);
+	    const_cast<const array_t<char>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    char tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -713,10 +714,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<uint16_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<uint16_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<uint16_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    uint16_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -737,10 +738,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<int16_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<int16_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<int16_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    int16_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -761,10 +762,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<uint32_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<uint32_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<uint32_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    uint32_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -785,10 +786,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<int32_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<int32_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<int32_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    int32_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -809,10 +810,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<uint64_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<uint64_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<uint64_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    uint64_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -833,10 +834,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<int64_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<int64_t>&>(val).stableSort(ind);
+	    const_cast<const array_t<int64_t>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    int64_t tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -857,10 +858,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<float> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<float>&>(val).stableSort(ind);
+	    const_cast<const array_t<float>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    float tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -881,10 +882,10 @@ void ibis::roster::icSort(const char* fin) {
 	array_t<double> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<double>&>(val).stableSort(ind);
+	    const_cast<const array_t<double>&>(val).stableSort(indim);
 #if defined(DEBUG) && DEBUG + 0 > 1
 	    double tmp;
-	    size_t i = 0, j = 0;
+	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
 	    lg.buffer() << "ibis::roster::icSort -- value, starting "
@@ -910,6 +911,8 @@ void ibis::roster::icSort(const char* fin) {
 	break;}
     }
 
+    ind.resize(indim.size());
+    std::copy(indim.begin(), indim.end(), ind.begin());
     // write out the current content
     write(static_cast<const char*>(0)); // write .ind file
     if (ibis::gVerbose > 2) {
@@ -970,7 +973,7 @@ void ibis::roster::oocSort(const char *fin) {
 	    nind.erase(ierr-4);
 	nind += ".ind";
     }
-    const size_t nrows = col->partition()->nRows();
+    const uint32_t nrows = col->partition()->nRows();
     if (ibis::util::getFileSize(nind.c_str()) ==
 	(off_t)(sizeof(uint32_t) * nrows)) {
 	// open the ind file in read only mode for future operaions.
@@ -1011,7 +1014,7 @@ void ibis::roster::oocSort(const char *fin) {
     array_t<uint32_t> ibuf1(mblock), ibuf2(mblock);
 
     ierr = nrows / mblock;
-    const uint32_t nblock = ierr + (nrows > static_cast<size_t>(ierr) * mblock);
+    const uint32_t nblock = ierr + (nrows > static_cast<uint32_t>(ierr) * mblock);
     ierr = 1;
     for (uint32_t i = nblock; i > 1; ++ierr, i>>=1);
     const bool isodd = (ierr%2 == 1);
@@ -2973,7 +2976,7 @@ ibis::roster::locate2(const ibis::array_t<inT>& vals,
     if (strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
 	std::vector<myT> myvals; // copy values to the correct type
 	myvals.reserve(vals.size());
-	for (size_t j = 0; j < vals.size(); ++ j) {
+	for (uint32_t j = 0; j < vals.size(); ++ j) {
 	    myT tmp = static_cast<myT>(vals[j]);
 	    if (static_cast<inT>(tmp) == vals[j])
 		myvals.push_back(tmp);
@@ -3154,7 +3157,7 @@ ibis::roster::locate2(const std::vector<inT>& vals,
     if (strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
 	std::vector<myT> myvals; // copy values to the correct type
 	myvals.reserve(vals.size());
-	for (size_t j = 0; j < vals.size(); ++ j) {
+	for (uint32_t j = 0; j < vals.size(); ++ j) {
 	    myT tmp = static_cast<myT>(vals[j]);
 	    if (static_cast<inT>(tmp) == vals[j])
 		myvals.push_back(tmp);

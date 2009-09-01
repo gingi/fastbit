@@ -17,7 +17,6 @@
 #include <vector>	// std::vector
 #include <map>		// std::map
 #include <string>	// std::string
-#include <cstdlib>	// size_t
 #include "const.h"	// intxx_t, uintxx_t, ... from stdint.h
 
 namespace ibis {
@@ -103,7 +102,7 @@ public:
     /// The number of rows in this table.
     virtual uint64_t nRows() const =0;
     /// The number of columns in this table.
-    virtual size_t nColumns() const =0;
+    virtual uint32_t nColumns() const =0;
 
     /// A list of strings.
     /// @note The pointers are expected to point to names stored internally.
@@ -275,7 +274,7 @@ public:
     virtual long getHistogram(const char* constraints,
 			      const char* cname,
 			      double begin, double end, double stride,
-			      std::vector<size_t>& counts) const =0;
+			      std::vector<uint32_t>& counts) const =0;
     /// Compute a two-dimension histogram on columns @c cname1 and @c
     /// cname2.  The bins along each dimension are defined the same way as
     /// in function @c getHistogram.  The array @c counts stores the
@@ -287,7 +286,7 @@ public:
 				double begin1, double end1, double stride1,
 				const char* cname2,
 				double begin2, double end2, double stride2,
-				std::vector<size_t>& counts) const =0;
+				std::vector<uint32_t>& counts) const =0;
     /// Compute a three-dimensional histogram on the named columns.  The
     /// triplets <begin, end, stride> are used the same ways in @c
     /// getHistogram and @c getHistogram2D.  The three dimensional bins
@@ -301,7 +300,7 @@ public:
 				double begin2, double end2, double stride2,
 				const char* cname3,
 				double begin3, double end3, double stride3,
-				std::vector<size_t>& counts) const =0;
+				std::vector<uint32_t>& counts) const =0;
     /// @}
 
     /// A simple struct for storing a row of a table.
@@ -336,7 +335,7 @@ public:
 	/// Clear the content of arrays of values.  Leave the names alone.
 	void clearValues();
 	/// The number of columns in the row.
-	size_t nColumns() const {
+	uint32_t nColumns() const {
 	    return bytesvalues.size() + ubytesvalues.size() +
 		shortsvalues.size() + ushortsvalues.size() +
 		intsvalues.size() + uintsvalues.size() +
@@ -538,7 +537,7 @@ public:
     /// The maximum number of rows in any column.
     virtual uint32_t mRows() const =0;
     /// The number of columns in this table.
-    virtual size_t mColumns() const =0;
+    virtual uint32_t mColumns() const =0;
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const =0;
 
@@ -562,7 +561,7 @@ public:
     /// returns false.
     bool empty() const {return tables.empty();}
     /// Return the number of tables in the list.
-    size_t size() const {return tables.size();}
+    uint32_t size() const {return tables.size();}
     /// Return the iterator to the first table.
     iterator begin() const {return tables.begin();}
     /// Return the iterator to the end of the list.  Following STL
@@ -641,7 +640,7 @@ class FASTBIT_CXX_DLLSPEC ibis::table::cursor {
 public:
     virtual ~cursor() {};
     virtual uint64_t nRows() const =0;
-    virtual size_t nColumns() const =0;
+    virtual uint32_t nColumns() const =0;
     virtual ibis::table::stringList columnNames() const =0;
     virtual ibis::table::typeList columnTypes() const =0;
     /// Make the next row of the data set available for retrieval.  Returns
@@ -687,17 +686,17 @@ public:
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
-    virtual int getColumnAsByte(size_t cnum, char& val) const =0;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char& val) const =0;
-    virtual int getColumnAsShort(size_t cnum, int16_t& val) const =0;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t& val) const =0;
-    virtual int getColumnAsInt(size_t cnum, int32_t& val) const =0;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t& val) const =0;
-    virtual int getColumnAsLong(size_t cnum, int64_t& val) const =0;
-    virtual int getColumnAsULong(size_t cnum, uint64_t& val) const =0;
-    virtual int getColumnAsFloat(size_t cnum, float& val) const =0;
-    virtual int getColumnAsDouble(size_t cnum, double& val) const =0;
-    virtual int getColumnAsString(size_t cnum, std::string& val) const =0;
+    virtual int getColumnAsByte(uint32_t cnum, char& val) const =0;
+    virtual int getColumnAsUByte(uint32_t cnum, unsigned char& val) const =0;
+    virtual int getColumnAsShort(uint32_t cnum, int16_t& val) const =0;
+    virtual int getColumnAsUShort(uint32_t cnum, uint16_t& val) const =0;
+    virtual int getColumnAsInt(uint32_t cnum, int32_t& val) const =0;
+    virtual int getColumnAsUInt(uint32_t cnum, uint32_t& val) const =0;
+    virtual int getColumnAsLong(uint32_t cnum, int64_t& val) const =0;
+    virtual int getColumnAsULong(uint32_t cnum, uint64_t& val) const =0;
+    virtual int getColumnAsFloat(uint32_t cnum, float& val) const =0;
+    virtual int getColumnAsDouble(uint32_t cnum, double& val) const =0;
+    virtual int getColumnAsString(uint32_t cnum, std::string& val) const =0;
 
 protected:
     cursor() {};

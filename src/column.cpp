@@ -4515,7 +4515,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
 
 /// Return selected rows of the column in an array_t object along with
 /// their positions.
-/// The caller must provide the correct array_t<type>* for vals!  Not type
+/// The caller must provide the correct array_t<type>* for vals!  No type
 /// casting is performed in this function.  Only elementary numerical types
 /// are supported.
 long ibis::column::selectValues(const bitvector& mask, void* vals,
@@ -5932,10 +5932,10 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	oldsz = 0;
     else
 	oldsz = oldsz / elem;
-    if (static_cast<size_t>(oldsz) < thePart->nRows()) {
+    if (static_cast<uint32_t>(oldsz) < thePart->nRows()) {
 	mask_.adjustSize(oldsz, thePart->nRows());
-	while (static_cast<size_t>(oldsz) < thePart->nRows()) {
-	    const size_t nw = (thePart->nRows()-oldsz <= vals.size() ?
+	while (static_cast<uint32_t>(oldsz) < thePart->nRows()) {
+	    const uint32_t nw = (thePart->nRows()-oldsz <= vals.size() ?
 			       thePart->nRows()-oldsz : vals.size());
 	    ierr = UnixWrite(curr, vals.begin(), nw*elem);
 	    if (ierr < static_cast<long>(nw*elem)) {
@@ -5948,7 +5948,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	    }
 	}
     }
-    else if (static_cast<size_t>(oldsz) > thePart->nRows()) {
+    else if (static_cast<uint32_t>(oldsz) > thePart->nRows()) {
 	mask_.adjustSize(thePart->nRows(), thePart->nRows());
 	UnixSeek(curr, elem * thePart->nRows(), SEEK_SET);
     }
@@ -6745,7 +6745,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	     ix.nIndices() > 0; ++ ix) {
 	    const ibis::bitvector::word_t *idx = ix.indices();
 	    if (ix.isRange()) {
-		if ((size_t) pos < elm * *idx) {
+		if ((uint32_t) pos < elm * *idx) {
 		    const off_t endpos = idx[1] * elm;
 		    for (off_t j = *idx * elm; j < endpos; j += nbuf) {
 			fflush(fptr); // prepare for reading
@@ -9484,13 +9484,13 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((size_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
 	(u.size()+vals.size())) {
 	// go through the two lists to find matches
 	LOGGER(ibis::gVerbose >= 5)
 	    << evt << " will march through two sorted lists";
-	size_t ju = 0;
-	size_t jv = 0;
+	uint32_t ju = 0;
+	uint32_t jv = 0;
 	while (ju < u.size() && jv < vals.size()) {
 	    while (ju < u.size() && u[ju] < vals[jv]) ++ ju;
 	    while (jv < vals.size() && u[ju] > vals[jv]) ++ jv;
@@ -9505,7 +9505,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	LOGGER(ibis::gVerbose >= 5)
 	    << evt << " will use " << u.size()
 	    << " binary search" << (u.size() > 1 ? "es" : "");
-	for (size_t j = 0; j < u.size(); ++ j) {
+	for (uint32_t j = 0; j < u.size(); ++ j) {
 	    uint32_t jloc = vals.find(static_cast<T>(u[j]));
 	    if (vals[jloc] == u[j]) {
 		hits.setBit(jloc, 1);

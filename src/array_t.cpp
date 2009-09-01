@@ -824,7 +824,7 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 #endif
 } // qsort
 
-/// A heapsort function.  This is used as the back up option in case the
+/// A heapsort function.  This is used as the backup option in case the
 /// quicksort has been consistently picking bad pivots.
 template<class T>
 void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
@@ -1067,7 +1067,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 #if defined(DEBUG) && DEBUG > 2
     ibis::util::logger lg(4);
     lg.buffer() << "partition(" << front << ", " << back << ") = "
-	      << pivot << ", target = " << target << "\nfirst half: ";
+		<< pivot << ", target = " << target << "\nfirst half: ";
     for (i = front; i < pivot; ++i)
 	lg.buffer() << m_begin[ind[i]] << " ";
     lg.buffer() << "\nsecond half: ";
@@ -1086,7 +1086,7 @@ void ibis::array_t<T>::resize(uint32_t n) {
 	    m_begin = (T*)actual->begin();
 	m_end = m_begin + n;
 	if (m_end > (T*)(actual->end())) {
-	    size_t offset = m_begin - (T*)(actual->begin());
+	    uint32_t offset = m_begin - (T*)(actual->begin());
 	    actual->enlarge((n+offset)*sizeof(T));
 	    m_begin = offset + (T*)(actual->begin());
 	    if (actual->begin()) {
@@ -1118,11 +1118,11 @@ void ibis::array_t<T>::reserve(uint32_t n) {
     if (actual != 0) {
 	if (m_begin < (T*)(actual->begin()))
 	    m_begin = (T*)(actual->begin());
-	size_t n0 = (T*)(actual->end()) - m_begin;
+	uint32_t n0 = (T*)(actual->end()) - m_begin;
 	if (n > n0) { // enlarge to requested size
 	    n0 = m_begin - (T*)(actual->begin());
 	    actual->enlarge((n0+n)*sizeof(T));
-	    size_t n1 = m_end - m_begin;
+	    uint32_t n1 = m_end - m_begin;
 	    if (actual->begin()) {
 		m_begin = (T*)(actual->begin()) + n0;
 		m_end = m_begin + n1;
@@ -1146,14 +1146,15 @@ void ibis::array_t<T>::reserve(uint32_t n) {
     }
 } // ibis::array_t<T>::reserve
 
-/// Insert a single value (val) before p, return the iterator pointing to
-/// the new element.
+/// Insert a single value to the specified location.  It inserts the value
+/// right infront of position p and returns the iterator pointing to the
+/// new element.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
     if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- array_t(" << actual << ") -- should not insert to "
-	    "a shared or read-only array, making a modifiable copy";
+	LOGGER(ibis::gVerbose > 4)
+	    << "array_t(" << actual << ") -- making a modifiable copy of "
+	    "a shared or read-only array, ";
 	nosharing();
     }
 
@@ -1174,9 +1175,9 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	++ m_end;
     }
     else {
-	size_t n = m_end - m_begin;
-	size_t ip = p - m_begin;
-	size_t offset = m_begin - (T*)(actual->begin());
+	uint32_t n = m_end - m_begin;
+	uint32_t ip = p - m_begin;
+	uint32_t offset = m_begin - (T*)(actual->begin());
 	actual->enlarge(); // increase the storage
 	if (actual->begin()) {
 	    m_begin = (T*)(actual->begin()) + offset;
@@ -1200,80 +1201,73 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 template<class T> void
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
 			 const T& val) {
-    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
-	<< "Warning -- array_t<" << typeid(T).name()
-	<< ">::instert -- should not insert to a shared array";
+    if (n == 0 || p < m_begin || p > m_end) return;
 
-    if (n <= 0) { // nothing to do
-#if defined(DEBUG) && DEBUG > 2
-	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t::insert() trying to insert " << n << " copies of "
-	    << val;
-#endif
+    if (actual == 0) {
+	reserve(n);
+	for (uint32_t j = 0; j < n; ++ j, ++ m_end)
+	    *m_end = val;
     }
-    else if (m_end+n <= (T*)actual->end()) { // there is space to grow
+    else if (actual->inUse() > 1 || m_end+n > (T*)(actual->end())) {
+	// copy and swap
+	const uint32_t nold = size();
+	const uint32_t jp = p - m_begin;
+	ibis::array_t<T> copy(nold+(nold>=n?nold:n));
+	for (uint32_t j = 0; j < jp; ++ j)
+	    copy[j] = m_begin[j];
+	for (uint32_t j = 0; j < n; ++ j)
+	    copy[jp+j] = val;
+	for (uint32_t j = jp; j < nold; ++ j)
+	    copy[n+j] = m_begin[j];
+	copy.resize(nold+n);
+	swap(copy); // swap this and copy
+    }
+    else { // use the same space
 	m_end += n;
+	// copy all values after p to p+n
 	iterator i = m_end - 1;
 	while (i >= p+n) {
 	    *i = *(i-n); --i;
 	}
-	while (i >= p) {
-	    *i = val; --i;
-	}
-    }
-    else {
-	const size_t na = (m_end - m_begin) + n + 16U;
-	size_t ip = p - m_begin;
-	iterator i;
-	reserve(na); // increase the storage
-	p = m_begin + ip;
-	m_end += n;
-	for (i=m_end-1; i>=p+n; --i) {
-	    *i = *(i-n);
-	}
+	// insert incoming value between p and p+n-1
 	while (i >= p) {
 	    *i = val; --i;
 	}
     }
 } // array<T>::insert
 
-/// insert all values in [front, back) before p.
+/// Insert all values in [front, back) before p.
 template<class T> void
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 			 typename ibis::array_t<T>::const_iterator front,
 			 typename ibis::array_t<T>::const_iterator back) {
-    LOGGER(actual->inUse() > 1 && ibis::gVerbose >= 0)
-	<< "Warning -- array_t<" << typeid(T).name()
-	<< ">::instert -- should not insert to a shared array";
+    difference_type n = back - front;
+    if (n <= 0 || p < m_begin || p > m_end) return;
 
-    long n = back - front;
-    if (n <= 0) { // nothing to do
-#if defined(DEBUG) && DEBUG > 2
-	LOGGER(ibis::gVerbose >= 0)
-	    << "array_t::insert() trying to insert " << n
-	    << " an empty range [" << front << ", " << back << ')';
-#endif
+    if (actual == 0) {
+	reserve(n);
+	for (const_iterator j = front; j < back; ++ j, ++ m_end)
+	    *m_end = *j;
     }
-    else if (m_end+n <= (T*)(actual->end())) {
-	// there is space to grow
+    else if (actual->inUse() > 1 || m_end+n > (T*)(actual->end())) {
+	// need a new copy
+	const uint32_t nold = size();
+	const uint32_t jp = p - m_begin;
+	ibis::array_t<T> copy(nold+(n>=nold?n:nold));
+	copy.resize(nold+n);
+	for (uint32_t j = 0; j < jp; ++ j)
+	    copy[j] = m_begin[j];
+	for (uint32_t j = 0; j < (uint32_t)n; ++ j)
+	    copy[jp+j] = front[j];
+	for (uint32_t j = jp; j < nold; ++ j)
+	    copy[n+j] = m_begin[j];
+	swap(copy); // swap this and copy
+    }
+    else { // enough space
 	m_end += n;
 	iterator i = m_end - 1;
 	while (i >= p+n) {
 	    *i = i[-n]; --i;
-	}
-	for (--back; i >= p; --back, --i) {
-	    *i = *back;
-	}
-    }
-    else {
-	const size_t na = (m_end - m_begin) + static_cast<size_t>(n + 16);
-	size_t ip = p - m_begin;
-	iterator i;
-	reserve(na); // increase the storage
-	p = m_begin + ip;
-	m_end += n;
-	for (i=m_end-1; i>=p+n; --i) {
-	    *i = i[-n];
 	}
 	for (--back; i >= p; --back, --i) {
 	    *i = *back;

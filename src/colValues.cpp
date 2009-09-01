@@ -113,63 +113,63 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int32_t>((*arr)[i]);
 	break;}
     default:
@@ -186,63 +186,63 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint32_t>((*arr)[i]);
 	break;}
     default:
@@ -259,63 +259,63 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int64_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<int64_t>((*arr)[i]);
 	break;}
     default:
@@ -332,63 +332,63 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint64_t>((*arr)[i]);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<uint64_t>((*arr)[i]);
 	break;}
     default:
@@ -405,63 +405,63 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<float>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
@@ -478,63 +478,63 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<array_t<unsigned char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr = static_cast<array_t<uint16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<array_t<signed char>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* arr = static_cast<array_t<int16_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<double>((*arr)[i]);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = static_cast<double>((*arr)[i]);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
 	array->resize(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i] = (*arr)[i];
 	break;}
     default:
@@ -555,7 +555,7 @@ ibis::colStrings::colStrings(const ibis::column* c, void* vals)
 	std::vector<std::string>* arr =
 	    static_cast<std::vector<std::string>*>(vals);
 	array = new std::vector<std::string>(arr->size());
-	for (size_t i = 0; i < arr->size(); ++ i)
+	for (uint32_t i = 0; i < arr->size(); ++ i)
 	    (*array)[i].swap((*arr)[i]);
     }
     else {

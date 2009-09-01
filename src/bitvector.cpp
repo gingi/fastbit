@@ -4335,9 +4335,9 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
     if (bits1.empty() || bits2.empty())
 	return 0;
     res.resize(bits1.size() * bits2.size());
-    for (size_t jj = 0; jj < bits1.size(); ++ jj) {
-	const size_t joff = jj * bits2.size();
-	for (size_t ii = 0; ii < bits2.size(); ++ ii) {
+    for (uint32_t jj = 0; jj < bits1.size(); ++ jj) {
+	const uint32_t joff = jj * bits2.size();
+	for (uint32_t ii = 0; ii < bits2.size(); ++ ii) {
 	    ibis::bitvector *tmp = bits1[jj] & bits2[ii];
 	    if (tmp != 0) {
 		tmp->compress();
@@ -4371,14 +4371,14 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
     if (bits1.empty() || bits2.empty() || bits3.empty())
 	return 0;
     res.resize(bits1.size() * bits2.size() * bits3.size());
-    for (size_t kk = 0; kk < bits1.size(); ++ kk) {
-	const size_t koff = kk * bits2.size();
-	for (size_t jj = 0; jj < bits2.size(); ++ jj) {
-	    const size_t joff = (koff + jj) * bits3.size();
+    for (uint32_t kk = 0; kk < bits1.size(); ++ kk) {
+	const uint32_t koff = kk * bits2.size();
+	for (uint32_t jj = 0; jj < bits2.size(); ++ jj) {
+	    const uint32_t joff = (koff + jj) * bits3.size();
 	    ibis::bitvector bjk(bits2[jj]);
 	    bjk &= bits1[kk];
 	    bjk.compress();
-	    for (size_t ii = 0; ii < bits3.size(); ++ ii) {
+	    for (uint32_t ii = 0; ii < bits3.size(); ++ ii) {
 		ibis::bitvector tmp(bits3[ii]);
 		tmp &= bjk;
 		tmp.compress();
@@ -4396,8 +4396,8 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 } // ibis::util::intersect
 
 void ibis::util::clean(std::vector<ibis::bitvector*> &bv) throw() {
-    const size_t nbv = bv.size();
-    for (size_t i = 0; i < nbv; ++ i)
+    const uint32_t nbv = bv.size();
+    for (uint32_t i = 0; i < nbv; ++ i)
 	delete bv[i];
     bv.clear();
 } // ibis::util::clean

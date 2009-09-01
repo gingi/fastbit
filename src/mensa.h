@@ -35,7 +35,7 @@ public:
     virtual ~mensa() {clear();}
 
     virtual uint64_t nRows() const {return nrows;}
-    virtual size_t nColumns() const {return naty.size();}
+    virtual uint32_t nColumns() const {return naty.size();}
 
     virtual stringList columnNames() const;
     virtual typeList columnTypes() const;
@@ -63,19 +63,19 @@ public:
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
-			      std::vector<size_t>&) const;
+			      std::vector<uint32_t>&) const;
     virtual long getHistogram2D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const;
+				std::vector<uint32_t>&) const;
     virtual long getHistogram3D(const char*, const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
 				const char*,
 				double, double, double,
-				std::vector<size_t>&) const;
+				std::vector<uint32_t>&) const;
 
     virtual void estimate(const char* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
@@ -140,7 +140,7 @@ public:
     virtual ~cursor() {clearBuffers();};
 
     virtual uint64_t nRows() const {return tab.nRows();}
-    virtual size_t nColumns() const {return tab.nColumns();}
+    virtual uint32_t nColumns() const {return tab.nColumns();}
     virtual ibis::table::stringList columnNames() const {
 	return tab.columnNames();}
     virtual ibis::table::typeList columnTypes() const {
@@ -167,17 +167,17 @@ public:
     virtual int getColumnAsDouble(const char*, double&) const;
     virtual int getColumnAsString(const char*, std::string&) const;
 
-    virtual int getColumnAsByte(size_t, char&) const;
-    virtual int getColumnAsUByte(size_t, unsigned char&) const;
-    virtual int getColumnAsShort(size_t, int16_t&) const;
-    virtual int getColumnAsUShort(size_t, uint16_t&) const;
-    virtual int getColumnAsInt(size_t, int32_t&) const;
-    virtual int getColumnAsUInt(size_t, uint32_t&) const;
-    virtual int getColumnAsLong(size_t, int64_t&) const;
-    virtual int getColumnAsULong(size_t, uint64_t&) const;
-    virtual int getColumnAsFloat(size_t, float&) const;
-    virtual int getColumnAsDouble(size_t, double&) const;
-    virtual int getColumnAsString(size_t, std::string&) const;
+    virtual int getColumnAsByte(uint32_t, char&) const;
+    virtual int getColumnAsUByte(uint32_t, unsigned char&) const;
+    virtual int getColumnAsShort(uint32_t, int16_t&) const;
+    virtual int getColumnAsUShort(uint32_t, uint16_t&) const;
+    virtual int getColumnAsInt(uint32_t, int32_t&) const;
+    virtual int getColumnAsUInt(uint32_t, uint32_t&) const;
+    virtual int getColumnAsLong(uint32_t, int64_t&) const;
+    virtual int getColumnAsULong(uint32_t, uint64_t&) const;
+    virtual int getColumnAsFloat(uint32_t, float&) const;
+    virtual int getColumnAsDouble(uint32_t, double&) const;
+    virtual int getColumnAsString(uint32_t, std::string&) const;
 
 protected:
     struct bufferElement {
@@ -187,7 +187,7 @@ protected:
 
 	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
     }; // bufferElement
-    typedef std::map<const char*, size_t, ibis::lessi> bufferMap;
+    typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;
     bufferMap bufmap;
     const ibis::mensa& tab;
@@ -200,9 +200,9 @@ protected:
 
     void clearBuffers();
     int  fillBuffers() const;
-    int  fillBuffer(size_t) const;
+    int  fillBuffer(uint32_t) const;
     void fillRow(ibis::table::row& res) const;
-    int  dumpIJ(std::ostream&, size_t, size_t) const;
+    int  dumpIJ(std::ostream&, uint32_t, uint32_t) const;
     template <typename T>
     int  getSelected(const ibis::column &col, const ibis::bitvector &mask,
 		     ibis::fileManager::storage *&vals) const;
@@ -242,9 +242,9 @@ namespace ibis {
 	/// @c to).
 	template <typename T> static void 
 	addIncoreData(void*& to, const array_t<T>& from,
-		      size_t nold, const T special);
+		      uint32_t nold, const T special);
 	static void
-	addStrings(void*&, const std::vector<std::string>&, size_t);
+	addStrings(void*&, const std::vector<std::string>&, uint32_t);
     }
 }
 

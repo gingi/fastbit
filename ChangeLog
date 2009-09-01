@@ -1,3 +1,27 @@
+2009-09-01 John Wu <John.Wu at ACM.org>
+	* src/*.h, src/*.cpp: change all size_t back to uint32_t because
+	size_t some how is not one of intxx_t on cygwin -- my main
+	development environment.  In addition, there were ealier user
+	request to keep certain return values in uint32_t instead of
+	size_t.  The attempt to make array_t store more than 2^32 elements
+	is abandoned and should not be attempted again with this code
+	base!
+
+2009-08-31 John Wu <John.Wu at ACM.org>
+	* src/colValues.h, src/colValues.cpp, utilidor.h, utilidor.cpp:
+	change array indices from uint32_t to size_t following the changes
+	to array_t
+
+2009-08-30 John Wu <John.Wu at ACM.org>
+	* src/category.cpp: add functions extractAll and extractSome to
+	ibis::blob
+
+2009-08-28 John Wu <John.Wu at ACM.org>
+	* src/array_t.h, src/array_t.cpp: change type of sizes from
+	uint32_t to size_t, difference_type to ptrdiff_t (use c++ header
+	cstddef).  The intention is to make array size go beyond 2^32
+	elements.
+
 2009-08-27 John Wu <John.Wu at ACM.org>
 	* src/table.h: add column type BLOB
 	* src/category.h, src/category.cpp: add column type ibis::blob

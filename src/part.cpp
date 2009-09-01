@@ -1673,7 +1673,7 @@ void ibis::part::print(std::ostream &out) const {
 	    }
 	}
 	else if (colorder.size() == columns.size()) {
-	    for (size_t i = 0; i < columns.size(); ++ i)
+	    for (uint32_t i = 0; i < columns.size(); ++ i)
 		out << "\n" << colorder[i]->name();
 	}
 	else {
@@ -1681,7 +1681,7 @@ void ibis::part::print(std::ostream &out) const {
 	    for (ibis::part::columnList::const_iterator it = columns.begin();
 		 it != columns.end(); ++ it)
 		names.insert((*it).first);
-	    for (size_t i = 0; i < colorder.size(); ++ i) {
+	    for (uint32_t i = 0; i < colorder.size(); ++ i) {
 		out << "\n" << colorder[i]->name();
 		names.erase(colorder[i]->name());
 	    }
@@ -3436,7 +3436,7 @@ void ibis::part::numbersToBitvector(const std::vector<uint32_t> &rows,
 	ibis::array_t<uint32_t> r(rows.size());
 	std::copy(rows.begin(), rows.end(), r.begin());
 	std::sort(r.begin(), r.end());
-	for (size_t i = 0; i < rows.size() && r[i] < nEvents; ++ i)
+	for (uint32_t i = 0; i < rows.size() && r[i] < nEvents; ++ i)
 	    msk.setBit(r[i], 1);
     }
     else {
@@ -4288,7 +4288,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 				<< "]::doScan(" << cmp
 				<< ") failed to seek to " << tmp1
 				<< " in file " << fdes[i];
-			    for (size_t k = 0; k < vlist->size(); ++k) {
+			    for (uint32_t k = 0; k < vlist->size(); ++k) {
 				if (fdes[k] >= 0)
 				    UnixClose(fdes[k]);
 			    }
@@ -4318,7 +4318,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4346,7 +4346,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4376,7 +4376,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4404,7 +4404,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4432,7 +4432,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4460,7 +4460,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4488,7 +4488,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4516,7 +4516,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4544,7 +4544,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4572,7 +4572,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4617,7 +4617,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 				    << "]::doScan(" << cmp
 				    << ") failed to seek to " << tmp1
 				    << " in file " << fdes[i];
-				for (size_t k = 0; k < vlist->size(); ++k) {
+				for (uint32_t k = 0; k < vlist->size(); ++k) {
 				    if (fdes[k] >= 0)
 					UnixClose(fdes[k]);
 				}
@@ -4644,7 +4644,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4672,7 +4672,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4702,7 +4702,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4730,7 +4730,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4758,7 +4758,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4786,7 +4786,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4814,7 +4814,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4842,7 +4842,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4870,7 +4870,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4898,7 +4898,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 					<< "]::doScan(" << cmp
 					<< ") failed to read "
 					<< "from file " << fdes[i];
-				    for (size_t k = 0; k < vlist->size(); ++k) {
+				    for (uint32_t k = 0; k < vlist->size(); ++k) {
 					if (fdes[k] >= 0)
 					    UnixClose(fdes[k]);
 				    }
@@ -4914,7 +4914,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 			    logWarning("doScan", "unable to evaluate "
 				       "attribute of type %d (name: %s)",
 				       cols[i]->type(), cols[i]->name());
-			    for (size_t k = 0; k < vlist->size(); ++k) {
+			    for (uint32_t k = 0; k < vlist->size(); ++k) {
 				if (fdes[k] >= 0)
 				    UnixClose(fdes[k]);
 			    }
@@ -6194,8 +6194,8 @@ void ibis::part::testRangeOperators(const char* pref, const ibis::column* col,
 	return;
     }
     b2 -= b1;
-    for (size_t i1 = 0; i1 < 6; ++ i1) {
-	for (size_t i2 = 0; i2 < 6; ++ i2) {
+    for (uint32_t i1 = 0; i1 < 6; ++ i1) {
+	for (uint32_t i2 = 0; i2 < 6; ++ i2) {
 	    double r1 = ibis::util::rand();
 	    LOGGER(ibis::gVerbose > 3)
 		<< "part[" << (m_name ? m_name : "?")
@@ -12896,8 +12896,8 @@ unsigned ibis::util::tablesFromResources(ibis::partList &tables,
 } // ibis::util::tablesFromResources
 
 void ibis::util::clean(ibis::partList &pl) throw() {
-    const size_t npl = pl.size();
-    for (size_t j = 0; j < npl; ++ j)
+    const uint32_t npl = pl.size();
+    for (uint32_t j = 0; j < npl; ++ j)
 	delete pl[j];
     pl.clear();
 } // ibis::util::clean

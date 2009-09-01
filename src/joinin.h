@@ -58,7 +58,7 @@ public:
     result(const ibis::joinIN& jin, const std::vector<const char*>& colnames);
 
     virtual uint64_t nRows() const {return jin_.nrows;}
-    virtual size_t nColumns() const {return 0;}
+    virtual uint32_t nColumns() const {return 0;}
 
     virtual std::vector<std::string> columnNames() const;
     virtual ibis::table::typeList columnTypes() const;
@@ -79,17 +79,17 @@ public:
     virtual int getColumnAsDouble(const char* cname, double&) const;
     virtual int getColumnAsString(const char* cname, std::string&) const;
 
-    virtual int getColumnAsByte(size_t cnum, char&) const;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char&) const;
-    virtual int getColumnAsShort(size_t cnum, int16_t&) const;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t&) const;
-    virtual int getColumnAsInt(size_t cnum, int32_t&) const;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t&) const;
-    virtual int getColumnAsLong(size_t cnum, int64_t&) const;
-    virtual int getColumnAsULong(size_t cnum, uint64_t&) const;
-    virtual int getColumnAsFloat(size_t cnum, float&) const;
-    virtual int getColumnAsDouble(size_t cnum, double&) const;
-    virtual int getColumnAsString(size_t cnum, std::string&) const;
+    virtual int getColumnAsByte(uint32_t cnum, char&) const;
+    virtual int getColumnAsUByte(uint32_t cnum, unsigned char&) const;
+    virtual int getColumnAsShort(uint32_t cnum, int16_t&) const;
+    virtual int getColumnAsUShort(uint32_t cnum, uint16_t&) const;
+    virtual int getColumnAsInt(uint32_t cnum, int32_t&) const;
+    virtual int getColumnAsUInt(uint32_t cnum, uint32_t&) const;
+    virtual int getColumnAsLong(uint32_t cnum, int64_t&) const;
+    virtual int getColumnAsULong(uint32_t cnum, uint64_t&) const;
+    virtual int getColumnAsFloat(uint32_t cnum, float&) const;
+    virtual int getColumnAsDouble(uint32_t cnum, double&) const;
+    virtual int getColumnAsString(uint32_t cnum, std::string&) const;
 
 protected:
     const ibis::joinIN& jin_;
@@ -105,8 +105,8 @@ protected:
     int nextMatch(const array_t<T>& col1, const array_t<T>& col2);
     int stringMatch(const std::vector<std::string>& col1,
 		    const std::vector<std::string>& col2);
-    void dumpR(std::ostream& out, size_t ind) const;
-    void dumpS(std::ostream& out, size_t ind) const;
+    void dumpR(std::ostream& out, uint32_t ind) const;
+    void dumpS(std::ostream& out, uint32_t ind) const;
 
 private:
     result(const result&); // no copying
@@ -114,7 +114,7 @@ private:
 }; // class ibis::joinIN::result
 
 inline int
-ibis::joinIN::result::getColumnAsByte(size_t cnum, char& val) const {
+ibis::joinIN::result::getColumnAsByte(uint32_t cnum, char& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -139,7 +139,7 @@ ibis::joinIN::result::getColumnAsByte(size_t cnum, char& val) const {
 } // ibis::joinIN::result::getColumnAsByte
 
 inline int
-ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char& val) const {
+ibis::joinIN::result::getColumnAsUByte(uint32_t cnum, unsigned char& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -164,7 +164,7 @@ ibis::joinIN::result::getColumnAsUByte(size_t cnum, unsigned char& val) const {
 } // ibis::joinIN::result::getColumnAsUByte
 
 inline int
-ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t& val) const {
+ibis::joinIN::result::getColumnAsShort(uint32_t cnum, int16_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -219,7 +219,7 @@ ibis::joinIN::result::getColumnAsShort(size_t cnum, int16_t& val) const {
 } // ibis::joinIN::result::getColumnAsShort
 
 inline int
-ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t& val) const {
+ibis::joinIN::result::getColumnAsUShort(uint32_t cnum, uint16_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -274,7 +274,7 @@ ibis::joinIN::result::getColumnAsUShort(size_t cnum, uint16_t& val) const {
 } // ibis::joinIN::result::getColumnAsUShort
 
 inline int
-ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t& val) const {
+ibis::joinIN::result::getColumnAsInt(uint32_t cnum, int32_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -349,7 +349,7 @@ ibis::joinIN::result::getColumnAsInt(size_t cnum, int32_t& val) const {
 } // ibis::joinIN::result::getColumnAsInt
 
 inline int
-ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t& val) const {
+ibis::joinIN::result::getColumnAsUInt(uint32_t cnum, uint32_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -424,7 +424,7 @@ ibis::joinIN::result::getColumnAsUInt(size_t cnum, uint32_t& val) const {
 } // ibis::joinIN::result::getColumnAsUInt
 
 inline int
-ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t& val) const {
+ibis::joinIN::result::getColumnAsLong(uint32_t cnum, int64_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -519,7 +519,7 @@ ibis::joinIN::result::getColumnAsLong(size_t cnum, int64_t& val) const {
 } // ibis::joinIN::result::getColumnAsLong
 
 inline int
-ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t& val) const {
+ibis::joinIN::result::getColumnAsULong(uint32_t cnum, uint64_t& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -614,7 +614,7 @@ ibis::joinIN::result::getColumnAsULong(size_t cnum, uint64_t& val) const {
 } // ibis::joinIN::result::getColumnAsULong
 
 inline int
-ibis::joinIN::result::getColumnAsFloat(size_t cnum, float& val) const {
+ibis::joinIN::result::getColumnAsFloat(uint32_t cnum, float& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -689,7 +689,7 @@ ibis::joinIN::result::getColumnAsFloat(size_t cnum, float& val) const {
 } // ibis::joinIN::result::getColumnAsFloat
 
 inline int
-ibis::joinIN::result::getColumnAsDouble(size_t cnum, double& val) const {
+ibis::joinIN::result::getColumnAsDouble(uint32_t cnum, double& val) const {
     if (currR_ >= blockR_ || currS_ >= blockS_ || cnum >= ipToPos.size())
 	return -1;
 
@@ -794,7 +794,7 @@ ibis::joinIN::result::getColumnAsDouble(size_t cnum, double& val) const {
 } // ibis::joinIN::result::getColumnAsDouble
 
 inline void
-ibis::joinIN::result::dumpR(std::ostream& out, size_t ind) const {
+ibis::joinIN::result::dumpR(std::ostream& out, uint32_t ind) const {
     if (colR_[ind] == 0) return;
     switch (typeR_[ind]) {
     default: break;
@@ -847,7 +847,7 @@ ibis::joinIN::result::dumpR(std::ostream& out, size_t ind) const {
 } // ibis::joinIN::result::dumpR
 
 inline void
-ibis::joinIN::result::dumpS(std::ostream& out, size_t ind) const {
+ibis::joinIN::result::dumpS(std::ostream& out, uint32_t ind) const {
     if (colS_[ind] == 0) return;
     switch (typeS_[ind]) {
     default: break;

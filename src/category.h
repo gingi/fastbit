@@ -287,6 +287,23 @@ public:
 
     virtual void write(FILE*) const;
     virtual void print(std::ostream&) const;
+
+    long countRawBytes(const bitvector&) const;
+    int selectRawBytes(const bitvector&,
+		       array_t<char>&, array_t<uint32_t>&) const;
+
+protected:
+    int extractAll(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+		   const array_t<char>&, const array_t<int64_t>&) const;
+    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+		    const array_t<char>&, const array_t<int64_t>&,
+		    const uint32_t) const;
+    int extractAll(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+		   const char*, const array_t<int64_t>&) const;
+    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+		    const char*, const array_t<int64_t>&, const uint32_t) const;
+    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+		    const char*, const char*, const uint32_t) const;
 }; // ibis::blob
 
 /// Return a string corresponding to the integer.  If the index is beyond

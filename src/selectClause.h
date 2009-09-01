@@ -35,7 +35,7 @@ public:
     const char* operator*(void) const {return clause_.c_str();}
 
     bool empty() const {return terms_.empty();}
-    size_t size() const {return terms_.size();}
+    uint32_t size() const {return terms_.size();}
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
     const mathTerms& getTerms() const {return terms_;}
@@ -60,10 +60,10 @@ public:
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM};
-    AGREGADO getAggregator(size_t i) const {return aggr_[i];}
+    AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
     int verify(const ibis::part&);
-    int verifySome(const ibis::part&, const std::vector<size_t>&);
+    int verifySome(const ibis::part&, const std::vector<uint32_t>&);
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Assignment operator.

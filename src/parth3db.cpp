@@ -48,18 +48,18 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
 	<< end3 << ", " << stride3 << ", bins[" << bins.size()
 	<< "]) ... ("
-	<< 1 + static_cast<size_t>(std::floor((end1-begin1)/stride1))
+	<< 1 + static_cast<uint32_t>(std::floor((end1-begin1)/stride1))
 	<< ", "
-	<< 1 + static_cast<size_t>(std::floor((end2-begin2)/stride2))
+	<< 1 + static_cast<uint32_t>(std::floor((end2-begin2)/stride2))
 	<< ", "
-	<< 1 + static_cast<size_t>(std::floor((end3-begin3)/stride3))
+	<< 1 + static_cast<uint32_t>(std::floor((end3-begin3)/stride3))
 	<< ")";
-    const size_t nbin3 = (1 + static_cast<size_t>((end3-begin3)/stride3));
-    const size_t nbin23 = (1 + static_cast<size_t>((end2-begin2)/stride2)) *
+    const uint32_t nbin3 = (1 + static_cast<uint32_t>((end3-begin3)/stride3));
+    const uint32_t nbin23 = (1 + static_cast<uint32_t>((end2-begin2)/stride2)) *
 	nbin3;
-    const size_t nbins = (1 + static_cast<size_t>((end1-begin1)/stride1)) *
+    const uint32_t nbins = (1 + static_cast<uint32_t>((end1-begin1)/stride1)) *
 	nbin23;
-    size_t nvals = (vals1.size() <= vals2.size() ?
+    uint32_t nvals = (vals1.size() <= vals2.size() ?
 		    (vals1.size() <= vals3.size() ?
 		     vals1.size() : vals3.size()) :
 		    (vals2.size() <= vals3.size() ?
@@ -71,61 +71,61 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++ j) {
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[j]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
-		    const size_t ibin3 =
-			static_cast<size_t>((vals3[j]-begin3)/stride3);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[j]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin3 =
+			static_cast<uint32_t>((vals3[j]-begin3)/stride3);
 		    bins[ibin1*nbin23+ibin2*nbin3+ibin3].setBit(j, 1);
 		}
 	    }
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[j]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[j]-begin2)/stride2);
-		    const size_t ibin3 =
-			static_cast<size_t>((vals3[j]-begin3)/stride3);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[j]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[j]-begin2)/stride2);
+		    const uint32_t ibin3 =
+			static_cast<uint32_t>((vals3[j]-begin3)/stride3);
 		    bins[ibin1*nbin23+ibin2*nbin3+ibin3].setBit(j, 1);
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i].size() > 0)
 		bins[i].adjustSize(0, mask.size());
     }
     else if (mask.cnt() == nvals) {
 	bins.resize(nbins);
-	size_t ivals = 0;
+	uint32_t ivals = 0;
 	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *idx = is.indices();
 	    if (is.isRange()) {
 		for (uint32_t j = *idx; j < idx[1]; ++j, ++ ivals) {
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
-		    const size_t ibin3 =
-			static_cast<size_t>((vals3[ivals]-begin3)/stride3);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin3 =
+			static_cast<uint32_t>((vals3[ivals]-begin3)/stride3);
 		    bins[ibin1*nbin23+ibin2*nbin3+ibin3].setBit(j, 1);
 		}
 	    }
 	    else {
 		for (uint32_t k = 0; k < is.nIndices(); ++ k, ++ ivals) {
 		    const ibis::bitvector::word_t j = idx[k];
-		    const size_t ibin1 =
-			static_cast<size_t>((vals1[ivals]-begin1)/stride1);
-		    const size_t ibin2 =
-			static_cast<size_t>((vals2[ivals]-begin2)/stride2);
-		    const size_t ibin3 =
-			static_cast<size_t>((vals3[ivals]-begin3)/stride3);
+		    const uint32_t ibin1 =
+			static_cast<uint32_t>((vals1[ivals]-begin1)/stride1);
+		    const uint32_t ibin2 =
+			static_cast<uint32_t>((vals2[ivals]-begin2)/stride2);
+		    const uint32_t ibin3 =
+			static_cast<uint32_t>((vals3[ivals]-begin3)/stride3);
 		    bins[ibin1*nbin23+ibin2*nbin3+ibin3].setBit(j, 1);
 #if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
-		    const size_t pos = ibin1*nbin23+ibin2*nbin3+ibin3;
+		    const uint32_t pos = ibin1*nbin23+ibin2*nbin3+ibin3;
 		    LOGGER(ibis::gVerbose > 5)
 			<< "DEBUG: fill3DBins -- vals1[" << ivals << "]="
 			<< vals1[ivals]
@@ -142,7 +142,7 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 		}
 	    }
 	}
-	for (size_t i = 0; i < nbins; ++ i)
+	for (uint32_t i = 0; i < nbins; ++ i)
 	    if (bins[i].size() > 0)
 		bins[i].adjustSize(0, mask.size());
     }

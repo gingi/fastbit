@@ -7,13 +7,18 @@
 #include "fileManager.h"
 #include "horometer.h"
 #include <iomanip>	// std::setw
+#include <cstddef>	// ptrdiff_t
 
 /// Template array_t is a replacement of std::vector.  The main difference
-/// is that the underlying memory of this object is managed by
-/// ibis::fileManager.  It is intended to store arrays in memory.  The
-/// memory is allocated in guaranteed to be contiguous, and its maximum
-/// size is limited to be (2^31-1) elements.  It also implements read and
+/// is that the underlying memory of this object is reference counted and
+/// managed by ibis::fileManager.  It is intended to store arrays in
+/// memory, and it's possible to have shallow copies of read-only arrays.
+/// The memory is guaranteed to be contiguous.  It also implements read and
 /// write functions that are not present in std::vector.
+///
+/// @note This implementation uses 32-bit integers for measuring the number
+/// of elements, therefore, can not handle array with more than 2^32-1
+/// elements.
 #ifdef __GNUC__
 #pragma interface
 #endif
@@ -26,8 +31,8 @@ public:
     typedef       T& reference; ///< Reference to a value.
     typedef const T& const_reference; ///< Reference to a constant value.
     typedef       T  value_type; ///< Type of values.
-    typedef uint32_t size_type; ///< Type of array size. Note: 32-bit only.
-    typedef  int32_t difference_type; ///< Type for difference between pointers.
+    typedef  uint32_t  size_type; ///< For array size.
+    typedef std::ptrdiff_t difference_type; ///< For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
@@ -81,7 +86,6 @@ public:
     void topk(uint32_t k, array_t<uint32_t> &ind) const;
     /// Return the positions of the @c k smallest elements.
     void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
-    /// Return the smallest i such that [ind[i]] >= val.
     uint32_t find(const array_t<uint32_t>& ind, const T& val) const;
     /// Return the smallest i such that [i] >= val.
     uint32_t find(const T& val) const;
@@ -113,8 +117,6 @@ public:
     /// Is the content of the array solely in memory?
     bool incore() const {return(actual != 0 ? actual->unnamed() != 0 : false);}
 
-    /// Insert one value or a list of values before p.  Return pointer to
-    /// new elem.
     iterator insert(iterator pos, const T& val);
     void insert(iterator p, uint32_t n, const T& val);
     void insert(iterator p, const_iterator i, const_iterator j);
@@ -148,7 +150,7 @@ private:
 
     /// Standard two-way partitioning function to quicksort function qsort.
     uint32_t partition(array_t<uint32_t>& ind, uint32_t front,
-		       uint32_t back) const;
+		     uint32_t back) const;
     /// Insertionsort.
     void isort(array_t<uint32_t>& ind, uint32_t front, uint32_t back) const;
     /// Heapsort.
@@ -194,10 +196,10 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG: ibis::array_t<" << typeid(T).name()
-	    << ">::push_back(0x" << std::hex << elm
+	    << ">::push_back(0x" << std::hex << elm << std::dec
 	    << ") actual address before calling enlarge 0x"
 	    << std::setw(8) << std::setfill('0')
-	    << (uint32_t)actual->begin() << std::dec
+	    << static_cast<const void*>(actual->begin())
 	    << " (offset=" << offset
 	    << ", n=" << n << ")";
 #endif
@@ -206,12 +208,12 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG: ibis::array_t<" << typeid(T).name()
-	    << ">::push_back(0x" << std::hex << elm
+	    << ">::push_back(0x" << std::hex << elm << std::dec
 	    << ") actual address after calling enlarge 0x"
 	    << std::setw(8) << std::setfill('0')
-	    << (uint32_t)actual->begin() << " (m_begin=0x"
+	    << static_cast<const void*>(actual->begin()) << " (m_begin=0x"
 	    << std::setw(8) << std::setfill('0')
-	    << (uint32_t)m_begin << ")" << std::dec;
+	    << static_cast<const void*>(m_begin) << ")";
 #endif
 	m_end = m_begin + n;
 	*m_end = elm;

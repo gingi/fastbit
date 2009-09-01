@@ -155,7 +155,6 @@ public:
     virtual array_t<float>*    selectFloats(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
     virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
-    virtual array_t<const char*>* selectCharStars(const bitvector& mask) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
 
@@ -645,15 +644,6 @@ inline bool ibis::column::isNumeric() const {
 	   m_type == ibis::LONG || m_type == ibis::ULONG ||
 	   m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
 } // ibis::column::isNumeric
-
-/// Return selected rows of the column in an array_t object.  It is
-/// intended to work with string-valued columns.  In all other cases, it
-/// simply return a nil pointer.  This version requires the actual string
-/// values to be stored in a separate data structure.  It is possible to 
-inline ibis::array_t<const char*>*
-ibis::column::selectCharStars(const bitvector& mask) const {
-    return 0;
-} // ibis::column::selectCharStars
 
 /// Return select rows of the column in string form.  It is intended to
 /// work with string-valued columns and returns a nil pointer in other

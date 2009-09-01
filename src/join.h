@@ -76,7 +76,7 @@ public:
     virtual ~result() {};
 
     virtual uint64_t nRows() const=0;
-    virtual size_t nColumns() const=0;
+    virtual uint32_t nColumns() const=0;
 
     /// Return column names.
     virtual std::vector<std::string> columnNames() const=0;
@@ -115,17 +115,17 @@ public:
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
-    virtual int getColumnAsByte(size_t cnum, char&) const=0;
-    virtual int getColumnAsUByte(size_t cnum, unsigned char&) const=0;
-    virtual int getColumnAsShort(size_t cnum, int16_t&) const=0;
-    virtual int getColumnAsUShort(size_t cnum, uint16_t&) const=0;
-    virtual int getColumnAsInt(size_t cnum, int32_t&) const=0;
-    virtual int getColumnAsUInt(size_t cnum, uint32_t&) const=0;
-    virtual int getColumnAsLong(size_t cnum, int64_t&) const=0;
-    virtual int getColumnAsULong(size_t cnum, uint64_t&) const=0;
-    virtual int getColumnAsFloat(size_t cnum, float&) const=0;
-    virtual int getColumnAsDouble(size_t cnum, double&) const=0;
-    virtual int getColumnAsString(size_t cnum, std::string&) const=0;
+    virtual int getColumnAsByte(uint32_t cnum, char&) const=0;
+    virtual int getColumnAsUByte(uint32_t cnum, unsigned char&) const=0;
+    virtual int getColumnAsShort(uint32_t cnum, int16_t&) const=0;
+    virtual int getColumnAsUShort(uint32_t cnum, uint16_t&) const=0;
+    virtual int getColumnAsInt(uint32_t cnum, int32_t&) const=0;
+    virtual int getColumnAsUInt(uint32_t cnum, uint32_t&) const=0;
+    virtual int getColumnAsLong(uint32_t cnum, int64_t&) const=0;
+    virtual int getColumnAsULong(uint32_t cnum, uint64_t&) const=0;
+    virtual int getColumnAsFloat(uint32_t cnum, float&) const=0;
+    virtual int getColumnAsDouble(uint32_t cnum, double&) const=0;
+    virtual int getColumnAsString(uint32_t cnum, std::string&) const=0;
     /// @}
 
 protected:
