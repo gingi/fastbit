@@ -1284,6 +1284,12 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		delete prop;
 		prop = tmp;
 	    }
+	    else if (prop->type() == ibis::BLOB) {
+		column* tmp = new ibis::blob(*prop);
+		delete prop;
+		prop = tmp;
+	    }
+
 	    if (selected.empty()) {
 		// if Properties_Selected is not explicitly
 		// specified, assume every column is to be included
@@ -1348,8 +1354,8 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		delete [] m_name;
 		m_name = ibis::util::strnewdup(lst);
 		if (*cur != 0) {
-		    // the incoming dir ended with FASTBIT_DIRSEP, need to change
-		    // it to null
+		    // the incoming dir ended with FASTBIT_DIRSEP, need to
+		    // change it to null
 		    len = cur - lst;
 		    m_name[len-1] = 0;
 		}
@@ -1511,8 +1517,8 @@ std::string ibis::part::metaTags() const {
     return st;
 }
 
-// return true if the list of meta tags contains a name-value pair that
-// matches the input arguments
+/// Return true if the list of meta tags contains a name-value pair that
+/// matches the input arguments.
 bool ibis::part::matchNameValuePair(const char* name, const char* value)
     const {
     bool ret = false;
@@ -1547,7 +1553,7 @@ ibis::part::matchMetaTags(const std::vector<const char*>& mtags) const {
     return ret;
 } // ibis::part::matchMetaTags
 
-// the two vLists must match exactly
+/// Return true if and only if the two vLists must match exactly.
 bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     const uint32_t len = mtags.size();
     bool ret = (metaList.size() == mtags.size());

@@ -226,7 +226,7 @@ class ibis::blob : public ibis::column {
 public:
     virtual ~blob() {};
     blob(const part*, FILE*);
-    blob(const part*, const char*, ibis::TYPE_T t=ibis::BLOB);
+    blob(const part*, const char*);
     blob(const ibis::column&);
 
     virtual long search(const char*, ibis::bitvector&) const {return -1;}
@@ -290,20 +290,31 @@ public:
 
     long countRawBytes(const bitvector&) const;
     int selectRawBytes(const bitvector&,
-		       array_t<char>&, array_t<uint32_t>&) const;
+		       array_t<unsigned char>&, array_t<uint32_t>&) const;
+    int getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size) const;
 
 protected:
-    int extractAll(const bitvector&, array_t<char>&, array_t<uint32_t>&,
-		   const array_t<char>&, const array_t<int64_t>&) const;
-    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
-		    const array_t<char>&, const array_t<int64_t>&,
+    int extractAll(const bitvector&,
+		   array_t<unsigned char>&, array_t<uint32_t>&,
+		   const array_t<unsigned char>&,
+		   const array_t<int64_t>&) const;
+    int extractSome(const bitvector&,
+		    array_t<unsigned char>&, array_t<uint32_t>&,
+		    const array_t<unsigned char>&, const array_t<int64_t>&,
 		    const uint32_t) const;
-    int extractAll(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+    int extractAll(const bitvector&,
+		   array_t<unsigned char>&, array_t<uint32_t>&,
 		   const char*, const array_t<int64_t>&) const;
-    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+    int extractSome(const bitvector&,
+		    array_t<unsigned char>&, array_t<uint32_t>&,
 		    const char*, const array_t<int64_t>&, const uint32_t) const;
-    int extractSome(const bitvector&, array_t<char>&, array_t<uint32_t>&,
+    int extractSome(const bitvector&,
+		    array_t<unsigned char>&, array_t<uint32_t>&,
 		    const char*, const char*, const uint32_t) const;
+    int readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
+		 const array_t<int64_t> &starts, const char *datafile) const;
+    int readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
+		 const char *spfile, const char *datafile) const;
 }; // ibis::blob
 
 /// Return a string corresponding to the integer.  If the index is beyond

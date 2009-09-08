@@ -199,7 +199,9 @@ char* ibis::util::getString(const char* buf) {
 /// if buf is nil or an empty string.  If the string is quoted, only spaces
 /// before the quote is skipped, and the content of the string will be
 /// everything after the first quote to the last character before the
-/// matching quote or end of buffer.
+/// matching quote or end of buffer.  If delim is not provided (i.e., is
+/// 0), and the 1st nonblank character is not a quote, then string will
+/// terminate at the 1st space character following the nonblank character.
 void ibis::util::getString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
@@ -227,6 +229,20 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		str += *buf;
 	    else if (str.size() > 0 && str[str.size()-1] == '\\')
 		str[str.size()-1] = '"';
+	    else {
+		++ buf;
+		return;
+	    }
+	    ++ buf;
+	} // while (*buf)
+    }
+    else if (*buf == '`') { // left quote
+	++ buf; // skip the openning quote
+	while (*buf) {
+	    if (*buf != '`')
+		str += *buf;
+	    else if (str.size() > 0 && str[str.size()-1] == '\\')
+		str[str.size()-1] = '`';
 	    else {
 		++ buf;
 		return;

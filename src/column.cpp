@@ -222,8 +222,11 @@ ibis::column::column(const part* tbl, FILE* file)
 		m_type = ibis::UBYTE;
 		break;}
 	    case 'b':
-	    case 'B': { // BYTE
-		m_type = ibis::BYTE;
+	    case 'B': { // BYTE/BLOB
+		if (s1[1] == 'l' || s1[1] == 'L')
+		    m_type = ibis::BLOB;
+		else
+		    m_type = ibis::BYTE;
 		break;}
 	    case 'g':
 	    case 'G': { // USHORT
@@ -240,6 +243,10 @@ ibis::column::column(const part* tbl, FILE* file)
 	    case 'v':
 	    case 'V': { // unsigned long (uint64_t)
 		m_type = ibis::ULONG;
+		break;}
+	    case 'q':
+	    case 'Q': { // BLOB
+		m_type = ibis::BLOB;
 		break;}
 	    default: {
 		ibis::util::logMessage("Warning",
@@ -5474,7 +5481,7 @@ long ibis::column::append(const char* dt, const char* df,
 	<< to << "\", nold=" << nold << ", nnew=" << nnew;
 
     // open destination file, position the file pointer
-    int dest = UnixOpen(to.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    int dest = UnixOpen(to.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (dest < 0) {
 	logWarning("append", "unable to open file \"%s\" for append ... %s",
 		   to.c_str(),
@@ -5913,7 +5920,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
     std::string fn = thePart->currentDataDir();
     fn += FASTBIT_DIRSEP;
     fn += m_name;
-    int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    int curr = UnixOpen(fn.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
     if (curr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << fn

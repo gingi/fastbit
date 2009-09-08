@@ -152,7 +152,7 @@ int truncate(const char*, uint32_t);
 #define OPEN_READWRITE _O_RDWR | _O_CREAT | _O_BINARY
 #endif
 #endif
-// define the option for opening an existing file for appending
+// define the option for opening an existing file for appending only
 #if defined(O_WRONLY)
 #if defined(O_LARGEFILE)
 #if defined(O_BINARY)

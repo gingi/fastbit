@@ -51,15 +51,15 @@ public:
     /// The return value is zero (0) if the function is successful, otherwise
     /// returns a non-zero value.
     /// @{
-    int getFile(const char* name, array_t<char>& arr);
-    int getFile(const char* name, array_t<unsigned char>& arr);
-    int getFile(const char* name, array_t<int32_t>& arr);
-    int getFile(const char* name, array_t<uint32_t>& arr);
-    int getFile(const char* name, array_t<int64_t>& arr);
-    int getFile(const char* name, array_t<uint64_t>& arr);
-    int getFile(const char* name, array_t<float>& arr);
-    int getFile(const char* name, array_t<double>& arr);
-    int getFile(const char* name, array_t<rid_t>& arr);
+//     int getFile(const char* name, array_t<char>& arr);
+//     int getFile(const char* name, array_t<unsigned char>& arr);
+//     int getFile(const char* name, array_t<int32_t>& arr);
+//     int getFile(const char* name, array_t<uint32_t>& arr);
+//     int getFile(const char* name, array_t<int64_t>& arr);
+//     int getFile(const char* name, array_t<uint64_t>& arr);
+//     int getFile(const char* name, array_t<float>& arr);
+//     int getFile(const char* name, array_t<double>& arr);
+//     int getFile(const char* name, array_t<rid_t>& arr);
     template<typename T>
     int getFile(const char* name, array_t<T>& arr,
 		ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
@@ -165,10 +165,22 @@ public:
 	uint32_t size() const {return nbuf;}
 	/// Increase the size of the buffer.
 	uint32_t resize(uint32_t sz=0);
+	/// Swap the content of two buffers.
+	void swap(buffer<T>& other) throw () {
+	    T* btmp = buf;
+	    buf = other.buf;
+	    other.buf = btmp;
+	    uint32_t ntmp = nbuf;
+	    nbuf = other.nbuf;
+	    other.nbuf = ntmp;
+	}
 
     private:
 	T* buf; ///< The address of the buffer.
 	uint32_t nbuf; ///< The number of elements in the buffer.
+
+	buffer(const buffer<T>&);
+	buffer<T>& operator=(const buffer<T>&);
     }; // buffer
 
 protected:

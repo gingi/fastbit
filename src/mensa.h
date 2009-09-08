@@ -180,10 +180,15 @@ public:
     virtual int getColumnAsString(uint32_t, std::string&) const;
 
 protected:
+    /// A buffer element is a minimal data structure to store a column in
+    /// memory.  It only holds a pointer to the column name, therefore the
+    /// original column data structure must existing while this data
+    /// structure is active.
+    /// TODO: unify this with ibis::tafel::column.
     struct bufferElement {
-	const char* cname;
-	ibis::TYPE_T ctype;
-	mutable ibis::fileManager::storage* cval;
+	const char* cname; ///< Column name.
+	ibis::TYPE_T ctype; ///< Column type.
+	mutable void* cval; ///< Pointer to raw data.
 
 	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
     }; // bufferElement
@@ -193,19 +198,16 @@ protected:
     const ibis::mensa& tab;
     unsigned curPart;
     unsigned preferred_block_size;
-    uint64_t pBegin; // the first row number of the current partition
-    uint64_t bBegin; // the first row number of the current block
-    uint64_t bEnd;   // end of the current block
-    int64_t  curRow; // the current row number
+    uint64_t pBegin; ///< the first row number of the current partition
+    uint64_t bBegin; ///< the first row number of the current block
+    uint64_t bEnd;   ///< end of the current block
+    int64_t  curRow; ///< the current row number
 
     void clearBuffers();
     int  fillBuffers() const;
     int  fillBuffer(uint32_t) const;
     void fillRow(ibis::table::row& res) const;
     int  dumpIJ(std::ostream&, uint32_t, uint32_t) const;
-    template <typename T>
-    int  getSelected(const ibis::column &col, const ibis::bitvector &mask,
-		     ibis::fileManager::storage *&vals) const;
 
 private:
     cursor();
@@ -243,7 +245,7 @@ namespace ibis {
 	template <typename T> static void 
 	addIncoreData(void*& to, const array_t<T>& from,
 		      uint32_t nold, const T special);
-	static void
+	void
 	addStrings(void*&, const std::vector<std::string>&, uint32_t);
     }
 }

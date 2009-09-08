@@ -8,8 +8,9 @@ This is a simple test program for functions defined in ibis::tablex.
 
 The user may specify a set of records to be read by using a combination of
 -m option (for meta data, i.e., column names and types) and -t or -r
-options.  Option -t is used to specify the name of a text/CSV file and
-option -r is used to specify a row of text/CSV data on the command line.
+options or specify a SQL dump file.  Option -t is used to specify the name
+of a text/CSV file and option -r is used to specify a row of text/CSV data
+on the command line.  Specify a SQL dump file with '-sqldump filename'.
 
 The caller may further specify a number of queries to be run on the data
 after they are written to disk.
@@ -41,6 +42,7 @@ ibis::tablex::appendRow for more information about NULL values.
 typedef std::set< const char*, ibis::lessi > qList;
 static std::vector<const char*> inputrows;
 static std::vector<const char*> csvfiles;
+static std::vector<const char*> sqlfiles;
 static std::string metadata;
 static const char* metadatafile = 0;
 
@@ -48,9 +50,9 @@ static const char* metadatafile = 0;
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
-	"[-r a-row-in-ASCII] [-t text-file-to-read] [-b break/delimiters-in-text-file]"
+	"[-r a-row-in-ASCII] [-t text-file-to-read] [-sqldump file-to-read] [-b break/delimiters-in-text-file]"
 	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
-	"[-s select-clause] [-w where-clause] [-v[=| ]verbose_level]\n\n"
+	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
 	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
 	"\tbyte, short, int, long, float, double, key, and text\n"
@@ -193,10 +195,15 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		}
 		break;
 	    case 's':
-	    case 'S':
+	    case 'S': // sql dump file or select clause
 		if (i+1 < argc) {
 		    ++ i;
-		    sel = argv[i];
+		    if (argv[i][2] == 'e' || argv[i][2] == 'E') {
+			sel = argv[i];
+		    }
+		    else { // assume to be sql dump file
+			sqlfiles.push_back(argv[i]);
+		    }
 		}
 		break;
 	    case 'v':
@@ -228,33 +235,44 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
     } // for (int i=1; ...)
 
     std::cout << argv[0] << ": verbose level " << ibis::gVerbose << "\n";
+    if (sqlfiles.size() > 0) {
+	std::cout << "Will attempt to parse sql dump file"
+		  << (sqlfiles.size()>1?"s":"") << ":";
+	for (size_t i = 0; i < sqlfiles.size(); ++ i)
+	    std::cout << "\n\t" << sqlfiles[i];
+	std::cout << std::endl;
+    }
     if (inputrows.size() > 0 || csvfiles.size() > 0) {
 	std::cout << "Will attempt to parse ";
-	if (csvfiles.size() > 0)
-	    std::cout << csvfiles.size() << " CSV file"
-		      << (csvfiles.size() > 1 ? "s" : "");
-	if (csvfiles.size() > 0 && inputrows.size() > 0)
-	    std::cout <<  " and ";
 	if (inputrows.size() > 0)
 	    std::cout << inputrows.size() << " row"
 		      << (inputrows.size() > 1 ? "s" : "");
+	if (csvfiles.size() > 0) {
+	    if (inputrows.size() > 0)
+		std::cout <<  " and ";
+	    std::cout << csvfiles.size() << " CSV file"
+		      << (csvfiles.size() > 1 ? "s" : "");
+	    for (size_t i = 0; i < csvfiles.size(); ++ i)
+		std::cout << "\n\t" << csvfiles[i];
+	}
 	std::cout << "\n";
-    }
-    if (!metadata.empty()) {
-	std::cout << " with the following column names and types\n\t"
-		  << metadata << "\n";
-	if (metadatafile != 0)
-	    std::cout << "as well as those names and types from "
-		      << metadatafile << "\n";
-    }
-    else if (metadatafile != 0) {
-	std::cout << " with names and types from " << metadatafile << "\n";
-    }
-    else {
-	std::clog
-	    << "\n" << *argv << " can not parse the specified data "
-	    "without metadata, use -m name:type[,name:type] or "
-	    "-M metadatafilename to specify the column names and types\n";
+	if (!metadata.empty()) {
+	    std::cout << " with the following column names and types\n\t"
+		      << metadata << "\n";
+	    if (metadatafile != 0)
+		std::cout << "as well as those names and types from "
+			  << metadatafile << "\n";
+	}
+	else if (metadatafile != 0) {
+	    std::cout << " with names and types from " << metadatafile << "\n";
+	}
+	else {
+	    std::clog
+		<< "\n" << *argv << " can not parse the specified data "
+		"without metadata, use -m name:type[,name:type] or "
+		"-M metadatafilename to specify the column names and types\n";
+	}
+	std::cout << std::endl;
     }
     if (qcnd.size() > 0) {
 	std::cout << "Will also exercise the following queries: ";
@@ -676,18 +694,53 @@ int main(int argc, char** argv) {
     const char* del = 0; // delimiters
     int ierr, nrpf;
     qList qcnd;
+    std::ostringstream oss;
+    for (int i = 0; i < argc; ++ i) {
+	if (i > 0) oss << " ";
+	oss << argv[i];
+    }
 
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
-    bool usersupplied = ((! metadata.empty() || metadatafile != 0) &&
-			 (inputrows.size() > 0 || csvfiles.size() > 0));
+    bool usersupplied = (! sqlfiles.empty()) ||
+	((! metadata.empty() || metadatafile != 0) &&
+	 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
     ibis::tablex* ta = ibis::tablex::create();
     if (usersupplied) { // use user-supplied data
+	// process the SQL dump files first just in case the CSV files
+	// require the metadata from them
+	for (size_t i = 0; i < sqlfiles.size(); ++ i) {
+	    if (ibis::gVerbose >= 0)
+		std::cout << *argv << " to read SQL dump file " << sqlfiles[i]
+			  << " ..." << std::endl;
+	    std::string tname;
+	    ierr = ta->readSQLDump(sqlfiles[i], tname);
+	    if (ierr < 0) {
+		std::clog << *argv << " failed to process file \""
+			  << sqlfiles[i] << "\", readSQLDump returned "
+			  << ierr << std::endl;
+	    }
+	    else {
+		ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
+				 oss.str().c_str());
+		if (ierr < 0) {
+		    std::clog
+			<< *argv << " failed to write content of SQL "
+			"dump file " << sqlfiles[i] << " to \"" << outdir
+			<< "\", error code = " << ierr << std::endl;
+		    return(ierr);
+		}
+		ta->clearData();
+	    }
+	}
+
+	// process the metadata explicitly entered
 	if (! metadata.empty())
 	    ta->parseNamesAndTypes(metadata.c_str());
 	if (metadatafile != 0)
 	    ta->readNamesAndTypes(metadatafile);
 
+	// process the CSV files
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
 		std::cout << *argv << " to read CSV file " << csvfiles[i]
@@ -698,12 +751,13 @@ int main(int argc, char** argv) {
 			  << csvfiles[i] << "\", readCSV returned "
 			  << ierr << std::endl;
 	    else {
-		ierr = ta->write(outdir, dsn,
-				 "user-supplied data parsed by ardea.cpp");
-		if (ierr < 0)
+		ierr = ta->write(outdir, dsn, oss.str().c_str());
+		if (ierr < 0) {
 		    std::clog << *argv << " failed to write data in CSV file "
 			      << csvfiles[i] << " to \"" << outdir
 			      << "\", error code = " << ierr << std::endl;
+		    return ierr;
+		}
 		ta->clearData();
 	    }
 	}
@@ -715,12 +769,12 @@ int main(int argc, char** argv) {
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
 	if (! inputrows.empty()) {
-	    ierr = ta->write(outdir, dsn,
-			     "user-supplied data parsed by ardea.cpp");
-	    if (ierr < 0)
+	    ierr = ta->write(outdir, dsn, oss.str().c_str());
+	    if (ierr < 0) {
 		std::clog << *argv << " failed to write user-supplied data to "
 			  << outdir << ", error code = " << ierr << std::endl;
-	    return(ierr);
+		return(ierr);
+	    }
 	}
 	delete ta;
     }
@@ -742,7 +796,8 @@ int main(int argc, char** argv) {
 	ta->append("i2", 4, 10, buf+3);
 	ta->append("b3", 10, 90, buf);
 	ta->appendRow("10,11,12,13,14,15,16");
-	ierr = ta->write(outdir, dsn, "test data written by ardea.cpp");
+	ierr = ta->write(outdir, dsn,
+			 "hard-coded test data written by ardea.cpp");
 	delete ta;
 	if (ierr < 0) {
 	    std::clog << *argv << " failed to write data to " << outdir

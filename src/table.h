@@ -329,6 +329,8 @@ public:
 	std::vector<std::string>   catsvalues;
 	std::vector<std::string>   textsnames; ///< For ibis::TEXT.
 	std::vector<std::string>   textsvalues;
+	std::vector<std::string>   blobsnames; ///< For ibis::BLOB
+	std::vector<std::string>   blobsvalues;
 
 	/// Clear all names and values.
 	void clear();
@@ -341,7 +343,7 @@ public:
 		intsvalues.size() + uintsvalues.size() +
 		longsvalues.size() + ulongsvalues.size() +
 		floatsvalues.size() + doublesvalues.size() +
-		catsvalues.size() + textsvalues.size();}
+		catsvalues.size() + textsvalues.size() + blobsvalues.size();}
     }; // struct row
 
     // Cursor class for row-wise data accesses.
@@ -393,6 +395,7 @@ public:
     /// Add a column.
     virtual int addColumn(const char* cname, ibis::TYPE_T ctype,
 			  const char* cdesc=0, const char* idx=0) =0;
+
     /// Add values to the named column.  The column name must be in the
     /// table already.  The first value is to be placed at row @c begin (the
     /// row numbers start with 0) and the last value before row @c end.
@@ -467,15 +470,28 @@ public:
     /// this argument as 0, but setting the correct number will likely
     /// reduce the amount of time needed by this function.  By default the
     /// records are delimited by comma (,) and blank space.  One may
-    /// specify alternative delimiters using the second argument.  @note
-    /// This function attempts to read everything in the named file into
-    /// memory in one-shot, therefore it may not be able to handle very
-    /// large files.  Because the dynamic memory allocation may fragment
-    /// the memory address space, the amount of memory available to this
-    /// function may be significantly less than the amount of physical
-    /// memory.
+    /// specify alternative delimiters using the second argument.
+    ///
+    /// @note This function attempts to read everything in the named file
+    /// into memory in one-shot, therefore it may not be able to handle
+    /// very large files.  Because the dynamic memory allocation may
+    /// fragment the memory address space, the amount of memory available
+    /// to this function may be significantly less than the amount of
+    /// physical memory.
     virtual int readCSV(const char* filename, const int maxrows=0,
 			const char* delimiters=0) =0;
+    /// Read a SQL dump from database systems such as MySQL.  The entire
+    /// file will be read into memory in one shot.  Therefore, it can not
+    /// handle very large dump files.  If the SQL dump file contains
+    /// statement to create table, then the existing metadata is
+    /// overwritten.  Otherwise, it reads insert statements and convert the
+    /// ASCII data into binary format in memory.
+    ///
+    /// The second argument (which is optional) instructs FastBit to
+    /// reserve enough space to store maxrows in memory.  It can be used to
+    /// avoid repeated allocation of memory and copying data in memory.
+    virtual int readSQLDump(const char* filename, std::string& tname,
+			    const int maxrows=0) =0;
 
     /// Read a file containing the names and types of columns.
     virtual int readNamesAndTypes(const char* filename);
@@ -729,6 +745,8 @@ inline void ibis::table::row::clear() {
     catsvalues.clear();
     textsnames.clear();
     textsvalues.clear();
+    blobsnames.clear();
+    blobsvalues.clear();
 } // ibis::table::row::clear
 
 inline void ibis::table::row::clearValues() {
@@ -744,5 +762,6 @@ inline void ibis::table::row::clearValues() {
     doublesvalues.clear();
     catsvalues.clear();
     textsvalues.clear();
+    blobsvalues.clear();
 } // ibis::table::row::clearValues
 #endif // IBIS_TABLE_H

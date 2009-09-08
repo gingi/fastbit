@@ -66,6 +66,8 @@ template int ibis::fileManager::getFile<signed char>
 (char const*, array_t<signed char>&, ACCESS_PREFERENCE);
 template int ibis::fileManager::getFile<unsigned char>
 (char const*, array_t<unsigned char>&, ACCESS_PREFERENCE);
+template int ibis::fileManager::getFile<ibis::rid_t>
+(char const*, array_t<ibis::rid_t>&, ACCESS_PREFERENCE);
 template int ibis::fileManager::getFile<float>
 (char const*, array_t<float>&, ACCESS_PREFERENCE);
 template int ibis::fileManager::getFile<double>
@@ -88,21 +90,27 @@ template int ibis::fileManager::getFile<double>
 template <typename T>
 int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 			       ACCESS_PREFERENCE pref) {
-    storage* st = 0;
-    int ierr = getFile(name, &st, pref);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<T> tmp(st);
-	    arr.swap(tmp);
+    int ierr;
+    try {
+	storage* st = 0;
+	ierr = getFile(name, &st, pref);
+	if (ierr == 0) {
+	    if (st) {
+		array_t<T> tmp(st);
+		arr.swap(tmp);
+	    }
+	    else {
+		arr.clear();
+	    }
 	}
-	else {
-	    arr.clear();
-	}
-    }
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " ints from " << name;
+	LOGGER(ibis::gVerbose > 12)
+	    << "ibis::fileManager::getFile -- got " << arr.size()
+	    << " ints from " << name;
+    }
+    catch (...) {
+	ierr = -1;
+    }
     return ierr;
 } // ibis::fileManager::getFile
 
@@ -110,197 +118,248 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 template <typename T>
 int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 				  ACCESS_PREFERENCE pref) {
-    storage* st = 0;
-    int ierr = tryGetFile(name, &st, pref);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<T> tmp(st);
-	    arr.swap(tmp);
+    int ierr;
+    try {
+	storage* st = 0;
+	ierr = tryGetFile(name, &st, pref);
+	if (ierr == 0) {
+	    if (st) {
+		array_t<T> tmp(st);
+		arr.swap(tmp);
+	    }
+	    else {
+		arr.clear();
+	    }
 	}
-	else {
-	    arr.clear();
-	}
-    }
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " ints from " << name;
+	LOGGER(ibis::gVerbose > 12)
+	    << "ibis::fileManager::getFile -- got " << arr.size()
+	    << " ints from " << name;
+    }
+    catch (...) {
+	ierr = 0;
+    }
     return ierr;
 } // ibis::fileManager::tryGetFile
 
-// given the name of a file, returns its content in an array
-int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<char> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// // given the name of a file, returns its content in an array
+// int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<char> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size() 
-	<< " chars from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size() 
+// 	    << " chars from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name,
-			       array_t<unsigned char>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<unsigned char> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name,
+// 			       array_t<unsigned char>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<unsigned char> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size() 
-	<< " unsigned chars from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size() 
+// 	    << " unsigned chars from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-// given the name of a file, returns its content in an array
-int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<int32_t> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// // given the name of a file, returns its content in an array
+// int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<int32_t> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " ints from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " ints from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<uint32_t> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<uint32_t> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " unsigned ints from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " unsigned ints from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<int64_t> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<int64_t> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " long ints from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " long ints from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<uint64_t> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<uint64_t> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " long unsigned ints from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " long unsigned ints from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<float> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<float> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " floats  from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " floats  from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<double> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<double> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " doubles from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " doubles from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
-int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
-    storage* st = 0;
-    int ierr = getFile(name, &st);
-    if (ierr == 0) {
-	if (st) {
-	    array_t<rid_t> tmp(st);
-	    arr.swap(tmp);
-	}
-	else {
-	    arr.clear();
-	}
-    }
+// int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
+//     try {
+// 	storage* st = 0;
+// 	int ierr = getFile(name, &st);
+// 	if (ierr == 0) {
+// 	    if (st) {
+// 		array_t<rid_t> tmp(st);
+// 		arr.swap(tmp);
+// 	    }
+// 	    else {
+// 		arr.clear();
+// 	    }
+// 	}
 
-    LOGGER(ibis::gVerbose > 12)
-	<< "ibis::fileManager::getFile -- got " << arr.size()
-	<< " RIDs from " << name;
-    return ierr;
-} // ibis::fileManager::getFile
+// 	LOGGER(ibis::gVerbose > 12)
+// 	    << "ibis::fileManager::getFile -- got " << arr.size()
+// 	    << " RIDs from " << name;
+//     }
+//     catch (...) {
+// 	ierr = -1;
+//     }
+//     return ierr;
+// } // ibis::fileManager::getFile
 
 // print the current status of the file manager
 void ibis::fileManager::printStatus(std::ostream& out) const {

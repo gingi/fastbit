@@ -279,7 +279,7 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
 	}
 
 	buf[lbuf-1] = 0;
-	int len = strlen(buf);
+	unsigned int len = strlen(buf);
 	if (len+1 < lbuf) {
 	    buf[len-1] = 0;
 	    if (buf[0] == '#' || (buf[0] == '-' && buf[1] == '-')) {

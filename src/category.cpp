@@ -13,13 +13,15 @@
 #include "category.h"
 #include "ikeywords.h"
 
+#include <algorithm>	// std::copy
+
 ////////////////////////////////////////////////////////////////////////
 // for ibis::dictionary
 std::string ibis::dictionary::nullstring = "<NULL>";
 
 /// Copy constructor.  The string hold by 
-ibis::dictionary::dictionary(const ibis::dictionary& old) :
-    svec(), s2i(), ncontig(0) {
+ibis::dictionary::dictionary(const ibis::dictionary& old)
+    : svec(), s2i(), ncontig(0) {
     // put in the null string
     svec.push_back(const_cast<char*>(nullstring.c_str()));
     //s2i[svec.back()] = 0;
@@ -260,8 +262,8 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
 /// corresponding index.
 ibis::category::category(const part* tbl, const char* name,
 			 const char* value, const char* dir,
-			 uint32_t nevt) :
-    text(tbl, name, ibis::CATEGORY), dic() {
+			 uint32_t nevt)
+    : text(tbl, name, ibis::CATEGORY), dic() {
     dic.insert(value);
     lower = 1;
     upper = 1;
@@ -278,14 +280,18 @@ ibis::category::category(const part* tbl, const char* name,
     }
 } // ibis::category::category
 
+/// Destructor.  It also writes the dictionary to a file if the dictionary
+/// is not empty.
 ibis::category::~category() {
     unloadIndex();
-    std::string dname;
-    dataFileName(dname);
-    if (! dname.empty()) {
-	dname += ".dic";
-	if (ibis::util::getFileSize(dname.c_str()) <= 0)
-	    dic.write(dname.c_str());
+    if (dic.size() > 0) {
+	std::string dname;
+	dataFileName(dname);
+	if (! dname.empty()) {
+	    dname += ".dic";
+	    if (ibis::util::getFileSize(dname.c_str()) <= 0)
+		dic.write(dname.c_str());
+	}
     }
 } // ibis::category::~category
 
@@ -762,8 +768,12 @@ long ibis::category::append(const char* dt, const char* df,
 				   "to \"%s\" by only wrote %ld", ierr,
 				   dest.c_str(), ret);
 		}
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-		(void) UnixFlush(fdest); // write to disk
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
+		    (void) UnixFlush(fdest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+		    (void) _commit(fdest);
+#endif
 #endif
 		ierr = UnixClose(fdest);
 	    }
@@ -877,8 +887,12 @@ long ibis::category::append(const char* dt, const char* df,
 				   "to \"%s\" by only wrote %ld", ierr,
 				   dest.c_str(), ret);
 		}
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if  _POSIX_FSYNC+0 > 0
 		(void) UnixFlush(fdest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+		(void) _commit(fdest);
+#endif
 #endif
 		(void) UnixClose(fdest);
 	    }
@@ -1080,7 +1094,7 @@ void ibis::category::print(std::ostream& out) const {
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::text
-ibis::text::text(const part* tbl, FILE* file) : column(tbl, file) {
+ibis::text::text(const part* tbl, FILE* file) : ibis::column(tbl, file) {
 #ifdef FASTBIT_EAGER_INIT_TEXT
     if (thePart != 0 && thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
@@ -1088,8 +1102,8 @@ ibis::text::text(const part* tbl, FILE* file) : column(tbl, file) {
 }
 
 /// Construct a text object for a data partition with the given name.
-ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t) :
-    column(tbl, t, name) {
+ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t)
+    : ibis::column(tbl, t, name) {
 #ifdef FASTBIT_EAGER_INIT_TEXT
     if (thePart != 0 && thePart->nRows() > 0U)
 	startPositions(thePart->currentDataDir(), 0, 0);
@@ -1415,8 +1429,12 @@ long ibis::text::append(const char* dt, const char* df,
 	    break;
 	}
     }
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if  _POSIX_FSYNC+0 > 0
     (void) UnixFlush(fdest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(fdest);
+#endif
 #endif
     UnixClose(fdest);
     UnixClose(fsrc);
@@ -2887,6 +2905,21 @@ int ibis::text::writeStrings(const char *to, const char *from,
     return sel.cnt();
 } // ibis::text::writeStrings
 
+/// Contruct a blob by reading from a metadata file.
+ibis::blob::blob(const part *prt, FILE *file) : ibis::column(prt, file) {
+}
+
+/// Construct a blob from a name.
+ibis::blob::blob(const part *prt, const char *nm)
+    : ibis::column(prt, ibis::BLOB, nm) {
+}
+
+/// Copy an existing column object of type ibis::BLOB.
+ibis::blob::blob(const ibis::column &c) : ibis::column(c) {
+    if (m_type != ibis::BLOB)
+	throw "can not construct an ibis::blob from another type";
+}
+
 /// Write metadata about the column.
 void ibis::blob::write(FILE *fptr) const {
     fprintf(fptr, "\nBegin Column\nname = %s\ndescription = %s\ntype = blob\n"
@@ -2935,7 +2968,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	<< datadest << "\", nold=" << nold << ", nnew=" << nnew;
 
     // rely on .sp file for existing data size
-    int sdest = UnixOpen(spdest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " unable to open file \"" << spdest
@@ -3101,8 +3134,12 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     (void) UnixClose(ssrc);
     gssrc.dismiss();
 
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
     (void) UnixFlush(sdest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(sdest);
+#endif
 #endif
     // close the destination .sp file just in case we need to truncate it
     UnixClose(sdest);
@@ -3176,8 +3213,12 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	    << " byte" << (ierr > 1 ? "s" : "") << ", but only wrote "
 	    << iwrite;
     }
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if  _POSIX_FSYNC+0 > 0
     (void) UnixFlush(ddest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(ddest);
+#endif
 #endif
     (void) UnixClose(dsrc);
     gdsrc.dismiss();
@@ -3282,7 +3323,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
 	<< " to \"" << datadest << "\", nold=" << nold;
 
     // rely on .sp file for existing data size
-    int sdest = UnixOpen(spdest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+    int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " unable to open file \"" << spdest
@@ -3384,8 +3425,12 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
 	    sparray[j] += offset;
     }
     int64_t dj = UnixWrite(sdest, sparray+1, spelem*nnew);
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if  _POSIX_FSYNC+0 > 0
     (void) UnixFlush(sdest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(sdest);
+#endif
 #endif
     if (dj < (long)(spelem*nnew)) {
 	LOGGER(ibis::gVerbose > 0)
@@ -3450,8 +3495,12 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
 
     dfsize = sparray[nnew] - *sparray;
     dj = UnixWrite(ddest, va1, dfsize);
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
     (void) UnixFlush(ddest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(ddest);
+#endif
 #endif
     if (dj < dfsize) {
 	LOGGER(ibis::gVerbose > 0)
@@ -3614,7 +3663,7 @@ long ibis::blob::countRawBytes(const ibis::bitvector& mask) const {
 ///
 /// A negative value will be returned in case of error.
 int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
-			       ibis::array_t<char>& buffer,
+			       ibis::array_t<unsigned char>& buffer,
 			       ibis::array_t<uint32_t>& positions) const {
     buffer.clear();
     positions.clear();
@@ -3653,33 +3702,33 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 	positions.reserve(mask.size()+1);
 	if (starts.size() > mask.size()) { // array starts usable
 	    // first determine the size of buffer
-	    bool small = true;
+	    bool smll = true;
 	    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
-		 ix.nIndices() > 0 && small; ++ ix) {
+		 ix.nIndices() > 0 && smll; ++ ix) {
 		const ibis::bitvector::word_t *idx = ix.indices();
 		if (ix.isRange()) {
 		    if (sum + (starts[idx[1]] - starts[*idx]) <= bufferlimit) {
 			sum += (starts[idx[1]] - starts[*idx]);
 		    }
 		    else {
-			for (unsigned jdx = *idx; small && jdx < idx[1];
+			for (unsigned jdx = *idx; smll && jdx < idx[1];
 			     ++ jdx) {
 			    if (sum + (starts[jdx+1] - starts[jdx]) <=
 				bufferlimit)
 				sum += (starts[jdx+1] - starts[jdx]);
 			    else
-				small = false;
+				smll = false;
 			}
 		    }
 		}
 		else {
-		    for (unsigned jdx = 0; jdx < ix.nIndices() && small;
+		    for (unsigned jdx = 0; jdx < ix.nIndices() && smll;
 			 ++ jdx) {
 			if (sum + (starts[idx[jdx]+1] - starts[idx[jdx]]) <=
 			    bufferlimit)
 			    sum += starts[idx[jdx]+1] - starts[idx[jdx]];
 			else
-			    small = false;
+			    smll = false;
 		    }
 		}
 	    }
@@ -3687,7 +3736,7 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 	    // reserve space for buffer
 	    buffer.reserve(sum);
 	    // attempt to put all bytes of datafile into an array_t
-	    array_t<char> raw;
+	    array_t<unsigned char> raw;
 	    ierr = ibis::fileManager::instance().getFile(datafile.c_str(), raw);
 	    if (ierr < 0) {
 		raw.clear();
@@ -3703,7 +3752,7 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 		    << " bytes, but " << starts.back()
 		    << " are expected, will try explicitly reading the file";
 	    }
-	    if (small) {
+	    if (smll) {
 		if (raw.size() >= starts.back())
 		    ierr = extractAll(mask, buffer, positions, raw, starts);
 		else
@@ -3755,9 +3804,9 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 /// operations and have reserved enough space for buffer.  Even though that
 /// may not be a guarantee, we proceed as if it is.
 int ibis::blob::extractAll(const ibis::bitvector& mask,
-			   ibis::array_t<char>& buffer,
+			   ibis::array_t<unsigned char>& buffer,
 			   ibis::array_t<uint32_t>& positions,
-			   const ibis::array_t<char>& raw,
+			   const ibis::array_t<unsigned char>& raw,
 			   const ibis::array_t<int64_t>& starts) const {
     positions.resize(1);
     positions[0] = 0;
@@ -3790,9 +3839,9 @@ int ibis::blob::extractAll(const ibis::bitvector& mask,
 /// enough space for buffer.  Even though that may not be a guarantee, we
 /// proceed as if it is.
 int ibis::blob::extractSome(const ibis::bitvector& mask,
-			    ibis::array_t<char>& buffer,
+			    ibis::array_t<unsigned char>& buffer,
 			    ibis::array_t<uint32_t>& positions,
-			    const ibis::array_t<char>& raw,
+			    const ibis::array_t<unsigned char>& raw,
 			    const ibis::array_t<int64_t>& starts,
 			    const uint32_t limit) const {
     positions.resize(1);
@@ -3825,7 +3874,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 /// needs to open rawfile and read the content into buffer.  It also
 /// assigns values in starts to mark the boundaries of the binary objects.
 int ibis::blob::extractAll(const ibis::bitvector& mask,
-			   ibis::array_t<char>& buffer,
+			   ibis::array_t<unsigned char>& buffer,
 			   ibis::array_t<uint32_t>& positions,
 			   const char* rawfile,
 			   const ibis::array_t<int64_t>& starts) const {
@@ -3913,7 +3962,7 @@ int ibis::blob::extractAll(const ibis::bitvector& mask,
 /// content into buffer.  It also assigns values in starts to mark the
 /// boundaries of the binary objects.
 int ibis::blob::extractSome(const ibis::bitvector& mask,
-			    ibis::array_t<char>& buffer,
+			    ibis::array_t<unsigned char>& buffer,
 			    ibis::array_t<uint32_t>& positions,
 			    const char* rawfile,
 			    const ibis::array_t<int64_t>& starts,
@@ -4004,7 +4053,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 /// content from rawfile into buffer.  It also assigns values in starts to
 /// mark the boundaries of the binary objects in buffer.
 int ibis::blob::extractSome(const ibis::bitvector& mask,
-			    ibis::array_t<char>& buffer,
+			    ibis::array_t<unsigned char>& buffer,
 			    ibis::array_t<uint32_t>& positions,
 			    const char* rawfile,
 			    const char* spfile,
@@ -4151,3 +4200,195 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
     }
     return (positions.size()-1);
 } // ibis::blob::extractSome
+
+int ibis::blob::getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size)
+    const {
+    if (thePart == 0) return -1;
+    if (ind > thePart->nRows()) return -2;
+    const char* dir = thePart->currentDataDir();
+    if (dir == 0 || *dir == 0)
+	return -3;
+
+    std::string datafile = dir;
+    datafile += FASTBIT_DIRSEP;
+    datafile += m_name;
+    std::string spfile = datafile;
+    spfile += ".sp";
+    array_t<int64_t> starts;
+    int ierr = ibis::fileManager::instance().getFile(spfile.c_str(), starts);
+    if (ierr >= 0) {
+	if (starts.size() <= thePart->nRows())
+	    starts.clear();
+    }
+    else {
+	starts.clear();
+    }
+
+    if (starts.size() > thePart->nRows()) {
+	if (starts[ind+1] <= starts[ind]) {
+	    size = 0;
+	    return 0;
+	}
+
+	uint64_t diff = starts[ind+1]-starts[ind];
+	if (buf == 0 || size < diff) {
+	    delete buf;
+	    buf = new unsigned char[diff];
+	}
+	size = diff;
+
+	array_t<unsigned char> bytes;
+	ierr = ibis::fileManager::instance().getFile(datafile.c_str(), bytes);
+	if (ierr >= 0) {
+	    if (bytes.size() >= starts[ind+1]) {
+		std::copy(bytes.begin()+starts[ind],
+			  bytes.begin()+starts[ind+1], buf);
+	    }
+	    else {
+		ierr = readBlob(ind, buf, size, starts, datafile.c_str());
+	    }
+	}
+	else {
+	    ierr = readBlob(ind, buf, size, starts, datafile.c_str());
+	}
+    }
+    else {
+	ierr = readBlob(ind, buf, size, spfile.c_str(), datafile.c_str());
+    }
+    return ierr;
+} // ibis::blob::getBlob
+
+int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
+			 const array_t<int64_t> &starts, const char *datafile)
+    const {
+    if (starts[ind+1] <= starts[ind]) {
+	size = 0;
+	return 0;
+    }
+    uint64_t diff = starts[ind+1]-starts[ind];
+    if (buf == 0 || size < diff) {
+	delete buf;
+	buf = new unsigned char[diff];
+    }
+    if (buf == 0)
+	return -10;
+
+    int fdes = UnixOpen(datafile, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob failed to open " << datafile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    off_t ierr = UnixSeek(fdes, starts[ind], SEEK_SET);
+    if (ierr != starts[ind]) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
+	    << starts[ind] << " in " << datafile << ", seek returned "
+	    << ierr;
+	return -12;
+    }
+
+    ierr = UnixRead(fdes, buf, diff);
+    if (ierr < (off_t)diff) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
+	    << diff << " byte" << (diff>1?"s":"") << " from " << datafile
+	    << ", read returned " << ierr;
+	return -13;
+    }
+    size = diff;
+    if (size == diff)
+	ierr = 0;
+    else
+	ierr = -14;
+    return ierr;
+} // ibis::blob::readBlob
+
+int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
+			 const char *spfile, const char *datafile) const {
+    int64_t starts[2];
+    const uint32_t spelem = 8;
+    int sdes = UnixOpen(spfile, OPEN_READONLY);
+    if (sdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob failed to open " << spfile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -15;
+    }
+    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(sdes, _O_BINARY);
+#endif
+    off_t ierr = UnixSeek(sdes, ind*spelem, SEEK_SET);
+    if (ierr != (off_t)(ind*spelem)) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
+	    << ind*spelem << " in " << spfile << ", seek returned " << ierr;
+	return -16;
+    }
+    ierr = UnixRead(sdes, starts, sizeof(starts));
+    if (ierr < (off_t)sizeof(starts)) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
+	    << sizeof(starts) << " bytes from " << ind*spelem << " in "
+	    << spfile << ", read returned " << ierr;
+	return -17;
+    }
+
+    if (starts[1] <= starts[0]) {
+	size = 0;
+	return 0;
+    }
+    uint64_t diff = starts[1]-starts[0];
+    if (buf == 0 || size < diff) {
+	delete buf;
+	buf = new unsigned char[diff];
+    }
+    if (buf == 0)
+	return -10;
+
+    int fdes = UnixOpen(datafile, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob failed to open " << datafile
+	    << " for reading ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -11;
+    }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    ierr = UnixSeek(fdes, *starts, SEEK_SET);
+    if (ierr != starts[ind]) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
+	    << *starts << " in " << datafile << ", seek returned "
+	    << ierr;
+	return -12;
+    }
+
+    ierr = UnixRead(fdes, buf, diff);
+    if (ierr < (off_t)diff) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
+	    << diff << " byte" << (diff>1?"s":"") << " from " << datafile
+	    << ", read returned " << ierr;
+	return -13;
+    }
+    size = diff;
+    if (size == diff)
+	ierr = 0;
+    else
+	ierr = -14;
+    return ierr;
+} // ibis::blob::readBlob

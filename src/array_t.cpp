@@ -161,6 +161,10 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
     : actual(rhs), m_begin((T*)(rhs->begin())), m_end((T*)(rhs->end())) {
     if (actual != 0)
 	actual->beginUse();
+    difference_type diff = m_end - m_begin;
+    if (diff > 0x7FFFFFFF) {
+	throw "array_t can not handle more than 2 billion elements";
+    }
     //timer.start();
 }
 
@@ -1149,15 +1153,16 @@ void ibis::array_t<T>::reserve(uint32_t n) {
 /// Insert a single value to the specified location.  It inserts the value
 /// right infront of position p and returns the iterator pointing to the
 /// new element.
+///
+/// The incoming positon can be anything is the existing array has not be
+/// allocated any memory space.  If it does any memory, p must be between
+/// m_begin and m_end.  If it is outside of this range, the return value
+/// will be set to nil.
+///
+/// It throws a string exception if the existing array has more than
+/// 0x7FFFFFFF (2^32-1) elements.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
-    if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
-	LOGGER(ibis::gVerbose > 4)
-	    << "array_t(" << actual << ") -- making a modifiable copy of "
-	    "a shared or read-only array, ";
-	nosharing();
-    }
-
     if (actual == 0 || m_begin == 0) {
 	actual = new ibis::fileManager::storage(4*sizeof(T));
 	actual->beginUse();
@@ -1166,7 +1171,11 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	m_end = m_begin + 1;
 	p = m_begin;
     }
-    else if (m_end+1 <= (T*)(actual->end())) { // there is space to grow
+    else  if (p < m_begin || p > m_end) {
+	p = 0; // do nothing
+    }
+    else if (actual->inUse() == 1 && m_end+1 <= (T*)(actual->end())) {
+	// use existing space
 	iterator i = m_end;
 	while (i > p) {
 	    *i = i[-1]; --i;
@@ -1174,30 +1183,28 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	*p = val;
 	++ m_end;
     }
-    else {
-	uint32_t n = m_end - m_begin;
-	uint32_t ip = p - m_begin;
-	uint32_t offset = m_begin - (T*)(actual->begin());
-	actual->enlarge(); // increase the storage
-	if (actual->begin()) {
-	    m_begin = (T*)(actual->begin()) + offset;
-	    m_end = m_begin + n;
-	    p = m_begin + ip;
-	    for (iterator i=m_end; i>p; --i) {
-		*i = i[-1];
-	    }
-	    *p = val;
-	    ++ m_end;
+    else { // copy-and-swap
+	const difference_type n = m_end - m_begin;
+	const uint32_t ip = p - m_begin;
+	uint32_t newsize = static_cast<uint32_t>((n >= 7 ? n : 7) + n);
+	if ((long long) newsize <= n) {
+	    throw "array_t must have less than 2^31 elements";
 	}
-	else {
-	    p = 0;
-	    throw ibis::bad_alloc("failed to enlarge array");
-	}
+
+	array_t<T> copy(newsize);
+	copy.resize(static_cast<uint32_t>(n+1));
+	for (uint32_t j = 0; j < ip; ++ j)
+	    copy.m_begin[j] = m_begin[j];
+	copy.m_begin[ip] = val;
+	for (uint32_t j = ip; j < n; ++ j)
+	    copy.m_begin[j+1] = m_begin[j];
+	swap(copy);
     }
     return p;
 } // array<T>::insert
 
-/// Insert n copies of a value (val) before p.
+/// Insert n copies of a value (val) before p.   Nothing is done if n is
+/// zero, or p is not between m_begin and m_end.
 template<class T> void
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
 			 const T& val) {
@@ -1208,35 +1215,45 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
 	for (uint32_t j = 0; j < n; ++ j, ++ m_end)
 	    *m_end = val;
     }
-    else if (actual->inUse() > 1 || m_end+n > (T*)(actual->end())) {
+    else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
+	// use the existing space
+	m_end += n;
+	// copy all values after p to p+n
+	iterator i = m_end - 1;
+	while (i >= p+n) {
+	    *i = *(i-n);
+	    --i;
+	}
+	// insert incoming value between p and p+n-1
+	while (i >= p) {
+	    *i = val;
+	    --i;
+	}
+    }
+    else { // need new memory
 	// copy and swap
-	const uint32_t nold = size();
+	const difference_type nold = m_end - m_begin;
+	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=n ? nold : n));
+	if ((long long)nnew <= nold) {
+	    throw "array_t must have less than 2^31 elements";
+	}
+
 	const uint32_t jp = p - m_begin;
-	ibis::array_t<T> copy(nold+(nold>=n?nold:n));
+	ibis::array_t<T> copy(nnew);
+	copy.resize(nold+n);
 	for (uint32_t j = 0; j < jp; ++ j)
 	    copy[j] = m_begin[j];
 	for (uint32_t j = 0; j < n; ++ j)
 	    copy[jp+j] = val;
 	for (uint32_t j = jp; j < nold; ++ j)
 	    copy[n+j] = m_begin[j];
-	copy.resize(nold+n);
 	swap(copy); // swap this and copy
-    }
-    else { // use the same space
-	m_end += n;
-	// copy all values after p to p+n
-	iterator i = m_end - 1;
-	while (i >= p+n) {
-	    *i = *(i-n); --i;
-	}
-	// insert incoming value between p and p+n-1
-	while (i >= p) {
-	    *i = val; --i;
-	}
     }
 } // array<T>::insert
 
-/// Insert all values in [front, back) before p.
+/// Insert all values in [front, back) before p.  Nothing is done if front
+/// and back does not define a valid range, or p is not between m_begin and
+/// m_end.
 template<class T> void
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 			 typename ibis::array_t<T>::const_iterator front,
@@ -1249,21 +1266,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	for (const_iterator j = front; j < back; ++ j, ++ m_end)
 	    *m_end = *j;
     }
-    else if (actual->inUse() > 1 || m_end+n > (T*)(actual->end())) {
-	// need a new copy
-	const uint32_t nold = size();
-	const uint32_t jp = p - m_begin;
-	ibis::array_t<T> copy(nold+(n>=nold?n:nold));
-	copy.resize(nold+n);
-	for (uint32_t j = 0; j < jp; ++ j)
-	    copy[j] = m_begin[j];
-	for (uint32_t j = 0; j < (uint32_t)n; ++ j)
-	    copy[jp+j] = front[j];
-	for (uint32_t j = jp; j < nold; ++ j)
-	    copy[n+j] = m_begin[j];
-	swap(copy); // swap this and copy
-    }
-    else { // enough space
+    else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
 	m_end += n;
 	iterator i = m_end - 1;
 	while (i >= p+n) {
@@ -1272,6 +1275,24 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	for (--back; i >= p; --back, --i) {
 	    *i = *back;
 	}
+    }
+    else { 	// need new memory
+	const difference_type nold = m_end - m_begin;
+	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=n ? nold : n));
+	if ((long long) nnew <= nold) {
+	    throw "array_t must have less than 2^32 elements";
+	}
+
+	const uint32_t jp = p - m_begin;
+	ibis::array_t<T> copy(nnew);
+	copy.resize(nold+n);
+	for (uint32_t j = 0; j < jp; ++ j)
+	    copy[j] = m_begin[j];
+	for (uint32_t j = 0; j < (uint32_t)n; ++ j)
+	    copy[jp+j] = front[j];
+	for (uint32_t j = jp; j < nold; ++ j)
+	    copy[n+j] = m_begin[j];
+	swap(copy); // swap this and copy
     }
 } // ibis::array_t<T>::insert
 

@@ -17,7 +17,7 @@
 /// write functions that are not present in std::vector.
 ///
 /// @note This implementation uses 32-bit integers for measuring the number
-/// of elements, therefore, can not handle array with more than 2^32-1
+/// of elements, therefore, can not handle array with more than 2^31-1
 /// elements.
 #ifdef __GNUC__
 #pragma interface
@@ -136,8 +136,10 @@ public:
     void printStatus(std::ostream& out) const;
 
     /// Export the actual storage object.
-    /// @note  <b>Very dangarous</b>.  <b>Likely to be removed soon</b>.
-    /// Don't rely on this function!
+    ///
+    /// @note <b>In general, it is very dangarous to expose internal
+    /// implementation details to clients</b>.  <b>Likely to be removed
+    /// soon</b>.  Don't rely on this function!
     ibis::fileManager::storage* getStorage() {return actual;}
 
 private:
@@ -184,40 +186,25 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 	m_end = m_begin + 1;
 	*m_begin = elm;
     }
-    else if ((char*)(m_end+1) <= actual->end() &&
+    else if (actual->inUse() <= 1 && (char*)(m_end+1) <= actual->end() &&
 	     actual->end() > actual->begin() &&
 	     actual->begin() > 0) { // simply add value
 	*m_end = elm;
 	++ m_end;
     }
-    else { // need to enlarge space
-	uint32_t offset = (char*)(m_begin) - actual->begin();
-	uint32_t n = (actual->empty() || m_end<=m_begin ? 0 : m_end - m_begin);
-#if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG: ibis::array_t<" << typeid(T).name()
-	    << ">::push_back(0x" << std::hex << elm << std::dec
-	    << ") actual address before calling enlarge 0x"
-	    << std::setw(8) << std::setfill('0')
-	    << static_cast<const void*>(actual->begin())
-	    << " (offset=" << offset
-	    << ", n=" << n << ")";
-#endif
-	actual->enlarge(); // increase the storage
-	m_begin = (T*)(actual->begin() + offset);
-#if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG: ibis::array_t<" << typeid(T).name()
-	    << ">::push_back(0x" << std::hex << elm << std::dec
-	    << ") actual address after calling enlarge 0x"
-	    << std::setw(8) << std::setfill('0')
-	    << static_cast<const void*>(actual->begin()) << " (m_begin=0x"
-	    << std::setw(8) << std::setfill('0')
-	    << static_cast<const void*>(m_begin) << ")";
-#endif
-	m_end = m_begin + n;
-	*m_end = elm;
-	++ m_end;
+    else { // copy-and-swap
+	const difference_type nexist = (m_end - m_begin);
+	uint32_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
+	if ((long long) newsize < nexist) {
+	    throw "array_t must have less than 2^31 elements";
+	}
+
+	array_t<T> copy(newsize); // allocate new array
+	copy.resize(static_cast<uint32_t>(nexist+1));
+	for (uint32_t j = 0; j < nexist; ++ j) // copy
+	    copy.m_begin[j] = m_begin[j];
+	copy.m_begin[nexist] = elm;
+	swap(copy); // swap
     }
 } // ibis::array_t<T>::push_back
 

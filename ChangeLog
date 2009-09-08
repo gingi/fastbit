@@ -1,3 +1,39 @@
+2009-09-08 John Wu <John.Wu at ACM.org>
+	* src/table.h: add blobsnames and blobsvalues to ibis::table::row,
+	note this version of ibis::table::row use std::string to hold
+	blobs, which may have problems with null characters on some
+	systems
+	* src/mensa.h, src/mensa.cpp: add starts to
+	ibis::mensa::cursor::bufferElement, use void* for both starts and
+	cval (use the same type convention for cval as that of
+	ibis::tafel::column)
+	* src/category.h, src/category.cpp: add function getBlob and two
+	versions of readBlob
+
+2009-09-05 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp, src/category.cpp, src/column.cpp: change opening
+	mode from OPEN_APPENDONLY to OPEN_READWRITE for all .sp files,
+	change some OPEN_APPENDONLY to OPEN_WRITEONLY because those
+	functions may move the file pointers from the end of the file to
+	somewhere in the middle of the file in case of unexpected file
+	sizes
+
+2009-09-04 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: add minimal processing of column type set in
+	function createSQLTable, add handling of BLOB to most functions,
+	add handling of default for missing values
+
+2009-09-03 John Wu <John.Wu at ACM.org>
+	* examples/ardea.cpp: add code to invoke readSQLDump
+
+2009-09-02 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h: add fileManager::buffer<T>::swap, hide copy
+	constructor and assignment operator
+	* src/table.h: remove ibis::tablex::SQLCreateTable, add
+	ibis::tablex::readSQLDump
+	* src/tafel.h, src/tafel.cpp: implement readSQLDump with functions
+	SQLCreateTable and readSQLStatement
+
 2009-09-01 John Wu <John.Wu at ACM.org>
 	* src/*.h, src/*.cpp: change all size_t back to uint32_t because
 	size_t some how is not one of intxx_t on cygwin -- my main
@@ -6,6 +42,9 @@
 	size_t.  The attempt to make array_t store more than 2^32 elements
 	is abandoned and should not be attempted again with this code
 	base!
+	* src/array_t.h, src/array_t.cpp: update push_back and three
+	versions of insert to use the copy-and-swap idiom if new space is
+	needed, add check for array size over 2^31
 
 2009-08-31 John Wu <John.Wu at ACM.org>
 	* src/colValues.h, src/colValues.cpp, utilidor.h, utilidor.cpp:
