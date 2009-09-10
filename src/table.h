@@ -462,36 +462,45 @@ public:
     /// @sa appendRow
     virtual int appendRows(const std::vector<ibis::table::row>&) =0;
 
-    /// Read the content of the file named filename as comma-separated
-    /// values.  Append the records to this table.  If the argument maxrows
-    /// is greater than 0, this function will reserve space to read this
-    /// many records.  If the file does contain more records, then
-    /// additional memory will be allocated as needed.  It is safe to leave
-    /// this argument as 0, but setting the correct number will likely
-    /// reduce the amount of time needed by this function.  By default the
-    /// records are delimited by comma (,) and blank space.  One may
-    /// specify alternative delimiters using the second argument.
+    /// Read the content of the named file as comma-separated values.
+    /// Append the records to this table.  If the argument maxrows is
+    /// greater than 0, this function will reserve space to read this many
+    /// records.  If the total number of records is more than maxrows and
+    /// the output director name is specified, then the records will be
+    /// written the outputdir and the memory is made available for later
+    /// records.  If outputdir is not specified, this function attempts to
+    /// expand the memory allocated, which may run out of memory.
+    /// Furthermore, repeated allocations can be time-consuming.
     ///
-    /// @note This function attempts to read everything in the named file
-    /// into memory in one-shot, therefore it may not be able to handle
-    /// very large files.  Because the dynamic memory allocation may
-    /// fragment the memory address space, the amount of memory available
-    /// to this function may be significantly less than the amount of
-    /// physical memory.
-    virtual int readCSV(const char* filename, const int maxrows=0,
-			const char* delimiters=0) =0;
+    /// By default the records are delimited by comma (,) and blank space.
+    /// One may specify alternative delimiters using the second argument.
+    ///
+    /// Upon successful completion of this funciton, the return value is
+    /// the number of rows processed.  However, not all of them may remain
+    /// in memory because ealier rows may have been written to disk.
+    ///
+    /// @note Information about column names and types must be provided
+    /// before calling this function.
+    ///
+    /// @note The return value is intentionally left which limits the
+    /// maximum number of rows can be correctly returned.
+    virtual int readCSV(const char* inputfile, int maxrows=0,
+			const char* outputdir=0, const char* delimiters=0) =0;
     /// Read a SQL dump from database systems such as MySQL.  The entire
-    /// file will be read into memory in one shot.  Therefore, it can not
-    /// handle very large dump files.  If the SQL dump file contains
-    /// statement to create table, then the existing metadata is
-    /// overwritten.  Otherwise, it reads insert statements and convert the
-    /// ASCII data into binary format in memory.
+    /// file will be read into memory in one shot unless both maxrows and
+    /// outputdir are specified.  In cases where both maxrows and outputdir
+    /// are specified, this function reads a maximum of maxrows before
+    /// write the data to outputdir under the name tname, which leaves no
+    /// more than maxrows number of rows in memory.  The value returned
+    /// from this function is the number of rows processed including those
+    /// written to disk.  Use function mRows to determine how many are
+    /// still in memory.
     ///
-    /// The second argument (which is optional) instructs FastBit to
-    /// reserve enough space to store maxrows in memory.  It can be used to
-    /// avoid repeated allocation of memory and copying data in memory.
-    virtual int readSQLDump(const char* filename, std::string& tname,
-			    const int maxrows=0) =0;
+    /// If the SQL dump file contains statement to create table, then the
+    /// existing metadata is overwritten.  Otherwise, it reads insert
+    /// statements and convert the ASCII data into binary format in memory.
+    virtual int readSQLDump(const char* inputfile, std::string& tname,
+			    int maxrows=0, const char* outputdir=0) =0;
 
     /// Read a file containing the names and types of columns.
     virtual int readNamesAndTypes(const char* filename);

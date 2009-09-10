@@ -191,6 +191,7 @@ protected:
 	mutable void* cval; ///< Pointer to raw data.
 
 	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
+	~bufferElement();
     }; // bufferElement
     typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;

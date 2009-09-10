@@ -128,7 +128,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(range->colName());
-		if (isel >= 0 && isel < sel->size()) {
+		if (isel >= 0 && (unsigned)isel < sel->size()) {
 		    const ibis::math::term *tm = sel->at(isel);
 		    switch (tm->termType()) {
 		    default: break; // can not do anything
@@ -221,7 +221,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		part0.getColumn(var->variableName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(var->variableName());
-		if (isel >= 0 && isel < sel->size()) {
+		if (isel >= 0 && (unsigned)isel < sel->size()) {
 		    const ibis::math::term *tm = sel->at(isel);
 		    switch (tm->termType()) {
 		    default: break; // can not do anything

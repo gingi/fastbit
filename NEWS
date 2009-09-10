@@ -1,3 +1,25 @@
+Thu Sep 10 15:56:08 PDT 2009
+Version ibis1.1.3
+-- add function ibis::tablex::readSQLDump to read sql dump files, update
+   ibis::tablex::readCSV to output the extract data as it reads
+-- add column type ibis::BLOB (implementation as ibis::blob in
+   category.h and category.cpp, a feature request by Matthias Vallentin)
+-- add ibis::util::guard class as an implementation of ScopeGuard
+   (Andrei Alexandrescu and Petru Marginean, Generic: Change the Way You
+   Write Exception-Safe Code — Forever, <http://www.ddj.com/cpp/184403758>)
+-- incorporate a bug fix from Alexandre Maurel to address problems in
+   function segment in ibis::colValues hierarchy (Alexandre's original
+   fix was for ibis::colFloats only)
+-- add function ibis::table::select that works with a list of data
+   partitions (to address a need raised by Andrew Olson)
+-- modify bitwise logical operations in bitvector.cpp to ensure the
+   lower level functions only operation on bit vectors representing the
+   same number of bits (to address a set of issues reported by David
+   Reynolds)
+-- update ibis::util::coarsen to make output more robust (make 1e-14 and
+   10e-15 be represented by exactly the same binary representation) 
+-- fix bug in idbak2.cpp line 998 that causes crashes
+
 Wed Aug  5 09:32:18 PDT 2009
 Version ibis1.1.2
 -- delay the reading of dictionary and index for categorical values to

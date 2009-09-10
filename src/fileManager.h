@@ -47,27 +47,12 @@ public:
 	PREFER_MMAP		// try to use mmap if possible
     };
 
-    /// Given a file name, place the content in an array_t<T>.
-    /// The return value is zero (0) if the function is successful, otherwise
-    /// returns a non-zero value.
-    /// @{
-//     int getFile(const char* name, array_t<char>& arr);
-//     int getFile(const char* name, array_t<unsigned char>& arr);
-//     int getFile(const char* name, array_t<int32_t>& arr);
-//     int getFile(const char* name, array_t<uint32_t>& arr);
-//     int getFile(const char* name, array_t<int64_t>& arr);
-//     int getFile(const char* name, array_t<uint64_t>& arr);
-//     int getFile(const char* name, array_t<float>& arr);
-//     int getFile(const char* name, array_t<double>& arr);
-//     int getFile(const char* name, array_t<rid_t>& arr);
     template<typename T>
     int getFile(const char* name, array_t<T>& arr,
 		ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
     template<typename T>
     int tryGetFile(const char* name, array_t<T>& arr,
 		   ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
-    /* int getFile(const char* name, array_t<FID_T>& arr); */
-    /// @}
 
     /// Prints status information about the file manager.
     void printStatus(std::ostream& out) const;

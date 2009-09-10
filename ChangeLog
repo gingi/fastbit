@@ -1,3 +1,29 @@
+2009-09-10 John Wu <John.Wu at ACM.org>
+	* src/util.h, src/column.cpp, src/tafel.cpp: add new macro
+	OPEN_WRITEADD and use it in function append with fix-sized
+	columns, change the macro OPEN_WRITEONLY to OPEN_WRITENEW to
+	indicate that it truncates existing file and is intended to write
+	new files.  The append operation was using OPEN_APPENDONLY which
+	was always adding new bytes, but the append operation may need to
+	overwrite certain existing bytes.  The earlier attempt to change
+	them to OPEN_WRITEONLY has caused the existing data to be wiped
+	out (an error discovered with regression testing).
+	* src/tafel.cpp: in function writeRaw, add statments to write the
+	initial 0 to the .sp file, add statement to ensure the correct
+	totmask before adding newmask, add function preferredSize to
+	compute the number of rows to store in memory based on available
+	memory
+	* src/category.cpp: add error checking to ibis::text::readString
+
+2009-09-09 John Wu <John.Wu at ACM.org>
+	* src/table.h: change prototype of readCSV and readSQLDump to make
+	it possible for these functions to write out content as they read
+	* src/tafel.h, src/tafel.cpp: update implementation of readCSV and
+	readSQLDump to write content when running out of memory
+	* src/mensa.cpp: update cursor::fillBuffers and cursor::fillBuffer
+	to reflect the fact that the bufferElements are no longer storing
+	fileManager::storage objects but array_t objects instead
+
 2009-09-08 John Wu <John.Wu at ACM.org>
 	* src/table.h: add blobsnames and blobsvalues to ibis::table::row,
 	note this version of ibis::table::row use std::string to hold

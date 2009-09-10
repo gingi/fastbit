@@ -816,10 +816,10 @@ int ibis::zona::write(const char* dt) const {
     if (fname != 0 || str != 0)
 	activate(); // activate all bitvectors
 
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    col->logWarning("zona::write", "unable to open \"%s\" for write",
 			    fnm.c_str());

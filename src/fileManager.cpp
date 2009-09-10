@@ -74,11 +74,11 @@ template int ibis::fileManager::getFile<double>
 (char const*, array_t<double>&, ACCESS_PREFERENCE);
 
 // time to wait for other threads to unload files in use
-#ifndef FASTBIT_UNLOAD_LIMIT
+#ifndef FASTBIT_MAX_WAIT_TIME
 #if defined(DEBUG) || defined(_DEBUG)
-#define FASTBIT_UNLOAD_LIMIT 5
+#define FASTBIT_MAX_WAIT_TIME 5
 #else
-#define FASTBIT_UNLOAD_LIMIT 60
+#define FASTBIT_MAX_WAIT_TIME 60
 #endif
 #endif
 // minimum size for doMap
@@ -86,7 +86,13 @@ template int ibis::fileManager::getFile<double>
 #define FASTBIT_MIN_MAP_SIZE 1048576
 #endif
 
-// given the name of a file, returns its content in an array
+/// Given a file name, place the content in an array_t<T>.  This function
+/// waits for memory to become available if there is enough memory to read
+/// the file content into memory.  The compiler macro FASTBIT_MAX_WAIT_TIME
+/// defines the maximum amount of time (in seconds) it may wait.
+///
+/// The return value is zero (0) if the function is successful, otherwise
+/// returns a non-zero value.
 template <typename T>
 int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 			       ACCESS_PREFERENCE pref) {
@@ -114,7 +120,12 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
     return ierr;
 } // ibis::fileManager::getFile
 
-// given the name of a file, returns its content in an array
+/// Given a file name, place the content in an array_t<T>.  This function
+/// will fail if there isn't enough memory to read the content of the file
+/// immediately.
+///
+/// The return value is zero (0) if the function is successful, otherwise
+/// returns a non-zero value.
 template <typename T>
 int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 				  ACCESS_PREFERENCE pref) {
@@ -141,225 +152,6 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
     }
     return ierr;
 } // ibis::fileManager::tryGetFile
-
-// // given the name of a file, returns its content in an array
-// int ibis::fileManager::getFile(const char* name, array_t<char>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<char> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size() 
-// 	    << " chars from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name,
-// 			       array_t<unsigned char>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<unsigned char> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size() 
-// 	    << " unsigned chars from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// // given the name of a file, returns its content in an array
-// int ibis::fileManager::getFile(const char* name, array_t<int32_t>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<int32_t> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " ints from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<uint32_t>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<uint32_t> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " unsigned ints from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<int64_t>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<int64_t> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " long ints from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<uint64_t>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<uint64_t> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " long unsigned ints from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<float>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<float> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " floats  from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<double>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<double> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " doubles from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
-
-// int ibis::fileManager::getFile(const char* name, array_t<rid_t>& arr) {
-//     try {
-// 	storage* st = 0;
-// 	int ierr = getFile(name, &st);
-// 	if (ierr == 0) {
-// 	    if (st) {
-// 		array_t<rid_t> tmp(st);
-// 		arr.swap(tmp);
-// 	    }
-// 	    else {
-// 		arr.clear();
-// 	    }
-// 	}
-
-// 	LOGGER(ibis::gVerbose > 12)
-// 	    << "ibis::fileManager::getFile -- got " << arr.size()
-// 	    << " RIDs from " << name;
-//     }
-//     catch (...) {
-// 	ierr = -1;
-//     }
-//     return ierr;
-// } // ibis::fileManager::getFile
 
 // print the current status of the file manager
 void ibis::fileManager::printStatus(std::ostream& out) const {
@@ -687,7 +479,7 @@ ibis::fileManager::fileManager()
 	// BSD flavored systems provides sysctl for finding out the
 	// physical memory size
 	uint64_t mem = 0;
-	uint32_t len = sizeof(mem);
+	size_t len = sizeof(mem);
 	int mib[2] = {CTL_HW, 0};
 #ifdef HW_MEMSIZE
 	mib[1] = HW_MEMSIZE;
@@ -1105,8 +897,9 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 /// NOT to delete *st.  This function will not wait for the fileManager to
 /// free any memory if there isn't enough free space available.
 ///
-/// Returns 1 if there is not enough space to read the whole file into
-/// memory.  Other return values are same as the function @c getFile.
+/// It returns 0 to indicate success and a negative value to indicate
+/// error.  In particular, it returns -102 if there is not enough space to
+/// read the whole file into memory.
 int ibis::fileManager::tryGetFile(const char* name, storage** st,
 				  ACCESS_PREFERENCE pref) {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1403,7 +1196,7 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 
 /// Unload enough space so that a file of size bytes can be loaded.  Caller
 /// must hold a mutex lock to prevent simutaneous invocation of this
-/// function.  It will wait a maximum of FASTBIT_UNLOAD_LIMIT seconds if
+/// function.  It will wait a maximum of FASTBIT_MAX_WAIT_TIME seconds if
 /// not enough memory can be freed immediately.
 int ibis::fileManager::unload(uint32_t size) {
     if (size > 0 && maxBytes > ibis::fileManager::totalBytes() &&
@@ -1444,7 +1237,7 @@ int ibis::fileManager::unload(uint32_t size) {
     time_t startTime = time(0);
     time_t current = startTime;
 
-    while (current < startTime+FASTBIT_UNLOAD_LIMIT) { // will wait
+    while (current < startTime+FASTBIT_MAX_WAIT_TIME) { // will wait
 	uint32_t sum = 0; // sum of the total bytes that can can be unloaded
 	for (it=mapped.begin(); it!=mapped.end(); ++it) {
 	    if ((*it).second->inUse() == 0 &&
@@ -1582,21 +1375,21 @@ int ibis::fileManager::unload(uint32_t size) {
 	struct timespec tsp;
 	ierr = clock_gettime(CLOCK_REALTIME, &tsp);
 	if (ierr == 0) {
-	    tsp.tv_sec += (FASTBIT_UNLOAD_LIMIT > 4 ?
-			   (FASTBIT_UNLOAD_LIMIT  >> 2) : 1);
+	    tsp.tv_sec += (FASTBIT_MAX_WAIT_TIME > 4 ?
+			   (FASTBIT_MAX_WAIT_TIME  >> 2) : 1);
 	    ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 	}
 	else {
-	    tsp.tv_sec = current + (FASTBIT_UNLOAD_LIMIT > 4 ?
-				    (FASTBIT_UNLOAD_LIMIT  >> 2) : 1) + 1;
+	    tsp.tv_sec = current + (FASTBIT_MAX_WAIT_TIME > 4 ?
+				    (FASTBIT_MAX_WAIT_TIME  >> 2) : 1) + 1;
 	    tsp.tv_nsec = 0;
 	    ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 	}
 #elif (defined(_WIN32) && defined(_MSC_VER)) || defined(HAVE_STRUCT_TIMESPEC) || defined(__USE_POSIX) || _POSIX_VERSION+0 > 199900
 	// assume pthread implementation has pthread_cond_timedwait
 	struct timespec tsp;
-	tsp.tv_sec = current + (FASTBIT_UNLOAD_LIMIT > 4 ?
-				(FASTBIT_UNLOAD_LIMIT  >> 2) : 1) + 1;
+	tsp.tv_sec = current + (FASTBIT_MAX_WAIT_TIME > 4 ?
+				(FASTBIT_MAX_WAIT_TIME  >> 2) : 1) + 1;
 	tsp.tv_nsec = 0;
 	ierr = pthread_cond_timedwait(&cond, &mutex, &tsp);
 #else

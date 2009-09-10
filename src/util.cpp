@@ -417,19 +417,20 @@ int ibis::util::copy(const char* to, const char* from) {
 		 (errno ? strerror(errno) : "no free stdio stream"));
 	return -1;
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int tdes = UnixOpen(to, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int tdes = UnixOpen(to, OPEN_WRITENEW, OPEN_FILEMODE);
     if (tdes < 0) {
 	ibis::util::logMessage
 	    ("Warning", "util::copy(%s, %s) failed "
 	     "to open %s ... %s", to, from, to,
 	     (errno ? strerror(errno) : "no free stdio stream"));
-	UnixClose(fdes);
 	return -2;
     }
+    ibis::util::guard gtdes = ibis::util::makeGuard(UnixClose, tdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(tdes, _O_BINARY);
 #endif
@@ -476,16 +477,7 @@ int ibis::util::copy(const char* to, const char* from) {
 	}
     }	
 
-    Stat_T st;
-    UnixFStat(tdes, &st);
-//  ibis::fileManager::instance().recordPages(0, st.st_size); // once for read
-//  ibis::fileManager::instance().recordPages(0, st.st_size); // once for write
-    i = UnixClose(fdes);
-    j = UnixClose(tdes);
-    if (i == 0 && j == 0)
-	return 0;
-    else
-	return -3;
+    return 0;
 } // ibis::util::copy
 
 /// If this function is run on a unix-type system and the second argument

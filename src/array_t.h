@@ -66,7 +66,7 @@ public:
     const T& front() const {return *m_begin;};
     const T& back() const {return m_end[-1];};
 
-    int empty() const {return (m_begin == 0 || m_begin >= m_end);};
+    bool empty() const {return (m_begin == 0 || m_begin >= m_end);};
     uint32_t size() const {	///< Return the number of elements.
 	return (m_begin > 0 && m_end > m_begin ? m_end - m_begin : 0);
     };
@@ -201,7 +201,7 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 
 	array_t<T> copy(newsize); // allocate new array
 	copy.resize(static_cast<uint32_t>(nexist+1));
-	for (uint32_t j = 0; j < nexist; ++ j) // copy
+	for (difference_type j = 0; j < nexist; ++ j) // copy
 	    copy.m_begin[j] = m_begin[j];
 	copy.m_begin[nexist] = elm;
 	swap(copy); // swap

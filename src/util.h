@@ -116,20 +116,40 @@ int truncate(const char*, uint32_t);
 #if defined(O_WRONLY)
 #if defined(O_LARGEFILE)
 #if defined(O_BINARY)
-#define OPEN_WRITEONLY O_WRONLY | O_BINARY | O_CREAT | O_TRUNC | O_LARGEFILE
+#define OPEN_WRITENEW O_WRONLY | O_BINARY | O_CREAT | O_TRUNC | O_LARGEFILE
 #else
-#define OPEN_WRITEONLY O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE
+#define OPEN_WRITENEW O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE
 #endif
 #elif defined(O_BINARY)
-#define OPEN_WRITEONLY O_WRONLY | O_BINARY | O_CREAT | O_TRUNC
+#define OPEN_WRITENEW O_WRONLY | O_BINARY | O_CREAT | O_TRUNC
 #else
-#define OPEN_WRITEONLY O_WRONLY | O_CREAT | O_TRUNC
+#define OPEN_WRITENEW O_WRONLY | O_CREAT | O_TRUNC
 #endif
 #elif defined(_O_WRONLY)
 #if defined(_O_LARGEFILE)
-#define OPEN_WRITEONLY _O_WRONLY|_O_CREAT|_O_TRUNC|_O_LARGEFILE|_O_BINARY
+#define OPEN_WRITENEW _O_WRONLY|_O_CREAT|_O_TRUNC|_O_LARGEFILE|_O_BINARY
 #else
-#define OPEN_WRITEONLY _O_WRONLY|_O_CREAT|_O_TRUNC|_O_BINARY
+#define OPEN_WRITENEW _O_WRONLY|_O_CREAT|_O_TRUNC|_O_BINARY
+#endif
+#endif
+// define the option for opening an existing file for writing
+#if defined(O_WRONLY)
+#if defined(O_LARGEFILE)
+#if defined(O_BINARY)
+#define OPEN_WRITEADD O_WRONLY | O_BINARY | O_CREAT | O_LARGEFILE
+#else
+#define OPEN_WRITEADD O_WRONLY | O_CREAT| O_LARGEFILE
+#endif
+#elif defined(O_BINARY)
+#define OPEN_WRITEADD O_WRONLY | O_BINARY | O_CREAT
+#else
+#define OPEN_WRITEADD O_WRONLY | O_CREAT
+#endif
+#elif defined(_O_WRONLY)
+#if defined(_O_LARGEFILE)
+#define OPEN_WRITEADD _O_WRONLY | _O_CREAT | _O_LARGEFILE | _O_BINARY
+#else
+#define OPEN_WRITEADD _O_WRONLY | _O_CREAT | _O_BINARY
 #endif
 #endif
 // define the option for opening a file for reading and writing
@@ -442,7 +462,7 @@ namespace ibis {
 	void   eq2range(const double&, double&, double&);
 	/// Reduce the decimal precision of the incoming floating-point
 	/// value to specified precision. 
-	inline double coarsen(const double in, const unsigned prec=2);
+	inline double coarsen(const double in, unsigned prec=2);
 	/// Compute a compact 64-bit floating-point value with a short
 	/// decimal representation.
 	double compactValue(double left, double right,
@@ -1281,7 +1301,7 @@ inline char* ibis::util::trim(char* str) {
 ///
 /// The value zero is always rounded to zero.   Incoming value less than
 /// 1E-300 or greater than 1E300 is rounded to zero.
-inline double ibis::util::coarsen(const double in, const unsigned prec) {
+inline double ibis::util::coarsen(const double in, unsigned prec) {
     double ret;
     if (prec > 15) {
 	ret = in;
@@ -1296,6 +1316,8 @@ inline double ibis::util::coarsen(const double in, const unsigned prec) {
 	}
 	else if (ret < 1e300) {
 	    ret = log10(ret);
+	    if (prec > 0)
+		-- prec;
 	    const int ixp = static_cast<int>(ret) - static_cast<int>(prec);
 	    ret = floor(0.5 + pow(1e1, ret-ixp));
 	    if (ixp > 0)

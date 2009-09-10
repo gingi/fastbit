@@ -114,7 +114,7 @@ WITHOUT_FASTBIT_CONFIG_H
   platforms that can not run the configure script, must define this
   macro!
 
-FASTBIT_UNLOAD_LIMIT
+FASTBIT_MAX_WAIT_TIME
 
   Defines the amount of time (in seconds) the file manager shall wait
   before giving up on its attempt to acquire the desired amount of

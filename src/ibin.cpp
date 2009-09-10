@@ -1820,7 +1820,7 @@ void ibis::bin::binningT(const char* f) {
     }
 
     fnm += ".bin";
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes >= 0) {
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
@@ -1945,7 +1945,7 @@ long ibis::bin::binOrderT(const char* basename) const {
     }
 
     fnm += ".bin";
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	if (ibis::gVerbose > -1)
 	    col->logMessage("bin::binOrder", "unable to open file \"%s\" "
@@ -5018,10 +5018,10 @@ int ibis::bin::write(const char* dt) const {
     }
 
     array_t<int32_t> offs(nobs+1);
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    const char* mesg;
 	    if (errno != 0)

@@ -90,10 +90,10 @@ int ibis::sapid::write(const char* dt) const {
     if (fname != 0 || str != 0)
 	activate();
 
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	col->logWarning("sapid::write", "unable to open \"%s\" for write",
 			fnm.c_str());
 	return -2;

@@ -5,7 +5,7 @@ CXX=g++.exe
 #OPT=-g -O0
 OPT=-O5
 INC=-I ../src -I "pthreads-w32-2-8-0-release" -I /mingw/include -I .
-DEF=-DFASTBIT_UNLOAD_LIMIT=3 -DWITHOUT_FASTBIT_CONFIG_H
+DEF=-DFASTBIT_MAX_WAIT_TIME=3 -DWITHOUT_FASTBIT_CONFIG_H
 LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
 TESTDIR=tmp
 

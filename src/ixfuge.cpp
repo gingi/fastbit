@@ -143,10 +143,10 @@ int ibis::fuge::write(const char* dt) const {
     if (fname != 0 && fnm.compare(fname) == 0)
 	return 0;
 
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    col->logWarning("fuge::write", "unable to open \"%s\" for write",
 			    fnm.c_str());
@@ -730,7 +730,7 @@ void ibis::fuge::coarsen() {
 		ncoarse = j;
 	}
     }
-    if (ncoarse < 5 && offsets.back() > offsets[0]+nrows/31) {
+    if (ncoarse < 5U && offsets.back() > offsets[0]+nrows/31) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8 - 1;
 	const long sf = (offsets.back()-offsets[0]) / ncoarse;

@@ -1377,7 +1377,7 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdsrc, _O_BINARY);
 #endif
-    int fddes = UnixOpen(dest, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fddes = UnixOpen(dest, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fddes < 0) {
 	ibis::util::logMessage("Warning",
 			       "oocSortBlocks failed to open %s for writing",
@@ -1388,7 +1388,7 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fddes, _O_BINARY);
 #endif
-    int fdind = UnixOpen(ind, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdind = UnixOpen(ind, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdind < 0) {
 	ibis::util::logMessage("Warning",
 			       "oocSortBlocks failed to open %s for writing",
@@ -1530,7 +1530,7 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fisrc, _O_BINARY);
 #endif
-    const int fdout = UnixOpen(dout, OPEN_WRITEONLY, OPEN_FILEMODE);
+    const int fdout = UnixOpen(dout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdout < 0) {
 	ibis::util::logMessage("Warning",
 			       "oocMergeBlocks failed to open %s for writing",
@@ -1542,7 +1542,7 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdout, _O_BINARY);
 #endif
-    const int fiout = UnixOpen(iout, OPEN_WRITEONLY, OPEN_FILEMODE);
+    const int fiout = UnixOpen(iout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fiout < 0) {
 	ibis::util::logMessage("Warning",
 			       "oocMergeBlocks failed to open %s for writing",
@@ -1950,7 +1950,7 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 			       dsrc);
 	return -1;
     }
-    const int fdout = UnixOpen(dout, OPEN_WRITEONLY, OPEN_FILEMODE);
+    const int fdout = UnixOpen(dout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdout < 0) {
 	ibis::util::logMessage("Warning",
 			       "mergeBlock2 failed to open %s for writing",

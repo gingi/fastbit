@@ -1,5 +1,5 @@
-// $Id$ FILE
-// Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
+// File $Id$	
+// author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2007-2009 the Regents of the University of California
 //
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -1880,7 +1880,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    const ibis::column* col = dp.getColumn(cn);
 	    if (col != 0) {
 		for (uint32_t i=0; i < dp.nRows(); ++ i) {
-		    col->getString(i, tmp);
+		    static_cast<const ibis::text*>(col)->getString(i, tmp);
 		    vals.push_back(tmp);
 		}
 	    }
@@ -2083,7 +2083,7 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
 	case ibis::DOUBLE:
 	    row_width += 8; break;
 	default:
-	    break;
+	    row_width += 16; break;
 	}
     }
     if (row_width == 0) row_width = 1024 * t.naty.size();
@@ -2114,7 +2114,6 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
 /// variable is retrieved through the column object one at a time using the
 /// function @c getString.
 int ibis::mensa::cursor::fillBuffer(uint32_t i) const {
-    if (buffer[i].cval != 0) return 0; // already filled
     if (curPart >= tab.parts.size() || tab.parts[curPart] == 0) return -1;
     const ibis::part& apart = *(tab.parts[curPart]);
     // has to do a look up based on the column name, becaus the ith column
@@ -2123,202 +2122,212 @@ int ibis::mensa::cursor::fillBuffer(uint32_t i) const {
     const ibis::column* col = apart.getColumn(buffer[i].cname);
     if (col == 0)
 	return -2;
-
-    if (buffer[i].ctype != ibis::CATEGORY && buffer[i].ctype != ibis::TEXT
-	&& buffer[i].ctype != ibis::BLOB) {
-	if (bBegin+apart.nRows() <= bEnd) { // read whole partition
-	    buffer[i].cval = col->getRawData();
-	    if (buffer[i].cval != 0) {
-		return 0;
-	    }
-	    else {
-		return -1;
-	    }
-	}
-	else { // read part of a partition
-	    int ierr;
-	    ibis::bitvector mask;
-	    if (bBegin > pBegin)
-		mask.appendFill(0, static_cast<ibis::bitvector::word_t>
-				(bBegin-pBegin));
-	    mask.adjustSize(static_cast<ibis::bitvector::word_t>(bEnd-pBegin),
-			    static_cast<ibis::bitvector::word_t>
-			    (apart.nRows()));
-	    switch (buffer[i].ctype) {
-	    case ibis::BYTE: {
-		array_t<signed char> *tmp =
-		    static_cast<array_t<signed char>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::UBYTE: {
-		array_t<unsigned char> *tmp =
-		    static_cast<array_t<unsigned char>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::SHORT: {
-		array_t<int16_t> *tmp =
-		    static_cast<array_t<int16_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::USHORT: {
-		array_t<uint16_t> *tmp =
-		    static_cast<array_t<uint16_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::INT: {
-		array_t<int32_t> *tmp =
-		    static_cast<array_t<int32_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::UINT: {
-		array_t<uint32_t> *tmp =
-		    static_cast<array_t<uint32_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::LONG: {
-		array_t<int64_t> *tmp =
-		    static_cast<array_t<int64_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::ULONG: {
-		array_t<uint64_t> *tmp =
-		     static_cast<array_t<uint64_t>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float> *tmp =
-		    static_cast<array_t<float>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double> *tmp =
-		    static_cast<array_t<double>*>(buffer[i].cval);
-		ierr = col->selectValues(mask, tmp);
-		break;}
-	    default:
-		LOGGER(ibis::gVerbose > 0)
-		    << "mensa::cursor::fillBuffer(" << i
-		    << ") can not handle column " << col->name() << " type "
-		    << ibis::TYPESTRING[buffer[i].ctype];
-		ierr = -2;
-		break;
-	    } // switch
-	    return ierr;
-	}
-    }
-    else { // variable sized values are handled separately later
+    if (buffer[i].ctype == ibis::CATEGORY || buffer[i].ctype == ibis::TEXT
+	|| buffer[i].ctype == ibis::BLOB) {
 	buffer[i].cval = const_cast<void*>(static_cast<const void*>(col));
 	return 0;
     }
+
+    int ierr = 0;
+    ibis::bitvector mask;
+    if (bBegin > pBegin)
+	mask.appendFill(0, static_cast<ibis::bitvector::word_t>(bBegin-pBegin));
+    mask.adjustSize(static_cast<ibis::bitvector::word_t>(bEnd-pBegin),
+		    static_cast<ibis::bitvector::word_t>(apart.nRows()));
+    switch (buffer[i].ctype) {
+    case ibis::BYTE: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<signed char>();
+	ierr = col->selectValues
+	    (mask, static_cast<array_t< signed char > *>(buffer[i].cval));
+	break;}
+    case ibis::UBYTE: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<unsigned char>();
+	ierr = col->selectValues
+	    (mask, static_cast<array_t< unsigned char > *>(buffer[i].cval));
+	break;}
+    case ibis::SHORT: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<int16_t>();
+	ierr = col->selectValues
+	    (mask, static_cast<array_t< int16_t > *>(buffer[i].cval));
+	break;}
+    case ibis::USHORT: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<uint16_t>();
+	ierr = col->selectValues
+	    (mask, static_cast<array_t< uint16_t >* >(buffer[i].cval));
+	break;}
+    case ibis::INT: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<int32_t>;
+	ierr = col->selectValues
+	    (mask, static_cast< array_t< int32_t >* >(buffer[i].cval));
+	break;}
+    case ibis::UINT: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<uint32_t>;
+	ierr = col->selectValues
+	    (mask, static_cast< array_t< uint32_t >* >(buffer[i].cval));
+	break;}
+    case ibis::LONG: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<int64_t>;
+	ierr = col->selectValues
+	    (mask, static_cast< array_t<int64_t>* >(buffer[i].cval));
+	break;}
+    case ibis::ULONG: {
+     if (buffer[i].cval == 0)
+	 buffer[i].cval = new array_t<uint64_t>;
+     ierr = col->selectValues
+	 (mask, static_cast< array_t< uint64_t >* >(buffer[i].cval));
+     break;}
+    case ibis::FLOAT: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<float>;
+	ierr = col->selectValues
+	    (mask, static_cast< array_t< float >* >(buffer[i].cval));
+	break;}
+    case ibis::DOUBLE: {
+	if (buffer[i].cval == 0)
+	    buffer[i].cval = new array_t<double>;
+	ierr = col->selectValues
+	    (mask, static_cast< array_t< double >* >(buffer[i].cval));
+	break;}
+    default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "mensa::cursor::fillBuffer(" << i
+	    << ") can not handle column " << col->name() << " type "
+	    << ibis::TYPESTRING[buffer[i].ctype];
+	ierr = -2;
+	break;
+    } // switch
+
+    return ierr;
 } // ibis::mensa::cursor::fillBuffer
 
-/// Fill the buffers for every column.
+/// Fill the buffers for every column.  If all column buffers are not
+/// empty, then they are assumed to contain the expected content already.
+/// Otherwise, it calls fillBuffer on each column.
 int ibis::mensa::cursor::fillBuffers() const {
-    int ierr;
+    uint32_t cnt = 0;
     for (uint32_t i = 0; i < buffer.size(); ++ i) {
-	if (buffer[i].cval != 0 && buffer[i].ctype != ibis::CATEGORY &&
-	    buffer[i].ctype != ibis::TEXT) {
+	if (buffer[i].cval != 0) {
 	    switch (buffer[i].ctype) {
+	    case ibis::BYTE: {
+		cnt += (static_cast<const array_t< signed char > *>
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::UBYTE: {
+		cnt += (static_cast<const array_t<unsigned char> *>
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::SHORT: {
+		cnt += (static_cast<const array_t< int16_t > *>
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::USHORT: {
+		cnt += (static_cast<const array_t< uint16_t >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::INT: {
+		cnt += (static_cast<const array_t< int32_t >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::UINT: {
+		cnt += (static_cast<const array_t< uint32_t >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::LONG: {
+		cnt += (static_cast<const array_t<int64_t>* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::ULONG: {
+		cnt += (static_cast<const array_t< uint64_t >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::FLOAT: {
+		cnt += (static_cast<const array_t< float >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
+	    case ibis::DOUBLE: {
+		cnt += (static_cast<const array_t< double >* >
+			(buffer[i].cval)->empty() == false);
+		break;}
 	    default:
+		++ cnt;
 		break;
-	    case ibis::BLOB:
-		delete static_cast<array_t<unsigned char>*>(buffer[i].cval);
-		break;
-	    case ibis::BYTE:
-		delete static_cast<array_t<char>*>(buffer[i].cval);
-		break;
-	    case ibis::UBYTE:
-		delete static_cast<array_t<unsigned char>*>(buffer[i].cval);
-		break;
-	    case ibis::SHORT:
-		delete static_cast<array_t<int16_t>*>(buffer[i].cval);
-		break;
-	    case ibis::USHORT:
-		delete static_cast<array_t<uint16_t>*>(buffer[i].cval);
-		break;
-	    case ibis::INT:
-		delete static_cast<array_t<int32_t>*>(buffer[i].cval);
-		break;
-	    case ibis::UINT:
-		delete static_cast<array_t<uint32_t>*>(buffer[i].cval);
-		break;
-	    case ibis::LONG:
-		delete static_cast<array_t<int64_t>*>(buffer[i].cval);
-		break;
-	    case ibis::ULONG:
-		delete static_cast<array_t<uint64_t>*>(buffer[i].cval);
-		break;
-	    case ibis::FLOAT:
-		delete static_cast<array_t<float>*>(buffer[i].cval);
-		break;
-	    case ibis::DOUBLE:
-		delete static_cast<array_t<double>*>(buffer[i].cval);
-		break;
-	    }
-	    buffer[i].cval = 0;
+	    } // switch
 	}
+    }
+    if (cnt >= buffer.size()) return 1;
+
+    std::string evt = "mensa[";
+    evt += tab.name();
+    evt += "]::cursor::fillBuffers";
+    int ierr;
+    ibis::util::timer mytimer(evt.c_str(), 4);
+    for (uint32_t i = 0; i < buffer.size(); ++ i) {
 	ierr = fillBuffer(i);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "ibis::mensa[" << tab.name() << "]::cursor::fillBuffers "
-		"failed to fill buffer for column " << i << "("
-		<< buffer[i].cname << ", " << ibis::TYPESTRING[buffer[i].ctype]
-		<< ") of partition " << tab.parts[curPart]->name()
-		<< " with pBegin " << pBegin << ", bBegin " << bBegin
-		<< ", and bEnd " << bEnd << ", ierr = " << ierr;
+		<< "Warning -- " << evt << " failed to fill buffer for column "
+		<< i << "(" << buffer[i].cname << ", "
+		<< ibis::TYPESTRING[buffer[i].ctype] << ") of partition "
+		<< tab.parts[curPart]->name() << " with pBegin " << pBegin
+		<< ", bBegin " << bBegin << ", and bEnd " << bEnd
+		<< ", ierr = " << ierr;
 	    return ierr;
 	}
     }
     return 0;
 } // ibis::mensa::cursor::fillBuffers
 
+/// Mark all existing buffer as empty.
 void ibis::mensa::cursor::clearBuffers() {
     for (uint32_t i = 0; i < buffer.size(); ++ i) {
-	if (buffer[i].cval != 0 && buffer[i].ctype != ibis::CATEGORY &&
-	    buffer[i].ctype != ibis::TEXT) {
-	    switch (buffer[i].ctype) {
-	    default:
-		break;
-	    case ibis::BLOB:
-		delete static_cast<array_t<unsigned char>*>(buffer[i].cval);
-		break;
-	    case ibis::BYTE:
-		delete static_cast<array_t<char>*>(buffer[i].cval);
-		break;
-	    case ibis::UBYTE:
-		delete static_cast<array_t<unsigned char>*>(buffer[i].cval);
-		break;
-	    case ibis::SHORT:
-		delete static_cast<array_t<int16_t>*>(buffer[i].cval);
-		break;
-	    case ibis::USHORT:
-		delete static_cast<array_t<uint16_t>*>(buffer[i].cval);
-		break;
-	    case ibis::INT:
-		delete static_cast<array_t<int32_t>*>(buffer[i].cval);
-		break;
-	    case ibis::UINT:
-		delete static_cast<array_t<uint32_t>*>(buffer[i].cval);
-		break;
-	    case ibis::LONG:
-		delete static_cast<array_t<int64_t>*>(buffer[i].cval);
-		break;
-	    case ibis::ULONG:
-		delete static_cast<array_t<uint64_t>*>(buffer[i].cval);
-		break;
-	    case ibis::FLOAT:
-		delete static_cast<array_t<float>*>(buffer[i].cval);
-		break;
-	    case ibis::DOUBLE:
-		delete static_cast<array_t<double>*>(buffer[i].cval);
-		break;
-	    }
+	if (buffer[i].cval == 0) continue;
+
+	switch (buffer[i].ctype) {
+	default:
 	    buffer[i].cval = 0;
+	    break;
+	case ibis::BYTE:
+	    static_cast<array_t<char>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::UBYTE:
+	    static_cast<array_t<unsigned char>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::SHORT:
+	    static_cast<array_t<int16_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::USHORT:
+	    static_cast<array_t<uint16_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::INT:
+	    static_cast<array_t<int32_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::UINT:
+	    static_cast<array_t<uint32_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::LONG:
+	    static_cast<array_t<int64_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::ULONG:
+	    static_cast<array_t<uint64_t>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::FLOAT:
+	    static_cast<array_t<float>*>(buffer[i].cval)->clear();
+	    break;
+	case ibis::DOUBLE:
+	    static_cast<array_t<double>*>(buffer[i].cval)->clear();
+	    break;
 	}
-	buffer[i].cval = 0;
     }
 } // ibis::mensa::cursor::clearBuffers
 
+/// Points the the next row.
 int ibis::mensa::cursor::fetch() {
     if (curPart >= tab.parts.size()) return -1;
 
@@ -2342,10 +2351,12 @@ int ibis::mensa::cursor::fetch() {
 	    if (bEnd > pEnd)
 		bEnd = pEnd;
 	}
+	return fillBuffers();
     }
     return 0;
 } // ibis::mensa::cursor::fetch
 
+/// Pointers to the specified row.
 int ibis::mensa::cursor::fetch(uint64_t irow) {
     if (curPart >= tab.parts.size()) return -1;
     if (bEnd <= irow)
@@ -2362,7 +2373,7 @@ int ibis::mensa::cursor::fetch(uint64_t irow) {
 	bEnd = irow + preferred_block_size;
 	if (bEnd > pBegin + tab.parts[curPart]->nRows())
 	    bEnd = pBegin + tab.parts[curPart]->nRows();
-	return 0;
+	return fillBuffers();
     }
     else {
 	curRow = pBegin;
@@ -2372,26 +2383,16 @@ int ibis::mensa::cursor::fetch(uint64_t irow) {
 
 int ibis::mensa::cursor::fetch(ibis::table::row& res) {
     int ierr = fetch();
-    if (ierr != 0) return ierr;
+    if (ierr < 0) return ierr;
 
-    if ((uint64_t)curRow == bBegin) {
-	ierr = fillBuffers();
-	if (ierr < 0)
-	    return ierr;
-    }
     fillRow(res);
     return 0;
 } // ibis::mensa::cursor::fetch
 
 int ibis::mensa::cursor::fetch(uint64_t irow, ibis::table::row& res) {
     int ierr = fetch(irow);
-    if (ierr != 0) return ierr;
+    if (ierr < 0) return ierr;
 
-    if ((uint64_t)curRow == bBegin) {
-	ierr = fillBuffers();
-	if (ierr < 0)
-	    return ierr;
-    }
     fillRow(res);
     return 0;
 } // ibis::mensa::cursor::fetch
@@ -2542,7 +2543,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 	    res.catsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
 		std::string tmp;
-		reinterpret_cast<const ibis::category*>(buffer[j].cval)
+		reinterpret_cast<const ibis::text*>(buffer[j].cval)
 		    ->getString(curRow - pBegin, tmp);
 		res.catsvalues.push_back(tmp);
 	    }
@@ -2562,30 +2563,33 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 } // ibis::mensa::cursor::fillRow
 
 /**
-   return values:
-   0  -- normal (successful) completion
-  -1  -- cursor objection not initialized, call fetch first
-  -2  -- unable to load data into memory
-  -4  -- error in the output stream
+   Print the current row.  Assumes the caller has performed the fetch
+   operation.
+
+   Return values:
+   -   0  -- normal (successful) completion.
+   -  -1  -- cursor objection not initialized, call fetch first.
+   -  -2  -- unable to load data into memory.
+   -  -4  -- error in the output stream.
  */
 int ibis::mensa::cursor::dump(std::ostream& out, const char* del) const {
     if (tab.nColumns() == 0) return 0;
     if (curRow < 0 || curPart >= tab.parts.size())
 	return -1;
     int ierr;
-    if (static_cast<uint64_t>(curRow) == bBegin) {
-	// first time accessing the data partition
-	ierr = fillBuffers();
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "ibis::mensa[" << tab.name() << "]::cursor::dump "
-		"call to fillBuffers() failed with ierr = " << ierr
-		<< " at partition " << tab.parts[curPart]->name()
-		<< ", pBegin " << pBegin << ", bBegin " << bBegin
-		<< ", bEnd " << bEnd;
-	    return -2;
-	}
-    }
+//     if (static_cast<uint64_t>(curRow) == bBegin) {
+// 	// first time accessing the data partition
+// 	ierr = fillBuffers();
+// 	if (ierr < 0) {
+// 	    LOGGER(ibis::gVerbose > 1)
+// 		<< "ibis::mensa[" << tab.name() << "]::cursor::dump "
+// 		"call to fillBuffers() failed with ierr = " << ierr
+// 		<< " at partition " << tab.parts[curPart]->name()
+// 		<< ", pBegin " << pBegin << ", bBegin " << bBegin
+// 		<< ", bEnd " << bEnd;
+// 	    return -2;
+// 	}
+//     }
 
     const uint32_t i = static_cast<uint32_t>(curRow - bBegin);
     ierr = dumpIJ(out, i, 0U);
@@ -2674,12 +2678,6 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
     }
 
     while (static_cast<uint64_t>(curRow) < nr) {
-	if ((uint64_t)curRow == bBegin) {
-	    ierr = fillBuffers();
-	    if (ierr < 0) {
-		return -2;
-	    }
-	}
 	if (bEnd <= nr) {
 	    ierr = dumpBlock(out, del);
 	    if (ierr < 0) {
@@ -2720,9 +2718,9 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
 	    }
 	}
     }
-    LOGGER(ibis::gVerbose >= 0 && static_cast<uint64_t>(curRow) < tab.nRows())
-	<< "\t... " << tab.nRows() - curRow << " remaining in table "
-	<< tab.name();
+    if (static_cast<uint64_t>(curRow) < tab.nRows())
+	out << "\t... " << tab.nRows() - curRow << " remaining in table "
+	    << tab.name();
     return ierr;
 } // ibis::mensa::cursor::dumpSome
 
@@ -2736,61 +2734,61 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
 	ierr = -2;
 	break;}
     case ibis::BYTE: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<signed char> *tmp 
 	    = static_cast<const array_t<signed char>*>(buffer[j].cval);
 	out << (int) ((*tmp)[i]);
 	break;}
     case ibis::UBYTE: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<unsigned char> *tmp 
 	    = static_cast<const array_t<unsigned char>*>(buffer[j].cval);
 	out << (unsigned int) ((*tmp)[i]);
 	break;}
     case ibis::SHORT: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<int16_t> *tmp 
 	    = static_cast<const array_t<int16_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::USHORT: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<uint16_t> *tmp 
 	    = static_cast<const array_t<uint16_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::INT: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<int32_t> *tmp 
 	    = static_cast<const array_t<int32_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::UINT: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<uint32_t> *tmp 
 	    = static_cast<const array_t<uint32_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::LONG: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<int64_t> *tmp 
 	    = static_cast<const array_t<int64_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::ULONG: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<uint64_t> *tmp 
 	    = static_cast<const array_t<uint64_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
     case ibis::FLOAT: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<float> *tmp 
 	    = static_cast<const array_t<float>*>(buffer[j].cval);
 	out << std::setprecision(8) << (*tmp)[i];
 	break;}
     case ibis::DOUBLE: {
-	if (buffer[j].cval == 0) return 0; // null value
+	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<double> *tmp 
 	    = static_cast<const array_t<double>*>(buffer[j].cval);
 	out << std::setprecision(18) << (*tmp)[i];
@@ -3295,7 +3293,8 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	const ibis::column* col =
 	    tab.parts[curPart]->getColumn(buffer[j].cname);
 	if (col != 0) {
-	    col->getString(static_cast<uint32_t>(curRow-pBegin), val);
+	    static_cast<const ibis::text*>(col)->
+		getString(static_cast<uint32_t>(curRow-pBegin), val);
 	    ierr = 0;
 	}
 	else {
@@ -3329,6 +3328,47 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     }
     return ierr;
 } // ibis::mensa::cursor::getColumnAsString
+
+/// Destructor for bufferElement.
+ibis::mensa::cursor::bufferElement::~bufferElement() {
+    switch (ctype) {
+    default:
+	break;
+    case ibis::BLOB:
+	delete static_cast<array_t<unsigned char>*>(cval);
+	break;
+    case ibis::BYTE:
+	delete static_cast<array_t<char>*>(cval);
+	break;
+    case ibis::UBYTE:
+	delete static_cast<array_t<unsigned char>*>(cval);
+	break;
+    case ibis::SHORT:
+	delete static_cast<array_t<int16_t>*>(cval);
+	break;
+    case ibis::USHORT:
+	delete static_cast<array_t<uint16_t>*>(cval);
+	break;
+    case ibis::INT:
+	delete static_cast<array_t<int32_t>*>(cval);
+	break;
+    case ibis::UINT:
+	delete static_cast<array_t<uint32_t>*>(cval);
+	break;
+    case ibis::LONG:
+	delete static_cast<array_t<int64_t>*>(cval);
+	break;
+    case ibis::ULONG:
+	delete static_cast<array_t<uint64_t>*>(cval);
+	break;
+    case ibis::FLOAT:
+	delete static_cast<array_t<float>*>(cval);
+	break;
+    case ibis::DOUBLE:
+	delete static_cast<array_t<double>*>(cval);
+	break;
+    }
+} // ibis::mensa::cursor::bufferElement::~bufferElement
 
 /// Ibis::liga does not own the data partitions and does not free the
 /// resources in those partitions.

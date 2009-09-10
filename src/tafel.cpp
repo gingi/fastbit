@@ -1366,7 +1366,7 @@ int ibis::tafel::appendRow(const ibis::table::row& r) {
 	cnt += r.textsvalues.size();
 	appendString(r.textsnames, r.textsvalues, textsptr, msk);
     }
-    mrows += (cnt >= cols.size());
+    mrows += ((size_t)cnt >= cols.size());
     return cnt;
 } // ibis::tafel::appendRow
 
@@ -1583,7 +1583,6 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     }
     md << "\nEND HEADER\n";
 
-    int ierr = 0;
     for (columnList::const_iterator it = cols.begin();
 	 it != cols.end(); ++ it) {
 	const column& col = *((*it).second);
@@ -1816,7 +1815,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	std::string cnm = dir;
 	cnm += FASTBIT_DIRSEP;
 	cnm += (*it).first;
-	int fdes = UnixOpen(cnm.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
+	int fdes = UnixOpen(cnm.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "tafel::write(" << dir << ") failed to open file "
@@ -2017,7 +2016,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	}
 #if defined(FASTBIT_SYNC_WRITE)
-#if  _POSIX_FSYNC+0 > 0
+#if _POSIX_FSYNC+0 > 0
 	(void) UnixFlush(fdes); // write to disk
 #elif defined(_WIN32) && defined(_MSC_VER)
 	(void) _commit(fdes);
@@ -2085,8 +2084,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
     return 0;
 } // ibis::tafel::write
 
-/// Write the content of vals to an open file.  This function works with
-/// fixed size elements stored in array_t.
+/// Write the content of vals to an open file.  This template function
+/// works with fixed size elements stored in array_t.
 template <typename T>
 int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 			     ibis::bitvector::word_t nnew,
@@ -2131,9 +2130,11 @@ int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	ibis::util::logger lg;
 	lg.buffer() << "tafel::writeColumn wrote " << pos << " bytes of "
 		    << typeid(T).name() << " for " << nnew << " elements\n";
-	if (ibis::gVerbose > 6)
-	    lg.buffer() << "mask for new records: " << newmask << "\n";
-	lg.buffer() << "Overall bit mask: "<< totmask;
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: "<< totmask;
+	}
     }
     return (-5 * ((uint32_t) pos != nnew*elem));
 } // ibis::tafel::writeColumn
@@ -2181,9 +2182,11 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 	     ++ j)
 	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
 #endif
-	if (ibis::gVerbose > 6)
-	    lg.buffer() << "mask for new records: " << newmask << "\n";
-	lg.buffer() << "Overall bit mask: " << totmask;
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: " << totmask;
+	}
     }
     return (-5 * ((uint32_t) pos != nnew));
 } // ibis::tafel::writeString
@@ -2261,6 +2264,16 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 
     const ibis::bitvector::word_t nold1 =
 	(spos > selem ? (spos / selem - 1) : 0);
+    if (nold1 == 0) { // need to write the 1st number which is always 0
+	bpos = 0;
+	ierr = UnixWrite(sdes, &bpos, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "tafel::writeRaw failed to write " << bpos
+		<< " to file " << sdes << ", write returned " << ierr;
+	    return -10;
+	}
+    }
     if (nold1 < nold) {
 	// existing data file does not have enough elements, add empty ones
 	// to fill them
@@ -2271,7 +2284,7 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 		    << "tafel::writeRaw failed to write " << bpos
 		    << " to the end of file " << sdes << ", write returned "
 		    << ierr;
-		return -10;
+		return -11;
 	    }
 	}
     }
@@ -2283,7 +2296,7 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 	    LOGGER(ibis::gVerbose > 0)
 		<< "tafel::writeRaw failed to seek to " << spos << " in file "
 		<< sdes << " for starting positions, seek returned " << ierr;
-	    return -11;
+	    return -12;
 	}
 	ierr = UnixRead(sdes, &bpos, selem);
 	if (ierr < (off_t)selem) {
@@ -2291,14 +2304,14 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 		<< "tafel::writeRaw failed to read " << selem << " bytes from "
 		<< spos << " of file " << sdes << " for starting positions, "
 		" read returned " << ierr;
-	    return -12;
+	    return -13;
 	}
 	ierr = UnixSeek(bdes, bpos, SEEK_SET);
 	if (ierr != bpos) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "tafel::writeRaw failed to seek to " << bpos << " in file "
 		<< bpos << " for binary objects, seek returned " << ierr;
-	    return -13;
+	    return -14;
 	}
     }
 
@@ -2312,7 +2325,7 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 	    LOGGER(ibis::gVerbose > 0)
 		<< "tafel::writeRaw failed to write " << bpos << " to file "
 		<< sdes << " for starting positioins, write returned " << ierr;
-	    return -14;
+	    return -15;
 	}
     }
     stmp = starts[nnew1] - starts[0];
@@ -2321,20 +2334,23 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
 	LOGGER(ibis::gVerbose > 0)
 	    << "tafel::writeRaw expects to write " << stmp << " byte"
 	    << (stmp>1 ? "s" : "") << ", but wrote " << ierr << " instead";
-	return -15;
+	return -16;
     }
 
+    totmask.adjustSize(nold1, nold);
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew1+nold);
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg.buffer() << "tafel::writeRaw wrote " << nnew1 << " binary object"
 		    << (nnew1>1?"s":"") << " (" << nnew << " expected)\n";
-	if (ibis::gVerbose > 6)
-	    lg.buffer() << "mask for new records: " << newmask << "\n";
-	lg.buffer() << "Overall bit mask: " << totmask;
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: " << totmask;
+	}
     }
-    return (-16 * (nnew1 != nnew));
+    return (-17 * (nnew1 != nnew));
 } // ibis::tafel::writeRaw
 
 void ibis::tafel::clearData() {
@@ -2750,6 +2766,47 @@ uint32_t ibis::tafel::capacity() const {
     return cap;
 } // ibis::tafel::capacity
 
+/// Compute the number of rows that are likely to fit in available memory.
+/// It only count string valued column to cost 16 bytes for each row.  This
+/// can be a significant underestimate of the actual cost.  Memory
+/// fragmentation may also significantly reduce the available space.
+uint32_t ibis::tafel::preferredSize() const {
+    long unsigned width = 0;
+    for (columnList::const_iterator it = cols.begin(); it != cols.end();
+	 ++ it) {
+	const column& col = *((*it).second);
+	switch (col.type) {
+	case ibis::BYTE:
+	case ibis::UBYTE:
+	    ++ width;
+	    break;
+	case ibis::SHORT:
+	case ibis::USHORT:
+	    width += 2;
+	    break;
+	case ibis::INT:
+	case ibis::UINT:
+	case ibis::FLOAT:
+	    width += 4;
+	    break;
+	case ibis::LONG:
+	case ibis::ULONG:
+	case ibis::DOUBLE:
+	    width += 8;
+	    break;
+	default:
+	    width += 16;
+	    break;
+	} // switch
+    } // for
+    if (width == 0) width = 1024;
+    width = ibis::fileManager::bytesFree() / width;
+    width = static_cast<long unsigned>(ibis::util::coarsen(0.45*width, 1));
+    if (width > 100000000)
+	width = 100000000;
+    return width;
+} // ibis::tafel::preferredSize
+
 void ibis::tafel::clear() {
     const uint32_t ncol = colorder.size();
     LOGGER(ibis::gVerbose > 2)
@@ -3068,8 +3125,8 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     return ierr;
 } // ibis::tafel::appendRow
 
-int ibis::tafel::readCSV(const char* filename, const int maxrows,
-			 const char* del) {
+int ibis::tafel::readCSV(const char* filename, int maxrows,
+			 const char* outdir, const char* del) {
     if (filename == 0 || *filename == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "tafel::readCSV needs a filename to proceed";
@@ -3093,6 +3150,8 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 	    "file for reading";
 	return -3; // failed to open the specified data file
     }
+    if (maxrows <= 0)
+	maxrows = preferredSize();
     if (maxrows > 1) {
 	try { // try to reserve request amount of space
 	    reserveSpace(maxrows);
@@ -3106,9 +3165,7 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
     }
 
     int ierr;
-    int64_t itmp;
-    double dtmp;
-    std::string stmp;
+    int ret = 0;
     uint32_t cnt = 0;
     uint32_t iline = 0;
     bool more = true;
@@ -3161,282 +3218,67 @@ int ibis::tafel::readCSV(const char* filename, const int maxrows,
 	    continue;
 	}
 
-	if (cnt != ncol)
+	if (0 < cnt && cnt < ncol)
 	    normalize();
-
-	cnt = 0; // initialize cnt to zero!
-	for (uint32_t i = 0; i < ncol; ++ i) {
-	    column& col = *(colorder[i]);
-	    switch (col.type) {
-	    case ibis::BYTE: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    signed char tmp = static_cast<signed char>(itmp);
-		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a byte";
-
-			continue; // skip the line
-		    }
-		    static_cast<array_t<signed char>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
+	try {
+	    cnt = parseLine(str, delimiters.c_str(), filename);
+	}
+	catch (...) {
+	    if (outdir != 0 && *outdir != 0 && mrows > 0) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "tafel::readCSV(" << filename << ") encountered an "
+		    "exception while processing line " << iline
+		    << ", writing in-memory data and then continue";
+		ierr = write(outdir, 0, 0, 0);
+		if (ierr < 0)
+		    return ierr - 10;
+		ret += mrows;
+		// update maxrows to avoid out of memory problem
+		if (mrows > 1024) {
+		    maxrows = (int) ibis::util::coarsen((double)mrows, 1U);
+		    if ((unsigned)maxrows >= mrows)
+			maxrows >>= 1;
 		}
 		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline 
-			<< " can not be parsed correctly as an integer";
-		    continue;
+		    maxrows = mrows;
 		}
-		break;}
-	    case ibis::UBYTE: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    unsigned char tmp = static_cast<unsigned char>(itmp);
-		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a byte";
-			continue; // skip the line
-		    }
-		    static_cast<array_t<unsigned char>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::SHORT: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    int16_t tmp = static_cast<int16_t>(itmp);
-		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a two-byte integer";
-			continue; // skip the line
-		    }
-		    static_cast<array_t<int16_t>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::USHORT: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    uint16_t tmp = static_cast<uint16_t>(itmp);
-		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a two-byte integer";
-			continue; // skip the line
-		    }
-		    static_cast<array_t<uint16_t>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::INT: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    int32_t tmp = static_cast<int32_t>(itmp);
-		    if (tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a four-byte integer";
-			continue; // skip the line
-		    }
-		    static_cast<array_t<int32_t>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::UINT: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    uint32_t tmp = static_cast<uint32_t>(itmp);
-		    if ((int64_t)tmp != itmp) {
-			LOGGER(ibis::gVerbose > 2)
-			    << "Warning -- tafel::readCSV "
-			    << "column " << i+1 << " in row "
-			    << iline << " (" << itmp << ") "
-			    << "can not fit into a four-byte integer";
-			continue; // skip the line
-		    }
-		    static_cast<array_t<uint32_t>*>(col.values)
-			->push_back(tmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::LONG: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    static_cast<array_t<int64_t>*>(col.values)
-			->push_back(itmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::ULONG: {
-		ierr = ibis::util::readInt(itmp, const_cast<const char*&>(str),
-					   delimiters.c_str());
-		if (ierr == 0) {
-		    static_cast<array_t<uint64_t>*>(col.values)
-			->push_back(static_cast<uint64_t>(itmp));
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as an integer";
-		    continue;
-		}
-		break;}
-	    case ibis::FLOAT: {
-		ierr = ibis::util::readDouble(dtmp,
-					      const_cast<const char*&>(str),
-					      delimiters.c_str());
-		if (ierr == 0) {
-		    static_cast<array_t<float>*>(col.values)
-			->push_back((float)dtmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as a "
-			"floating-point number";
-		    continue;
-		}
-		break;}
-	    case ibis::DOUBLE: {
-		ierr = ibis::util::readDouble(dtmp,
-					      const_cast<const char*&>(str),
-					      delimiters.c_str());
-		if (ierr == 0) {
-		    static_cast<array_t<double>*>(col.values)
-			->push_back(dtmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< "Warning -- tafel::readCSV "
-			<< "column " << i+1 << " in row " << iline
-			<< " can not be parsed correctly as a "
-			"floating-point number";
-		    continue;
-		}
-		break;}
-	    case ibis::CATEGORY:
-	    case ibis::TEXT: {
-		ibis::util::getString(stmp, const_cast<const char*&>(str),
-				      delimiters.c_str());
-		if (! stmp.empty()) {
-		    static_cast<std::vector<std::string>*>(col.values)
-			->push_back(stmp);
-		    col.mask += 1;
-		    ++ cnt;
-		}
-		break;}
-	    default:
-		break;
-	    }
-
-	    if (*str != 0) { // skip trailing spaces and one delimiter
-		while (*str != 0 && isspace(*str)) ++ str; // trailing space
-		if (*str != 0 && strchr(delimiters.c_str(), *str) != 0) ++ str;
 	    }
 	    else {
-		break;
+		return -4;
 	    }
+
+	    cnt = 0;
+	    -- iline;
+	    clearData();
+	    csv.seekg(linestart, std::ios::beg);
 	}
+
 	mrows += (cnt > 0);
 	LOGGER(ibis::gVerbose > 0 && (iline % pline) == 0)
 	    << "tafel::readCSV(" << filename << ") processed line "
 	    << iline << " ...";
+	if (mrows >= maxrows && maxrows > 1 && outdir != 0 && *outdir != 0) {
+	    ierr = write(outdir, 0, 0, 0);
+	    ret += mrows;
+	    if (ierr < 0)
+		return ierr - 20;
+	    else
+		clearData();
+	}
     }
 
+    ret += mrows;
     timer.stop();
     LOGGER(ibis::gVerbose > 0)
 	<< "tafel::readCSV(" << filename << ") processed " << iline
-	<< (iline>1 ? " lines":" line") << " of text and extracted " << mrows
-	<< (mrows>1?" records":" record") << " using " << timer.CPUTime()
+	<< (iline>1 ? " lines":" line") << " of text and extracted " << ret
+	<< (ret>1?" records":" record") << " using " << timer.CPUTime()
 	<< " sec(CPU), " << timer.realTime() << " sec(elapsed)";
-    return 0;
+    return ret;
 } // ibis::tafel::readCSV
 
 int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
-			     const int maxrows) {
+			     int maxrows, const char* outdir) {
     if (filename == 0 || *filename == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "tafel::readSQLDump needs a filename to proceed";
@@ -3456,6 +3298,8 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	    "named file for reading";
 	return -3; // failed to open the specified data file
     }
+    if (maxrows <= 0)
+	maxrows = preferredSize();
     if (maxrows > 1) {
 	try { // try to reserve request amount of space
 	    reserveSpace(maxrows);
@@ -3474,6 +3318,7 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
     char *str;
     char *ptr;
     std::string tmp;
+    int ret = 0;
     uint32_t iline = 0;
     const uint32_t pline = (ibis::gVerbose < 3 ? 1000000 :
 			    ibis::gVerbose < 5 ? 100000 :
@@ -3526,7 +3371,40 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 		    }
 		    if (ptr > str) {
 			if (*ptr == ')') *ptr = 0;
-			ierr = parseLine(str, delimiters, filename);
+			try {
+			    ierr = parseLine(str, delimiters, filename);
+			}
+			catch (...) {
+			    if (outdir != 0 && *outdir != 0 && mrows > 0) {
+				LOGGER(ibis::gVerbose > 3)
+				    << "tafel::readSQLDump(" << filename
+				    << ") encountered an exception while "
+				    "processing statement " << iline
+				    << ", writing out in-memory data";
+				ierr = write(outdir, tname.c_str(), 0, 0);
+				if (ierr < 0)
+				    return ierr - 20;
+
+				// to avoid future out-of-memory problem
+				if (mrows > 1024) {
+				    maxrows = (int)
+					ibis::util::coarsen((double)mrows, 1);
+				    if ((unsigned)maxrows >= mrows)
+					maxrows >>= 1;
+				}
+				else {
+				    maxrows = mrows;
+				}
+				ret += mrows;
+				clearData();
+
+				// try to parse the same line
+				ierr = parseLine(str, delimiters, filename);
+			    }
+			    else {
+				return -4;
+			    }
+			}
 			mrows += (ierr > 0);
 
 			LOGGER(ibis::gVerbose > 1 && ierr < (colorder.size()))
@@ -3539,6 +3417,16 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 			LOGGER(ibis::gVerbose > 0 && (mrows % pline) == 0)
 			    << "tafel::readSQLDump(" << filename
 			    << ") processed row " << mrows << " ...";
+
+			if (mrows >= maxrows && maxrows > 1 &&
+			    outdir != 0 && *outdir != 0) {
+			    ierr = write(outdir, tname.c_str(), 0, 0);
+			    ret += mrows;
+			    if (ierr < 0)
+				return ierr - 20;
+
+			    clearData();
+			}
 		    }
 		    str = ptr + 1;
 		}
@@ -3551,13 +3439,14 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	}
     }
 
+    ret += mrows;
     timer.stop();
     LOGGER(ibis::gVerbose > 0)
 	<< "tafel::readSQLDump(" << filename << ") processed " << iline
-	<< (iline>1 ? " lines":" line") << " of text and extracted " << mrows
-	<< (mrows>1?" records":" record") << " using " << timer.CPUTime()
+	<< (iline>1 ? " lines":" line") << " of text and extracted " << ret
+	<< (ret>1?" records":" record") << " using " << timer.CPUTime()
 	<< " sec(CPU), " << timer.realTime() << " sec(elapsed)";
-    return 0;
+    return ret;
 } // ibis::tafel::readSQLDump
 
 /// Read one complete SQL statment from an SQL dump file.  It will read one

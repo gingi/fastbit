@@ -1,4 +1,4 @@
-// $Id: rara.cpp,v 1.1 2009/01/22 20:50:35 kewu Exp $
+// $Id: rara.cpp,v 1.2 2009/09/10 23:50:03 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2008-2009 the Regents of the University of California
 /** @file rara.cpp
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     ibis::query aquery(ibis::util::userName(), &apart);
     // assign the query conditions as the where clause.
     int ierr = aquery.setWhereClause(argv[2]);
-    if (ierr != 0) {
+    if (ierr < 0) {
 	std::clog << *argv << " setWhereClause(" << argv[2]
 		  << ") failed with error code " << ierr << std::endl;
 	return -2;
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 	ierr = aquery.evaluate(); // evaluate the query
 	std::cout << "SELECT count(*) FROM " << argv[1] << " WHERE "
 		  << argv[2] << "\n--> ";
-	if (ierr == 0) {
+	if (ierr >= 0) {
 	    std::cout << aquery.getNumHits();
 	}
 	else {
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
     }
     else { // select column-to-print...
 	ierr = aquery.setSelectClause(sel.c_str());
-	if (ierr != 0) {
+	if (ierr < 0) {
 	    std::clog << *argv << " setSelectClause(" << sel
 		      << ") failed with error code " << ierr << std::endl;
 	    return -3;
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 	ierr = aquery.evaluate(); // evaluate the query
 	std::cout << "SELECT " << sel << " FROM " << argv[1] << " WHERE "
 		  << argv[2] << "\n--> ";
-	if (ierr == 0) { // print out the select values
+	if (ierr >= 0) { // print out the select values
 	    aquery.printSelected(std::cout);
 	}
 	else {

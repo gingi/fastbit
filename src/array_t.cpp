@@ -1196,7 +1196,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	for (uint32_t j = 0; j < ip; ++ j)
 	    copy.m_begin[j] = m_begin[j];
 	copy.m_begin[ip] = val;
-	for (uint32_t j = ip; j < n; ++ j)
+	for (uint32_t j = ip; j < (n>0?(size_t)n:0U); ++ j)
 	    copy.m_begin[j+1] = m_begin[j];
 	swap(copy);
     }
@@ -1233,7 +1233,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
     else { // need new memory
 	// copy and swap
 	const difference_type nold = m_end - m_begin;
-	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=n ? nold : n));
+	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=(long)n?nold:n));
 	if ((long long)nnew <= nold) {
 	    throw "array_t must have less than 2^31 elements";
 	}
@@ -1245,7 +1245,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
 	    copy[j] = m_begin[j];
 	for (uint32_t j = 0; j < n; ++ j)
 	    copy[jp+j] = val;
-	for (uint32_t j = jp; j < nold; ++ j)
+	for (uint32_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
 	    copy[n+j] = m_begin[j];
 	swap(copy); // swap this and copy
     }
@@ -1290,7 +1290,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	    copy[j] = m_begin[j];
 	for (uint32_t j = 0; j < (uint32_t)n; ++ j)
 	    copy[jp+j] = front[j];
-	for (uint32_t j = jp; j < nold; ++ j)
+	for (uint32_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
 	    copy[n+j] = m_begin[j];
 	swap(copy); // swap this and copy
     }

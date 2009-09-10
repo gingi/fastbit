@@ -753,11 +753,14 @@ long ibis::category::append(const char* dt, const char* df,
 	// copy the raw bytes to dt
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
+	    ibis::util::guard gfptr = ibis::util::makeGuard(UnixClose, fptr);
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fptr, _O_BINARY);
 #endif
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
+		ibis::util::guard gfdest =
+		    ibis::util::makeGuard(UnixClose, fdest);
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdest, _O_BINARY);
 #endif
@@ -775,13 +778,11 @@ long ibis::category::append(const char* dt, const char* df,
 		    (void) _commit(fdest);
 #endif
 #endif
-		ierr = UnixClose(fdest);
 	    }
 	    else {
 		logMessage("append", "unable to open \"%s\" to appending",
 			   dest.c_str());
 	    }
-	    ierr = UnixClose(fptr);
 	}
 	else if (ibis::gVerbose > 5) {
 	    logMessage("append", "unable to open file \"%s\" "
@@ -794,6 +795,7 @@ long ibis::category::append(const char* dt, const char* df,
 	// first time accessing these strings, need to parse them
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
+	    ibis::util::guard gfptr = ibis::util::makeGuard(UnixClose, fptr);
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fptr, _O_BINARY);
 #endif
@@ -875,6 +877,8 @@ long ibis::category::append(const char* dt, const char* df,
 
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
+		ibis::util::guard gfdest =
+		    ibis::util::makeGuard(UnixClose, fdest);
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdest, _O_BINARY);
 #endif
@@ -894,13 +898,11 @@ long ibis::category::append(const char* dt, const char* df,
 		(void) _commit(fdest);
 #endif
 #endif
-		(void) UnixClose(fdest);
 	    }
 	    else {
 		logMessage("append", "unable to open \"%s\" to appending",
 			   dest.c_str());
 	    }
-	    (void) UnixClose(fptr);
 	    if (ierr < 0) return -3;
 	}
 	else {
@@ -1134,7 +1136,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 				uint32_t nbuf) const {
     if (dir == 0) // default to the current data directory
 	dir = (thePart != 0 ? thePart->currentDataDir() : 0);
-    if (dir == 0) return;
+    if (dir == 0 || *dir == 0) return;
 
     std::string dfile = dir;
     dfile += FASTBIT_DIRSEP;
@@ -1208,9 +1210,9 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	ierr = -1;
     if (ierr == 0) { // try to read the last word in .sp file
 	if (fread(&pos, sizeof(int64_t), 1, fsp) != 1) {
-	    if (ibis::gVerbose >= 0)
-		logWarning("startPositions", "unable to read the last "
-			   "integer in file \"%s\"", spfile.c_str());
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " unable to read the last "
+		"integer in file \"" << spfile << "\"";
 	    fclose(fsp);
 	    fclose(fdata);
 	    return;
@@ -1255,7 +1257,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 			    << last << " to file \"" << spfile << "\"";
 		    last = pos+1;
 		    ++ nnew;
-		    LOGGER(ibis::gVerbose > 2 && nnew % 1000000 == 0)
+		    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
 			<< evt << " -- processed "
 			<< nnew << " strings from " << dfile;
 		}
@@ -1292,7 +1294,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 		    }
 		    last = pos+1;
 		    ++ nnew;
-		    LOGGER(ibis::gVerbose > 2 && nnew % 1000000 == 0)
+		    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
 			<< evt << " -- processed "
 			<< nnew << " strings from " << dfile;
 		}
@@ -1333,7 +1335,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	const long missed = thePart->nRows() - nold - nnew + pos;
 	for (long i = 0; i < missed; i += ntmp) {
 	    ierr = fwrite(tmp, sizeof(int64_t),
-			  (i+ntmp<=missed?ntmp:missed-i), fsp);
+			  (i+(long)ntmp<=missed?(long)ntmp:missed-i), fsp);
 	}
     }
     if (nnew > 0) {
@@ -1343,7 +1345,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     (void) fclose(fdata);
     (void) fclose(fsp);
 
-    LOGGER(ibis::gVerbose > 2)
+    LOGGER(ibis::gVerbose > 3)
 	<< evt << " located the starting positions of " << nnew
 	<< " new string" << (nnew > 1 ? "s" : "") << ", file " << spfile
 	<< " now has " << (nnew+nold+1) << " 64-bit integers (total "
@@ -1357,8 +1359,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(int64_t));
 	truncate(dfile.c_str(), pos);
 	LOGGER(ibis::gVerbose >= 0)
-	    << evt << " truncated files " << dfile << " and " << spfile
-	    << " to contain only " << thePart->nRows() << " record"
+	    << "Warning -- " << evt << " truncated files " << dfile << " and "
+	    << spfile << " to contain only " << thePart->nRows() << " record"
 	    << (thePart->nRows() > 1 ? "s" : "");
     }
 } // ibis::text::startPositions
@@ -1531,8 +1533,9 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
 		    << "]::search -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
-		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
-					      "the internal buffer is only ")
+		    << "-byte long, but "
+		    << (jbuf<(long)nbuf ? "can only read " :
+			"the internal buffer is only ")
 		    << jbuf << ", skipping " << jbuf
 		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
@@ -1606,8 +1609,9 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
 		    << "]::search -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
-		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
-					      "the internal buffer is only ")
+		    << "-byte long, but "
+		    << (jbuf<(long)nbuf ? "can only read " :
+			"the internal buffer is only ")
 		    << jbuf << ", skipping " << jbuf
 		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
@@ -1707,8 +1711,9 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
 		    << "]::search -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
-		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
-					      "the internal buffer is only ")
+		    << "-byte long, but "
+		    << (jbuf<(long)nbuf ? "can only read " :
+			"the internal buffer is only ")
 		    << jbuf << ", skipping " << jbuf
 		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
@@ -1754,8 +1759,9 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
 		    << "]::search -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
-		    << "-byte long, but " << (jbuf<nbuf ? "can only read " :
-					      "the internal buffer is only ")
+		    << "-byte long, but "
+		    << (jbuf<(long)nbuf ? "can only read " :
+			"the internal buffer is only ")
 		    << jbuf << ", skipping " << jbuf
 		    << (jbuf > 1 ? " bytes" : " byte");
 		curr += jbuf;
@@ -2289,7 +2295,9 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 /// terminators).  This can be quite slow!
 void ibis::text::readString(uint32_t i, std::string &ret) const {
     ret.clear();
-    if (i >= thePart->nRows()) return;
+    if (thePart == 0 || i >= thePart->nRows() ||
+	thePart->currentDataDir() == 0 ||
+	*(thePart->currentDataDir()) == 0) return;
     std::string fnm = thePart->currentDataDir();
     fnm += FASTBIT_DIRSEP;
     fnm += m_name;
@@ -2312,8 +2320,55 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     (void)_setmode(des, _O_BINARY);
 #endif
     ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
+    if (ierr != (long) i*sizeof(int64_t)) {
+	(void) UnixClose(des);
+	startPositions(thePart->currentDataDir(), 0, 0);
+	des = UnixOpen(fnm.c_str(), OPEN_READONLY);
+	if (des < 0) {
+	    logWarning("readString", "failed to open file \"%s\"",
+		       fnm.c_str());
+	    return;
+	}
+
+	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
+	if (ierr != (long) i*sizeof(int64_t)) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text::readString(" << i << ") failed to seek to "
+		<< i*sizeof(int64_t) << " in " << fnm;
+	    (void) UnixClose(des);
+	    return;
+	}
+    }
     ierr = UnixRead(des, &positions, sizeof(positions));
-    ierr = UnixClose(des);
+    if (ierr != (long)sizeof(positions)) {
+	(void) UnixClose(des);
+	startPositions(thePart->currentDataDir(), 0, 0);
+	des = UnixOpen(fnm.c_str(), OPEN_READONLY);
+	if (des < 0) {
+	    logWarning("readString", "failed to open file \"%s\"",
+		       fnm.c_str());
+	    return;
+	}
+
+	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
+	if (ierr != (long) i*sizeof(int64_t)) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text::readString(" << i << ") failed to seek to "
+		<< i*sizeof(int64_t) << " in " << fnm;
+	    (void) UnixClose(des);
+	    return;
+	}
+
+	ierr = UnixRead(des, &positions, sizeof(positions));
+	if (ierr != (long)sizeof(positions)) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text::readString(" << i << ") failed to read "
+		<< sizeof(positions) << " bytes from " << fnm;
+	    (void) UnixClose(des);
+	    return;
+	}
+    }
+    (void) UnixClose(des);
     ibis::fileManager::instance().recordPages
 	(i*sizeof(int64_t), i*sizeof(int64_t)+sizeof(positions));
 
@@ -2327,7 +2382,13 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(datafile, _O_BINARY);
 #endif
-    ierr = UnixSeek(datafile, positions[0], SEEK_SET);
+    ierr = UnixSeek(datafile, *positions, SEEK_SET);
+    if (ierr != *positions) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- text::readString(" << i << ") failed to seek to "
+	    << *positions << " in file " << fnm;
+	return;
+    }
     char buf[1025];
     buf[1024] = 0;
     for (long j = positions[0]; j < positions[1]; j += 1024) {
@@ -2335,9 +2396,19 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	if (len > 1024)
 	    len = 1024;
 	ierr = UnixRead(datafile, buf, len);
-	ret += buf;
+	if (ierr > 0) {
+	    LOGGER(ibis::gVerbose > 2 && ierr < len)
+		<< "Warning -- text::readString(" << i << ") expected to read "
+		<< len << " bytes, but only read " << ierr;
+	    ret.insert(ret.end(), buf, buf+ierr);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text::readString(" << i << ") failed to read "
+		<< len << " bytes from " << fnm << ", read returned " << ierr;
+	}
     }
-    ierr = UnixClose(datafile);
+    (void) UnixClose(datafile);
     ibis::fileManager::instance().recordPages(positions[0], positions[1]);
 } // ibis::text::readString
 
@@ -2698,7 +2769,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
     (void)_setmode(sffile, _O_BINARY);
 #endif
 
-    int rtfile = UnixOpen(to, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int rtfile = UnixOpen(to, OPEN_APPENDONLY, OPEN_FILEMODE);
     if (rtfile < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << to
@@ -2710,7 +2781,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
     (void)_setmode(rtfile, _O_BINARY);
 #endif
 
-    int stfile = UnixOpen(spto, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int stfile = UnixOpen(spto, OPEN_APPENDONLY, OPEN_FILEMODE);
     if (rtfile < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << spto
@@ -2797,7 +2868,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    if (irow < idx[1]) {
 		(void) memset(buf, 0, nbuf);
 		pos = UnixSeek(rtfile, 0, SEEK_CUR);
-		for (int jtmp = irow; jtmp < idx[1]; ++ jtmp) {
+		for (int jtmp = irow; jtmp < (long) idx[1]; ++ jtmp) {
 		    ierr = UnixWrite(stfile, &pos, 8);
 		    if (ierr != 8) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -3085,13 +3156,13 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	nbuf = dbuff.size();
 	buf = dbuff.address();
     }
-    if (nbuf <= spelem) {
+    if (nbuf <= (unsigned)spelem) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " unable to continue because of "
 	    "insufficient amount of available buffer space";
 	return -1;
     }
-    if ((unsigned long)nold+nnew >= INT_MAX / spelem) {
+    if ((unsigned long)nold+nnew >= (unsigned long)(INT_MAX / spelem)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " unable to continue because the "
 	    "resulting .sp will be too large";
@@ -3114,11 +3185,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	if (j == 0) {
 	    dj = dfsize - *spbuf;
 	    iread -= spelem;
-	    for (unsigned i = 0; i < iread/spelem; ++ i)
+	    for (int i = 0; i < iread/spelem; ++ i)
 		spbuf[i] = spbuf[i+1] + dj;
 	}
 	else {
-	    for (unsigned i = 0; i < iread/spelem; ++ i)
+	    for (int i = 0; i < iread/spelem; ++ i)
 		spbuf[i] += dj;
 	}
 	int iwrite = UnixWrite(sdest, spbuf, iread);
@@ -3144,7 +3215,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // close the destination .sp file just in case we need to truncate it
     UnixClose(sdest);
     gsdest.dismiss();
-    if (sj > spelem*(nold+nnew0)) {
+    if (sj > (long)(spelem*(nold+nnew0))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
 	truncate(spdest.c_str(), spelem*(nold+nnew0));
@@ -3443,7 +3514,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // close the destination .sp file just in case we need to truncate it
     UnixClose(sdest);
     gsdest.dismiss();
-    if (sj > spelem*(nold+nnew)) {
+    if (sj > (long) (spelem*(nold+nnew))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
 	truncate(spdest.c_str(), spelem*(nold+nnew));
@@ -4201,6 +4272,16 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
     return (positions.size()-1);
 } // ibis::blob::extractSome
 
+/// Extract a single binary object.  This function is only defined for
+/// ibis::blob, therefore the caller must explicitly case a column* to
+/// blob*.  It needs to access two files, a file for start positioins and
+/// another for raw binary data.  Thus it has a large startup cost
+/// associated with opening the files and seeking to the right places on
+/// disk.  If there is enough memory available, it will attempt to make
+/// these files available for later invocations of this function by making
+/// their content available through array_t objects.  If it fails to create
+/// the desired array_t objects, it will fall back to use explicit I/O
+/// function calls.
 int ibis::blob::getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size)
     const {
     if (thePart == 0) return -1;
@@ -4258,6 +4339,9 @@ int ibis::blob::getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size)
     return ierr;
 } // ibis::blob::getBlob
 
+/// Read a single binary object.  The starting position is available in an
+/// array_t object.  It only needs to explicitly open the data file to
+/// read.
 int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 			 const array_t<int64_t> &starts, const char *datafile)
     const {
@@ -4275,7 +4359,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 
     int fdes = UnixOpen(datafile, OPEN_READONLY);
     if (fdes < 0) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob failed to open " << datafile
 	    << " for reading ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
@@ -4288,7 +4372,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 
     off_t ierr = UnixSeek(fdes, starts[ind], SEEK_SET);
     if (ierr != starts[ind]) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
 	    << starts[ind] << " in " << datafile << ", seek returned "
 	    << ierr;
@@ -4297,7 +4381,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 
     ierr = UnixRead(fdes, buf, diff);
     if (ierr < (off_t)diff) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
 	    << diff << " byte" << (diff>1?"s":"") << " from " << datafile
 	    << ", read returned " << ierr;
@@ -4311,6 +4395,8 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
     return ierr;
 } // ibis::blob::readBlob
 
+/// Read a single binary object.  This function opens both starting
+/// position file and data file explicitly.
 int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 			 const char *spfile, const char *datafile) const {
     int64_t starts[2];
@@ -4329,14 +4415,14 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 #endif
     off_t ierr = UnixSeek(sdes, ind*spelem, SEEK_SET);
     if (ierr != (off_t)(ind*spelem)) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
 	    << ind*spelem << " in " << spfile << ", seek returned " << ierr;
 	return -16;
     }
     ierr = UnixRead(sdes, starts, sizeof(starts));
     if (ierr < (off_t)sizeof(starts)) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
 	    << sizeof(starts) << " bytes from " << ind*spelem << " in "
 	    << spfile << ", read returned " << ierr;
@@ -4357,7 +4443,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 
     int fdes = UnixOpen(datafile, OPEN_READONLY);
     if (fdes < 0) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob failed to open " << datafile
 	    << " for reading ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
@@ -4369,8 +4455,8 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 #endif
 
     ierr = UnixSeek(fdes, *starts, SEEK_SET);
-    if (ierr != starts[ind]) {
-	LOGGER(ibis::gVerbose >= 0)
+    if (ierr != *starts) {
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to seek to "
 	    << *starts << " in " << datafile << ", seek returned "
 	    << ierr;
@@ -4379,7 +4465,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 
     ierr = UnixRead(fdes, buf, diff);
     if (ierr < (off_t)diff) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- blob::readBlob(" << ind << ") failed to read "
 	    << diff << " byte" << (diff>1?"s":"") << " from " << datafile
 	    << ", read returned " << ierr;

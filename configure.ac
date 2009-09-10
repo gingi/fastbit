@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.1.2d],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.1.3],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -30,7 +30,7 @@ AC_CHECK_LIB([rt], [clock_gettime])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h float.h inttypes.h limits.h memory.h stdint.h stdlib.h string.h sys/types.h unistd.h values.h])
+AC_CHECK_HEADERS([fcntl.h float.h inttypes.h limits.h memory.h stdint.h stdlib.h string.h sys/types.h unistd.h])
 # string.h strings.h sys/time.h
 
 # Checks for typedefs, structures, and compiler characteristics.

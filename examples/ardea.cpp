@@ -85,12 +85,12 @@ static void usage(const char* name) {
 // del    -- the delimiters used to parse the ASCII data, if not specified,
 //           coma is assumed.  Blank spaces are always skipped except insie
 //           quotes.
-// nrpf   -- the number of rows per file.  This parameter is used to
-//           reserve space for dynamic data structures such as
-//           std::vector.  Reserving a correct amount of space can reduce
-//           the need for dynamic memory allocation and reduce execution
-//           time.  However, if not specified or specified in correctly,
-//           the program should still function correctly.
+// nrpf   -- the number of rows to be stored in memory while performing the
+//           reading operations.  When more than this many rows are read
+//           into memory, both readCSV and readSQLDump will attempt to
+//           write out the in-memory data records.  If the user does not
+//           specify a value for this variable, the value will be set by
+//           readCSV or readSQLDump internally based on available memory.
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		       const char*& outdir, const char*& dsname,
 		       const char*& del, int& nrpf) {
@@ -140,8 +140,8 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		if (i+1 < argc) {
 		    ++ i;
 		    if (isdigit(*argv[i])) {
-			int nn = atoi(argv[i]);
-			if (nn > nrpf)
+			int nn = (int)atof(argv[i]);
+			if (nn > 1)
 			    nrpf = nn;
 		    }
 		    else {
@@ -714,7 +714,7 @@ int main(int argc, char** argv) {
 		std::cout << *argv << " to read SQL dump file " << sqlfiles[i]
 			  << " ..." << std::endl;
 	    std::string tname;
-	    ierr = ta->readSQLDump(sqlfiles[i], tname);
+	    ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
 	    if (ierr < 0) {
 		std::clog << *argv << " failed to process file \""
 			  << sqlfiles[i] << "\", readSQLDump returned "
@@ -745,7 +745,7 @@ int main(int argc, char** argv) {
 	    if (ibis::gVerbose >= 0)
 		std::cout << *argv << " to read CSV file " << csvfiles[i]
 			  << " ..." << std::endl;
-	    ierr = ta->readCSV(csvfiles[i], nrpf, del);
+	    ierr = ta->readCSV(csvfiles[i], nrpf, outdir, del);
 	    if (ierr < 0)
 		std::clog << *argv << " failed to parse file \""
 			  << csvfiles[i] << "\", readCSV returned "
@@ -820,8 +820,11 @@ int main(int argc, char** argv) {
 		  << std::endl;
     }
     if (ibis::gVerbose > 0) {
-	std::cout << "-- begin printing table in " << outdir << " --\n";
-	tb->describe(std::cout);
+	// use a logger object to hold the print out in memory to avoid it
+	// be interrupted by other log messages
+	ibis::util::logger lg;
+	lg.buffer() << "-- begin printing table in " << outdir << " --\n";
+	tb->describe(lg.buffer());
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
 	    uint64_t nprint;
 	    if (ibis::gVerbose > 30) {
@@ -832,9 +835,9 @@ int main(int argc, char** argv) {
 		if (nprint < 10)
 		    nprint = 10;
 	    }
-	    tb->dump(std::cout, nprint);
+	    tb->dump(lg.buffer(), nprint);
 	}
-	std::cout << "--  end  printing table in " << outdir << " --\n";
+	lg.buffer() << "--  end  printing table in " << outdir << " --\n";
     }
     if (usersupplied == false) {
 	// check the number of hits of built-in queries

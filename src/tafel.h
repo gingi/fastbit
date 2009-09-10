@@ -33,10 +33,10 @@ public:
     virtual int appendRow(const ibis::table::row&);
     virtual int appendRow(const char*, const char*);
     virtual int appendRows(const std::vector<ibis::table::row>&);
-    virtual int readCSV(const char* filename, const int maxrows,
-			const char* delimiters);
+    virtual int readCSV(const char* filename, int maxrows,
+			const char* outputdir, const char* delimiters);
     virtual int readSQLDump(const char* filename, std::string& tname,
-			    const int maxrows);
+			    int maxrows, const char* outputdir);
 
     virtual int write(const char* dir, const char* tname,
 		      const char* tdesc, const char* idx) const;
@@ -154,6 +154,7 @@ protected:
     int assignDefaultValue(ibis::tafel::column &col, const char *val) const;
     int readSQLStatement(std::istream &, ibis::fileManager::buffer<char>&,
 			 ibis::fileManager::buffer<char>&) const;
+    uint32_t preferredSize() const;
 
 private:
     tafel(const tafel&);

@@ -153,10 +153,10 @@ int ibis::egale::write(const char* dt) const {
     if (str != 0 || fname != 0)
 	activate();
 
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    col->logWarning("egale::write", "unable to open \"%s\" for write",
 			    fnm.c_str());
@@ -362,7 +362,7 @@ int ibis::egale::read(const char* f) {
     }
     // nbases and bases
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != end) {
+    if (ierr < 0 || (uint32_t)ierr != end) {
 	clear();
 	UnixClose(fdes);
 	LOGGER(ibis::gVerbose > 0)

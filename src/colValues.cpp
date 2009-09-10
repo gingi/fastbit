@@ -3029,7 +3029,7 @@ uint32_t ibis::colStrings::write(FILE* fptr) const {
     for (uint32_t i = 0; i < nelm; ++ i) {
 	int ierr = fwrite((*array)[i].c_str(), sizeof(char),
 			  (*array)[i].size()+1, fptr);
-	cnt += (int) (ierr > (*array)[i].size());
+	cnt += (int) (ierr > long((*array)[i].size()));
 	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
 	    << "Warning -- colStrings[" << col->partition()->name() << '.'
 	    << col->name() << "]::write failed to string " << (*array)[i]

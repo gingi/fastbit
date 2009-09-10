@@ -28,11 +28,8 @@
 #include <signal.h>
 #include <ctype.h>	// tolower
 #include <cmath>	// std::floor, std::ceil
-#if defined(sun)
-#include <ieeefp.h>
-#elif defined(_WIN32)
 #include <float.h>	// DBL_MAX, _finite
-#endif
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define popen _popen
 #define pclose _pclose
@@ -1810,7 +1807,7 @@ void ibis::part::sortRIDs() const {
 
     // write the sorted rids into -rids.srt
     uint32_t buf[2];
-    int fdes = UnixOpen(name, OPEN_WRITEONLY, OPEN_FILEMODE);
+    int fdes = UnixOpen(name, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	logWarning("sortRIDs", "failed to open file %s for writing ... %s",
 		   name, (errno ? strerror(errno) : "no free stdio stream"));

@@ -87,8 +87,8 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t test0.csv
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t0
 	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv

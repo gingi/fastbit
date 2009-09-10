@@ -15,12 +15,7 @@
 #include <math.h>	// finite
 #include <stdlib.h>
 #include <limits.h>
-#if defined(_WIN32)
 #include <float.h>	// DBL_MAX, _finite
-#endif
-#if defined(unix) && !defined(DBL_MAX)
-#include <values.h>
-#endif
 
 #include <set>		// std::set
 #include <iterator>	// std::ostream_iterator

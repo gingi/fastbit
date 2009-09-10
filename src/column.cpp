@@ -4104,6 +4104,9 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	logWarning("selectValuesT", "incompatible types");
 	return -1;
     }
+    if (mask.cnt() == mask.size())
+	return getValuesArray(&vals);
+
     std::string sname;
     const char *dfn = dataFileName(sname);
     if (dfn == 0)
@@ -5440,10 +5443,9 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
 long ibis::column::append(const char* dt, const char* df,
 			  const uint32_t nold, const uint32_t nnew,
 			  uint32_t nbuf, char* buf) {
-    long ret = 0;
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
 	df == dt || strcmp(dt, df) == 0)
-	return ret;
+	return 0;
     std::string evt = "column[";
     if (thePart != 0)
 	evt += thePart->name();
@@ -5481,18 +5483,19 @@ long ibis::column::append(const char* dt, const char* df,
 	<< to << "\", nold=" << nold << ", nnew=" << nnew;
 
     // open destination file, position the file pointer
-    int dest = UnixOpen(to.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int dest = UnixOpen(to.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
     if (dest < 0) {
-	logWarning("append", "unable to open file \"%s\" for append ... %s",
-		   to.c_str(),
-		   (errno ? strerror(errno) : "no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt <<  " unable to open file \"" << to
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(dest, _O_BINARY);
 #endif
-    uint32_t j = UnixSeek(dest, 0, SEEK_END);
-    uint32_t sz = elem*nold, nnew0 = 0;
+    size_t j = UnixSeek(dest, 0, SEEK_END);
+    size_t sz = elem*nold, nnew0 = 0;
     uint32_t nold0 = j / elem;
     if (nold > nold0) { // existing destination smaller than expected
 	memset(buf, 0, nbuf);
@@ -5504,11 +5507,13 @@ long ibis::column::append(const char* dt, const char* df,
 	    j += diff;
 	}
     }
-    if (UnixSeek(dest, sz, SEEK_SET) < static_cast<long>(sz)) {
+    long ret = UnixSeek(dest, sz, SEEK_SET);
+    if (ret < static_cast<long>(sz)) {
 	// can not move file pointer to the expected location
 	UnixClose(dest);
-	logWarning("append", "failed to seek to %ld in %s",
-		   static_cast<long>(sz), to.c_str());
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning" << evt << " failed to seek to " << sz << " in " << to
+	    << ", seek returned " << ret;
 	return -4;
     }
 
@@ -5539,6 +5544,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    }
 	    ret += (iwrite>0 ? iwrite : 0);
 	}
+
 	UnixClose(src);
 	m_sorted = false; // assume no longer sorted
 	LOGGER(ibis::gVerbose > 8)
@@ -5564,14 +5570,18 @@ long ibis::column::append(const char* dt, const char* df,
 	    j += diff;
 	}
     }
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
     (void) UnixFlush(dest); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+    (void) _commit(dest);
+#endif
 #endif
     UnixClose(dest);
     if (j != sz) {
-	logWarning("append", "file \"%s\" size (%ld) differs from the "
-		   "expected value %ld", to.c_str(),
-		   static_cast<long>(j), static_cast<long>(sz));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " file \"" << to << "\" size (" << j
+	    << ") differs from the expected value " << sz;
 	if (j > sz) //truncate the file to the expected size
 	    truncate(to.c_str(), sz);
     }
@@ -5920,7 +5930,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
     std::string fn = thePart->currentDataDir();
     fn += FASTBIT_DIRSEP;
     fn += m_name;
-    int curr = UnixOpen(fn.c_str(), OPEN_WRITEONLY, OPEN_FILEMODE);
+    int curr = UnixOpen(fn.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
     if (curr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to open file " << fn
@@ -6682,7 +6692,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     mask.adjustSize(nact+nold, nnew+nold);
     if (mask.cnt() < mask.size()) {
 	mask.write(fn);
-	if (ibis::gVerbose > 7)
+	if (ibis::gVerbose > 6)
 	    logMessage("writeData", "null mask in \"%s\" contains %lu set "
 		       "bits and %lu total bits",
 		       fn, static_cast<long unsigned>(mask.cnt()),
