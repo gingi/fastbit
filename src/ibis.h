@@ -217,28 +217,33 @@ comments, bug reports, and patches to <fastbit-users@hpcrdm.lbl.gov>.
 /// could be considered as a short-hand for an implementation of Bitmap
 /// Index Searching system or Ibis Bitmap Index System.
 namespace ibis {
-    /// Initializes internal resources required by ibis.  It must be called
-    /// by user code before any other functions.
+    /// Initializes internal resources required by FastBit code.  It
+    /// should be called by user code before any other functions.
+    ///
     /// @param verbose An integer indicating the level of verboseness.  A
     ///   negative number make ibis silent, otherwise the larger it is the
     ///   more ibis will print out.
     /// @param rcfile A file containing name-value pairs that specifies
-    ///   parameters for controlling the behavior of ibis.  If a file name
-    ///   is not specified, it will attempt to read one of the following
-    ///   file (in the given order).
+    ///   parameters for controlling the behavior of ibis.
+    /// @param mesgfile Name of the file to contain messages printed by
+    ///   FastBit functions.
+    ///
+    /// If an RC file is not specified or the file name is null, this
+    /// function will attempt to read one of the following file (in the
+    /// given order).
     ///   -# a file named in environment variable IBISRC,
     ///   -# a file named ibis.rc in the current working directory,
     ///   -# a file named .ibisrc in the user's home directory.
     ///   .
-    ///   In an RC file, one parameter occupies a line and the equal sign
-    ///   "=" is required to delimit the name and the value, for example,
+    /// In an RC file, one parameter occupies a line and the equal sign
+    /// "=" is required to delimit the name and the value, for example,
     ///
     ///@verbatim
     ///   dataDir = /data/dns
     ///   cacheDir = /tmp/ibiscache
     ///@endverbatim
     ///
-    ///   The minimal recommended parameters of an RC file are
+    /// The minimal recommended parameters of an RC file are
     ///   - dataDir, which can also be written as dataDir1 or indexDir.  It
     ///     tells ibis where to find the data to be queried.  Multiple data
     ///     directories may be specified by adding prefix to the parameter
@@ -247,10 +252,8 @@ namespace ibis {
     ///     directory is used by ibis to write internal data for recovery
     ///     and other purposes.
     ///
-    /// @param mesgfile Name of the file to contain messages printed by
-    /// FastBit functions.  The message file (also called the log file)
-    /// name may also be specified in the RF file under the key logfile,
-    /// e.g.,
+    /// The message file (also called the log file) name may also be
+    /// specified in the RC file under the key logfile, e.g.,
     ///
     ///@verbatim
     ///   logfile = /tmp/ibis.log

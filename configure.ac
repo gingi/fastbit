@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.1.3],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.1.3a],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -69,12 +69,12 @@ AC_CHECK_FUNCS([gettimeofday mkdir] , ,)
 
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug,
-              [AS_HELP_STRING([--enable-debug],[turn on debugging [default: set by autoconf]])],
+              [AS_HELP_STRING([--enable-debug],[turn on debugging (default: set by autoconf)])],
 	      [if test "$enableval" = "yes" ; then debug="yes" ; else debug="no" ; fi],[debug=""])
 AC_MSG_RESULT($debug)
 AC_MSG_CHECKING(whether to enable extra optimization)
 AC_ARG_ENABLE(xopt,
-	      [AS_HELP_STRING([--enable-xopt],[turn on extra optimization [default: no, leave the default CXXFLAGS alone]])],
+	      [AS_HELP_STRING([--enable-xopt],[turn on extra optimization (default: no, leave the default CXXFLAGS alone)])],
 	      [if test "$enableval" = "yes" ; then xopt="yes" ; else xopt="no" ; fi],[xopt="no"])
 AC_MSG_RESULT($xopt)
 if test "x$debug" = "xyes" ; then

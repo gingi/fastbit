@@ -721,6 +721,11 @@ int main(int argc, char** argv) {
 			  << ierr << std::endl;
 	    }
 	    else {
+		if (ibis::gVerbose >= 0)
+		    std::cout << *argv << " read " << ierr << " row"
+			      << (ierr>1?"s":"") << " from " << csvfiles[i]
+			      << std::endl;
+
 		ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
 				 oss.str().c_str());
 		if (ierr < 0) {
@@ -751,6 +756,11 @@ int main(int argc, char** argv) {
 			  << csvfiles[i] << "\", readCSV returned "
 			  << ierr << std::endl;
 	    else {
+		if (ibis::gVerbose >= 0)
+		    std::cout << *argv << " read " << ierr << " row"
+			      << (ierr>1?"s":"") << " from " << csvfiles[i]
+			      << std::endl;
+
 		ierr = ta->write(outdir, dsn, oss.str().c_str());
 		if (ierr < 0) {
 		    std::clog << *argv << " failed to write data in CSV file "

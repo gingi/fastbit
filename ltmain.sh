@@ -1,6 +1,6 @@
 # Generated from ltmain.m4sh.
 
-# libtool (GNU libtool 1.3109 2009-06-18) 2.2.7a
+# libtool (GNU libtool 1.3110 2009-07-01) 2.2.7a
 # Written by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006,
@@ -70,7 +70,7 @@
 #         compiler:		$LTCC
 #         compiler flags:		$LTCFLAGS
 #         linker:		$LD (gnu? $with_gnu_ld)
-#         $progname:	(GNU libtool 1.3109 2009-06-18) 2.2.7a
+#         $progname:	(GNU libtool 1.3110 2009-07-01) 2.2.7a
 #         automake:	$automake_version
 #         autoconf:	$autoconf_version
 #
@@ -79,8 +79,8 @@
 PROGRAM=libtool
 PACKAGE=libtool
 VERSION=2.2.7a
-TIMESTAMP=" 1.3109 2009-06-18"
-package_revision=1.3109
+TIMESTAMP=" 1.3110 2009-07-01"
+package_revision=1.3110
 
 # Be Bourne compatible
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
@@ -3036,7 +3036,134 @@ func_fallback_echo ()
 _LTECHO_EOF'
 }
     ECHO=\"$qECHO\"
-  fi\
+  fi
+
+# Very basic option parsing. These options are (a) specific to
+# the libtool wrapper, (b) are identical between the wrapper
+# /script/ and the wrapper /executable/ which is used only on
+# windows platforms, and (c) all exist in the "--lt-" namespace
+# (application programs are unlikely to have options which match
+# this pattern).
+#
+# There are only two supported options: --lt-debug and
+# --lt-dump-script. There is, deliberately, no --lt-help.
+#
+# The first argument to this parsing function should be the
+# script's $0 value, followed by "$@".
+lt_option_debug=
+func_parse_lt_options ()
+{
+  lt_script_arg0=\$0
+  shift
+  for lt_opt
+  do
+    case \"\$lt_opt\" in
+    --lt-debug) lt_option_debug=1 ;;
+    --lt-dump-script)
+        lt_dump_D=\`\$ECHO \"X\$lt_script_arg0\" | $SED -e 's/^X//' -e 's%/[^/]*$%%'\`
+        test \"X\$lt_dump_D\" = \"X\$lt_script_arg0\" && lt_dump_D=.
+        lt_dump_F=\`\$ECHO \"X\$lt_script_arg0\" | $SED -e 's/^X//' -e 's%^.*/%%'\`
+        cat \"\$lt_dump_D/\$lt_dump_F\"
+        exit 0
+      ;;
+    --lt-*)
+        \$ECHO \"Unrecognized --lt- option: '\$lt_opt'\" 1>&2
+        exit 1
+      ;;
+    esac
+  done
+}
+
+# Sets opts_contain_lt_result to \"yes\" if the
+# supplied arguments contain any elements in the
+# --lt-* namespace. Empty otherwise.
+opts_contain_lt_result=
+func_opts_contain_lt ()
+{
+  opts_contain_lt_result=
+  for lt_option
+  do
+    case \"\$lt_option\" in
+    --lt-*) opts_contain_lt_result=yes
+            break ;;
+    *) ;;
+    esac
+  done
+}
+
+# Used when --lt-debug. Prints its arguments to stdout
+# (redirection is the responsibility of the caller)
+func_lt_dump_args ()
+{
+  lt_dump_args_N=1;
+  for lt_arg
+  do
+    \$ECHO \"(main) newargz[\$lt_dump_args_N]   : \$lt_arg\"
+    lt_dump_args_N=\`expr \$lt_dump_args_N + 1\`
+  done
+}
+
+# Core function for launching the target application
+func_exec_program_core ()
+{
+"
+  case $host in
+  # Backslashes separate directories on plain windows
+  *-*-mingw | *-*-os2* | *-cegcc*)
+    $ECHO "\
+      if test -n \"\$lt_option_debug\"; then
+        \$ECHO \"(main) lt_argv_zero : \$progdir\\\\\$program\" 1>&2
+        func_lt_dump_args \${1+\"\$@\"} 1>&2
+      fi
+      exec \"\$progdir\\\\\$program\" \${1+\"\$@\"}
+"
+    ;;
+
+  *)
+    $ECHO "\
+      if test -n \"\$lt_option_debug\"; then
+        \$ECHO \"(main) lt_argv_zero : \$progdir/\$program\" 1>&2
+        func_lt_dump_args \${1+\"\$@\"} 1>&2
+      fi
+      exec \"\$progdir/\$program\" \${1+\"\$@\"}
+"
+    ;;
+  esac
+  $ECHO "\
+      \$ECHO \"\$0: cannot exec \$program \$*\" 1>&2
+      exit 1
+}
+
+# A function to encapsulate launching the target application
+# Strips options in the --lt-* namespace from \$@ and
+# launches target application with the remaining arguments.
+func_exec_program ()
+{
+  func_opts_contain_lt \${1+\"\$@\"}
+  if test -n \"\$opts_contain_lt_result\"; then
+    # the following is adapted from _AC_INIT_PREPARE, except
+    # (1) we don't care about duplicates, and
+    # (2) we strip out --lt-*, not --no-create/--no-recursion/--silent
+    lt_wrapper_args=
+    for lt_wr_arg
+    do
+      case \$lt_wr_arg in
+      --lt-*) continue ;;
+      *\\'*)
+        lt_wr_arg=\`\$ECHO \"X\$lt_wr_arg\" |
+          $SED -e \"s/^X//\" -e \"s/'/'\\\\\\\\\\\\\\\\''/g\"\`
+        ;;
+      esac
+      lt_wrapper_args=\"\$lt_wrapper_args '\$lt_wr_arg'\"
+    done
+    eval func_exec_program_core \$lt_wrapper_args
+  else
+    func_exec_program_core \${1+\"\$@\"}
+  fi
+}
+
+  # Parse options
+  func_parse_lt_options \"\$0\" \${1+\"\$@\"}
 
   # Find the directory that this script lives in.
   thisdir=\`\$ECHO \"\$file\" | $SED 's%/[^/]*$%%'\`
@@ -3149,24 +3276,7 @@ _LTECHO_EOF'
 	$ECHO "\
     if test \"\$libtool_execute_magic\" != \"$magic\"; then
       # Run the actual program with our arguments.
-"
-	case $host in
-	# Backslashes separate directories on plain windows
-	*-*-mingw | *-*-os2* | *-cegcc*)
-	  $ECHO "\
-      exec \"\$progdir\\\\\$program\" \${1+\"\$@\"}
-"
-	  ;;
-
-	*)
-	  $ECHO "\
-      exec \"\$progdir/\$program\" \${1+\"\$@\"}
-"
-	  ;;
-	esac
-	$ECHO "\
-      \$ECHO \"\$0: cannot exec \$program \$*\" 1>&2
-      exit 1
+      func_exec_program \${1+\"\$@\"}
     fi
   else
     # The program doesn't exist.
@@ -3913,19 +4023,10 @@ int setenv (const char *, const char *, int);
   if (stale) { free ((void *) stale); stale = 0; } \
 } while (0)
 
-#undef LTWRAPPER_DEBUGPRINTF
-#if defined LT_DEBUGWRAPPER
-# define LTWRAPPER_DEBUGPRINTF(args) ltwrapper_debugprintf args
-static void
-ltwrapper_debugprintf (const char *fmt, ...)
-{
-    va_list args;
-    va_start (args, fmt);
-    (void) vfprintf (stderr, fmt, args);
-    va_end (args);
-}
+#if defined(LT_DEBUGWRAPPER)
+static int lt_debug = 1;
 #else
-# define LTWRAPPER_DEBUGPRINTF(args)
+static int lt_debug = 0;
 #endif
 
 const char *program_name = NULL;
@@ -3938,17 +4039,15 @@ char *chase_symlinks (const char *pathspec);
 int make_executable (const char *path);
 int check_executable (const char *path);
 char *strendzap (char *str, const char *pat);
+void lt_debugprintf (const char *fmt, ...);
 void lt_fatal (const char *message, ...);
 void lt_setenv (const char *name, const char *value);
 char *lt_extend_str (const char *orig_value, const char *add, int to_end);
-void lt_opt_process_env_set (const char *arg);
-void lt_opt_process_env_prepend (const char *arg);
-void lt_opt_process_env_append (const char *arg);
-int lt_split_name_value (const char *arg, char** name, char** value);
 void lt_update_exe_path (const char *name, const char *value);
 void lt_update_lib_path (const char *name, const char *value);
 char **prepare_spawn (char **argv);
 void lt_dump_script (FILE *f);
+
 EOF
 
 	    cat <<EOF
@@ -4000,18 +4099,10 @@ static const size_t opt_prefix_len         = LTWRAPPER_OPTION_PREFIX_LENGTH;
 static const char *ltwrapper_option_prefix = LTWRAPPER_OPTION_PREFIX;
 
 static const char *dumpscript_opt       = LTWRAPPER_OPTION_PREFIX "dump-script";
+static const size_t dumpscript_opt_len  = LTWRAPPER_OPTION_PREFIX_LENGTH + 11;
 
-static const size_t env_set_opt_len     = LTWRAPPER_OPTION_PREFIX_LENGTH + 7;
-static const char *env_set_opt          = LTWRAPPER_OPTION_PREFIX "env-set";
-  /* argument is putenv-style "foo=bar", value of foo is set to bar */
-
-static const size_t env_prepend_opt_len = LTWRAPPER_OPTION_PREFIX_LENGTH + 11;
-static const char *env_prepend_opt      = LTWRAPPER_OPTION_PREFIX "env-prepend";
-  /* argument is putenv-style "foo=bar", new value of foo is bar${foo} */
-
-static const size_t env_append_opt_len  = LTWRAPPER_OPTION_PREFIX_LENGTH + 10;
-static const char *env_append_opt       = LTWRAPPER_OPTION_PREFIX "env-append";
-  /* argument is putenv-style "foo=bar", new value of foo is ${foo}bar */
+static const char *debug_opt            = LTWRAPPER_OPTION_PREFIX "debug";
+static const size_t debug_opt_len       = LTWRAPPER_OPTION_PREFIX_LENGTH + 5;
 
 int
 main (int argc, char *argv[])
@@ -4028,13 +4119,16 @@ main (int argc, char *argv[])
   int i;
 
   program_name = (char *) xstrdup (base_name (argv[0]));
-  LTWRAPPER_DEBUGPRINTF (("(main) argv[0]      : %s\n", argv[0]));
-  LTWRAPPER_DEBUGPRINTF (("(main) program_name : %s\n", program_name));
+  newargz = XMALLOC (char *, argc + 1);
 
-  /* very simple arg parsing; don't want to rely on getopt */
+  /* very simple arg parsing; don't want to rely on getopt
+   * also, copy all non cwrapper options to newargz, except
+   * argz[0], which is handled differently
+   */
+  newargc=0;
   for (i = 1; i < argc; i++)
     {
-      if (strcmp (argv[i], dumpscript_opt) == 0)
+      if (strncmp (argv[i], dumpscript_opt, dumpscript_opt_len) == 0)
 	{
 EOF
 	    case "$host" in
@@ -4048,18 +4142,43 @@ EOF
 	  lt_dump_script (stdout);
 	  return 0;
 	}
+      if (strncmp (argv[i], debug_opt, debug_opt_len) == 0)
+	{
+          lt_debug = 1;
+          continue;
+	}
+      if (strncmp (argv[i], ltwrapper_option_prefix, opt_prefix_len) == 0)
+        {
+          /* however, if there is an option in the LTWRAPPER_OPTION_PREFIX
+             namespace, but it is not one of the ones we know about and
+             have already dealt with, above (inluding dump-script), then
+             report an error. Otherwise, targets might begin to believe
+             they are allowed to use options in the LTWRAPPER_OPTION_PREFIX
+             namespace. The first time any user complains about this, we'll
+             need to make LTWRAPPER_OPTION_PREFIX a configure-time option
+             or a configure.ac-settable value.
+           */
+          lt_fatal ("Unrecognized %s option: '%s'",
+                    ltwrapper_option_prefix, argv[i]);
+        }
+      /* otherwise ... */
+      newargz[++newargc] = xstrdup (argv[i]);
     }
+  newargz[++newargc] = NULL;
 
-  newargz = XMALLOC (char *, argc + 1);
+  /* first use of lt_debugprintf AFTER parsing options */
+  lt_debugprintf ("(main) argv[0]      : %s\n", argv[0]);
+  lt_debugprintf ("(main) program_name : %s\n", program_name);
+
   tmp_pathspec = find_executable (argv[0]);
   if (tmp_pathspec == NULL)
     lt_fatal ("Couldn't find %s", argv[0]);
-  LTWRAPPER_DEBUGPRINTF (("(main) found exe (before symlink chase) at : %s\n",
-			  tmp_pathspec));
+  lt_debugprintf ("(main) found exe (before symlink chase) at : %s\n",
+		  tmp_pathspec);
 
   actual_cwrapper_path = chase_symlinks (tmp_pathspec);
-  LTWRAPPER_DEBUGPRINTF (("(main) found exe (after symlink chase) at : %s\n",
-			  actual_cwrapper_path));
+  lt_debugprintf ("(main) found exe (after symlink chase) at : %s\n",
+		  actual_cwrapper_path);
   XFREE (tmp_pathspec);
 
   actual_cwrapper_name = xstrdup( base_name (actual_cwrapper_path));
@@ -4080,8 +4199,8 @@ EOF
   target_name = tmp_pathspec;
   tmp_pathspec = 0;
 
-  LTWRAPPER_DEBUGPRINTF (("(main) libtool target name: %s\n",
-			  target_name));
+  lt_debugprintf ("(main) libtool target name: %s\n",
+		  target_name);
 EOF
 
 	    cat <<EOF
@@ -4134,77 +4253,10 @@ EOF
   lt_update_lib_path (LIB_PATH_VARNAME, LIB_PATH_VALUE);
   lt_update_exe_path (EXE_PATH_VARNAME, EXE_PATH_VALUE);
 
-  newargc=0;
-  for (i = 1; i < argc; i++)
-    {
-      if (strncmp (argv[i], env_set_opt, env_set_opt_len) == 0)
-        {
-          if (argv[i][env_set_opt_len] == '=')
-            {
-              const char *p = argv[i] + env_set_opt_len + 1;
-              lt_opt_process_env_set (p);
-            }
-          else if (argv[i][env_set_opt_len] == '\0' && i + 1 < argc)
-            {
-              lt_opt_process_env_set (argv[++i]); /* don't copy */
-            }
-          else
-            lt_fatal ("%s missing required argument", env_set_opt);
-          continue;
-        }
-      if (strncmp (argv[i], env_prepend_opt, env_prepend_opt_len) == 0)
-        {
-          if (argv[i][env_prepend_opt_len] == '=')
-            {
-              const char *p = argv[i] + env_prepend_opt_len + 1;
-              lt_opt_process_env_prepend (p);
-            }
-          else if (argv[i][env_prepend_opt_len] == '\0' && i + 1 < argc)
-            {
-              lt_opt_process_env_prepend (argv[++i]); /* don't copy */
-            }
-          else
-            lt_fatal ("%s missing required argument", env_prepend_opt);
-          continue;
-        }
-      if (strncmp (argv[i], env_append_opt, env_append_opt_len) == 0)
-        {
-          if (argv[i][env_append_opt_len] == '=')
-            {
-              const char *p = argv[i] + env_append_opt_len + 1;
-              lt_opt_process_env_append (p);
-            }
-          else if (argv[i][env_append_opt_len] == '\0' && i + 1 < argc)
-            {
-              lt_opt_process_env_append (argv[++i]); /* don't copy */
-            }
-          else
-            lt_fatal ("%s missing required argument", env_append_opt);
-          continue;
-        }
-      if (strncmp (argv[i], ltwrapper_option_prefix, opt_prefix_len) == 0)
-        {
-          /* however, if there is an option in the LTWRAPPER_OPTION_PREFIX
-             namespace, but it is not one of the ones we know about and
-             have already dealt with, above (inluding dump-script), then
-             report an error. Otherwise, targets might begin to believe
-             they are allowed to use options in the LTWRAPPER_OPTION_PREFIX
-             namespace. The first time any user complains about this, we'll
-             need to make LTWRAPPER_OPTION_PREFIX a configure-time option
-             or a configure.ac-settable value.
-           */
-          lt_fatal ("Unrecognized option in %s namespace: '%s'",
-                    ltwrapper_option_prefix, argv[i]);
-        }
-      /* otherwise ... */
-      newargz[++newargc] = xstrdup (argv[i]);
-    }
-  newargz[++newargc] = NULL;
-
-  LTWRAPPER_DEBUGPRINTF     (("(main) lt_argv_zero : %s\n", (lt_argv_zero ? lt_argv_zero : "<NULL>")));
+  lt_debugprintf     ("(main) lt_argv_zero : %s\n", (lt_argv_zero ? lt_argv_zero : "<NULL>"));
   for (i = 0; i < newargc; i++)
     {
-      LTWRAPPER_DEBUGPRINTF (("(main) newargz[%d]   : %s\n", i, (newargz[i] ? newargz[i] : "<NULL>")));
+      lt_debugprintf ("(main) newargz[%d]   : %s\n", i, (newargz[i] ? newargz[i] : "<NULL>"));
     }
 
 EOF
@@ -4218,7 +4270,7 @@ EOF
   if (rval == -1)
     {
       /* failed to start process */
-      LTWRAPPER_DEBUGPRINTF (("(main) failed to launch target \"%s\": errno = %d\n", lt_argv_zero, errno));
+      lt_debugprintf ("(main) failed to launch target \"%s\": errno = %d\n", lt_argv_zero, errno);
       return 127;
     }
   return rval;
@@ -4274,8 +4326,8 @@ check_executable (const char *path)
 {
   struct stat st;
 
-  LTWRAPPER_DEBUGPRINTF (("(check_executable)  : %s\n",
-			  path ? (*path ? path : "EMPTY!") : "NULL!"));
+  lt_debugprintf ("(check_executable)  : %s\n",
+		  path ? (*path ? path : "EMPTY!") : "NULL!");
   if ((!path) || (!*path))
     return 0;
 
@@ -4292,8 +4344,8 @@ make_executable (const char *path)
   int rval = 0;
   struct stat st;
 
-  LTWRAPPER_DEBUGPRINTF (("(make_executable)   : %s\n",
-			  path ? (*path ? path : "EMPTY!") : "NULL!"));
+  lt_debugprintf ("(make_executable)   : %s\n",
+		  path ? (*path ? path : "EMPTY!") : "NULL!");
   if ((!path) || (!*path))
     return 0;
 
@@ -4319,8 +4371,8 @@ find_executable (const char *wrapper)
   int tmp_len;
   char *concat_name;
 
-  LTWRAPPER_DEBUGPRINTF (("(find_executable)   : %s\n",
-			  wrapper ? (*wrapper ? wrapper : "EMPTY!") : "NULL!"));
+  lt_debugprintf ("(find_executable)   : %s\n",
+		  wrapper ? (*wrapper ? wrapper : "EMPTY!") : "NULL!");
 
   if ((wrapper == NULL) || (*wrapper == '\0'))
     return NULL;
@@ -4424,8 +4476,8 @@ chase_symlinks (const char *pathspec)
   int has_symlinks = 0;
   while (strlen (tmp_pathspec) && !has_symlinks)
     {
-      LTWRAPPER_DEBUGPRINTF (("checking path component for symlinks: %s\n",
-			      tmp_pathspec));
+      lt_debugprintf ("checking path component for symlinks: %s\n",
+		      tmp_pathspec);
       if (lstat (tmp_pathspec, &s) == 0)
 	{
 	  if (S_ISLNK (s.st_mode) != 0)
@@ -4487,6 +4539,18 @@ strendzap (char *str, const char *pat)
   return str;
 }
 
+void
+lt_debugprintf (const char *fmt, ...)
+{
+  va_list args;
+  if (lt_debug)
+    {
+      va_start (args, fmt);
+      (void) vfprintf (stderr, fmt, args);
+      va_end (args);
+    }
+}
+
 static void
 lt_error_core (int exit_status, const char *mode,
 	       const char *message, va_list ap)
@@ -4511,9 +4575,9 @@ lt_fatal (const char *message, ...)
 void
 lt_setenv (const char *name, const char *value)
 {
-  LTWRAPPER_DEBUGPRINTF (("(lt_setenv) setting '%s' to '%s'\n",
-                          (name ? name : "<NULL>"),
-                          (value ? value : "<NULL>")));
+  lt_debugprintf ("(lt_setenv) setting '%s' to '%s'\n",
+                  (name ? name : "<NULL>"),
+                  (value ? value : "<NULL>"));
   {
 #ifdef HAVE_SETENV
     /* always make a copy, for consistency with !HAVE_SETENV */
@@ -4558,95 +4622,12 @@ lt_extend_str (const char *orig_value, const char *add, int to_end)
   return new_value;
 }
 
-int
-lt_split_name_value (const char *arg, char** name, char** value)
-{
-  const char *p;
-  int len;
-  if (!arg || !*arg)
-    return 1;
-
-  p = strchr (arg, (int)'=');
-
-  if (!p)
-    return 1;
-
-  *value = xstrdup (++p);
-
-  len = strlen (arg) - strlen (*value);
-  *name = XMALLOC (char, len);
-  strncpy (*name, arg, len-1);
-  (*name)[len - 1] = '\0';
-
-  return 0;
-}
-
-void
-lt_opt_process_env_set (const char *arg)
-{
-  char *name = NULL;
-  char *value = NULL;
-
-  if (lt_split_name_value (arg, &name, &value) != 0)
-    {
-      XFREE (name);
-      XFREE (value);
-      lt_fatal ("bad argument for %s: '%s'", env_set_opt, arg);
-    }
-
-  lt_setenv (name, value);
-  XFREE (name);
-  XFREE (value);
-}
-
-void
-lt_opt_process_env_prepend (const char *arg)
-{
-  char *name = NULL;
-  char *value = NULL;
-  char *new_value = NULL;
-
-  if (lt_split_name_value (arg, &name, &value) != 0)
-    {
-      XFREE (name);
-      XFREE (value);
-      lt_fatal ("bad argument for %s: '%s'", env_prepend_opt, arg);
-    }
-
-  new_value = lt_extend_str (getenv (name), value, 0);
-  lt_setenv (name, new_value);
-  XFREE (new_value);
-  XFREE (name);
-  XFREE (value);
-}
-
-void
-lt_opt_process_env_append (const char *arg)
-{
-  char *name = NULL;
-  char *value = NULL;
-  char *new_value = NULL;
-
-  if (lt_split_name_value (arg, &name, &value) != 0)
-    {
-      XFREE (name);
-      XFREE (value);
-      lt_fatal ("bad argument for %s: '%s'", env_append_opt, arg);
-    }
-
-  new_value = lt_extend_str (getenv (name), value, 1);
-  lt_setenv (name, new_value);
-  XFREE (new_value);
-  XFREE (name);
-  XFREE (value);
-}
-
 void
 lt_update_exe_path (const char *name, const char *value)
 {
-  LTWRAPPER_DEBUGPRINTF (("(lt_update_exe_path) modifying '%s' by prepending '%s'\n",
-                          (name ? name : "<NULL>"),
-                          (value ? value : "<NULL>")));
+  lt_debugprintf ("(lt_update_exe_path) modifying '%s' by prepending '%s'\n",
+                  (name ? name : "<NULL>"),
+                  (value ? value : "<NULL>"));
 
   if (name && *name && value && *value)
     {
@@ -4665,9 +4646,9 @@ lt_update_exe_path (const char *name, const char *value)
 void
 lt_update_lib_path (const char *name, const char *value)
 {
-  LTWRAPPER_DEBUGPRINTF (("(lt_update_lib_path) modifying '%s' by prepending '%s'\n",
-                          (name ? name : "<NULL>"),
-                          (value ? value : "<NULL>")));
+  lt_debugprintf ("(lt_update_lib_path) modifying '%s' by prepending '%s'\n",
+                  (name ? name : "<NULL>"),
+                  (value ? value : "<NULL>"));
 
   if (name && *name && value && *value)
     {

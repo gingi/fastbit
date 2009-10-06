@@ -6,7 +6,7 @@ Version ibis1.1.3
    category.h and category.cpp, a feature request by Matthias Vallentin)
 -- add ibis::util::guard class as an implementation of ScopeGuard
    (Andrei Alexandrescu and Petru Marginean, Generic: Change the Way You
-   Write Exception-Safe Code — Forever, <http://www.ddj.com/cpp/184403758>)
+   Write Exception-Safe Code -- Forever, <http://www.ddj.com/cpp/184403758>)
 -- incorporate a bug fix from Alexandre Maurel to address problems in
    function segment in ibis::colValues hierarchy (Alexandre's original
    fix was for ibis::colFloats only)
