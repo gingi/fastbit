@@ -3489,7 +3489,7 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
 } // ibis::bord::column::selectFloats
 
 /// Put the selected values into an array as doubles.
-/// @note Any column type could be selected as doubles.  Other selectXXXs
+/// @note Any column type could be selected as doubles.  Other selectXXs
 /// function only work on the same data type.  This is the only function
 /// that allows one to convert to a different type.  This is mainly to 
 ibis::array_t<double>*

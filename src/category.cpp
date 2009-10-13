@@ -2559,7 +2559,7 @@ const char* ibis::text::findString(const char *str) const {
 	return 0;
 } // ibis::text::findString
 
-// check indexSpec first for docIDName=xxx for the name of the ID column,
+// check indexSpec first for docIDName=xx for the name of the ID column,
 // then check global parameter <table-name>.<column-name>.docIDName.
 const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
     const ibis::column* idcol = 0;

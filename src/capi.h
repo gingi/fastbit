@@ -107,7 +107,7 @@ extern "C" {
 
     /// Return the number of hits in the query.  It is also the number of
     /// rows in the result set.  The arrays returned by
-    /// gastbit_get_qualified_xxx shall have this many elements.
+    /// fastbit_get_qualified_floats shall have this many elements.
     FASTBIT_DLLSPEC int fastbit_get_result_rows(FastBitQueryHandle query);
     /// Count the number of columns selected in the select clause of the
     /// query.

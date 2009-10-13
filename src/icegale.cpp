@@ -343,11 +343,11 @@ int ibis::egale::read(const char* f) {
     end += sizeof(int32_t) * (nbits + 1);
     if (trymmap && nbits > ibis::fileManager::pageSize()) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     // cnts
     begin = end;
@@ -391,8 +391,8 @@ int ibis::egale::read(const char* f) {
 	bits[i] = 0;
 
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {// read the first bitvector
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {// read the first bitvector
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 #if defined(WAH_CHECK_SIZE)
 	if (bits[0]->size() != nrows)
@@ -482,7 +482,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 	    bits[0]->set(0, nrows);
 	}
 #endif
-	offsets.swap(offs);
+	offset32.swap(offs);
 	str = st;
     }
     else { // regenerate every bitvector because all are in memory
@@ -1523,8 +1523,8 @@ double ibis::egale::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes() * (nbases+1) < nbv);
-	else if (offsets.size() > nbits)
-	    here = (static_cast<uint32_t>(offsets[nbits] * (nbases+1)) < nbv);
+	else if (offset32.size() > nbits)
+	    here = (static_cast<uint32_t>(offset32[nbits] * (nbases+1)) < nbv);
     }
     if (here) {
 	ret = computeSum();

@@ -31,7 +31,7 @@ public:
     bin(const ibis::bin& rhs);
     bin(const ibis::column* c=0, const char* f=0);
     bin(const ibis::column* c, ibis::fileManager::storage* st,
-	uint32_t offset = 8);
+	size_t offset = 8);
     bin(const ibis::column* c, const char* f, const array_t<double>& bd);
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
 
@@ -124,7 +124,7 @@ public:
     virtual double getSum() const;
 
     /// Read an ibis::bin embedded inside a file.
-    int read(int fdes, uint32_t offset, const char *fname);
+    int read(int fdes, size_t offset, const char *fname, const char *header);
     /// Append the @c tail to this index.
     long append(const ibis::bin& tail);
     /// Append a list of integers representing bin numbers.
@@ -177,7 +177,7 @@ protected:
 
     /// A constructor to accommodate multicomponent encodings.
     bin(const ibis::column* c, const uint32_t nbits,
-	ibis::fileManager::storage* st, uint32_t offset = 8);
+	ibis::fileManager::storage* st, size_t offset = 8);
 
     /// Construct a binned bitmap index.
     void construct(const char*);
@@ -276,9 +276,9 @@ protected:
 	bits.swap(rhs.bits);
     } // swap
 
-    // free current resources, re-initialize all member variables
     virtual void clear();
-    int write(int fptr) const; // write to an open file
+    int write32(int fptr) const;
+    int write64(int fptr) const;
 
 private:
     // private member functions
@@ -421,7 +421,7 @@ public:
     virtual ~range() {};
     range(const ibis::column* c=0, const char* f=0);
     range(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     explicit range(const ibis::bin& rhs); // convert a bin to a range
 
     virtual int read(const char* idxfile);
@@ -457,7 +457,7 @@ public:
     virtual double getSum() const;
 
     /// Read an ibis::ragne embedded with multiple data structures.
-    int read(int fdes, uint32_t offset, const char *fname);
+    int read(int fdes, size_t offset, const char *fname);
     long append(const ibis::range& tail);
     virtual void speedTest(std::ostream& out) const;
 
@@ -497,7 +497,7 @@ public:
     virtual ~mesa() {};
     mesa(const ibis::column* c=0, const char* f=0);
     mesa(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t offset = 8);
     explicit mesa(const ibis::bin& rhs); // convert a bin to a mesa
 
     virtual void print(std::ostream& out) const;
@@ -551,7 +551,7 @@ public:
     virtual ~ambit() {clear();};
     ambit(const ibis::column* c=0, const char* f=0);
     ambit(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     explicit ambit(const ibis::bin& rhs); // convert from a ibis::bin
 
     virtual int read(const char* idxfile);
@@ -598,7 +598,7 @@ private:
 
     // private member functions
     int write(int fptr) const;
-    int read(int fdes, uint32_t offset, const char *fn);
+    int read(int fdes, size_t offset, const char *fn);
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
 	      const double& rbound) const;
 
@@ -612,7 +612,7 @@ class ibis::pale : public ibis::bin {
 public:
     virtual ~pale() {clear();};
     pale(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t offset = 8);
     explicit pale(const ibis::bin& rhs); // convert from a ibis::bin
 
     virtual int read(const char* idxfile);
@@ -665,7 +665,7 @@ class ibis::pack : public ibis::bin {
 public:
     virtual ~pack() {clear();};
     pack(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     explicit pack(const ibis::bin& rhs); // convert from a ibis::bin
 
     virtual int read(const char* idxfile);
@@ -722,7 +722,7 @@ class ibis::zone : public ibis::bin {
 public:
     virtual ~zone() {clear();};
     zone(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t offset = 8);
     explicit zone(const ibis::bin& rhs); // convert from a ibis::bin
 
     virtual int read(const char* idxfile);
@@ -778,7 +778,7 @@ class ibis::fuge : public ibis::bin {
 public:
     virtual ~fuge() {clear();};
     fuge(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t offset = 8);
     fuge(const ibis::column*, const char*);
     explicit fuge(const ibis::bin& rhs); // convert from a ibis::bin
 
@@ -841,7 +841,7 @@ public:
     egale(const ibis::column* c = 0, const char* f = 0,
 	  const uint32_t nbase = 2);
     egale(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     egale(const ibis::bin& rhs, const uint32_t nbase = 2);
 
     virtual int read(const char* idxfile);
@@ -935,7 +935,7 @@ public:
     moins(const ibis::column* c = 0, const char* f = 0,
 	  const uint32_t nbase = 2);
     moins(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     moins(const ibis::bin& rhs, const uint32_t nbase = 2);
 
     virtual void speedTest(std::ostream& out) const;
@@ -970,7 +970,7 @@ public:
     entre(const ibis::column* c = 0, const char* f = 0,
 	  const uint32_t nbase = 2);
     entre(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t offset = 8);
     entre(const ibis::bin& rhs, const uint32_t nbase = 2);
 
     virtual int write(const char* dt) const;
@@ -1025,7 +1025,7 @@ public:
     virtual ~bak() {clear();};
     bak(const ibis::column* c=0, const char* f=0);
     bak(const ibis::column* c, ibis::fileManager::storage* st,
-	uint32_t offset = 8) : ibis::bin(c, st, offset) {};
+	size_t offset = 8) : ibis::bin(c, st, offset) {};
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const; // write to the named file
@@ -1093,7 +1093,7 @@ public:
     virtual ~bak2() {clear();};
     bak2(const ibis::column* c=0, const char* f=0);
     bak2(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8) : ibis::bin(c, st, offset) {};
+	 size_t offset = 8) : ibis::bin(c, st, offset) {};
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const; // write to the named file

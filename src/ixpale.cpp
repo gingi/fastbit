@@ -382,11 +382,11 @@ int ibis::pale::read(const char* f) {
     end = begin + (nobs+1)*sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // read bounds
@@ -458,8 +458,8 @@ int ibis::pale::read(const char* f) {
 	delete bits[i];
     bits.resize(nobs);
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)

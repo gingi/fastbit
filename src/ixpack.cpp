@@ -301,7 +301,7 @@ int ibis::pack::write(int fdes) const {
 	for (i = 0; i < nobs; ++i) {
 	    offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (sub[i])
-		sub[i]->write(fdes);
+		sub[i]->write32(fdes);
 	}
 	offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
     }
@@ -384,11 +384,11 @@ int ibis::pack::read(const char* f) {
     end = begin + (nobs+1) * sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // read bounds
@@ -477,8 +477,8 @@ int ibis::pack::read(const char* f) {
 	delete bits[i];
     bits.resize(nobs);
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -527,7 +527,7 @@ int ibis::pack::read(const char* f) {
 	if (nextlevel[i] < nextlevel[i+1]) {
 	    sub[i] = new ibis::bin(0);
 	    sub[i]->col = col;
-	    sub[i]->read(fdes, nextlevel[i], fname);
+	    sub[i]->read(fdes, nextlevel[i], fname, header);
 	}
 	else if (nextlevel[i] == nextlevel[i+1]) {
 	    sub[i] = 0;
@@ -2552,8 +2552,8 @@ double ibis::pack::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes()*2 < nbv);
-	else if (offsets.size() > nobs)
-	    here = (static_cast<uint32_t>(offsets[nobs]*2) < nbv);
+	else if (offset32.size() > nobs)
+	    here = (static_cast<uint32_t>(offset32[nobs]*2) < nbv);
     }
     if (here) {
 	ret = computeSum();

@@ -232,11 +232,11 @@ int ibis::slice::read(const char* f) {
     end += sizeof(int32_t) * (dim[1] + 1);
     if (trymmap && dim[1] > ibis::fileManager::pageSize()) {
 	array_t<int32_t> tmp(fnm.c_str(), begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // cnts
@@ -253,16 +253,16 @@ int ibis::slice::read(const char* f) {
 
     bits.resize(dim[1]);
     // read all bitvectors in one-shot
-    array_t<ibis::bitvector::word_t> all(fdes, offsets[0], offsets[dim[1]]);
+    array_t<ibis::bitvector::word_t> all(fdes, offset32[0], offset32[dim[1]]);
     ierr = UnixClose(fdes);
 
     // reconstitute the bitvector objects
     for (uint32_t j = 0; j < dim[1]; ++j) {
-	if (offsets[j+1] > offsets[j]) {
+	if (offset32[j+1] > offset32[j]) {
 	    array_t<ibis::bitvector::word_t>
 		a(all,
-		  (offsets[j]-offsets[0])/sizeof(ibis::bitvector::word_t),
-		  (offsets[j+1]-offsets[j])/sizeof(ibis::bitvector::word_t));
+		  (offset32[j]-offset32[0])/sizeof(ibis::bitvector::word_t),
+		  (offset32[j+1]-offset32[j])/sizeof(ibis::bitvector::word_t));
 	    bits[j] = new ibis::bitvector(a);
 	    bits[j]->sloppySize(nrows);
 	}
@@ -270,7 +270,7 @@ int ibis::slice::read(const char* f) {
 	    bits[j] = 0;
 	}
     }
-    ibis::fileManager::instance().recordPages(0, offsets[dim[1]]);
+    ibis::fileManager::instance().recordPages(0, offset32[dim[1]]);
     return 0;
 } // ibis::slice::read
 

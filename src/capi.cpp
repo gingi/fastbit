@@ -47,7 +47,7 @@ private:
 // Can not rely on the automatic deallocation of static variable because it
 // require the resources hold by another static variable
 // (ibis::fileManager::instance()).  The two static variables may be
-// deallocated in undetermined order.  Change to use a local pointer and
+// deallocated in unpredictable order.  Change to use a local pointer and
 // use init and cleanup function to manage its content.
 static fastbit_part_list *_capi_tlist=0;
 // The pointer to the in-memory buffer used to store new data records.
@@ -1096,8 +1096,8 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 } // fastbit_get_qualified_doubles
 
 /// This initialization function may optionally read a configuration file.
-/// May pass in a nil pointer if one is expected to use use the default
-/// configuartion files listed in the documentation of
+/// May pass in a nil pointer as rcfile if one is expected to use use the
+/// default configuartion files listed in the documentation of
 /// ibis::resources::read.  One may call this function multiple times to
 /// read multiple configuration files to modify the parameters.
 extern "C" void fastbit_init(const char *rcfile) {
@@ -1108,8 +1108,10 @@ extern "C" void fastbit_init(const char *rcfile) {
 	_capi_tlist = new fastbit_part_list;
 } // fastbit_init
 
-///@note Must call call fastbit_destroy_query on each query handle before
-/// calling this function.
+/// This function releases the list of data partitions.  It is expected to
+/// be te last function to be called by the user.  Since there is no
+/// centralized list of query objects, the user is responsible for freeing
+/// the resources held by each query object.
 extern "C" void fastbit_cleanup(void) {
     ibis::util::mutexLock lock(&ibis::util::envLock, "fastbit_cleanup");
     if (_capi_tlist != 0) {

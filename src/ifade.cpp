@@ -263,11 +263,11 @@ int ibis::fade::read(const char* f) {
     end += sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     // nbases, cnts, and bases
     uint32_t nb;
@@ -311,8 +311,8 @@ int ibis::fade::read(const char* f) {
     for (uint32_t i = 0; i < dim[1]; ++i)
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 	bits[0]->sloppySize(nrows);
     }
@@ -373,7 +373,7 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
 	bits[0] = new ibis::bitvector(a0);
 	bits[0]->sloppySize(nrows);
 #endif
-	offsets.swap(offs);
+	offset32.swap(offs);
 	str = st;
     }
     else {

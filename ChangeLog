@@ -1,3 +1,29 @@
+2009-10-12 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h, src/util.h: move the macro HAVE_FILE_MAP and
+	FASTBIT_MIN_MAP_SIZE to util.h to be accessible to more files
+	* src/ibin.h, src/ibin.cpp: modified ibis::bin class to use
+	offset64 and offset32 at the same time
+
+2009-10-09 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h, src/fileManager.cpp: change size information
+	for ibis::storage to be stored in a size_t (instead of a uint32_t)
+	* src/array_t.h, src/array_t.cpp: change size related variables
+	from uint32_t to size_t, but keep sorting functions using uint32_t
+	for indices (add statements to check that uint32_t is sufficient
+	for the tasks)
+	* src/index.h, src/index.cpp: add member variable offset64
+	* src/colValues.h, src/colValues.cpp: change all lengths and sizes
+	from uint32_t to size_t
+
+2009-10-08 John Wu <John.Wu at ACM.org>
+	* src: use the refactoring capability of eclipse to rename
+	index::offsets to index::ofset32, in preparation of adding
+	index::offset64
+
+2009-10-07 John Wu <John.Wu at ACM.org>
+	* src/ibis.h, src/index.h: add warning about index size limitation
+	of 2^32 bytes
+
 2009-10-04 John Wu <John.Wu at ACM.org>
 	* doc/header.html: add header file to insert description and
 	keywords meta tags to all html pages

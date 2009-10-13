@@ -47,10 +47,10 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
  */
 ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t start) : ibis::relic(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offsets.back()))
+    if (st->size() <= static_cast<uint32_t>(offset32.back()))
 	return; // no coarse bin
 
-    start = offsets.back();
+    start = offset32.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
 	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
@@ -124,11 +124,11 @@ long ibis::fuzz::append(const char* dt, const char* df, uint32_t nnew) {
 // the sizes (bytes) of the bitmaps
 void ibis::fuzz::coarsen() {
     const uint32_t nbits = bits.size();
-    if (offsets.size() != nbits+1) {
-	offsets.resize(nbits+1);
-	offsets[0] = 0;
+    if (offset32.size() != nbits+1) {
+	offset32.resize(nbits+1);
+	offset32[0] = 0;
 	for (unsigned i = 0; i < nbits; ++ i)
-	    offsets[i+1] = offsets[i] + (bits[i] ? bits[i]->bytes() : 0U);
+	    offset32[i+1] = offset32[i] + (bits[i] ? bits[i]->bytes() : 0U);
     }
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
@@ -145,10 +145,10 @@ void ibis::fuzz::coarsen() {
 	}
     }
     // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
-    if (ncoarse < 5U && offsets.back() > offsets[0]+nrows/31U) {
+    if (ncoarse < 5U && offset32.back() > offset32[0]+nrows/31U) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8-1;
-	const long sf = (offsets.back()-offsets[0]) / ncoarse;
+	const long sf = (offset32.back()-offset32[0]) / ncoarse;
 	ncoarse = static_cast<unsigned>(wm1*sf/(sqrt(2.0)*nrows));
 	const unsigned ncmax = (unsigned) sqrt(2.0 * vals.size());
 	if (ncoarse < ncmax) {
@@ -171,11 +171,11 @@ void ibis::fuzz::coarsen() {
     cbounds.resize(ncoarse+1);
     cbounds[0] = 0;
     for (unsigned i = 1; i < ncoarse; ++ i) {
-	int32_t target = offsets[cbounds[i-1]] +
-	    (offsets.back() - offsets[cbounds[i-1]]) / (ncoarse - i + 1);
-	cbounds[i] = offsets.find(target);
+	int32_t target = offset32[cbounds[i-1]] +
+	    (offset32.back() - offset32[cbounds[i-1]]) / (ncoarse - i + 1);
+	cbounds[i] = offset32.find(target);
 	if (cbounds[i] > cbounds[i-1]+1 &&
-	    offsets[cbounds[i]]-target > target-offsets[cbounds[i]-1])
+	    offset32[cbounds[i]]-target > target-offset32[cbounds[i]-1])
 	    -- (cbounds[i]);
 	else if (cbounds[i] <= cbounds[i-1])
 	    cbounds[i] = cbounds[i-1]+1;
@@ -224,7 +224,7 @@ void ibis::fuzz::activateCoarse() const {
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffsets.size() <= nobs || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= nobs || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuzz::activateCoarse", "no records of coffsets, "
 			"can not regenerate the bitvectors");
     }
@@ -319,7 +319,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
     ibis::column::mutexLock lock(col, "fuzz::activateCoarse");
     if (cbits[i] != 0) return;	// already active
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuzz::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvector %lu",
 			static_cast<long unsigned>(i));
@@ -393,7 +393,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // requested bitvectors active
 
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuzz::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvectors %lu:%lu",
 			static_cast<long unsigned>(i),
@@ -627,10 +627,10 @@ double ibis::fuzz::estimateCost(const ibis::qContinuousRange& expr) const {
     locate(expr, hit0, hit1);
 
     const uint32_t ncoarse = (cbounds.empty() ? 0U : cbounds.size()-1);
-    const long fine = offsets[hit1] - offsets[hit0] <=
-	(offsets.back() - offsets[hit1]) + (offsets[hit0] - offsets[0])
-	? offsets[hit1] - offsets[hit0] :
-	(offsets.back() - offsets[hit1]) + (offsets[hit0] - offsets[0]);
+    const long fine = offset32[hit1] - offset32[hit0] <=
+	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
+	? offset32[hit1] - offset32[hit0] :
+	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0]);
     if (hit1 <= hit0 || hit0 >= bits.size()) {
 	res = 0.0;
 	return res;
@@ -656,8 +656,8 @@ double ibis::fuzz::estimateCost(const ibis::qContinuousRange& expr) const {
     if (c0 >= c1) { // within the same coarse bin
 	// complement
 	long tmp = coarseEstimate(c1-1, c1)
-	    + (offsets[hit0] - offsets[cbounds[c1-1]])
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[hit0] - offset32[cbounds[c1-1]])
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp/100 >= fine/99)
 	    res = fine;
 	else
@@ -665,29 +665,29 @@ double ibis::fuzz::estimateCost(const ibis::qContinuousRange& expr) const {
     }
     else {// general case: need to evaluate 5 options
 	// option 2: [direct | - | direct]
-	long cost = (offsets[cbounds[c0]] - offsets[hit0])
+	long cost = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate(c0, c1-1)
-	    + (offsets[hit1] - offsets[cbounds[c1-1]]);
+	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	// option 3: [complement | - | direct]
 	long tmp;
 	if (c0 > 0) {
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1-1)
-		+ (offsets[hit1] - offsets[cbounds[c1-1]]);
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost)
 		cost = tmp;
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offsets[cbounds[c0]] - offsets[hit0])
+	tmp = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate(c0, c1)
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost)
 	    cost = tmp;
 	// option 5: [complement | - | complement]
 	if (c0 > 0) {
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1)
-		+ (offsets[cbounds[c1]] - offsets[hit1]);
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost)
 		cost = tmp;
 	}
@@ -757,9 +757,9 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
     }
     if (c0 >= c1) { // within the same coarse bin
 	long tmp = coarseEstimate(c1-1, c1)
-	    + (offsets[hit0] - offsets[cbounds[c1-1]])
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
-	if (offsets[hit1]-offsets[hit0] <= static_cast<long>(0.99*tmp)) {
+	    + (offset32[hit0] - offset32[cbounds[c1-1]])
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	if (offset32[hit1]-offset32[hit0] <= static_cast<long>(0.99*tmp)) {
 	    sumBins(hit0, hit1, lower);
 	}
 	else {
@@ -778,41 +778,41 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
     }
     else {// general case: need to evaluate 5 options
 	unsigned option = 2; // option 2 [direct | - | direct]
-	long cost = (offsets[cbounds[c0]] - offsets[hit0])
+	long cost = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate(c0, c1-1)
-	    + (offsets[hit1] - offsets[cbounds[c1-1]]);
+	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	long tmp;
 	if (c0 > 0) {	// option 3: [complement | - | direct]
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1-1)
-		+ (offsets[hit1] - offsets[cbounds[c1-1]]);
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 3;
 	    }
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offsets[cbounds[c0]] - offsets[hit0])
+	tmp = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate((c0>0 ? c0-1 : 0), c1)
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
 	}
 	if (c0 > 0) { // option 5: [complement | - | complement]
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1)
-		+ (offsets[cbounds[c1]] - offsets[hit1]);
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
 	// option 0 and 1: fine level only
-	tmp = (offsets[hit1] - offsets[hit0] <=
-	       (offsets.back()-offsets[hit1])+(offsets[hit0]-offsets[0]) ?
-	       offsets[hit1] - offsets[hit0] :
-	       (offsets.back()-offsets[hit1])+(offsets[hit0]-offsets[0]));
+	tmp = (offset32[hit1] - offset32[hit0] <=
+	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
+	       offset32[hit1] - offset32[hit0] :
+	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
 	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
 	    cost = tmp;
 	    option = 1;
@@ -1039,11 +1039,11 @@ int ibis::fuzz::read(const char* f) {
     end += sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG) || defined(_DEBUG)
@@ -1056,10 +1056,10 @@ int ibis::fuzz::read(const char* f) {
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offsets[dim[1]] << "\n";
+	lg.buffer() << offset32[dim[1]] << "\n";
     }
 #endif
 
@@ -1068,8 +1068,8 @@ int ibis::fuzz::read(const char* f) {
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 	bits[0]->sloppySize(nrows);
     }
@@ -1080,11 +1080,11 @@ int ibis::fuzz::read(const char* f) {
 #endif
 
     // reading the coarse bins
-    ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -1123,8 +1123,8 @@ int ibis::fuzz::readCoarse(const char* fn) {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    long ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    long ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc, begin, end;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
@@ -1132,7 +1132,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
 	    return -5;
 	}
 
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -1173,7 +1173,7 @@ int ibis::fuzz::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t) + 7;
     array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
     array_t<double> dbl(st, 8*(pos/8), card);
-    offsets.copy(offs);
+    offset32.copy(offs);
     vals.swap(dbl);
 
     for (uint32_t i = 0; i < bits.size(); ++ i)
@@ -1197,13 +1197,13 @@ int ibis::fuzz::read(ibis::fileManager::storage* st) {
 #endif
 	str = st;
 
-	if (str->size() > static_cast<uint32_t>(offsets.back())) {
+	if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
-	    if (nc > 0 && str->size() > static_cast<uint32_t>(offsets.back()) +
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	    if (nc > 0 && str->size() > static_cast<uint32_t>(offset32.back()) +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + sizeof(uint32_t);
+		start = offset32.back() + sizeof(uint32_t);
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
@@ -1237,14 +1237,14 @@ int ibis::fuzz::read(ibis::fileManager::storage* st) {
 	    }
 	}
 
-	if (str->size() > static_cast<uint32_t>(offsets.back())) {
+	if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
 	    const uint32_t ncb = nc + 1 - (nc+1) / 2;
-	    if (nc > 0 && str->size() > offsets.back() +
+	    if (nc > 0 && str->size() > offset32.back() +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + sizeof(uint32_t);
+		start = offset32.back() + sizeof(uint32_t);
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 

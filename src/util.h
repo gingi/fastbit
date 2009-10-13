@@ -46,6 +46,25 @@ int truncate(const char*, uint32_t);
 #include <unistd.h>	// read, lseek, truncate, rmdir
 #endif
 
+// minimum size for invoking mmap operation, default to 1 MB
+#ifndef FASTBIT_MIN_MAP_SIZE
+#define FASTBIT_MIN_MAP_SIZE 1048576
+#endif
+
+#if ! (defined(HAVE_MMAP) || defined(_MSC_VER))
+#  if defined(_XOPEN_SOURCE)
+#    define HAVE_MMAP _XOPEN_SOURCE - 0 >= 500
+#  elif defined(_POSIX_C_SOURCE)
+#    define HAVE_MMAP _POSIX_C_SOURCE - 0 >= 0
+#  else
+#    define HAVE_MMAP defined(unix)||defined(linux)||defined(__APPLE__)||defined(__CYGWIN__)
+#  endif
+#endif
+
+#if (HAVE_MMAP+0>0) || (defined(_WIN32) && defined(_MSC_VER))
+#define HAVE_FILE_MAP 1
+#endif
+
 #ifndef DBL_EPSILON
 #define DBL_EPSILON 2.2204460492503131e-16
 #else

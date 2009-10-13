@@ -1093,8 +1093,8 @@ double ibis::entre::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes() * (nbases+1) < nbv);
-	else if (offsets.size() > nbits)
-	    here = (offsets[nbits] * (nbases+1) < nbv);
+	else if (offset32.size() > nbits)
+	    here = (offset32[nbits] * (nbases+1) < nbv);
     }
     if (here) {
 	ret = computeSum();

@@ -78,6 +78,11 @@ namespace ibis { // the concrete classes of index hierarchy
 /// ibis::index is for only one column.  The user is to create an new index
 /// through the function ibis::index::create and only use the functions
 /// defined in this class.
+///
+/// @note The positions of the bitmaps in an index file is recorded with a
+/// 32-bit integer.  If the index file size is more than 2^32 bytes, it is
+/// likely that at least one of the bitmaps stored in the file will not be
+/// reconstructed correctly, and therefore producing wrong answers!
 class ibis::index {
 public:
     /// The integer values of this enum type are used in the index files to
@@ -224,9 +229,9 @@ public:
 
     /// Estimate the code of evaluate a range condition.
     virtual double estimateCost(const ibis::qContinuousRange& expr) const {
-	return (offsets.empty() ? (nrows<<3) : offsets.back());}
+	return (offset32.empty() ? (nrows<<3) : offset32.back());}
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const {
-	return (offsets.empty() ? (nrows<<3) : offsets.back());}
+	return (offset32.empty() ? (nrows<<3) : offset32.back());}
 
     /// Prints human readable information.  Outputs information about the
     /// index as text to the specified output stream.
@@ -336,17 +341,23 @@ protected:
     /// The name of the file containing the index.
     mutable const char* fname;
     /// Starting positions of the bitvectors.
-    mutable array_t<int32_t> offsets;
+    mutable array_t<int32_t> offset32;
+    /// Starting positions of the bitvectors.  This is the 64-bit version
+    /// of offset32 to deal with large indexes.  All functions that
+    /// requires these offsets will attempt to use the 64-bit first.
+    mutable array_t<int64_t> offset64;
     /// A list of bitvectors.
     mutable std::vector<ibis::bitvector*> bits;
-    /// The number of rows represented by the index.
+    /// The number of rows represented by the index.  Can not take more
+    /// than 2^32 rows because the bitvector class can not hold more than
+    /// 2^32 bits.
     uint32_t nrows;
 
-    /// Protect the constructor so that ibis::index can not be instantiated
-    /// directly.  It can not be instantiated because some functions are
-    /// pure virtual, but this also reduces the size of public interface.
+    /// Default constructor.  Protect the constructor so that ibis::index
+    /// can not be instantiated directly.  Protecting it also reduces the
+    /// size of public interface.
     index(const ibis::column* c=0, ibis::fileManager::storage* s=0)
-	: col(c), str(s), fname(0), offsets(), nrows(0) {}
+	: col(c), str(s), fname(0), nrows(0) {}
 
     /// Generate data file name from "f"
     void dataFileName(const char* f, std::string& name) const;
@@ -391,6 +402,13 @@ protected:
     /// old sum for bitvectors [ib0, ie0).
     void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 		 uint32_t ib0, uint32_t ie0) const;
+
+    int initOffsets(int fdes, const char offsize, size_t start,
+		    uint32_t nobs);
+    int initOffsets(ibis::fileManager::storage* st, size_t start,
+		    uint32_t nobs);
+    void initBitmaps(int fdes);
+    void initBitmaps(ibis::fileManager::storage* st);
 
     class barrel;
 

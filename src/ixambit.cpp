@@ -479,11 +479,11 @@ int ibis::ambit::read(const char* f) {
     end = 8 + 2 * sizeof(uint32_t) + (nobs+1)*sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     // read bounds
     begin = 8 * ((8 + sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8);
@@ -572,9 +572,9 @@ int ibis::ambit::read(const char* f) {
     for (uint32_t i = 1; i < nobs; ++i)
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {
+    if (offset32[1] > offset32[0]) {
 	array_t<ibis::bitvector::word_t>
-	    a0(fdes, offsets[0], offsets[1]);
+	    a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -688,11 +688,11 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
     end = start + 2 * sizeof(uint32_t) + (nobs+1) * sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     // read bounds
     begin = 8 * ((start + sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8);
@@ -781,9 +781,9 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
     bits.resize(nobs);
     if (fname == 0 || *fname == 0) { // read all bitvectors
 	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offsets[i+1] > offsets[i]) {
+	    if (offset32[i+1] > offset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a0(fdes, offsets[i], offsets[i+1]);
+		    a0(fdes, offset32[i], offset32[i+1]);
 		ibis::bitvector* tmp = new ibis::bitvector(a0);
 		bits[i] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -812,9 +812,9 @@ int ibis::ambit::read(int fdes, uint32_t start, const char *fn) {
 	    bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
 	// read only the first bitvector
-	if (offsets[1] > offsets[0]) {
+	if (offset32[1] > offset32[0]) {
 	    array_t<ibis::bitvector::word_t>
-		a0(fdes, offsets[0], offsets[1]);
+		a0(fdes, offset32[0], offset32[1]);
 	    ibis::bitvector* tmp = new ibis::bitvector(a0);
 	    bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -4295,8 +4295,8 @@ double ibis::ambit::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes()*2 < nbv);
-	else if (offsets.size() > nobs)
-	    here = (static_cast<uint32_t>(offsets[nobs]*2) < nbv);
+	else if (offset32.size() > nobs)
+	    here = (static_cast<uint32_t>(offset32[nobs]*2) < nbv);
     }
     if (here) {
 	ret = computeSum();

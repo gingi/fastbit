@@ -61,7 +61,7 @@
 				ObjectFile="Debug/"
 				ProgramDataBaseFileName="Debug/"
 				BrowseInformation="1"
-				WarningLevel="2"
+				WarningLevel="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -257,6 +257,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\fileManager.cpp"
 				>
 			</File>
@@ -370,10 +374,6 @@
 			</File>
 			<File
 				RelativePath="..\src\mensa.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -510,6 +510,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\fileManager.h"
 				>
 			</File>
@@ -554,6 +558,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\meshQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\part.h"
 				>
 			</File>
@@ -567,14 +575,6 @@
 			</File>
 			<File
 				RelativePath="..\src\query.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\meshQuery.h"
 				>
 			</File>
 			<File

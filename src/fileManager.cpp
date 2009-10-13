@@ -81,10 +81,6 @@ template int ibis::fileManager::getFile<double>
 #define FASTBIT_MAX_WAIT_TIME 60
 #endif
 #endif
-// minimum size for doMap
-#ifndef FASTBIT_MIN_MAP_SIZE
-#define FASTBIT_MIN_MAP_SIZE 1048576
-#endif
 
 /// Given a file name, place the content in an array_t<T>.  This function
 /// waits for memory to become available if there is enough memory to read
@@ -155,7 +151,7 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 
 // print the current status of the file manager
 void ibis::fileManager::printStatus(std::ostream& out) const {
-    uint32_t mtot=0, itot=0;
+    size_t mtot=0, itot=0;
     char tstr[28];
     ibis::util::getLocalTime(tstr);
 
@@ -165,14 +161,16 @@ void ibis::fileManager::printStatus(std::ostream& out) const {
 	<< ")\n";
     for (fileList::const_iterator it0 = mapped.begin();
 	 it0 != mapped.end(); ++it0) {
-	mtot += (*it0).second->printStatus(out);
+	mtot += (*it0).second->size();
+	(*it0).second->printStatus(out);
     }
     out << "\nSize of all mapped files is " << mtot << std::endl;
     out << "\n\nThe number of files read into memory is " << incore.size()
 	<< ".\n";
     for (fileList::const_iterator it1 = incore.begin();
 	 it1 != incore.end(); ++it1) {
-	itot += (*it1).second->printStatus(out);
+	itot += (*it1).second->size();
+	(*it1).second->printStatus(out);
     }
     out << "\nThe total size of all files read into memory is " << itot
 	<< std::endl;
@@ -511,8 +509,8 @@ ibis::fileManager::fileManager()
 	// MS Windows uses psapi to physical memory size
 	PERFORMANCE_INFORMATION pi;
 	if (GetPerformanceInfo(&pi, sizeof(pi))) {
-	    uint32_t avail = pi.PhysicalAvailable;
-	    uint32_t mem = (pi.PhysicalTotal >> 1);
+	    size_t avail = pi.PhysicalAvailable;
+	    size_t mem = (pi.PhysicalTotal >> 1);
 	    LOGGER(ibis::gVerbose > 4 && mem > 0)
 		<< "fileManager::ctor found the physical memory size to be "
 		<< pi.PhysicalTotal * pi.PageSize << " bytes";
@@ -803,7 +801,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     int readOrMap = 0; // default read
 #if defined(HAVE_FILE_MAP)
     // now we can ask the question: "to map or not to map?"
-    uint32_t sz = minMapSize;
+    size_t sz = minMapSize;
     if (mapped.size() > (maxOpenFiles >> 1)) {
 	// compute the maximum size of the first ten files
 	it = mapped.begin();
@@ -972,7 +970,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     int readOrMap = 0; // default read
     // "to map or not to map", that is the question
 #if defined(HAVE_FILE_MAP)
-    uint32_t sz = minMapSize;
+    size_t sz = minMapSize;
     if (mapped.size() > (maxOpenFiles >> 1)) {
 	fileList::const_iterator mit = mapped.begin();
 	for (int cnt = 0; cnt < 10 && mit != mapped.end(); ++ cnt, ++ mit)
@@ -1107,7 +1105,7 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 	timer.start();
     // "to map or not to map", that is the question
 #if defined(HAVE_FILE_MAP)
-    uint32_t sz = (pagesize << 2); // more than 4 pages
+    size_t sz = (pagesize << 2); // more than 4 pages
     if (mapped.size() > (maxOpenFiles >> 1)) {
 	// compute the average size of the first ten files
 	sz = 0;
@@ -1198,7 +1196,7 @@ ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
 /// must hold a mutex lock to prevent simutaneous invocation of this
 /// function.  It will wait a maximum of FASTBIT_MAX_WAIT_TIME seconds if
 /// not enough memory can be freed immediately.
-int ibis::fileManager::unload(uint32_t size) {
+int ibis::fileManager::unload(size_t size) {
     if (size > 0 && maxBytes > ibis::fileManager::totalBytes() &&
 	size+ibis::fileManager::totalBytes() <= maxBytes) {
 	// there is enough space
@@ -1238,7 +1236,7 @@ int ibis::fileManager::unload(uint32_t size) {
     time_t current = startTime;
 
     while (current < startTime+FASTBIT_MAX_WAIT_TIME) { // will wait
-	uint32_t sum = 0; // sum of the total bytes that can can be unloaded
+	size_t sum = 0; // sum of the total bytes that can can be unloaded
 	for (it=mapped.begin(); it!=mapped.end(); ++it) {
 	    if ((*it).second->inUse() == 0 &&
 		(*it).second->pastUse() > 0) {
@@ -1271,7 +1269,7 @@ int ibis::fileManager::unload(uint32_t size) {
 	}
 
 	if (candidates.size() > 1) {
-	    const uint32_t ncand = candidates.size();
+	    const size_t ncand = candidates.size();
 	    // sort the candidates in descending order of scores
 	    std::vector<float> scores(candidates.size());
 	    for (unsigned i = 0; i < ncand; ++ i) {
@@ -1300,7 +1298,7 @@ int ibis::fileManager::unload(uint32_t size) {
 		    (*it).second->printStatus(lg.buffer());
 		}
 	    }
-	    for (uint32_t i = 0; i < candidates.size(); ++ i) {
+	    for (size_t i = 0; i < candidates.size(); ++ i) {
 		it = candidates[i];
 		roFile *tmp = (*it).second; // fileManager::roFile to delete
 		if (tmp->mapped) {
@@ -1468,7 +1466,7 @@ void ibis::fileManager::signalMemoryAvailable() const {
 /// memory to use.  The caller should always check that buffer.size() > 0
 /// and buffer.address() != 0.
 template <typename T>
-ibis::fileManager::buffer<T>::buffer(uint32_t sz) : buf(0), nbuf(sz) {
+ibis::fileManager::buffer<T>::buffer(size_t sz) : buf(0), nbuf(sz) {
     long unsigned nfree = ibis::fileManager::bytesFree();
     if (nfree > 0x80000000) // will not use more than 2GB for a buffer
 	nfree = 0x80000000;
@@ -1561,7 +1559,7 @@ ibis::fileManager::buffer<T>::~buffer() {
 /// for temporary storage, the existing content is not copied when
 /// reallocating new memory.  It will not allocate more than 2GB of memory.
 template<typename T>
-uint32_t ibis::fileManager::buffer<T>::resize(uint32_t sz) {
+size_t ibis::fileManager::buffer<T>::resize(size_t sz) {
     long unsigned nfree = ibis::fileManager::bytesFree();
     if (nfree > 0x80000000) // will not use more than 2GB for a buffer
 	nfree = 0x80000000;
@@ -1611,7 +1609,7 @@ template class ibis::fileManager::buffer<uint64_t>;
 // functions for the storage class
 //
 /// Allocate storage for an array of the specified size (in bytes).
-ibis::fileManager::storage::storage(uint32_t n)
+ibis::fileManager::storage::storage(size_t n)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (n < 8) n = 8; // at least 8 bytes
     if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
@@ -1870,7 +1868,7 @@ void ibis::fileManager::storage::copy
 /// Enlarge the memory allocated for the storage object.  It increases the
 /// memory reserved to the specified size (in bytes).  It increases the
 /// current array by 61.8% if nelm is smaller than the current size.
-void ibis::fileManager::storage::enlarge(uint32_t nelm) {
+void ibis::fileManager::storage::enlarge(size_t nelm) {
     std::string evt = "fileManager::storage::enlarge";
     if (ibis::gVerbose > 8) {
 	std::ostringstream oss;
@@ -1932,8 +1930,8 @@ void ibis::fileManager::storage::enlarge(uint32_t nelm) {
 	ibis::fileManager::increaseUse(nelm, evt.c_str());
     }
     else { // resize the current storage object
-	const uint32_t oldsize = size();
-	uint32_t n = (nelm>oldsize ? nelm : oldsize<1024 ? oldsize+oldsize :
+	const size_t oldsize = size();
+	size_t n = (nelm>oldsize ? nelm : oldsize<1024 ? oldsize+oldsize :
 		    static_cast<uint32_t>(1.6180339887498948482*oldsize));
 	if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	    ibis::fileManager::mutexLock lck(ibis::fileManager::instance(),
@@ -2033,7 +2031,7 @@ void ibis::fileManager::storage::clear() {
 
 /// Print information about the storage object to the specified output
 /// stream.
-uint32_t ibis::fileManager::storage::printStatus(std::ostream& out) const {
+void ibis::fileManager::storage::printStatus(std::ostream& out) const {
     if (name)
 	out << "file name       " << name << "\n";
     out << "storage @ " << static_cast<const void*>(this) << ", "
@@ -2046,7 +2044,6 @@ uint32_t ibis::fileManager::storage::printStatus(std::ostream& out) const {
 	<< "\n# of past acc   " << nacc
 	<< "\n# of active acc " << nref()
 	<< std::endl;
-    return size();
 } // ibis::fileManager::storage::printStatus
 
 /// Read part of a open file [begin, end).
@@ -2152,7 +2149,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 } // ibis::fileManager::storage::read
 
 void ibis::fileManager::storage::write(const char* file) const {
-    uint32_t n, i;
+    size_t n, i;
     FILE *in = fopen(file, "wb");
     if (in == 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -2225,7 +2222,7 @@ void ibis::fileManager::roFile::clear() {
 	return;
     }
 
-    uint32_t sz = size();
+    size_t sz = size();
     ibis::fileManager::decreaseUse(sz, evt.c_str());
     if (mapped == 0) {
 	free(m_begin);
@@ -2250,13 +2247,13 @@ void ibis::fileManager::roFile::clear() {
     m_begin = 0;
 } // ibis::fileManager::roFile::clear
 
-uint32_t ibis::fileManager::roFile::printStatus(std::ostream& out) const {
+void ibis::fileManager::roFile::printStatus(std::ostream& out) const {
     if (name) 
 	out << "file name: " << name << "\n";
-    return printBody(out);
+    printBody(out);
 } // ibis::fileManager::roFile::printStatus
 
-uint32_t ibis::fileManager::roFile::printBody(std::ostream& out) const {
+void ibis::fileManager::roFile::printBody(std::ostream& out) const {
     char tstr0[28], tstr1[28];
     ibis::util::secondsToString(opened, tstr0);
     ibis::util::secondsToString(lastUse, tstr1);
@@ -2285,7 +2282,6 @@ uint32_t ibis::fileManager::roFile::printBody(std::ostream& out) const {
 	<< "\n# of past acc   " << nacc
 	<< "\n# of active acc " << nref()
 	<< "\nmapped          " << (mapped?"y\n":"n\n") << std::endl;
-    return size();
 } // ibis::fileManager::roFile::printBody
 
 void ibis::fileManager::roFile::read(const char* file) {
@@ -2318,7 +2314,7 @@ void ibis::fileManager::roFile::read(const char* file) {
 
 /// Read the content of a file into memory.
 void ibis::fileManager::roFile::doRead(const char* file) {
-    uint32_t n, i;
+    size_t n, i;
     // first find out the size of the file
     Stat_T tmp;
     if (0 == UnixStat(file, &tmp)) { // get stat correctly
@@ -2364,7 +2360,7 @@ void ibis::fileManager::roFile::doRead(const char* file) {
     i = UnixRead(in, static_cast<void*>(m_begin), n);
     ibis::fileManager::instance().recordPages(0, n);
     UnixClose(in); // close the file
-    if (i == static_cast<uint32_t>(-1)) {
+    if (i == static_cast<size_t>(-1)) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- roFile::read(" << file
 	    << ") encountered an error (errno=" << errno
@@ -2545,11 +2541,11 @@ ibis::fileManager::rofSegment::rofSegment(const char *fn, off_t b, off_t e)
     }
 } // rofSegment constructor
 
-uint32_t ibis::fileManager::rofSegment::printStatus(std::ostream& out) const {
+void ibis::fileManager::rofSegment::printStatus(std::ostream& out) const {
     if (! filename_.empty()) 
 	out << "file name: " << filename_ << "[" << begin_ << ", "
 	    << end_ << ")\n";
-    return printBody(out);
+    printBody(out);
 } // ibis::fileManager::roFile::printStatus
 #endif
 

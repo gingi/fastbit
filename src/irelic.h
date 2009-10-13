@@ -224,16 +224,20 @@ public:
     virtual void speedTest(std::ostream& out) const;
     virtual double estimateCost(const ibis::qContinuousRange& expr) const {
 	double ret;
-	if (offsets.size() > bits.size())
-	    ret = offsets.back() - offsets.front();
+	if (offset64.size() > bits.size())
+	    ret = offset64.back();
+	else if (offset32.size() > bits.size())
+	    ret = offset32.back();
 	else
 	    ret = 0.0;
 	return ret;
     }
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const {
 	double ret;
-	if (offsets.size() > bits.size())
-	    ret = offsets.back() - offsets.front();
+	if (offset64.size() > bits.size())
+	    ret = offset64.back();
+	else if (offset32.size() > bits.size())
+	    ret = offset32.back();
 	else
 	    ret = 0.0;
 	return ret;

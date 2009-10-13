@@ -174,7 +174,7 @@ ibis::column::column(const part* tbl, FILE* file)
 		else if (s1[1] == 'l' || s1[1] == 'L') { // ULONG
 		    m_type = ibis::ULONG;
 		}
-		else if (s1[1] == 'n' || s1[1] == 'N') { // unsigned xxx
+		else if (s1[1] == 'n' || s1[1] == 'N') { // unsigned xx
 		    s1 += 8; // skip "unsigned"
 		    s1 += strspn(s1, " \t=\'\""); // skip space
 		    if (*s1 == 's' || *s1 == 'S') { // USHORT
@@ -331,7 +331,7 @@ void ibis::column::write(FILE* file) const {
 	    fprintf(file, "minimum = %.15g\n", lower);
 	    fprintf(file, "maximum = %.15g\n", upper);
 	    break;
-	default: // Uxxx, CATEGORY, TEXT, ...
+	default: // Uxx, CATEGORY, TEXT, ...
 	    fprintf(file, "minimum = %lu\n",
 		    static_cast<long unsigned>(lower));
 	    fprintf(file, "maximum = %lu\n",

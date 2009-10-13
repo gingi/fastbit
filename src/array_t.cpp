@@ -1,9 +1,9 @@
-//File: $Id$
+// File: $Id$
 // Author: K. John Wu <John.Wu at acm.org>
 //         Lawrence Berkeley National Laboratory
 // Copyright 2000-2009 Univeristy of California
 //
-// the implementation file of the array_t<T> class
+// the implementation file of the ibis::array_t<T> class
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -49,7 +49,7 @@ ibis::array_t<T>::array_t()
 
 /// Construct an array with n elements.
 template<class T>
-ibis::array_t<T>::array_t(uint32_t n)
+ibis::array_t<T>::array_t(size_t n)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
       m_begin(0), m_end(0) {
     if (actual != 0) {
@@ -74,14 +74,14 @@ ibis::array_t<T>::array_t(uint32_t n)
 
 /// Construct an array with @c n elements of value @c val.
 template<class T>
-ibis::array_t<T>::array_t(uint32_t n, const T& val)
+ibis::array_t<T>::array_t(size_t n, const T& val)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
       m_begin(0), m_end(0){
     if (actual != 0) {
 	m_begin = reinterpret_cast<T*>(actual->begin());
 	m_end = m_begin + n;
 	actual->beginUse();
-	for (uint32_t i = 0; i < n; ++ i) {
+	for (size_t i = 0; i < n; ++ i) {
 	    m_begin[i] = val;
 	}
 	LOGGER(ibis::gVerbose > 9)
@@ -137,8 +137,8 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
 /// A shallow copy constructor.  It makes a new array out of a section of
 /// an existing array.
 template<class T>
-ibis::array_t<T>::array_t(const array_t<T>& rhs, const uint32_t offset,
-			  const uint32_t nelm)
+ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t offset,
+			  const size_t nelm)
     : actual(rhs.actual), m_begin(rhs.m_begin+offset), m_end(m_begin+nelm) {
     if (m_end > rhs.m_end)
 	m_end = rhs.m_end;
@@ -173,7 +173,7 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 /// argument @c nelm is the number of element of type T.
 template<class T>
 ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
-			  const uint32_t start, const uint32_t nelm)
+			  const size_t start, const size_t nelm)
     : actual(rhs), m_begin((T*)(rhs != 0 ? rhs->begin()+start : 0)),
       m_end(m_begin != 0 ? m_begin+nelm : 0) {
     if (actual != 0 && m_begin != 0 && m_end != 0) {
@@ -261,15 +261,15 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 	if (actual != 0 && actual->inUse() < 2U &&
 	    actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
 	    // already has enough memory allocated, stay with it
-	    const uint32_t n = rhs.size();
+	    const size_t n = rhs.size();
 	    m_begin = (T*)(actual->begin());
 	    m_end = m_begin + n;
-	    for (uint32_t i = 0; i < n; ++ i)
+	    for (size_t i = 0; i < n; ++ i)
 		m_begin[i] = rhs[i];
 	}
 	else {
 	    array_t<T> tmp(rhs.size()); // allocate memory
-	    for (uint32_t i = 0; i < rhs.size(); ++ i)
+	    for (size_t i = 0; i < rhs.size(); ++ i)
 		tmp[i] = rhs[i];
 	    swap(tmp);
 	}
@@ -329,17 +329,17 @@ uint32_t ibis::array_t<T>::find(const array_t<uint32_t>& ind,
 /// Assuming the array is already sorted in ascending order,
 /// it returns the smallest i such that @c operator[](i) >= @c val.
 template<class T>
-uint32_t ibis::array_t<T>::find(const T& val) const {
+size_t ibis::array_t<T>::find(const T& val) const {
     if (m_end <= m_begin) return 0; // empty array
     else if (! (*m_begin < val)) return 0; // 1st value is larger than val
 
-    uint32_t i = 0, j = size();
+    size_t i = 0, j = size();
     if (j < QSORT_MIN) { // linear search
 	for (i = 0; i < j; ++ i)
 	    if (m_begin[i] >= val) return i;
     }
     else {
-	uint32_t m = (i + j) / 2;
+	size_t m = (i + j) / 2;
 	while (i < m) { // m_begin[j] >= val
 	    if (m_begin[m] < val)
 		i = m;
@@ -359,17 +359,17 @@ uint32_t ibis::array_t<T>::find(const T& val) const {
 /// @note The word upper is used in the same sense as in the STL function
 /// std::upper_bound.
 template<class T>
-uint32_t ibis::array_t<T>::find_upper(const T& val) const {
+size_t ibis::array_t<T>::find_upper(const T& val) const {
     if (m_end <= m_begin) return 0; // empty array
     else if (*m_begin > val) return 0; // 1st value is larger than val
 
-    uint32_t i = 0, j = size();
+    size_t i = 0, j = size();
     if (j < QSORT_MIN) { // linear search
 	for (i = 0; i < j; ++ i)
 	    if (m_begin[i] > val) return i;
     }
     else {
-	uint32_t m = (i + j) / 2;
+	size_t m = (i + j) / 2;
 	while (i < m) { // m_begin[j] > val
 	    if (m_begin[m] <= val)
 		i = m;
@@ -386,22 +386,22 @@ uint32_t ibis::array_t<T>::find_upper(const T& val) const {
 /// only used as temporary storage.
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
-    const uint32_t n = size();
+    const size_t n = size();
     if (n < 2) return;
 
     if (tmp.size() != n)
 	tmp.resize(n);
 
-    uint32_t stride = 1;
+    size_t stride = 1;
     while (stride < n) {
-	uint32_t i;
+	size_t i;
 	for (i = 0; i+stride < n; i += stride+stride) {
 	    if (stride > 1) { // larger strides
-		uint32_t i0 = i;
-		uint32_t i1 = i + stride;
-		const uint32_t i0max = i1;
-		const uint32_t i1max = (i1+stride <= n ? i1+stride : n);
-		uint32_t j = i;
+		size_t i0 = i;
+		size_t i1 = i + stride;
+		const size_t i0max = i1;
+		const size_t i1max = (i1+stride <= n ? i1+stride : n);
+		size_t j = i;
 		while (i0 < i0max || i1 < i1max) {
 		    if (i0 < i0max) {
 			if (i1 < i1max) {
@@ -450,6 +450,11 @@ void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     if (size() > 2) {
+	if (size() > 0xFFFFFFFFUL) {
+	    ind.clear();
+	    return;
+	}
+
 	array_t<T> tmp1, tmp2;
 	array_t<uint32_t> itmp;
 	tmp1.deepCopy(*this);
@@ -486,11 +491,17 @@ template<class T>
 void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind,
 				  array_t<T>& sorted) const {
     if (size() > 2) {
+	if (size() > 0xFFFFFFFFUL) {
+	    sorted.clear();
+	    ind.clear();
+	    return;
+	}
+
 	array_t<T> tmp;
 	array_t<uint32_t> itmp;
 	sorted.resize(size());
 	ind.resize(size());
-	for (uint32_t i = 0; i < size(); ++ i) {
+	for (size_t i = 0; i < size(); ++ i) {
 	    sorted[i] = m_begin[i];
 	    ind[i] = i;
 	}
@@ -537,9 +548,15 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind,
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 				  array_t<T>& tmp, array_t<uint32_t>& itmp) {
-    const uint32_t n = val.size();
+    const size_t n = val.size();
     if (n < 2)
 	return; // nothing to do
+    if (n > 0xFFFFFFFFUL) {
+	val.clear();
+	ind.clear();
+	return;
+    }
+
     if (ind.size() != n) {
 	ind.resize(n);
 	for (uint32_t i = 0; i < n; ++ i)
@@ -549,16 +566,16 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
     itmp.resize(n);
 
     std::less<T> cmp;
-    uint32_t stride = 1;
+    size_t stride = 1;
     while (stride < n) {
-	uint32_t i;
+	size_t i;
 	for (i = 0; i+stride < n; i += stride+stride) {
 	    if (stride > 1) { // larger strides
-		uint32_t i0 = i;
-		uint32_t i1 = i + stride;
-		const uint32_t i0max = i1;
-		const uint32_t i1max = (i1+stride <= n ? i1+stride : n);
-		uint32_t j = i;
+		size_t i0 = i;
+		size_t i1 = i + stride;
+		const size_t i0max = i1;
+		const size_t i1max = (i1+stride <= n ? i1+stride : n);
+		size_t j = i;
 		while (i0 < i0max || i1 < i1max) {
 		    if (i0 < i0max) {
 			if (i1 < i1max) {
@@ -615,7 +632,7 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 /// ascending order.
 template<class T>
 void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
-    const uint32_t n = size();
+    const size_t n = size();
     if (n < 2) {
 	if (n == 1) {
 	    ind.resize(1);
@@ -626,9 +643,14 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 	}
 	return;
     }
+    if (n > 0xFFFFFFFFUL) {
+	ind.clear();
+	return;
+    }
+
     if (ind.size() != n) { // the list of indices must be the right size
 	ind.resize(n);
-	for (uint32_t i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	    ind[i] = i;
     }
     // call qsort to do the actual work
@@ -636,7 +658,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 #if defined(DEBUG) && DEBUG > 2
     ibis::util::logger lg(4);
     lg.buffer() << "sort(" << n << ")";
-    for (uint32_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
 	lg.buffer() << "\n" << i << "\t" << ind[i] << "\t" << m_begin[ind[i]];
 #endif
 } // sort
@@ -655,7 +677,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 /// order the indices since it only contains the largest values.
 template<class T>
 void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
-    if (k == 0) {
+    if (k == 0 || size() > 0xFFFFFFFFUL) {
 	ind.clear();
 	return;
     }
@@ -701,7 +723,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 #if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
     ibis::util::logger lg(4);
     lg.buffer() << "topk(" << k << ")\n";
-    for (uint32_t i = 0; i < back; ++i)
+    for (size_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
 #endif
@@ -716,7 +738,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 /// elements.
 template<class T>
 void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
-    if (k == 0) {
+    if (k == 0 || size() > 0xFFFFFFFFUL) {
 	ind.clear();
 	return;
     }
@@ -725,7 +747,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
     uint32_t back = size();
     // initialize ind array
     ind.resize(back);
-    for (uint32_t i = 0; i < back; ++ i)
+    for (size_t i = 0; i < back; ++ i)
 	ind[i] = i;
     if (back <= k) {
 	qsort(ind, front, back);
@@ -757,7 +779,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 #if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
     ibis::util::logger lg(4);
     lg.buffer() << "bottomk(" << k << ")\n";
-    for (uint32_t i = 0; i < back; ++i)
+    for (size_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
 #endif
@@ -823,7 +845,7 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
 #if defined(DEBUG) && DEBUG > 2
     ibis::util::logger lg(4);
     lg.buffer() << "qsort(" << front << ", " << back << ")\n";
-    for (uint32_t i = front; i < back; ++i)
+    for (size_t i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
 } // qsort
@@ -875,7 +897,7 @@ void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
 #if defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "hsort(" << front << ", " << back << ")\n";
-    for (uint32_t i = front; i < back; ++i) {
+    for (size_t i = front; i < back; ++i) {
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]];
 	if (i > front && m_begin[ind[i-1]] > m_begin[ind[i]])
 	    lg.buffer() << "\t*** error [ind[" << i-1 << "]] > [ind[" << i
@@ -1083,14 +1105,14 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 
 /// Change the size of the array so it has no less than @n elements.
 template<class T>
-void ibis::array_t<T>::resize(uint32_t n) {
+void ibis::array_t<T>::resize(size_t n) {
     nosharing();
     if (actual != 0) {
 	if (m_begin < (T*)actual->begin())
 	    m_begin = (T*)actual->begin();
 	m_end = m_begin + n;
 	if (m_end > (T*)(actual->end())) {
-	    uint32_t offset = m_begin - (T*)(actual->begin());
+	    size_t offset = m_begin - (T*)(actual->begin());
 	    actual->enlarge((n+offset)*sizeof(T));
 	    m_begin = offset + (T*)(actual->begin());
 	    if (actual->begin()) {
@@ -1117,16 +1139,16 @@ void ibis::array_t<T>::resize(uint32_t n) {
 /// @c n elements.  If the current storage object does not have enough
 /// space, enlarge the storage object.
 template<class T>
-void ibis::array_t<T>::reserve(uint32_t n) {
+void ibis::array_t<T>::reserve(size_t n) {
     nosharing();
     if (actual != 0) {
 	if (m_begin < (T*)(actual->begin()))
 	    m_begin = (T*)(actual->begin());
-	uint32_t n0 = (T*)(actual->end()) - m_begin;
+	size_t n0 = (T*)(actual->end()) - m_begin;
 	if (n > n0) { // enlarge to requested size
 	    n0 = m_begin - (T*)(actual->begin());
 	    actual->enlarge((n0+n)*sizeof(T));
-	    uint32_t n1 = m_end - m_begin;
+	    size_t n1 = m_end - m_begin;
 	    if (actual->begin()) {
 		m_begin = (T*)(actual->begin()) + n0;
 		m_end = m_begin + n1;
@@ -1185,18 +1207,18 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
     }
     else { // copy-and-swap
 	const difference_type n = m_end - m_begin;
-	const uint32_t ip = p - m_begin;
-	uint32_t newsize = static_cast<uint32_t>((n >= 7 ? n : 7) + n);
+	const size_t ip = p - m_begin;
+	size_t newsize = static_cast<size_t>((n >= 7 ? n : 7) + n);
 	if ((long long) newsize <= n) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
 	array_t<T> copy(newsize);
-	copy.resize(static_cast<uint32_t>(n+1));
-	for (uint32_t j = 0; j < ip; ++ j)
+	copy.resize(static_cast<size_t>(n+1));
+	for (size_t j = 0; j < ip; ++ j)
 	    copy.m_begin[j] = m_begin[j];
 	copy.m_begin[ip] = val;
-	for (uint32_t j = ip; j < (n>0?(size_t)n:0U); ++ j)
+	for (size_t j = ip; j < (n>0?(size_t)n:0U); ++ j)
 	    copy.m_begin[j+1] = m_begin[j];
 	swap(copy);
     }
@@ -1206,13 +1228,13 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 /// Insert n copies of a value (val) before p.   Nothing is done if n is
 /// zero, or p is not between m_begin and m_end.
 template<class T> void
-ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
+ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 			 const T& val) {
     if (n == 0 || p < m_begin || p > m_end) return;
 
     if (actual == 0) {
 	reserve(n);
-	for (uint32_t j = 0; j < n; ++ j, ++ m_end)
+	for (size_t j = 0; j < n; ++ j, ++ m_end)
 	    *m_end = val;
     }
     else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
@@ -1233,19 +1255,19 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, uint32_t n,
     else { // need new memory
 	// copy and swap
 	const difference_type nold = m_end - m_begin;
-	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=(long)n?nold:n));
+	size_t nnew = static_cast<size_t>(nold + (nold>=(long)n?nold:n));
 	if ((long long)nnew <= nold) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
-	const uint32_t jp = p - m_begin;
+	const size_t jp = p - m_begin;
 	ibis::array_t<T> copy(nnew);
 	copy.resize(nold+n);
-	for (uint32_t j = 0; j < jp; ++ j)
+	for (size_t j = 0; j < jp; ++ j)
 	    copy[j] = m_begin[j];
-	for (uint32_t j = 0; j < n; ++ j)
+	for (size_t j = 0; j < n; ++ j)
 	    copy[jp+j] = val;
-	for (uint32_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
+	for (size_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
 	    copy[n+j] = m_begin[j];
 	swap(copy); // swap this and copy
     }
@@ -1278,19 +1300,19 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
     }
     else { 	// need new memory
 	const difference_type nold = m_end - m_begin;
-	uint32_t nnew = static_cast<uint32_t>(nold + (nold>=n ? nold : n));
+	size_t nnew = static_cast<size_t>(nold + (nold>=n ? nold : n));
 	if ((long long) nnew <= nold) {
 	    throw "array_t must have less than 2^32 elements";
 	}
 
-	const uint32_t jp = p - m_begin;
+	const size_t jp = p - m_begin;
 	ibis::array_t<T> copy(nnew);
 	copy.resize(nold+n);
-	for (uint32_t j = 0; j < jp; ++ j)
+	for (size_t j = 0; j < jp; ++ j)
 	    copy[j] = m_begin[j];
-	for (uint32_t j = 0; j < (uint32_t)n; ++ j)
+	for (size_t j = 0; j < (size_t)n; ++ j)
 	    copy[jp+j] = front[j];
-	for (uint32_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
+	for (size_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
 	    copy[n+j] = m_begin[j];
 	swap(copy); // swap this and copy
     }

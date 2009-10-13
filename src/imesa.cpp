@@ -264,11 +264,11 @@ void ibis::mesa::construct(const char* df) {
 	}
 
 	bits.resize(nobs-n2+1);
-	offsets.resize(nobs-n2);
-	offsets[0] = 0;
+	offset32.resize(nobs-n2);
+	offset32[0] = 0;
 	for (uint32_t i = 0; i+n2 <= nobs; ++i) {
 	    bits[i]->compress();
-	    offsets[i+1] = offsets[i] + bits[i]->getSerialSize();
+	    offset32[i+1] = offset32[i] + bits[i]->getSerialSize();
 	}
 
 	if (ibis::gVerbose > 4) {
@@ -971,8 +971,8 @@ double ibis::mesa::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes()*3 < nbv);
-	else if (offsets.size() > nobs)
-	    here = (static_cast<uint32_t>(offsets[nobs]*3) < nbv);
+	else if (offset32.size() > nobs)
+	    here = (static_cast<uint32_t>(offset32[nobs]*3) < nbv);
     }
     if (here) {
 	ret = computeSum();

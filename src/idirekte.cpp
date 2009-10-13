@@ -409,11 +409,11 @@ int ibis::direkte::read(const char* f) {
     end = 8 + 2*sizeof(uint32_t) + sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fnm.c_str(), begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG)
@@ -426,10 +426,10 @@ int ibis::direkte::read(const char* f) {
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offsets[dim[1]];
+	lg.buffer() << offset32[dim[1]];
     }
 #endif
 
@@ -438,8 +438,8 @@ int ibis::direkte::read(const char* f) {
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 #if defined(WAH_CHECK_SIZE)
 	const uint32_t len = strlen(col->partition()->currentDataDir());
@@ -479,7 +479,7 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     array_t<int32_t> offs(st, pos, nobs+1);
-    offsets.copy(offs);
+    offset32.copy(offs);
 
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	delete bits[i];
@@ -866,17 +866,17 @@ double ibis::direkte::estimateCost(const ibis::qContinuousRange& expr) const {
     uint32_t ib, ie;
     locate(expr, ib, ie);
     if (ib < ie) {
-	if (offsets.size() > bits.size()) {
-	    const int32_t tot = offsets.back() - offsets[0];
-	    if (ie < offsets.size()) {
-		const int32_t mid = offsets[ie] - offsets[ib];
+	if (offset32.size() > bits.size()) {
+	    const int32_t tot = offset32.back() - offset32[0];
+	    if (ie < offset32.size()) {
+		const int32_t mid = offset32[ie] - offset32[ib];
 		if ((tot >> 1) >= mid)
 		    cost = mid;
 		else
 		    cost = tot - mid;
 	    }
-	    else if (ib < offsets.size()) {
-		const int32_t mid = offsets.back() - offsets[ib];
+	    else if (ib < offset32.size()) {
+		const int32_t mid = offset32.back() - offset32[ib];
 		if ((tot >> 1) >= mid)
 		    cost = mid;
 		else
@@ -899,8 +899,8 @@ double ibis::direkte::estimateCost(const ibis::qDiscreteRange& expr) const {
     const ibis::array_t<double>& varr = expr.getValues();
     for (uint32_t j = 0; j < varr.size(); ++ j) {
 	uint32_t ind = static_cast<uint32_t>(varr[j]);
-	if (ind+1 < offsets.size() && ind < bits.size())
-	    cost += offsets[ind+1] - offsets[ind];
+	if (ind+1 < offset32.size() && ind < bits.size())
+	    cost += offset32[ind+1] - offset32[ind];
     }
     return cost;
 } // ibis::direkte::estimateCost
@@ -939,7 +939,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 		nrows = idxf->nrows;
 		str = idxf->str; idxf->str = 0;
 		fname = 0;
-		offsets.swap(idxf->offsets);
+		offset32.swap(idxf->offset32);
 		bits.swap(idxf->bits);
 		delete idxf;
 		//ierr = write(dt);

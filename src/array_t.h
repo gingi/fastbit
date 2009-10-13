@@ -16,9 +16,9 @@
 /// The memory is guaranteed to be contiguous.  It also implements read and
 /// write functions that are not present in std::vector.
 ///
-/// @note This implementation uses 32-bit integers for measuring the number
-/// of elements, therefore, can not handle array with more than 2^31-1
-/// elements.
+/// @note This implementation uses size_t integers for measuring the number
+/// of elements, therefore, the maximum size it can handle is machine and
+/// compiler dependent.
 #ifdef __GNUC__
 #pragma interface
 #endif
@@ -31,21 +31,21 @@ public:
     typedef       T& reference; ///< Reference to a value.
     typedef const T& const_reference; ///< Reference to a constant value.
     typedef       T  value_type; ///< Type of values.
-    typedef  uint32_t  size_type; ///< For array size.
+    typedef  size_t  size_type; ///< For array size.
     typedef std::ptrdiff_t difference_type; ///< For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
     array_t<T>();
-    explicit array_t<T>(uint32_t n); // donot convert integer to array_t
-    array_t<T>(uint32_t n, const T& val);
+    explicit array_t<T>(size_t n); // donot convert integer to array_t
+    array_t<T>(size_t n, const T& val);
     array_t<T>(const array_t<T>& rhs);
     array_t<T>(const std::vector<T>& rhs);
-    array_t<T>(const array_t<T>& rhs, const uint32_t offset,
-	       const uint32_t nelm=0);
+    array_t<T>(const array_t<T>& rhs, const size_t offset,
+	       const size_t nelm=0);
     array_t<T>(ibis::fileManager::storage* rhs);
-    array_t<T>(ibis::fileManager::storage* rhs, const uint32_t start,
-	       const uint32_t nelm);
+    array_t<T>(ibis::fileManager::storage* rhs, const size_t start,
+	       const size_t nelm);
     /// Read a portion of an open file into an array.
     array_t<T>(const int fdes, const off_t begin, const off_t end);
     /// Retrieve a portion of the named file to an array.  Prefer memory
@@ -67,15 +67,15 @@ public:
     const T& back() const {return m_end[-1];};
 
     bool empty() const {return (m_begin == 0 || m_begin >= m_end);};
-    uint32_t size() const {	///< Return the number of elements.
+    size_t size() const {	///< Return the number of elements.
 	return (m_begin > 0 && m_end > m_begin ? m_end - m_begin : 0);
     };
     void clear() {m_end = m_begin;};	///< Reset the size to zero.
 
     void pop_back() {--m_end;};		///< Remove the last element.
-    void resize(uint32_t n);	///< Resize array.
-    void reserve(uint32_t n);	///< Reserve space.
-    uint32_t capacity() const;
+    void resize(size_t n);	///< Resize array.
+    void reserve(size_t n);	///< Reserve space.
+    size_t capacity() const;
     inline void swap(array_t<T>& rhs);	///< Exchange the content.
     inline void push_back(const T& elm);///< Add one element.
 
@@ -88,9 +88,9 @@ public:
     void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
     uint32_t find(const array_t<uint32_t>& ind, const T& val) const;
     /// Return the smallest i such that [i] >= val.
-    uint32_t find(const T& val) const;
+    size_t find(const T& val) const;
     /// Return the smallest i such that [i] > val.
-    uint32_t find_upper(const T& val) const;
+    size_t find_upper(const T& val) const;
     /// A stable sort using the provided workspace.  The current content is
     /// modified to be in ascending order.  The argument @c tmp is only
     /// used as temporary storage.
@@ -105,12 +105,12 @@ public:
 			   array_t<T>& tmp, array_t<uint32_t>& itmp);
 
     /// Non-modifiable reference to an element of the array.
-    const T& operator[](uint32_t i) const {return m_begin[i];}
+    const T& operator[](size_t i) const {return m_begin[i];}
     /// Modifiable reference to an element of the array.
     /// @note For efficiency reasons, this is not a copy-on-write
     /// implementation!  The caller has to call the function @c nosharing
     /// to make sure the underlying data is not shared with others.
-    T& operator[](uint32_t i) {return m_begin[i];};
+    T& operator[](size_t i) {return m_begin[i];};
     /// Make a not-shared copy of the array if it is actually a shared
     /// array.
     void nosharing();
@@ -118,7 +118,7 @@ public:
     bool incore() const {return(actual != 0 ? actual->unnamed() != 0 : false);}
 
     iterator insert(iterator pos, const T& val);
-    void insert(iterator p, uint32_t n, const T& val);
+    void insert(iterator p, size_t n, const T& val);
     void insert(iterator p, const_iterator i, const_iterator j);
 
     // erase one value or a range of values
@@ -194,13 +194,13 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
     }
     else { // copy-and-swap
 	const difference_type nexist = (m_end - m_begin);
-	uint32_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
+	size_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
 	if ((long long) newsize < nexist) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
 	array_t<T> copy(newsize); // allocate new array
-	copy.resize(static_cast<uint32_t>(nexist+1));
+	copy.resize(static_cast<size_t>(nexist+1));
 	for (difference_type j = 0; j < nexist; ++ j) // copy
 	    copy.m_begin[j] = m_begin[j];
 	copy.m_begin[nexist] = elm;
@@ -224,7 +224,7 @@ inline void ibis::array_t<T>::freeMemory() {
 
 /// The maximum number of elements can be stored with the current memory.
 template <class T>
-inline uint32_t ibis::array_t<T>::capacity() const {
+inline size_t ibis::array_t<T>::capacity() const {
     return (actual != 0 ? (const T*)actual->end() - m_begin : 0);
 } // ibis::array_t<T>::capacity
 #endif // IBIS_ARRAY_T_H

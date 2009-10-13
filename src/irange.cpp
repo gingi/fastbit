@@ -178,11 +178,11 @@ int ibis::range::read(const char* f) {
     end = 8 + 2 * sizeof(uint32_t) + (nobs+1) * sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // read bounds
@@ -252,8 +252,8 @@ int ibis::range::read(const char* f) {
 	bits[i] = 0;
 
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) { // read the first bitvector
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) { // read the first bitvector
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -314,11 +314,11 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
     end = start + 2 * sizeof(uint32_t) + (nobs+1)*sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // read bounds
@@ -384,9 +384,9 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
     bits.resize(nobs);
     if (fname == 0) { // read all bitvectors
 	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offsets[i+1] > offsets[i]) {
+	    if (offset32[i+1] > offset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a0(fdes, offsets[i], offsets[i+1]);
+		    a0(fdes, offset32[i], offset32[i+1]);
 		ibis::bitvector* tmp = new ibis::bitvector(a0);
 		bits[i] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -410,8 +410,8 @@ int ibis::range::read(int fdes, uint32_t start, const char *fn) {
 	}
     }
 #if defined(FASTBIT_READ_BITVECTOR0)
-    else if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    else if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -571,10 +571,10 @@ void ibis::range::construct(const char *df) {
 	for (uint32_t i = 0; i < nobs; ++i)
 	    bits[i]->compress();
 	optionalUnpack(bits, col->indexSpec());
-	offsets.resize(nobs+1);
-	offsets[0] = 0;
+	offset32.resize(nobs+1);
+	offset32[0] = 0;
 	for (unsigned j = 0; j < nobs; ++ j)
-	    offsets[j+1] = offsets[j] +
+	    offset32[j+1] = offset32[j] +
 		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
 
 	if (ibis::gVerbose > 4) {
@@ -3531,8 +3531,8 @@ double ibis::range::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes()*2 < nbv);
-	else if (offsets.size() > nobs)
-	    here = (static_cast<uint32_t>(offsets[nobs]*2) < nbv);
+	else if (offset32.size() > nobs)
+	    here = (static_cast<uint32_t>(offset32[nobs]*2) < nbv);
     }
     if (here) {
 	ret = computeSum();

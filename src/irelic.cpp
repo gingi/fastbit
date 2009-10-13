@@ -149,7 +149,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	start += sizeof(uint32_t);
 	array_t<int32_t> offs(st, 8*((start+7)/8)
 			    + sizeof(double)*card, nobs+1);
-	offsets.copy(offs);
+	offset32.copy(offs);
 	bits.resize(nobs);
 	for (uint32_t i = 0; i < nobs; ++i)
 	    bits[i] = 0;
@@ -166,10 +166,10 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		    <<  8*((start+7)/8)+sizeof(double)*card
 		    << ") are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < nobs)
 	    lg.buffer() << "... (skipping " << nobs-nprt << ") ... ";
-	lg.buffer() << offsets[nobs];
+	lg.buffer() << offset32[nobs];
     }
 #endif
 	if (st->isFileMap()) { // only map the first bitvector
@@ -411,11 +411,11 @@ int ibis::relic::read(const char* f) {
     end += sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG)
@@ -428,10 +428,10 @@ int ibis::relic::read(const char* f) {
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		  << ", the offsets of the bit vectors are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offsets[dim[1]];
+	lg.buffer() << offset32[dim[1]];
     }
 #endif
 
@@ -440,8 +440,8 @@ int ibis::relic::read(const char* f) {
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 	bits[0]->sloppySize(nrows);
     }
@@ -471,7 +471,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t) + 7;
     {
 	array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
-	offsets.swap(offs);
+	offset32.swap(offs);
 	array_t<double> dbl(st, 8*(pos/8), card);
 	vals.swap(dbl);
     }
@@ -483,9 +483,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 	bits[i] = 0;
     if (st->isFileMap()) { // only restore the first bitvector
 #if defined(FASTBIT_READ_BITVECTOR0)
-	if (offsets[1] > offsets[0]) {
+	if (offset32[1] > offset32[0]) {
 	    array_t<ibis::bitvector::word_t>
-		a0(st, offsets[0], (offsets[1]-offsets[0])/
+		a0(st, offset32[0], (offset32[1]-offset32[0])/
 		   sizeof(ibis::bitvector::word_t));
 	    bits[0] = new ibis::bitvector(a0);
 	    bits[0]->sloppySize(nrows);
@@ -499,9 +499,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     }
     else { // regenerate all the bitvectors
 	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offsets[i+1] > offsets[i]) {
+	    if (offset32[i+1] > offset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(st, offsets[i], (offsets[i+1]-offsets[i])/
+		    a(st, offset32[i], (offset32[i+1]-offset32[i])/
 		      sizeof(ibis::bitvector::word_t));
 		ibis::bitvector* btmp = new ibis::bitvector(a);
 		btmp->sloppySize(nrows);
@@ -512,9 +512,9 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 				"(offsets[%lu]=%lu, offsets[%lu]=%lu)",
 				static_cast<long unsigned>(i),
 				static_cast<long unsigned>(i),
-				static_cast<long unsigned>(offsets[i]),
+				static_cast<long unsigned>(offset32[i]),
 				static_cast<long unsigned>(i+1),
-				static_cast<long unsigned>(offsets[i+1]));
+				static_cast<long unsigned>(offset32[i+1]));
 	    }
 	}
 	str = 0;
@@ -1543,17 +1543,17 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
     if (h0 >= h1) {
 	ret = 0.0;
     }
-    else if (offsets.size() > bits.size() && offsets.size() > h1 ) {
+    else if (offset32.size() > bits.size() && offset32.size() > h1 ) {
 	if (h1 > h0 + 1) {
-	    const int32_t tot = offsets.back() - offsets[0];
-	    const int32_t mid = offsets[h1] - offsets[h0];
+	    const int32_t tot = offset32.back() - offset32[0];
+	    const int32_t mid = offset32[h1] - offset32[h0];
 	    if ((tot >> 1) >= mid)
 		ret = mid;
 	    else
 		ret = tot - mid;
 	}
 	else {// extra discount for a single bitmap
-	    ret = 0.5 * (offsets[h1] - offsets[h0]);
+	    ret = 0.5 * (offset32[h1] - offset32[h0]);
 	}
     }
     else if (h1 > h0 + 1) {
@@ -1574,11 +1574,11 @@ double ibis::relic::estimateCost(const ibis::qContinuousRange& expr) const {
 double ibis::relic::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
     const ibis::array_t<double>& varr = expr.getValues();
-    if (offsets.size() > bits.size()) {
+    if (offset32.size() > bits.size()) {
 	for (unsigned j = 0; j < varr.size(); ++ j) {
 	    uint32_t itmp = locate(varr[j]);
 	    if (itmp < bits.size())
-		ret += offsets[itmp+1] - offsets[itmp];
+		ret += offset32[itmp+1] - offset32[itmp];
 	}
     }
     else {
@@ -1650,8 +1650,8 @@ double ibis::relic::getSum() const {
 	const uint32_t nbv = col->elementSize() * col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes() < nbv);
-	else if (offsets.size() > bits.size())
-	    here = (static_cast<uint32_t>(offsets[bits.size()]) < nbv);
+	else if (offset32.size() > bits.size())
+	    here = (static_cast<uint32_t>(offset32[bits.size()]) < nbv);
     }
     if (here) {
 	ret = computeSum();

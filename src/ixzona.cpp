@@ -47,10 +47,10 @@ ibis::zona::zona(const ibis::column *c, const char *f)
  */
 ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t start) : ibis::relic(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offsets.back()))
+    if (st->size() <= static_cast<uint32_t>(offset32.back()))
 	return; // no coarse bin
 
-    start = offsets.back();
+    start = offset32.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
 	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
@@ -124,11 +124,11 @@ void ibis::zona::coarsen() {
     const uint32_t ncoarse = 11; // default number of coarse bins (w=64, 16)
     const uint32_t nbits = bits.size();
 
-    if (offsets.size() != nbits+1) {
-	offsets.resize(nbits+1);
-	offsets[0] = 0;
+    if (offset32.size() != nbits+1) {
+	offset32.resize(nbits+1);
+	offset32[0] = 0;
 	for (unsigned i = 0; i < nbits; ++ i)
-	    offsets[i+1] = offsets[i] + (bits[i] ? bits[i]->bytes() : 0U);
+	    offset32[i+1] = offset32[i] + (bits[i] ? bits[i]->bytes() : 0U);
     }
     if (vals.size() < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
@@ -138,11 +138,11 @@ void ibis::zona::coarsen() {
     cbounds.resize(ncoarse+1);
     cbounds[0] = 0;
     for (unsigned i = 1; i < ncoarse; ++ i) {
-	int32_t target = offsets[cbounds[i-1]] +
-	    (offsets.back() - offsets[cbounds[i-1]]) / (ncoarse - i + 1);
-	cbounds[i] = offsets.find(target);
+	int32_t target = offset32[cbounds[i-1]] +
+	    (offset32.back() - offset32[cbounds[i-1]]) / (ncoarse - i + 1);
+	cbounds[i] = offset32.find(target);
 	if (cbounds[i] > cbounds[i-1]+1 &&
-	    offsets[cbounds[i]]-target > target-offsets[cbounds[i]-1])
+	    offset32[cbounds[i]]-target > target-offset32[cbounds[i]-1])
 	    -- (cbounds[i]);
 	else if (cbounds[i] <= cbounds[i-1])
 	    cbounds[i] = cbounds[i-1] + 1;
@@ -182,7 +182,7 @@ void ibis::zona::activateCoarse() const {
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffsets.size() <= nobs || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= nobs || coffsets[0] <= offset32.back()) {
 	col->logWarning("zona::activateCoarse", "no records of coffsets, "
 			"can not regenerate the bitvectors");
     }
@@ -279,7 +279,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
     if (cbits[i] != 0) return;	// already active
     ibis::column::mutexLock lock(col, "zona::activateCoarse");
     if (cbits[i] != 0) return;	// already active
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("zona::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvector %lu",
 			static_cast<long unsigned>(i));
@@ -354,7 +354,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // all bitvectors active
 
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("zona::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvectors %lu:%lu",
 			static_cast<long unsigned>(i),
@@ -468,10 +468,10 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
     const uint32_t ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
-    const long fine = offsets[hit1] - offsets[hit0] <=
-	(offsets.back() - offsets[hit1]) + (offsets[hit0] - offsets[0])
-	? offsets[hit1] - offsets[hit0] :
-	(offsets.back() - offsets[hit1]) + (offsets[hit0] - offsets[0]);
+    const long fine = offset32[hit1] - offset32[hit0] <=
+	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
+	? offset32[hit1] - offset32[hit0] :
+	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0]);
     if (hit1 <= hit0) {
 	res = 0.0;
 	return res;
@@ -485,7 +485,7 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
 	res = fine;
 	return res;
     }
-    if (hit0+3 >= hit1 || offsets.size() < bits.size()) {
+    if (hit0+3 >= hit1 || offset32.size() < bits.size()) {
 	res = fine;
 	return res;
     }
@@ -496,7 +496,7 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
     const uint32_t c1 = cbounds.find(hit1);
     if (c0 >= c1) { // within the same coarse bin
 	long tmp = coffsets[c0] - coffsets[c0-1]
-	    + offsets[cbounds[c0]] - offsets[cbounds[c0-1]] - fine;
+	    + offset32[cbounds[c0]] - offset32[cbounds[c0-1]] - fine;
 	res = fine;
 	if (static_cast<long>(0.99*fine) > tmp)
 	    res = tmp;
@@ -510,33 +510,33 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
 	// pair 2: [direct | - | direct] (coarse bin evaluation takes
 	// into account of possibly using complement)
 	long tmp = coffsets[c1-1] - coffsets[c0];
-	long cost = (offsets[cbounds[c0]] - offsets[hit0])
+	long cost = (offset32[cbounds[c0]] - offset32[hit0])
 	    + (tmp+tmp <= csize ? tmp : csize-tmp)
-	    + (offsets[hit1] - offsets[cbounds[c1-1]]);
+	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	// pair 3: [complement | - | direct]
 	if (c0 > 0) {
 	    tmp = coffsets[c1-1] - coffsets[c0-1];
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ (tmp+tmp <= csize ? tmp : csize-tmp)
-		+ (offsets[hit1] - offsets[cbounds[c1-1]]);
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost) {
 		cost = tmp;
 	    }
 	}
 	// pair 4: [direct | - | complement]
 	tmp = coffsets[c1] - coffsets[c0];
-	tmp = (offsets[cbounds[c0]] - offsets[hit0])
+	tmp = (offset32[cbounds[c0]] - offset32[hit0])
 	    + (tmp+tmp <= csize ? tmp : csize-tmp)
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	}
 	// pair 5: [complement | - | complement]
 	if (c0 > 0) {
 	    tmp = coffsets[c1] - coffsets[c0-1];
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ (tmp+tmp <= csize ? tmp : csize-tmp)
-		+ (offsets[cbounds[c1]] - offsets[hit1]);
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost) {
 		cost = tmp;
 	    }
@@ -582,7 +582,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
     const uint32_t ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
-    if (hit0+3 >= hit1 || offsets.size() < bits.size() || ncoarse == 0) {
+    if (hit0+3 >= hit1 || offset32.size() < bits.size() || ncoarse == 0) {
 	// no more than three bitmaps involved, or don't know the sizes
 	sumBins(hit0, hit1, lower);
 	return lower.cnt();
@@ -606,9 +606,9 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	    lg.buffer() << ", c1=" << c1 << ", bits.size()=" << bits.size();
     }
     if (c0 >= c1) { // within the same coarse bin
-	long fine = offsets[hit1] - offsets[hit0];
+	long fine = offset32[hit1] - offset32[hit0];
 	long tmp = coffsets[c0] - coffsets[c0-1]
-	    + offsets[cbounds[c0]] - offsets[cbounds[c0-1]] - fine;
+	    + offset32[cbounds[c0]] - offset32[cbounds[c0-1]] - fine;
 	if (static_cast<long>(0.99*fine) <= tmp) {
 	    sumBins(hit0, hit1, lower);
 	}
@@ -634,15 +634,15 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	const long csize = coffsets.back() - coffsets[0];
 	unsigned option = 2; // pair 2 [direct | - | direct]
 	long tmp = coffsets[c1-1] - coffsets[c0];
-	long cost = (offsets[cbounds[c0]] - offsets[hit0])
+	long cost = (offset32[cbounds[c0]] - offset32[hit0])
 	    + ((tmp+tmp) <= csize ? tmp : csize - tmp)
-	    + (offsets[hit1] - offsets[cbounds[c1-1]]);
+	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	// pair 3: [complement | - | direct]
 	if (c0 > 0) {
 	    tmp = coffsets[c1-1] - coffsets[c0-1];
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ ((tmp+tmp) <= csize ? tmp : csize - tmp)
-		+ (offsets[hit1] - offsets[cbounds[c1-1]]);
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 3;
@@ -650,9 +650,9 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	}
 	// pair 4: [direct | - | complement]
 	tmp = coffsets[c1] - coffsets[c0];
-	tmp = (offsets[cbounds[c0]] - offsets[hit0])
+	tmp = (offset32[cbounds[c0]] - offset32[hit0])
 	    + ((tmp+tmp) <= csize ? tmp : csize - tmp)
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
@@ -660,19 +660,19 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	// pair 5: [complement | - | complement]
 	if (c0 > 0) {
 	    tmp = coffsets[c1] - coffsets[c0-1];
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ ((tmp+tmp) <= csize ? tmp : csize - tmp)
-		+ (offsets[cbounds[c1]] - offsets[hit1]);
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
 	// pair 1: fine level only
-	tmp = (offsets[hit1] - offsets[hit0] <=
-	       (offsets.back()-offsets[hit1+1])+(offsets[hit0]-offsets[0]) ?
-	       offsets[hit1] - offsets[hit0] :
-	       (offsets.back()-offsets[hit1+1])+(offsets[hit0]-offsets[0]));
+	tmp = (offset32[hit1] - offset32[hit0] <=
+	       (offset32.back()-offset32[hit1+1])+(offset32[hit0]-offset32[0]) ?
+	       offset32[hit1] - offset32[hit0] :
+	       (offset32.back()-offset32[hit1+1])+(offset32[hit0]-offset32[0]));
 	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 1
 	    cost = tmp;
 	    option = 1;
@@ -950,11 +950,11 @@ int ibis::zona::read(const char* f) {
     end += sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG) || defined(_DEBUG)
@@ -967,10 +967,10 @@ int ibis::zona::read(const char* f) {
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offsets[dim[1]];
+	lg.buffer() << offset32[dim[1]];
     }
 #endif
 
@@ -979,8 +979,8 @@ int ibis::zona::read(const char* f) {
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 	bits[0]->sloppySize(nrows);
     }
@@ -991,11 +991,11 @@ int ibis::zona::read(const char* f) {
 #endif
 
     // reading the coarse bins
-    ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -1034,8 +1034,8 @@ int ibis::zona::readCoarse(const char* fn) {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    long ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    long ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc, begin, end;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
@@ -1043,7 +1043,7 @@ int ibis::zona::readCoarse(const char* fn) {
 	    return -2;
 	}
 
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -1083,7 +1083,7 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t) + 7;
     array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
     array_t<double> dbl(st, 8*(pos/8), card);
-    offsets.copy(offs);
+    offset32.copy(offs);
     vals.swap(dbl);
 
     for (uint32_t i = 0; i < bits.size(); ++ i)
@@ -1107,13 +1107,13 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 #endif
 	str = st;
 
-	if (str->size() > static_cast<uint32_t>(offsets.back())) {
+	if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
-	    if (nc > 0 && str->size() > static_cast<uint32_t>(offsets.back()) +
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	    if (nc > 0 && str->size() > static_cast<uint32_t>(offset32.back()) +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + 4;
+		start = offset32.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
@@ -1147,13 +1147,13 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 	    }
 	}
 
-	if (str->size() > static_cast<uint32_t>(offsets.back())) {
+	if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
-	    if (nc > 0 && str->size() > offsets.back() +
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	    if (nc > 0 && str->size() > offset32.back() +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + 4;
+		start = offset32.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 

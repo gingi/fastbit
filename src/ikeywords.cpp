@@ -298,8 +298,8 @@ void ibis::keywords::print(std::ostream& out) const {
     out << std::endl;
 } // ibis::keywords::print
 
-/// Write the boolean term-document matrix as two files, xxx.terms
-/// for the terms and xxx.idx for the bitmaps that marks the positions.
+/// Write the boolean term-document matrix as two files, xx.terms
+/// for the terms and xx.idx for the bitmaps that marks the positions.
 int ibis::keywords::write(const char* dt) const {
     std::string fnm;
     dataFileName(dt, fnm);
@@ -430,11 +430,11 @@ int ibis::keywords::read(const char* f) {
     end = 8 + 2*sizeof(uint32_t) + sizeof(int32_t) * (dim[1] + 1);
     if (trymmap) {
 	array_t<int32_t> tmp(fnm.c_str(), begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG)
@@ -447,10 +447,10 @@ int ibis::keywords::read(const char* f) {
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
 	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offsets[i] << " ";
+	    lg.buffer() << offset32[i] << " ";
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offsets[dim[1]];
+	lg.buffer() << offset32[dim[1]];
     }
 #endif
 
@@ -459,8 +459,8 @@ int ibis::keywords::read(const char* f) {
 	bits[i] = 0;
 #if defined(FASTBIT_READ_BITVECTOR0)
     // read the first bitvector
-    if (offsets[1] > offsets[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	bits[0] = new ibis::bitvector(a0);
 #if defined(WAH_CHECK_SIZE)
 	const uint32_t len = strlen(col->partition()->currentDataDir());
@@ -499,7 +499,7 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     array_t<int32_t> offs(st, pos, nobs+1);
-    offsets.copy(offs);
+    offset32.copy(offs);
 
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	delete bits[i];
@@ -621,16 +621,16 @@ long ibis::keywords::search(const char* kw) const {
 
 double ibis::keywords::estimateCost(const ibis::qContinuousRange& expr) const {
     double ret = 0.0;
-    if (offsets.size() > bits.size()) {
+    if (offset32.size() > bits.size()) {
 	if (expr.leftOperator() == ibis::qExpr::OP_EQ) {
 	    uint32_t h0 = static_cast<uint32_t>(expr.leftBound());
 	    if (h0 < bits.size())
-		ret = offsets[h0+1] - offsets[h0];
+		ret = offset32[h0+1] - offset32[h0];
 	}
 	else if (expr.leftOperator() == ibis::qExpr::OP_EQ) {
 	    uint32_t h1 = static_cast<uint32_t>(expr.rightBound());
 	    if (h1 < bits.size())
-		ret = offsets[h1+1] - offsets[h1];
+		ret = offset32[h1+1] - offset32[h1];
 	}
     }
     return ret;
@@ -638,12 +638,12 @@ double ibis::keywords::estimateCost(const ibis::qContinuousRange& expr) const {
 
 double ibis::keywords::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
-    if (offsets.size() > bits.size()) {
+    if (offset32.size() > bits.size()) {
 	const ibis::array_t<double>& vals = expr.getValues();
 	for (unsigned j = 0; j < vals.size(); ++ j) {
 	    uint32_t itmp = static_cast<uint32_t>(vals[j]);
 	    if (itmp < bits.size())
-		ret += offsets[itmp+1] - offsets[itmp];
+		ret += offset32[itmp+1] - offset32[itmp];
 	}
     }
     return ret;

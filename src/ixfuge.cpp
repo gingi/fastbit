@@ -72,10 +72,10 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
  */
 ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 		 uint32_t start) : ibis::bin(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offsets.back()))
+    if (st->size() <= static_cast<uint32_t>(offset32.back()))
 	return; // no coarse bin
 
-    start = offsets.back();
+    start = offset32.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
 	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
@@ -168,7 +168,7 @@ int ibis::fuge::write(const char* dt) const {
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = ibis::bin::write(fdes); // write the basic binned index
+    ierr = ibis::bin::write32(fdes); // write the basic binned index
     if (ierr >= 0)
 	ierr = writeCoarse(fdes); // write the coarse level bins
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
@@ -232,11 +232,11 @@ int ibis::fuge::read(const char* f) {
     end = 8+2*sizeof(uint32_t)+(nobs+1)*sizeof(int32_t);
     if (trymmap) {
 	array_t<int32_t> tmp(fname, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
     else {
 	array_t<int32_t> tmp(fdes, begin, end);
-	offsets.swap(tmp);
+	offset32.swap(tmp);
     }
 
     // read bounds
@@ -284,8 +284,8 @@ int ibis::fuge::read(const char* f) {
 	bits[i] = 0;
 
 #if defined(FASTBIT_READ_BITVECTOR0)
-    if (offsets[1] > offsets[0]) {// read the first bitvector
-	array_t<ibis::bitvector::word_t> a0(fdes, offsets[0], offsets[1]);
+    if (offset32[1] > offset32[0]) {// read the first bitvector
+	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
 	ibis::bitvector* tmp = new ibis::bitvector(a0);
 	bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
@@ -307,11 +307,11 @@ int ibis::fuge::read(const char* f) {
 #endif
 
     // reading the coarse bins
-    ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -342,14 +342,14 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
 
-    if (str->size() > static_cast<uint32_t>(offsets.back())) {
+    if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	if (st->isFileMap()) {
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
-	    if (nc > 0 && str->size() > static_cast<uint32_t>(offsets.back()) +
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	    if (nc > 0 && str->size() > static_cast<uint32_t>(offset32.back()) +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + sizeof(uint32_t);
+		start = offset32.back() + sizeof(uint32_t);
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
@@ -363,12 +363,12 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
 	}
 	else { // regenerate all the bitvectors
 	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offsets.back()));
+		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
 	    const uint32_t ncb = nc + 1 - (nc+1) / 2;
-	    if (nc > 0 && str->size() > offsets.back() +
+	    if (nc > 0 && str->size() > offset32.back() +
 		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 		uint32_t start;
-		start = offsets.back() + 4;
+		start = offset32.back() + 4;
 		array_t<uint32_t> btmp(str, start, nc+1);
 		cbounds.swap(btmp);
 
@@ -535,7 +535,7 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     const uint32_t ncoarse = (cbounds.empty() ? 0U : cbounds.size()-1);
     if (hit0+3 >= hit1 || ncoarse == 0 || (cbits.size()+1) != coffsets.size()
 	|| cbits.size() != (ncoarse-(ncoarse+1)/2+1)
-	|| offsets[cand1]-offsets[cand0] < 262144) {
+	|| offset32[cand1]-offset32[cand0] < 262144) {
 	// use the fine level bitmaps only
 	sumBins(hit0, hit1, lower);
 	if (cand0 < hit0 || (cand1 > hit1 && hit1 < nobs)) {
@@ -578,9 +578,9 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     }
     if (c0 >= c1) { // within the same coarse bin
 	long tmp = coarseEstimate(c1-1, c1)
-	    + (offsets[hit0] - offsets[cbounds[c1-1]])
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
-	if (offsets[hit1]-offsets[hit0] <= static_cast<long>(0.99*tmp)) {
+	    + (offset32[hit0] - offset32[cbounds[c1-1]])
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	if (offset32[hit1]-offset32[hit0] <= static_cast<long>(0.99*tmp)) {
 	    sumBins(hit0, hit1, lower);
 	}
 	else {
@@ -599,41 +599,41 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     }
     else {// general case: need to evaluate 5 options
 	unsigned option = 2; // option 2 [direct | - | direct]
-	long cost = (offsets[cbounds[c0]] - offsets[hit0])
+	long cost = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate(c0, c1-1)
-	    + (offsets[hit1] - offsets[cbounds[c1-1]]);
+	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	long tmp;
 	if (c0 > 0) {	// option 3: [complement | - | direct]
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1-1)
-		+ (offsets[hit1] - offsets[cbounds[c1-1]]);
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 3;
 	    }
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offsets[cbounds[c0]] - offsets[hit0])
+	tmp = (offset32[cbounds[c0]] - offset32[hit0])
 	    + coarseEstimate((c0>0 ? c0-1 : 0), c1)
-	    + (offsets[cbounds[c1]] - offsets[hit1]);
+	    + (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
 	}
 	if (c0 > 0) { // option 5: [complement | - | complement]
-	    tmp = (offsets[hit0] - offsets[cbounds[c0-1]])
+	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
 		+ coarseEstimate(c0-1, c1)
-		+ (offsets[cbounds[c1]] - offsets[hit1]);
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
 	// option 0 and 1: fine level only
-	tmp = (offsets[hit1] - offsets[hit0] <=
-	       (offsets.back()-offsets[hit1])+(offsets[hit0]-offsets[0]) ?
-	       offsets[hit1] - offsets[hit0] :
-	       (offsets.back()-offsets[hit1])+(offsets[hit0]-offsets[0]));
+	tmp = (offset32[hit1] - offset32[hit0] <=
+	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
+	       offset32[hit1] - offset32[hit0] :
+	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
 	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
 	    cost = tmp;
 	    option = 1;
@@ -709,11 +709,11 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 // the sizes (bytes) of the bitmaps
 void ibis::fuge::coarsen() {
     const uint32_t nbits = bits.size();
-    if (offsets.size() != nbits+1) {
-	offsets.resize(nbits+1);
-	offsets[0] = 0;
+    if (offset32.size() != nbits+1) {
+	offset32.resize(nbits+1);
+	offset32[0] = 0;
 	for (unsigned i = 0; i < nbits; ++ i)
-	    offsets[i+1] = offsets[i] + (bits[i] ? bits[i]->bytes() : 0U);
+	    offset32[i+1] = offset32[i] + (bits[i] ? bits[i]->bytes() : 0U);
     }
     if (nobs < 32) return; // don't construct the coarse level
     if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
@@ -730,10 +730,10 @@ void ibis::fuge::coarsen() {
 		ncoarse = j;
 	}
     }
-    if (ncoarse < 5U && offsets.back() > offsets[0]+nrows/31) {
+    if (ncoarse < 5U && offset32.back() > offset32[0]+nrows/31) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8 - 1;
-	const long sf = (offsets.back()-offsets[0]) / ncoarse;
+	const long sf = (offset32.back()-offset32[0]) / ncoarse;
 	ncoarse = static_cast<unsigned>(wm1*sf/(sqrt(2.0)*nrows));
 	const unsigned ncmax = (unsigned) sqrt(2.0 * nobs);
 	if (ncoarse < ncmax) {
@@ -756,11 +756,11 @@ void ibis::fuge::coarsen() {
     cbounds.resize(ncoarse+1);
     cbounds[0] = 0;
     for (unsigned i = 1; i < ncoarse; ++ i) {
-	int32_t target = offsets[cbounds[i-1]] +
-	    (offsets.back() - offsets[cbounds[i-1]]) / (ncoarse - i + 1);
-	cbounds[i] = offsets.find(target);
+	int32_t target = offset32[cbounds[i-1]] +
+	    (offset32.back() - offset32[cbounds[i-1]]) / (ncoarse - i + 1);
+	cbounds[i] = offset32.find(target);
 	if (cbounds[i] > cbounds[i-1]+1 &&
-	    offsets[cbounds[i]]-target > target-offsets[cbounds[i]-1])
+	    offset32[cbounds[i]]-target > target-offset32[cbounds[i]-1])
 	    -- (cbounds[i]);
 	else if (cbounds[i] <= cbounds[i-1])
 	    cbounds[i] = cbounds[i-1]+1;
@@ -840,8 +840,8 @@ int ibis::fuge::readCoarse(const char* fn) {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    long ierr = UnixSeek(fdes, offsets.back(), SEEK_SET);
-    if (ierr == offsets.back()) {
+    long ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr == offset32.back()) {
 	uint32_t nc, begin, end;
 	ierr = UnixRead(fdes, &nc, sizeof(nc));
 	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
@@ -849,7 +849,7 @@ int ibis::fuge::readCoarse(const char* fn) {
 	    return -2;
 	}
 
-	begin = offsets.back() + sizeof(nc);
+	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
 	    array_t<uint32_t> tmp(fdes, begin, end);
@@ -895,7 +895,7 @@ void ibis::fuge::activateCoarse() const {
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffsets.size() <= nobs || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= nobs || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuge::activateCoarse", "no records of coffsets, "
 			"can not regenerate the bitvectors");
     }
@@ -992,7 +992,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
     if (cbits[i] != 0) return;	// already active
     ibis::column::mutexLock lock(col, "fuge::activateCoarse");
     if (cbits[i] != 0) return;	// already active
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuge::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvector %lu",
 			static_cast<long unsigned>(i));
@@ -1067,7 +1067,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // all bitvectors active
 
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offsets.back()) {
+    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
 	col->logWarning("fuge::activateCoarse", "no records of offsets, "
 			"can not regenerate bitvectors %lu:%lu",
 			static_cast<long unsigned>(i),
