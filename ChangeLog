@@ -1,3 +1,6 @@
+2009-10-14 John Wu <John.Wu at ACM.org>
+	* doc/contact.html: add new contact information
+
 2009-10-12 John Wu <John.Wu at ACM.org>
 	* src/fileManager.h, src/util.h: move the macro HAVE_FILE_MAP and
 	FASTBIT_MIN_MAP_SIZE to util.h to be accessible to more files
