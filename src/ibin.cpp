@@ -253,9 +253,10 @@ int ibis::bin::read(const char* f) {
 	nobs = 0;
 	return -5;
     }
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (nobs*8 > FASTBIT_MIN_MAP_SIZE && fname != 0);
+    const bool trymmap = (nobs*8 > FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     begin = 8+2*sizeof(uint32_t);
     end = 8+2*sizeof(uint32_t)+(nobs+1)*header[6];
@@ -4761,19 +4762,22 @@ int ibis::bin::write(const char* dt) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write(" << fnm
 	    << ") received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write(" << fnm
 	    << ") received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write(" << fnm
 	    << ") received a unknown exception";
 	return -4;
     }
@@ -4854,7 +4858,8 @@ int ibis::bin::write(const char* dt) const {
 	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the offsets for the bitmaps";
 	UnixClose(fdes);
 	remove(fnm.c_str());
@@ -4866,7 +4871,8 @@ int ibis::bin::write(const char* dt) const {
     (void) UnixClose(fdes);
 
     LOGGER(ibis::gVerbose > 5)
-	<< "bin[" << col->name() << "]::write -- wrote " << nobs << " bitmap"
+	<< "bin[" << col->partition()->name() << '.' << col->name()
+	<< "]::write -- wrote " << nobs << " bitmap"
 	<< (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
 	<< " object" << (nrows>1?"s":"") << ", file size "
 	<< (useoffset64 ? offset64.back() : (int64_t)offset32.back());
@@ -4882,54 +4888,76 @@ int ibis::bin::write32(int fdes) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32 received a "
-	    "std::exception - " << e.what();
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32 received a std::exception - "
+	    << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32 received a "
-	    "string exception - " << s;
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32 received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32 received a "
-	    "unexpected exception";
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32 received a unexpected exception";
 	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
 	    << ") can not start at position " << start;
 	return -5;
     }
 
-    int ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     if (ierr != (int)sizeof(nrows)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
 	    << ") failed to write 4-byte value " << nrows;
 	return -6;
     }
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes,
+    (void) UnixWrite(fdes, &nobs, sizeof(nobs));
+    (void) UnixSeek(fdes,
 		    ((start+sizeof(int32_t)*(nobs+1)+
 		      2*sizeof(uint32_t)+7)/8)*8,
 		    SEEK_SET);
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    if (ierr != (off_t)(sizeof(double)*nobs)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
+	    << ") failed to write " << nobs << " double value"
+	    << (nobs>1?"s":"") << " to file descriptor " << fdes
+	    << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
+    }
     offset32.resize(nobs+1);
     for (uint32_t i = 0; i < nobs; ++i) {
 	offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	bits[i]->write(fdes);
     }
     offset32[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    (void) UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
-    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
+    if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
+	    << ") failed to seek to " << start+2*sizeof(uint32_t)
+	    << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -8;
+    }
+    (void) UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET); // move to the end
     return (ierr == offset32[nobs] ? 0 : -9);
 } // ibis::bin::write32
@@ -4943,54 +4971,76 @@ int ibis::bin::write64(int fdes) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write64 received a "
-	    "std::exception - " << e.what();
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64 received a std::exception - "
+	    << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write64 received a "
-	    "string exception - " << s;
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64 received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write64 received a "
-	    "unexpected exception";
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64 received a unexpected exception";
 	return -4;
     }
 
-    const int64_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
 	    << ") can not start at position " << start;
 	return -5;
     }
 
-    int64_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     if (ierr != (int)sizeof(nrows)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
 	    << ") failed to write 4-byte value " << nrows;
 	return -6;
     }
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes,
+    (void) UnixWrite(fdes, &nobs, sizeof(nobs));
+    (void) UnixSeek(fdes,
 		    ((start+sizeof(int64_t)*(nobs+1)+
 		      2*sizeof(uint32_t)+7)/8)*8,
 		    SEEK_SET);
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    if (ierr != (off_t)(sizeof(double)*nobs)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
+	    << ") failed to write " << nobs << " double value"
+	    << (nobs>1?"s":"") << " to file descriptor " << fdes
+	    << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
+    }
     offset64.resize(nobs+1);
     for (uint32_t i = 0; i < nobs; ++i) {
 	offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	bits[i]->write(fdes);
     }
     offset64[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    (void) UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
+    if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
+	    << ") failed to seek to " << start+2*sizeof(uint32_t)
+	    << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -8;
+    }
+    (void) UnixWrite(fdes, offset64.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET); // move to the end
     return (ierr == offset64[nobs] ? 0 : -9);
 } // ibis::bin::write64
@@ -10790,3 +10840,12 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     return cnt;
 } // ibis::bin::compJoin
 
+/// Estimate the size of the serialized version of the index.  Return the
+/// size in bytes.
+size_t ibis::bin::getSerialSize() const throw () {
+    size_t res = (nobs << 5) + 16;
+    for (unsigned j = 0; j < nobs; ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    return res;
+} // ibis::bin::getSerialSize

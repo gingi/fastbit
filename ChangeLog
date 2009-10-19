@@ -1,3 +1,12 @@
+2009-10-18 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/ixambit.cpp: modify ibis::ambit class
+
+2009-10-16 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/imesa.cpp: modify ibis::mesa class
+
+2009-10-15 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/irange.cpp: modify ibis::range class
+
 2009-10-14 John Wu <John.Wu at ACM.org>
 	* doc/contact.html: add new contact information
 

@@ -241,6 +241,7 @@ protected:
     /// Parse the index spec to extract precision.
     unsigned parsePrec() const;
 
+    virtual size_t getSerialSize() const throw();
     /// Partition the bitmaps into groups of takes about the same amount of
     /// storage.
     void divideBitmaps(const std::vector<ibis::bitvector*>& bms,
@@ -456,8 +457,7 @@ public:
     virtual double getMax() const;
     virtual double getSum() const;
 
-    /// Read an ibis::ragne embedded with multiple data structures.
-    int read(int fdes, size_t offset, const char *fname);
+    int read(int fdes, size_t offset, const char *fname, const char *);
     long append(const ibis::range& tail);
     virtual void speedTest(std::ostream& out) const;
 
@@ -480,10 +480,12 @@ protected:
     void construct(const char*);
     /// Construct a new index with the specified bin boundaries.
     void construct(const char* f, const array_t<double>& bd);
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member functions
-    int write(int fptr) const; // write to the given stream
+    int write32(int fptr) const; // write to the given stream
+    int write64(int fptr) const; // write to the given stream
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
 	       const double& rbound) const;
 
@@ -533,10 +535,12 @@ protected:
     virtual double computeSum() const;
     /// Construct a new index.
     void construct(const char*);
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member functions
-    int write(int fptr) const; // write to the given stream
+    int write32(int fptr) const;
+    int write64(int fptr) const;
     //void print(std::ostream& out, const uint32_t tot, const double& lbound,
     //       const double& rbound) const;
 
@@ -590,6 +594,7 @@ protected:
     virtual void clear();
     /// Construct a new index using the given bin boundaries.
     void construct(const char* f, const array_t<double>& bd);
+    size_t getSerialSize() const throw();
 
 private:
     // min and max of range nobs (the one that is not explicitly recorded)
@@ -597,10 +602,11 @@ private:
     std::vector<ibis::ambit*> sub;
 
     // private member functions
-    int write(int fptr) const;
-    int read(int fdes, size_t offset, const char *fn);
+    int write32(int fptr) const;
+    int write64(int fptr) const;
+    int read(int fdes, size_t offset, const char *fn, const char *header);
     void print(std::ostream& out, const uint32_t tot, const double& lbound,
-	      const double& rbound) const;
+	       const double& rbound) const;
 
     ambit(const ambit&);
     ambit& operator=(const ambit&);

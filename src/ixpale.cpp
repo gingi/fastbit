@@ -300,7 +300,7 @@ int ibis::pale::write(int fdes) const {
 	for (i = 0; i < nobs; ++i) {
 	    offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (sub[i])
-		sub[i]->write(fdes);
+		sub[i]->write32(fdes);
 	}
 	offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
     }
@@ -507,7 +507,7 @@ int ibis::pale::read(const char* f) {
 	if (nextlevel[i] < nextlevel[i+1]) {
 	    sub[i] = new ibis::range(0);
 	    sub[i]->col = col;
-	    sub[i]->read(fdes, nextlevel[i], fname);
+	    sub[i]->read(fdes, nextlevel[i], fname, header);
 	}
 	else if (nextlevel[i] == nextlevel[i+1]) {
 	    sub[i] = 0;

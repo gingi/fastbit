@@ -163,7 +163,7 @@ public:
     /// object.  This would be the size of this bitvector object on disk or
     /// in a single array_t<word_t>.
     uint32_t getSerialSize() const throw() {
-	return (m_vec.size() + 1 + (active.nbits>0));
+	return (m_vec.size() + 1 + (active.nbits>0)) * sizeof(word_t);
     };
     /// Return the number of bits in a literal word.
     static word_t bitsPerLiteral() {return MAXBITS;}
