@@ -118,8 +118,8 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 /// explicitly recorded in a bit vector.  Instead it is assumed that the
 /// compliment of bits[nobs-1] represent the bin.
 ibis::range::range(const ibis::column* c, ibis::fileManager::storage* st,
-		   uint32_t offset)
-    : ibis::bin(c, st, offset), max1(*(minval.end())),
+		   size_t start)
+    : ibis::bin(c, st, start), max1(*(minval.end())),
       min1(*(1+minval.end())) {
     if (ibis::gVerbose > 8 &&
 	static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == RANGE) {

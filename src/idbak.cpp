@@ -455,69 +455,11 @@ void ibis::bak::printMap(std::ostream& out,
     out << std::endl;
 } //ibis::bak::printMap
 
-// write the index to the named directory or file
+/// Write the index to the named directory or file.
 int ibis::bak::write(const char* dt) const {
     if (nobs <= 0) return -1;
 
-    array_t<int32_t> offs(nobs+1);
-    std::string fnm;
-    indexFileName(dt, fnm);
-    if (fname != 0 && fnm.compare(fname) == 0)
-	return 0;
-    if (fname != 0 || str != 0)
-	activate();
-
-    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-    if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
-	    col->logWarning("bak::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
-	    return -2;
-	}
-    }
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
-
-    char header[] = "#IBIS\0\0\0";
-    header[5] = (char)ibis::index::BAK;
-    header[6] = (char) sizeof(int32_t);
-    int ierr = UnixWrite(fdes, header, 8);
-    if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::bak::write(" << fnm << ") failed to write "
-	    << "the 8-byte header, ierr = " << ierr;
-	return -3;
-    }
-    ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixSeek(fdes,
-		    ((sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8,
-		    SEEK_SET);
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
-    }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, 8+sizeof(uint32_t)*2, SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
-#endif
-    (void) UnixClose(fdes);
-
-    if (ibis::gVerbose > 5)
-	col->logMessage("bak::write", "wrote to file %s (%lu bitmap(s) "
-			"for %lu object(s)", fnm.c_str(),
-			static_cast<long unsigned>(nobs),
-			static_cast<long unsigned>(nrows));
-    return 0;
+    return ibis::bin::write(dt);
 } // ibis::bak::write
 
 // covert the hash structure in bakMap into the array structure in ibis::bin

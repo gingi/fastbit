@@ -34,8 +34,7 @@ public:
     virtual ~keywords() {clear();}
     keywords(const ibis::column* c,
 	     const ibis::column* idcol=0, const char* f=0);
-    keywords(const ibis::column* c, ibis::fileManager::storage* st,
-	     uint32_t offset = 8);
+    keywords(const ibis::column* c, ibis::fileManager::storage* st);
 
     virtual INDEX_TYPE type() const {return KEYWORDS;}
     virtual const char* name() const {return "keywords";}
@@ -72,6 +71,7 @@ public:
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
 protected:
+    virtual size_t getSerialSize() const throw();
     /// Reads a term-document list from a external file.  Returns the
     /// number of terms found if successful, otherwise returns a negative
     /// number to indicate error.

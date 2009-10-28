@@ -1,3 +1,46 @@
+2009-10-27 John Wu <John.Wu at ACM.org>
+	* src/irelic.h, src/ixzona.cpp: modify ibis::zona to use coffset64
+	and coffeset32 to replace coffsets, use offset64 and offset32 to
+	replace offsets
+	* src/irelic.h, src/ixfuzz.cpp: modify ibis::fuzz to use coffset64
+	and coffeset32 to replace coffsets, use offset64 and offset32 to
+	replace offsets
+
+2009-10-26 John Wu <John.Wu at ACM.org>
+	* src/irelic.h, src/ixbylt.cpp: modify ibis::bylt to use coffset64
+	and coffeset32 to replace coffsets, use offset64 and offset32 to
+	replace offsets
+
+2009-10-23 John Wu <John.Wu at ACM.org>
+	* src/irelic.h, src/ifade.cpp: modify ibis::fade to use offset64
+	* src/isbiad.cpp, src/isapid.cpp: modify ibis::sbiad and
+	ibis::sapid
+
+2009-10-22 John Wu <John.Wu at ACM.org>
+	* src/ikeywords.cpp: modify ibis::keywords to use offset64 and
+	offset32
+	* src/idirekte.h, src/idirekte.cpp: modify ibis::direkte to use
+	offset64 and offset32
+	* src/irelic.cpp: modify ibis::relic to use offset64
+	* src/islice.cpp: modify ibis::slice to use offset64
+
+2009-10-21 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/ixfuge.cpp: modify ibis::fuge
+
+2009-10-20 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/ixpack.cpp: modify ibis::pack class
+	* src/ibin.h, src/ixzone.cpp: modify ibis::zone class
+	* src/idbak.cpp, src/idbak2.cpp: change function write to call
+	ibis::bin::write instead -- no longer will produce indexes of type
+	ibis::BAK nor ibis::BAK2
+	* src/icegale.cpp, src/icmoins.cpp, src/icentre.cpp: modify
+	ibis::egale, ibis::moins and ibis::entre
+	* src/ibin.h, src/ixfuge.cpp: add coffset64 to ibis::fuge, rename
+	coffsets to coffset32
+
+2009-10-19 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/ixpale.cpp: modify ibis::pale class
+
 2009-10-18 John Wu <John.Wu at ACM.org>
 	* src/ibin.h, src/ixambit.cpp: modify ibis::ambit class
 

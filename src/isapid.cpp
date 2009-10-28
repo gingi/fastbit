@@ -31,7 +31,9 @@
 ////////////////////////////////////////////////////////////////////////
 // functions of ibis::sapid
 //
-// construct a bitmap index from current data
+/// Constructor.  If a bitmap index is present in the specified location,
+/// its header will be read into memory, otherwise a new bitmap index is
+/// created from current data.
 ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
     : ibis::fade(0) {
     if (c == 0) return;  // nothing can be done
@@ -51,35 +53,39 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
-	    << "]::sapid::ctor encountered an exception, cleaning up ...";
+	    << "Warning -- sapid[" << col->partition()->name() << '.'
+	   << col->name() << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
     }
 } // constructor
 
-// reconstruct from content of fileManager::storage
-// the content of the file (following the 8-byte header) is
-// nrows(uint32_t) -- the number of bits of a bit sequence
-// nobs (uint32_t) -- the number of bit sequences
-// card (uint32_t) -- the number of distinct values, i.e., cardinality
-// (padding to ensure the next data element is on 8-byte boundary)
-// values (double[card])  -- the distinct values as doubles
-// offset(uint32_t[nobs+1]) -- the starting positions of the bit sequences (as
-//				bit vectors)
-// nbases(uint32_t) -- the number of components (bases) used
-// cnts (uint32_t[card])    -- the counts for each distinct value
-// bases(uint32_t[nbases])  -- the bases sizes
-// bitvectors -- the bitvectors one after another
+/// Reconstruct an index from the content of a storage object.
+/// The content of the file (following the 8-byte header) is
+///@code
+/// nrows(uint32_t)         -- the number of bits of a bit sequence
+/// nobs (uint32_t)         -- the number of bit sequences
+/// card (uint32_t)         -- the number of distinct values, i.e., cardinality
+/// (padding to ensure the next data element is on 8-byte boundary)
+/// values (double[card])   -- the distinct values as doubles
+/// offset([nobs+1])        -- the starting positions of the bit sequences (as
+///				bit vectors)
+/// nbases(uint32_t)        -- the number of components (bases) used
+/// cnts (uint32_t[card])   -- the counts for each distinct value
+/// bases(uint32_t[nbases]) -- the bases sizes
+/// bitvectors              -- the bitvectors one after another
+///@endcode
 ibis::sapid::sapid(const ibis::column* c, ibis::fileManager::storage* st,
-		   uint32_t offset) : ibis::fade(c, st, offset) {
+		   size_t start) : ibis::fade(c, st, start) {
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // reconstruct data from content of a file
 
-// the argument is the name of the directory or the file name
+/// Write the content of the index to the specified location.  The argument
+/// is the name of a directory or a file name.  It is used by the function
+/// indexFileName to determine the actual index file name.
 int ibis::sapid::write(const char* dt) const {
     if (vals.empty()) return -1;
 
@@ -91,54 +97,37 @@ int ibis::sapid::write(const char* dt) const {
 	activate();
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-    if (fdes < 0) {
+    if (fdes < 0) { // try again
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	col->logWarning("sapid::write", "unable to open \"%s\" for write",
-			fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- sapid[" << col->partition()->name() << '.'
+	    << col->name() << "]::write failed to open \"" << fnm
+	    << "\" for writing";
 	return -2;
     }
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const uint32_t nb = bases.size();
-    const uint32_t card = vals.size();
-    const uint32_t nobs = bits.size();
-    array_t<int32_t> offs(nobs+1);
+    const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
     char header[] = "#IBIS\14\0\0";
     header[5] = (char)ibis::index::SAPID;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     int32_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::sapid::write(" << fnm
+	    << "Warning -- sapid[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, &card, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, 8*((15+3*sizeof(uint32_t))/8), SEEK_SET);
-    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
-    ierr = UnixWrite(fdes, &nb, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    ierr = UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
-    }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, 8*((15+3*sizeof(uint32_t))/8)+sizeof(double)*card,
-		    SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
-#endif
-    (void) UnixClose(fdes);
-    return 0;
+    if (useoffset64)
+	ierr = ibis::fade::write64(fdes);
+    else
+	ierr = ibis::fade::write32(fdes);
+    return ierr;
 } // ibis::sapid::write
 
 // this version of the constructor take one pass throught the data by

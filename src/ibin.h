@@ -594,7 +594,7 @@ protected:
     virtual void clear();
     /// Construct a new index using the given bin boundaries.
     void construct(const char* f, const array_t<double>& bd);
-    size_t getSerialSize() const throw();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // min and max of range nobs (the one that is not explicitly recorded)
@@ -653,13 +653,15 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member variables
     std::vector<ibis::range*> sub;
 
     // private member functions
-    int write(int fptr) const;
+    int write32(int fptr) const;
+    int write64(int fptr) const;
 
     pale(const pale&);
     pale& operator=(const pale&);
@@ -708,6 +710,7 @@ public:
 protected:
     virtual double computeSum() const;
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member variables
@@ -716,7 +719,8 @@ private:
     std::vector<ibis::bin*> sub;
 
     // private member functions
-    int write(int fptr) const;
+    int write32(int fptr) const;
+    int write64(int fptr) const;
 
     pack(const pack&);
     pack& operator=(const pack&);
@@ -763,13 +767,15 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member variable
     std::vector<ibis::bin*> sub;
 
     // private member functions
-    int write(int fptr) const;
+    int write32(int fptr) const;
+    int write64(int fptr) const;
 
     zone(const zone&);
     zone& operator=(const zone&);
@@ -813,19 +819,22 @@ public:
 
 protected:
     virtual void clear() {clearCoarse(); ibis::bin::clear();}
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member variable
     mutable std::vector<ibis::bitvector*> cbits;
     array_t<uint32_t> cbounds;
-    array_t<int32_t> coffsets;
+    mutable array_t<int32_t> coffset32;
+    mutable array_t<int64_t> coffset64;
 
     void coarsen(); // given fine level, add coarse level
     void activateCoarse() const; // activate all coarse level bitmaps
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    int writeCoarse(int fdes) const;
+    int writeCoarse32(int fdes) const;
+    int writeCoarse64(int fdes) const;
     int readCoarse(const char *fn);
     void clearCoarse();
 
@@ -898,8 +907,10 @@ protected:
 	ibis::bin::clear();
     }
 
-    int write(int fdes) const;
+    int write32(int fdes) const;
+    int write64(int fdes) const;
     void construct(const char* f);
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member functions

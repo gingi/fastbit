@@ -7,7 +7,7 @@
 ///@file
 /// Define ibis::relic and its derived classes
 ///@verbatim
-/// relic -> slice, fade, bylt(pack), zona (zone)
+/// relic -> slice, fade, bylt(pack), zona (zone), fuzz
 /// fade -> sbiad, sapid
 ///@endverbatim
 ///
@@ -25,7 +25,7 @@ public:
     relic(const ibis::column* c, uint32_t popu, uint32_t ntpl=0);
     relic(const ibis::column* c, uint32_t card, array_t<uint32_t>& ints);
     relic(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t start = 8);
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const;
@@ -116,7 +116,8 @@ protected:
     // protected member variables
     array_t<double> vals;
 
-    int write(int fdes) const;
+    int write32(int fdes) const;
+    int write64(int fdes) const;
     // protected member functions
     uint32_t locate(const double& val) const;
     void   locate(const ibis::qContinuousRange& expr,
@@ -127,6 +128,7 @@ protected:
     // free current resources, re-initialized all member variables
     virtual void clear();
     virtual double computeSum() const;
+    virtual size_t getSerialSize() const throw();
 
     /// Construct an index from in-memory values.  The type @c E is
     /// intended to be element types supported in column.h.
@@ -197,7 +199,7 @@ public:
     virtual ~slice() {clear();};
     slice(const ibis::column* c = 0, const char* f = 0);
     slice(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -245,6 +247,7 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member variables
@@ -255,7 +258,8 @@ private:
     void construct2(const char* f = 0); // passes through data twice
     void setBit(const uint32_t i, const double val);
 
-    int write(int fdes) const;
+    int write32(int fdes) const;
+    int write64(int fdes) const;
     void evalGE(ibis::bitvector& res, uint32_t b) const;
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
 
@@ -271,7 +275,7 @@ public:
     fade(const ibis::column* c = 0, const char* f = 0,
 	 const uint32_t nbase = 2);
     fade(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -302,8 +306,10 @@ protected:
     array_t<uint32_t> bases;// the values of the bases used
 
     // protected member functions to be used by derived classes
-    int write(int fdes) const;
+    int write32(int fdes) const;
+    int write64(int fdes) const;
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // private member functions
@@ -327,7 +333,7 @@ public:
     sbiad(const ibis::column* c = 0, const char* f = 0,
 	  const uint32_t nbase = 2);
     sbiad(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -366,7 +372,7 @@ public:
     sapid(const ibis::column* c = 0, const char* f = 0,
 	  const uint32_t nbase = 2);
     sapid(const ibis::column* c, ibis::fileManager::storage* st,
-	  uint32_t offset = 8);
+	  size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -408,7 +414,7 @@ public:
     virtual ~fuzz() {clear();};
     fuzz(const ibis::column* c = 0, const char* f = 0);
     fuzz(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -427,6 +433,7 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     /// The fine level is stored in ibis::relic, the parent class, only
@@ -434,14 +441,16 @@ private:
     /// boundaries; these integers are indices to the array vals and bits.
     mutable std::vector<ibis::bitvector*> cbits;
     array_t<uint32_t> cbounds;
-    array_t<int32_t> coffsets;
+    mutable array_t<int32_t> coffset32;
+    mutable array_t<int64_t> coffset64;
 
     void coarsen(); // given fine level, add coarse level
     void activateCoarse() const; // activate all coarse level bitmaps
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    int writeCoarse(int fdes) const;
+    int writeCoarse32(int fdes) const;
+    int writeCoarse64(int fdes) const;
     int readCoarse(const char *fn);
     void clearCoarse();
 
@@ -463,7 +472,7 @@ public:
     virtual ~bylt() {clear();};
     bylt(const ibis::column* c = 0, const char* f = 0);
     bylt(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -482,6 +491,7 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // the fine level is stored in ibis::relic, the parent class, only the
@@ -489,14 +499,16 @@ private:
     // boundaries; these integers are indices to the array vals and bits.
     mutable std::vector<ibis::bitvector*> cbits;
     array_t<uint32_t> cbounds;
-    array_t<int32_t> coffsets;
+    mutable array_t<int32_t> coffset32;
+    mutable array_t<int64_t> coffset64;
 
     void coarsen(); // given fine level, add coarse level
     void activateCoarse() const; // activate all coarse level bitmaps
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    int writeCoarse(int fdes) const;
+    int writeCoarse32(int fdes) const;
+    int writeCoarse64(int fdes) const;
     int readCoarse(const char *fn);
 
     bylt(const bylt&);
@@ -511,7 +523,7 @@ public:
     virtual ~zona() {clear();};
     zona(const ibis::column* c = 0, const char* f = 0);
     zona(const ibis::column* c, ibis::fileManager::storage* st,
-	 uint32_t offset = 8);
+	 size_t start = 8);
 
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -530,6 +542,7 @@ public:
 
 protected:
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
 private:
     // the fine level is stored in ibis::relic, the parent class, only the
@@ -537,14 +550,16 @@ private:
     // boundaries; these integers are indices to the array vals and bits.
     mutable std::vector<ibis::bitvector*> cbits;
     array_t<uint32_t> cbounds;
-    array_t<int32_t> coffsets;
+    mutable array_t<int32_t> coffset32;
+    mutable array_t<int64_t> coffset64;
 
     void coarsen(); // given fine level, add coarse level
     void activateCoarse() const; // activate all coarse level bitmaps
     void activateCoarse(uint32_t i) const; // activate one bitmap
     void activateCoarse(uint32_t i, uint32_t j) const;
 
-    int writeCoarse(int fdes) const;
+    int writeCoarse32(int fdes) const;
+    int writeCoarse64(int fdes) const;
     int readCoarse(const char *fn);
 
     zona(const zona&);

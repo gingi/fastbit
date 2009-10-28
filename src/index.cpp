@@ -1280,6 +1280,21 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     return ind;
 } // ibis::index::create
 
+/// Constructor with a storage object.  Both the column object and the
+/// storage object are expected to be valid.
+ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
+    fname(0), nrows(0) {
+    if (c != 0 && s != 0) {
+	col = c;
+	str = s;
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "index::ctor needs valid a column object or a storage object";
+	throw "index::ctor needs valid a column object or a storage object";
+    }
+} // ibis::index::index
+
 /// Free the objectes pointed to by the pointers.
 void ibis::index::clear() {
     for (uint32_t i = 0; i < bits.size(); ++ i) {
@@ -1322,7 +1337,7 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
 	     header[2] == 'B' && header[3] == 'I' &&
 	     header[4] == 'S' && t ==
 	     static_cast<ibis::index::INDEX_TYPE>(header[5]) &&
-	     header[6] == static_cast<char>(sizeof(int32_t)) &&
+	     (header[6] == 8 || header[6] == 4) &&
 	     header[7] == static_cast<char>(0));
 	if (!check) {
 	    ibis::util::logMessage("readIndex", "index file \"%s\" contains "
@@ -4097,9 +4112,9 @@ int ibis::index::initOffsets(ibis::fileManager::storage* st, size_t start,
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- index[" << col->name() << "]::initOffsets("
-	    << static_cast<const void*>(st) << ", " << start << ", " << nobs
-	    << ") the current offset size "
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::initOffsets(" << static_cast<const void*>(st)
+	    << ", " << start << ", " << nobs << ") the current offset size "
 	    << static_cast<int>(st->begin()[6]) << " is neither 4 or 8";
 	return -13;
     }
@@ -4118,15 +4133,16 @@ void ibis::index::initBitmaps(int fdes) {
 	delete bits[i]; // free existing bitmaps
     if (nobs == 0) {
 	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- index[" << col->name() << "]::initBitmaps(" << fdes
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::initBitmaps(" << fdes
 	    << ") can not continue without a valid offset64 or offset32";
 	return;
     }
 
+    str = 0;
     bits.resize(nobs);
     for (uint32_t i = 0; i < nobs; ++ i)
 	bits[i] = 0;
-
     if (offset64.size() > nobs) {
 	if (fname == 0) {    // read all bitvectors
 	    for (uint32_t i = 0; i < nobs; ++i) {
@@ -6259,13 +6275,13 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 #endif
 } // ibis::index::sumBins
 
-/// Add the @c bts[ib:ie-1] to @c res.  Since the set of bit vectors are
-/// explicitly given, there is no need to perform activation.  To minimize
-/// the burden of deciding which bit vectors to activate, this function
-/// always use the @c bts[ib] through @c bts[ie-1].
-/// @note  The caller need to activate the bit vectors!
-/// @note  This function still has to check whether a particular bts[i] is
-/// a null pointer before using the bit vector.
+/// Add the @c bts[ib:ie-1] to @c res.  This function always use bitvectors
+/// @c bts[ib] through @c bts[ie-1] and expects the caller to have filled
+/// these bitvectors already.
+///
+/// @note  The caller need to activate the required bit vectors!
+/// @note If bts[i] is a null pointer, it is skipped which is equivalent to
+/// it being a bitvector of all 0s.
 void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)

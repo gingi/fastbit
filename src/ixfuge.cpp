@@ -3,8 +3,8 @@
 // Copyright 2006-2009 the Regents of the University of California
 
 // This file contains the implementation of the class ibis::fuge.  It
-// defines a two-level index where the coarse level the interval encoding,
-// but the lower level contains only the simple bins.
+// defines a two-level index where the coarse level use the interval
+// encoding, but the fine level contains only the simple bins.
 //
 // The word interstice (a synonym of interval) when translated to german,
 // the answers.com web site gives two words: Zwischenraum and Fuge.  Since
@@ -50,7 +50,8 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
 	    delete cbits[i];
 	cbits.clear();
 	cbounds.clear();
-	coffsets.clear();
+	coffset32.clear();
+	coffset64.clear();
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
@@ -64,21 +65,33 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
    allows the constructor of the base class to work properly.  The content
    following the last bitvector in ibis::bin is as follows, @sa
    ibis::fuge::writeCoarse.
-
+@code
    nc      (uint32_t)                   -- number of coarse bins.
    cbounds (unsigned[nc+1])             -- boundaries of the coarse bins.
-   coffsets(int32_t[nc-ceil(nc/2)+2])   -- starting positions.
+   coffsets([nc-ceil(nc/2)+2])          -- starting positions (32/64-bit).
    cbits   (bitvector[nc-ceil(nc/2)+1]) -- bitvectors.
+@endcode
  */
 ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
-		 uint32_t start) : ibis::bin(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offset32.back()))
+		 size_t start) : ibis::bin(c, st, start) {
+    const char offsetsize = st->begin()[6];
+    if (offsetsize != 8 && offsetsize != 4) {
+	clear();
+	return;
+    }
+    if ((offsetsize == 8 &&
+	 st->size() <= static_cast<uint64_t>(offset64.back())) ||
+	(offsetsize == 4 &&
+	 st->size() <= static_cast<uint32_t>(offset32.back())))
 	return; // no coarse bin
 
-    start = offset32.back();
+    if (offsetsize == 8)
+	start = offset64.back();
+    else
+	start = offset32.back();
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
-	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
+	st->size() <= start + (sizeof(int32_t)+offsetsize)*(nc+1))
 	return;
 
     const uint32_t ncb = nc - (nc+1)/2 + 1;
@@ -88,20 +101,25 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	cbounds.swap(tmp);
     }
     start += sizeof(uint32_t) * (nc+1);
-    if (start+sizeof(int32_t)*(ncb+1) < st->size()) {
-	array_t<int32_t> tmp(st, start, ncb+1);
-	coffsets.swap(tmp);
-	if (coffsets.back() > static_cast<int32_t>(st->size())) {
-	    coffsets.swap(tmp);
+    if (offsetsize == 8) {
+	array_t<int64_t> tmp(st, start, ncb+1);
+	coffset64.swap(tmp);
+	if (coffset64.back() > static_cast<int64_t>(st->size())) {
+	    coffset64.swap(tmp);
 	    array_t<uint32_t> tmp2;
 	    cbounds.swap(tmp2);
 	    return;
 	}
     }
     else {
-	array_t<uint32_t> tmp2;
-	cbounds.swap(tmp2);
-	return;
+	array_t<int32_t> tmp(st, start, ncb+1);
+	coffset32.swap(tmp);
+	if (coffset32.back() > static_cast<int32_t>(st->size())) {
+	    coffset32.swap(tmp);
+	    array_t<uint32_t> tmp2;
+	    cbounds.swap(tmp2);
+	    return;
+	}
     }
 
     cbits.resize(ncb);
@@ -110,21 +128,42 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 
     if (st->isFileMap()) {
 #if defined(FASTBIT_READ_BITVECTOR0)
-	array_t<ibis::bitvector::word_t>
-	    a0(st, coffsets[0], (coffsets[1] - coffsets[0])
-	       / sizeof(ibis::bitvector::word_t));
-	cbits[0] = new ibis::bitvector(a0);
+	if (offsetsize == 8) {
+	    array_t<ibis::bitvector::word_t>
+		a0(st, coffset64[0], (coffset64[1] - coffset64[0])
+		   / sizeof(ibis::bitvector::word_t));
+	    cbits[0] = new ibis::bitvector(a0);
+	}
+	else {
+	    array_t<ibis::bitvector::word_t>
+		a0(st, coffset32[0], (coffset32[1] - coffset32[0])
+		   / sizeof(ibis::bitvector::word_t));
+	    cbits[0] = new ibis::bitvector(a0);
+	}
 	cbits[0]->sloppySize(nrows);
 #endif
     }
     else { // all bytes in memory already
-	for (unsigned i = 0; i < ncb; ++ i) {
-	    if (coffsets[i+1] > coffsets[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
-		      / sizeof(ibis::bitvector::word_t));
-		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->sloppySize(nrows);
+	if (offsetsize == 8) {
+	    for (unsigned i = 0; i < ncb; ++ i) {
+		if (coffset64[i+1] > coffset64[i]) {
+		    array_t<ibis::bitvector::word_t>
+			a(st, coffset64[i], (coffset64[i+1]-coffset64[i])
+			  / sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+		}
+	    }
+	}
+	else {
+	    for (unsigned i = 0; i < ncb; ++ i) {
+		if (coffset32[i+1] > coffset32[i]) {
+		    array_t<ibis::bitvector::word_t>
+			a(st, coffset32[i], (coffset32[i+1]-coffset32[i])
+			  / sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+		}
 	    }
 	}
     }
@@ -144,7 +183,7 @@ int ibis::fuge::write(const char* dt) const {
 	return 0;
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-    if (fdes < 0) {
+    if (fdes < 0) { // try again
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
@@ -153,13 +192,15 @@ int ibis::fuge::write(const char* dt) const {
 	    return -2;
 	}
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)ibis::index::FUGE;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
@@ -168,17 +209,23 @@ int ibis::fuge::write(const char* dt) const {
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = ibis::bin::write32(fdes); // write the basic binned index
-    if (ierr >= 0)
-	ierr = writeCoarse(fdes); // write the coarse level bins
+    if (useoffset64)
+	ierr = ibis::bin::write64(fdes); // write the basic binned index
+    else
+	ierr = ibis::bin::write32(fdes); // write the basic binned index
+    if (ierr >= 0) {
+	if (useoffset64)
+	    ierr = writeCoarse64(fdes); // write the coarse level bins
+	else
+	    ierr = writeCoarse32(fdes); // write the coarse level bins
+    }
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) UnixFlush(fdes); // write to disk
 #endif
-    (void) UnixClose(fdes);
     return ierr;
 } // ibis::fuge::write
 
-// read the content of a file
+/// Read the content of the named file.
 int ibis::fuge::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
@@ -200,47 +247,86 @@ int ibis::fuge::read(const char* f) {
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
 		  header[5] == static_cast<char>(ibis::index::FUGE) &&
-		  header[6] == static_cast<char>(sizeof(int32_t)) &&
+		  (header[6] == 8 || header[4] == 4) &&
 		  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- fuge[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
     clear(); // clear the existing content
-    uint32_t begin, end;
+    size_t begin, end;
     fname = ibis::util::strnewdup(fnm.c_str());
     str = 0;
 
-    long ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
+    off_t ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
 	return -5;
     }
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (nobs > ibis::fileManager::pageSize());
+    const bool trymmap = (nobs*8 > FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     begin = 8+2*sizeof(uint32_t);
-    end = 8+2*sizeof(uint32_t)+(nobs+1)*sizeof(int32_t);
-    if (trymmap) {
-	array_t<int32_t> tmp(fname, begin, end);
-	offset32.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	offset32.swap(tmp);
-    }
+    end = 8+2*sizeof(uint32_t)+(nobs+1)*header[6];
+    ierr = initOffsets(fdes, header[6], begin, nobs);
 
     // read bounds
-    begin = 8 * ((15 + sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t))/8);
+    begin = 8 * ((7 + end)/8);
     end = begin + sizeof(double)*nobs;
     if (trymmap) {
 	array_t<double> dbl(fname, begin, end);
@@ -277,119 +363,154 @@ int ibis::fuge::read(const char* f) {
     ibis::fileManager::instance().recordPages(0, end);
 
     // initialized bits with nil pointers
-    for (uint32_t i = 0; i < bits.size(); ++i)
-	delete bits[i];
-    bits.resize(nobs);
-    for (uint32_t i = 0; i < nobs; ++i)
-	bits[i] = 0;
-
-#if defined(FASTBIT_READ_BITVECTOR0)
-    if (offset32[1] > offset32[0]) {// read the first bitvector
-	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
-	ibis::bitvector* tmp = new ibis::bitvector(a0);
-	bits[0] = tmp;
-#if defined(WAH_CHECK_SIZE)
-	if (tmp->size() != nrows)
-	    col->logWarning("readIndex", "the size (%lu) of 1st "
-			    "bitvector (from \"%s\") differs "
-			    "from nRows (%lu)",
-			    static_cast<long unsigned>(tmp->size()),
-			    fnm.c_str(),
-			    static_cast<long unsigned>(nrows));
-#else
-	tmp->sloppySize(nrows)
-#endif
-	    }
-    else {
-	bits[0] = new ibis::bitvector;
-	bits[0]->set(0, nrows);
-    }
-#endif
+    initBitmaps(fdes);
 
     // reading the coarse bins
-    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
-    if (ierr == offset32.back()) {
-	uint32_t nc;
-	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	begin = offset32.back() + sizeof(nc);
-	end = begin + sizeof(uint32_t)*(nc+1);
-	if (ierr > 0 && nc > 0) {
-	    array_t<uint32_t> tmp(fdes, begin, end);
-	    cbounds.swap(tmp);
-	}
-	begin = end;
-	end += sizeof(int32_t) * (nc+2-(nc+1)/2);
-	if (cbounds.size() == nc+1) {
-	    array_t<int32_t> tmp(fdes, begin, end);
-	    coffsets.swap(tmp);
-	}
+    if (header[6] == 8) {
+	ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+	if (ierr == offset64.back()) {
+	    uint32_t nc;
+	    ierr = UnixRead(fdes, &nc, sizeof(nc));
+	    if (ierr < (off_t)sizeof(nc)) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- fuge[" << col->partition()->name() << '.'
+		    << col->name() << "]::read failed to read ncoarse from "
+		    << fnm << " position " << offset64.back() << ", ierr = "
+		    << ierr;
+		clearCoarse();
+		return -5;
+	    }
+	    begin = offset32.back() + sizeof(nc);
+	    end = begin + sizeof(uint32_t)*(nc+1);
+	    if (ierr > 0 && nc > 0) {
+		array_t<uint32_t> tmp(fdes, begin, end);
+		cbounds.swap(tmp);
+	    }
+	    begin = end;
+	    end += 8 * (nc+2-(nc+1)/2);
+	    if (cbounds.size() == nc+1) {
+		array_t<int64_t> tmp(fdes, begin, end);
+		coffset64.swap(tmp);
+	    }
 
-	for (unsigned i = 0; i < cbits.size(); ++ i)
-	    delete cbits[i];
-	cbits.resize(nc+1-(nc+1)/2);
-	for (unsigned i = 0; i < nc+1-(nc+1)/2; ++ i)
-	    cbits[i] = 0;
+	    for (unsigned i = 0; i < cbits.size(); ++ i)
+		delete cbits[i];
+	    cbits.resize(nc+1-(nc+1)/2);
+	    for (unsigned i = 0; i < nc+1-(nc+1)/2; ++ i)
+		cbits[i] = 0;
+	}
+    }
+    else {
+	ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+	if (ierr == offset32.back()) {
+	    uint32_t nc;
+	    ierr = UnixRead(fdes, &nc, sizeof(nc));
+	    if (ierr < (off_t)sizeof(nc)) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- fuge[" << col->partition()->name() << '.'
+		    << col->name() << "]::read failed to read ncoarse from "
+		    << fnm << " position " << offset32.back() << ", ierr = "
+		    << ierr;
+		clearCoarse();
+		return -6;
+	    }
+	    begin = offset32.back() + sizeof(nc);
+	    end = begin + sizeof(uint32_t)*(nc+1);
+	    if (ierr > 0 && nc > 0) {
+		array_t<uint32_t> tmp(fdes, begin, end);
+		cbounds.swap(tmp);
+	    }
+	    begin = end;
+	    end += sizeof(int32_t) * (nc+2-(nc+1)/2);
+	    if (cbounds.size() == nc+1) {
+		array_t<int32_t> tmp(fdes, begin, end);
+		coffset32.swap(tmp);
+	    }
+
+	    for (unsigned i = 0; i < cbits.size(); ++ i)
+		delete cbits[i];
+	    cbits.resize(nc+1-(nc+1)/2);
+	    for (unsigned i = 0; i < nc+1-(nc+1)/2; ++ i)
+		cbits[i] = 0;
+	}
     }
 
-    (void) UnixClose(fdes);
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' header from %s",
-			name(), fname);
+    LOGGER(ibis::gVerbose > 7)
+	<< "fuge[" << col->partition()->name() << "." << col->name()
+	<< "]::read completed reading the header from " << fnm;
     return 0;
 } // ibis::fuge::read
 
+/// Read an index from the storage object.
 int ibis::fuge::read(ibis::fileManager::storage* st) {
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
+    const char offsetsize = st->begin()[6];
+    if (offsetsize != 8 && offsetsize != 4) return -2;
 
-    if (str->size() > static_cast<uint32_t>(offset32.back())) {
-	if (st->isFileMap()) {
-	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
-	    if (nc > 0 && str->size() > static_cast<uint32_t>(offset32.back()) +
-		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
-		uint32_t start;
-		start = offset32.back() + sizeof(uint32_t);
-		array_t<uint32_t> btmp(str, start, nc+1);
-		cbounds.swap(btmp);
+    if (offsetsize == 8 &&
+	str->size() > static_cast<uint64_t>(offset64.back())) {
+	const uint32_t nc =
+	    *(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	const uint32_t ncb = nc + 1 - (nc+1) / 2;
+	if (nc > 0 && str->size() > offset32.back() +
+	    (sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
+	    uint32_t start;
+	    start = offset32.back() + 4;
+	    array_t<uint32_t> btmp(str, start, nc+1);
+	    cbounds.swap(btmp);
 
-		start += sizeof(uint32_t)*(nc+1);
-		array_t<int32_t> otmp(str, start, nc+1);
+	    start += sizeof(uint32_t)*(nc+1);
+	    array_t<int64_t> otmp(str, start, ncb+1);
+	    coffset64.swap(otmp);
 
-		cbits.resize(nc);
-		for (unsigned i = 0; i < nc; ++ i)
-		    cbits[i] = 0;
-	    }
-	}
-	else { // regenerate all the bitvectors
-	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
-	    const uint32_t ncb = nc + 1 - (nc+1) / 2;
-	    if (nc > 0 && str->size() > offset32.back() +
-		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
-		uint32_t start;
-		start = offset32.back() + 4;
-		array_t<uint32_t> btmp(str, start, nc+1);
-		cbounds.swap(btmp);
-
-		start += sizeof(uint32_t)*(ncb+1);
-		array_t<int32_t> otmp(str, start, ncb+1);
-
-		cbits.resize(ncb);
+	    cbits.resize(ncb);
+	    for (unsigned i = 0; i < ncb; ++ i)
+		cbits[i] = 0;
+	    if (! st->isFileMap()) {
 		for (unsigned i = 0; i < ncb; ++ i) {
-		    if (coffsets[i+1] > coffsets[i]) {
+		    if (coffset64[i+1] > coffset64[i]) {
 			array_t<ibis::bitvector::word_t>
-			    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
+			    a(st, coffset64[i], (coffset64[i+1]-coffset64[i])
 			      / sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a);
 			cbits[i]->sloppySize(nrows);
 		    }
-		    else {
-			cbits[i] = 0;
+		}
+	    }
+	}
+    }
+    else if (str->size() > static_cast<uint32_t>(offset32.back())) {
+	const uint32_t nc =
+	    *(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	const uint32_t ncb = nc + 1 - (nc+1) / 2;
+	if (nc > 0 && str->size() > offset32.back() +
+	    (sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
+	    uint32_t start;
+	    start = offset32.back() + 4;
+	    array_t<uint32_t> btmp(str, start, nc+1);
+	    cbounds.swap(btmp);
+
+	    start += sizeof(uint32_t)*(nc+1);
+	    array_t<int32_t> otmp(str, start, ncb+1);
+	    coffset32.swap(otmp);
+
+	    cbits.resize(ncb);
+	    for (unsigned i = 0; i < ncb; ++ i)
+		cbits[i] = 0;
+	    if (! st->isFileMap()) {
+		for (unsigned i = 0; i < ncb; ++ i) {
+		    if (coffset32[i+1] > coffset32[i]) {
+			array_t<ibis::bitvector::word_t>
+			    a(st, coffset32[i], (coffset32[i+1]-coffset32[i])
+			      / sizeof(ibis::bitvector::word_t));
+			cbits[i] = new ibis::bitvector(a);
+			cbits[i]->sloppySize(nrows);
 		    }
 		}
 	    }
 	}
+	coffset64.clear();
     }
     return 0;
 } // ibis::fuge::read
@@ -413,7 +534,7 @@ void ibis::fuge::print(std::ostream& out) const {
     uint32_t nprt = (ibis::gVerbose < 30 ? 1 << ibis::gVerbose : bits.size());
     uint32_t omitted = 0;
     uint32_t end;
-    if (nc > 0 && cbits.size() == ncb && coffsets.size() == ncb+1) {
+    if (nc > 0 && cbits.size() == ncb) {
 	for (unsigned j = 0; j < nc; ++ j) {
 	    out << "Coarse bin " << j << ", [" << cbounds[j] << ", "
 		<< cbounds[j+1] << ")";
@@ -533,9 +654,10 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     }
 
     const uint32_t ncoarse = (cbounds.empty() ? 0U : cbounds.size()-1);
-    if (hit0+3 >= hit1 || ncoarse == 0 || (cbits.size()+1) != coffsets.size()
-	|| cbits.size() != (ncoarse-(ncoarse+1)/2+1)
-	|| offset32[cand1]-offset32[cand0] < 262144) {
+    if (hit0+3 >= hit1 || ncoarse == 0
+	|| ((cbits.size()+1) != coffset32.size() &&
+	    (cbits.size()+1) != coffset64.size())
+	|| cbits.size() != (ncoarse-(ncoarse+1)/2+1)) {
 	// use the fine level bitmaps only
 	sumBins(hit0, hit1, lower);
 	if (cand0 < hit0 || (cand1 > hit1 && hit1 < nobs)) {
@@ -577,10 +699,19 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
 	    lg.buffer() << ", c1=" << c1 << ", bits.size()=" << bits.size();
     }
     if (c0 >= c1) { // within the same coarse bin
-	long tmp = coarseEstimate(c1-1, c1)
-	    + (offset32[hit0] - offset32[cbounds[c1-1]])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
-	if (offset32[hit1]-offset32[hit0] <= static_cast<long>(0.99*tmp)) {
+	long tmp = coarseEstimate(c1-1, c1);
+	long tmpf;
+	if (offset64.size() > bits.size()) {
+	    tmp += (offset64[hit0] - offset64[cbounds[c1-1]])
+		+ (offset64[cbounds[c1]] - offset64[hit1]);
+	    tmpf = offset64[hit1] - offset64[hit0];
+	}
+	else {
+	    tmp += (offset32[hit0] - offset32[cbounds[c1-1]])
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
+	    tmpf = offset32[hit1] - offset32[hit0];
+	}
+	if (tmpf <= static_cast<long>(0.99*tmp)) {
 	    sumBins(hit0, hit1, lower);
 	}
 	else {
@@ -599,41 +730,67 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     }
     else {// general case: need to evaluate 5 options
 	unsigned option = 2; // option 2 [direct | - | direct]
-	long cost = (offset32[cbounds[c0]] - offset32[hit0])
-	    + coarseEstimate(c0, c1-1)
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long cost = coarseEstimate(c0, c1-1);
+	if (offset64.size() > bits.size())
+	    cost += (offset64[cbounds[c0]] - offset64[hit0])
+		+ (offset64[hit1] - offset64[cbounds[c1-1]]);
+	else
+	    cost += (offset32[cbounds[c0]] - offset32[hit0])
+		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
 	long tmp;
 	if (c0 > 0) {	// option 3: [complement | - | direct]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ coarseEstimate(c0-1, c1-1)
-		+ (offset32[hit1] - offset32[cbounds[c1-1]]);
+	    tmp = coarseEstimate(c0-1, c1-1);
+	    if (offset64.size() > bits.size())
+		tmp += (offset64[hit0] - offset64[cbounds[c0-1]])
+		    + (offset64[hit1] - offset64[cbounds[c1-1]]);
+	    else
+		tmp += (offset32[hit0] - offset32[cbounds[c0-1]])
+		    + (offset32[hit1] - offset32[cbounds[c1-1]]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 3;
 	    }
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + coarseEstimate((c0>0 ? c0-1 : 0), c1)
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = coarseEstimate((c0>0 ? c0-1 : 0), c1);
+	if (offset64.size() > bits.size())
+	    tmp += (offset64[cbounds[c0]] - offset64[hit0])
+		+ (offset64[cbounds[c1]] - offset64[hit1]);
+	else
+	    tmp += (offset32[cbounds[c0]] - offset32[hit0])
+		+ (offset32[cbounds[c1]] - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
 	}
 	if (c0 > 0) { // option 5: [complement | - | complement]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ coarseEstimate(c0-1, c1)
-		+ (offset32[cbounds[c1]] - offset32[hit1]);
+	    tmp = coarseEstimate(c0-1, c1);
+	    if (offset64.size() > bits.size())
+		tmp += (offset64[hit0] - offset64[cbounds[c0-1]])
+		    + (offset64[cbounds[c1]] - offset64[hit1]);
+	    else
+		tmp += (offset32[hit0] - offset32[cbounds[c0-1]])
+		    + (offset32[cbounds[c1]] - offset32[hit1]);
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
 	// option 0 and 1: fine level only
-	tmp = (offset32[hit1] - offset32[hit0] <=
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
-	       offset32[hit1] - offset32[hit0] :
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
+	if (offset64.size() > bits.size())
+	    tmp = (offset64[hit1] - offset64[hit0] <=
+		   (offset64.back()-offset64[hit1])
+		   +(offset64[hit0]-offset64[0]) ?
+		   offset64[hit1] - offset64[hit0] :
+		   (offset64.back()-offset64[hit1])
+		   +(offset64[hit0]-offset64[0]));
+	else
+	    tmp = (offset32[hit1] - offset32[hit0] <=
+		   (offset32.back()-offset32[hit1])
+		   +(offset32[hit0]-offset32[0]) ?
+		   offset32[hit1] - offset32[hit0] :
+		   (offset32.back()-offset32[hit1])
+		   +(offset32[hit0]-offset32[0]));
 	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
 	    cost = tmp;
 	    option = 1;
@@ -716,7 +873,7 @@ void ibis::fuge::coarsen() {
 	    offset32[i+1] = offset32[i] + (bits[i] ? bits[i]->bytes() : 0U);
     }
     if (nobs < 32) return; // don't construct the coarse level
-    if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
+    if (cbits.size() > 0) return; // assume coarse bin already exist
 
     // default size based on the size of fine level index sf: sf(w-1)/N/sqrt(2)
     unsigned ncoarse = 0;
@@ -794,86 +951,239 @@ void ibis::fuge::coarsen() {
     }
 
     // fill coffsets
-    coffsets.resize(ncb+1);
-    coffsets[0] = 0;
+    coffset64.resize(ncb+1);
+    coffset64[0] = 0;
     for (unsigned i = 0; i < ncb; ++ i) {
 	cbits[i]->compress();
-	coffsets[i+1] = coffsets[i] + cbits[i]->bytes();
+	coffset64[i+1] = coffset64[i] + cbits[i]->bytes();
     }
 } // ibis::fuge::coarsen
 
-// This function is intended to be called after calling ibis::bin::write,
-// however, it does not check for this fact!
-int ibis::fuge::writeCoarse(int fdes) const {
+/// Write information about the coarse bins.  It assume 32-bit bitmap
+/// offsets.  This function is intended to be called after calling
+/// ibis::bin::write, however, it does not check for this fact!
+int ibis::fuge::writeCoarse32(int fdes) const {
     if (cbounds.empty() || cbits.empty() || nrows == 0)
-	return -4;
+	return -14;
 
-    int32_t ierr;
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    if (start <= 8) return -15;
+
+    off_t ierr;
     const uint32_t nc = cbounds.size()-1;
     const uint32_t nb = cbits.size();
-    array_t<int32_t> offs(nb+1);
-    ierr = UnixWrite(fdes, &nc, sizeof(nc));
-    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
+    coffset64.clear();
+    coffset32.resize(nb+1);
+    ierr  = UnixWrite(fdes, &nc, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
+    if (ierr < (off_t)(sizeof(uint32_t)*(nc+2))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32(" << fdes
+	    << ") failed expected to write " << sizeof(uint32_t)*(nc+2)
+	    << " bytes, but the function write returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -16;
+    }
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nb+1), SEEK_CUR);
+    coffset32[0] = start + sizeof(uint32_t)*(nc+2) + sizeof(int32_t)*(nb+1);
+    if (ierr != coffset32[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32(" << fdes
+	    << ") expected the file pointer to be at "
+	    << coffset32[0] << ", but actually at " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -17;
+    }
     for (unsigned i = 0; i < nb; ++ i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	if (cbits[i] != 0)
 	    cbits[i]->write(fdes);
+	coffset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    offs[nb] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr -= sizeof(int32_t) * (nb+1);
-    UnixSeek(fdes, ierr, SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nb+1));
-    ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
-    return 0;
-} // ibis::fuge::writeCoarse
+    ierr = start + sizeof(uint32_t)*(nc+2);
+    if (ierr != UnixSeek(fdes, ierr, SEEK_SET)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32(" << fdes
+	    << ") failed to seek to " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -18;
+    }
+    ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nb+1));
+    if (ierr < (off_t)sizeof(int32_t)*(nb+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32(" << fdes
+	    << ") expected to write " << sizeof(int32_t)*(nb+1)
+	    << " bytes, but the function write returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -18;
+    }
+    ierr = UnixSeek(fdes, coffset32.back(), SEEK_SET);
+    return (ierr == coffset32.back() ? 0 : -19);
+} // ibis::fuge::writeCoarse32
 
-// Reading information about the coarse bins.  To be used after calling
-// ibis::relic::read, which happens in the constructor.
+/// Write information about the coarse bins.  It assume 64-bit bitmap
+/// offsets.  This function is intended to be called after calling
+/// ibis::bin::write, however, it does not check for this fact!
+int ibis::fuge::writeCoarse64(int fdes) const {
+    if (cbounds.empty() || cbits.empty() || nrows == 0)
+	return -14;
+
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    if (start <= 8) return -15;
+
+    off_t ierr;
+    const uint32_t nc = cbounds.size()-1;
+    const uint32_t nb = cbits.size();
+    coffset32.clear();
+    coffset64.resize(nb+1);
+    ierr  = UnixWrite(fdes, &nc, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
+    if (ierr < (off_t)(sizeof(uint32_t)*(nc+2))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64(" << fdes
+	    << ") failed expected to write " << sizeof(uint32_t)*(nc+2)
+	    << " bytes, but the function write returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -16;
+    }
+    ierr = UnixSeek(fdes, sizeof(int64_t)*(nb+1), SEEK_CUR);
+    coffset64[0] = start + sizeof(uint32_t)*(nc+2) + sizeof(int64_t)*(nb+1);
+    if (ierr != coffset64[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64(" << fdes
+	    << ") expected the file pointer to be at "
+	    << coffset64[0] << ", but actually at " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -17;
+    }
+    for (unsigned i = 0; i < nb; ++ i) {
+	if (cbits[i] != 0)
+	    cbits[i]->write(fdes);
+	coffset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+    ierr = start + sizeof(uint32_t)*(nc+2);
+    if (ierr != UnixSeek(fdes, ierr, SEEK_SET)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64(" << fdes
+	    << ") failed to seek to " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -18;
+    }
+    ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nb+1));
+    if (ierr < (off_t)sizeof(int64_t)*(nb+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64(" << fdes
+	    << ") expected to write " << sizeof(int64_t)*(nb+1)
+	    << " bytes, but the function write returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -18;
+    }
+    ierr = UnixSeek(fdes, coffset64.back(), SEEK_SET);
+    return (ierr == coffset64.back() ? 0 : -19);
+} // ibis::fuge::writeCoarse64
+
+/// Reading information about the coarse bins.  To be used after calling
+/// ibis::bin::read.
 int ibis::fuge::readCoarse(const char* fn) {
     std::string fnm;
     indexFileName(fn, fnm);
 
+    // check to make sure either offset32 or offset64 is ready for use
+    if (offset64.size() <= bits.size() &&
+	offset32.size() <= bits.size()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::readCoarse(" << fnm << ") can not proceed "
+	    "because neither offset64 nor offset32 is set correctly";
+	return -1;
+    }
+    const bool useoffset64 = (offset64.size() > bits.size());
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-    if (fdes < 0) return -1;
+    if (fdes < 0) return -2;
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    long ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
-    if (ierr == offset32.back()) {
-	uint32_t nc, begin, end;
-	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
-	    UnixClose(fdes);
-	    return -2;
-	}
+    long ierr;
+    if (useoffset64) {
+	ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+	if (ierr == offset64.back()) {
+	    uint32_t nc;
+	    size_t begin, end;
+	    ierr = UnixRead(fdes, &nc, sizeof(nc));
+	    if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
+		return -3;
+	    }
 
-	begin = offset32.back() + sizeof(nc);
-	end = begin + sizeof(uint32_t)*(nc+1);
-	if (ierr > 0 && nc > 0) {
-	    array_t<uint32_t> tmp(fdes, begin, end);
-	    cbounds.swap(tmp);
-	}
-	const uint32_t ncb = nc+1-(nc+1)/2;
-	begin = end;
-	end += sizeof(int32_t) * (ncb+1);
-	if (cbounds.size() == nc+1) {
-	    array_t<int32_t> tmp(fdes, begin, end);
-	    coffsets.swap(tmp);
-	}
+	    begin = offset64.back() + sizeof(nc);
+	    end = begin + sizeof(uint32_t)*(nc+1);
+	    if (ierr > 0 && nc > 0) {
+		array_t<uint32_t> tmp(fdes, begin, end);
+		cbounds.swap(tmp);
+	    }
+	    const uint32_t ncb = nc+1-(nc+1)/2;
+	    begin = end;
+	    end += sizeof(int64_t) * (ncb+1);
+	    if (cbounds.size() == nc+1) {
+		array_t<int64_t> tmp(fdes, begin, end);
+		coffset64.swap(tmp);
+	    }
 
-	for (unsigned i = 0; i < cbits.size(); ++ i)
-	    delete cbits[i];
-	cbits.resize(ncb);
-	for (unsigned i = 0; i < ncb; ++ i)
-	    cbits[i] = 0;
+	    for (unsigned i = 0; i < cbits.size(); ++ i)
+		delete cbits[i];
+	    cbits.resize(ncb);
+	    for (unsigned i = 0; i < ncb; ++ i)
+		cbits[i] = 0;
+	}
+	else {
+	    clearCoarse();
+	}
     }
-    (void) UnixClose(fdes);
+    else {
+	ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+	if (ierr == offset32.back()) {
+	    uint32_t nc, begin, end;
+	    ierr = UnixRead(fdes, &nc, sizeof(nc));
+	    if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
+		return -4;
+	    }
 
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' coarse bin info "
-			"from %s", name(), fnm.c_str());
+	    begin = offset32.back() + sizeof(nc);
+	    end = begin + sizeof(uint32_t)*(nc+1);
+	    if (ierr > 0 && nc > 0) {
+		array_t<uint32_t> tmp(fdes, begin, end);
+		cbounds.swap(tmp);
+	    }
+	    const uint32_t ncb = nc+1-(nc+1)/2;
+	    begin = end;
+	    end += sizeof(int32_t) * (ncb+1);
+	    if (cbounds.size() == nc+1) {
+		array_t<int32_t> tmp(fdes, begin, end);
+		coffset32.swap(tmp);
+	    }
+
+	    for (unsigned i = 0; i < cbits.size(); ++ i)
+		delete cbits[i];
+	    cbits.resize(ncb);
+	    for (unsigned i = 0; i < ncb; ++ i)
+		cbits[i] = 0;
+	}
+	else {
+	    clearCoarse();
+	}
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "pack[" << col->partition()->name() << "." << col->name()
+	<< "]::read completed reading the header from " << fnm;
     return 0;
 } // ibis::fuge::readCoarse
 
@@ -884,53 +1194,146 @@ void ibis::fuge::clearCoarse() {
 
     cbits.clear();
     cbounds.clear();
-    coffsets.clear();
+    coffset32.clear();
+    coffset64.clear();
 } // ibis::fuge::clearCoarse
 
 void ibis::fuge::activateCoarse() const {
+    std::string mesg = "fuge";
+    if (ibis::gVerbose > 0) {
+	mesg += '[';
+	mesg += col->partition()->name();
+	mesg += '.';
+	mesg += col->name();
+	mesg += ']';
+    }
+    mesg += "::activateCoarse";
     const uint32_t nobs = cbits.size();
     bool missing = false; // any bits[i] missing (is 0)?
-    ibis::column::mutexLock lock(col, "fuge::activateCoarse");
+    ibis::column::mutexLock lock(col, mesg.c_str());
     for (uint32_t i = 0; i < nobs && ! missing; ++ i)
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffsets.size() <= nobs || coffsets[0] <= offset32.back()) {
-	col->logWarning("fuge::activateCoarse", "no records of coffsets, "
-			"can not regenerate the bitvectors");
+    if ((coffset64.size() <= nobs || coffset64[0] <= offset64.back()) &&
+	(coffset32.size() <= nobs || coffset32[0] <= offset32.back())) {
+	col->logWarning("fuge::activateCoarse", "no records of coffset32 or "
+			"coffset64, can not regenerate the bitvectors");
     }
-    else if (str) { // using a ibis::fileManager::storage as back store
+    else if (coffset64.size() > nobs && coffset64.back() > coffset64.front()) {
+	if (str != 0) { // using a ibis::fileManager::storage as back store
+	    LOGGER(ibis::gVerbose > 8)
+		<< mesg << " retrieving data from ibis::fileManager::storage(0x"
+		<< str << ")";
+
+	    for (uint32_t i = 0; i < nobs; ++i) {
+		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
+// #if defined(_DEBUG)
+// 		    LOGGER(ibis::gVerbose > 5)
+// 			<< "DEBUG -- " << mesg << " activating bitvector "
+// 			<< i << " from a raw storage ("
+// 			<< static_cast<const void*>(str->begin())
+// 			<< "), coffset64[" << i << "]= " << coffset64[i]
+// 			<< ", coffset64[" << i+1 << "]= " << coffset64[i+1];
+// #endif
+		    array_t<ibis::bitvector::word_t>
+			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
+			  sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+		}
+	    }
+	}
+	else if (fname != 0) { // using the named file directly
+	    int fdes = UnixOpen(fname, OPEN_READONLY);
+	    if (fdes >= 0) {
+		LOGGER(ibis::gVerbose > 8)
+		    << mesg << " retrieving data from file \"" << fname << "\"";
+
+#if defined(_WIN32) && defined(_MSC_VER)
+		(void)_setmode(fdes, _O_BINARY);
+#endif
+		uint32_t i = 0;
+		while (i < nobs) {
+		    // skip to next empty bit vector
+		    while (i < nobs && cbits[i] != 0)
+			++ i;
+		    // the last bitvector to activate. can not be larger
+		    // than j
+		    uint32_t aj = (i<nobs ? i + 1 : nobs);
+		    while (aj < nobs && cbits[aj] == 0)
+			++ aj;
+		    if (coffset64[aj] > coffset64[i]) {
+			const uint32_t start = coffset64[i];
+			ibis::fileManager::storage *a0 = new
+			    ibis::fileManager::storage(fdes, start,
+						       coffset64[aj]);
+			while (i < aj) {
+			    if (coffset64[i+1] > coffset64[i]) {
+				array_t<ibis::bitvector::word_t>
+				    a1(a0, coffset64[i]-start,
+				       (coffset64[i+1]-coffset64[i])/
+				       sizeof(ibis::bitvector::word_t));
+				bits[i] = new ibis::bitvector(a1);
+				bits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+				LOGGER(ibis::gVerbose >= 0)
+				    << "DEBUG -- " << mesg
+				    << " activating bitvector " << i
+				    << "by reading file " << fname
+				    << "coffset64[" << i << "]= "
+				    << coffset64[i]
+				    << ", coffset64[" << i+1 << "]= "
+				    << coffset64[i+1];
+#endif
+			    }
+			    ++ i;
+			}
+		    }
+		    i = aj; // always advance i
+		}
+		UnixClose(fdes);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << mesg << " failed to open file \""
+		    << fname << "\" for reading";
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << "can not regenerate bitvectors "
+		"because neither str or fname is specified";
+	}
+    }
+    else if (str != 0) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name()
-	    << "]::fuge::activateCoarse(all) "
-	    << "retrieving data from ibis::fileManager::storage(0x"
+	    << mesg << " retrieving data from ibis::fileManager::storage(0x"
 	    << str << ")";
 
 	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
-#if defined(DEBUG)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "fuge::activateCoarse -- activating bitvector "
-		    << i << " from a raw storage ("
-		    << static_cast<const void*>(str->begin())
-		    << "), coffsets[" << i << "]= " << coffsets[i]
-		    << ", coffsets[" << i+1 << "]= " << coffsets[i+1];
-#endif
+	    if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
+// #if defined(_DEBUG)
+// 		LOGGER(ibis::gVerbose >= 0)
+// 		    << "DEBUG -- " << mesg << " activating bitvector "
+// 		    << i << " from a raw storage ("
+// 		    << static_cast<const void*>(str->begin())
+// 		    << "), coffset32[" << i << "]= " << coffset32[i]
+// 		    << ", coffset32[" << i+1 << "]= " << coffset32[i+1];
+// #endif
 		array_t<ibis::bitvector::word_t>
-		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
+		    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
 	    }
 	}
     }
-    else if (fname) { // using the named file directly
+    else if (fname != 0) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name()
-		<< "]::fuge::activateCoarse(all) "
-		<< "retrieving data from file \"" << fname << "\"";
+		<< mesg << " retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -940,32 +1343,32 @@ void ibis::fuge::activateCoarse() const {
 		// skip to next empty bit vector
 		while (i < nobs && cbits[i] != 0)
 		    ++ i;
-		// the last bitvector to activate. can not be larger
-		// than j
+		// the last bitvector to activate.  can not be larger than
+		// j
 		uint32_t aj = (i<nobs ? i + 1 : nobs);
 		while (aj < nobs && cbits[aj] == 0)
 		    ++ aj;
-		if (coffsets[aj] > coffsets[i]) {
-		    const uint32_t start = coffsets[i];
+		if (coffset32[aj] > coffset32[i]) {
+		    const uint32_t start = coffset32[i];
 		    ibis::fileManager::storage *a0 = new
 			ibis::fileManager::storage(fdes, start,
-						   coffsets[aj]);
+						   coffset32[aj]);
 		    while (i < aj) {
-			if (coffsets[i+1] > coffsets[i]) {
+			if (coffset32[i+1] > coffset32[i]) {
 			    array_t<ibis::bitvector::word_t>
-				a1(a0, coffsets[i]-start,
-				   (coffsets[i+1]-coffsets[i])/
+				a1(a0, coffset32[i]-start,
+				   (coffset32[i+1]-coffset32[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "fuge::activateCoarse -- "
-				"activating bitvector " << i
+				<< "DEBUG -- " << mesg
+				<< " activating bitvector " << i
 				<< "by reading file " << fname
-				<< "coffsets[" << i << "]= " << coffsets[i]
-				<< ", coffsets[" << i+1 << "]= "
-				<< coffsets[i+1];
+				<< "coffset32[" << i << "]= " << coffset32[i]
+				<< ", coffset32[" << i+1 << "]= "
+				<< coffset32[i+1];
 #endif
 			}
 			++ i;
@@ -976,39 +1379,107 @@ void ibis::fuge::activateCoarse() const {
 	    UnixClose(fdes);
 	}
 	else {
-	    col->logWarning("fuge::activateCoarse", "failed to open file \"%s\""
-			    " ... %s", fname, strerror(errno));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to open file \""
+		<< fname << "\" for reading";
 	}
     }
     else {
-	col->logWarning("fuge::activateCoarse", "can not regenerate "
-			"bitvectors because neither str or fname is "
-			"specified");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << "can not regenerate bitvectors because "
+	    "neither str or fname is specified";
     }
 } // ibis::fuge::activateCoarse
 
 void ibis::fuge::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
     if (cbits[i] != 0) return;	// already active
-    ibis::column::mutexLock lock(col, "fuge::activateCoarse");
-    if (cbits[i] != 0) return;	// already active
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
-	col->logWarning("fuge::activateCoarse", "no records of offsets, "
-			"can not regenerate bitvector %lu",
-			static_cast<long unsigned>(i));
+    std::string mesg = "fuge";
+    if (ibis::gVerbose > 0) {
+	mesg += '[';
+	mesg += col->partition()->name();
+	mesg += '.';
+	mesg += col->name();
+	mesg += ']';
     }
-    else if (coffsets[i+1] <= coffsets[i]) {
+    mesg += "::activateCoarse";
+    ibis::column::mutexLock lock(col, mesg.c_str());
+    if (cbits[i] != 0) return;	// already active
+    if ((coffset64.size() <= cbits.size() || coffset64[0] <= offset64.back()) &&
+	(coffset32.size() <= cbits.size() || coffset32[0] <= offset32.back())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << "can not regenerate bitvector "
+	    << i << " because there is no records of offsets";
 	return;
     }
-    if (str) { // using a ibis::fileManager::storage as back store
+    if (coffset64.size() > cbits.size()) { // use coffset64
+	if (coffset64[i+1] <= coffset64[i]) {
+	    return;
+	}
+	else if (str != 0) { // using a ibis::fileManager::storage as back store
+	    LOGGER(ibis::gVerbose > 8)
+		<< mesg << "(" << i << ") retrieving data from "
+		"ibis::fileManager::storage(0x" << str << ")";
+
+	    array_t<ibis::bitvector::word_t>
+		a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
+		  sizeof(ibis::bitvector::word_t));
+	    cbits[i] = new ibis::bitvector(a);
+	    cbits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "fuge::activateCoarse(" << i
+		<< ") constructed a bitvector from range ["
+		<< coffset64[i] << ", " << coffset64[i+1]
+		<< ") of a storage at "
+		<< static_cast<const void*>(str->begin());
+#endif
+	}
+	else if (fname != 0) { // using the named file directly
+	    int fdes = UnixOpen(fname, OPEN_READONLY);
+	    if (fdes >= 0) {
+		LOGGER(ibis::gVerbose > 8)
+		    << mesg << "(" << i << ") retrieving data from file \""
+		    << fname << "\"";
+
+#if defined(_WIN32) && defined(_MSC_VER)
+		(void)_setmode(fdes, _O_BINARY);
+#endif
+		array_t<ibis::bitvector::word_t> a0(fdes, coffset64[i],
+						    coffset64[i+1]);
+		cbits[i] = new ibis::bitvector(a0);
+		cbits[i]->sloppySize(nrows);
+		UnixClose(fdes);
+#if defined(DEBUG)
+		LOGGER(ibis::gVerbose >= 0)
+		    << "DEBUG -- " << mesg << "(" << i
+		    << ") constructed a bitvector from range ["
+		    << coffset64[i] << ", " << coffset64[i+1] << ") of file "
+		    << fname;
+#endif
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << mesg << "(" << i
+		    << ") failed to open file \"" << fname << '"';
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << "(" << i << ") found neither "
+		"str or fname needed to regenerate the bitmap";
+	}
+    }
+    else if (coffset32[i+1] <= coffset32[i]) {
+	return;
+    }
+    else if (str != 0) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name()
-	    << "]::fuge::activateCoarse(" << i
-	    << ") retrieving data from ibis::fileManager::storage(0x"
-	    << str << ")";
+	    << mesg << "(" << i << ") retrieving data from "
+	    "ibis::fileManager::storage(0x" << str << ")";
 
 	array_t<ibis::bitvector::word_t>
-	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
+	    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
 	      sizeof(ibis::bitvector::word_t));
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->sloppySize(nrows);
@@ -1016,44 +1487,43 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "fuge::activateCoarse(" << i
 	    << ") constructed a bitvector from range ["
-	    << coffsets[i] << ", " << coffsets[i+1] << ") of a storage at "
+	    << coffset32[i] << ", " << coffset32[i+1] << ") of a storage at "
 	    << static_cast<const void*>(str->begin());
 #endif
     }
-    else if (fname) { // using the named file directly
+    else if (fname != 0) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name()
-		<< "]::fuge::activateCoarse(" << i
-		<< ") retrieving data from file \"" << fname << "\"";
+		<< mesg << "(" << i << ") retrieving data from file \""
+		<< fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
-	    array_t<ibis::bitvector::word_t> a0(fdes, coffsets[i],
-						coffsets[i+1]);
+	    array_t<ibis::bitvector::word_t> a0(fdes, coffset32[i],
+						coffset32[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
 	    cbits[i]->sloppySize(nrows);
 	    UnixClose(fdes);
 #if defined(DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "fuge::activateCoarse(" << i
+		<< "DEBUG -- " << mesg << "(" << i
 		<< ") constructed a bitvector from range ["
-		<< coffsets[i] << ", " << coffsets[i+1] << ") of file "
+		<< coffset32[i] << ", " << coffset32[i+1] << ") of file "
 		<< fname;
 #endif
 	}
 	else {
-	    col->logWarning("fuge::activateCoarse",
-			    "failed to open file \"%s\" ... %s",
-			    fname, strerror(errno));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << "(" << i
+		<< ") failed to open file \"" << fname << '"';
 	}
     }
     else {
-	col->logWarning("fuge::activateCoarse", "can not regenerate "
-			"bitvector %lu because neither str or fname is "
-			"specified", static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << "(" << i
+	    << ") found neither str or fname needed to regenerate the bitmap";
     }
 } // ibis::fuge::activateCoarse
 
@@ -1062,52 +1532,142 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	j = cbits.size();
     if (i >= j) // empty range
 	return;
-    ibis::column::mutexLock lock(col, "fuge::activateCoarse");
+    std::string mesg = "fuge";
+    if (ibis::gVerbose > 0) {
+	mesg += '[';
+	mesg += col->partition()->name();
+	mesg += '.';
+	mesg += col->name();
+	mesg += ']';
+    }
+    mesg += "::activateCoarse";
+    ibis::column::mutexLock lock(col, mesg.c_str());
 
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // all bitvectors active
 
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
-	col->logWarning("fuge::activateCoarse", "no records of offsets, "
-			"can not regenerate bitvectors %lu:%lu",
-			static_cast<long unsigned>(i),
-			static_cast<long unsigned>(j));
+    if ((coffset64.size() <= cbits.size() || coffset64[0] <= offset64.back()) &&
+	(coffset32.size() <= cbits.size() || coffset32[0] <= offset32.back())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << '(' << i << ", " << j
+	    << ") can not proceed for lacking of offset information";
     }
-    else if (str) { // using an ibis::fileManager::storage as back store
+    else if (offset64.size() > cbits.size()) {
+	if (str != 0) { // using an ibis::fileManager::storage as back store
+	    LOGGER(ibis::gVerbose > 8)
+		<< mesg << '(' << i << ", " << j
+		<< ") retrieving data from ibis::fileManager::storage(0x"
+		<< str << ')';
+
+	    while (i < j) {
+		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
+		    array_t<ibis::bitvector::word_t>
+			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
+			  sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+#if defined(_DEBUG)
+		    LOGGER(ibis::gVerbose >= 5)
+			<< "DEBUG -- " << mesg << " constructed bitvector "
+			<< i << " from range [" << coffset64[i] << ", "
+			<< coffset64[i+1] << ") of a storage at "
+			<< static_cast<const void*>(str->begin());
+#endif
+		}
+		++ i;
+	    }
+	}
+	else if (fname != 0) { // using the named file directly
+	    if (coffset64[j] > coffset64[i]) {
+		int fdes = UnixOpen(fname, OPEN_READONLY);
+		if (fdes >= 0) {
+		    LOGGER(ibis::gVerbose > 8)
+			<< mesg << '(' << i << ", " << j
+			<< ") retrieving data from file \"" << fname << "\"";
+#if defined(_WIN32) && defined(_MSC_VER)
+		    (void)_setmode(fdes, _O_BINARY);
+#endif
+		    while (i < j) {
+			// skip to next empty bit vector
+			while (i < j && cbits[i] != 0)
+			    ++ i;
+			// the last bitvector to activate. can not be larger
+			// than j
+			uint32_t aj = (i<j ? i + 1 : j);
+			while (aj < j && cbits[aj] == 0)
+			    ++ aj;
+			if (coffset64[aj] > coffset64[i]) {
+			    const uint32_t start = coffset64[i];
+			    ibis::fileManager::storage *a0 = new
+				ibis::fileManager::storage
+				(fdes, start, coffset64[aj]);
+			    while (i < aj) {
+				if (coffset64[i+1] > coffset64[i]) {
+				    array_t<ibis::bitvector::word_t>
+					a1(a0, coffset64[i]-start,
+					   (coffset64[i+1]-coffset64[i])/
+					   sizeof(ibis::bitvector::word_t));
+				    cbits[i] = new ibis::bitvector(a1);
+				    cbits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+				    LOGGER(ibis::gVerbose >= 5)
+					<< mesg << " constructed bitvector "
+					<< i << " from range [" << coffset64[i]
+					<< ", " << coffset64[i+1]
+					<< ") of file " << fname;
+#endif
+				}
+				++ i;
+			    }
+			}
+			i = aj; // always advance i
+		    }
+		    UnixClose(fdes);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << mesg << '(' << i << ", " << j
+			<< ") failed to open file \"" << fname << '"';
+		}
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg <<  '(' << i << ", " << j
+		<< ") can not proceed without str or fname";
+	}
+    }
+    else if (str != 0) { // using an ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name()
-	    << "]::fuge::activateCoarse(" << i << ", " << j
+	    << mesg << '(' << i << ", " << j
 	    << ") retrieving data from ibis::fileManager::storage(0x"
 	    << str << ")";
 
 	while (i < j) {
-	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
+	    if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
+		    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "fuge::activateCoarse(" << i
-		    << ") constructed a bitvector from range ["
-		    << coffsets[i] << ", " << coffsets[i+1]
-		    << ") of a storage at "
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose >= 5)
+		    << "DEBUG -- " << mesg << " constructed bitvector "
+		    << i << " from positions " << coffset32[i] << " - "
+		    << coffset32[i+1] << " of a storage at "
 		    << static_cast<const void*>(str->begin());
 #endif
 	    }
 	    ++ i;
 	}
     }
-    else if (fname) { // using the named file directly
-	if (coffsets[j] > coffsets[i]) {
+    else if (fname != 0) { // using the named file directly
+	if (coffset32[j] > coffset32[i]) {
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
 		LOGGER(ibis::gVerbose > 8)
-		    << "ibis::column[" << col->name()
-		    << "]::fuge::activateCoarse(" << i << ", " << j
+		    << mesg << '(' << i << ", " << j
 		    << ") retrieving data from file \"" << fname << "\"";
-
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1120,25 +1680,24 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		    uint32_t aj = (i<j ? i + 1 : j);
 		    while (aj < j && cbits[aj] == 0)
 			++ aj;
-		    if (coffsets[aj] > coffsets[i]) {
-			const uint32_t start = coffsets[i];
+		    if (coffset32[aj] > coffset32[i]) {
+			const uint32_t start = coffset32[i];
 			ibis::fileManager::storage *a0 = new
 			    ibis::fileManager::storage(fdes, start,
-						       coffsets[aj]);
+						       coffset32[aj]);
 			while (i < aj) {
-			    if (coffsets[i+1] > coffsets[i]) {
+			    if (coffset32[i+1] > coffset32[i]) {
 				array_t<ibis::bitvector::word_t>
-				    a1(a0, coffsets[i]-start,
-				       (coffsets[i+1]-coffsets[i])/
+				    a1(a0, coffset32[i]-start,
+				       (coffset32[i+1]-coffset32[i])/
 				       sizeof(ibis::bitvector::word_t));
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 				LOGGER(ibis::gVerbose >= 0)
-				    << "fuge::activateCoarse(" << i
-				    << ") constructed a bitvector "
-				    "from range ["
-				    << coffsets[i] << ", " << coffsets[i+1]
+				    << mesg << " constructed bitvector " << i
+				    << " from range [" << coffset32[i]
+				    << ", " << coffset32[i+1]
 				    << ") of file " << fname;
 #endif
 			    }
@@ -1150,16 +1709,16 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		UnixClose(fdes);
 	    }
 	    else {
-		col->logWarning("fuge::activateCoarse",
-				"failed to open file \"%s\" ... %s",
-				fname, strerror(errno));
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << mesg << '(' << i << ", " << j
+		    << ") failed to open file \"" << fname << '"';
 	    }
 	}
     }
     else {
-	col->logWarning("fuge::activateCoarse", "can not regenerate "
-			"bitvector %lu because neither str or fname is "
-			"specified", static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg <<  '(' << i << ", " << j
+	    << ") can not proceed without str or fname";
     }
 } // ibis::fuge::activateCoarse
 
@@ -1170,25 +1729,49 @@ long ibis::fuge::coarseEstimate(uint32_t lo, uint32_t hi) const {
 	cost = 0;
     }
     else if (hi > mid) {
-	cost = coffsets[hi-mid+1] - coffsets[hi-mid];
-	if (lo > hi-mid) {
-	    if (lo >= mid)
-		cost += coffsets[lo-mid+1] - coffsets[lo-mid];
-	    else
-		cost += coffsets[lo+1] - coffsets[lo];
+	if (coffset64.size() > cbits.size()) {
+	    cost = coffset64[hi-mid+1] - coffset64[hi-mid];
+	    if (lo > hi-mid) {
+		if (lo >= mid)
+		    cost += coffset64[lo-mid+1] - coffset64[lo-mid];
+		else
+		    cost += coffset64[lo+1] - coffset64[lo];
+	    }
+	    else if (lo < hi-mid) {
+		cost += coffset64[lo+1] - coffset64[lo];
+	    }
 	}
-	else if (lo < hi-mid) {
-	    cost += coffsets[lo+1] - coffsets[lo];
+	else {
+	    cost = coffset32[hi-mid+1] - coffset32[hi-mid];
+	    if (lo > hi-mid) {
+		if (lo >= mid)
+		    cost += coffset32[lo-mid+1] - coffset32[lo-mid];
+		else
+		    cost += coffset32[lo+1] - coffset32[lo];
+	    }
+	    else if (lo < hi-mid) {
+		cost += coffset32[lo+1] - coffset32[lo];
+	    }
 	}
     }
     else if (hi < mid) {
-	cost = (coffsets[lo+1] - coffsets[lo])
-	    + (coffsets[hi+1] - coffsets[hi]);
+	if (coffset64.size() > cbits.size())
+	    cost = (coffset64[lo+1] - coffset64[lo])
+		+ (coffset64[hi+1] - coffset64[hi]);
+	else
+	    cost = (coffset32[lo+1] - coffset32[lo])
+		+ (coffset32[hi+1] - coffset32[hi]);
+    }
+    else if (coffset64.size() > cbits.size()) { // hi == mid
+	cost = coffset64[1] - coffset64[0];
+	if (lo > 0) {
+	    cost += coffset64[lo+1] - coffset64[lo];
+	}
     }
     else { // hi == mid
-	cost = coffsets[1] - coffsets[0];
+	cost = coffset32[1] - coffset32[0];
 	if (lo > 0) {
-	    cost += coffsets[lo+1] - coffsets[lo];
+	    cost += coffset32[lo+1] - coffset32[lo];
 	}
     }
     return cost;
@@ -1284,3 +1867,16 @@ long ibis::fuge::coarseEvaluate(uint32_t lo, uint32_t hi,
     }
     return res.size();
 } // ibis::fuge::coarseEvaluate
+
+/// Estimate the size of the serialized version of the index.  Return the
+/// size in bytes.
+size_t ibis::fuge::getSerialSize() const throw () {
+    size_t res = (nobs << 5) + 24 + 4*bounds.size() + 8*cbits.size();
+    for (unsigned j = 0; j < nobs; ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    for (unsigned j = 0; j < cbits.size(); ++ j)
+	if (cbits[j] != 0)
+	    res += cbits[j]->getSerialSize();
+    return res;
+} // ibis::fuge::getSerialSize

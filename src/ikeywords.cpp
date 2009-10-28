@@ -74,8 +74,8 @@ ibis::keywords::keywords(const ibis::column* c,
     }
 } // ibis::keywords::keywords
 
-ibis::keywords::keywords(const ibis::column* c, ibis::fileManager::storage* st,
-			 uint32_t offset) : ibis::index(c, st) {
+ibis::keywords::keywords(const ibis::column* c, ibis::fileManager::storage* st)
+    : ibis::index(c, st) {
     read(st);
 } // ibis::keywords::keywords
 
@@ -320,63 +320,84 @@ int ibis::keywords::write(const char* dt) const {
 	    return -1;
 	}
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int32_t ierr = 0;
+    off_t ierr = 0;
     const uint32_t nobs = bits.size();
-
-    array_t<int32_t> offs(nobs+1);
+    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)ibis::index::KEYWORDS;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::keywords::write(" << fnm
+	    << "Warning -- keywords[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
+    ierr  = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
+    if (ierr < (off_t)(sizeof(uint32_t)*2)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- keywords[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
+	    << ") failed to write nrows and nobs, ierr = " << ierr;
+	return -4;
+    }
+    offset64.resize(nobs+1);
+    offset64[0] = 16 + header[6]*(nobs+1);
+    ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
+    if (ierr != offset64[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- keywords[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
+	    << ") failed to seek to " << offset64[0] << ", ierr = " << ierr;
+	return -5;
+    }
     for (uint32_t i = 0; i < nobs; ++ i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	if (bits[i]) {
 	    bits[i]->write(fdes);
-	    if (bits[i]->size() != nrows)
-		col->logWarning("keywords::write", "bits[%lu] has %lu bits, "
-				"expected %lu", static_cast<long unsigned>(i),
-				static_cast<long unsigned>(bits[i]->size()),
-				static_cast<long unsigned>(nrows));
 	}
-#if defined(DEBUG)
-	int id0 = -1;
-	if (bits[i]) {
-	    ibis::bitvector::indexSet ixs = bits[i]->firstIndexSet();
-	    id0 = *(ixs.indices());
-	}
-	col->logMessage("keywords::write", "keyword:%s, count:%lu (%d)",
-			(terms[i] ? terms[i] : "<NULL>"),
-			static_cast<long unsigned>(bits[i] ? bits[i]->cnt()
-						   : 0),
-			id0);
-#endif
+	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, 8+sizeof(uint32_t)*2, SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
+    ierr = UnixSeek(fdes, 16, SEEK_SET);
+    if (ierr != 16) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- keywords[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
+	    << ") failed to seek to offset 16, ierr = " << ierr;
+	return -6;
+    }
+    if (useoffset64) {
+	ierr = UnixWrite(fdes, offset64.begin(), 4*(nobs+1));
+	offset32.clear();
+    }
+    else {
+	offset32.resize(nobs+1);
+	for (unsigned j = 0; j <= nobs; ++ j)
+	    offset32[j] = offset64[j];
+	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
+	offset64.clear();
+    }
+    if (ierr < (off_t)(header[6]*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- keywords[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
+	    << ") failed to write bitmap offsets, ierr = " << ierr;
+	return -7;
+    }
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) UnixFlush(fdes); // write to disk
 #endif
-    (void) UnixClose(fdes);
 
-    if (ibis::gVerbose > 5)
-	col->logMessage("keywords::write", "wrote %lu bitmap%s to %s",
-			static_cast<long unsigned>(nobs),
-			(nobs>1?"s":""), fnm.c_str());
+    LOGGER(ibis::gVerbose > 5)
+	<< "keywords[" << col->partition()->name() << "."
+	<< col->name() << "]::write -- wrote " << nobs << " bitmap"
+	<< (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::keywords::write
 
@@ -392,11 +413,11 @@ int ibis::keywords::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
-	UnixClose(fdes);
 	return -2;
     }
 
@@ -404,38 +425,80 @@ int ibis::keywords::read(const char* f) {
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
 		  header[5] == static_cast<char>(ibis::index::KEYWORDS) &&
-		  header[6] == static_cast<char>(sizeof(int32_t)) &&
+		  (header[6] == 8 || header[6] == 4) &&
 		  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- keywords[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
     uint32_t dim[2];
-    uint32_t begin, end;
+    size_t begin, end;
     ibis::index::clear(); // clear the current bit vectors
     fname = ibis::util::strnewdup(fnm.c_str());
 
-    int ierr = UnixRead(fdes, static_cast<void*>(dim), 2*sizeof(uint32_t));
+    off_t ierr = UnixRead(fdes, static_cast<void*>(dim), 2*sizeof(uint32_t));
     if (ierr < static_cast<int>(2*sizeof(uint32_t))) {
-	UnixClose(fdes);
 	return -4;
     }
     nrows = dim[0];
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (dim[1] > ibis::fileManager::pageSize());
+    const bool trymmap = (dim[1]*8 >= FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     // read offsets
     begin = 8 + 2*sizeof(uint32_t);
-    end = 8 + 2*sizeof(uint32_t) + sizeof(int32_t) * (dim[1] + 1);
-    if (trymmap) {
-	array_t<int32_t> tmp(fnm.c_str(), begin, end);
-	offset32.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	offset32.swap(tmp);
-    }
+    end = 8 + 2*sizeof(uint32_t) + header[6] * (dim[1] + 1);
+    ierr = initOffsets(fdes, header[6], 8, dim[1]);
+    if (ierr < 0)
+	return ierr;
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG)
     if (ibis::gVerbose > 5) {
@@ -443,49 +506,34 @@ int ibis::keywords::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- ibis::keywords::read(" << fnm
+	lg.buffer() << "DEBUG -- keywords[" << col->partition()->name() << '.'
+		    << col->name() << "]::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
-	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offset32[i] << " ";
+	if (offset64.size() > dim[1]) {
+	    for (unsigned i = 0; i < nprt; ++ i)
+		lg.buffer() << offset64[i] << " ";
+	}
+	else {
+	    for (unsigned i = 0; i < nprt; ++ i)
+		lg.buffer() << offset32[i] << " ";
+	}
 	if (nprt < dim[1])
 	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offset32[dim[1]];
+	if (offset64.size() > dim[1])
+	    lg.buffer() << offset64[dim[1]];
+	else
+	    lg.buffer() << offset32[dim[1]];
     }
 #endif
 
-    bits.resize(dim[1]);
-    for (uint32_t i = 0; i < dim[1]; ++i)
-	bits[i] = 0;
-#if defined(FASTBIT_READ_BITVECTOR0)
-    // read the first bitvector
-    if (offset32[1] > offset32[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
-	bits[0] = new ibis::bitvector(a0);
-#if defined(WAH_CHECK_SIZE)
-	const uint32_t len = strlen(col->partition()->currentDataDir());
-	if (0 == strncmp(f, col->partition()->currentDataDir(), len)
-	    && bits[0]->size() != nrows) {
-	    col->logWarning("readIndex", "the size (%lu) of the 1st "
-			    "bitvector (from \"%s\") differs from "
-			    "nRows (%lu)",
-			    static_cast<long unsigned>(bits[0]->size()),
-			    fnm.c_str(), static_cast<long unsigned>(nrows));
-	}
-#else
-	bits[0]->sloppySize(nrows);
-#endif
-    }
-    else {
-	bits[0] = new ibis::bitvector;
-	bits[0]->set(0, nrows);
-    }
-#endif
-    (void) UnixClose(fdes);
+    initBitmaps(fdes);
     str = 0;
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' header from %s",
-			name(), fnm.c_str());
+    LOGGER(ibis::gVerbose > 7)
+	<< "keywords[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << fnm << ") finished reading index header with nrows="
+	<< nrows << " and bits.size()="
+	<< bits.size();
     return 0;
 } // ibis::keywords::read
 
@@ -494,67 +542,25 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
     clear();
 
+    const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
-    uint32_t pos = 8 + sizeof(uint32_t);
+    size_t pos = 8 + sizeof(uint32_t);
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
-    array_t<int32_t> offs(st, pos, nobs+1);
-    offset32.copy(offs);
+    if (offsetsize == 8) {
+	array_t<int64_t> offs(st, pos, nobs+1);
+	offset64.copy(offs);
+    }
+    else if (offsetsize == 4) {
+	array_t<int32_t> offs(st, pos, nobs+1);
+	offset32.copy(offs);
+    }
+    else {
+	clear();
+	return -2;
+    }
 
-    for (uint32_t i = 0; i < bits.size(); ++ i)
-	delete bits[i];
-    bits.resize(nobs);
-    for (uint32_t i = 0; i < nobs; ++i)
-	bits[i] = 0;
-    if (st->isFileMap()) { // only restore the first bitvector
-#if defined(FASTBIT_READ_BITVECTOR0)
-	if (offs[1] > offs[0]) {
-	    array_t<ibis::bitvector::word_t>
-		a0(st, offs[0], (offs[1]-offs[0])/
-		   sizeof(ibis::bitvector::word_t));
-	    bits[0] = new ibis::bitvector(a0);
-#if defined(WAH_CHECK_SIZE)
-	    if (bits[0]->size() != nrows) {
-		col->logWarning("readIndex", "the length (%lu) of the 1st "
-				"bitvector differs from nRows(%lu)",
-				static_cast<long unsigned>(bits[0]->size()),
-				static_cast<long unsigned>(nrows));
-	    }
-#else
-	    bits[0]->sloppySize(nrows);
-#endif
-	}
-	else {
-	    bits[0] = new ibis::bitvector;
-	    bits[0]->adjustSize(0, nrows);
-	}
-#endif
-	str = st;
-    }
-    else { // regenerate all the bitvectors
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offs[i+1] > offs[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(st, offs[i], (offs[i+1]-offs[i])/
-		      sizeof(ibis::bitvector::word_t));
-		ibis::bitvector* btmp = new ibis::bitvector(a);
-		bits[i] = btmp;
-#if defined(WAH_CHECK_SIZE)
-		if (btmp->size() != nrows) {
-		    col->logWarning("readIndex", "the length (%lu) of the "
-				    "%lu-th bitvector differs from "
-				    "nRows(%lu)",
-				    static_cast<long unsigned>(btmp->size()),
-				    static_cast<long unsigned>(i),
-				    static_cast<long unsigned>(nrows));
-		}
-#else
-		btmp->sloppySize(nrows);
-#endif
-	    }
-	}
-	str = 0;
-    }
+    initBitmaps(st);
     if (terms.size() < bits.size()) { // need to read the dictionary
 	std::string fnm;
 	dataFileName(0, fnm);
@@ -570,11 +576,16 @@ void ibis::keywords::clear() {
 } // ibis::keywords::clear
 
 long ibis::keywords::append(const char* dt, const char* df, uint32_t nnew) {
-    throw "ibis::keywords::append not implemented yet";
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- ibis::keywords::append not implemented yet";
+    return -1L;
 } // ibis::keywords::append
 
 long ibis::keywords::evaluate(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& lower) const {
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- ibis::keywords::evaluate for qContinuousRange has "
+	"not been implemented";
     return -1L;
 } // ibis::keywords::evaluate
 
@@ -621,7 +632,19 @@ long ibis::keywords::search(const char* kw) const {
 
 double ibis::keywords::estimateCost(const ibis::qContinuousRange& expr) const {
     double ret = 0.0;
-    if (offset32.size() > bits.size()) {
+    if (offset64.size() > bits.size()) {
+	if (expr.leftOperator() == ibis::qExpr::OP_EQ) {
+	    uint32_t h0 = static_cast<uint32_t>(expr.leftBound());
+	    if (h0 < bits.size())
+		ret = offset64[h0+1] - offset64[h0];
+	}
+	else if (expr.leftOperator() == ibis::qExpr::OP_EQ) {
+	    uint32_t h1 = static_cast<uint32_t>(expr.rightBound());
+	    if (h1 < bits.size())
+		ret = offset64[h1+1] - offset64[h1];
+	}
+    }
+    else if (offset32.size() > bits.size()) {
 	if (expr.leftOperator() == ibis::qExpr::OP_EQ) {
 	    uint32_t h0 = static_cast<uint32_t>(expr.leftBound());
 	    if (h0 < bits.size())
@@ -638,7 +661,15 @@ double ibis::keywords::estimateCost(const ibis::qContinuousRange& expr) const {
 
 double ibis::keywords::estimateCost(const ibis::qDiscreteRange& expr) const {
     double ret = 0.0;
-    if (offset32.size() > bits.size()) {
+    if (offset64.size() > bits.size()) {
+	const ibis::array_t<double>& vals = expr.getValues();
+	for (unsigned j = 0; j < vals.size(); ++ j) {
+	    uint32_t itmp = static_cast<uint32_t>(vals[j]);
+	    if (itmp < bits.size())
+		ret += offset64[itmp+1] - offset64[itmp];
+	}
+    }
+    else if (offset32.size() > bits.size()) {
 	const ibis::array_t<double>& vals = expr.getValues();
 	for (unsigned j = 0; j < vals.size(); ++ j) {
 	    uint32_t itmp = static_cast<uint32_t>(vals[j]);
@@ -648,3 +679,14 @@ double ibis::keywords::estimateCost(const ibis::qDiscreteRange& expr) const {
     }
     return ret;
 } // ibis::keywords::estimateCost
+
+/// Estimate the size of the .idx file.  The .idx file contains only the
+/// bitmaps without the actual terms.  The bitmap offsets are assumed to be
+/// 8-byte long.
+size_t ibis::keywords::getSerialSize() const throw () {
+    size_t res = 24 + (bits.size() << 3);
+    for (unsigned j = 0; j < bits.size(); ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    return res;
+} // ibis::keywords::getSerialSize

@@ -46,8 +46,8 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
-	    << "]::fade::ctor encountered an exception, cleaning up ...";
+	    << "Warning -- fade[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -56,31 +56,31 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 /// Reconstruct from content of fileManager::storage.
 /**
  The content of the file (following the 8-byte header) is
- - nrows(uint32_t) -- the number of bits in each bit sequence
- - nobs (uint32_t) -- the number of bit sequences
- - card (uint32_t) -- the number of distinct values, i.e., cardinality
+ - nrows(uint32_t)        -- the number of bits in each bit sequence
+ - nobs (uint32_t)        -- the number of bit sequences
+ - card (uint32_t)        -- the number of distinct values, i.e., cardinality
  - (padding to ensure the next data element is on 8-byte boundary)
  - values (double[card])  -- the distinct values as doubles
- - offset(int32_t[nobs+1]) -- the starting positions of the bit sequences (as
+ - offset([nobs+1])       -- the starting positions of the bit sequences (as
 				bit vectors)
- - nbases(uint32_t) -- the number of components (bases) used
- - cnts (uint32_t[card])    -- the counts for each distinct value
- - bases(uint32_t[nbases])  -- the bases sizes
- - bitvectors -- the bitvectors one after another
+ - nbases(uint32_t)       -- the number of components (bases) used
+ - cnts (uint32_t[card])  -- the counts for each distinct value
+ - bases(uint32_t[nbases])-- the bases sizes
+ - bitvectors             -- the bitvectors one after another
 */
 ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
-		 uint32_t offset)
-    : ibis::relic(c, st, offset),
-      cnts(st, 8*((offset+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
+		 size_t start)
+    : ibis::relic(c, st, start),
+      cnts(st, 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
 	   +sizeof(int32_t)*(ibis::relic::bits.size()+1)
 	   +sizeof(double)*ibis::relic::vals.size(),
-	   *(reinterpret_cast<uint32_t*>(st->begin()+offset+
+	   *(reinterpret_cast<uint32_t*>(st->begin()+start+
 					 sizeof(uint32_t)*2))),
-      bases(st, 8*((offset+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
+      bases(st, 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(uint32_t)
 	    +sizeof(int32_t)*(ibis::relic::bits.size()+1)
 	    +(sizeof(uint32_t)+sizeof(double))*ibis::relic::vals.size(),
 	    *(reinterpret_cast<uint32_t*>
-	      (st->begin()+8*((offset+sizeof(uint32_t)*3+7)/8)+
+	      (st->begin()+8*((start+sizeof(uint32_t)*3+7)/8)+
 	       sizeof(int32_t)*(ibis::relic::bits.size()+1)+
 	       sizeof(double)*ibis::relic::vals.size()))) {
     if (ibis::gVerbose > 8 &&
@@ -103,111 +103,251 @@ int ibis::fade::write(const char* dt) const {
 	activate(); // retrieve all bitvectors
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-    if (fdes < 0) {
+    if (fdes < 0) { // try again
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("fade::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- fade[" << col->partition()->name() << '.'
+		<< col->name() << "]::write failed to open \"" << fnm
+		<< "\" for writing";
 	    return -2;
 	}
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const uint32_t nb = bases.size();
-    const uint32_t card = vals.size();
-    const uint32_t nobs = bits.size();
-    array_t<int32_t> offs(nobs+1);
+    const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
     char header[] = "#IBIS\12\0\0";
     header[5] = (char)ibis::index::FADE;
     header[6] = (char)sizeof(int32_t);
     int32_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::fade::write(" << fnm << ") failed to write "
-	    << "the 8-byte header, ierr = " << ierr;
+	    << "Warning -- fade[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm << ") failed to write "
+	    << "the 8-byte header to " << fnm << ", ierr = " << ierr;
 	return -3;
     }
-    ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixWrite(fdes, &card, sizeof(card));
-    offs[0] = 8*((3*sizeof(uint32_t)+15)/8);
-    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
-    if (ierr != offs[0]) { // unable to write to file
-	UnixClose(fdes);
-	remove(fnm.c_str());
-	return -4;
-    }
-
-    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
-    ierr = UnixWrite(fdes, &nb, sizeof(nb));
-    ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    ierr = UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
-    }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, 8*((15+3*sizeof(uint32_t))/8)+sizeof(double)*card,
-		    SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
+    if (useoffset64)
+	ierr = write64(fdes);
+    else
+	ierr = write32(fdes);
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     UnixFlush(fdes);
 #endif
-    (void) UnixClose(fdes);
-    return 0;
+    return ierr;
 } // ibis::fade::write
 
 /// Write the content to a file already opened.
-int ibis::fade::write(int fdes) const {
+int ibis::fade::write32(int fdes) const {
     if (vals.empty()) return -1;
     if (fname != 0 || str != 0)
 	activate(); // retrieve all bitvectors
-    const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    std::string evt = "relic";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::write32";
+
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
-	ibis::util::logMessage("Warning", "ibis::fade::write call to UnixSeek"
-			       "(%d, 0, SEEK_CUR) failed ... %s", fdes,
-			       strerror(errno));
-	return -2;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " seek(" << fdes
+	    << ", 0, SEEK_CUR) returned " << start
+	    << ", but a value >= 8 is expected";
+	return -5;
     }
 
     const uint32_t nb = bases.size();
     const uint32_t card = vals.size();
     const uint32_t nobs = bits.size();
-    array_t<int32_t> offs(nobs+1);
     int ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-    ierr = UnixWrite(fdes, &card, sizeof(card));
-    offs[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
-    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
-    if (ierr != offs[0]) {
+    ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
+    ierr += UnixWrite(fdes, &card, sizeof(card));
+    if (ierr < 12) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::fade::write(" << fdes << ") failed to seek to" << offs[0];
-	UnixSeek(fdes, start, SEEK_SET);
-	return -3;
+	    << "Warning -- " << evt << " expects to write 3 4-byte words to "
+	    << fdes << ", but the number of byte wrote is " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -6;
+    }
+    offset32[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
+    ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
+    if (ierr != offset32[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to"
+	    << offset32[0] << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
+    }
+    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
+    if (ierr < (off_t)sizeof(double)*nobs) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(double)*nobs << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -8;
     }
 
-    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
+    offset32[0] += sizeof(int32_t)*(nobs+1) + sizeof(double)*nobs;
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
-    ierr = UnixWrite(fdes, &nb, sizeof(nb));
-    ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    ierr = UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
+        if (ierr != offset32[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " attempting to seek to " << offset32[0]
+	    << " file descriptor " << fdes << " returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -9;
     }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes,
-		    8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(double)*card,
-		    SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-    ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
-    return 0;
-} // ibis::fade::write
+    ierr  = UnixWrite(fdes, &nb, sizeof(nb));
+    ierr += UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
+    ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
+    if (ierr < (off_t)sizeof(uint32_t)*(card+nb+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(uint32_t)*(card+nb+1) << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -10;
+    }
+    for (uint32_t i = 0; i < nobs; ++i) {
+	bits[i]->write(fdes);
+	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+
+    const off_t offpos = 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(double)*card;
+    ierr = UnixSeek(fdes, offpos, SEEK_SET);
+    if (ierr != offpos) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " seek(" << fdes << ", " << offpos
+	    << ", SEEK_SET) returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -11;
+    }
+    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    if (ierr < (off_t)sizeof(int32_t)*(nobs+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(int32_t)*(nobs+1) << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -12;
+    }
+    ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET);
+    offset64.clear();
+    return (ierr == offset32[nobs] ?0 : -13);
+} // ibis::fade::write32
+
+/// Write the content to a file already opened.
+int ibis::fade::write64(int fdes) const {
+    if (vals.empty()) return -1;
+    if (fname != 0 || str != 0)
+	activate(); // retrieve all bitvectors
+    std::string evt = "relic";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::write64";
+
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    if (start < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " seek(" << fdes
+	    << ", 0, SEEK_CUR) returned " << start
+	    << ", but a value >= 8 is expected";
+	return -5;
+    }
+
+    const uint32_t nb = bases.size();
+    const uint32_t card = vals.size();
+    const uint32_t nobs = bits.size();
+    int ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
+    ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
+    ierr += UnixWrite(fdes, &card, sizeof(card));
+    if (ierr < 12) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects to write 3 4-byte words to "
+	    << fdes << ", but the number of byte wrote is " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -6;
+    }
+    offset64[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
+    ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
+    if (ierr != offset64[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to"
+	    << offset64[0] << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
+    }
+    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
+    if (ierr < (off_t)sizeof(double)*nobs) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(double)*nobs << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -8;
+    }
+
+    offset64[0] += sizeof(int64_t)*(nobs+1) + sizeof(double)*nobs;
+    ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
+        if (ierr != offset64[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " attempting to seek to " << offset64[0]
+	    << " file descriptor " << fdes << " returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -9;
+    }
+    ierr  = UnixWrite(fdes, &nb, sizeof(nb));
+    ierr += UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
+    ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
+    if (ierr < (off_t)sizeof(uint32_t)*(card+nb+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(uint32_t)*(card+nb+1) << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -10;
+    }
+    for (uint32_t i = 0; i < nobs; ++i) {
+	bits[i]->write(fdes);
+	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+
+    const off_t offpos = 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(double)*card;
+    ierr = UnixSeek(fdes, offpos, SEEK_SET);
+    if (ierr != offpos) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " seek(" << fdes << ", " << offpos
+	    << ", SEEK_SET) returned " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -11;
+    }
+    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    if (ierr < (off_t)sizeof(int64_t)*(nobs+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "
+	    << sizeof(int64_t)*(nobs+1) << " bytes to file descriptor "
+	    << fdes << ", but actually wrote " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -12;
+    }
+    offset32.clear();
+    ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET);
+    return (ierr == offset64[nobs] ?0 : -13);
+} // ibis::fade::write64
 
 /// Read the index contained in the file named @c f.
 int ibis::fade::read(const char* f) {
@@ -220,38 +360,85 @@ int ibis::fade::read(const char* f) {
 	return -1;
 
     char header[8];
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
-	UnixClose(fdes);
 	return -2;
     }
 
     if (!(header[0] == '#' && header[1] == 'I' &&
 	  header[2] == 'B' && header[3] == 'I' &&
 	  header[4] == 'S' &&
-	  header[6] == static_cast<char>(sizeof(int32_t)) &&
+	  (header[6] == 8 || header[6] == 4) &&
 	  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- fade[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
     uint32_t dim[3]; // nobs, card
-    uint32_t begin, end;
+    size_t begin, end;
     clear(); // clear the current content
     if (fname) delete [] fname;
     fname = ibis::util::strnewdup(fnm.c_str());
 
-    int ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
+    off_t ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
     if (ierr < static_cast<int>(3*sizeof(uint32_t))) {
-	UnixClose(fdes);
 	return -4;
     }
     nrows = dim[0];
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (dim[2] > ibis::fileManager::pageSize());
+    const bool trymmap = (dim[2]*8 > FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     // read vals
     begin = 8*((3*sizeof(uint32_t) + 15) / 8);
@@ -261,28 +448,23 @@ int ibis::fade::read(const char* f) {
     // read the offsets
     begin = end;
     end += sizeof(int32_t) * (dim[1] + 1);
-    if (trymmap) {
-	array_t<int32_t> tmp(fname, begin, end);
-	offset32.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	offset32.swap(tmp);
-    }
+    ierr = initOffsets(fdes, header[6], begin, dim[1]);
+    if (ierr < 0)
+	return ierr;
+
     // nbases, cnts, and bases
     uint32_t nb;
     ierr = UnixSeek(fdes, end, SEEK_SET);
-    if (ierr != (int)end) {
+    if (ierr != (off_t)end) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::fade::read(" << fnm << ") failed to seek to " << end;
-	UnixClose(fdes);
+	    << "Warning -- fade[" << col->partition()->name() << '.'
+	    << col->name() << "]::read(" << fnm << ") failed to seek to " << end;
 	clear();
 	return -5;
     }
 
     ierr = UnixRead(fdes, static_cast<void*>(&nb), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	clear();
 	return -6;
     }
@@ -304,28 +486,10 @@ int ibis::fade::read(const char* f) {
     }
     ibis::fileManager::instance().recordPages(0, end);
 
-    // read the first bitvector
-    for (uint32_t i = 0; i < bits.size(); ++i)
-	delete bits[i];
-    bits.resize(dim[1]);
-    for (uint32_t i = 0; i < dim[1]; ++i)
-	bits[i] = 0;
-#if defined(FASTBIT_READ_BITVECTOR0)
-    if (offset32[1] > offset32[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
-	bits[0] = new ibis::bitvector(a0);
-	bits[0]->sloppySize(nrows);
-    }
-    else {
-	bits[0] = new ibis::bitvector;
-	bits[0]->set(0, nrows);
-    }
-#endif
-    str = 0;
-    (void) UnixClose(fdes);
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' header from %s",
-			name(), fnm.c_str());
+    initBitmaps(fdes);
+    LOGGER(ibis::gVerbose > 7)
+	<< "fade[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << fnm << ") completed reading the header";
     return 0;
 } // ibis::fade::read
 
@@ -341,16 +505,16 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t);
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
+    pos = (pos / 8) * 8;
     const uint32_t nbases= *(reinterpret_cast<uint32_t*>
-			   (st->begin()+8*(pos/8) +
+			   (st->begin()+pos +
 			    sizeof(double)*card+sizeof(uint32_t)*(nobs+1)));
-    array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
     {
-	array_t<double> dbl(st, 8*(pos/8), card);
+	array_t<double> dbl(st, pos, card);
 	vals.swap(dbl);
     }
     {
-	array_t<uint32_t> szt(st, 8*(pos/8) + sizeof(double)*card
+	array_t<uint32_t> szt(st, pos + sizeof(double)*card
 			    + sizeof(uint32_t)*(nobs+2), card);
 	cnts.swap(szt);
     }
@@ -359,36 +523,12 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
 			    + sizeof(uint32_t)*(card+nobs+2), nbases);
 	bases.swap(szb);
     }
-
-    for (uint32_t i = 0; i < bits.size(); ++ i)
-	delete bits[i];
-    bits.resize(nobs);
-    for (uint32_t i = 0; i < nobs; ++i)
-	bits[i] = 0;
-    if (st->isFileMap()) { // only restore the first bitvector
-#if defined(FASTBIT_READ_BITVECTOR0)
-	array_t<ibis::bitvector::word_t>
-	    a0(st, offs[0], (offs[1]-offs[0])/
-	       sizeof(ibis::bitvector::word_t));
-	bits[0] = new ibis::bitvector(a0);
-	bits[0]->sloppySize(nrows);
-#endif
-	offset32.swap(offs);
-	str = st;
+    int ierr = initOffsets(st, pos+sizeof(double)*card, nobs);
+    if (ierr < 0) {
+	clear();
+	return ierr;
     }
-    else {
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offs[i+1] > offs[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(st, offs[i], (offs[i+1]-offs[i])/
-		      sizeof(ibis::bitvector::word_t));
-		ibis::bitvector* btmp = new ibis::bitvector(a);
-		btmp->sloppySize(nrows);
-		bits[i] = btmp;
-	    }
-	}
-	str = 0;
-    }
+    initBitmaps(st);
     return 0;
 } // ibis::fade::read
 
@@ -1502,3 +1642,12 @@ double ibis::fade::estimateCost(const ibis::qContinuousRange& expr) const {
 
 // double ibis::fade::estimateCost(const ibis::qDiscreteRange& expr) const {
 // } // ibis::fade::estimateCost
+
+/// Estiamte the size of the index in a file.
+size_t ibis::fade::getSerialSize() const throw() {
+    size_t res = 24 + 8 * (bits.size() + vals.size()) + 4 * cnts.size();
+    for (unsigned j = 0; j < bits.size(); ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    return res;
+} // ibis::fade::getSerialSize

@@ -69,21 +69,23 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     }
 } // copy from an ibis::bin
 
-// reconstruct from content of fileManager::storage
-// the content of the file (following the 8-byte header) is
-// nrows  (uint32_t)          -- number of bits in a bitvector
-// nobs   (uint32_t)          -- number of bins
-// nbits  (uint32_t)          -- number of bitvectors
-// bounds (double[nobs])    -- bind boundaries
-// maxval (double[nobs])    -- the maximum value in each bin
-// minval (double[nobs])    -- the minimum value in each bin
-// offset (uint32_t[nbits+1]) -- starting position of the bitvectors
-// cnts   (uint32_t[nobs])    -- number of records in each bin
-// nbases (uint32_t)          -- number of components (size of array bases)
-// bases  (uint32_t[nbases])  -- the bases sizes
-// bitvectors               -- the bitvectors one after another
+/// Reconstruct an index from content of a storage object.
+/// The content of the file (following the 8-byte header) is
+///@code
+/// nrows  (uint32_t)         -- number of bits in a bitvector
+/// nobs   (uint32_t)         -- number of bins
+/// nbits  (uint32_t)         -- number of bitvectors
+/// bounds (double[nobs])     -- bind boundaries
+/// maxval (double[nobs])     -- the maximum value in each bin
+/// minval (double[nobs])     -- the minimum value in each bin
+/// offset ([nbits+1])        -- starting position of the bitvectors
+/// cnts   (uint32_t[nobs])   -- number of records in each bin
+/// nbases (uint32_t)         -- number of components (size of array bases)
+/// bases  (uint32_t[nbases]) -- the bases sizes
+/// bitvectors                -- the bitvectors one after another
+///@endcode
 ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
-		   uint32_t offset) : ibis::egale(c, st, offset) {
+		   size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
 	print(lg.buffer());
@@ -112,24 +114,35 @@ int ibis::moins::write(const char* dt) const {
 	    return -2;
 	}
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\16\0\0";
     header[5] = (char)ibis::index::MOINS;
-    header[6] = (char) sizeof(int32_t);
+    header[6] = (char) (useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
-    ierr = ibis::egale::write(fdes); // use the function ibis::egale
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- moins[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << name
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
+    }
+    if (useoffset64)
+	ierr = ibis::egale::write64(fdes); // use the function ibis::egale
+    else
+	ierr = ibis::egale::write32(fdes); // use the function ibis::egale
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) UnixFlush(fdes); // write to disk
 #endif
-    UnixClose(fdes);
     return ierr;
 } // ibis::moins::write
 
-// convert from the multicomponent equality code to a multicomponent range
-// code
+/// Convert from the multicomponent equality code to a multicomponent range
+/// code.
 void ibis::moins::convert() {
     //activate();
     // store the current bitvectors in simple
@@ -654,6 +667,8 @@ double ibis::moins::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes() * (nbases+1) < nbv);
+	else if (offset64.size() > nbits)
+	    here = (offset64[nbits] * (nbases+1) < nbv);
 	else if (offset32.size() > nbits)
 	    here = (offset32[nbits] * (nbases+1) < nbv);
     }

@@ -217,12 +217,12 @@ int ibis::bin::read(const char* f) {
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
 	return -1;
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     char header[8];
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
-	UnixClose(fdes);
 	return -2;
     }
 
@@ -231,7 +231,54 @@ int ibis::bin::read(const char* f) {
 	  header[4] == 'S' &&
 	  (header[6] == 4 || header[6] == 8) &&
 	  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- bin[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
@@ -242,13 +289,11 @@ int ibis::bin::read(const char* f) {
 
     long ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
 	return -5;
@@ -301,7 +346,7 @@ int ibis::bin::read(const char* f) {
     }
     ibis::fileManager::instance().recordPages(0, end);
     initBitmaps(fdes);
-    UnixClose(fdes);
+
     LOGGER(ibis::gVerbose > 7)
 	<< "bin[" << col->name() << "]::read(" << fnm << ") finished reading "
 	"index header (type " << (int) header[5] << ") with nrows=" << nrows

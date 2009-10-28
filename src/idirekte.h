@@ -68,8 +68,7 @@ public:
 
     virtual ~direkte() {clear();}
     direkte(const ibis::column* c, const char* f = 0);
-    direkte(const ibis::column* c, ibis::fileManager::storage* st,
-	    uint32_t offset = 8);
+    direkte(const ibis::column* c, ibis::fileManager::storage* st);
 
 protected:
     template <typename T>
@@ -77,6 +76,7 @@ protected:
 
     void locate(const ibis::qContinuousRange& expr,
 		uint32_t& hit0, uint32_t& hit1) const;
+    virtual size_t getSerialSize() const throw();
 
     direkte();
     direkte(const direkte&);

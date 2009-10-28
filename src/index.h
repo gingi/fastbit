@@ -356,8 +356,8 @@ protected:
     /// Default constructor.  Protect the constructor so that ibis::index
     /// can not be instantiated directly.  Protecting it also reduces the
     /// size of public interface.
-    index(const ibis::column* c=0, ibis::fileManager::storage* s=0)
-	: col(c), str(s), fname(0), nrows(0) {}
+    index(const ibis::column* c=0) : col(c), str(0), fname(0), nrows(0) {}
+    index(const ibis::column* c, ibis::fileManager::storage* s);
 
     /// Generate data file name from "f"
     void dataFileName(const char* f, std::string& name) const;

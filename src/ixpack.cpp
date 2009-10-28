@@ -15,8 +15,8 @@
 #include "resource.h"
 
 #include <string>
-//
-// generate an ibis::pack from ibis::bin
+/// Constructor.
+/// Generate an ibis::pack from ibis::bin.
 ibis::pack::pack(const ibis::bin& rhs) {
     if (rhs.col == 0) return;
     if (rhs.nobs <= 1) return; // rhs does not contain an valid index
@@ -162,46 +162,80 @@ ibis::pack::pack(const ibis::bin& rhs) {
     }
 } // copy from ibis::bin
 
-//
-// (de-serialization) reconstruct pack from content of a file
-// In addition to the common content for index::bin, the following are
-// inserted after minval array: (this constructor relies the fact that max1
-// and min1 follow minval immediately without any separation or padding)
-// max1 (double) -- the maximum value of all data entry
-// min1 (double) -- the minimum value of those larger than or equal to the
-// largest bounds value (bounds[nobs-1])
-// offsets_for_next_level (uint32_t[nobs]) -- as the name suggests, these are
-// the offsets (in this file) for the next level ibis::pack.
-// after the bit vectors of this level are written, the next level ibis::pack
-// are written without header.
+/// Reconstruct an index from content of a storage object.
+/// In addition to the common content for index::bin, the following are
+/// inserted after minval array: (this constructor relies the fact that max1
+/// and min1 follow minval immediately without any separation or padding)
+///@code
+/// max1 (double) -- the maximum value of all data entry
+/// min1 (double) -- the minimum value of those larger than or equal to the
+///                  largest bounds value (bounds[nobs-1])
+/// offsets_for_next_level ([nobs+1]) -- as the name suggests, these are
+///                  the offsets (in this file) for the next level
+///                  ibis::pack.
+/// @endcode
+/// After the bit vectors of this level are written, the next level
+/// ibis::pack are written without header.
 ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
-		 uint32_t offset)
-     : ibis::bin(c, st, offset), max1(*(minval.end())),
+		 size_t start)
+     : ibis::bin(c, st, start), max1(*(minval.end())),
        min1(*(1+minval.end())) {
     try {
-	array_t<int32_t>
-	    offs(st,
-		 8*((offset+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)+
-		 sizeof(double)*(nobs*3+2), nobs+1);
+	const char offsetsize = st->begin()[6];
+	const size_t nloff =
+	    8*((start+offsetsize*(nobs+1)+2*sizeof(uint32_t)+7)/8)
+	    +sizeof(double)*(nobs*3+2);
+	if (offsetsize == 8) {
+	    array_t<int64_t> nextlevel(st, nloff, nobs+1);
 #ifdef DEBUG
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG  from ibis::pack::pack("
-			<< col->partition()->name() << '.' << col->name()
-			<< ", " << offset << ") -- offsets of subranges\n";
-	    for (uint32_t i=0; i<=nobs; ++i)
-		lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
-	}
+	    if (ibis::gVerbose > 5) {
+		ibis::util::logger lg(4);
+		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
+			    << "." << col->name() << "]::pack(0x"
+			    << stataic_cast<const void*>(st)
+			    << ", " << start << ") -- offsets of subranges\n";
+		for (uint32_t i=0; i<=nobs; ++i)
+		    lg.buffer() << "offset[" << i << "] = " << nextlevel[i]
+				<< "\n";
+	    }
 #endif
 
-	if (offs[nobs] > offs[0]) {
-	    sub.resize(nobs);
-	    for (uint32_t i=0; i<nobs; ++i) {
-		if (offs[i+1] > offs[i]) {
-		    sub[i] = new ibis::bin(c, st, offs[i]);
+	    if (nextlevel[nobs] > nextlevel[0]) {
+		sub.resize(nobs);
+		for (uint32_t i=0; i<nobs; ++i) {
+		    if (nextlevel[i+1] > nextlevel[i]) {
+			sub[i] = new ibis::bin(c, st, nextlevel[i]);
+		    }
+		    else {
+			sub[i] = 0;
+		    }
 		}
-		else {
-		    sub[i] = 0;
+	    }
+	}
+	else {
+	    array_t<int32_t> nextlevel(st, nloff, nobs+1);
+#ifdef DEBUG
+	    if (ibis::gVerbose > 5) {
+		ibis::util::logger lg(4);
+		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
+			    << "." << col->name() << "]::pack(0x"
+			    << stataic_cast<const void*>(st)
+			    << ", " << start << ") -- offsets of subranges\n";
+		for (uint32_t i=0; i<=nobs; ++i)
+		    lg.buffer() << "offset[" << i << "] = " << nextlevel[i]
+				<< "\n";
+	    }
+#endif
+
+	    if (nextlevel[nobs] > nextlevel[0]) {
+		sub.resize(nobs);
+		for (uint32_t i=0; i<nobs; ++i) {
+		    if (nextlevel[i+1] > nextlevel[i]) {
+			sub[i] = new ibis::bin(c, st, nextlevel[i]);
+		    }
+		    else {
+			sub[i] = 0;
+		    }
 		}
 	    }
 	}
@@ -216,6 +250,9 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
     }
 }
 
+/// Write the index to the specified location.  The incoming argument can
+/// be a directory name or a file name.  The actualy index file name is
+/// determined by the function indexFileName.
 int ibis::pack::write(const char* dt) const {
     if (nobs <= 1) return -1;
 
@@ -225,7 +262,7 @@ int ibis::pack::write(const char* dt) const {
 	return 0;
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-    if (fdes < 0) {
+    if (fdes < 0) { // try again
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
@@ -234,101 +271,302 @@ int ibis::pack::write(const char* dt) const {
 	    return -2;
 	}
     }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    const bool useoffset64 = (getSerialSize() > 0x80000000);
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)ibis::index::PACK;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::pack::write(" << fnm
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = write(fdes); // wrtie recursively
+    if (useoffset64)
+	ierr = write64(fdes); // wrtie recursively
+    else
+	ierr = write32(fdes); // wrtie recursively
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
     (void) UnixFlush(fdes); // write to disk
 #endif
-    (void) UnixClose(fdes);
     return ierr;
 } // ibis::pack::write
 
-int ibis::pack::write(int fdes) const {
-    const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
+/// Write the content of index to an open file.  This function does not
+/// write the 8-byte header.
+int ibis::pack::write32(int fdes) const {
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
-	ibis::util::logMessage("Warning", "ibis::pack::write call to UnixSeek"
-			       "(%d, 0, SEEK_CUR) failed ... %s",
-			       fdes, strerror(errno));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") expects the current "
+	    "position to be >= 8, but actually position is " << start;
 	return -4;
     }
 
     uint32_t i;
-    array_t<int32_t> offs(nobs+1);
     // write out bit sequences of this level of the index
-    int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    offs[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
-    ierr = UnixSeek(fdes, offs[0], SEEK_SET);
-    if (ierr != offs[0]) {
-	UnixSeek(fdes, start, SEEK_SET);
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    if (ierr < (off_t)sizeof(uint32_t)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::pack::write(" << fdes << ") failed to seek to "
-	    << offs[0];
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to write "
+	    "nrows (" << nrows << "), ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -5;
+    }
+    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
+    offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
+    if (ierr != offset32[0]) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
+	    << offset32[0] << ", ierr = " << ierr;
+	return -6;
     }
 
     ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, &max1, sizeof(double));
-    ierr = UnixWrite(fdes, &min1, sizeof(double));
-    ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
-    for (i = 0; i < nobs; ++i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
+    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, &max1, sizeof(double));
+    ierr += UnixWrite(fdes, &min1, sizeof(double));
+    if (ierr < (off_t)(sizeof(double)*(3*nobs + 2))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to write "
+	    << (3*nobs+2) << " doubles, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
     }
-    offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+    offset32[0] += sizeof(double)*(3*nobs + 2) + sizeof(int32_t)*(nobs+1);
+    ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
+    if (ierr != offset32[0]) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
+	    << offset32[0] << ", ierr = " << ierr;
+	return -8;
+    }
+    for (i = 0; i < nobs; ++i) {
+	bits[i]->write(fdes);
+	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
     ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-    ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
+    if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
+	    << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
+	return -9;
+    }
+    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to write "
+	    << (nobs+1) << " offsets, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -10;
+    }
+    (void) UnixSeek(fdes, offset32[nobs], SEEK_SET); // move to the end
 
+    array_t<int32_t> nextlevel(nobs+1);
     // write the sub-ranges
     if (sub.size() == nobs) { // subrange defined
 	for (i = 0; i < nobs; ++i) {
-	    offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
+	    nextlevel[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (sub[i])
 		sub[i]->write32(fdes);
 	}
-	offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+	nextlevel[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     else { // subrange not defined
-	offs[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+	nextlevel[nobs] = offset32[nobs];
 	for (i = 0; i < nobs; ++i)
-	    offs[i] = offs[nobs];
+	    nextlevel[i] = nextlevel[nobs];
     }
 
     // write the offsets for the subranges
-    ierr = UnixSeek(fdes,
-		    8*((start+sizeof(int32_t)*(nobs+1)+
-			2*sizeof(uint32_t)+7)/8)+
-		    sizeof(double)*(nobs*3+2), SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nobs+1));
-    ierr = UnixSeek(fdes, offs[nobs], SEEK_SET); // move to the end
+    const off_t nloff =
+	8*((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)
+	+sizeof(double)*(nobs*3+2);
+    ierr = UnixSeek(fdes, nloff, SEEK_SET);
+    if (ierr != nloff) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
+	    << nloff << ", ierr = " << ierr;
+	return -11;
+    }
+    ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int32_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write32(" << fdes << ") failed to write "
+	    << (nobs+1) << " offsets for fine level, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -12;
+    }
 #ifdef DEBUG
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG  from ibis::pack::write(" << col->name() << ", "
+	lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
+		    << col->name() << "]::write32(" << fdes << ", "
 		    << start << ") -- offsets to the subranges\n";
 	for (i=0; i<=nobs; ++i)
-	    lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
+	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
 #endif
-    return 0;
-} // ibis::pack::write
+
+    ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
+    return (ierr == nextlevel[nobs] ? 0 : -13);
+} // ibis::pack::write32
+
+/// Write the content of index to an open file.  This function does not
+/// write the 8-byte header.
+int ibis::pack::write64(int fdes) const {
+    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
+    if (start < 8) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") expects the current "
+	    "position to be >= 8, but actually position is " << start;
+	return -4;
+    }
+
+    uint32_t i;
+    // write out bit sequences of this level of the index
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    if (ierr < (off_t)sizeof(uint32_t)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to write "
+	    "nrows (" << nrows << "), ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -5;
+    }
+    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
+    offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
+    if (ierr != offset64[0]) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
+	    << offset64[0] << ", ierr = " << ierr;
+	return -6;
+    }
+
+    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, &max1, sizeof(double));
+    ierr += UnixWrite(fdes, &min1, sizeof(double));
+    if (ierr < (off_t)(sizeof(double)*(3*nobs + 2))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to write "
+	    << (3*nobs+2) << " doubles, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -7;
+    }
+    offset64[0] += sizeof(double)*(3*nobs + 2) + sizeof(int32_t)*(nobs+1);
+    ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
+    if (ierr != offset64[0]) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
+	    << offset64[0] << ", ierr = " << ierr;
+	return -8;
+    }
+    for (i = 0; i < nobs; ++i) {
+	bits[i]->write(fdes);
+	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+    ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
+    if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
+	    << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
+	return -9;
+    }
+    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to write "
+	    << (nobs+1) << " offsets, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -10;
+    }
+    (void) UnixSeek(fdes, offset64[nobs], SEEK_SET); // move to the end
+
+    array_t<int64_t> nextlevel(nobs+1);
+    // write the sub-ranges
+    if (sub.size() == nobs) { // subrange defined
+	for (i = 0; i < nobs; ++i) {
+	    nextlevel[i] = UnixSeek(fdes, 0, SEEK_CUR);
+	    if (sub[i])
+		sub[i]->write64(fdes);
+	}
+	nextlevel[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+    else { // subrange not defined
+	nextlevel[nobs] = offset64[nobs];
+	for (i = 0; i < nobs; ++i)
+	    nextlevel[i] = nextlevel[nobs];
+    }
+
+    // write the offsets for the subranges
+    const off_t nloff =
+	8*((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)
+	+sizeof(double)*(nobs*3+2);
+    ierr = UnixSeek(fdes, nloff, SEEK_SET);
+    if (ierr != nloff) {
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
+	    << nloff << ", ierr = " << ierr;
+	return -11;
+    }
+    ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int64_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- pack[" << col->partition()->name() << "."
+	    << col->name() << "]::write64(" << fdes << ") failed to write "
+	    << (nobs+1) << " offsets for fine level, ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -12;
+    }
+#ifdef DEBUG
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg(4);
+	lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
+		    << col->name() << "]::write64(" << fdes << ", "
+		    << start << ") -- offsets to the subranges\n";
+	for (i=0; i<=nobs; ++i)
+	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
+    }
+#endif
+
+    ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
+    return (ierr == nextlevel[nobs] ? 0 : -13);
+} // ibis::pack::write64
 
 // read the content of a file
 int ibis::pack::read(const char* f) {
@@ -340,11 +578,11 @@ int ibis::pack::read(const char* f) {
 	return -1;
 
     char header[8];
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
-	UnixClose(fdes);
 	return -2;
     }
 
@@ -352,47 +590,88 @@ int ibis::pack::read(const char* f) {
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
 		  header[5] == static_cast<char>(ibis::index::PACK) &&
-		  header[6] == static_cast<char>(sizeof(int32_t)) &&
+		  (header[6] == 8 || header[6] == 4) &&
 		  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- pack[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
     clear(); // clear the existing content
-    uint32_t begin, end;
+    size_t begin, end;
     fname = ibis::util::strnewdup(fnm.c_str());
 
     // read nobs
     int ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	return -4;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
 	return -5;
     }
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (nobs > ibis::fileManager::pageSize());
+    const bool trymmap = (nobs*8 >= FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     begin = 8 + 2 * sizeof(uint32_t);
     end = begin + (nobs+1) * sizeof(int32_t);
-    if (trymmap) {
-	array_t<int32_t> tmp(fname, begin, end);
-	offset32.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	offset32.swap(tmp);
-    }
+    ierr = initOffsets(fdes, header[6], begin, nobs);
+    if (ierr < 0)
+	return ierr;
 
     // read bounds
-    begin = 8 * ((sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+15)/8);
+    begin = 8 * ((end + 7)/8);
     end = begin + sizeof(double)*nobs;
     if (trymmap) {
 	array_t<double> dbl(fname, begin, end);
@@ -428,187 +707,158 @@ int ibis::pack::read(const char* f) {
     }
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != static_cast<int>(end)) {
-	UnixClose(fdes);
 	clear();
 	return -6;
     }
 
     ierr = UnixRead(fdes, static_cast<void*>(&max1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
-	UnixClose(fdes);
 	clear();
 	return -7;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&min1), sizeof(double));
     if (ierr < static_cast<int>(sizeof(double))) {
-	UnixClose(fdes);
 	clear();
 	return -8;
     }
 
     begin = end + 2*sizeof(double);
-    end += 2*sizeof(double) + (nobs+1)*sizeof(int32_t);
-    array_t<int32_t> nextlevel;
-    if (trymmap) {
-	array_t<int32_t> tmp(fname, begin, end);
-	nextlevel.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	nextlevel.swap(tmp);
-    }
+    end += 2*sizeof(double) + (nobs+1)*header[6];
+    array_t<int32_t> nextlevel32;
+    array_t<int64_t> nextlevel64;
+    if (header[6] == 8) {
+	if (trymmap) {
+	    array_t<int64_t> tmp(fname, begin, end);
+	    nextlevel64.swap(tmp);
+	}
+	else {
+	    array_t<int64_t> tmp(fdes, begin, end);
+	    nextlevel64.swap(tmp);
+	}
 #if defined(DEBUG)
-    if (ibis::gVerbose > 3) {
-	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- ibis::pack::read(";
-	if (fname)
-	    lg.buffer() << fname;
-	else
-	    lg.buffer() << fdes;
-	lg.buffer() << ") got the starting positions of the fine levels\n";
-	for (uint32_t i = 0; i <= nobs; ++ i)
-	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
-    }
-#endif
-    ibis::fileManager::instance().recordPages(0, end);
-
-    // initialized bits with nil pointers
-    for (uint32_t i = 0; i < bits.size(); ++i)
-	delete bits[i];
-    bits.resize(nobs);
-#if defined(FASTBIT_READ_BITVECTOR0)
-    if (offset32[1] > offset32[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
-	ibis::bitvector* tmp = new ibis::bitvector(a0);
-	bits[0] = tmp;
-#if defined(WAH_CHECK_SIZE)
-	if (tmp->size() != nrows)
-	    col->logWarning("readIndex", "the length (%lu) of "
-			    "bitvector 0 (from \"%s\") "
-			    "differs from nRows (%lu)",
-			    static_cast<long unsigned>(tmp->size()),
-			    fnm.c_str(),
-			    static_cast<long unsigned>(nrows));
-#else
-	bits[0]->sloppySize(nrows);
-#endif
-    }
-    else {
-	bits[0] = new ibis::bitvector;
-	bits[0]->set(0, nrows);
-    }
-#endif
-    // dealing with next levels
-    for (uint32_t i = 0; i < sub.size(); ++i)
-	delete sub[i];
-    if (nextlevel[0] > nextlevel[nobs]) {
-	clear();
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg.buffer() << " Error *** ibis::pack::read(";
+	if (ibis::gVerbose > 3) {
+	    ibis::util::logger lg(4);
+	    lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
+			<< col->name() << "]::read(";
 	    if (fname)
 		lg.buffer() << fname;
 	    else
 		lg.buffer() << fdes;
-	    lg.buffer() << ") internal error, offset[0](" << nextlevel[0]
-			<< ") is expected to be no less than offset["
-			<< nobs << "](" << nextlevel[nobs]
-			<< "), but it is not";
+	    lg.buffer() << ") got the starting positions of the fine levels\n";
+	    for (uint32_t i = 0; i <= nobs; ++ i)
+		lg.buffer() << "offset[" << i << "] = " << nextlevel64[i]
+			    << "\n";
 	}
-    }
-    else if (nextlevel[0] == nextlevel[nobs]) {
-	sub.clear();
+#endif
     }
     else {
-	sub.resize(nobs);
-    }
-
-    for (uint32_t i = 0; i < sub.size(); ++i) {
-	if (nextlevel[i] < nextlevel[i+1]) {
-	    sub[i] = new ibis::bin(0);
-	    sub[i]->col = col;
-	    sub[i]->read(fdes, nextlevel[i], fname, header);
-	}
-	else if (nextlevel[i] == nextlevel[i+1]) {
-	    sub[i] = 0;
+	if (trymmap) {
+	    array_t<int32_t> tmp(fname, begin, end);
+	    nextlevel32.swap(tmp);
 	}
 	else {
-	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg;
-		lg.buffer() << " Error *** ibis::pack::read(";
-		if (fname)
-		    lg.buffer() << fname;
-		else
-		    lg.buffer() << fdes;
-		lg.buffer() << ") offset[" << i << "] (" << nextlevel[i]
-			    << ") is expected to less or equal to offset["
-			    << i+1 << "] (" << nextlevel[i+1]
-			    << "), but it is not! Can not use the index file.";
+	    array_t<int32_t> tmp(fdes, begin, end);
+	    nextlevel32.swap(tmp);
+	}
+#if defined(DEBUG)
+	if (ibis::gVerbose > 3) {
+	    ibis::util::logger lg(4);
+	    lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
+			<< col->name() << "]::read(";
+	    if (fname)
+		lg.buffer() << fname;
+	    else
+		lg.buffer() << fdes;
+	    lg.buffer() << ") got the starting positions of the fine levels\n";
+	    for (uint32_t i = 0; i <= nobs; ++ i)
+		lg.buffer() << "offset[" << i << "] = " << nextlevel32[i]
+			    << "\n";
+	}
+#endif
+    }
+    ibis::fileManager::instance().recordPages(0, end);
+
+    // initialized bits with nil pointers
+    initBitmaps(fdes);
+
+    // dealing with next levels
+    for (uint32_t i = 0; i < sub.size(); ++i)
+	delete sub[i];
+    sub.clear();
+
+    if (nextlevel64.size() > nobs && nextlevel32.back() > nextlevel32.front()) {
+	sub.resize(nobs);
+	for (uint32_t i = 0; i < nobs; ++i) {
+	    if (nextlevel64[i] < nextlevel64[i+1]) {
+		sub[i] = new ibis::bin(0);
+		sub[i]->col = col;
+		sub[i]->read(fdes, nextlevel64[i], fname, header);
 	    }
-	    UnixClose(fdes);
-	    throw "ibis::zone::read bad offsets(nextlevel)";
+	    else {
+		sub[i] = 0;
+	    }
 	}
     }
-    (void) UnixClose(fdes);
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' header from %s",
-			name(), fname);
+    else if (nextlevel32.size() > nobs &&
+	     nextlevel32.back() > nextlevel32.front()) {
+	sub.resize(nobs);
+	for (uint32_t i = 0; i < nobs; ++i) {
+	    if (nextlevel32[i] < nextlevel32[i+1]) {
+		sub[i] = new ibis::bin(0);
+		sub[i]->col = col;
+		sub[i]->read(fdes, nextlevel32[i], fname, header);
+	    }
+	    else {
+		sub[i] = 0;
+	    }
+	}
+    }
+    LOGGER(ibis::gVerbose > 7)
+	<< "pack[" << col->partition()->name() << "." << col->name()
+	<< "]::read completed reading the header from " << fnm;
     return 0;
 } // ibis::pack::read
 
+/// Read the index content from a storage object.
 int ibis::pack::read(ibis::fileManager::storage* st) {
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
     max1 = *(minval.end());
     min1 = *(1+minval.end());
-
-    array_t<int32_t> offs(st, 8*((sizeof(int32_t)*(nobs+1)+
-				  sizeof(uint32_t)+15)/8)+
-			  sizeof(double)*(nobs*3+2), nobs+1);
     for (uint32_t i = 0; i < sub.size(); ++i)
 	delete sub[i];
-    if (offs[0] > offs[nobs]) {
-	clear();
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg.buffer() << " Error *** ibis::pack::read(";
-	    if (st->unnamed())
-		lg.buffer() << static_cast<void*>(st->begin());
-	    else
-		lg.buffer() << st->filename();
-	    lg.buffer() << ") internal error, offset[0](" << offs[0]
-			<< ") is expected to be no less than offset["
-			<< nobs << "](" << offs[nobs] << "), but it is not";
+    sub.clear();
+
+    const char offsetsize = st->begin()[6];
+    const off_t nloff =
+	8*((offsetsize*(nobs+1)+sizeof(uint32_t)+15)/8)
+	+sizeof(double)*(nobs*3+2);
+    if (offsetsize == 8) {
+	array_t<int64_t> offs(st, nloff, nobs+1);
+	if (offs.size() > nobs && offs.back() > offs.front()) {
+	    sub.resize(nobs);
+	    for (uint32_t i = 0; i < sub.size(); ++ i) {
+		if (offs[i+1] > offs[i]) {
+		    sub[i] = new ibis::bin(col, st, offs[i]);
+		}
+		else {
+		    sub[i] = 0;
+		}
+	    }
 	}
-    }
-    else if (offs[0] == offs[nobs]) {
-	sub.clear();
     }
     else {
-	sub.resize(nobs);
-    }
-
-    for (uint32_t i = 0; i < sub.size(); ++ i) {
-	if (offs[i+1] > offs[i]) {
-	    sub[i] = new ibis::bin(col, st, offs[i]);
-	}
-	else if (offs[i] == offs[i+1]) {
-	    sub[i] = 0;
-	}
-	else {
-	    if (ibis::gVerbose > -1) {
-		ibis::util::logger lg;
-		lg.buffer() << " Error *** ibis::pack::read(";
-		if (st->filename())
-		    lg.buffer() << st->filename();
-		else
-		    lg.buffer() << static_cast<const void*>(st->begin());
-		lg.buffer() << ") offset[" << i << "] (" << offs[i]
-			    << ") is expected to less or equal to offset["
-			    << i+1 << "] (" << offs[i+1]
-			    << "), but it is not! Can not use the index file.";
+	array_t<int32_t> offs(st, nloff, nobs+1);
+	if (offs.size() > nobs && offs.back() > offs.front()) {
+	    sub.resize(nobs);
+	    for (uint32_t i = 0; i < sub.size(); ++ i) {
+		if (offs[i+1] > offs[i]) {
+		    sub[i] = new ibis::bin(col, st, offs[i]);
+		}
+		else {
+		    sub[i] = 0;
+		}
 	    }
-	    return -9;
 	}
     }
     return 0;
@@ -2552,6 +2802,8 @@ double ibis::pack::getSum() const {
 	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes()*2 < nbv);
+	else if (offset64.size() > nobs)
+	    here = (static_cast<uint64_t>(offset64[nobs]*2) < nbv);
 	else if (offset32.size() > nobs)
 	    here = (static_cast<uint32_t>(offset32[nobs]*2) < nbv);
     }
@@ -2584,3 +2836,22 @@ double ibis::pack::computeSum() const {
     sum += 0.5*(max1 + min1) * mask.cnt();
     return sum;
 } // ibis::pack::computeSum
+
+/// Get an estimate of the size of index on disk.  This function is used to
+/// determine whether to use 64-bit offsets or 32-bit offsets.  For the
+/// purpose of this estimation, we assume 64-bit offsets are needed.  This
+/// function recursively calls itself to determine the size of sub-indexes.
+size_t ibis::pack::getSerialSize() const throw() {
+    size_t res = (nobs << 5) + 32;
+    for (unsigned j = 0; j < nobs; ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    if (sub.size() > 0) {
+	res += (sub.size() << 3) + 8;
+	for (unsigned j = 0; j < sub.size(); ++ j)
+	    if (sub[j] != 0)
+		res += sub[j]->getSerialSize();
+    }
+    return res;
+} // ibis::pack::getSerialSize
+

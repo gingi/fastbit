@@ -33,40 +33,66 @@ ibis::bylt::bylt(const ibis::column *c, const char *f)
     }
 } // ibis::bylt::bylt
 
-/// Reconstruct from content of fileManager::storage.
+/// Reconstruct an index from content of a storage objecta.
 /**
    The leading portion of the index file is the same as ibis::relic, which
    allows the constructor of the base class to work properly.  The content
-   following the last bitvector in ibis::relic is as follows, @sa
-   ibis::bylt::writeCoarse.
-
+   following the last bitvector in ibis::relic is as follows:
+@code
    nc      (uint32_t)       -- number of coarse bins.
    cbounds (unsigned[nc+1]) -- boundaries of the coarse bins.
    coffsets(int32_t[nc+1])  -- starting position of the coarse level bitmaps.
    cbits   (bitvector[nc])  -- bitvector laid out one after another.
- */
+@endcode
+@sa ibis::bylt::writeCoarse
+*/
 ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
-		 uint32_t start) : ibis::relic(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offset32.back()))
+		 size_t start) : ibis::relic(c, st, start) {
+    if (offset64.size() > bits.size()) {
+	start = offset64.back();
+    }
+    else if (offset32.size() > bits.size()) {
+	start = offset32.back();
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor can not proceed further without "
+	    "bitmap size information";
+	clear();
+	return;
+    }
+
+    if (st->size() <= start+12)
 	return; // no coarse bin
 
-    start = offset32.back();
+    const char offsetsize = st->begin()[6];
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
-	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
+	st->size() <= start + (sizeof(int32_t)+offsetsize)*(nc+1))
 	return;
 
     start += sizeof(uint32_t);
-    if (start+sizeof(uint32_t)*(nc+1) < st->size()) {
+    {
 	array_t<uint32_t> tmp(st, start, nc+1);
 	cbounds.swap(tmp);
     }
     start += sizeof(uint32_t) * (nc+1);
-    if (start+sizeof(int32_t)*(nc+1) < st->size()) {
+    if (offsetsize == 8) {
+	array_t<int64_t> tmp(st, start, nc+1);
+	coffset64.swap(tmp);
+	if (coffset64.back() <= coffset64.front()) {
+	    coffset64.swap(tmp);
+	    array_t<uint32_t> tmp2;
+	    cbounds.swap(tmp2);
+	    return;
+	}
+    }
+    else if (offsetsize == 4) {
 	array_t<int32_t> tmp(st, start, nc+1);
-	coffsets.swap(tmp);
-	if (coffsets.back() > static_cast<int32_t>(st->size())) {
-	    coffsets.swap(tmp);
+	coffset32.swap(tmp);
+	if (coffset32.back() <= coffset32.front()) {
+	    coffset32.swap(tmp);
 	    array_t<uint32_t> tmp2;
 	    cbounds.swap(tmp2);
 	    return;
@@ -82,33 +108,13 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     for (unsigned i = 0; i < nc; ++ i)
 	cbits[i] = 0;
 
-    if (st->isFileMap()) {
-#if defined(FASTBIT_READ_BITVECTOR0)
-	array_t<ibis::bitvector::word_t>
-	    a0(st, coffsets[0], (coffsets[1] - coffsets[0])
-	       / sizeof(ibis::bitvector::word_t));
-	cbits[0] = new ibis::bitvector(a0);
-	cbits[0]->sloppySize(nrows);
-#endif
-    }
-    else { // all bytes in memory already
-	for (unsigned i = 0; i < nc; ++ i) {
-	    if (coffsets[i+1] > coffsets[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
-		      / sizeof(ibis::bitvector::word_t));
-		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->sloppySize(nrows);
-	    }
-	}
-    }
-
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	print(lg.buffer());
     }
 } // ibis::bylt::bylt
 
+/// Extend the index with the data from df.
 long ibis::bylt::append(const char* dt, const char* df, uint32_t nnew) {
     long ret = ibis::relic::append(dt, df, nnew);
     if (ret <= 0 || static_cast<uint32_t>(ret) != nnew)
@@ -119,18 +125,26 @@ long ibis::bylt::append(const char* dt, const char* df, uint32_t nnew) {
     return ret;
 }
 
-// fill the array offsets, partition the bitmaps (in bits) into equal size
-// (bytes) groups
+/// Build the coarse bins.  It fills the array offset64, partition the
+/// bitmaps (in bits) into equal size (bytes) groups.
 void ibis::bylt::coarsen() {
-    const uint32_t nbits = bits.size();
-    if (offset32.size() != nbits+1) {
-	offset32.resize(nbits+1);
-	offset32[0] = 0;
-	for (unsigned i = 0; i < nbits; ++ i)
-	    offset32[i+1] = offset32[i] + (bits[i] ? bits[i]->bytes() : 0U);
-    }
     if (vals.size() < 32) return; // don't construct the coarse level
-    if (cbits.size() > 0 && cbits.size()+1 == coffsets.size()) return;
+    if (cbits.size() > 0 && (cbits.size()+1 == coffset64.size() ||
+			     cbits.size()+1 == coffset32.size())) return;
+
+    const uint32_t nbits = bits.size();
+    if (offset64.size() != nbits+1) {
+	offset64.resize(nbits+1);
+	if (offset32.size() == nbits+1) {
+	    for (unsigned i = 0; i <= nbits; ++ i)
+		offset64[i] = offset32[i];
+	}
+	else {
+	    offset64[0] = 0;
+	    for (unsigned i = 0; i < nbits; ++ i)
+		offset64[i+1] = offset64[i] + (bits[i] ? bits[i]->bytes() : 0U);
+	}
+    }
 
     unsigned ncoarse = 0;
     if (col != 0) {
@@ -145,10 +159,10 @@ void ibis::bylt::coarsen() {
     }
     // default size based on the size of fine level index sf:
     // (w-1) * sqrt(sf*(sf-N/(w-1))) / (2N)
-    if (ncoarse < 5U && offset32.back() > offset32[0]+(int32_t)(nrows/31U)) {
+    if (ncoarse < 5U && offset64.back() > offset64[0]+(int32_t)(nrows/31U)) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8-1;
-	const long sf = (offset32.back()-offset32[0]) / ncoarse;
+	const long sf = (offset64.back()-offset64[0]) / ncoarse;
 	ncoarse = static_cast<unsigned>
 	    (0.5*wm1*sqrt(sf*(sf-(double)nrows/wm1))/nrows);
 	const unsigned ncmax = (unsigned) sqrt(2.0 * vals.size());
@@ -170,11 +184,11 @@ void ibis::bylt::coarsen() {
     cbounds.resize(ncoarse);
     cbounds[0] = 0;
     for (unsigned i = 1; i < ncoarse; ++ i) {
-	int32_t target = offset32[cbounds[i-1]] +
-	    (offset32.back() - offset32[cbounds[i-1]]) / (ncoarse - i + 1);
-	cbounds[i] = offset32.find(target);
+	int32_t target = offset64[cbounds[i-1]] +
+	    (offset64.back() - offset64[cbounds[i-1]]) / (ncoarse - i + 1);
+	cbounds[i] = offset64.find(target);
 	if (cbounds[i] > cbounds[i-1]+1 &&
-	    offset32[cbounds[i]]-target > target-offset32[cbounds[i]-1])
+	    offset64[cbounds[i]]-target > target-offset64[cbounds[i]-1])
 	    -- (cbounds[i]);
 	else if (cbounds[i] <= cbounds[i-1])
 	    cbounds[i] = cbounds[i-1] + 1;
@@ -186,8 +200,9 @@ void ibis::bylt::coarsen() {
     }
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::bylt::coarsen will divide " << bits.size()
-		    << " bitmaps into " << ncoarse << " groups\n";
+	lg.buffer() << "bylt[" << col->partition()->name() << '.'
+		    << col->name() << "]::coarsen will divide " << bits.size()
+		    << " bitmaps into " << ncoarse << " bins\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
 	    lg.buffer() << cbounds[i] << " ";
     }
@@ -211,47 +226,62 @@ void ibis::bylt::coarsen() {
     }
 
     // fill coffsets
-    coffsets.resize(ncoarse);
-    coffsets[0] = 0;
+    coffset32.clear();
+    coffset64.resize(ncoarse);
+    coffset64[0] = 0;
     for (unsigned i = 0; i < ncoarse-1; ++ i) {
 	cbits[i]->compress();
-	coffsets[i+1] = coffsets[i] + cbits[i]->bytes();
+	coffset64[i+1] = coffset64[i] + cbits[i]->bytes();
     }
 } // ibis::bylt::coarsen
 
 void ibis::bylt::activateCoarse() const {
+    std::string evt = "bylt";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::activateCoarse";
+
     const uint32_t nobs = cbits.size();
     bool missing = false; // any bits[i] missing (is 0)?
-    ibis::column::mutexLock lock(col, "bylt::activateCoarse");
+    ibis::column::mutexLock lock(col, evt.c_str());
     for (uint32_t i = 0; i < nobs && ! missing; ++ i)
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffsets.size() <= nobs || coffsets[0] <= offset32.back()) {
-	col->logWarning("bylt::activateCoarse", "no records of coffsets, "
-			"can not regenerate the bitvectors");
+    if (coffset32.size() <= nobs && coffset64.size() <= nobs) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " cannot proceed without coffset32 or coffset64";
     }
     else if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name()
-	    << "]::bylt::activateCoarse(all) retrieving data from "
+	    << evt << " retrieving data from "
 	    << "ibis::fileManager::storage(0x" << str << ")";
 
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
-#if defined(DEBUG)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "bylt::activateCoarse -- activating bitvector "
-		    << i << " from a raw storage ("
-		    << static_cast<const void*>(str->begin())
-		    << "), coffsets[" << i << "]= " << coffsets[i]
-		    << ", coffsets[" << i+1 << "]= " << coffsets[i+1];
-#endif
-		array_t<ibis::bitvector::word_t>
-		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
-		      sizeof(ibis::bitvector::word_t));
-		cbits[i] = new ibis::bitvector(a);
-		cbits[i]->sloppySize(nrows);
+	if (coffset64.size() > nobs) {
+	    for (uint32_t i = 0; i < nobs; ++i) {
+		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
+		    array_t<ibis::bitvector::word_t>
+			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
+			  sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+		}
+	    }
+	}
+	else {
+	    for (uint32_t i = 0; i < nobs; ++i) {
+		if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
+		    array_t<ibis::bitvector::word_t>
+			a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
+			  sizeof(ibis::bitvector::word_t));
+		    cbits[i] = new ibis::bitvector(a);
+		    cbits[i]->sloppySize(nrows);
+		}
 	    }
 	}
     }
@@ -259,9 +289,7 @@ void ibis::bylt::activateCoarse() const {
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name()
-		<< "]::bylt::activateCoarse(all) retrieving data from "
-		<< "file \"" << fname << "\"";
+		<< evt << " retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -276,27 +304,52 @@ void ibis::bylt::activateCoarse() const {
 		uint32_t aj = (i<nobs ? i + 1 : nobs);
 		while (aj < nobs && cbits[aj] == 0)
 		    ++ aj;
-		if (coffsets[aj] > coffsets[i]) {
-		    const uint32_t start = coffsets[i];
+		if (coffset64.size() > nobs && coffset64[aj] > coffset64[i]) {
+		    const size_t start = coffset64[i];
 		    ibis::fileManager::storage *a0 = new
-			ibis::fileManager::storage(fdes, start,
-						   coffsets[aj]);
+			ibis::fileManager::storage(fdes, start, coffset64[aj]);
 		    while (i < aj) {
-			if (coffsets[i+1] > coffsets[i]) {
+			if (coffset64[i+1] > coffset64[i]) {
 			    array_t<ibis::bitvector::word_t>
-				a1(a0, coffsets[i]-start,
-				   (coffsets[i+1]-coffsets[i])/
+				a1(a0, coffset64[i]-start,
+				   (coffset64[i+1]-coffset64[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "bylt::activateCoarse -- "
-				"activating bitvector " << i
+				<< "DEBUG -- " << evt
+				<< " activating bitvector " << i
 				<< "by reading file " << fname
-				<< "coffsets[" << i << "]= " << coffsets[i]
-				<< ", coffsets[" << i+1 << "]= "
-				<< coffsets[i+1];
+				<< "coffset64[" << i << "]= " << coffset64[i]
+				<< ", coffset64[" << i+1 << "]= "
+				<< coffset64[i+1];
+#endif
+			}
+			++ i;
+		    }
+		}
+		else if (coffset32.size() > nobs &&
+			 coffset32[aj] > coffset32[i]) {
+		    const size_t start = coffset32[i];
+		    ibis::fileManager::storage *a0 = new
+			ibis::fileManager::storage(fdes, start, coffset32[aj]);
+		    while (i < aj) {
+			if (coffset32[i+1] > coffset32[i]) {
+			    array_t<ibis::bitvector::word_t>
+				a1(a0, coffset32[i]-start,
+				   (coffset32[i+1]-coffset32[i])/
+				   sizeof(ibis::bitvector::word_t));
+			    bits[i] = new ibis::bitvector(a1);
+			    bits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+			    LOGGER(ibis::gVerbose >= 0)
+				<< "DEBUG -- " << evt
+				<< " activating bitvector " << i
+				<< "by reading file " << fname
+				<< "coffset32[" << i << "]= " << coffset32[i]
+				<< ", coffset32[" << i+1 << "]= "
+				<< coffset32[i+1];
 #endif
 			}
 			++ i;
@@ -304,86 +357,130 @@ void ibis::bylt::activateCoarse() const {
 		}
 		i = aj; // always advance i
 	    }
-	    UnixClose(fdes);
+	    (void) UnixClose(fdes);
 	}
 	else {
-	    col->logWarning("bylt::activateCoarse", "failed to open file \"%s\""
-			    " ... %s", fname, strerror(errno));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to open file \"" << fname
+		<< "\"";
 	}
     }
     else {
-	col->logWarning("bylt::activateCoarse", "can not regenerate "
-			"bitvectors because neither str or fname is "
-			"specified");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not regenerate "
+	    "bitvectors because neither str or fname is specified";
     }
 } // ibis::bylt::activateCoarse
 
 void ibis::bylt::activateCoarse(uint32_t i) const {
     if (i >= bits.size()) return;	// index out of range
     if (cbits[i] != 0) return;	// already active
-    ibis::column::mutexLock lock(col, "bylt::activateCoarse");
-    if (cbits[i] != 0) return;	// already active
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
-	col->logWarning("bylt::activateCoarse", "no records of offsets, "
-			"can not regenerate bitvector %lu",
-			static_cast<long unsigned>(i));
+
+    std::string evt = "bylt";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
     }
-    else if (coffsets[i+1] <= coffsets[i]) {
+    evt += "::activateCoarse";
+    ibis::column::mutexLock lock(col, evt.c_str());
+    if (cbits[i] != 0) return;	// already active
+    if (coffset32.size() <= cbits.size() && coffset64.size() <= cbits.size()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << '(' << i << ") no records of offsets";
 	return;
     }
+    if ((coffset64.size() > cbits.size() && coffset64[i+1] <= coffset64[i]) ||
+	(coffset32.size() > cbits.size() && coffset32[i+1] <= coffset32[i])) {
+	return;
+    }
+
     if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name() << "]::bylt::activateCoarse(" << i
-	    << ") retrieving data from ibis::fileManager::storage(0x"
-	    << str << ")";
+	    << evt << "(" << i << ") retrieving data from storage at 0x" << str;
 
-	array_t<ibis::bitvector::word_t>
-	    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
-	      sizeof(ibis::bitvector::word_t));
-	cbits[i] = new ibis::bitvector(a);
-	cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-	LOGGER(ibis::gVerbose >= 0)
-	    << "bylt::activateCoarse(" << i
-	    << ") constructed a bitvector from range ["
-	    << coffsets[i] << ", " << coffsets[i+1]
-	    << ") of a storage at "
-	    << static_cast<const void*>(str->begin());
-#endif
+	if (coffset64.size() > cbits.size()) {
+	    array_t<ibis::bitvector::word_t>
+		a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
+		  sizeof(ibis::bitvector::word_t));
+	    cbits[i] = new ibis::bitvector(a);
+	    cbits[i]->sloppySize(nrows);
+// #if defined(DEBUG)
+// 	    LOGGER(ibis::gVerbose >= 0)
+// 		<< "DEBUG -- " << evt << "(" << i
+// 		<< ") constructed a bitvector from range ["
+// 		<< coffset64[i] << ", " << coffset64[i+1]
+// 		<< ") of a storage at "
+// 		<< static_cast<const void*>(str->begin());
+// #endif
+	}
+	else {
+	    array_t<ibis::bitvector::word_t>
+		a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
+		  sizeof(ibis::bitvector::word_t));
+	    cbits[i] = new ibis::bitvector(a);
+	    cbits[i]->sloppySize(nrows);
+// #if defined(DEBUG)
+// 	    LOGGER(ibis::gVerbose >= 0)
+// 		<< "DEBUG -- " << evt << "(" << i
+// 		<< ") constructed a bitvector from range ["
+// 		<< coffset32[i] << ", " << coffset32[i+1]
+// 		<< ") of a storage at "
+// 		<< static_cast<const void*>(str->begin());
+// #endif
+	}
     }
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name() << "]::bylt::activateCoarse("
-		<< i << ") retrieving data from file \"" << fname << "\"";
+		<< evt << "(" << i << ") retrieving data from file \""
+		<< fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
-	    array_t<ibis::bitvector::word_t> a0(fdes, coffsets[i],
-						coffsets[i+1]);
-	    cbits[i] = new ibis::bitvector(a0);
+	    if (coffset64.size() > cbits.size()) {
+		array_t<ibis::bitvector::word_t> a0(fdes, coffset64[i],
+						    coffset64[i+1]);
+		cbits[i] = new ibis::bitvector(a0);
+#if defined(DEBUG)
+		LOGGER(ibis::gVerbose >= 0)
+		    << "DEBUG -- " << evt << "(" << i
+		    << ") constructed a bitvector from range ["
+		    << coffset64[i] << ", " << coffset64[i+1]
+		    << ") of file " << fname;
+#endif
+	    }
+	    else {
+		array_t<ibis::bitvector::word_t> a0(fdes, coffset32[i],
+						    coffset32[i+1]);
+		cbits[i] = new ibis::bitvector(a0);
+#if defined(DEBUG)
+		LOGGER(ibis::gVerbose >= 0)
+		    << "DEBUG -- " << evt << "(" << i
+		    << ") constructed a bitvector from range ["
+		    << coffset32[i] << ", " << coffset32[i+1]
+		    << ") of file " << fname;
+#endif
+	    }
 	    cbits[i]->sloppySize(nrows);
 	    UnixClose(fdes);
-#if defined(DEBUG)
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "bylt::activateCoarse(" << i
-		<< ") constructed a bitvector from range ["
-		<< coffsets[i] << ", " << coffsets[i+1]
-		<< ") of file " << fname;
-#endif
 	}
 	else {
-	    col->logWarning("bylt::activateCoarse",
-			    "failed to open file \"%s\" ... %s",
-			    fname, strerror(errno));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- "  << evt << "(" << i
+		<< ") failed to open file \"" << fname << "\" ... "
+		<< (errno != 0 ? strerror(errno) : "??");
+	    errno = 0;
 	}
     }
     else {
-	col->logWarning("bylt::activateCoarse", "can not regenerate "
-			"bitvector %lu because neither str or fname is "
-			"specified", static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << "(" << i << ") can not regenerate "
+	    "the bitvector because neither str or fname is specified";
     }
 } // ibis::bylt::activateCoarse
 
@@ -392,104 +489,155 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 	j = cbits.size();
     if (i >= j) // empty range
 	return;
-    ibis::column::mutexLock lock(col, "bylt::activateCoarse");
+
+    std::string evt = "bylt";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::activateCoarse";
+    ibis::column::mutexLock lock(col, evt.c_str());
 
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // all bitvectors active
+    if ((coffset64.size() > cbits.size() && coffset64[j] <= coffset64[i]) ||
+	(coffset32.size() > cbits.size() && coffset32[j] <= coffset32[i]))
+	return;
 
-    if (coffsets.size() <= cbits.size() || coffsets[0] <= offset32.back()) {
-	col->logWarning("bylt::activateCoarse", "no records of offsets, "
-			"can not regenerate bitvectors %lu:%lu",
-			static_cast<long unsigned>(i),
-			static_cast<long unsigned>(j));
+    if (coffset64.size() <= cbits.size() && coffset32.size() <= cbits.size()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << "(" << i << ", " << j 
+	    << ") can not proceed without offset64 or offset32";
     }
     else if (str) { // using an ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name() << "]::bylt::activateCoarse("
-	    << i << ", " << j
+	    << evt << "(" << i << ", " << j
 	    << ") retrieving data from ibis::fileManager::storage(0x"
 	    << str << ")";
 
 	while (i < j) {
-	    if (cbits[i] == 0 && coffsets[i+1] > coffsets[i]) {
+	    if (cbits[i] != 0) {
+	    }
+	    else if (coffset64.size() > cbits.size() &&
+		     coffset64[i+1] > coffset64[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(str, coffsets[i], (coffsets[i+1]-coffsets[i]) /
+		    a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "bylt::activateCoarse(" << i
-		    << ") constructed a bitvector from range ["
-		    << coffsets[i] << ", " << coffsets[i+1]
-		    << ") of a storage at "
-		    << static_cast<const void*>(str->begin());
-#endif
+// #if defined(DEBUG)
+// 		LOGGER(ibis::gVerbose >= 0)
+// 		    << evt << " constructed bitvector " << i << " from range ["
+// 		    << coffset64[i] << ", " << coffset64[i+1]
+// 		    << ") of a storage at "
+// 		    << static_cast<const void*>(str->begin());
+// #endif
+	    }
+	    else if (coffset32.size() > cbits.size() &&
+		     coffset32[i+1] > coffset32[i]) {
+		array_t<ibis::bitvector::word_t>
+		    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
+		      sizeof(ibis::bitvector::word_t));
+		cbits[i] = new ibis::bitvector(a);
+		cbits[i]->sloppySize(nrows);
+// #if defined(DEBUG)
+// 	    LOGGER(ibis::gVerbose >= 0)
+// 		<< evt << " constructed bitvector " << i << " from range ["
+// 		<< coffset32[i] << ", " << coffset32[i+1]
+// 		<< ") of a storage at "
+// 		<< static_cast<const void*>(str->begin());
+// #endif
 	    }
 	    ++ i;
 	}
     }
     else if (fname) { // using the named file directly
-	if (coffsets[j] > coffsets[i]) {
-	    int fdes = UnixOpen(fname, OPEN_READONLY);
-	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose > 8)
-		    << "ibis::column[" << col->name()
-		    << "]::bylt::activateCoarse(" << i << ", " << j
-		    << ") retrieving data from file \"" << fname << "\"";
+	int fdes = UnixOpen(fname, OPEN_READONLY);
+	if (fdes >= 0) {
+	    LOGGER(ibis::gVerbose > 8)
+		<< evt << "(" << i << ", " << j
+		<< ") retrieving data from file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
-		(void)_setmode(fdes, _O_BINARY);
+	    (void)_setmode(fdes, _O_BINARY);
 #endif
-		while (i < j) {
-		    // skip to next empty bit vector
-		    while (i < j && cbits[i] != 0)
-			++ i;
-		    // the last bitvector to activate. can not be larger
-		    // than j
-		    uint32_t aj = (i<j ? i + 1 : j);
-		    while (aj < j && cbits[aj] == 0)
-			++ aj;
-		    if (coffsets[aj] > coffsets[i]) {
-			const uint32_t start = coffsets[i];
-			ibis::fileManager::storage *a0 = new
-			    ibis::fileManager::storage(fdes, start,
-						       coffsets[aj]);
-			while (i < aj) {
-			    if (coffsets[i+1] > coffsets[i]) {
-				array_t<ibis::bitvector::word_t>
-				    a1(a0, coffsets[i]-start,
-				       (coffsets[i+1]-coffsets[i])/
-				       sizeof(ibis::bitvector::word_t));
-				cbits[i] = new ibis::bitvector(a1);
-				cbits[i]->sloppySize(nrows);
+	    while (i < j) {
+		// skip to next empty bit vector
+		while (i < j && cbits[i] != 0)
+		    ++ i;
+		// the last bitvector to activate. can not be larger
+		// than j
+		uint32_t aj = (i<j ? i + 1 : j);
+		while (aj < j && cbits[aj] == 0)
+		    ++ aj;
+
+		if (coffset64.size() > cbits.size() &&
+		    coffset64[aj] > coffset64[i]) {
+		    const size_t start = coffset64[i];
+		    ibis::fileManager::storage *a0 = new
+			ibis::fileManager::storage(fdes, start,
+						   coffset64[aj]);
+		    while (i < aj) {
+			if (coffset64[i+1] > coffset64[i]) {
+			    array_t<ibis::bitvector::word_t>
+				a1(a0, coffset64[i]-start,
+				   (coffset64[i+1]-coffset64[i])/
+				   sizeof(ibis::bitvector::word_t));
+			    cbits[i] = new ibis::bitvector(a1);
+			    cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
-				LOGGER(ibis::gVerbose >= 0)
-				    << "bylt::activateCoarse(" << i
-				    << ") constructed a bitvector "
-				    "from range ["
-				    << coffsets[i] << ", " << coffsets[i+1]
-				    << ") of file " << fname;
+			    LOGGER(ibis::gVerbose >= 0)
+				<< evt << " constructed bitvector " << i
+				<< " from range [" << coffset64[i] << ", "
+				<< coffset64[i+1] << ") of file " << fname;
 #endif
-			    }
-			    ++ i;
 			}
+			++ i;
 		    }
-		    i = aj; // always advance i
 		}
+		else if (coffset32.size() > cbits.size() &&
+			 coffset32[aj] > coffset32[i]) {
+		    const size_t start = coffset32[i];
+		    ibis::fileManager::storage *a0 = new
+			ibis::fileManager::storage(fdes, start,
+						   coffset32[aj]);
+		    while (i < aj) {
+			if (coffset32[i+1] > coffset32[i]) {
+			    array_t<ibis::bitvector::word_t>
+				a1(a0, coffset32[i]-start,
+				   (coffset32[i+1]-coffset32[i])/
+				   sizeof(ibis::bitvector::word_t));
+			    cbits[i] = new ibis::bitvector(a1);
+			    cbits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+			    LOGGER(ibis::gVerbose >= 0)
+				<< evt << " constructed a bitvector " << i
+				<< " from range [" << coffset32[i] << ", "
+				<< coffset32[i+1] << ") of file " << fname;
+#endif
+			}
+			++ i;
+		    }
+		}
+		i = aj; // always advance i
+
 		UnixClose(fdes);
 	    }
-	    else {
-		col->logWarning("bylt::activateCoarse",
-				"failed to open file \"%s\" ... %s",
-				fname, strerror(errno));
-	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< evt << "(" << i << ", " << j
+		<< ") failed to open file \"" << fname << "\" ... "
+		<< (errno != 0 ? strerror(errno) : "??");
 	}
     }
     else {
-	col->logWarning("bylt::activateCoarse", "can not regenerate "
-			"bitvector %lu because neither str or fname is "
-			"specified", static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << "(" << i << ", " << j << ") can not regenerate "
+	    "bitvectors because neither str or fname is known";
     }
 } // ibis::bylt::activateCoarse
 
@@ -499,9 +647,13 @@ uint32_t ibis::bylt::estimate(const ibis::qContinuousRange& expr) const {
     return static_cast<uint32_t>(ierr > 0 ? ierr : 0);
 } // ibis::bylt::estimate
 
+/// Estimate the I/O cost needed to evaluate the given range condition.
+/// This function examines all combinations of using the two levels of
+/// indexes and return the minimal cost.
 double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
     double res = static_cast<double>(col->elementSize() * nrows);
-    if (bits.empty()) {
+    if (bits.empty() || (offset64.size() <= bits.size() &&
+			 offset32.size() <= bits.size())) {
 	return res;
     }
 
@@ -512,10 +664,16 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
     const unsigned ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
-    const long fine = offset32[hit1] - offset32[hit0] <=
-	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
-	? offset32[hit1] - offset32[hit0] :
-	(offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0]);
+    const long fine =
+	(coffset64.size() > bits.size()
+	 ? (offset64[hit1] - offset64[hit0] <=
+	    (offset64.back() - offset64[hit1]) + (offset64[hit0] - offset64[0])
+	    ? offset64[hit1] - offset64[hit0]
+	    : (offset64.back() - offset64[hit1]) + (offset64[hit0] - offset64[0]))
+	 : (offset32[hit1] - offset32[hit0] <=
+	    (offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
+	    ? offset32[hit1] - offset32[hit0]
+	    : (offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])));
     if (hit1 <= hit0) {
 	res = 0.0;
 	return res;
@@ -529,7 +687,8 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
 	res = fine;
 	return res;
     }
-    if (hit0+3 >= hit1 || ncoarse == 0 || coffsets.size() <= cbits.size()) {
+    if (hit0+3 >= hit1 || ncoarse == 0 ||
+	(coffset64.size() <= cbits.size() && coffset32.size() < cbits.size())) {
 	res = fine;
 	return res;
     }
@@ -538,12 +697,30 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
     const uint32_t c0 = cbounds.find(hit0);
     const uint32_t c1 = cbounds.find(hit1);
     if (c0 >= c1) { // within the same coarse bin
-	long tmp = (c1 > 0 && c1 < ncoarse
-		    ? (coffsets[c1]-(c1>1?coffsets[c1-2]:0))
-		    + (offset32[hit0] - offset32[cbounds[c1-1]])
-		    + (offset32[cbounds[c1]] - offset32[hit1])
-		    : offset32.back() - offset32[0]);
-	if (fine <= (99*tmp)/100)
+	long tmp = fine;
+	if (c1 > 0 && c1 < ncoarse) {
+	    tmp = (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c1-1]])
+		      + (offset64[cbounds[c1]] - offset64[hit1]))
+		   : ((offset32[hit0] - offset32[cbounds[c1-1]])
+		      + (offset32[cbounds[c1]] - offset32[hit1])));
+	    if (coffset64.size() > ncoarse) {
+		if (c1 > 1)
+		    tmp += coffset64[c1] - coffset64[c1-2];
+		else
+		    tmp += coffset64[c1];
+	    }
+	    else if (coffset32.size() > ncoarse) {
+		if (c1 > 1)
+		    tmp += coffset32[c1] - coffset32[c1-2];
+		else
+		    tmp += coffset32[c1];
+	    }
+	    else { // don't know the size of the coarse bins
+		tmp += fine;
+	    }
+	}
+	if (fine/99 <= tmp/100)
 	    res = fine;
 	else
 	    res = tmp;
@@ -552,43 +729,81 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
 	// need coarse bins only
 	if (c0 > 0) {
 	    if (c0 == c1-1) {
-		res = coffsets[c1+1] - coffsets[c0-1];
+		if (coffset64.size() > ncoarse)
+		    res = coffset64[c1+1] - coffset64[c0-1];
+		else
+		    res = coffset32[c1+1] - coffset32[c0-1];
+	    }
+	    else if (coffset64.size() > ncoarse) {
+		res = coffset64[c0] - coffset64[c0-1] +
+		    coffset64[c1] - coffset64[c1-1];
 	    }
 	    else {
-		res = coffsets[c0] - coffsets[c0-1] +
-		    coffsets[c1] - coffsets[c1-1];
+		res = coffset32[c0] - coffset32[c0-1] +
+		    coffset32[c1] - coffset32[c1-1];
 	    }
 	}
+	else if (coffset64.size() > ncoarse) {
+	    res = coffset64[c1] - coffset64[c1-1];
+	}
+	else if (coffset32.size() > ncoarse) {
+	    res = coffset32[c1] - coffset32[c1-1];
+	}
 	else {
-	    res = coffsets[c1] - coffsets[c1-1];
+	    res = fine;
 	}
     }
     else if (hit1 >= bits.size()) { // query range open to the right
 	if (c0 < ncoarse - 1) { // left edge bin is a regular bin
-	    long cost = (offset32[cbounds[c0]] - offset32[hit0])
-		+ (coffsets[c0+1] - coffsets[c0]);
+	    long cost = (offset64.size() > ncoarse
+			 ? offset64[cbounds[c0]] - offset64[hit0]
+			 : offset32[cbounds[c0]] - offset32[hit0])
+		+ (c0 > 0
+		   ? (coffset64.size() > ncoarse
+		      ? coffset64[c0] - coffset64[c0-1]
+		      : coffset32[c0] - coffset32[c0-1])
+		   : 0);
 	    long tmp;
-	    if (c0 > 0) { // option 3: [complement | -]
-		tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		    + (coffsets[c0] - coffsets[c0-1]);
+	    if (c0 > 1) { // option 3: [complement | -]
+		tmp = (offset64.size() > ncoarse
+		       ? offset64[hit0] - offset64[cbounds[c0-1]]
+		       : offset32[hit0] - offset32[cbounds[c0-1]])
+		    + (coffset64.size() > ncoarse
+		       ? coffset64[c0-1] - coffset64[c0-2]
+		       : (coffset32.size() > ncoarse
+			  ? coffset32[c0-1] - coffset32[c0-2]
+			  : fine));
 		if (tmp < cost) {
 		    cost = tmp;
 		}
 	    }
 	    // option 0/1: using fine level bitmaps only
-	    tmp = (offset32.back() - offset32[hit0] <=
-		   (offset32[hit0] - offset32[0]) ?
-		   offset32.back() - offset32[hit0] :
-		   (offset32[hit0] - offset32[0]));
+	    tmp = (offset64.size() > bits.size()
+		   ? (offset64.back() - offset64[hit0] <=
+		      (offset64[hit0] - offset64[0])
+		      ? offset64.back() - offset64[hit0]
+		      : (offset64[hit0] - offset64[0]))
+		   : (offset32.back() - offset32[hit0] <=
+		      (offset32[hit0] - offset32[0])
+		      ? offset32.back() - offset32[hit0]
+		      : (offset32[hit0] - offset32[0])));
 	    if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
 		cost = tmp;
 	    }
 	    res = cost;
 	}
 	else { // left edge bin is the unrecorded bin
-	    long cost = (offset32.back() - offset32[hit0]);
-	    long tmp = (offset32[hit0] - offset32[cbounds.back()])
-		+ (coffsets[c0] - coffsets[c0-1]);
+	    long cost = (offset64.size() > bits.size()
+			 ? offset64.back() - offset64[hit0]
+			 : offset32.back() - offset32[hit0]);
+	    long tmp = (offset64.size() > bits.size()
+			? offset64[hit0] - offset64[cbounds.back()]
+			: offset32[hit0] - offset32[cbounds.back()])
+		+ (coffset64.size() > ncoarse
+		   ? coffset64[c0] - coffset64[c0-1]
+		   : (coffset32.size() > ncoarse
+		      ? coffset32[c0] - coffset32[c0-1]
+		      : fine));
 
 	    if (tmp < static_cast<long>(0.99*cost)) {
 		res = tmp;
@@ -599,14 +814,28 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
 	}
     }
     else if (c0 == 0) { // left edge of query range is open
-	long cost = (coffsets[c1] - coffsets[c1-1])
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long cost = (c1 > 1
+		     ? (coffset64.size() > ncoarse
+			? coffset64[c1] - coffset64[c1-1]
+			: (coffset32.size() > ncoarse
+			   ? coffset32[c1] - coffset32[c1-1] : fine))
+		     : 0)
+	    + (offset64.size() > bits.size()
+	       ? offset64[hit1] - offset64[cbounds[c1-1]]
+	       : offset32[hit1] - offset32[cbounds[c1-1]]);
 	long tmp;
 	if (c1+1 <= ncoarse) // option 4, norm edge bin
-	    tmp = (coffsets[c1+1] - coffsets[c1])
-		+ (offset32[cbounds[c1]] - offset32[hit1]);
+	    tmp = (coffset64.size() > ncoarse 
+		   ? coffset64[c1+1] - coffset64[c1]
+		   : (coffset32.size() > ncoarse
+		      ? coffset32[c1+1] - coffset32[c1] : fine))
+		+ (offset64.size() > bits.size()
+		   ? offset64[cbounds[c1]] - offset64[hit1]
+		   : offset32[cbounds[c1]] - offset32[hit1]);
 	else // option 4, edge bin not recorded
-	    tmp = offset32.back() - offset32[hit1];
+	    tmp = (offset64.size() > bits.size()
+		   ? offset64.back() - offset64[hit1]
+		   : offset32.back() - offset32[hit1]);
 	if (tmp < cost) {
 	    cost = tmp;
 	}
@@ -615,31 +844,60 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
 	}
     }
     else if (c1 > ncoarse) { // right edge bin is not recorded
-	long cost = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[ncoarse] - coffsets[ncoarse-1])
-	    + (offset32[hit1] - offset32[cbounds[ncoarse]]);
+	long cost = (coffset64.size() > ncoarse
+		     ? ((coffset32[c0] - coffset32[c0-1])
+			+ (coffset32[ncoarse] - coffset32[ncoarse-1]))
+		     :(coffset32.size() > ncoarse
+		       ? ((coffset32[c0] - coffset32[c0-1])
+			  + (coffset32[ncoarse] - coffset32[ncoarse-1]))
+		       : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[hit1] - offset64[cbounds[ncoarse]]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[hit1] - offset32[cbounds[ncoarse]])));
 	long tmp;
 	if (c0 > 0) { // option 3: [complement | - | direct]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ (coffsets[c0-1] - (c0>1 ? coffsets[c0-2] : 0))
-		+ (coffsets[ncoarse] - coffsets[ncoarse-1])
-		+ (offset32[hit1] - offset32[cbounds[ncoarse]]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? ((coffset64[c0-1] - (c0>1 ? coffset64[c0-2] : 0))
+		      + (coffset64[ncoarse] - coffset64[ncoarse-1]))
+		   : (coffset32.size() > ncoarse
+		      ? ((coffset32[c0-1] - (c0>1 ? coffset32[c0-2] : 0))
+			 + (coffset32[ncoarse] - coffset32[ncoarse-1]))
+		      : fine))
+		+ (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		      + (offset64[hit1] - offset64[cbounds[ncoarse]]))
+		   : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		      + (offset32[hit1] - offset32[cbounds[ncoarse]])));
 	    if (tmp < cost) {
 		cost = tmp;
 	    }
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (offset32.back() - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? coffset64[c0] - coffset64[c0-1]
+	       : (coffset32.size() > ncoarse
+		  ? coffset32[c0] - coffset32[c0-1] : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64.back() - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32.back() - offset32[hit1])));
 	if (tmp < cost) {
 	    tmp = cost;
 	}
 	if (c0 > 0) { // option 5: [complement | - | complement]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ (coffsets[c0-1] - (c0>1 ? coffsets[c0-2] : 0))
-		+ (offset32.back() - offset32[hit1]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? coffset64[c0-1] - (c0>1 ? coffset64[c0-2] : 0)
+		   : (coffset32.size() > ncoarse
+		      ? coffset32[c0-1] - (c0>1 ? coffset32[c0-2] : 0)
+		      : fine))
+		+ (offset64.size() > bits.size()
+		   ? (offset64[hit0] - offset64[cbounds[c0-1]])
+		   + (offset64.back() - offset64[hit1])
+		   : (offset32[hit0] - offset32[cbounds[c0-1]])
+		   + (offset32.back() - offset32[hit1]));
 	    if (tmp < cost) {
 		cost = tmp;
 	    }
@@ -653,21 +911,39 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
     else if (c0+1 == c1) {// two edge bins right next to each other
 	// option 2 [direct | - | direct], same as option 0/1
 	// option 3: [complement | - | direct]
-	long cost = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (offset32[c0] - (c0>1 ? offset32[c0-2] : 0))
-	    + (offset32[hit1] - offset32[cbounds[c0]]);
+	long cost = (offset64.size() > bits.size()
+		     ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+			+ (offset64[c0] - (c0>1 ? offset64[c0-2] : 0))
+			+ (offset64[hit1] - offset64[cbounds[c0]]))
+		     : ((offset32[hit0] - offset32[cbounds[c0-1]])
+			+ (offset32[c0] - (c0>1 ? offset32[c0-2] : 0))
+			+ (offset32[hit1] - offset32[cbounds[c0]])));
 	// option 4: [direct | - | complement]
-	long tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c1] - coffsets[c0-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	long tmp = (coffset64.size() > ncoarse
+		    ? coffset64[c1] - coffset64[c0-1]
+		    : (coffset32.size() > ncoarse
+		       ? coffset32[c1] - coffset32[c0-1] : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	}
 	// option 5: [complement | - | complement]
-	tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (coffsets[c0-1] - (c0>1?coffsets[c0-2]:0))
-	    + (coffsets[c1] - coffsets[c0])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? ((coffset64[c0-1] - (c0>1?coffset64[c0-2]:0))
+		  + (coffset64[c1] - coffset64[c0]))
+	       : (coffset32.size() > ncoarse
+		  ? ((coffset32[c0-1] - (c0>1?coffset32[c0-2]:0))
+		     + (coffset32[c1] - coffset32[c0]))
+		  : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	}
@@ -677,31 +953,63 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
 	}
     }
     else {// general case: need to evaluate 6 options
-	long cost = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[c1-1] - coffsets[c1-2])
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long cost = (coffset64.size() > ncoarse
+		     ? ((coffset64[c0] - coffset64[c0-1])
+			+ (coffset64[c1-1] - coffset64[c1-2]))
+		     : (coffset32.size() > ncoarse
+			? ((coffset32[c0] - coffset32[c0-1])
+			   + (coffset32[c1-1] - coffset32[c1-2]))
+			: fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[hit1] - offset64[cbounds[c1-1]]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[hit1] - offset32[cbounds[c1-1]])));
 	// option 3: [complement | - | direct]
-	long tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (coffsets[c0-1] - (c0>1 ? coffsets[c0-2] : 0))
-	    + (coffsets[c1-1] - coffsets[c1-2])
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long tmp = (coffset64.size() > ncoarse
+		    ? ((coffset64[c0-1] - (c0>1 ? coffset64[c0-2] : 0))
+		       + (coffset64[c1-1] - coffset64[c1-2]))
+		    : (coffset32.size() > ncoarse
+		       ? ((coffset32[c0-1] - (c0>1 ? coffset32[c0-2] : 0))
+			  + (coffset32[c1-1] - coffset32[c1-2]))
+		       : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		  + (offset64[hit1] - offset64[cbounds[c1-1]]))
+	       : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		  + (offset32[hit1] - offset32[cbounds[c1-1]])));
 	if (tmp < cost) {
 	    cost = tmp;
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[c1] - coffsets[c1-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? ((coffset64[c0] - coffset64[c0-1])
+		  + (coffset64[c1] - coffset64[c1-1]))
+	       : (coffset32.size() > ncoarse
+		  ? ((coffset32[c0] - coffset32[c0-1])
+		     + (coffset32[c1] - coffset32[c1-1]))
+		  : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	}
 	// option 5: [complement | - | complement]
-	tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[c1] - coffsets[c1-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? ((coffset64[c0] - coffset64[c0-1])
+		  + (coffset64[c1] - coffset64[c1-1]))
+	       : (coffset32.size() > ncoarse
+		  ? ((coffset32[c0] - coffset32[c0-1])
+		     + (coffset32[c1] - coffset32[c1-1]))
+		  : fine))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	}
@@ -714,7 +1022,10 @@ double ibis::bylt::estimateCost(const ibis::qContinuousRange& expr) const {
     return res;
 } // ibis::bylt::estimateCost
 
-// Compute the hits as a @c bitvector.
+/// Compute the hits as a @c bitvector.  This function attempts to use the
+/// coarse bins only if the sizes of the coarse bitmaps are known.  If the
+/// coarse bitmaps are of known sizes, all combinations of coarse bins and
+/// fine bins are considered.
 long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower) const {
     if (bits.empty()) { // empty index
@@ -746,7 +1057,8 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     const unsigned ncoarse = (cbits.empty() || cbounds.empty() ? 0U :
 			      cbits.size()+1 <= cbounds.size() ?
 			      cbits.size() : cbounds.size()-1);
-    if (hit0+3 >= hit1 || ncoarse == 0 || coffsets.size() <= cbits.size()) {
+    if (hit0+3 >= hit1 || ncoarse == 0 ||
+	(coffset64.size() <= ncoarse && coffset32.size() <= ncoarse)) {
 	// no more than three bitmaps involved, or don't know the sizes
 	sumBins(hit0, hit1, lower);
 	return lower.cnt();
@@ -769,16 +1081,47 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	else
 	    lg.buffer() << ", c1=" << c1 << ", bits.size()=" << bits.size();
     }
+    const off_t finec = (coffset64.size() > bits.size()
+			 ? (offset64[hit1] - offset64[hit0] <=
+			    ((offset64.back() - offset64[hit1])
+			     + (offset64[hit0] - offset64[0]))
+			    ? offset64[hit1] - offset64[hit0]
+			    : ((offset64.back() - offset64[hit1])
+			       + (offset64[hit0] - offset64[0])))
+			 : (offset32[hit1] - offset32[hit0] <=
+			    ((offset32.back() - offset32[hit1])
+			     + (offset32[hit0] - offset32[0]))
+			    ? offset32[hit1] - offset32[hit0]
+			    : ((offset32.back() - offset32[hit1])
+			       + (offset32[hit0] - offset32[0]))));
     if (c0 >= c1) { // within the same coarse bin
-	long tmp = (c1 > 0 && c1 < ncoarse
-		    ? (coffsets[c1]-(c1>1?coffsets[c1-2]:0))
-		    + (offset32[hit0] - offset32[cbounds[c1-1]])
-		    + (offset32[cbounds[c1]] - offset32[hit1])
-		    : offset32.back() - offset32[0]);
-	if ((offset32[hit1]-offset32[hit0])/100 <= tmp/99) {
+	long tmp = finec;
+	if (c1 > 0 && c1 < ncoarse) {
+	    tmp = (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c1-1]])
+		      + (offset64[cbounds[c1]] - offset64[hit1]))
+		   : ((offset32[hit0] - offset32[cbounds[c1-1]])
+		      + (offset32[cbounds[c1]] - offset32[hit1])));
+	    if (coffset64.size() > ncoarse) {
+		if (c1 > 1)
+		    tmp += coffset64[c1] - coffset64[c1-2];
+		else
+		    tmp += coffset64[c1];
+	    }
+	    else if (coffset32.size() > ncoarse) {
+		if (c1 > 1)
+		    tmp += coffset32[c1] - coffset32[c1-2];
+		else
+		    tmp += coffset32[c1];
+	    }
+	    else { // don't know the size of the coarse bins
+		tmp += finec;
+	    }
+	}
+	if (finec/99 <= tmp/100) { // slightly prefer using the fine level
 	    sumBins(hit0, hit1, lower);
 	}
-	else {
+	else { // need coarse bitmaps
 	    activateCoarse(c1>1?c1-2:0, c1);
 	    if (cbits[c1-1] != 0)
 		lower.copy(*(cbits[c1-1]));
@@ -826,23 +1169,38 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     else if (hit1 >= bits.size()) { // query range open to the right
 	if (c0 < ncoarse - 1) { // left edge bin is a regular bin
 	    unsigned option = 2; // option 2 [ direct | - ]
-	    long cost = (offset32[cbounds[c0]] - offset32[hit0])
-		+ (c0>0 ? coffsets[c0] - coffsets[c0-1] : 0);
+	    long cost = (offset64.size() > bits.size()
+			 ? offset64[cbounds[c0]] - offset64[hit0]
+			 : offset32[cbounds[c0]] - offset32[hit0])
+		+ (c0 > 0
+		   ? (coffset64.size() > ncoarse
+		      ? coffset64[c0] - coffset64[c0-1]
+		      : coffset32[c0] - coffset32[c0-1])
+		   : 0);
 	    long tmp;
 	    if (c0 > 1) { // option 3: [complement | -]
-		tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		    + (coffsets[c0-1] - coffsets[c0-2]);
+		tmp = (offset64.size() > bits.size()
+		       ? offset64[hit0] - offset64[cbounds[c0-1]]
+		       : offset32[hit0] - offset32[cbounds[c0-1]])
+		    + (coffset64.size() > ncoarse
+		       ? coffset64[c0-1] - coffset64[c0-2]
+		       : coffset32[c0-1] - coffset32[c0-2]);
 		if (tmp < cost) {
 		    cost = tmp;
 		    option = 3;
 		}
 	    }
 	    // option 0/1: using fine level bitmaps only
-	    tmp = (offset32.back() - offset32[hit0] <=
-		   (offset32[hit0] - offset32[0]) ?
-		   offset32.back() - offset32[hit0] :
-		   (offset32[hit0] - offset32[0]));
-	    if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
+	    tmp = (offset64.size() > bits.size()
+		   ? (offset64.back() - offset64[hit0] <=
+		      (offset64[hit0] - offset64[0])
+		      ? offset64.back() - offset64[hit0]
+		      : (offset64[hit0] - offset64[0]))
+		   : (offset32.back() - offset32[hit0] <=
+		      (offset32[hit0] - offset32[0])
+		      ? offset32.back() - offset32[hit0]
+		      : (offset32[hit0] - offset32[0])));
+	    if (cost >= static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
 		cost = tmp;
 		option = 1;
 	    }
@@ -882,9 +1240,15 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 	    }
 	}
 	else { // left edge bin is the unrecorded bin
-	    long cost = (offset32.back() - offset32[hit0]);
-	    long tmp = (offset32[hit0] - offset32[cbounds.back()])
-		+ (coffsets[c0] - coffsets[c0-1]);
+	    long cost = (offset64.size() > bits.size()
+			 ? offset64.back() - offset64[hit0]
+			 : offset32.back() - offset32[hit0]);
+	    long tmp = (offset64.size() > bits.size()
+			? offset64[hit0] - offset64[cbounds.back()]
+			: offset32[hit0] - offset32[cbounds.back()])
+		+ (coffset64.size() > ncoarse
+		   ? coffset64[c0] - coffset64[c0-1]
+		   : coffset32[c0] - coffset32[c0-1]);
 
 	    ibis::bitvector bv;
 	    if (tmp < static_cast<long>(0.99*cost)) {
@@ -905,24 +1269,32 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     }
     else if (c0 == 0) { // left edge of query range is open
 	unsigned option = 2; // [ - | direct ]
-	long cost = (c1>1 ? coffsets[c1-1] - coffsets[c1-2] : 0)
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long cost = (c1 > 1
+		     ? (coffset64.size() > ncoarse
+			? coffset64[c1-1] - coffset64[c1-2]
+			: coffset32[c1-1] - coffset32[c1-2])
+		     : 0)
+	    + (offset64.size() > bits.size()
+	       ? offset64[hit1] - offset64[cbounds[c1-1]]
+	       : offset32[hit1] - offset32[cbounds[c1-1]]);
 	long tmp;
 	if (c1+1 <= ncoarse) // option 4, norm edge bin
-	    tmp = (coffsets[c1] - coffsets[c1-1])
-		+ (offset32[cbounds[c1]] - offset32[hit1]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? (coffset64[c1] - coffset64[c1-1])
+		   : (coffset32[c1] - coffset32[c1-1]))
+		+ (offset64.size() > bits.size()
+		   ? offset64[cbounds[c1]] - offset64[hit1]
+		   : offset32[cbounds[c1]] - offset32[hit1]);
 	else // option 4, edge bin not recorded
-	    tmp = offset32.back() - offset32[hit1];
+	    tmp = (offset64.size() > bits.size()
+		   ? offset64.back() - offset64[hit1]
+		   : offset32.back() - offset32[hit1]);
 	if (tmp < cost) {
 	    option = 4;
 	    cost = tmp;
 	}
-	tmp = (offset32[hit1] - offset32[hit0] <=
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
-	       offset32[hit1] - offset32[hit0] :
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
-	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
-	    cost = tmp;
+	if (cost >= static_cast<long>(0.99*finec)) { // slightly prefer 0/1
+	    cost = finec;
 	    option = 1;
 	}
 	switch (option) {
@@ -965,45 +1337,62 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     }
     else if (c1 > ncoarse) { // right edge bin is not recorded
 	unsigned option = 2; // [ direct | - | direct]
-	long cost = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[ncoarse] - coffsets[ncoarse-1])
-	    + (offset32[hit1] - offset32[cbounds[ncoarse]]);
+	long cost = (coffset64.size() > ncoarse
+		     ? ((coffset32[c0] - coffset32[c0-1])
+			+ (coffset32[ncoarse] - coffset32[ncoarse-1]))
+		     : ((coffset32[c0] - coffset32[c0-1])
+			+ (coffset32[ncoarse] - coffset32[ncoarse-1])))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[hit1] - offset64[cbounds[ncoarse]]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[hit1] - offset32[cbounds[ncoarse]])));
 	long tmp;
 	if (c0 > 0) { // option 3: [complement | - | direct]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ (coffsets[c0-1] - (c0>1 ? coffsets[c0-2] : 0))
-		+ (coffsets[ncoarse] - coffsets[ncoarse-1])
-		+ (offset32[hit1] - offset32[cbounds[ncoarse]]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? ((coffset64[c0-1] - (c0>1 ? coffset64[c0-2] : 0))
+		      + (coffset64[ncoarse] - coffset64[ncoarse-1]))
+		   : ((coffset32[c0-1] - (c0>1 ? coffset32[c0-2] : 0))
+		      + (coffset32[ncoarse] - coffset32[ncoarse-1])))
+		+ (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		      + (offset64[hit1] - offset64[cbounds[ncoarse]]))
+		   : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		      + (offset32[hit1] - offset32[cbounds[ncoarse]])));
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 3;
 	    }
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (offset32.back() - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? coffset64[c0] - coffset64[c0-1]
+	       : coffset32[c0] - coffset32[c0-1])
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64.back() - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32.back() - offset32[hit1])));
 	if (tmp < cost) {
 	    tmp = cost;
 	    option = 4;
 	}
 	if (c0 > 0) { // option 5: [complement | - | complement]
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ (coffsets[c0-1] - (c0>1 ? coffsets[c0-2] : 0))
-		+ (offset32.back() - offset32[hit1]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? coffset64[c0-1] - (c0>1 ? coffset64[c0-2] : 0)
+		   : coffset32[c0-1] - (c0>1 ? coffset32[c0-2] : 0))
+		+ (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		      + (offset64.back() - offset64[hit1]))
+		   : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		      + (offset32.back() - offset32[hit1])));
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
-	// option 0 and 1: fine level only
-	tmp = (offset32[hit1] - offset32[hit0] <=
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
-	       offset32[hit1] - offset32[hit0] :
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
-	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
-	    cost = tmp;
+	if (cost > static_cast<long>(0.99*finec)) { // slightly prefer 0/1
+	    cost = finec;
 	    option = 1;
 	}
 	switch (option) {
@@ -1084,35 +1473,45 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     else if (c0+1 == c1) {// two edge bins right next to each other
 	// option 2 [direct | - | direct], same as option 0/1
 	unsigned option = 3;// option 3: [complement | - | direct]
-	long cost = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (offset32[c0] - (c0>1 ? offset32[c0-2] : 0))
-	    + (offset32[hit1] - offset32[cbounds[c0]]);
+	long cost = (offset64.size() > bits.size()
+		     ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+			+ (offset64[c0] - (c0>1 ? offset64[c0-2] : 0))
+			+ (offset64[hit1] - offset64[cbounds[c0]]))
+		     : ((offset32[hit0] - offset32[cbounds[c0-1]])
+			+ (offset32[c0] - (c0>1 ? offset32[c0-2] : 0))
+			+ (offset32[hit1] - offset32[cbounds[c0]])));
 	// option 4: [direct | - | complement]
-	long tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c1] - coffsets[c0-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	long tmp = (coffset64.size() > ncoarse
+		    ? coffset64[c1] - coffset64[c0-1]
+		    : coffset32[c1] - coffset32[c0-1])
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
 	}
 	// option 5: [complement | - | complement]
 	if (c0 > 0) {
-	    tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-		+ (coffsets[c0-1] - (c0>1?coffsets[c0-2]:0))
-		+ (coffsets[c1] - coffsets[c0])
-		+ (offset32[cbounds[c1]] - offset32[hit1]);
+	    tmp = (coffset64.size() > ncoarse
+		   ? ((coffset64[c0-1] - (c0>1?coffset64[c0-2]:0))
+		      + (coffset64[c1] - coffset64[c0]))
+		   : ((coffset32[c0-1] - (c0>1?coffset32[c0-2]:0))
+		      + (coffset32[c1] - coffset32[c0])))
+		+ (offset64.size() > bits.size()
+		   ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		      + (offset64[cbounds[c1]] - offset64[hit1]))
+		   : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		      + (offset32[cbounds[c1]] - offset32[hit1])));
 	    if (tmp < cost) {
 		cost = tmp;
 		option = 5;
 	    }
 	}
-	// option 0 and 1: fine level only
-	tmp = (offset32[hit1] - offset32[hit0] <=
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
-	       offset32[hit1] - offset32[hit0] :
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
-	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
-	    cost = tmp;
+	if (cost > static_cast<long>(0.99*finec)) { // slightly prefer 0/1
+	    cost = finec;
 	    option = 1;
 	}
 	switch (option) {
@@ -1177,44 +1576,63 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     }
     else {// general case: need to evaluate 6 options
 	unsigned option = 2; // option 2 [direct | - | direct]
-	long cost = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[c1-1] - coffsets[c1-2])
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long cost = (coffset64.size() > ncoarse
+		     ? ((coffset64[c0] - coffset64[c0-1])
+			+ (coffset64[c1-1] - coffset64[c1-2]))
+		     : ((coffset32[c0] - coffset32[c0-1])
+			+ (coffset32[c1-1] - coffset32[c1-2])))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[hit1] - offset64[cbounds[c1-1]]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[hit1] - offset32[cbounds[c1-1]])));
 	// option 3: [complement | - | direct]
-	long tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (coffsets[c0-1] - (c0>1?coffsets[c0-2]:0))
-	    + (coffsets[c1-1] - coffsets[c1-2])
-	    + (offset32[hit1] - offset32[cbounds[c1-1]]);
+	long tmp = (coffset64.size() > ncoarse
+		    ? ((coffset64[c0-1] - (c0>1?coffset64[c0-2]:0))
+		       + (coffset64[c1-1] - coffset64[c1-2]))
+		    : ((coffset32[c0-1] - (c0>1?coffset32[c0-2]:0))
+		       + (coffset32[c1-1] - coffset32[c1-2])))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		  + (offset64[hit1] - offset64[cbounds[c1-1]]))
+	       : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		  + (offset32[hit1] - offset32[cbounds[c1-1]])));
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 3;
 	}
 	// option 4: [direct | - | complement]
-	tmp = (offset32[cbounds[c0]] - offset32[hit0])
-	    + (coffsets[c0] - coffsets[c0-1])
-	    + (coffsets[c1] - coffsets[c1-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? ((coffset64[c0] - coffset64[c0-1])
+		  + (coffset64[c1] - coffset64[c1-1]))
+	       : ((coffset32[c0] - coffset32[c0-1])
+		  + (coffset32[c1] - coffset32[c1-1])))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[cbounds[c0]] - offset64[hit0])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[cbounds[c0]] - offset32[hit0])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 4;
 	}
 	// option 5: [complement | - | complement]
-	tmp = (offset32[hit0] - offset32[cbounds[c0-1]])
-	    + (coffsets[c0-1] - (c0>1?coffsets[c0-2]:0))
-	    + (coffsets[c1] - coffsets[c1-1])
-	    + (offset32[cbounds[c1]] - offset32[hit1]);
+	tmp = (coffset64.size() > ncoarse
+	       ? ((coffset64[c0-1] - (c0>1?coffset64[c0-2]:0))
+		  + (coffset64[c1] - coffset64[c1-1]))
+	       : ((coffset32[c0-1] - (c0>1?coffset32[c0-2]:0))
+		  + (coffset32[c1] - coffset32[c1-1])))
+	    + (offset64.size() > bits.size()
+	       ? ((offset64[hit0] - offset64[cbounds[c0-1]])
+		  + (offset64[cbounds[c1]] - offset64[hit1]))
+	       : ((offset32[hit0] - offset32[cbounds[c0-1]])
+		  + (offset32[cbounds[c1]] - offset32[hit1])));
 	if (tmp < cost) {
 	    cost = tmp;
 	    option = 5;
 	}
-	// option 0 and 1: fine level only
-	tmp = (offset32[hit1] - offset32[hit0] <=
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]) ?
-	       offset32[hit1] - offset32[hit0] :
-	       (offset32.back()-offset32[hit1])+(offset32[hit0]-offset32[0]));
-	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 0/1
-	    cost = tmp;
+	if (cost > static_cast<long>(0.99*finec)) { // slightly prefer 0/1
+	    cost = finec;
 	    option = 1;
 	}
 	switch (option) {
@@ -1303,8 +1721,9 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     return lower.cnt();
 } // ibis::bylt::evaluate
 
-// the argument is the name of the directory, the file name is
-// column::name() + ".idx"
+/// Write the content of index to the specified location.  The argument can
+/// be the name of a directory or a file.  The actual index file name is
+/// determined by the function indexFileName.
 int ibis::bylt::write(const char* dt) const {
     if (vals.empty()) return -1;
 
@@ -1325,71 +1744,167 @@ int ibis::bylt::write(const char* dt) const {
 	    return -2;
 	}
     }
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
     int32_t ierr = 0;
-    const uint32_t nobs = vals.size();
+    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
 
-    array_t<int32_t> offs(nobs+1);
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)ibis::index::BYLT;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::bylt::write(" << fnm
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = ibis::relic::write(fdes); // write the bulk of the index file
+    if (useoffset64)
+	ierr = ibis::relic::write64(fdes); // write the bulk of the index file
+    else
+	ierr = ibis::relic::write32(fdes); // write the bulk of the index file
     if (ierr < 0) {
-	(void)UnixClose(fdes);
-	remove(fnm.c_str());
 	return ierr;
     }
-    ierr = writeCoarse(fdes); // write the coarse level bins
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
-#endif
-    (void) UnixClose(fdes);
+    if (useoffset64)
+	ierr = writeCoarse64(fdes); // write the coarse level bins
+    else
+	ierr = writeCoarse32(fdes); // write the coarse level bins
 
-    if (ibis::gVerbose > 5)
-	col->logMessage("bylt::write", "wrote %lu bitmap%s to %s",
-			static_cast<long unsigned>(nobs),
-			(nobs>1?"s":""), fnm.c_str());
+    if (ierr >= 0) {
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+	(void) UnixFlush(fdes); // write to disk
+#endif
+	const uint32_t nobs = vals.size();
+	LOGGER(ibis::gVerbose > 5)
+	    << "bylt[" << col->partition()->name() << "." << col->name()
+	    << "]::write wrote " << nobs << " bitmap" << (nobs>1?"s":"")
+	    << " to " << fnm;
+    }
     return ierr;
 } // ibis::bylt::write
 
-// This function intended to be called after calling ibis::relic::write,
-// however, it does not check for this fact!
-int ibis::bylt::writeCoarse(int fdes) const {
+/// Write the coarse bins into an open file.  This function is intended to
+/// be called after calling ibis::relic::write, however, it does not check
+/// for this fact!
+int ibis::bylt::writeCoarse32(int fdes) const {
     if (cbounds.empty() || cbits.empty() || nrows == 0)
 	return -4;
 
-    int ierr;
+    off_t ierr;
     const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
 			 cbounds.size()-1 : cbits.size());
-    array_t<int32_t> offs(nc+1);
-    ierr = UnixWrite(fdes, &nc, sizeof(nc));
-    ierr = UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    ierr = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
+    ierr  = UnixWrite(fdes, &nc, sizeof(nc));
+    ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
+    if (ierr < (off_t) sizeof(uint32_t)*(nc+2)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32 failed to write "
+	    << sizeof(uint32_t)*(nc+2) << " bytes to file descriptor "
+	    << fdes << ", ierr = " << ierr;
+	return -5;
+    }
+
+    offset32.resize(nc+1);
+    offset32[0] = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
-	offs[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	if (cbits[i] != 0)
 	    cbits[i]->write(fdes);
+	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    offs[nc] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr -= sizeof(int32_t) * (nc+1);
-    ierr = UnixSeek(fdes, ierr, SEEK_SET);
-    ierr = UnixWrite(fdes, offs.begin(), sizeof(int32_t)*(nc+1));
-    ierr = UnixSeek(fdes, offs.back(), SEEK_SET);
+    const off_t pos = offset32[0] - sizeof(int32_t) * (nc+1);
+    ierr = UnixSeek(fdes, pos, SEEK_SET);
+    if (ierr != pos) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32 failed to seek to "
+	    << pos << ", ierr = " << ierr;
+	return -6;
+    }
+    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nc+1));
+    if (ierr < (off_t) sizeof(int32_t)*(nc+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32 failed to write "
+	    << sizeof(int32_t)*(nc+1) << " bytes to file descriptor "
+	    << fdes << ", ierr = " << ierr;
+	return -7;
+    }
+    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    if (ierr != offset32.back()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse32 failed to seek to "
+	    << offset32.back() << ", ierr = " << ierr;
+	return -8;
+    }
+    offset64.clear();
     return 0;
-} // ibis::bylt::writeCoarse
+} // ibis::bylt::writeCoarse32
 
-// read the index contained in the file f
+/// Write the coarse bins into an open file.  This function is intended to
+/// be called after calling ibis::relic::write, however, it does not check
+/// for this fact!
+int ibis::bylt::writeCoarse64(int fdes) const {
+    if (cbounds.empty() || cbits.empty() || nrows == 0)
+	return -4;
+
+    off_t ierr;
+    const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
+			 cbounds.size()-1 : cbits.size());
+    ierr  = UnixWrite(fdes, &nc, sizeof(nc));
+    ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
+    if (ierr < (off_t) sizeof(uint32_t)*(nc+2)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64 failed to write "
+	    << sizeof(uint32_t)*(nc+2) << " bytes to file descriptor "
+	    << fdes << ", ierr = " << ierr;
+	return -5;
+    }
+
+    offset64.resize(nc+1);
+    offset64[0] = UnixSeek(fdes, sizeof(int64_t)*(nc+1), SEEK_CUR);
+    for (unsigned i = 0; i < nc; ++ i) {
+	if (cbits[i] != 0)
+	    cbits[i]->write(fdes);
+	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
+    const off_t pos = offset64[0] - sizeof(int64_t) * (nc+1);
+    ierr = UnixSeek(fdes, pos, SEEK_SET);
+    if (ierr != pos) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64 failed to seek to "
+	    << pos << ", ierr = " << ierr;
+	return -6;
+    }
+    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nc+1));
+    if (ierr < (off_t) sizeof(int64_t)*(nc+1)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64 failed to write "
+	    << sizeof(int64_t)*(nc+1) << " bytes to file descriptor "
+	    << fdes << ", ierr = " << ierr;
+	return -7;
+    }
+    ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+    if (ierr != offset64.back()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << "."
+	    << col->name() << "]::writeCoarse64 failed to seek to "
+	    << offset64.back() << ", ierr = " << ierr;
+	return -8;
+    }
+    offset64.clear();
+    return 0;
+} // ibis::bylt::writeCoarse64
+
+/// Read the index contained in the file f.
 int ibis::bylt::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
@@ -1398,11 +1913,11 @@ int ibis::bylt::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
     if (8 != UnixRead(fdes, static_cast<void*>(header), 8)) {
-	UnixClose(fdes);
 	return -2;
     }
 
@@ -1412,24 +1927,71 @@ int ibis::bylt::read(const char* f) {
 		  header[5] == static_cast<char>(BYLT) &&
 		  header[6] == static_cast<char>(sizeof(int32_t)) &&
 		  header[7] == static_cast<char>(0))) {
-	UnixClose(fdes);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "Warning -- bylt[" << col->partition()->name() << '.'
+		<< col->name() << "]::read the header from " << fnm
+		<< " (";
+	    if (isprint(header[0]) != 0)
+		lg.buffer() << header[0];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+			    << std::dec;
+	    if (isprint(header[1]) != 0)
+		lg.buffer() << header[1];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+			    << std::dec;
+	    if (isprint(header[2]) != 0)
+		lg.buffer() << header[2];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+			    << std::dec;
+	    if (isprint(header[3]) != 0)
+		lg.buffer() << header[3];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+			    << std::dec;
+	    if (isprint(header[4]) != 0)
+		lg.buffer() << header[4];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+			    << std::dec;
+	    if (isprint(header[5]) != 0)
+		lg.buffer() << header[5];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+			    << std::dec;
+	    if (isprint(header[6]) != 0)
+		lg.buffer() << header[6];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+			    << std::dec;
+	    if (isprint(header[7]) != 0)
+		lg.buffer() << header[7];
+	    else
+		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+			    << std::dec;
+	    lg.buffer() << ") does not contain the expected values";
+	}
 	return -3;
     }
 
     uint32_t dim[3];
-    uint32_t begin, end;
+    size_t begin, end;
     clear(); // clear the current content
     fname = ibis::util::strnewdup(fnm.c_str());
 
-    long ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
+    off_t ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
     if (ierr < static_cast<int>(3*sizeof(uint32_t))) {
-	UnixClose(fdes);
 	return -4;
     }
     nrows = dim[0];
-    bool trymmap = false;
 #if defined(HAVE_FILE_MAP)
-    trymmap = (dim[2] > ibis::fileManager::pageSize());
+    const bool trymmap = (dim[2]*8 >= FASTBIT_MIN_MAP_SIZE);
+#else
+    const bool trymmap = false;
 #endif
     // read vals
     begin = 8*((3*sizeof(uint32_t) + 15) / 8);
@@ -1446,14 +2008,7 @@ int ibis::bylt::read(const char* f) {
     // read the offsets
     begin = end;
     end += sizeof(int32_t) * (dim[1] + 1);
-    if (trymmap) {
-	array_t<int32_t> tmp(fname, begin, end);
-	offset32.swap(tmp);
-    }
-    else {
-	array_t<int32_t> tmp(fdes, begin, end);
-	offset32.swap(tmp);
-    }
+    ierr = initOffsets(fdes, header[6], begin, dim[1]);
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG) || defined(_DEBUG)
     if (ibis::gVerbose > 5) {
@@ -1461,38 +2016,76 @@ int ibis::bylt::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- ibis::bylt::read(" << f
+	lg.buffer() << "DEBUG -- bylt[" << col->partition()->name() << '.'
+		    << col->name() << "]::read(" << fnm
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";
-	for (unsigned i = 0; i < nprt; ++ i)
-	    lg.buffer() << offset32[i] << " ";
-	if (nprt < dim[1])
-	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	lg.buffer() << offset32[dim[1]];
+	if (offset64.size() > dim[1]) {
+	    for (unsigned i = 0; i < nprt; ++ i)
+		lg.buffer() << offset64[i] << " ";
+	    if (nprt < dim[1])
+		lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
+	    lg.buffer() << offset64[dim[1]];
+	}
+	else {
+	    for (unsigned i = 0; i < nprt; ++ i)
+		lg.buffer() << offset32[i] << " ";
+	    if (nprt < dim[1])
+		lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
+	    lg.buffer() << offset32[dim[1]];
+	}
     }
 #endif
 
-    bits.resize(dim[1]);
-    for (uint32_t i = 0; i < dim[1]; ++i)
-	bits[i] = 0;
-#if defined(FASTBIT_READ_BITVECTOR0)
-    // read the first bitvector
-    if (offset32[1] > offset32[0]) {
-	array_t<ibis::bitvector::word_t> a0(fdes, offset32[0], offset32[1]);
-	bits[0] = new ibis::bitvector(a0);
-	bits[0]->sloppySize(nrows);
-    }
-    else {
-	bits[0] = new ibis::bitvector;
-	bits[0]->set(0, nrows);
-    }
-#endif
+    initBitmaps(fdes);
 
     // reading the coarse bins
-    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
-    if (ierr == offset32.back()) {
-	uint32_t nc;
-	ierr = UnixRead(fdes, &nc, sizeof(nc));
+    if (header[6] == 8) {
+	ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+	if (ierr != offset64.back()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bylt[" << col->partition()->name() << '.'
+		<< col->name() << "]::read(" << fnm << ") failed to seek to "
+		<< offset64.back() << ", ierr = " << ierr;
+	    return -4;
+	}
+    }
+    else {
+	ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+	if (ierr != offset32.back()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bylt[" << col->partition()->name() << '.'
+		<< col->name() << "]::read(" << fnm << ") failed to seek to "
+		<< offset32.back() << ", ierr = " << ierr;
+	    return -4;
+	}
+    }
+
+    uint32_t nc;
+    ierr = UnixRead(fdes, &nc, sizeof(nc));
+    if (ierr < (off_t) sizeof(nc)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bylt[" << col->partition()->name() << '.'
+	    << col->name() << "]::read(" << fnm
+	    << ") failed to read a 4-byte ineteger, ierr = " << ierr;
+	return -5;
+    }
+    if (header[6] == 8) {
+	begin = offset64.back() + sizeof(nc);
+	end = begin + sizeof(uint32_t)*(nc+1);
+	if (ierr > 0 && nc > 0) {
+	    array_t<uint32_t> tmp(fdes, begin, end);
+	    cbounds.swap(tmp);
+	}
+	begin = end;
+	end += sizeof(int64_t) * (nc+1);
+	if (cbounds.size() == nc+1) {
+	    array_t<int64_t> tmp(fdes, begin, end);
+	    coffset64.swap(tmp);
+	}
+	coffset32.clear();
+    }
+    else {
 	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
@@ -1503,44 +2096,86 @@ int ibis::bylt::read(const char* f) {
 	end += sizeof(int32_t) * (nc+1);
 	if (cbounds.size() == nc+1) {
 	    array_t<int32_t> tmp(fdes, begin, end);
-	    coffsets.swap(tmp);
+	    coffset32.swap(tmp);
 	}
-
-	for (unsigned i = 0; i < cbits.size(); ++ i)
-	    delete cbits[i];
-	cbits.resize(nc);
-	for (unsigned i = 0; i < nc; ++ i)
-	    cbits[i] = 0;
+	coffset64.clear();
     }
-    (void) UnixClose(fdes);
+
+    for (unsigned i = 0; i < cbits.size(); ++ i)
+	delete cbits[i];
+    cbits.resize(nc);
+    for (unsigned i = 0; i < nc; ++ i)
+	cbits[i] = 0;
     str = 0;
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' header from %s",
-			name(), fnm.c_str());
+    LOGGER(ibis::gVerbose > 7)
+	<< "bylt[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << fnm << ") finished reading the header";
     return 0;
 } // ibis::bylt::read
 
-// Reading information about the coarse bins.  To be used after calling
-// ibis::relic::read, which happens in the constructor.
+/// Reading information about the coarse bins.  To be used after calling
+/// ibis::relic::read, which happens in the constructor.
 int ibis::bylt::readCoarse(const char* fn) {
     std::string fnm;
     indexFileName(fn, fnm);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -4;
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    long ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
-    if (ierr == offset32.back()) {
-	uint32_t nc, begin, end;
-	ierr = UnixRead(fdes, &nc, sizeof(nc));
-	if (ierr <= 0 || static_cast<uint32_t>(ierr) != sizeof(nc)) {
-	    UnixClose(fdes);
-	    return -5;
+    off_t ierr;
+    if (offset64.size() > bits.size()) {
+	ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+	if (ierr != offset64.back()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bylt[" << col->partition()->name() << '.'
+		<< col->name() << "]::readCoarse failed to seek to "
+		<< offset64.back() << ", ierr = " << ierr;
+	    return -1;
 	}
+    }
+    else {
+	ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+	if (ierr != offset32.back()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bylt[" << col->partition()->name() << '.'
+		<< col->name() << "]::readCoarse failed to seek to "
+		<< offset32.back() << ", ierr = " << ierr;
+	    return -2;
+	}
+    }
 
+    uint32_t nc, begin, end;
+    ierr = UnixRead(fdes, &nc, sizeof(nc));
+    if (ierr < (long) sizeof(nc)) {
+	return -3;
+    }
+    if (nc == 0) {
+	cbits.clear();
+	coffset32.clear();
+	coffset64.clear();
+	return 0;
+    }
+
+    if (offset64.size() > bits.size()) {
+	begin = offset64.back() + sizeof(nc);
+	end = begin + sizeof(uint32_t)*(nc+1);
+	{
+	    array_t<uint32_t> tmp(fdes, begin, end);
+	    cbounds.swap(tmp);
+	}
+	begin = end;
+	end += sizeof(int64_t) * (nc+1);
+	if (cbounds.size() == nc+1) {
+	    array_t<int64_t> tmp(fdes, begin, end);
+	    coffset64.swap(tmp);
+	}
+	coffset32.clear();
+    }
+    else {
 	begin = offset32.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	if (ierr > 0 && nc > 0) {
@@ -1551,133 +2186,96 @@ int ibis::bylt::readCoarse(const char* fn) {
 	end += sizeof(int32_t) * (nc+1);
 	if (cbounds.size() == nc+1) {
 	    array_t<int32_t> tmp(fdes, begin, end);
-	    coffsets.swap(tmp);
+	    coffset32.swap(tmp);
 	}
-
-	for (unsigned i = 0; i < cbits.size(); ++ i)
-	    delete cbits[i];
-	cbits.resize(nc);
-	for (unsigned i = 0; i < nc; ++ i)
-	    cbits[i] = 0;
+	coffset64.clear();
     }
-    (void) UnixClose(fdes);
 
-    if (ibis::gVerbose > 7)
-	col->logMessage("readIndex", "finished reading '%s' coarse bin info "
-			"from %s", name(), fnm.c_str());
+    for (unsigned i = 0; i < cbits.size(); ++ i)
+	delete cbits[i];
+    cbits.resize(nc);
+    for (unsigned i = 0; i < nc; ++ i)
+	cbits[i] = 0;
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "bylt[" << col->partition()->name() << '.' << col->name()
+	<< "]::readCoarse(" << fnm << ") completed reading the header";
     return 0;
 } // ibis::bylt::readCoarse
 
-// attempt to reconstruct an index from a piece of consecutive memory
+/// Reconstruct an index from a storage object.
 int ibis::bylt::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
     clear();
 
+    const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
-    uint32_t pos = 8 + sizeof(uint32_t);
+    size_t pos = 8 + sizeof(uint32_t);
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
-    array_t<int32_t> offs(st, 8*(pos/8) + sizeof(double)*card, nobs+1);
-    array_t<double> dbl(st, 8*(pos/8), card);
-    offset32.copy(offs);
-    vals.swap(dbl);
-
-    for (uint32_t i = 0; i < bits.size(); ++ i)
-	delete bits[i];
-    bits.resize(nobs);
-    for (uint32_t i = 0; i < nobs; ++i)
-	bits[i] = 0;
-    if (st->isFileMap()) { // only restore the first bitvector
-#if defined(FASTBIT_READ_BITVECTOR0)
-	if (offs[1] > offs[0]) {
-	    array_t<ibis::bitvector::word_t>
-		a0(st, offs[0], (offs[1]-offs[0])/
-		   sizeof(ibis::bitvector::word_t));
-	    bits[0] = new ibis::bitvector(a0);
-	    bits[0]->sloppySize(nrows);
-	}
-	else {
-	    bits[0] = new ibis::bitvector;
-	    bits[0]->adjustSize(0, nrows);
-	}
-#endif
-	str = st;
-
-	if (str->size() > static_cast<uint32_t>(offset32.back())) {
-	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
-	    if (nc > 0 && str->size() > static_cast<uint32_t>(offset32.back()) +
-		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
-		uint32_t start;
-		start = offset32.back() + 4;
-		array_t<uint32_t> btmp(str, start, nc+1);
-		cbounds.swap(btmp);
-
-		start += sizeof(uint32_t)*(nc+1);
-		array_t<int32_t> otmp(str, start, nc+1);
-
-		cbits.resize(nc);
-		for (unsigned i = 0; i < nc; ++ i)
-		    cbits[i] = 0;
-	    }
-	}
+    pos = (pos / 8) * 8;
+    {
+	array_t<double> dbl(st, pos, card);
+	vals.swap(dbl);
     }
-    else { // regenerate all the bitvectors
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    if (offs[i+1] > offs[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(st, offs[i], (offs[i+1]-offs[i])/
-		      sizeof(ibis::bitvector::word_t));
-		ibis::bitvector* btmp = new ibis::bitvector(a);
-		btmp->sloppySize(nrows);
-		bits[i] = btmp;
-	    }
-	    else if (ibis::gVerbose > 0) {
-		col->logWarning("bylt::read", "bitvector %lu is invalid "
-				"(offsets[%lu]=%lu, offsets[%lu]=%lu)",
-				static_cast<long unsigned>(i),
-				static_cast<long unsigned>(i),
-				static_cast<long unsigned>(offs[i]),
-				static_cast<long unsigned>(i+1),
-				static_cast<long unsigned>(offs[i+1]));
-	    }
-	}
+    int ierr = initOffsets(st, pos + sizeof(double)*card, nobs);
+    if (ierr < 0)
+	return ierr;
 
-	if (str->size() > static_cast<uint32_t>(offset32.back())) {
-	    uint32_t nc =
-		*(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
-	    if (nc > 0 && str->size() > offset32.back() +
-		(sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
-		uint32_t start;
-		start = offset32.back() + 4;
-		array_t<uint32_t> btmp(str, start, nc+1);
-		cbounds.swap(btmp);
+    initBitmaps(st);
 
-		start += sizeof(uint32_t)*(nc+1);
-		array_t<int32_t> otmp(str, start, nc+1);
+    if (!(offsetsize == 8 &&
+	  str->size() > static_cast<size_t>(offset64.back())) ||
+	(offsetsize == 4 &&
+	 str->size() > static_cast<size_t>(offset32.back()))) 
+	return 0;
 
-		cbits.resize(nc);
-		for (unsigned i = 0; i < nc; ++ i) {
-		    if (coffsets[i+1] > coffsets[i]) {
-			array_t<ibis::bitvector::word_t>
-			    a(st, coffsets[i], (coffsets[i+1]-coffsets[i])
-			      / sizeof(ibis::bitvector::word_t));
-			cbits[i] = new ibis::bitvector(a);
-			cbits[i]->sloppySize(nrows);
-		    }
-		    else {
-			cbits[i] = 0;
-		    }
-		}
-	    }
-	}
-	str = 0;
+    const uint32_t nc =
+	*(reinterpret_cast<uint32_t*>
+	  (str->begin() +
+	   (offsetsize == 8 ? (size_t) offset64.back()
+	    : (size_t)offset32.back())));
+
+    if (nc == 0
+	|| (offsetsize == 8 &&
+	    str->size() < static_cast<uint32_t>(offset32.back()) +
+	    (sizeof(int64_t)+sizeof(uint32_t))*(nc+1))
+	|| (offsetsize == 4 &&
+	    str->size() < static_cast<uint32_t>(offset32.back()) +
+	    (sizeof(int32_t)+sizeof(uint32_t))*(nc+1)))
+	return 0;
+
+    uint32_t start;
+    if (offsetsize == 8)
+	start = offset64.back() + 4;
+    else
+	start = offset32.back() + 4;
+    array_t<uint32_t> btmp(str, start, nc+1);
+    cbounds.swap(btmp);
+
+    start += sizeof(uint32_t)*(nc+1);
+    if (offsetsize == 8) {
+	array_t<int64_t> otmp(str, start, nc+1);
+	coffset64.swap(otmp);
+	coffset32.clear();
     }
+    else {
+	array_t<int32_t> otmp(str, start, nc+1);
+	coffset32.swap(otmp);
+	coffset64.clear();
+    }
+
+    for (unsigned j = 0; j < cbits.size(); ++ j)
+	delete cbits[j];
+    cbits.resize(nc);
+    for (unsigned i = 0; i < nc; ++ i)
+	cbits[i] = 0;
     return 0;
 } // ibis::bylt::read
 
+/// Clear the existing content.
 void ibis::bylt::clear() {
     const unsigned nc = cbits.size();
     for (unsigned i = 0; i < nc; ++ i)
@@ -1685,11 +2283,12 @@ void ibis::bylt::clear() {
 
     cbits.clear();
     cbounds.clear();
-    coffsets.clear();
+    coffset32.clear();
+    coffset64.clear();
     ibis::relic::clear();
 } // ibis::bylt::clear
 
-// the printing function
+/// Print function.
 void ibis::bylt::print(std::ostream& out) const {
     if (vals.size() != bits.size() || bits.empty())
 	return;
@@ -1799,3 +2398,16 @@ void ibis::bylt::print(std::ostream& out) const {
     }
     out << "\n";
 } // ibis::bylt::print
+
+/// Estiamte the size of the index in a file.
+size_t ibis::bylt::getSerialSize() const throw() {
+    size_t res = 40 + 8 * (bits.size() + vals.size())
+	+ 12 * (cbits.size());
+    for (unsigned j = 0; j < bits.size(); ++ j)
+	if (bits[j] != 0)
+	    res += bits[j]->getSerialSize();
+    for (unsigned j = 0; j < cbits.size(); ++ j)
+	if (cbits[j] != 0)
+	    res += cbits[j]->getSerialSize();
+    return res;
+} // ibis::bylt::getSerialSize

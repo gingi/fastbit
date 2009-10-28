@@ -373,19 +373,21 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
     }
 } // copy from ibis::bin
 
-// (de-serialization) reconstruct ambit from content of a file
-// In addition to the common content for index::bin, the following are
-// inserted after minval array: (this constructor relies the fact that max1
-// and min1 follow minval immediately without any separation or padding)
-// max1 (double) -- the maximum value of all data entry
-// min1 (double) -- the minimum value of those larger than or equal to the
-// largest bounds value (bounds[nobs-1])
-// offsets_for_next_level (uint32_t[nobs]) -- as the name suggests, these are
-// the offsets (in this file) for the next level ibis::ambit.
-// after the bit vectors of this level are written, the next level ibis::ambit
-// are written without header.
+/// Reconstruct ambit from content of a storage object.
+/// In addition to the common content for index::bin, the following are
+/// inserted after minval array: (this constructor relies the fact that max1
+/// and min1 follow minval immediately without any separation or padding)
+///@code
+/// max1 (double) -- the maximum value of all data entry
+/// min1 (double) -- the minimum value of those larger than or equal to the
+///                  largest bounds value (bounds[nobs-1])
+/// offsets_for_next_level ([nobs+1]) -- as the name suggests, these are
+///                  the offsets (in this file) for the next level ibis::ambit.
+///@endcode
+/// After the bit vectors of this level are written, the next level ibis::ambit
+/// are written without header.
 ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
-		   uint32_t offset)
+		   size_t offset)
     : ibis::bin(c, st, offset), max1(*(minval.end())),
       min1(*(1+minval.end())) {
     try {
@@ -1121,6 +1123,7 @@ int ibis::ambit::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
+    (void) UnixSeek(fdes, offset64.back(), SEEK_SET);
 
     ibis::array_t<int32_t> nextlevel(nobs+1);
     // write the sub-ranges
@@ -1149,7 +1152,8 @@ int ibis::ambit::write32(int fdes) const {
 #endif
 
     // write the offsets for the subranges
-    const off_t nloffsets = 8*((start+sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
+    const off_t nloffsets =
+	8*((start+sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
 	sizeof(double)*(nobs*3+2);
     ierr = UnixSeek(fdes, nloffsets, SEEK_SET);
     if (ierr < nloffsets) {
@@ -1270,6 +1274,7 @@ int ibis::ambit::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
+    (void) UnixSeek(fdes, offset64.back(), SEEK_SET);
 
     ibis::array_t<int64_t> nextlevel(nobs+1);
     // write the sub-ranges
