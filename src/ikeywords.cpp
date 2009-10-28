@@ -327,7 +327,7 @@ int ibis::keywords::write(const char* dt) const {
 
     off_t ierr = 0;
     const uint32_t nobs = bits.size();
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)ibis::index::KEYWORDS;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -496,7 +496,7 @@ int ibis::keywords::read(const char* f) {
     // read offsets
     begin = 8 + 2*sizeof(uint32_t);
     end = 8 + 2*sizeof(uint32_t) + header[6] * (dim[1] + 1);
-    ierr = initOffsets(fdes, header[6], 8, dim[1]);
+    ierr = initOffsets(fdes, header[6], begin, dim[1]);
     if (ierr < 0)
 	return ierr;
     ibis::fileManager::instance().recordPages(0, end);

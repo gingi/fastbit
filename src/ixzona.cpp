@@ -165,11 +165,11 @@ void ibis::zona::coarsen() {
 	cbounds[i] = cbounds[i+1] - 1;
 
     // fill cbits
-    cbits.reserve(ncoarse);
     for (unsigned i = 0; i < cbits.size(); ++ i) {
 	delete cbits[i];
 	cbits[i] = 0;
     }
+    cbits.reserve(ncoarse);
     for (unsigned i = 0; i < ncoarse; ++ i) {
 	// generate a new bitmap for each coarse bin, even if it only
 	// contains one fine level bitmap
@@ -1114,6 +1114,7 @@ int ibis::zona::writeCoarse32(int fdes) const {
 	return -5;
     }
 
+    coffset64.clear();
     coffset32.resize(nc+1);
     coffset32[0] = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
@@ -1127,8 +1128,8 @@ int ibis::zona::writeCoarse32(int fdes) const {
     if (ierr != pos) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
-	    << col->name() << "]::writeCoarse(" << fdes << ") failed to seek to "
-	    << pos << ", ierr = " << ierr;
+	    << col->name() << "]::writeCoarse(" << fdes
+	    << ") failed to seek to " << pos << ", ierr = " << ierr;
 	return -6;
     }
     ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nc+1));
@@ -1139,7 +1140,6 @@ int ibis::zona::writeCoarse32(int fdes) const {
 	    << nc+1 << "32-bit offsets, ierr = " << ierr;
 	return -7;
     }
-    coffset64.clear();
     ierr = UnixSeek(fdes, coffset32.back(), SEEK_SET);
     return (ierr == coffset32.back() ? 0 : -9);
 } // ibis::zona::writeCoarse32
@@ -1162,6 +1162,7 @@ int ibis::zona::writeCoarse64(int fdes) const {
 	return -5;
     }
 
+    coffset32.clear();
     coffset64.resize(nc+1);
     coffset64[0] = UnixSeek(fdes, sizeof(int64_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
@@ -1175,8 +1176,8 @@ int ibis::zona::writeCoarse64(int fdes) const {
     if (ierr != pos) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
-	    << col->name() << "]::writeCoarse(" << fdes << ") failed to seek to "
-	    << pos << ", ierr = " << ierr;
+	    << col->name() << "]::writeCoarse(" << fdes
+	    << ") failed to seek to " << pos << ", ierr = " << ierr;
 	return -6;
     }
     ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nc+1));
@@ -1188,7 +1189,6 @@ int ibis::zona::writeCoarse64(int fdes) const {
 	return -7;
     }
     ierr = UnixSeek(fdes, coffset64.back(), SEEK_SET);
-    coffset32.clear();
     return (ierr == coffset64.back() ? 0 : -9);
 } // ibis::zona::writeCoarse64
 

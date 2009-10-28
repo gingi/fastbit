@@ -215,7 +215,7 @@ int ibis::relic::write(const char* dt) const {
 
     int32_t ierr = 0;
     const uint32_t nobs = vals.size();
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)ibis::index::RELIC;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -276,6 +276,8 @@ int ibis::relic::write32(int fdes) const {
 	return -6;
     }
 
+    offset64.clear();
+    offset32.resize(nobs+1);
     offset32[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
@@ -369,6 +371,8 @@ int ibis::relic::write64(int fdes) const {
 	return -6;
     }
 
+    offset32.clear();
+    offset64.resize(nobs+1);
     offset64[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {

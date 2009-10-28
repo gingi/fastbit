@@ -4827,12 +4827,7 @@ int ibis::bin::write(const char* dt) const {
 	return -4;
     }
 
-    /// fsize = expected files (assuming 8-byte offsets for bitmaps)
-    uint64_t fsize = 24 + 32*nobs;
-    for (uint32_t i = 0; i < nobs; ++ i)
-	if (bits[i] != 0)
-	    fsize += bits[i]->bytes();
-    const bool useoffset64 = (fsize >= 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() >= 0x80000000UL);
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());

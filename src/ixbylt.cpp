@@ -208,11 +208,11 @@ void ibis::bylt::coarsen() {
     }
 
     // fill cbits
-    cbits.reserve(ncoarse-1);
     for (unsigned i = 0; i < cbits.size(); ++ i) {
 	delete cbits[i];
 	cbits[i] = 0;
     }
+    cbits.resize(ncoarse-1);
     for (unsigned i = 0; i < ncoarse-1; ++ i) {
 	ibis::bitvector tmp;
 	if (i > 0) {
@@ -1750,7 +1750,7 @@ int ibis::bylt::write(const char* dt) const {
 #endif
 
     int32_t ierr = 0;
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
 
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)ibis::index::BYLT;
@@ -1809,14 +1809,15 @@ int ibis::bylt::writeCoarse32(int fdes) const {
 	return -5;
     }
 
-    offset32.resize(nc+1);
-    offset32[0] = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
+    coffset64.clear();
+    coffset32.resize(nc+1);
+    coffset32[0] = UnixSeek(fdes, sizeof(int32_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
 	if (cbits[i] != 0)
 	    cbits[i]->write(fdes);
-	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+	coffset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    const off_t pos = offset32[0] - sizeof(int32_t) * (nc+1);
+    const off_t pos = coffset32[0] - sizeof(int32_t) * (nc+1);
     ierr = UnixSeek(fdes, pos, SEEK_SET);
     if (ierr != pos) {
 	LOGGER(ibis::gVerbose > 0)
@@ -1825,7 +1826,7 @@ int ibis::bylt::writeCoarse32(int fdes) const {
 	    << pos << ", ierr = " << ierr;
 	return -6;
     }
-    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nc+1));
+    ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nc+1));
     if (ierr < (off_t) sizeof(int32_t)*(nc+1)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bylt[" << col->partition()->name() << "."
@@ -1834,15 +1835,14 @@ int ibis::bylt::writeCoarse32(int fdes) const {
 	    << fdes << ", ierr = " << ierr;
 	return -7;
     }
-    ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
-    if (ierr != offset32.back()) {
+    ierr = UnixSeek(fdes, coffset32.back(), SEEK_SET);
+    if (ierr != coffset32.back()) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bylt[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse32 failed to seek to "
-	    << offset32.back() << ", ierr = " << ierr;
+	    << coffset32.back() << ", ierr = " << ierr;
 	return -8;
     }
-    offset64.clear();
     return 0;
 } // ibis::bylt::writeCoarse32
 
@@ -1867,14 +1867,15 @@ int ibis::bylt::writeCoarse64(int fdes) const {
 	return -5;
     }
 
-    offset64.resize(nc+1);
-    offset64[0] = UnixSeek(fdes, sizeof(int64_t)*(nc+1), SEEK_CUR);
+    coffset32.clear();
+    coffset64.resize(nc+1);
+    coffset64[0] = UnixSeek(fdes, sizeof(int64_t)*(nc+1), SEEK_CUR);
     for (unsigned i = 0; i < nc; ++ i) {
 	if (cbits[i] != 0)
 	    cbits[i]->write(fdes);
-	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+	coffset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    const off_t pos = offset64[0] - sizeof(int64_t) * (nc+1);
+    const off_t pos = coffset64[0] - sizeof(int64_t) * (nc+1);
     ierr = UnixSeek(fdes, pos, SEEK_SET);
     if (ierr != pos) {
 	LOGGER(ibis::gVerbose > 0)
@@ -1883,7 +1884,7 @@ int ibis::bylt::writeCoarse64(int fdes) const {
 	    << pos << ", ierr = " << ierr;
 	return -6;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nc+1));
+    ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nc+1));
     if (ierr < (off_t) sizeof(int64_t)*(nc+1)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bylt[" << col->partition()->name() << "."
@@ -1892,15 +1893,14 @@ int ibis::bylt::writeCoarse64(int fdes) const {
 	    << fdes << ", ierr = " << ierr;
 	return -7;
     }
-    ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
-    if (ierr != offset64.back()) {
+    ierr = UnixSeek(fdes, coffset64.back(), SEEK_SET);
+    if (ierr != coffset64.back()) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bylt[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse64 failed to seek to "
-	    << offset64.back() << ", ierr = " << ierr;
+	    << coffset64.back() << ", ierr = " << ierr;
 	return -8;
     }
-    offset64.clear();
     return 0;
 } // ibis::bylt::writeCoarse64
 
@@ -1925,7 +1925,7 @@ int ibis::bylt::read(const char* f) {
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
 		  header[5] == static_cast<char>(BYLT) &&
-		  header[6] == static_cast<char>(sizeof(int32_t)) &&
+		  (header[6] == 8 || header[6] == 4) &&
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;

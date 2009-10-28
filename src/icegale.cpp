@@ -216,6 +216,8 @@ int ibis::egale::write32(int fdes) const {
 	return -4;
     }
 
+    offset64.clear();
+    offset32.resize(nobs+1);
     offset32[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
@@ -281,8 +283,8 @@ int ibis::egale::write32(int fdes) const {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32 expected to write "
-	    << sizeof(int32_t)*(nbits+1) << " bytes, but the function write returned "
-	    << ierr;
+	    << sizeof(int32_t)*(nbits+1)
+	    << " bytes, but the function write returned " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
@@ -314,6 +316,8 @@ int ibis::egale::write64(int fdes) const {
 	return -4;
     }
 
+    offset32.clear();
+    offset64.resize(nobs+1);
     offset64[0] = 8*((7+start+3*sizeof(uint32_t))/8);
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {

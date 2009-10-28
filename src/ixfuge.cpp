@@ -187,8 +187,11 @@ int ibis::fuge::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("fuge::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- fuge[" << col->partition()->name() << "."
+		<< col->name() << "]::write failed to open \"" << fnm
+		<< "\" for writing ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
 	    return -2;
 	}
     }
@@ -197,15 +200,15 @@ int ibis::fuge::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)ibis::index::FUGE;
     header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::column[" << col->partition()->name() << "."
-	    << col->name() << "]::fuge::write(" << fnm
+	    << "fuge[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }

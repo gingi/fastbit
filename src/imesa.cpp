@@ -153,13 +153,7 @@ int ibis::mesa::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    /// fsize = expected files (assuming 8-byte offsets for bitmaps)
-    uint64_t fsize = 24 + 32*nobs;
-    for (uint32_t i = 0; i < nobs; ++ i)
-	if (bits[i] != 0)
-	    fsize += bits[i]->bytes();
-    const bool useoffset64 = (fsize >= 0x80000000UL);
-
+    const bool useoffset64 = (8+getSerialSize() >= 0x80000000UL);
     char header[] = "#IBIS\6\0\0";
     header[5] = (char)ibis::index::MESA;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -193,6 +187,8 @@ int ibis::mesa::write(const char* dt) const {
     (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     (void) UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
     if (useoffset64) {
+	offset32.clear();
+	offset64.resize(nobs+1);
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (bits[i])
@@ -211,6 +207,8 @@ int ibis::mesa::write(const char* dt) const {
 	ierr = (ierr == (off_t) (8*(nobs+1)) ? 0 : -9);
     }
     else {
+	offset64.clear();
+	offset32.resize(nobs+1);
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (bits[i])
@@ -442,11 +440,8 @@ void ibis::mesa::construct(const char* df) {
 	}
 
 	bits.resize(nobs-n2+1);
-	offset64.resize(nobs-n2);
-	offset64[0] = 0;
 	for (uint32_t i = 0; i+n2 <= nobs; ++i) {
 	    bits[i]->compress();
-	    offset64[i+1] = offset64[i] + bits[i]->getSerialSize();
 	}
 
 	if (ibis::gVerbose > 4) {
@@ -456,8 +451,8 @@ void ibis::mesa::construct(const char* df) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
-	    << "]::mesa::ctor encountered an exception, cleaning up ...";
+	    << "Warning -- mesa[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor received an exception, cleaning up ...";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    delete b2[i];
 	}

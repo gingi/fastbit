@@ -267,8 +267,11 @@ int ibis::pale::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("pale::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- pale[" << col->partition()->name() << "."
+		<< col->name() << "]::write failed to open \"" << fnm
+		<< "\" for writing ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
 	    return -2;
 	}
     }
@@ -276,7 +279,7 @@ int ibis::pale::write(const char* dt) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\3\0\0";
     header[5] = (char)ibis::index::PALE;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -320,6 +323,9 @@ int ibis::pale::write32(int fdes) const {
 	return -5;
     }
     (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
+
+    offset64.clear();
+    offset32.resize(nobs+1);
     offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
@@ -331,7 +337,7 @@ int ibis::pale::write32(int fdes) const {
 	return -6;
     }
 
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t) (3*sizeof(double)*nobs)) {
@@ -450,6 +456,9 @@ int ibis::pale::write64(int fdes) const {
 	return -5;
     }
     (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
+
+    offset32.clear();
+    offset64.resize(nobs+1);
     offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {

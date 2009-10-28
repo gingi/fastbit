@@ -182,6 +182,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		      "factory with spec=`%s' and source=%s)", spec,
 		      (dfname ? dfname : c->partition()->currentDataDir()));
 
+    int ierr;
     bool isRead = false;
     uint32_t ncomp = 0;
     ibis::horometer timer;
@@ -210,7 +211,6 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     }
     try {
 	if (dfname != 0 && *dfname != 0) { // first attempt to read the index
-	    int ierr;
 	    std::string file;
 	    ibis::fileManager::storage* st=0;
 	    file = dfname;
@@ -288,7 +288,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		const bool check = (header[0] == '#' && header[1] == 'I' &&
 				    header[2] == 'B' && header[3] == 'I' &&
 				    header[4] == 'S' &&
-				    header[6] == (char)sizeof(int32_t) &&
+				    (header[6] == 8 || header[6] == 4) &&
 				    header[7] == static_cast<char>(0));
 		if (!check) {
 		    c->logWarning("readIndex", "index file \"%s\" "
@@ -857,7 +857,16 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    // have built a valid index, write out its content
 		    file.erase(file.rfind(FASTBIT_DIRSEP));
 		    try {
-			ind->write(file.c_str());
+			ierr = ind->write(file.c_str());
+			if (ierr < 0) {
+			    c->logWarning("createIndex",
+					  "failed to write the index to %s",
+					  file.c_str());
+			    file += FASTBIT_DIRSEP;
+			    file += c->name();
+			    file += ".idx";
+			    remove(file.c_str());
+			}
 		    }
 		    catch (...) {
 			c->logWarning("createIndex",
@@ -1192,7 +1201,17 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    else if (ind->getNRows() == c->partition()->nRows()) {
 		// having built a valid index, write out its content
 		try {
-		    ind->write(c->partition()->currentDataDir());
+		    ierr = ind->write(c->partition()->currentDataDir());
+		    if (ierr < 0) {
+			c->logWarning("createIndex",
+				      "failed to write the index to %s",
+				      c->partition()->currentDataDir());
+			std::string idxname = c->partition()->currentDataDir();
+			idxname += FASTBIT_DIRSEP;
+			idxname += c->name();
+			idxname += ".idx";
+			remove(idxname.c_str());
+		    }
 		}
 		catch (...) {
 		    c->logWarning("createIndex",
@@ -4359,34 +4378,35 @@ void ibis::index::activate() const {
     if (missing == false) return;
 
     if (str == 0 && fname == 0) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- index[" << col->name() << "]::activate can not "
-	    "proceed without either str or fname";
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::activate cannot proceed without str or fname";
 	return;
     }
     if (offset32.size() <= nobs && offset64.size() <= nobs) {
-	col->logWarning("index::activate", "need offsets to regenerate "
-			"the bitvectors");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::activate needs offsets to regenerate "
+	    "the bitvectors";
 	return;
     }
     if (offset64.size() > nobs) { // prefer to use offset64 if present
 	if (str) { // using a ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name()
-		<< "]::index::activate(all) from ibis::fileManager::storage(0x"
+		<< "index[" << col->partition()->name() << '.' << col->name()
+		<< "]::activate using ibis::fileManager::storage(0x"
 		<< str << ")";
 
 	    for (size_t i = 0; i < nobs; ++i) {
 		if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
-#if defined(DEBUG)
-		    if (ibis::gVerbose > 5) {
-			LOGGER(ibis::gVerbose >= 0)
-			    << "index::activate -- activating bitvector "
-			    << i << " from a raw storage ("
-			    << static_cast<const void*>(str->begin())
-			    << "), offsets[" << i << "]= " << offset64[i]
-			    << ", offsets[" << i+1 << "]= " << offset64[i+1];
-		    }
+#if defined(_DEBUG)
+		    LOGGER(ibis::gVerbose > 5)
+			<< "DEBUG -- index[" << col->partition()->name() << '.'
+			<< col->name() << "]::activate -- activating bitvector "
+			<< i << " from a raw storage ("
+			<< static_cast<const void*>(str->begin())
+			<< "), offsets[" << i << "]= " << offset64[i]
+			<< ", offsets[" << i+1 << "]= " << offset64[i+1];
 #endif
 		    array_t<ibis::bitvector::word_t>
 			a(str, offset64[i], (offset64[i+1]-offset64[i]) /
@@ -4398,95 +4418,18 @@ void ibis::index::activate() const {
 	}
 	else { // using the named file directly
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
-	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose > 8)
-		    << "ibis::column[" << col->name()
-		    << "]::index::activate(all) from file \"" << fname << "\"";
-
-#if defined(_WIN32) && defined(_MSC_VER)
-		(void)_setmode(fdes, _O_BINARY);
-#endif
-		size_t i = 0;
-		while (i < nobs) {
-		    // skip to next empty bit vector
-		    while (i < nobs && bits[i] != 0)
-			++ i;
-		    // the last bitvector to activate. can not be larger
-		    // than j
-		    size_t aj = (i<nobs ? i + 1 : nobs);
-		    while (aj < nobs && bits[aj] == 0)
-			++ aj;
-		    if (offset64[aj] > offset64[i]) {
-			const uint64_t start = offset64[i];
-			ibis::fileManager::storage *a0 = new
-			    ibis::fileManager::storage(fdes, start,
-						       offset64[aj]);
-			while (i < aj) {
-			    if (offset64[i+1] > offset64[i]) {
-				array_t<ibis::bitvector::word_t>
-				    a1(a0, offset64[i]-start,
-				       (offset64[i+1]-offset64[i])/
-				       sizeof(ibis::bitvector::word_t));
-				bits[i] = new ibis::bitvector(a1);
-				bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-				if (ibis::gVerbose > 5) {
-				    LOGGER(ibis::gVerbose >= 0)
-					<< "index::activate -- "
-					"activating bitvector " << i
-					<< "by reading file " << fname
-					<< "offsets[" << i << "]= "
-					<< offset64[i]
-					<< ", offsets[" << i+1 << "]= "
-					<< offset64[i+1];
-				}
-#endif
-			    }
-			    ++ i;
-			}
-		    }
-		    i = aj; // always advance i
-		}
-		UnixClose(fdes);
+	    if (fdes < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate failed to open file \""
+		    << fname << "\" ... " << (errno ? strerror(errno) : "??");
+		errno = 0;
+		return;
 	    }
-	    else {
-		col->logWarning("activate", "failed to open file \"%s\" ... %s",
-				fname, strerror(errno));
-	    }
-	}
-    }
-    else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name()
-	    << "]::index::activate(all) from ibis::fileManager::storage(0x"
-	    << str << ")";
-
-	for (size_t i = 0; i < nobs; ++i) {
-	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
-#if defined(DEBUG)
-		if (ibis::gVerbose > 5) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "index::activate -- activating bitvector "
-			<< i << " from a raw storage ("
-			<< static_cast<const void*>(str->begin())
-			<< "), offsets[" << i << "]= " << offset32[i]
-			<< ", offsets[" << i+1 << "]= " << offset32[i+1];
-		}
-#endif
-		array_t<ibis::bitvector::word_t>
-		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
-		bits[i] = new ibis::bitvector(a);
-		bits[i]->sloppySize(nrows);
-	    }
-	}
-    }
-    else { // using the named file directly
-	int fdes = UnixOpen(fname, OPEN_READONLY);
-	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name()
-		<< "]::index::activate(all) from file \"" << fname << "\"";
+		<< "index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate from file \"" << fname
+		<< "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -4501,30 +4444,28 @@ void ibis::index::activate() const {
 		size_t aj = (i<nobs ? i + 1 : nobs);
 		while (aj < nobs && bits[aj] == 0)
 		    ++ aj;
-		if (offset32[aj] > offset32[i]) {
-		    const uint32_t start = offset32[i];
+		if (offset64[aj] > offset64[i]) {
+		    const uint64_t start = offset64[i];
 		    ibis::fileManager::storage *a0 = new
 			ibis::fileManager::storage(fdes, start,
-						   offset32[aj]);
+						   offset64[aj]);
 		    while (i < aj) {
-			if (offset32[i+1] > offset32[i]) {
+#if defined(_DEBUG)
+			LOGGER(ibis::gVerbose > 5)
+			    << "DEBUG -- index[" << col->partition()->name()
+			    << '.' << col->name() << "]::activate -- "
+			    "activating bitvector " << i
+			    << " by reading file " << fname
+			    << "offsets[" << i << "]= " << offset64[i]
+			    << ", offsets[" << i+1 << "]= " << offset64[i+1];
+#endif
+			if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
 			    array_t<ibis::bitvector::word_t>
-				a1(a0, offset32[i]-start,
-				   (offset32[i+1]-offset32[i])/
+				a1(a0, offset64[i]-start,
+				   (offset64[i+1]-offset64[i])/
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-			    if (ibis::gVerbose > 5) {
-				LOGGER(ibis::gVerbose >= 0)
-				    << "index::activate -- "
-				    "activating bitvector " << i
-				    << "by reading file " << fname
-				    << "offsets[" << i << "]= " << offset32[i]
-				    << ", offsets[" << i+1 << "]= "
-				    << offset32[i+1];
-			    }
-#endif
 			}
 			++ i;
 		    }
@@ -4533,10 +4474,88 @@ void ibis::index::activate() const {
 	    }
 	    UnixClose(fdes);
 	}
-	else {
-	    col->logWarning("activate", "failed to open file \"%s\" ... %s",
-			    fname, strerror(errno));
+    }
+    else if (str) { // using a ibis::fileManager::storage as back store
+	LOGGER(ibis::gVerbose > 8)
+	    << "index[" << col->partition()->name() << '.' << col->name()
+	    << "]::activate using ibis::fileManager::storage(0x"
+	    << str << ")";
+
+	for (size_t i = 0; i < nobs; ++i) {
+	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate -- activating bitvector "
+		    << i << " from a raw storage ("
+		    << static_cast<const void*>(str->begin())
+		    << "), offsets[" << i << "]= " << offset32[i]
+		    << ", offsets[" << i+1 << "]= " << offset32[i+1];
+#endif
+		array_t<ibis::bitvector::word_t>
+		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
+		      sizeof(ibis::bitvector::word_t));
+		bits[i] = new ibis::bitvector(a);
+		bits[i]->sloppySize(nrows);
+	    }
 	}
+    }
+    else { // using the named file directly
+	int fdes = UnixOpen(fname, OPEN_READONLY);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate failed to open file \"" << fname
+		<< "\" ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
+	    return;
+	}
+	LOGGER(ibis::gVerbose > 8)
+	    << "index[" << col->partition()->name() << '.' << col->name()
+	    << "]::activate using file \"" << fname << "\"";
+
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
+	size_t i = 0;
+	while (i < nobs) {
+	    // skip to next empty bit vector
+	    while (i < nobs && bits[i] != 0)
+		++ i;
+	    // the last bitvector to activate. can not be larger
+	    // than j
+	    size_t aj = (i<nobs ? i + 1 : nobs);
+	    while (aj < nobs && bits[aj] == 0)
+		++ aj;
+	    if (offset32[aj] > offset32[i]) {
+		const uint32_t start = offset32[i];
+		ibis::fileManager::storage *a0 = new
+		    ibis::fileManager::storage(fdes, start,
+					       offset32[aj]);
+		while (i < aj) {
+#if defined(_DEBUG)
+		    LOGGER(ibis::gVerbose > 5)
+			<< "DEBUG -- index[" << col->partition()->name()
+			<< '.' << col->name() << "]::activate -- "
+			"activating bitvector " << i
+			<< " by reading from file " << fname
+			<< " between offsets[" << i << "]= " << offset32[i]
+			<< ", offsets[" << i+1 << "]= " << offset32[i+1];
+#endif
+		    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
+			array_t<ibis::bitvector::word_t>
+			    a1(a0, offset32[i]-start,
+			       (offset32[i+1]-offset32[i])/
+			       sizeof(ibis::bitvector::word_t));
+			bits[i] = new ibis::bitvector(a1);
+			bits[i]->sloppySize(nrows);
+		    }
+		    ++ i;
+		}
+	    }
+	    i = aj; // always advance i
+	}
+	UnixClose(fdes);
     }
 } // ibis::index::activate
 
@@ -4547,14 +4566,16 @@ void ibis::index::activate(uint32_t i) const {
 
     if (bits[i] != 0) return;	// already active
     if (offset32.size() <= bits.size() && offset64.size() <= bits.size()) {
-	col->logWarning("index::activate", "need offset to "
-			"regenerate bitvector %lu",
-			static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::activate need offset to "
+	    "regenerate bitvector " << i;
 	return;
     }
     else if (str == 0 && fname == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- index[" << col->name() << "]::activate(" << i
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::activate(" << i
 	    << ") can not proceed without either str or fname";
 	return;
     }
@@ -4565,55 +4586,55 @@ void ibis::index::activate(uint32_t i) const {
 	}
 	else if (str) { // using a ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name() << "]::index::activate("
-		<< i << ") from ibis::fileManager::storage(0x" << str << ")";
+		<< "index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate(" << i
+		<< ") using ibis::fileManager::storage(0x" << str << ")";
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 5)
+		<< "DEBUG -- index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate(" << i
+		<< ") constructed a bitvector from range ["
+		<< offset64[i] << ", " << offset64[i+1]
+		<< ") of a storage at "
+		<< static_cast<const void*>(str->begin());
+#endif
 
 	    array_t<ibis::bitvector::word_t>
 		a(str, offset64[i], (offset64[i+1]-offset64[i]) /
 		  sizeof(ibis::bitvector::word_t));
 	    bits[i] = new ibis::bitvector(a);
 	    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-	    if (ibis::gVerbose > 5) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "index::activate(" << i
-		    << ") constructed a bitvector from range ["
-		    << offset64[i] << ", " << offset64[i+1]
-		    << ") of a storage at "
-		    << static_cast<const void*>(str->begin()) << "\nbits[" << i
-		    << "]=" << *(bits[i]);
-	    }
-#endif
 	}
 	else if (fname) { // using the named file directly
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
 		LOGGER(ibis::gVerbose > 8)
-		    << "ibis::column[" << col->name() << "]::index::activate("
-		    << i << ") from file \"" << fname << "\"";
+		    << "index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate(" << i
+		    << ") using file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
+#endif
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate(" << i
+		    << ") constructed a bitvector from range ["
+		    << offset64[i] << ", " << offset64[i+1] << ") of file "
+		    << fname << "\nbits[" << i << "]=" << *(bits[i]);
 #endif
 		array_t<ibis::bitvector::word_t> a0(fdes, offset64[i],
 						    offset64[i+1]);
 		bits[i] = new ibis::bitvector(a0);
 		UnixClose(fdes);
 		bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-		if (ibis::gVerbose > 5) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "index::activate(" << i
-			<< ") constructed a bitvector from range ["
-			<< offset64[i] << ", " << offset64[i+1] << ") of file "
-			<< fname << "\nbits[" << i << "]=" << *(bits[i]);
-		}
-#endif
 	    }
 	    else {
-		col->logWarning("activate",
-				"failed to open file \"%s\" ... %s",
-				fname, strerror(errno));
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate failed to open file \""
+		    << fname << "\" ... " << (errno ? strerror(errno) : "??");
 	    }
 	}
     }
@@ -4622,60 +4643,59 @@ void ibis::index::activate(uint32_t i) const {
     }
     else if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name() << "]::index::activate("
-	    << i << ") from ibis::fileManager::storage(0x" << str << ")";
+	    << "index[" << col->partition()->name() << '.' << col->name()
+	    << "]::activate(" << i
+	    << ") using ibis::fileManager::storage(0x" << str << ")";
+#if defined(_DEBUG)
+	LOGGER(ibis::gVerbose > 5)
+		<< "DEBUG -- index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate "
+		<< "construct bitvector " << i << "from range ["
+		<< offset32[i] << ", " << offset32[i+1] << ") of a storage at "
+		<< static_cast<const void*>(str->begin());
+#endif
 
 	array_t<ibis::bitvector::word_t>
 	    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
 	      sizeof(ibis::bitvector::word_t));
 	bits[i] = new ibis::bitvector(a);
 	bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-	if (ibis::gVerbose > 5) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "index::activate(" << i
-		<< ") constructed a bitvector from range ["
-		<< offset32[i] << ", " << offset32[i+1] << ") of a storage at "
-		<< static_cast<const void*>(str->begin()) << "\nbits[" << i
-		<< "]=" << *(bits[i]);
-	}
-#endif
     }
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name() << "]::index::activate("
-		<< i << ") from file \"" << fname << "\"";
-
+		<< "index[" << col->partition()->name() << '.' << col->name()
+		<< "]::activate(" << i << ") using file \"" << fname << "\"";
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
+#endif
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- index[" << col->partition()->name() << '.'
+		    << col->name() << "]::activate construct bitvector "
+		    << i << " from range [" << offset32[i] << ", "
+		    << offset32[i+1] << ") of file " << fname;
 #endif
 	    array_t<ibis::bitvector::word_t> a0(fdes, offset32[i],
 						offset32[i+1]);
 	    bits[i] = new ibis::bitvector(a0);
 	    UnixClose(fdes);
 	    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-	    if (ibis::gVerbose > 5) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "index::activate(" << i
-		    << ") constructed a bitvector from range ["
-		    << offset32[i] << ", " << offset32[i+1] << ") of file "
-		    << fname << "\nbits[" << i << "]=" << *(bits[i]);
-	    }
-#endif
 	}
 	else {
-	    col->logWarning("activate",
-			    "failed to open file \"%s\" ... %s",
-			    fname, strerror(errno));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- index[" << col->partition()->name() << '.'
+		<< col->name() << "]::activate failed to open file \""
+		<< fname << "\" ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
 	}
     }
     else {
-	col->logWarning("index::activate", "can not regenerate bitvector %lu "
-			"because neither str or fname is specified",
-			static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << col->name() << "]::activate no str or fname to regenerate "
+	    "bitvector " << i;
     }
 } // ibis::index::activate
 
@@ -4685,7 +4705,16 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	j = bits.size();
     if (i >= j || i >= bits.size()) // empty range
 	return;
-    ibis::column::mutexLock lock(col, "index::activate");
+    std::string evt = "index";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += col->partition()->name();
+	evt += '.';
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "activate";
+    ibis::column::mutexLock lock(col, evt.c_str());
 
     bool incore = (bits[i] != 0);
     for (uint32_t k = i+1; k < j && incore; ++ k)
@@ -4693,42 +4722,37 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     if (incore) return; // all bitvectors active
     if (str == 0 && fname == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- index[" << col->name() << "]::activate(" << i
-	    << ", " << j << ") can not proceed without either str or fname";
+	    << "Warning -- " << evt << "(" << i << ", " << j
+	    << ") can not proceed without either str or fname";
 	return;
     }
 
     if (offset32.size() <= bits.size() && offset64.size() <= bits.size()) {
-	col->logWarning("index::activate", "no records of offsets, can not "
-			"regenerate bitvectors %lu:%lu",
-			static_cast<long unsigned>(i),
-			static_cast<long unsigned>(j));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " no records of offsets, can not "
+	    "regenerate bitvectors " << i << ":" << j;
 	return;
     }
     if (offset64.size() > bits.size()) {
 	if (str) { // using an ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
-		<< "ibis::column[" << col->name() << "]::index::activate("
-		<< i << ", " << j << ") from ibis::fileManager::storage(0x"
-		<< str << ")";
+		<< evt << "(" << i << ", " << j
+		<< ") using ibis::fileManager::storage(0x" << str << ")";
 
 	    while (i < j) {
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- " << evt << " to construct bitvector "
+		    << i << " from range [" << offset64[i] << ", "
+		    << offset64[i+1] << ") of a storage at "
+		    << static_cast<const void*>(str->begin());
+#endif
 		if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
 		    array_t<ibis::bitvector::word_t>
 			a(str, offset64[i], (offset64[i+1]-offset64[i]) /
 			  sizeof(ibis::bitvector::word_t));
 		    bits[i] = new ibis::bitvector(a);
 		    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-		    if (ibis::gVerbose > 5) {
-			LOGGER(ibis::gVerbose >= 0)
-			    << "index::activate(" << i
-			    << ") constructed a bitvector from range ["
-			    << offset64[i] << ", " << offset64[i+1]
-			    << ") of a storage at "
-			    << static_cast<const void*>(str->begin());
-		    }
-#endif
 		}
 		++ i;
 	    }
@@ -4736,100 +4760,17 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	else if (fname) { // using the named file directly
 	    if (offset64[j] > offset64[i]) {
 		int fdes = UnixOpen(fname, OPEN_READONLY);
-		if (fdes >= 0) {
-		    LOGGER(ibis::gVerbose > 8)
-			<< "ibis::column[" << col->name()
-			<< "]::index::activate(" << i << ", " << j
-			<< ") from file \"" << fname << "\"";
+		if (fdes < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << "failed to open file \""
+			<< fname << "\" ... " << (errno?strerror(errno):"??");
+		    errno = 0;
+		    return;
+		}
 
-#if defined(_WIN32) && defined(_MSC_VER)
-		    (void)_setmode(fdes, _O_BINARY);
-#endif
-		    while (i < j) {
-			// skip to next empty bit vector
-			while (i < j && bits[i] != 0)
-			    ++ i;
-			// the last bitvector to activate. can not be larger
-			// than j
-			uint32_t aj = (i<j ? i + 1 : j);
-			while (aj < j && bits[aj] == 0)
-			    ++ aj;
-			if (offset64[aj] > offset64[i]) {
-			    const uint32_t start = offset64[i];
-			    ibis::fileManager::storage *a0 = new
-				ibis::fileManager::storage(fdes, start,
-							   offset64[aj]);
-			    while (i < aj) {
-				if (offset64[i+1] > offset64[i]) {
-				    array_t<ibis::bitvector::word_t>
-					a1(a0, offset64[i]-start,
-					   (offset64[i+1]-offset64[i])/
-					   sizeof(ibis::bitvector::word_t));
-				    bits[i] = new ibis::bitvector(a1);
-				    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-				    if (ibis::gVerbose > 5) {
-					LOGGER(ibis::gVerbose >= 0)
-					    << "index::activate(" << i
-					    << ") constructed a bitvector "
-					    "from range ["
-					    << offset64[i] << ", "
-					    << offset64[i+1]
-					    << ") of file " << fname;
-				    }
-#endif
-				}
-				++ i;
-			    }
-			}
-			i = aj; // always advance i
-		    }
-		    UnixClose(fdes);
-		}
-		else {
-		    col->logWarning("activate",
-				    "failed to open file \"%s\" ... %s",
-				    fname, strerror(errno));
-		}
-	    }
-	}
-    }
-    else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose > 8)
-	    << "ibis::column[" << col->name() << "]::index::activate("
-	    << i << ", " << j << ") from ibis::fileManager::storage(0x"
-	    << str << ")";
-
-	while (i < j) {
-	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
-		array_t<ibis::bitvector::word_t>
-		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
-		bits[i] = new ibis::bitvector(a);
-		bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-		if (ibis::gVerbose > 5) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "index::activate(" << i
-			<< ") constructed a bitvector from range ["
-			<< offset32[i] << ", " << offset32[i+1]
-			<< ") of a storage at "
-			<< static_cast<const void*>(str->begin());
-		}
-#endif
-	    }
-	    ++ i;
-	}
-    }
-    else if (fname) { // using the named file directly
-	if (offset32[j] > offset32[i]) {
-	    int fdes = UnixOpen(fname, OPEN_READONLY);
-	    if (fdes >= 0) {
 		LOGGER(ibis::gVerbose > 8)
-		    << "ibis::column[" << col->name()
-		    << "]::index::activate(" << i << ", " << j
-		    << ") from file \"" << fname << "\"";
-
+		    << evt << "(" << i << ", " << j
+		    << ") using file \"" << fname << "\"";		    
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4842,30 +4783,27 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		    uint32_t aj = (i<j ? i + 1 : j);
 		    while (aj < j && bits[aj] == 0)
 			++ aj;
-		    if (offset32[aj] > offset32[i]) {
-			const uint32_t start = offset32[i];
+		    if (offset64[aj] > offset64[i]) {
+			const uint64_t start = offset64[i];
 			ibis::fileManager::storage *a0 = new
 			    ibis::fileManager::storage(fdes, start,
-						       offset32[aj]);
+						       offset64[aj]);
 			while (i < aj) {
-			    if (offset32[i+1] > offset32[i]) {
+#if defined(_DEBUG)
+			    LOGGER(ibis::gVerbose > 5)
+				<< "DEBUG -- " << evt
+				<< " constructing bitvector " << i
+				<< "from range [" << offset64[i] << ", "
+				<< offset64[i+1] << ") of file " << fname;
+#endif
+			    if (bits[i] == 0 &&
+				offset64[i+1] > offset64[i]) {
 				array_t<ibis::bitvector::word_t>
-				    a1(a0, offset32[i]-start,
-				       (offset32[i+1]-offset32[i])/
+				    a1(a0, offset64[i]-start,
+				       (offset64[i+1]-offset64[i])/
 				       sizeof(ibis::bitvector::word_t));
 				bits[i] = new ibis::bitvector(a1);
 				bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-				if (ibis::gVerbose > 5) {
-				    LOGGER(ibis::gVerbose >= 0)
-					<< "index::activate(" << i
-					<< ") constructed a bitvector "
-					"from range ["
-					<< offset32[i] << ", "
-					<< offset32[i+1]
-					<< ") of file " << fname;
-				}
-#endif
 			    }
 			    ++ i;
 			}
@@ -4874,17 +4812,88 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		}
 		UnixClose(fdes);
 	    }
-	    else {
-		col->logWarning("activate",
-				"failed to open file \"%s\" ... %s",
-				fname, strerror(errno));
+	}
+    }
+    else if (str) { // using an ibis::fileManager::storage as back store
+	LOGGER(ibis::gVerbose > 8)
+	    << evt << "(" << i << ", " << j
+	    << ") using ibis::fileManager::storage(0x" << str << ")";
+
+	while (i < j) {
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 5)
+		<< "DEBUG -- " << evt << " constructing bitvector " << i
+		<< " from range [" << offset32[i] << ", " << offset32[i+1]
+		<< ") of a storage at "
+		<< static_cast<const void*>(str->begin());
+#endif
+	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
+		array_t<ibis::bitvector::word_t>
+		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
+		      sizeof(ibis::bitvector::word_t));
+		bits[i] = new ibis::bitvector(a);
+		bits[i]->sloppySize(nrows);
 	    }
+	    ++ i;
+	}
+    }
+    else if (fname) { // using the named file directly
+	if (offset32[j] > offset32[i]) {
+	    int fdes = UnixOpen(fname, OPEN_READONLY);
+	    if (fdes < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to open file \""
+		    << fname << "\" ... " << (errno ? strerror(errno) : "??");
+		return;
+	    }
+	    LOGGER(ibis::gVerbose > 8)
+		<< evt << "(" << i << ", " << j
+		<< ") using file \"" << fname << "\"";
+
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fdes, _O_BINARY);
+#endif
+	    while (i < j) {
+		// skip to next empty bit vector
+		while (i < j && bits[i] != 0)
+		    ++ i;
+		// the last bitvector to activate. can not be larger
+		// than j
+		uint32_t aj = (i<j ? i + 1 : j);
+		while (aj < j && bits[aj] == 0)
+		    ++ aj;
+		if (offset32[aj] > offset32[i]) {
+		    const uint32_t start = offset32[i];
+		    ibis::fileManager::storage *a0 = new
+			ibis::fileManager::storage(fdes, start,
+						   offset32[aj]);
+		    while (i < aj) {
+#if defined(_DEBUG)
+			LOGGER(ibis::gVerbose > 5)
+			    << "DEBUG -- " << evt << ") construct bitvector "
+			    << i << " from range [" << offset32[i] << ", "
+			    << offset32[i+1] << ") of file " << fname;
+#endif
+			if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
+			    array_t<ibis::bitvector::word_t>
+				a1(a0, offset32[i]-start,
+				   (offset32[i+1]-offset32[i])/
+				   sizeof(ibis::bitvector::word_t));
+			    bits[i] = new ibis::bitvector(a1);
+			    bits[i]->sloppySize(nrows);
+			}
+			++ i;
+		    }
+		}
+		i = aj; // always advance i
+	    }
+	    UnixClose(fdes);
 	}
     }
     else {
-	col->logWarning("index::activate", "can not regenerate bitvector %lu "
-			"because neither str or fname is specified",
-			static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not regenerate bitvectors "
+	    << i << ":" << j <<  " without str or fname";
     }
 } // ibis::index::activate
 
@@ -5004,7 +5013,8 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 		tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 		LOGGER(ibis::gVerbose >= 0)
-		    << "addBins-using priority queue: " << op1.first->bytes()
+		    << "DEBUG -- addBins-using priority queue: "
+		    << op1.first->bytes()
 		    << (op1.second ? "(transient), " : ", ")
 		    << op2.first->bytes()
 		    << (op2.second ? "(transient) >> " : " >> ")
@@ -5081,7 +5091,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "addBins(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- addBins(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::addBins
@@ -5301,7 +5311,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "addBins-using priority queue: "
+			    << "DEBUG -- addBins-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -5464,7 +5474,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "addBins-using priority queue: "
+			    << "DEBUG -- addBins-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -5597,7 +5607,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "addBins(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- addBins(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::addBins
@@ -5869,7 +5879,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "sumBins-using priority queue: "
+			    << "DEBUG -- sumBins-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -6045,7 +6055,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "sumBins-using priority queue: "
+			    << "DEBUG -- sumBins-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -6178,7 +6188,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "sumBins(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- sumBins(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::sumBins
@@ -6270,7 +6280,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "sumBins(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- sumBins(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::sumBins
@@ -6372,7 +6382,7 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 		tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 		LOGGER(ibis::gVerbose >= 0)
-		    << "addBits-using priority queue: "
+		    << "DEBUG -- addBits-using priority queue: "
 		    << op1.first->bytes()
 		    << (op1.second ? "(transient), " : ", ")
 		    << op2.first->bytes()
@@ -6430,7 +6440,7 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "addBits(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- addBits(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::addBits
@@ -6607,7 +6617,8 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 	    res |= *(ind[i]);
 #if defined(DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "sumBits-option 2: " << i << ", " << ind[i]->bytes();
+		<< "DEBUG -- sumBits-option 2: " << i << ", "
+		<< ind[i]->bytes();
 #endif
 	}
 	if (! straight)
@@ -6656,7 +6667,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 		tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 		LOGGER(ibis::gVerbose >= 0)
-		    << "sumBits-option 3: " << op1.first->bytes()
+		    << "DEBUG -- sumBits-option 3: " << op1.first->bytes()
 		    << (op1.second ? "(transient), " : ", ")
 		    << op2.first->bytes()
 		    << (op2.second ? "(transient) >> " : " >> ")
@@ -6835,7 +6846,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			    tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "sumBits-using priority queue: "
+				<< "DEBUG -- sumBits-using priority queue: "
 				<< op1.first->bytes()
 				<< (op1.second ? "(transient), " : ", ")
 				<< op2.first->bytes()
@@ -6966,7 +6977,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			    tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "sumBits-using priority queue: "
+				<< "DEBUG -- sumBits-using priority queue: "
 				<< op1.first->bytes()
 				<< (op1.second ? "(transient), " : ", ")
 				<< op2.first->bytes()
@@ -7379,7 +7390,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "sumBits-using priority queue: "
+			    << "DEBUG -- sumBits-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -7513,7 +7524,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			tmp.first = *(op1.first) | *(op2.first);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "sumBits-using priority queue: "
+			    << "DEBUG -- sumBits-using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -7620,7 +7631,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "sumBits(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- sumBits(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::sumBits
@@ -7731,7 +7742,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 #if defined(DEBUG)
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "sumBits(" << ib << ", " << ie << "):" << res;
+	    << "DEBUG -- sumBits(" << ib << ", " << ie << "):" << res;
     }
 #endif
 } // ibis::index::sumBits

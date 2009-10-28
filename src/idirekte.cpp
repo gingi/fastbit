@@ -298,8 +298,11 @@ int ibis::direkte::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("direkte::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- direkte[" << col->partition()->name() << "."
+		<< col->name() << "]::write failed to open \"" << fnm
+		<< "\" for writing ... " << (errno ? strerror(errno) : 0);
+	    errno = 0;
 	    return -2;
 	}
     }
@@ -311,7 +314,7 @@ int ibis::direkte::write(const char* dt) const {
     int ierr = 0;
     const uint32_t nobs = bits.size();
 
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\0\0\0";
     header[5] = (char)ibis::index::DIREKTE;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -332,6 +335,7 @@ int ibis::direkte::write(const char* dt) const {
 	    << ") failed to write nrows and nobs, ierr = " << ierr;
 	return -4;
     }
+    offset64.resize(nobs+1);
     offset64[0] = 16 + header[6]*(nobs+1);
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
@@ -357,7 +361,7 @@ int ibis::direkte::write(const char* dt) const {
 	return -6;
     }
     if (useoffset64) {
-	ierr = UnixWrite(fdes, offset64.begin(), 4*(nobs+1));
+	ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
 	offset32.clear();
     }
     else {
@@ -476,7 +480,7 @@ int ibis::direkte::read(const char* f) {
     // read offsets
     begin = 8 + 2*sizeof(uint32_t);
     end = 8 + 2*sizeof(uint32_t) + header[6] * (dim[1] + 1);
-    ierr = initOffsets(fdes, header[6], 8, dim[1]);
+    ierr = initOffsets(fdes, header[6], begin, dim[1]);
     if (ierr < 0)
 	return ierr;
     ibis::fileManager::instance().recordPages(0, end);
@@ -955,8 +959,9 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "Warning -- direkte[" << col->partition()->name() << '.' << col->name()
-		    << "]::append -- file " << dfidx << " has a unexpected header";
+		    << "Warning -- direkte[" << col->partition()->name() << '.'
+		    << col->name() << "]::append -- file " << dfidx
+		    << " has a unexpected header";
 		remove(dfidx.c_str());
 	    }
 	}

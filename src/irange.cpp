@@ -378,12 +378,7 @@ int ibis::range::write(const char* dt) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
-    /// fsize = expected files (assuming 8-byte offsets for bitmaps)
-    uint64_t fsize = 32 + 32*nobs;
-    for (uint32_t i = 0; i < nobs; ++ i)
-	if (bits[i] != 0)
-	    fsize += bits[i]->bytes();
-    const bool useoffset64 = (fsize >= 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() >= 0x80000000UL);
 
     char header[] = "#IBIS\1\0\0";
     header[5] = (char)ibis::index::RANGE;
@@ -396,24 +391,41 @@ int ibis::range::write(const char* dt) const {
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
+    ierr  = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
+    if (ierr < (off_t)sizeof(uint32_t)*2) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- range[" << col->partition()->name() << "."
+	    << col->name() << "]::write(" << fnm
+	    << ") failed to write nrows and nobs, ierr = " << ierr;
+	return -4;
+    }
     ierr = UnixSeek(fdes,
 		    ((header[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8,
 		    SEEK_SET);
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, &max1, sizeof(double));
-    ierr = UnixWrite(fdes, &min1, sizeof(double));
-    if (ierr < (off_t)sizeof(double)) {
+    if (ierr != (off_t)(((header[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- range[" << col->partition()->name() << "."
-	    << col->name() << "]::write failed to write min1 to " << fnm
+	    << col->name() << "]::write(" << fnm << ") failed to seek to "
+	    << ((header[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8)*8
 	    << ", ierr = " << ierr;
-	return -4;
+	return -5;
+    }
+    ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, &max1, sizeof(double));
+    ierr += UnixWrite(fdes, &min1, sizeof(double));
+    if (ierr < (off_t)sizeof(double)*(nobs*3+2)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- range[" << col->partition()->name() << "."
+	    << col->name() << "]::write failed to write " << nobs*3+2
+	    << " doubles to " << fnm << ", ierr = " << ierr;
+	return -6;
     }
     if (useoffset64) {
+	offset32.clear();
+	offset64.resize(nobs+1);
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    bits[i]->write(fdes);
@@ -425,7 +437,7 @@ int ibis::range::write(const char* dt) const {
 	    << "Warning -- range[" << col->partition()->name() << "."
 	    << col->name() << "]::write(" << fnm
 	    << ") failed to seek to offset 16, ierr = " << ierr;
-	    return -5;
+	    return -7;
 	}
 	ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
 	if (ierr < (off_t)(8*(nobs+1))) {
@@ -441,6 +453,8 @@ int ibis::range::write(const char* dt) const {
 	}
     }
     else {
+	offset64.clear();
+	offset32.resize(nobs+1);
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    bits[i]->write(fdes);
@@ -452,7 +466,7 @@ int ibis::range::write(const char* dt) const {
 	    << "Warning -- range[" << col->partition()->name() << "."
 	    << col->name() << "]::write(" << fnm
 	    << ") failed to seek to offset 16, ierr = " << ierr;
-	    return -5;
+	    return -8;
 	}
 	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
 	if (ierr < (off_t)(8*(nobs+1))) {

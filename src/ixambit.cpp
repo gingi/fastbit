@@ -1017,7 +1017,7 @@ int ibis::ambit::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\2\0\0";
     header[5] = (char)ibis::index::AMBIT;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -1123,7 +1123,7 @@ int ibis::ambit::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
-    (void) UnixSeek(fdes, offset64.back(), SEEK_SET);
+    (void) UnixSeek(fdes, offset32.back(), SEEK_SET);
 
     ibis::array_t<int32_t> nextlevel(nobs+1);
     // write the sub-ranges
@@ -1303,8 +1303,9 @@ int ibis::ambit::write64(int fdes) const {
 #endif
 
     // write the offsets for the subranges
-    const off_t nloffsets = 8*((start+sizeof(int64_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
-	sizeof(double)*(nobs*3+2);
+    const off_t nloffsets = (8 * ((start + sizeof(int64_t)*(nobs+1)
+				+ sizeof(uint32_t)*2 + 7) / 8)
+			     + sizeof(double)*(nobs*3+2));
     ierr = UnixSeek(fdes, nloffsets, SEEK_SET);
     if (ierr < nloffsets) {
 	LOGGER(ibis::gVerbose > 0)

@@ -115,7 +115,7 @@ int ibis::entre::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\17\0\0";
     header[5] = (char)ibis::index::ENTRE;
     header[6] = (char) (useoffset64 ? 8 : 4);

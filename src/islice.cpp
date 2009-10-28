@@ -164,6 +164,8 @@ int ibis::slice::write32(int fdes) const {
 	return -6;
     }
 
+    offset64.clear();
+    offset32.resize(nobs+1);
     offset32[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
@@ -184,7 +186,8 @@ int ibis::slice::write32(int fdes) const {
 	return -8;
     }
 
-    offset32[0] += sizeof(double) * card +sizeof(int32_t) * nobs + sizeof(int32_t);
+    offset32[0] += sizeof(double) * card +sizeof(int32_t) * nobs
+	+ sizeof(int32_t);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     if (ierr != offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
@@ -265,6 +268,8 @@ int ibis::slice::write64(int fdes) const {
 	return -6;
     }
 
+    offset32.clear();
+    offset64.resize(nobs+1);
     offset64[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {
@@ -285,7 +290,8 @@ int ibis::slice::write64(int fdes) const {
 	return -8;
     }
 
-    offset64[0] += sizeof(double) * card +sizeof(int64_t) * nobs + sizeof(int64_t);
+    offset64[0] += sizeof(double) * card +sizeof(int64_t) * nobs
+	+ sizeof(int64_t);
     ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)

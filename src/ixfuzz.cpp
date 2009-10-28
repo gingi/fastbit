@@ -1093,8 +1093,11 @@ int ibis::fuzz::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("fuzz::write", "unable to open \"%s\" for write",
-			    fnm.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- fuzz[" << col->partition()->name() << "."
+		<< col->name() << "]::write failed to open \"" << fnm
+		<< "\" for writing ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
 	    return -2;
 	}
     }
@@ -1121,7 +1124,7 @@ int ibis::fuzz::write(const char* dt) const {
     if (useoffset64) {
 	ierr = ibis::relic::write64(fdes);
 	if (ierr >= 0)
-	    ierr = writeCoarse32(fdes);
+	    ierr = writeCoarse64(fdes);
     }
     else {
 	ierr = ibis::relic::write32(fdes); // write the bulk of the index file
@@ -1170,6 +1173,7 @@ int ibis::fuzz::writeCoarse32(int fdes) const {
 	return -5;
     }
 
+    coffset64.clear();
     coffset32.resize(nb+1);
     coffset32[0] = UnixSeek(fdes, sizeof(int32_t)*(nb+1), SEEK_CUR);
     for (unsigned i = 0; i < nb; ++ i) {
@@ -1230,6 +1234,7 @@ int ibis::fuzz::writeCoarse64(int fdes) const {
 	return -5;
     }
 
+    coffset32.clear();
     coffset64.resize(nb+1);
     coffset64[0] = UnixSeek(fdes, sizeof(int64_t)*(nb+1), SEEK_CUR);
     for (unsigned i = 0; i < nb; ++ i) {

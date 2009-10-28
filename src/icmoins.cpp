@@ -119,7 +119,7 @@ int ibis::moins::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    const bool useoffset64 = (getSerialSize() > 0x80000000UL);
+    const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
     char header[] = "#IBIS\16\0\0";
     header[5] = (char)ibis::index::MOINS;
     header[6] = (char) (useoffset64 ? 8 : 4);

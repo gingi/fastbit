@@ -1,3 +1,13 @@
+2009-10-28 John Wu <John.Wu at ACM.org>
+	* src/i*.cpp: many write functions neglected to initialize the
+	new offset32 and offset64 to the proper size before using them
+	* src/ixbylt.cpp: writeCoarse32 and writeCoarse64 used offset32
+	and offset64 instead of coffset32 and coffset64
+	* src/index.cpp: update all versions of activate function to use
+	LOGGER for messages
+	* src/idirekte.cpp, src/ikeywords.cpp: invoked initOffsets with
+	wrong start address
+
 2009-10-27 John Wu <John.Wu at ACM.org>
 	* src/irelic.h, src/ixzona.cpp: modify ibis::zona to use coffset64
 	and coffeset32 to replace coffsets, use offset64 and offset32 to

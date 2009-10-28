@@ -178,6 +178,9 @@ int ibis::fade::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -6;
     }
+
+    offset64.clear();
+    offset32.resize(nobs+1);
     offset32[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
@@ -241,7 +244,6 @@ int ibis::fade::write32(int fdes) const {
 	return -12;
     }
     ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET);
-    offset64.clear();
     return (ierr == offset32[nobs] ?0 : -13);
 } // ibis::fade::write32
 
@@ -282,6 +284,9 @@ int ibis::fade::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -6;
     }
+
+    offset32.clear();
+    offset64.resize(nobs+1);
     offset64[0] = 8*((start+sizeof(uint32_t)*3+7)/8);
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {
@@ -344,7 +349,7 @@ int ibis::fade::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-    offset32.clear();
+
     ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET);
     return (ierr == offset64[nobs] ?0 : -13);
 } // ibis::fade::write64
