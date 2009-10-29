@@ -127,6 +127,11 @@ int ibis::sapid::write(const char* dt) const {
 	ierr = ibis::fade::write64(fdes);
     else
 	ierr = ibis::fade::write32(fdes);
+
+    LOGGER(ierr >= 0 && ibis::gVerbose > 5)
+	<< "sapid[" << col->partition()->name() << "." << col->name()
+	<< "]::write wrote " << bits.size() << " bitmap"
+	<< (bits.size()>1?"s":"") << " to " << fnm;
     return ierr;
 } // ibis::sapid::write
 

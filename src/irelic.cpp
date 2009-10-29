@@ -17,7 +17,8 @@
 #include "part.h"
 
 #include <cmath>	// std::fabs
-#include <sstream> // std::ostringstream
+#include <sstream>	// std::ostringstream
+#include <typeinfo>	// std::typeid
 
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::irelic
@@ -234,7 +235,7 @@ int ibis::relic::write(const char* dt) const {
     (void) UnixFlush(fdes); // write to disk
 #endif
 
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ierr >= 0 && ibis::gVerbose > 5)
 	<< evt << " wrote " << nobs << " bitmap" << (nobs>1?"s":"")
 	<< " to " << fnm;
     return ierr;

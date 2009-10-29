@@ -201,8 +201,10 @@ int ibis::fuge::write(const char* dt) const {
 #endif
 
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
+    const bool haveCoarseBins = ((cbounds.empty() || cbits.empty()) == false);
     char header[] = "#IBIS\4\0\0";
-    header[5] = (char)ibis::index::FUGE;
+    header[5] = (char)(haveCoarseBins ? ibis::index::FUGE
+		       : ibis::index::BINNING);
     header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
@@ -216,15 +218,25 @@ int ibis::fuge::write(const char* dt) const {
 	ierr = ibis::bin::write64(fdes); // write the basic binned index
     else
 	ierr = ibis::bin::write32(fdes); // write the basic binned index
-    if (ierr >= 0) {
+    if (ierr >= 0 && haveCoarseBins) {
 	if (useoffset64)
 	    ierr = writeCoarse64(fdes); // write the coarse level bins
 	else
 	    ierr = writeCoarse32(fdes); // write the coarse level bins
     }
+
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
+	const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
+			     cbounds.size()-1 : cbits.size());
+	LOGGER(ibis::gVerbose > 5)
+	    << "fuge[" << col->partition()->name() << "." << col->name()
+	    << "]::write wrote " << nobs << " fine bitmap" << (nobs>1?"s":"")
+	    << " and " << nc << " coarse bitmap" << (nc>1?"s":"")
+	    << " to " << fnm;
+    }
     return ierr;
 } // ibis::fuge::write
 
@@ -250,7 +262,7 @@ int ibis::fuge::read(const char* f) {
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
 		  header[5] == static_cast<char>(ibis::index::FUGE) &&
-		  (header[6] == 8 || header[4] == 4) &&
+		  (header[6] == 8 || header[6] == 4) &&
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;

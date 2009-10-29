@@ -121,7 +121,7 @@ int ibis::slice::write(const char* dt) const {
     (void) UnixFlush(fdes); // write to disk
 #endif
 
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ierr >= 0 && ibis::gVerbose > 5)
 	<< "slice[" << col->partition()->name() << "." << col->name()
 	<< "]::write wrote " << bits.size() << " bitmap"
 	<< (bits.size()>1?"s":"") << " to file " << fnm;

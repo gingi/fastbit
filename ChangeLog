@@ -1,3 +1,18 @@
+2009-10-29 John Wu <John.Wu at ACM.org>
+	* src/ifade.cpp: in function write, update the value of header[6].
+	in functions write32 and write64, update the computation of
+	position of the 1st bitmap
+	* src/irange.cpp:472 the element size should be 4 instead of 8
+	* src/icegale.cpp:416, src/icfuge.cpp:253 header[6] was entered
+	wrongly
+	* src/ixfuge.cpp, src/ixbylt.cpp, src/ixfuzz.cpp, src/ixzona.cpp:
+	change the function write to detect whether a coarse level index
+	is actually present before calling the function to write the
+	coarse level indexes
+	* src/ixbylt.cpp:215 should call reserve not resize
+	* src/horometer.h: add information about MinGW.  It has
+	sys/timer.h, but not sys/resource.h
+
 2009-10-28 John Wu <John.Wu at ACM.org>
 	* src/i*.cpp: many write functions neglected to initialize the
 	new offset32 and offset64 to the proper size before using them
@@ -7,6 +22,8 @@
 	LOGGER for messages
 	* src/idirekte.cpp, src/ikeywords.cpp: invoked initOffsets with
 	wrong start address
+	* configure.ac: add option --with-pthread=dir to use non-standard
+	pthread library (first used on MinGW)
 
 2009-10-27 John Wu <John.Wu at ACM.org>
 	* src/irelic.h, src/ixzona.cpp: modify ibis::zona to use coffset64

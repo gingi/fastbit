@@ -1063,9 +1063,9 @@ int ibis::zona::write(const char* dt) const {
     int ierr = 0;
     const uint32_t nobs = vals.size();
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
-
+    const bool haveCoarseBins = ! (cbits.empty() || cbounds.empty());
     char header[] = "#IBIS\7\0\0";
-    header[5] = (char)ibis::index::ZONA;
+    header[5] = (char)(haveCoarseBins ? ibis::index::ZONA : ibis::index::RELIC);
     header[6] = (char)(useoffset64 ? 8 : 4);
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
@@ -1077,22 +1077,27 @@ int ibis::zona::write(const char* dt) const {
     }
     if (useoffset64) {
 	ierr = ibis::relic::write64(fdes); // write the bulk of the index file
-	if (ierr >= 0)
+	if (ierr >= 0 && haveCoarseBins)
 	    ierr = writeCoarse64(fdes); // write the coarse level bins
     }
     else {
 	ierr = ibis::relic::write32(fdes); // write the bulk of the index file
-	if (ierr >= 0)
+	if (ierr >= 0 && haveCoarseBins)
 	    ierr = writeCoarse32(fdes); // write the coarse level bins
     }
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
 
-    LOGGER(ibis::gVerbose > 5)
-	<< "zona[" << col->partition()->name() << "."
-	<< col->name() << "]::write -- wrote " << nobs << " bitmap"
-	<< (nobs>1?"s":"") << " to " << fnm;
+	const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
+			     cbounds.size()-1 : cbits.size());
+	LOGGER(ibis::gVerbose > 5)
+	    << "zona[" << col->partition()->name() << "." << col->name()
+	    << "]::write -- wrote " << nobs << " fine bitmap" << (nobs>1?"s":"")
+	    << " and " << nc << " coarse bitmap" << (nc>1?"s":"") << " to "
+	    << fnm;
+    }
     return ierr;
 } // ibis::zona::write
 

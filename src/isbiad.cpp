@@ -113,6 +113,11 @@ int ibis::sbiad::write(const char* dt) const {
 	ierr = ibis::fade::write64(fdes);
     else
 	ierr = ibis::fade::write32(fdes);
+
+    LOGGER(ierr >= 0 && ibis::gVerbose > 5)
+	<< "sbiad[" << col->partition()->name() << "." << col->name()
+	<< "]::write wrote " << bits.size() << " bitmap"
+	<< (bits.size()>1?"s":"") << " to " << fnm;
     return ierr;
 } // ibis::sbiad::write
 
@@ -274,7 +279,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     optionalUnpack(bits, col->indexSpec());
 
     // write out the current content
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
  	print(lg.buffer());
     }
@@ -901,7 +906,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
     optionalUnpack(bits, col->indexSpec());
 
     // write out the current content
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
  	print(lg.buffer());
     }

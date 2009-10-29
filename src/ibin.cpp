@@ -2349,7 +2349,7 @@ void ibis::bin::construct(const char* df) {
 	    offset64[j+1] = offset64[j] +
 		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
     }
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
 	print(lg.buffer());
     }

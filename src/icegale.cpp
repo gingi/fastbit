@@ -413,7 +413,7 @@ int ibis::egale::read(const char* f) {
     if (!(header[0] == '#' && header[1] == 'I' &&
 	  header[2] == 'B' && header[3] == 'I' &&
 	  header[4] == 'S' &&
-	  (header[6] == 8 || header[5] == 4) &&
+	  (header[6] == 8 || header[6] == 4) &&
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;

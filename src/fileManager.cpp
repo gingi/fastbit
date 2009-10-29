@@ -346,13 +346,14 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
     }
 } // ibis::fileManager::adjustCacheSize
 
-/// The function cleans the memory cache used by FastBit file manager by
-/// clearing the two lists of files it holds.  However, the actual
-/// underlying memory may still be present if they are being actively used.
-/// This function is effective if used after all other operations have
-/// ceased.  To force an individual file to be unloaded use
-/// ibis::fileManager::flushFile.  To force all files in a directory to be
-/// unloaded used ibis::fileManager::flushDir.
+/// The function cleans the memory cache used by FastBit.  It destroys the
+/// two lists of files it holds and therefore make the file not accessible
+/// any object new objects.  However, the actual underlying memory may
+/// still be present if they are being actively used.  This function is
+/// effective on if all other operations have ceased.  To force an
+/// individual file to be unloaded use ibis::fileManager::flushFile.  To
+/// force all files in a directory to be unloaded used
+/// ibis::fileManager::flushDir.
 void ibis::fileManager::clear() {
     if (ibis::gVerbose > 12 ||
 	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 6)) {
@@ -361,26 +362,27 @@ void ibis::fileManager::clear() {
 	printStatus(lg.buffer());
     }
 
-    std::vector<roFile*> tmp; // temporary contains the read-only files
-    writeLock wlck(this, "clear");
-    tmp.reserve(mapped.size()+incore.size());
-    for (fileList::const_iterator it=mapped.begin();
-	 it != mapped.end(); ++it) {
-	tmp.push_back((*it).second);
+    if (! mapped.empty() || ! incore.empty()) {
+	std::vector<roFile*> tmp; // temporarily holds the read-only files
+	mutexLock mlck(*this, "clear");
+	writeLock wlck(this, "clear");
+	tmp.reserve(mapped.size()+incore.size());
+	for (fileList::const_iterator it=mapped.begin();
+	     it != mapped.end(); ++it) {
+	    tmp.push_back((*it).second);
+	}
+	mapped.clear();
+	for (fileList::const_iterator it=incore.begin();
+	     it != incore.end(); ++it) {
+	    tmp.push_back((*it).second);
+	}
+	incore.clear();
+	// delete the read-only files stored in the std::vector because the
+	// FileList uses the name of the file (part of the object to be
+	// deleted) as the key (of a std::map).
+	for (size_t j = 0; j < tmp.size(); ++ j)
+	    delete tmp[j];
     }
-    mapped.clear();
-    for (fileList::const_iterator it=incore.begin();
-	 it != incore.end(); ++it) {
-	tmp.push_back((*it).second);
-    }
-    incore.clear();
-    // delete the read-only files stored in the std::vector because the
-    // FileList uses the name of the file (part of the object to be
-    // deleted) as the key (of a std::map).
-    for (std::vector<roFile*>::iterator it = tmp.begin();
-	 it != tmp.end(); ++ it)
-	delete (*it);
-
     LOGGER((ibis::fileManager::totalBytes() != 0 && ibis::gVerbose > 0) ||
 	   ibis::gVerbose > 8)
 	<< "fileManager::clear -- There are " << ibis::fileManager::totalBytes()

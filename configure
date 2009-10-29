@@ -883,6 +883,7 @@ with_gnu_ld
 enable_libtool_lock
 enable_debug
 enable_xopt
+with_pthread
 with_java
 '
       ac_precious_vars='build_alias
@@ -1534,6 +1535,7 @@ Optional Packages:
   --with-pic              try to use only PIC/non-PIC objects [default=use
                           both]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
+  --with-pthread=dir      use dir as pthread root directory
   --with-java=dir         use dir as Java SDK root directory
 
 Some influential environment variables:
@@ -5118,13 +5120,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5121: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5123: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5124: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5126: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5127: output\"" >&5)
+  (eval echo "\"\$as_me:5129: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6330,7 +6332,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6333 "configure"' > conftest.$ac_ext
+  echo '#line 6335 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8387,11 +8389,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8390: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8392: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8394: \$? = $ac_status" >&5
+   echo "$as_me:8396: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8726,11 +8728,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8729: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8731: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8733: \$? = $ac_status" >&5
+   echo "$as_me:8735: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8831,11 +8833,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8834: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8836: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8838: \$? = $ac_status" >&5
+   echo "$as_me:8840: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8886,11 +8888,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8889: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8891: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8893: \$? = $ac_status" >&5
+   echo "$as_me:8895: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11254,7 +11256,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11257 "configure"
+#line 11259 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11350,7 +11352,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11353 "configure"
+#line 11355 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13306,11 +13308,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13309: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13311: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13313: \$? = $ac_status" >&5
+   echo "$as_me:13315: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13405,11 +13407,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13408: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13410: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13412: \$? = $ac_status" >&5
+   echo "$as_me:13414: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13457,11 +13459,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13460: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13462: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13464: \$? = $ac_status" >&5
+   echo "$as_me:13466: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16598,6 +16600,40 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
+
+# Check whether --with-pthread was given.
+if test "${with_pthread+set}" = set; then :
+  withval=$with_pthread; if test -x $with_pthread/pthread-config; then
+	       CFLAGS="$CFLAGS `$with_pthread/pthread-config --cflags"
+	       CXXFLAGS="$CXXFLAGS `$with_pthread/pthread-config --cflags"
+	       LIBS="$LIBS `pthread-config --ldflags` `pthread-config --libs`"
+	     elif test -d $with_pthread; then
+ 	       if test -f $with_pthread/pthread.h; then
+	         CFLAGS="$CFLAGS -I$with_pthread";
+	         CXXFLAGS="$CXXFLAGS -I$with_pthread";
+	       elif test -f $with_pthread/include/pthread.h; then
+	         CFLAGS="$CFLAGS -I$with_pthread/include";
+	         CXXFLAGS="$CXXFLAGS -I$with_pthread/include";
+	       else
+	         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can not find $with_pthread/pthread.h or $with_pthread/include/pthread.h" >&5
+$as_echo "$as_me: WARNING: Can not find $with_pthread/pthread.h or $with_pthread/include/pthread.h" >&2;}
+	       fi;
+	       if test -f $with_pthread/libpthread.a; then
+	         LIBS="$LIBS $with_pthread/libpthread.a"
+	       elif test -f $with_pthread/libpthreadGC2.a; then
+	         LIBS="$LIBS $with_pthread/libpthreadGC2.a"
+	       elif test -f $with_pthread/lib/libpthread.a; then
+	         LIBS="$LIBS $with_pthread/lib/libpthread.a"
+	       elif test -f $with_pthread/lib/libpthreadGC2.a; then
+	         LIBS="$LIBS $with_pthread/lib/libpthreadGC2.a"
+	       else
+	         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can not find $with_pthread/libpthread.a, $with_pthread/libpthreadGC2.a, $with_pthread/lib/libpthread.a, or $with_pthread/lib/libpthreadGC2.a" >&5
+$as_echo "$as_me: WARNING: Can not find $with_pthread/libpthread.a, $with_pthread/libpthreadGC2.a, $with_pthread/lib/libpthread.a, or $with_pthread/lib/libpthreadGC2.a" >&2;}
+	       fi;
+	     fi
+fi
+
+
 # function to check for pthread library
 
 #end AC_DEFUN Z_CHECK_PTHREAD
@@ -17107,7 +17143,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17110 "configure" */
+/* #line 17146 "configure" */
 public class Test {
 }
 EOF
@@ -17238,7 +17274,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 17241: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17277: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17315,7 +17351,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17318 "configure" */
+/* #line 17354 "configure" */
 public class Test {
 }
 EOF
@@ -17350,7 +17386,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17353 "configure" */
+/* [#]line 17389 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -20053,7 +20089,7 @@ _LT_EOF
 
  ;;
     "default-1":C)
-sed -i.bak -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
+sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
 echo timestamp for src/config.h > src/stamp-h1
  ;;
 

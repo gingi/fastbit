@@ -27,6 +27,9 @@
 //#   include <sys/types.h> // struct tms
 #   include <sys/time.h> // gettimeofday, getrusage
 #   include <sys/resource.h> // getrusage
+#elif defined(__MINGW32__)
+#   include <limits.h> // CLK_TCK
+#   include <sys/time.h> // gettimeofday, timeval
 #elif defined(_WIN32)
 #   include <windows.h>
 #elif defined(VMS)
@@ -125,7 +128,9 @@ inline double ibis::horometer::readWallClock() {
 	gettimeofday(&cpt, 0);
 	return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
     }
-#elif defined(HAVE_GETTIMEOFDAY) || defined(unix) || defined(CRAY) || defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
+#elif defined(HAVE_GETTIMEOFDAY) || defined(unix) || defined(CRAY) || \
+    defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || \
+    defined(__FreeBSD__)
     struct timeval cpt;
     gettimeofday(&cpt, 0);
     return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);

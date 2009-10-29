@@ -127,6 +127,35 @@ AC_TRY_LINK([
   AC_MSG_RESULT([no])
 ])
 
+AC_ARG_WITH(pthread,
+	    AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
+            [if test -x $with_pthread/pthread-config; then
+	       CFLAGS="$CFLAGS `$with_pthread/pthread-config --cflags"
+	       CXXFLAGS="$CXXFLAGS `$with_pthread/pthread-config --cflags"
+	       LIBS="$LIBS `pthread-config --ldflags` `pthread-config --libs`"
+	     elif test -d $with_pthread; then
+ 	       if test -f $with_pthread/pthread.h; then
+	         CFLAGS="$CFLAGS -I$with_pthread";
+	         CXXFLAGS="$CXXFLAGS -I$with_pthread";
+	       elif test -f $with_pthread/include/pthread.h; then
+	         CFLAGS="$CFLAGS -I$with_pthread/include";
+	         CXXFLAGS="$CXXFLAGS -I$with_pthread/include";
+	       else
+	         AC_MSG_WARN([Can not find $with_pthread/pthread.h or $with_pthread/include/pthread.h])
+	       fi;
+	       if test -f $with_pthread/libpthread.a; then
+	         LIBS="$LIBS $with_pthread/libpthread.a"
+	       elif test -f $with_pthread/libpthreadGC2.a; then
+	         LIBS="$LIBS $with_pthread/libpthreadGC2.a"
+	       elif test -f $with_pthread/lib/libpthread.a; then
+	         LIBS="$LIBS $with_pthread/lib/libpthread.a"
+	       elif test -f $with_pthread/lib/libpthreadGC2.a; then
+	         LIBS="$LIBS $with_pthread/lib/libpthreadGC2.a"
+	       else
+	         AC_MSG_WARN([Can not find $with_pthread/libpthread.a, $with_pthread/libpthreadGC2.a, $with_pthread/lib/libpthread.a, or $with_pthread/lib/libpthreadGC2.a])
+	       fi;
+	     fi])
+
 # function to check for pthread library
 AC_DEFUN([Z_CHECK_PTHREAD], [
 AC_REQUIRE([AC_CANONICAL_HOST])
@@ -572,7 +601,7 @@ AC_SUBST(CFLAGS)
 AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile tests/Makefile
 	         java/Makefile tests/scripts/fastbit-config])
 AC_OUTPUT_COMMANDS([
-sed -i.bak -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
+sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
 echo timestamp for src/config.h > src/stamp-h1
 ])
 AC_OUTPUT

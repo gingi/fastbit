@@ -122,7 +122,7 @@ int ibis::fade::write(const char* dt) const {
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
     char header[] = "#IBIS\12\0\0";
     header[5] = (char)ibis::index::FADE;
-    header[6] = (char)sizeof(int32_t);
+    header[6] = (char)(useoffset64 ? 8 : 4);
     int32_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
@@ -146,7 +146,7 @@ int ibis::fade::write32(int fdes) const {
     if (vals.empty()) return -1;
     if (fname != 0 || str != 0)
 	activate(); // retrieve all bitvectors
-    std::string evt = "relic";
+    std::string evt = "fade";
     if (ibis::gVerbose > 0) {
 	evt += '[';
 	evt += col->partition()->name();
@@ -200,9 +200,9 @@ int ibis::fade::write32(int fdes) const {
 	return -8;
     }
 
-    offset32[0] += sizeof(int32_t)*(nobs+1) + sizeof(double)*nobs;
+    offset32[0] += sizeof(int32_t)*(nobs+1) + sizeof(double)*card;
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
-        if (ierr != offset32[0]) {
+    if (ierr != offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " attempting to seek to " << offset32[0]
 	    << " file descriptor " << fdes << " returned " << ierr;
@@ -220,6 +220,7 @@ int ibis::fade::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
+    offset32[0] += ierr;
     for (uint32_t i = 0; i < nobs; ++i) {
 	bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -252,7 +253,7 @@ int ibis::fade::write64(int fdes) const {
     if (vals.empty()) return -1;
     if (fname != 0 || str != 0)
 	activate(); // retrieve all bitvectors
-    std::string evt = "relic";
+    std::string evt = "fade";
     if (ibis::gVerbose > 0) {
 	evt += '[';
 	evt += col->partition()->name();
@@ -306,7 +307,7 @@ int ibis::fade::write64(int fdes) const {
 	return -8;
     }
 
-    offset64[0] += sizeof(int64_t)*(nobs+1) + sizeof(double)*nobs;
+    offset64[0] += sizeof(int64_t)*(nobs+1) + sizeof(double)*card;
     ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
         if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
@@ -326,6 +327,7 @@ int ibis::fade::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
+    offset64[0] += ierr;
     for (uint32_t i = 0; i < nobs; ++i) {
 	bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -584,9 +586,10 @@ void ibis::fade::setBit(const uint32_t i, const double val) {
     }
 } // setBit
 
-// this version of the constructor take one pass throught the data by
-// constructing a ibis::index::VMap first than construct the fade from the
-// VMap -- uses more computer memory than the two-pass version
+/// Index construction function.  This version of the constructor take one
+/// pass throught the data by constructing a ibis::index::VMap first than
+/// construct the fade from the VMap -- uses more computer memory than the
+/// two-pass version.
 void ibis::fade::construct1(const char* f, const uint32_t nbase) {
     VMap bmap; // a map between values and their position
     try {
@@ -679,7 +682,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 #if defined(DEBUG) || defined(_DEBUG)
 	if (ibis::gVerbose > 5 && (i & 255) == 255) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: fade::constructor " << i << " ... ";
+		<< "DEBUG -- fade::constructor " << i << " ... ";
 	}
 #endif
     }
@@ -694,7 +697,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
     }
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 5)
-	<< "DEBUG: fade::constructor " << vals.size()
+	<< "DEBUG -- fade::constructor " << vals.size()
 	<< "... convert to range encoding ...";
 #endif
     // sum up the bitvectors according range-encoding
@@ -707,20 +710,21 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	nobs += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose > 5) << "DEBUG: fade::constructor DONE";
+    LOGGER(ibis::gVerbose > 5) << "DEBUG -- fade::constructor DONE";
 #endif
 
     optionalUnpack(bits, col->indexSpec());
     // write out the current content
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // construct1
 
-// generate a new fade index by passing through the data twice
-// (1) scan the data to generate a list of distinct values and their count
-// (2) scan the data a second time to produce the bit vectors
+/// Index construction function.  generate a new fade index by passing
+/// through the data twice.  (1) scan the data to generate a list of
+/// distinct values and their count (2) scan the data a second time to
+/// produce the bit vectors.
 void ibis::fade::construct2(const char* f, const uint32_t nbase) {
     { // use a block to limit the scope of hst
 	histogram hst;
@@ -1263,13 +1267,13 @@ void ibis::fade::construct2(const char* f, const uint32_t nbase) {
 
     optionalUnpack(bits, col->indexSpec());
     // write out the current content
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
  	print(lg.buffer());
     }
 } // ibis::fade::construct2
 
-// a simple function to test the speed of the bitvector operations
+/// A simple function to test the speed of the bitvector operations.
 void ibis::fade::speedTest(std::ostream& out) const {
     if (nrows == 0) return;
     uint32_t i, nloops = 1000000000 / nrows;
@@ -1300,7 +1304,7 @@ void ibis::fade::speedTest(std::ostream& out) const {
     }
 } // ibis::fade::speedTest
 
-// the printing function
+/// The printing function.
 void ibis::fade::print(std::ostream& out) const {
     out << "index(multicomponent range ncomp=" << bases.size() << ") for "
 	<< col->partition()->name() << '.' << col->name() << " contains "

@@ -4464,7 +4464,7 @@ int main(int argc, char** argv) {
 	    }
 	}
 
-	clean_up(tlist);
+	clean_up(tlist, true);
 	timer.stop();
 	LOGGER(timer.realTime() > 0.001 && ibis::gVerbose > 0)
 	    << *argv << " -- total CPU time " << timer.CPUTime()

@@ -469,7 +469,7 @@ int ibis::range::write(const char* dt) const {
 	    return -8;
 	}
 	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
-	if (ierr < (off_t)(8*(nobs+1))) {
+	if (ierr < (off_t)(4*(nobs+1))) {
 	    ierr = -9;
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- range[" << col->partition()->name() << "."
@@ -676,15 +676,15 @@ void ibis::range::construct(const char *df) {
 	    offset64[j+1] = offset64[j] +
 		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 8) {
 	    ibis::util::logger lg;
 	    print(lg.buffer());
 	}
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning - ibis::column[" << col->name()
-	    << "]::range::ctor encountered an exception, cleaning up ...";
+	    << "Warning - range[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
     }
