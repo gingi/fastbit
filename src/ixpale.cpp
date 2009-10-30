@@ -295,9 +295,17 @@ int ibis::pale::write(const char* dt) const {
 	ierr = write64(fdes); // write recursively
     else
 	ierr = write32(fdes); // write recursively
+
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
+	LOGGER(ibis::gVerbose > 5)
+	    << "pale[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nobs << " coarse bin"
+	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::pale::write
 
@@ -314,20 +322,21 @@ int ibis::pale::write32(int fdes) const {
 
     uint32_t i;
     // write out bit sequences of this level of the index
-    int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    if (start < 8) {
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, &nobs, sizeof(uint32_t));
+    if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32 failed to write nrows (" << nrows
-	    << ") to file descriptor " << fdes;
+	    << ") and nobs (" << nobs << ") to file descriptor " << fdes
+	    << ", ierr = " << ierr;
 	return -5;
     }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
 
     offset64.clear();
     offset32.resize(nobs+1);
     offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
-    ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
+    ierr = UnixSeek(fdes, offset32[0], SEEK_SET);//skip offsets
     if (ierr != offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
@@ -348,7 +357,8 @@ int ibis::pale::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
-    offset32[0] += (nobs+1)*(3*sizeof(double)+sizeof(int32_t));
+    // skip space left for nextlevel
+    offset32[0] += ierr + sizeof(int32_t)*(nobs+1);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     if (offset32[0] != ierr) {
 	LOGGER(ibis::gVerbose > 0)
@@ -447,15 +457,16 @@ int ibis::pale::write64(int fdes) const {
 
     uint32_t i;
     // write out bit sequences of this level of the index
-    int32_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
+    ierr += UnixWrite(fdes, &nobs, sizeof(uint32_t));
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64 failed to write nrows (" << nrows
-	    << ") to file descriptor " << fdes;
+	    << ") and nobs (" << nobs << ") to file descriptor " << fdes
+	    << ", ierr = " << ierr;
 	return -5;
     }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
 
     offset32.clear();
     offset64.resize(nobs+1);
@@ -470,7 +481,7 @@ int ibis::pale::write64(int fdes) const {
 	return -6;
     }
 
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t) (3*sizeof(double)*nobs)) {
@@ -481,7 +492,7 @@ int ibis::pale::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
-    offset64[0] += (nobs+1)*(3*sizeof(double)+sizeof(int32_t));
+    offset64[0] += (nobs+1)*sizeof(int32_t) + ierr;
     ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
     if (offset64[0] != ierr) {
 	LOGGER(ibis::gVerbose > 0)

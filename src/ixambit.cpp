@@ -1033,9 +1033,17 @@ int ibis::ambit::write(const char* dt) const {
 	ierr = write64(fdes); // wrtie recursively
     else
 	ierr = write32(fdes);
+
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
+	LOGGER(ibis::gVerbose > 5)
+	    << "ambit[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nobs << " coarse bin"
+	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::ambit::write
 

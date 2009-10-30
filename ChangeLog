@@ -1,3 +1,9 @@
+2009-10-30 John Wu <John.Wu at ACM.org>
+	* src/ixpale.cpp: in function write32 and write64, update the
+	computation of offset32[0] and offset64[0]
+	* src/icegale.cpp: in functions write32 and write64, the offsets
+	array need to have nbits+1 elements not nobs+1 elements
+
 2009-10-29 John Wu <John.Wu at ACM.org>
 	* src/ifade.cpp: in function write, update the value of header[6].
 	in functions write32 and write64, update the computation of

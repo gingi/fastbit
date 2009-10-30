@@ -30,11 +30,11 @@
 #include <cmath>	// std::floor, std::ceil
 #include <float.h>	// DBL_MAX, _finite
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#  include <dirent.h>
+#elif defined(_WIN32) && defined(_MSC_VER)
 #define popen _popen
 #define pclose _pclose
-#elif defined(HAVE_DIRENT_H)
-#  include <dirent.h>
 #endif
 
 extern "C" {
@@ -12697,7 +12697,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
     catch (...) {
 	logMessage("tablesFromDir", "received an unexpected exception");
     }
-#if defined(HAVE_DIRENT_H)
+#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     // on unix machines, we know how to traverse the subdirectories
     // traverse the subdirectories to generate more tables
     char nm1[PATH_MAX];
@@ -12809,7 +12809,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	logMessage("tablesFromDir", "received an unexpected "
 		   "exception");
     }
-#if defined(HAVE_DIRENT_H)
+#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     if (bdir == 0) return cnt; // must have both adir and bdir
     // on unix machines, the directories adir and bdir may contain
     // subdirectories -- this section of code reads the subdirectories to
