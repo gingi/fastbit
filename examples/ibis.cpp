@@ -17,24 +17,24 @@
    basically a SQL select statement of the form
    [SELECT ...] [FROM ...] WHERE ... [ORDER BY ... [ASC | DESC]] [LIMIT ...]
 
-   The SELECT clause contains a list of column names and any of the four
-   one-argument functions, AVG, MAX, MIN, and SUM, e.g., "SELECT a, b,
-   AVG(c), MIN(d)."  If specified, the named columns of qualified records
-   will be displayed as the result of the query.  The unqualified variables
-   will be used to group the selected records; for each group the values of
-   the functions are evaluated.  This is equivalent to use all unqualified
-   variables in the "GROUP BY" clause.  Note the print out always orders
-   the unqualified variables first followed by the values of the functions.
-   It always has an implicit "count(*)" as the end of each line of print
-   out.
+   The SELECT clause contains a list of column names and any of the
+   following one-argument functions, AVG, MAX, MIN, SUM, VARPOP, VARSAMP,
+   STDPOP, STDSAMP, DISTINCT, e.g., "SELECT a, b, AVG(c), MIN(d)."  If
+   specified, the named columns of qualified records will be displayed as
+   the result of the query.  The unqualified variables will be used to
+   group the selected records; for each group the values of the functions
+   are evaluated.  This is equivalent to use all unqualified variables in
+   the "GROUP BY" clause.  Note the print out always orders the unqualified
+   variables first followed by the values of the functions.  It always has
+   an implicit "count(*)" as the end of each line of print out.
 
    The FROM clause contains a list of data partition names.  If specified,
    the search will be performed only on the named partitions.  Otherwise,
    the search is performed on all known tables.
 
-   The column names and partition names can be delimited by either ',', or ';'.
-   The leading space and trailing space of each name will be removed but
-   space in the middle of the names will be preserved.
+   The column names and partition names can be delimited by either ',', or
+   ';'.  The leading space and trailing space of each name will be removed
+   but space in the middle of the names will be preserved.
 
    The WHERE clause specifies the condition of the query.  It is specified
    as range queries of the form

@@ -7135,14 +7135,7 @@ void ibis::selected::select(const char *str, bool sort) {
 	    ++ s;
 	}
 	if (*s == '(') { // tmp contains a function name
-	    if (tmp.size() != 3) {
-		if (ibis::gVerbose > 1)
-		    ibis::util::logMessage("ibis::selected",
-					   "select(%s) skipping function name "
-					   "(%s) that is not three-byte long",
-					   str, tmp.c_str());
-	    }
-	    else if ((tmp[0] == 'm' || tmp[0] == 'M')) {
+	    if ((tmp[0] == 'm' || tmp[0] == 'M')) {
 		if (tmp[1] == 'i' || tmp[1] == 'I' &&
 		    (tmp[2] == 'n' || tmp[2] == 'N')) {
 		    functions[terms] = ibis::selected::MIN;
@@ -7167,6 +7160,50 @@ void ibis::selected::select(const char *str, bool sort) {
 		     (tmp[1] == 'u' || tmp[1] == 'U') &&
 		     (tmp[2] == 'm' || tmp[2] == 'M')) {
 		functions[terms] = ibis::selected::SUM;
+	    }
+	    else if ((tmp[0] == 'v' || tmp[0] == 'V') &&
+		     (tmp[1] == 'a' || tmp[1] == 'A') &&
+		     (tmp[2] == 'r' || tmp[2] == 'R') &&
+		     (tmp[3] == 'p' || tmp[3] == 'P') &&
+		     (tmp[4] == 'o' || tmp[4] == 'O') &&
+		     (tmp[5] == 'p' || tmp[5] == 'P')) {
+		functions[terms] = ibis::selected::VARPOP;
+	    }
+	    else if ((tmp[0] == 'v' || tmp[0] == 'V') &&
+		     (tmp[1] == 'a' || tmp[1] == 'A') &&
+		     (tmp[2] == 'r' || tmp[2] == 'R') &&
+		     (tmp[3] == 's' || tmp[3] == 'S') &&
+		     (tmp[4] == 'a' || tmp[4] == 'A') &&
+		     (tmp[5] == 'm' || tmp[5] == 'M') &&
+		     (tmp[6] == 'p' || tmp[6] == 'P')) {
+		functions[terms] = ibis::selected::VARSAMP;
+	    }
+	    else if ((tmp[0] == 's' || tmp[0] == 'S') &&
+		     (tmp[1] == 't' || tmp[1] == 'T') &&
+		     (tmp[2] == 'd' || tmp[2] == 'D') &&
+		     (tmp[3] == 'p' || tmp[3] == 'P') &&
+		     (tmp[4] == 'o' || tmp[4] == 'O') &&
+		     (tmp[5] == 'p' || tmp[5] == 'P')) {
+		functions[terms] = ibis::selected::STDPOP;
+	    }
+	    else if ((tmp[0] == 's' || tmp[0] == 'S') &&
+		     (tmp[1] == 't' || tmp[1] == 'T') &&
+		     (tmp[2] == 'd' || tmp[2] == 'D') &&
+		     (tmp[3] == 's' || tmp[3] == 'S') &&
+		     (tmp[4] == 'a' || tmp[4] == 'A') &&
+		     (tmp[5] == 'm' || tmp[5] == 'M') &&
+		     (tmp[6] == 'p' || tmp[6] == 'P')) {
+		functions[terms] = ibis::selected::STDSAMP;
+	    }
+	    else if ((tmp[0] == 'd' || tmp[0] == 'D') &&
+		     (tmp[1] == 'i' || tmp[1] == 'I') &&
+		     (tmp[2] == 's' || tmp[2] == 'S') &&
+		     (tmp[3] == 't' || tmp[3] == 'T') &&
+		     (tmp[4] == 'i' || tmp[4] == 'I') &&
+		     (tmp[5] == 'n' || tmp[5] == 'N') &&
+		     (tmp[6] == 'c' || tmp[6] == 'C') &&
+		     (tmp[7] == 't' || tmp[7] == 'T')) {
+		functions[terms] = ibis::selected::DISTINCT;
 	    }
 	    else if (ibis::gVerbose > 1) {
 		ibis::util::logMessage("ibis::selected",
@@ -7273,6 +7310,50 @@ void ibis::selected::select(const std::vector<const char*>& nl, bool sort) {
 		     (nl[i][2] == 'x' || nl[i][2] == 'X')) {
 		functions.push_back(ibis::selected::MAX);
 	    }
+	    else if ((nl[i][0] == 'v' || nl[i][0] == 'V') &&
+		(nl[i][1] == 'a' || nl[i][1] == 'A') &&
+		(nl[i][2] == 'r' || nl[i][2] == 'R') &&
+		(nl[i][3] == 'p' || nl[i][3] == 'P') &&
+		(nl[i][4] == 'o' || nl[i][4] == 'O') &&
+		(nl[i][5] == 'p' || nl[i][5] == 'P')) {
+		functions.push_back(ibis::selected::VARPOP);
+	    }
+	    else if ((nl[i][0] == 'v' || nl[i][0] == 'V') &&
+		(nl[i][1] == 'a' || nl[i][1] == 'A') &&
+		(nl[i][2] == 'r' || nl[i][2] == 'R') &&
+		(nl[i][3] == 's' || nl[i][3] == 'S') &&
+		(nl[i][4] == 'a' || nl[i][4] == 'A') &&
+		(nl[i][5] == 'm' || nl[i][5] == 'M') &&
+		(nl[i][6] == 'p' || nl[i][6] == 'P')) {
+		functions.push_back(ibis::selected::VARSAMP);
+	    }
+	    else if ((nl[i][0] == 's' || nl[i][0] == 'S') &&
+		(nl[i][1] == 't' || nl[i][1] == 'T') &&
+		(nl[i][2] == 'd' || nl[i][2] == 'D') &&
+		(nl[i][3] == 'p' || nl[i][3] == 'P') &&
+		(nl[i][4] == 'o' || nl[i][4] == 'O') &&
+		(nl[i][5] == 'p' || nl[i][5] == 'P')) {
+		functions.push_back(ibis::selected::STDPOP);
+	    }
+	    else if ((nl[i][0] == 's' || nl[i][0] == 'S') &&
+		(nl[i][1] == 't' || nl[i][1] == 'T') &&
+		(nl[i][2] == 'd' || nl[i][2] == 'D') &&
+		(nl[i][3] == 's' || nl[i][3] == 'S') &&
+		(nl[i][4] == 'a' || nl[i][4] == 'A') &&
+		(nl[i][5] == 'm' || nl[i][5] == 'M') &&
+		(nl[i][6] == 'p' || nl[i][6] == 'P')) {
+		functions.push_back(ibis::selected::STDSAMP);
+	    }
+	    else if ((nl[i][0] == 'd' || nl[i][0] == 'D') &&
+		(nl[i][1] == 'i' || nl[i][1] == 'I') &&
+		(nl[i][2] == 's' || nl[i][2] == 'S') &&
+		(nl[i][3] == 't' || nl[i][3] == 'T') &&
+		(nl[i][4] == 'i' || nl[i][4] == 'I') &&
+		(nl[i][5] == 'n' || nl[i][5] == 'N') &&
+		(nl[i][6] == 'c' || nl[i][6] == 'C') &&
+		(nl[i][7] == 't' || nl[i][7] == 'T')) {
+		functions.push_back(ibis::selected::DISTINCT);
+            }
 	    else {
 		ibis::util::logMessage("ibis::selected::select",
 				       "string \"%s\" contains an unknown "
@@ -7348,6 +7429,31 @@ std::string ibis::selected::getTerm(uint32_t i) const {
 	}
 	else if (functions[i] == SUM) {
 	    res = "SUM(";
+	    res += names[i];
+	    res += ')';
+	}
+	else if (functions[i] == VARPOP) {
+	    res = "VARPOP(";
+	    res += names[i];
+	    res += ')';
+	}
+	else if (functions[i] == VARSAMP) {
+	    res = "VARSAMP(";
+	    res += names[i];
+	    res += ')';
+	}
+	else if (functions[i] == STDPOP) {
+	    res = "STDPOP(";
+	    res += names[i];
+	    res += ')';
+	}
+	else if (functions[i] == STDSAMP) {
+	    res = "STDSAMP(";
+	    res += names[i];
+	    res += ')';
+	}
+	else if (functions[i] == DISTINCT) {
+	    res = "DISTINCT(";
 	    res += names[i];
 	    res += ')';
 	}
@@ -7441,5 +7547,15 @@ void ibis::selected::print(uint32_t i, std::ostream& out) const {
 	out << "MIN(" << names[i] << ")"; break;
     case SUM:
 	out << "SUM(" << names[i] << ")"; break;
+    case VARPOP:
+	out << "VARPOP(" << names[i] << ")"; break;
+    case VARSAMP:
+	out << "VARSAMP(" << names[i] << ")"; break;
+    case STDPOP:
+	out << "STDPOP(" << names[i] << ")"; break;
+    case STDSAMP:
+	out << "STDSAMP(" << names[i] << ")"; break;
+    case DISTINCT:
+	out << "DISTINCT(" << names[i] << ")"; break;
     }
 } // ibis::selected::print

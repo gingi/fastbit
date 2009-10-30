@@ -43,6 +43,11 @@
 %token <integerVal> MINOP	"min"
 %token <integerVal> MAXOP	"max"
 %token <integerVal> SUMOP	"sum"
+%token <integerVal> VARPOPOP	"varpop"
+%token <integerVal> VARSAMPOP	"varsamp"
+%token <integerVal> STDPOPOP	"stdpop"
+%token <integerVal> STDSAMPOP	"stdsamp"
+%token <integerVal> DISTINCTOP	"distinct"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
 %token <integerVal> ADDOP	"+"
@@ -122,6 +127,46 @@ sterm: AVGOP '(' mathExpr ')' ',' {
 | SUMOP '(' mathExpr ')' END {
     driver.terms_.push_back($3);
     driver.aggr_.push_back(ibis::selectClause::SUM);
+}
+| VARPOPOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+}
+| VARPOPOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+}
+| VARSAMPOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+| VARSAMPOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+| STDPOPOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+| STDPOPOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+| STDSAMPOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+| STDSAMPOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+| DISTINCTOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+| DISTINCTOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
 }
 | mathExpr ',' {
     driver.terms_.push_back($1);

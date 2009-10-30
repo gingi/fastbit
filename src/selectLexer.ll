@@ -53,6 +53,11 @@ NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 [mM][iI][nN] {return token::MINOP;}
 [sS][uU][mM] {return token::SUMOP;}
 [cC][oO][uU][nN][tT] {return token::CNTOP;}
+[vV][aA][rR][pP][oO][pP] {return token::VARPOPOP;}
+[vV][aA][rR][sS][aA][mM][pP] {return token::VARSAMPOP;}
+[sS][tT][dD][pP][oO][pP] {return token::STDPOPOP;}
+[sS][tT][dD][sS][aA][mM][pP] {return token::STDSAMPOP;}
+[dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1

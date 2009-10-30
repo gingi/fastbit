@@ -18,7 +18,7 @@
 #pragma warning (disable : 4231)
 #endif
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) && defined(CXX_USE_DLL) && !defined(DLL_EXPORT)
-extern template class FASTBIT_CXX_DLLSPEC array_t<uint32_t>;
+extern template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint32_t>;
 #endif
 
 

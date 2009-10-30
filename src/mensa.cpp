@@ -4028,6 +4028,31 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;
+	case ibis::selectClause::VARPOP:
+	    aggr[i] = "VARPOP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::VARSAMP:
+	    aggr[i] = "VARSAMP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::STDPOP:
+	    aggr[i] = "STDPOP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::STDSAMP:
+	    aggr[i] = "STDSAMP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::DISTINCT:
+	    aggr[i] = "DISTINCT(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
 	}
 	if (tms.getAggregator(i) != ibis::selectClause::CNT)
 	    caggr.push_back(aggr[i].c_str());
@@ -4453,6 +4478,31 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    break;
 	case ibis::selectClause::SUM:
 	    aggr[i] = "SUM(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::VARPOP:
+	    aggr[i] = "VARPOP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::VARSAMP:
+	    aggr[i] = "VARSAMP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::STDPOP:
+	    aggr[i] = "STDPOP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::STDSAMP:
+	    aggr[i] = "STDSAMP(";
+	    aggr[i] += tms.getName(i);
+	    aggr[i] += ")";
+	    break;
+	case ibis::selectClause::DISTINCT:
+	    aggr[i] = "DISTINCT(";
 	    aggr[i] += tms.getName(i);
 	    aggr[i] += ")";
 	    break;

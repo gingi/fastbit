@@ -1,3 +1,11 @@
+2009-10-30 Jan Steemann <Jan.Steemann at globalpark.com>
+	* examples/ibis.cpp, examples/thula.cpp, src/bundle.cpp,
+	src/colValues.cpp src/ibis.h, src/mensa.cpp, src/query.cpp,
+	src/query.h, src/selectClause.h, src/selectClause.cpp,
+	src/SelectLexer.ll, src/selectParser.yy, src/table.h, src/util.h:
+	add aggregate functions stdpop, stdsamp, varpop, varsamp, median
+	and distinct to the select clause
+
 2009-10-30 John Wu <John.Wu at ACM.org>
 	* src/ixpale.cpp: in function write32 and write64, update the
 	computation of offset32[0] and offset64[0]

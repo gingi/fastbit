@@ -136,16 +136,21 @@ namespace ibis
      MINOP = 261,
      MAXOP = 262,
      SUMOP = 263,
-     BITOROP = 264,
-     BITANDOP = 265,
-     ADDOP = 266,
-     MINUSOP = 267,
-     MULTOP = 268,
-     DIVOP = 269,
-     REMOP = 270,
-     EXPOP = 271,
-     NUMBER = 272,
-     NOUNSTR = 273
+     VARPOPOP = 264,
+     VARSAMPOP = 265,
+     STDPOPOP = 266,
+     STDSAMPOP = 267,
+     DISTINCTOP = 268,
+     BITOROP = 269,
+     BITANDOP = 270,
+     ADDOP = 271,
+     MINUSOP = 272,
+     MULTOP = 273,
+     DIVOP = 274,
+     REMOP = 275,
+     EXPOP = 276,
+     NUMBER = 277,
+     NOUNSTR = 278
    };
 
     };
@@ -266,7 +271,7 @@ namespace ibis
     /// A `-1'-separated list of the rules' RHS.
     static const rhs_number_type yyrhs_[];
     /// For each rule, the index of the first RHS symbol in \a yyrhs_.
-    static const unsigned char yyprhs_[];
+    static const unsigned short int yyprhs_[];
     /// For each rule, its source line number.
     static const unsigned short int yyrline_[];
     /// For each scanner token number, its symbol number.

@@ -96,9 +96,10 @@ discuss the requirements and restriction on these clauses.
 
 The select clause passed to function  ibis::table::select can only
 contain column names separated by comma (,).  Aggregate operations such as
-MIN, MAX, AVG or SUM, are supported through another function named 
-ibis::table::groupby.  A group-by operation normally specified as one SQL
-statement needs to be split into two FastBit, one to select the values and
+MIN, MAX, AVG, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP, or DISTINCT are 
+supported through another function named ibis::table::groupby.  
+A group-by operation normally specified as one SQL statement needs to be 
+split into two FastBit, one to select the values and
 the other to perform the aggregation operations.  We've taken this approach
 to simplify the implementation.  These aggregation operations are
 not directly supported by bitmap indexes, therefore, they are not essential
@@ -152,10 +153,11 @@ implicit in the association with an  ibis::part.  The WHERE clause is a
 set of range conditions joined together with logical operators, e.g.,
 <code>A = 5 AND (B between 6.5 and 8.2 OR C > sqrt(5*D))</code>.  The
 SELECT clause can contain a list of column names and some of the four
-functions AVG, MIN, MAX and SUM.  Each of the four functions can only take
-a column name as its argument.  If a SELECT clause is omitted, it is
-assumed to be "SELECT count(*)."  We refer to this type of queries as count
-queries since their primary purpose is to count the number of hits.
+functions AVG, MIN, MAX, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP and DISTINCT.  
+Each of the functions can only take a column name as its argument.  
+If a SELECT clause is omitted, it is assumed to be "SELECT count(*)."  
+We refer to this type of queries as count queries since their primary 
+purpose is to count the number of hits.
 
 To evaluate a query, one calls either ibis::query::estimate or
 ibis::query::evaluate.  After a query is evaluated, one may call various

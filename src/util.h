@@ -369,7 +369,7 @@ namespace ibis {
 	const_iterator begin() const {return names.begin();}
 	const_iterator end() const {return names.end();}
 
-	enum FUNCTION {NIL, AVG, MAX, MIN, SUM};
+	enum FUNCTION {NIL, AVG, MAX, MIN, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
 	FUNCTION getFunction(uint32_t i) const {return functions[i];}
 
     private:

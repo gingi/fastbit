@@ -8,8 +8,12 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 
+#include <cmath>	// std::ceil, std::log, ...
+#include <vector>
+#include <algorithm>
 #include "bundle.h"
 #include "column.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::colValues and derived classes
@@ -841,8 +845,8 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 } // colUInts::sort
 
 void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			 ibis::colList::iterator head,
-			 ibis::colList::iterator tail) {
+			  ibis::colList::iterator head,
+			  ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -855,7 +859,7 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 		(*array)[imin] = tmp;
 		if (bdl) bdl->swapRIDs(i1, imin);
 		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i1, imin);
+		    (*ii)->swap(i1, imin);
 	    }
 	}
     } // end selection sort
@@ -1033,8 +1037,8 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 } // colLongs::sort
 
 void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			 ibis::colList::iterator head,
-			 ibis::colList::iterator tail) {
+			  ibis::colList::iterator head,
+			  ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -1225,8 +1229,8 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 } // colULongs::sort
 
 void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			 ibis::colList::iterator head,
-			 ibis::colList::iterator tail) {
+			   ibis::colList::iterator head,
+			   ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -2599,6 +2603,97 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<int>(variance/count);
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(((*array)[starts[i]]-avg)
+			 *((*array)[starts[i]]-avg)/count);
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<int32_t> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            int lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<int32_t>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = static_cast<int> (distinct);
+	}
+	break;
     }
     array->resize(nseg);
 } // ibis::colInts::reduce
@@ -2650,13 +2745,104 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(variance/count);
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(((*array)[starts[i]]-avg)
+			 *((*array)[starts[i]]-avg)/count);
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<uint32_t> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            unsigned lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<uint32_t>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = static_cast<unsigned> (distinct);
+	}
+	break;
     }
     array->resize(nseg);
 } // ibis::colUInts::reduce
 
 // remove the duplicate elements according to the array starts
 void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
-			   ibis::selected::FUNCTION func) {
+			    ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
@@ -2700,13 +2886,104 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<int>(variance/count);
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(((*array)[starts[i]]-avg)
+			 *((*array)[starts[i]]-avg)/count);
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<int64_t> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            int lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<int64_t>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = static_cast<int> (distinct);
+	}
+	break;
     }
     array->resize(nseg);
 } // ibis::colLongs::reduce
 
 // remove the duplicate elements according to the array starts
 void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
-			    ibis::selected::FUNCTION func) {
+			     ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
@@ -2749,6 +3026,97 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		if ((*array)[i] < (*array)[j])
 		    (*array)[i] = (*array)[j];
+	}
+	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(variance/count);
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(((*array)[starts[i]]-avg)
+			 *((*array)[starts[i]]-avg)/count);
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<uint64_t> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            unsigned lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<uint64_t>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = static_cast<unsigned> (distinct);
 	}
 	break;
     }
@@ -2802,6 +3170,96 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = static_cast<float>(variance/count);
+		}
+		else {
+		    (*array)[i] = static_cast<float>
+			(std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = ((*array)[starts[i]]-avg)
+			*((*array)[starts[i]]-avg)/count;
+		}
+		else {
+		    (*array)[i] = static_cast<float>
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<float> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            float lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<float>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = static_cast<float> (distinct);
+	}
+	break;
     }
     array->resize(nseg);
 } // ibis::colFloats::reduce
@@ -2850,6 +3308,95 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		if ((*array)[i] < (*array)[j])
 		    (*array)[i] = (*array)[j];
+	}
+	break;
+    case ibis::selected::VARPOP:
+    case ibis::selected::VARSAMP:
+    case ibis::selected::STDPOP:
+    case ibis::selected::STDSAMP:
+    	// we can use the same functionality for all functions as sample &
+    	// population functions are similar, and stddev can be derived from
+    	// variance 
+	// - population standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows.
+	// - sample standard variance =  sum of squared differences from
+    	//   mean/avg, divided by number of rows-1.
+	// - population standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows.
+	// - sample standard deviation = square root of sum of squared
+    	//   differences from mean/avg, divided by number of rows-1.
+	double avg;
+        uint32_t count;
+	for (uint32_t i = 0; i < nseg; ++i) {
+            count=1; // calculate avg first because needed in the next step
+	    if (starts[i+1] > starts[i]+1) {
+		double sum = (*array)[starts[i]];
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    sum += (*array)[j];
+                    ++count;
+                }
+		avg=(sum / (starts[i+1]-starts[i]));
+	    }
+	    else {
+		avg=(*array)[starts[i]];
+	    }
+
+
+            if ((func == ibis::selected::VARSAMP) ||
+		(func == ibis::selected::STDSAMP)) {
+		--count; // sample version denominator is number of rows -1
+	    }
+
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = variance/count;
+		}
+		else {
+		    (*array)[i] = (std::sqrt(variance/count));
+		}
+	    }
+	    else {
+		if (func == ibis::selected::VARPOP ||
+		    func == ibis::selected::VARSAMP) {
+		    (*array)[i] = ((*array)[starts[i]]-avg)
+			*((*array)[starts[i]]-avg)/count;
+		}
+		else {
+		    (*array)[i] =
+			(std::sqrt(((*array)[starts[i]]-avg)
+				   *((*array)[starts[i]]-avg)/count));
+		}
+	    }
+	}
+	break;
+    case ibis::selected::DISTINCT: // count distinct
+	for (uint32_t i = 0; i < nseg; ++i) {
+            std::vector<double> values;
+            values.resize(starts[i+1]-starts[i]);
+            uint32_t c = 0;
+
+	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
+                values[c++]=(*array)[j];
+            }
+            std::sort(values.begin(), values.end());
+
+            double lastVal = *(values.begin());
+ 	    uint32_t distinct = 1;
+
+            std::vector<double>::iterator v;
+            for (v = values.begin() +1 ; v < values.end(); ++v) {
+                if (*v != lastVal) {
+		    lastVal=*v;
+		    ++distinct;
+		}
+            }
+	    (*array)[i] = distinct;
 	}
 	break;
     }

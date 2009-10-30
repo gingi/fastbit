@@ -122,6 +122,21 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
     case SUM:
 	oss << "SUM(" << *(terms_[i]) << ")";
 	break;
+    case VARPOP:
+	oss << "VARPOP(" << *(terms_[i]) << ")";
+	break;
+    case VARSAMP:
+	oss << "VARSAMP(" << *(terms_[i]) << ")";
+	break;
+    case STDPOP:
+	oss << "STDPOP(" << *(terms_[i]) << ")";
+	break;
+    case STDSAMP:
+	oss << "STDSAMP(" << *(terms_[i]) << ")";
+	break;
+    case DISTINCT:
+	oss << "DISTINCT(" << *(terms_[i]) << ")";
+	break;
     }
 
     str = oss.str();
@@ -203,6 +218,21 @@ int ibis::selectClause::find(const char* key) const {
 		    case SUM:
 			oss << "SUM(" << *(terms_[i]) << ")";
 			break;
+		    case VARPOP:
+			oss << "VARPOP(" << *(terms_[i]) << ")";
+			break;
+		    case VARSAMP:
+			oss << "VARSAMP(" << *(terms_[i]) << ")";
+			break;
+		    case STDPOP:
+			oss << "STDPOP(" << *(terms_[i]) << ")";
+			break;
+		    case STDSAMP:
+			oss << "STDSAMP(" << *(terms_[i]) << ")";
+			break;
+		    case DISTINCT:
+			oss << "DISTINCT(" << *(terms_[i]) << ")";
+			break;
 		    }
 		    if (stricmp(oss.str().c_str(), key) == 0) {
 			ret = i;
@@ -244,6 +274,21 @@ void ibis::selectClause::print(std::ostream& out) const {
 	    break;
 	case SUM:
 	    out << "SUM(" << *(terms_[i]) << ")";
+	    break;
+	case VARPOP:
+	    out << "VARPOP(" << *(terms_[i]) << ")";
+	    break;
+	case VARSAMP:
+	    out << "VARSAMP(" << *(terms_[i]) << ")";
+	    break;
+	case STDPOP:
+	    out << "STDPOP(" << *(terms_[i]) << ")";
+	    break;
+	case STDSAMP:
+	    out << "STDSAMP(" << *(terms_[i]) << ")";
+	    break;
+	case DISTINCT:
+	    out << "DISTINCT(" << *(terms_[i]) << ")";
 	    break;
 	}
 	if (aliases[i] != 0)

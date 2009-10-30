@@ -678,23 +678,33 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    std::vector<std::string> strs;
 	    ibis::table::stringList strc;
 	    if (nl.size() == 1) {
-		strs.resize(4);
-		strs[0] = "min("; strs[0] += sstr; strs[0] += ')';
-		strs[1] = "max("; strs[1] += sstr; strs[1] += ')';
-		strs[2] = "sum("; strs[2] += sstr; strs[2] += ')';
-		strs[3] = "avg("; strs[3] += sstr; strs[3] += ')';
+		strs.resize(9);
+		strs[0] = "min(";     strs[0] += sstr; strs[0] += ')';
+		strs[1] = "max(";     strs[1] += sstr; strs[1] += ')';
+		strs[2] = "sum(";     strs[2] += sstr; strs[2] += ')';
+		strs[3] = "avg(";     strs[3] += sstr; strs[3] += ')';
+		strs[4] = "varpop(";  strs[4] += sstr; strs[4] += ')';
+		strs[5] = "varsamp("; strs[5] += sstr; strs[5] += ')';
+		strs[6] = "stdpop(";  strs[6] += sstr; strs[6] += ')';
+		strs[7] = "stdsamp("; strs[7] += sstr; strs[7] += ')';
+		strs[8] = "distinct(";strs[8] += sstr; strs[8] += ')';
 	    }
 	    else if (nl.size() == 2) {
-		strs.resize(5);
+		strs.resize(10);
 		strs[0] = nl[0];
 		const char* nm2 = nl[1];
-		strs[1] = "min("; strs[1] += nm2; strs[1] += ')';
-		strs[2] = "max("; strs[2] += nm2; strs[2] += ')';
-		strs[3] = "sum("; strs[3] += nm2; strs[3] += ')';
-		strs[4] = "avg("; strs[4] += nm2; strs[4] += ')';
+		strs[1] = "min(";     strs[1] += nm2; strs[1] += ')';
+		strs[2] = "max(";     strs[2] += nm2; strs[2] += ')';
+		strs[3] = "sum(";     strs[3] += nm2; strs[3] += ')';
+		strs[4] = "avg(";     strs[4] += nm2; strs[4] += ')';
+		strs[5] = "varpop(";  strs[5] += nm2; strs[5] += ')';
+		strs[6] = "varsamp("; strs[6] += nm2; strs[6] += ')';
+		strs[7] = "stdpop(";  strs[7] += nm2; strs[7] += ')';
+		strs[8] = "stdsamp("; strs[8] += nm2; strs[8] += ')';
+		strs[9] = "distinct(";strs[9] += nm2; strs[9] += ')';
 	    }
 	    else {
-		strs.resize(nl.size()+3);
+		strs.resize(nl.size()+8);
 		strs[0] = nl[0];
 		const char* nm2 = 0;
 		size_t i;
@@ -702,9 +712,14 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		    nm2 = nl[i];
 		    strs[i] = "avg("; strs[i] += nm2; strs[i] += ')';
 		}
-		strs[i] = "min("; strs[i] += nm2; strs[i] += ')'; ++ i;
-		strs[i] = "max("; strs[i] += nm2; strs[i] += ')'; ++ i;
-		strs[i] = "sum("; strs[i] += nm2; strs[i] += ')';
+		strs[i] = "min(";     strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "max(";     strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "sum(";     strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "varpop(";  strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "varsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "stdpop(";  strs[i] += nm2; strs[i] += ')'; ++ i;
+		strs[i] = "stdsamp("; strs[i] += nm2; strs[i] += ')'; ++ i; 
+		strs[i] = "distinct(";strs[i] += nm2; strs[i] += ')'; 
 	    }
 
 	    strc.resize(strs.size());

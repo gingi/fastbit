@@ -382,6 +382,11 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 		switch (cmps.getFunction(0)) {
 		case ibis::selected::AVG:
 		case ibis::selected::SUM:
+	        case ibis::selected::VARPOP:
+	        case ibis::selected::VARSAMP:
+	        case ibis::selected::STDPOP:
+	        case ibis::selected::STDSAMP:
+	        case ibis::selected::DISTINCT:
 		    col = new ibis::colDoubles
 			(c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
 		    break;
@@ -421,6 +426,11 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 		switch (cmps.getFunction(0)) {
 		case ibis::selected::AVG:
 		case ibis::selected::SUM:
+	        case ibis::selected::VARPOP:
+	        case ibis::selected::VARSAMP:
+	        case ibis::selected::STDPOP:
+	        case ibis::selected::STDSAMP:
+	        case ibis::selected::DISTINCT:
 		    col = new ibis::colDoubles(c, *hits);
 		    break;
 		default:
@@ -484,6 +494,11 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	    switch (cmps.getFunction(0)) {
 	    case ibis::selected::AVG:
 	    case ibis::selected::SUM:
+	    case ibis::selected::VARPOP:
+	    case ibis::selected::VARSAMP:
+	    case ibis::selected::STDPOP:
+	    case ibis::selected::STDSAMP:
+	    case ibis::selected::DISTINCT:
 		col = new ibis::colDoubles(c, hits);
 		break;
 	    default:
@@ -545,6 +560,11 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 	    switch (cmps.getFunction(0)) {
 	    case ibis::selected::AVG:
 	    case ibis::selected::SUM:
+	    case ibis::selected::VARPOP:
+	    case ibis::selected::VARSAMP:
+	    case ibis::selected::STDPOP:
+	    case ibis::selected::STDSAMP:
+	    case ibis::selected::DISTINCT:
 		col = new ibis::colDoubles(c, vals[0]);
 		break;
 	    default:
@@ -913,6 +933,11 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    switch (cmps.getFunction(i)) {
 		    case ibis::selected::AVG:
 		    case ibis::selected::SUM:
+	    	    case ibis::selected::VARPOP:
+	            case ibis::selected::VARSAMP:
+	            case ibis::selected::STDPOP:
+	            case ibis::selected::STDSAMP:
+	            case ibis::selected::DISTINCT:
 			tmp = new ibis::colDoubles
 			    (cptr, bdlstore, start, sizes[0]);
 			break;
@@ -970,6 +995,11 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		switch (cmps.getFunction(i)) {
 		case ibis::selected::AVG:
 		case ibis::selected::SUM:
+	    	case ibis::selected::VARPOP:
+	        case ibis::selected::VARSAMP:
+	        case ibis::selected::STDPOP:
+	        case ibis::selected::STDSAMP:
+	        case ibis::selected::DISTINCT:
 		    tmp = new ibis::colDoubles(cptr, *hits);
 		    break;
 		default:
@@ -1025,6 +1055,11 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    switch (nlist.getFunction(i)) {
 	    case ibis::selected::AVG:
 	    case ibis::selected::SUM:
+	    case ibis::selected::VARPOP:
+	    case ibis::selected::VARSAMP:
+	    case ibis::selected::STDPOP:
+	    case ibis::selected::STDSAMP:
+	    case ibis::selected::DISTINCT:
 		tmp = new ibis::colDoubles(cptr, hits);
 		break;
 	    default:
@@ -1081,6 +1116,11 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
 	    switch (cmps.getFunction(i)) {
 	    case ibis::selected::AVG:
 	    case ibis::selected::SUM:
+	    case ibis::selected::VARPOP:
+	    case ibis::selected::VARSAMP:
+	    case ibis::selected::STDPOP:
+	    case ibis::selected::STDSAMP:
+	    case ibis::selected::DISTINCT:
 		cv = new ibis::colDoubles(c, vals[i]);
 		break;
 	    default:

@@ -59,7 +59,7 @@ public:
     void describe(unsigned i, std::string &str) const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
-    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM};
+    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
     int verify(const ibis::part&);

@@ -23,7 +23,7 @@
 /// specified, it contains a list of column names.  These attributes must
 /// not be NULL in order for a record to be a hit.  The select clause may
 /// also contain column names appearing as the argument to one of the four
-/// aggregation functions: @c avg, @c max, @c min and @c sum.  For example,
+/// aggregation functions: @c avg, @c var, @c max, @c min and @c sum.  For example,
 /// "temperature, pressure, average(ho2_concentration)" may be a select
 /// statement for a Chemistry application.  @note If one needs to include
 /// arithmetic expressions in the select clause, use the function
@@ -93,7 +93,7 @@ public:
     int setWhereClause(const ibis::qExpr* qexp);
     /// Specifies the select clause for the query.  The select clause is a
     /// string of attribute names (plus the four predefined functions, @c
-    /// avg, @c max, @c min and @c sum) separated by spaces, commas (,) or
+    /// avg, @c var, @c max, @c min and @c sum) separated by spaces, commas (,) or
     /// semicolons(;).  Repeated calls to this function simply overwrite
     /// the previous definition of the select clause.  If no select clause
     /// is specified, the where clause alone determines whether record is a

@@ -2139,7 +2139,7 @@ int main(int argc, char** argv) {
 		    (*it)->purgeIndexFiles();
 		if (indexingOption != 0)
 		    (*it)->indexSpec(indexingOption);
-		(*it)->buildIndex(build_index, indexingOption);
+		(*it)->buildIndexes(indexingOption, build_index);
 	    }
 	    timer1.stop();
 	    LOGGER(0) << *argv << ": building indexes for " << tlist.size()
@@ -2158,7 +2158,7 @@ int main(int argc, char** argv) {
 		 it != tlist.end(); ++ it) {
 		// tell the partition to perform self tests
 		long nerr = (*it)->selfTest(testing);
-		(*it)->unloadIndex();
+		(*it)->unloadIndexes();
 
 		if (ibis::gVerbose >= 0) {
 		    ibis::util::logger lg(0);
