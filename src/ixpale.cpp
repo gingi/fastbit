@@ -279,7 +279,11 @@ int ibis::pale::write(const char* dt) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
+#endif
     char header[] = "#IBIS\3\0\0";
     header[5] = (char)ibis::index::PALE;
     header[6] = (char)(useoffset64 ? 8 : 4);

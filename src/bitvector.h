@@ -607,9 +607,9 @@ inline ibis::bitvector& ibis::bitvector::swap(bitvector& bv) {
 /// words.  It assumes that nbits == MAXBITS and refers to MAXBITS instead
 /// of @c nbits.
 inline void ibis::bitvector::append_active() {
-//      std::cout << "before: active.val = 0x" << std::hex << active.val;
+//      std::cout << "before: active.val = " << std::hex << active.val;
 //      if (m_vec.size())
-//  	std::cout << ", m_vec.back() = 0x" << m_vec.back();
+//  	std::cout << ", m_vec.back() = " << m_vec.back();
 //      std::cout << std::dec << std::endl;
     if (m_vec.empty()) {
 	m_vec.push_back(active.val);
@@ -642,7 +642,7 @@ inline void ibis::bitvector::append_active() {
     nbits += MAXBITS;
     active.reset();
     nset = 0;
-//      std::cout << "after: m_vec.back() = 0x" << std::hex << m_vec.back()
+//      std::cout << "after: m_vec.back() = " << std::hex << m_vec.back()
 //  	      << std::dec << std::endl;
 } // ibis::bitvector::append_active
 
@@ -713,8 +713,11 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
     }
 } // ibis::bitvector::appendFill
 
-// append nw words starting from 'it' to the current bit vector -- assume
-// active is empty
+/// Copy a group of consecutive runs.  It appends nw words starting from
+/// 'it' to the current bit vector, assuming active is empty.  Both it and
+/// nw are modified in this function.  On returning from this function, it
+/// points to the next unused word and nw stores the value of remaining
+/// words to copy.
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
@@ -723,7 +726,7 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 	    << *(it.it) << ", " << std::dec << nw
 	    << ") ... it.nWords = " << it.nWords;
 #endif
-    // deal with the first word -- need to attach it to the last word in m_vec
+    // deal with the first word -- attach it to the last word in m_vec
     if (it.isFill != 0) {
 	append_counter(it.fillBit, it.nWords);
 	nw -= it.nWords;
@@ -733,22 +736,28 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 	append_active();
 	-- nw;
     }
-    ++ it.it; // advance to the next word
-    //if (nw == 0) {it.nWords = 0; return;}
-    it.decode();
+    ++ it.it;
+    it.nWords = 0;
     nset = 0;
     nbits += MAXBITS * nw;
-    while (nw >= it.nWords && nw > 0) { // only need to copy the word
-	m_vec.push_back(*(it.it));
-	nw -= it.nWords;
-	++ it.it; // advance to the next word
+
+    while (nw > 0) { // copy the words
 	it.decode();
+	if (nw >= it.nWords) {
+	    m_vec.push_back(*(it.it));
+	    nw -= it.nWords;
+	    it.nWords = 0;
+	    ++ it.it;
+	}
+	else {
+	    break;
+	}
     }
     nbits -= MAXBITS * nw;
 } // ibis::bitvector::copy_runs
 
-// append nw words starting from it to the current bit vector -- assume
-// active is empty
+/// Copy the complements of a set of consecutive runs.  It assumes that
+/// active is empty.
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
@@ -768,22 +777,28 @@ inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
 	-- nw;
     }
     ++ it.it; // advance to the next word
-    //if (nw == 0) {it.nWords = 0; return;}
-    it.decode();
+    it.nWords = 0;
     nset = 0;
     nbits += MAXBITS * nw;
-    while (nw >= it.nWords && nw > 0) { // only need to copy the word
-	m_vec.push_back((it.isFill?FILLBIT:ALLONES) ^ *(it.it));
-	nw -= it.nWords;
-	++ it.it; // advance to the next word
+
+    while (nw > 0) { // copy the words
 	it.decode();
+	if (nw >= it.nWords) {
+	    m_vec.push_back((it.isFill?FILLBIT:ALLONES) ^ *(it.it));
+	    nw -= it.nWords;
+	    it.nWords = 0;
+	    ++ it.it;
+	}
+	else {
+	    break;
+	}
     }
     nbits -= MAXBITS * nw;
 } // ibis::bitvector::copy_runsn
 
-// copy the fill in "run it" as literal words.
-// This implementation relies on the fact that the iterator jt is actually
-// a bare pointer.
+/// Copy the fill in "run it" as literal words.
+/// This implementation relies on the fact that the iterator jt is actually
+/// a bare pointer.
 inline void ibis::bitvector::copy_fill
 (array_t<ibis::bitvector::word_t>::iterator& jt, run& it) {
     if (it.fillBit == 0) {
@@ -828,10 +843,10 @@ inline void ibis::bitvector::copy_fill
     ++ it.it;
 } // ibis::bitvector::copy_fill
 
-// copy the next nw words (nw * MAXBITS bits) starting with run it
-// to an array_t as uncompressed words.  If the run has more words than nw,
-// return the left over words to give it a chance for the longer run to be
-// counted first.
+/// Copy the next nw words (nw * MAXBITS bits) starting with run it
+/// to an array_t as uncompressed words.  If the run has more words than nw,
+/// return the left over words to give it a chance for the longer run to be
+/// counted first.
 inline void ibis::bitvector::copy_runs
 (array_t<ibis::bitvector::word_t>::iterator& jt, run& it, word_t& nw) {
     while (nw >= it.nWords && nw > 0) {
@@ -857,15 +872,21 @@ inline void ibis::bitvector::copy_runs
 	    -- nw;
 	}
 	++ it.it; // advance to the next word
-	it.decode();
+	if (nw > 0) {
+	    it.decode();
+	}
+	else {
+	    it.nWords = 0;
+	    return;
+	}
     }
 } // ibis::bitvector::copy_runs
 
-// copy the complements of the next nw words (nw X MAXBITS bits)
-// starting with "run it" as uncompressed words
+/// Copy the complements of the next nw words (nw * MAXBITS bits)
+/// starting with "run it" as uncompressed words.
 inline void ibis::bitvector::copy_runsn
 (array_t<ibis::bitvector::word_t>::iterator& jt, run& it, word_t& nw) {
-    while (nw >= it.nWords && nw > 0) {
+    while (nw >= it.nWords) {
 	if (it.isFill != 0) { // a fill
 	    const array_t<word_t>::iterator iend = jt + it.nWords;
 	    if (it.fillBit == 0) {
@@ -888,7 +909,13 @@ inline void ibis::bitvector::copy_runsn
 	    -- nw;
 	}
 	++ it.it; // advance to the next word
-	it.decode();
+	if (nw > 0) {
+	    it.decode();
+	}
+	else {
+	    it.nWords = 0;
+	    return;
+	}
     }
 } // ibis::bitvector::copy_runsn
 

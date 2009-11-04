@@ -16,8 +16,13 @@ namespace ibis {
 } // namespace ibis
 
 /// Class ibis::bord stores all its data in memory.  The function @c
-/// ibis::table::select produces an ibis::bord object if the query
-/// produce nontrivial results.
+/// ibis::table::select produces an ibis::bord object to store nontrivial
+/// results.  Since all data records are stored in memory, the number of
+/// rows that can be stored are limited.  This also implies that the
+/// function ibis::table::select will not be able to produce a proper table
+/// object if the selection is very large.  An additional limit is that the
+/// number of rows is internally stored in a 32-bit unsigned integer, which
+/// can store no more than 4 billion rows.
 ///
 /// @note Bord is a Danish word for "table."
 class ibis::bord : public ibis::table {

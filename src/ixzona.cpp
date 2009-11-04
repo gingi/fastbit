@@ -1062,7 +1062,11 @@ int ibis::zona::write(const char* dt) const {
 
     int ierr = 0;
     const uint32_t nobs = vals.size();
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
+#endif
     const bool haveCoarseBins = ! (cbits.empty() || cbounds.empty());
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)(haveCoarseBins ? ibis::index::ZONA : ibis::index::RELIC);

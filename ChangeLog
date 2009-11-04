@@ -1,10 +1,43 @@
+2009-11-03 John Wu <John.Wu at ACM.org>
+	* src/bitvector.h: change copy_runs and copy_runsn to chech the
+	values of nw before calling run::decode.  This avoids the warnings
+	from valgrind and make it a little easier to debug the rest of the
+	code.
+	* src/ixbylt.cpp:1224 cbounds[0] should be cbounds[c0]
+	* src/ixbylt.cpp: check the value of c0 in casues where c0-1 and
+	c0-2 are used as indices to arrays (in functions evaluate and
+	estimateCost)
+
+2009-11-02 John Wu <John.Wu at ACM.org>
+	* src/i*.cpp: add compiler macro FASTBIT_USE_LONG_OFFSETS to force
+	it to always use 64-bit bitmap offsets (even if the index sizes
+	are small)
+	* INSTALL: add a note about FASTBIT_USE_LONG_OFFSETS
+	* src/ixfuge.cpp:1574 offset64.size() > cbits.size() should be
+	coffset64.size() > cbits.size()
+	* src/ixbylt.cpp:669 coffset64.size() > bits.size() should be
+	offset64.size() > bits.size()
+	* src/ixbylt.cpp:1131 add condition c1-1 < ncoarse, the coarse bin
+	may be the unrecorded bin, which means cbits[c1-1] is not defined
+	* src/ixbylt.cpp:853,1346 the branch for 64-bit offsets mistakenly used
+	32-bit offsets
+	* src/ixbylt.cpp: in functions estimateCost and evaluate, move the
+	case for handling unrecorded bin up the list of if blocks
+
+2009-11-01 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp:1706 same problem as identified by Luca
+
+2009-11-01 Luca Deri <deri at ntop.org>
+	* src/bundle.cpp:1416 change cols[i] to cols[j].  The incorrect
+	index to cols causes core dump
+
 2009-10-30 Jan Steemann <Jan.Steemann at globalpark.com>
 	* examples/ibis.cpp, examples/thula.cpp, src/bundle.cpp,
 	src/colValues.cpp src/ibis.h, src/mensa.cpp, src/query.cpp,
 	src/query.h, src/selectClause.h, src/selectClause.cpp,
 	src/SelectLexer.ll, src/selectParser.yy, src/table.h, src/util.h:
-	add aggregate functions stdpop, stdsamp, varpop, varsamp, median
-	and distinct to the select clause
+	add aggregate functions stdpop, stdsamp, varpop, varsamp, and
+	distinct to the select clause
 
 2009-10-30 John Wu <John.Wu at ACM.org>
 	* src/ixpale.cpp: in function write32 and write64, update the

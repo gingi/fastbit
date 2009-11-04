@@ -1107,7 +1107,11 @@ int ibis::fuzz::write(const char* dt) const {
 #endif
 
     int32_t ierr = 0;
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
+#endif
     const bool haveCoarseBins = ! (cbits.empty() || cbounds.empty());
     char header[] = "#IBIS\7\0\0";
     header[5] = (char)(haveCoarseBins ? ibis::index::FUZZ : ibis::index::RELIC);

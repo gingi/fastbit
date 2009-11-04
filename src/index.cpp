@@ -4598,7 +4598,7 @@ void ibis::index::activate(uint32_t i) const {
 	}
 	else if (str) { // using a ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
-		<< evt << "(" << i << ") using storage @ 0x" << str;
+		<< evt << "(" << i << ") using storage @ " << str;
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- " << evt << " constructing bitvector " << i
@@ -4647,11 +4647,11 @@ void ibis::index::activate(uint32_t i) const {
     }
     else if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
-	    << evt << "(" << i << ") using storage @ 0x" << str;
+	    << evt << "(" << i << ") using storage @ " << str;
 #if defined(_DEBUG)
 	LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- " << evt << " constructing bitvector " << i
-		<< "from range [" << offset32[i] << ", " << offset32[i+1]
+		<< " from range [" << offset32[i] << ", " << offset32[i+1]
 		<< ") of a storage at "
 		<< static_cast<const void*>(str->begin());
 #endif
@@ -4790,7 +4790,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 			    LOGGER(ibis::gVerbose > 5)
 				<< "DEBUG -- " << evt
 				<< " constructing bitvector " << i
-				<< "from range [" << offset64[i] << ", "
+				<< " from range [" << offset64[i] << ", "
 				<< offset64[i+1] << ") of file " << fname;
 #endif
 			    if (bits[i] == 0 &&

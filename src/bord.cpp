@@ -987,6 +987,8 @@ int ibis::bord::getPartitions(std::vector<const ibis::part*> &lst) const {
     return 1;
 } // ibis::bord::getPartitions
 
+/// Constructor.  This object can only store upto 4 billion rows because it
+/// uses a 32-bit unsigned integer to store the number of rows.
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList &cn,
 		       const ibis::table::typeList   &ct,
@@ -1058,6 +1060,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 	}
     }
 
+    state = ibis::part::STABLE_STATE;
     LOGGER(ibis::gVerbose > 0)
 	<< "ibis::bord::part constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
@@ -1138,12 +1141,16 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
 } // ibis::bord::part::dumpNames
 
 /**
-   return values:
+   Print the content of the data to the given output stream.
+
+   The return values:
+@code
    0  -- normal (successful) completion
   -1  -- no data in-memory
   -2  -- unknown data type
   -3  -- some columns not ibis::bord::column (not in-memory)
   -4  -- error in the output stream
+@endcode
  */
 int ibis::bord::part::dump(std::ostream& out, uint32_t nr,
 			   const char* del) const {

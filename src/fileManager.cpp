@@ -610,7 +610,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     }
 
     LOGGER(ibis::gVerbose > 10)
-	<< evt << " -- record storage 0x" << (void*)st;
+	<< evt << " -- record storage " << (void*)st;
     increaseUse(st->bytes(), evt.c_str());
     if (st->filename() == 0)
 	return;
@@ -1671,7 +1671,7 @@ ibis::fileManager::storage::storage(const int fdes,
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 10)
-		<< "storage::read -- allocated " << nbytes << " bytes at 0x"
+		<< "storage::read -- allocated " << nbytes << " bytes at "
 		<< (void*)m_begin;
 	}
     }
@@ -1702,7 +1702,7 @@ ibis::fileManager::storage::storage(const int fdes,
 	}
 	LOGGER(nread != nbytes && ibis::gVerbose >= 0)
 	    << "Warning -- ibis::fileManager::storage -- expected to read "
-	    << nbytes << " bytes from fdes " << fdes << " at 0x"
+	    << nbytes << " bytes from fdes " << fdes << " at "
 	    << (void*)m_begin << ", but only read " << nread;
 
 	ibis::fileManager::instance().recordPages(begin, end);
@@ -1741,7 +1741,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fileManager::storage is unable to find "
-		<< nbytes << " bytes of space to copy from 0x"
+		<< nbytes << " bytes of space to copy from "
 		<< static_cast<const void*>(begin);
 	    throw ibis::bad_alloc("storage::ctor(copy memory) failed");
 	}
@@ -2090,7 +2090,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 10)
-		<< evt.c_str() << " -- allocated " << nbytes << " bytes at 0x"
+		<< evt.c_str() << " -- allocated " << nbytes << " bytes at "
 		<< (void*) m_begin;
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
@@ -2115,7 +2115,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	ibis::fileManager::instance().recordPages(begin, end);
 	LOGGER(nread != nbytes && ibis::gVerbose >= 0)
 	    << "Warning -- fileManager::storage read(fdes=" << fdes
-	    << ") allocated " << nbytes << " bytes at 0x"
+	    << ") allocated " << nbytes << " bytes at "
 	    << static_cast<const void*>(m_begin)
 	    << ", but only read " << nread;
     }
@@ -2142,7 +2142,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fileManager::storage::read(fdes=" << fdes
-		<< ") allocated " << nbytes << " bytes at 0x"
+		<< ") allocated " << nbytes << " bytes at "
 		<< static_cast<const void*>(m_begin) << ", but only read "
 		<< nread;
 	}
@@ -2219,7 +2219,7 @@ void ibis::fileManager::roFile::clear() {
     }
     if (nref() > 0) {
 	LOGGER(ibis::gVerbose > 3)
-	    << evt << " -- storage 0x" << m_begin << " is busy (nref="
+	    << evt << " -- storage " << m_begin << " is busy (nref="
 	    << nref() << ") and can't be cleared";
 	return;
     }
@@ -2380,7 +2380,7 @@ void ibis::fileManager::roFile::doRead(const char* file) {
     else {
 	LOGGER(ibis::gVerbose > 6)
 	    <<"roFile::doRead -- read " << n << " bytes from file \""
-	    << file << "\" to 0x" << static_cast<const void*>(m_begin);
+	    << file << "\" to " << static_cast<const void*>(m_begin);
     }
     name = ibis::util::strnewdup(file);
     m_end = m_begin + i;
@@ -2448,7 +2448,7 @@ void ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
     else {
 	LOGGER(ibis::gVerbose > 6)
 	    << "roFile::doRead -- read " << n << " bytes from file \""
-	    << file << "\"[" << b << ", " << e << ") to 0x"
+	    << file << "\"[" << b << ", " << e << ") to "
 	    << static_cast<const void*>(m_begin);
     }
     m_end = m_begin + i;

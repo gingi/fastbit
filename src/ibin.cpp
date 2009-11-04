@@ -4827,7 +4827,11 @@ int ibis::bin::write(const char* dt) const {
 	return -4;
     }
 
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (8+getSerialSize() >= 0x80000000UL);
+#endif
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());

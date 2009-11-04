@@ -71,7 +71,8 @@ ibis::zone::zone(const ibis::bin& rhs) {
 	    sub.clear();
 	}
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::zone::ctor starting to convert " << rhs.nobs
+	    << "zone[" << col->partition()->name() << "."
+	    << col->name() << "]::ctor starting to convert " << rhs.nobs
 	    << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has subranges.
@@ -280,7 +281,11 @@ int ibis::zone::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
+#endif
     char header[] = "#IBIS\5\0\0";
     header[5] = (char)ibis::index::ZONE;
     header[6] = (char)(useoffset64 ? 8 : 4);
@@ -1871,7 +1876,8 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::zone::estimate(" << expr << ") bin number ["
+	<< "zone[" << col->partition()->name() << "."
+	<< col->name() << "]::estimate(" << expr << ") bin number ["
 	<< cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	<< ") boundaries ["
 	<< (minval[cand0]<bounds[cand0] ? minval[cand0] :

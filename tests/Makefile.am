@@ -112,7 +112,7 @@ $(TESTDIR)/append.log:
 	$(MAKE) do-small-append
 # make 1024 copies of the results of append-test
 large-append-test: do-large-append
-	rm -rf $(TESTDIR)/at0 $(TESTDIR)/at1
+	@rm -rf $(TESTDIR)/at0 $(TESTDIR)/at1
 	@echo
 	@if [ `fgrep ' committing 512000' $(TESTDIR)/append.log | wc -l` -lt 2 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed large append tests.; fi
 	@echo
@@ -226,13 +226,13 @@ $(TESTDIR)/smallmem.rc: $(TESTDIR)
 	@echo "fileManager.maxBytes=160MB" > $(TESTDIR)/smallmem.rc
 # the above configuration statement instructs ibis to limit the amount
 # of memory used to 160MB, which is not sufficient for many of the
-# operations such index building.  However, it has been useful to test
-# the error handling functions to include this memory restriction.
+# operations such as index building.  However, it has been useful to
+# test the error handling functions to include this memory restriction.
 #
 #
 clean: clean-am
 	rm -f *\\~ core core.[0-9]*
-	rm -rf $(TESTDIR) .ibis readcsv$(EXEEXT) star2002*
+	rm -rf $(TESTDIR) star2002*
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR) $(TESTDIR) .ibis readcsv$(EXEEXT)
 	-rm -f Makefile
@@ -249,9 +249,9 @@ do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/
 #
 # take the results of do-small-append, double them 10 times
 $(TESTDIR)/at0: $(TESTDIR)
-	test -d $(TESTDIR)/at0 || mkdir $(TESTDIR)/at0
+	@test -d $(TESTDIR)/at0 || mkdir $(TESTDIR)/at0
 $(TESTDIR)/at1: $(TESTDIR)
-	test -d $(TESTDIR)/at1 || mkdir $(TESTDIR)/at1
+	@test -d $(TESTDIR)/at1 || mkdir $(TESTDIR)/at1
 do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
 	@echo >> $(TESTDIR)/append.log
 	@/bin/date >> $(TESTDIR)/append.log

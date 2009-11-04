@@ -2425,7 +2425,7 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
-#if defined(_DEBUG) //_DEBUG+0>1 || DEBUG+0>1
+#if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg.buffer() << "DEBUG -- colDoubles::segment: old groups "

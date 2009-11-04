@@ -56,7 +56,7 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 	    }
 	    else {
 		ibis::util::logMessage
-		    ("Error", "the serialized version of bitvector contains "
+		    ("Warning", "the serialized version of bitvector contains "
 		     "an unexpected last word (0x%.8lx)",
 		     static_cast<long unsigned>(m_vec.back()));
 #if defined(_DEBUG)
@@ -1847,7 +1847,7 @@ void ibis::bitvector::read(const char * fn) {
     }
 #endif
     if (ierr) {
-	ibis::util::logMessage("Error", "ibis::bitvector::read(%s) found "
+	ibis::util::logMessage("Warning", "ibis::bitvector::read(%s) found "
 			       "%d error%s in three sanity checks.",
 			       fn, ierr, (ierr>1?"s":""));
 	throw "bitvector::read failed integrity check";
@@ -1858,7 +1858,7 @@ void ibis::bitvector::read(const char * fn) {
 void ibis::bitvector::write(const char * fn) const {
     FILE *out = fopen(fn, "wb");
     if (out == 0) {
-	ibis::util::logMessage("Error", "ibis::bitvector::write() Failed to "
+	ibis::util::logMessage("Warning", "ibis::bitvector::write() Failed to "
 			       "open \"%s\" to write the bit vector ... %s",
 			       fn, (errno ? strerror(errno) :
 				    "no free stdio stream"));
@@ -1879,7 +1879,7 @@ void ibis::bitvector::write(const char * fn) const {
     word_t j = fwrite((const void*)m_vec.begin(), sizeof(word_t),
 		      n, out);
     if (j != n) {
-	ibis::util::logMessage("Error", "ibis::bitvector::write only "
+	ibis::util::logMessage("Warning", "ibis::bitvector::write only "
 			       "wrote %lu out of %lu words to %s",
 			       static_cast<long unsigned>(j),
 			       static_cast<long unsigned>(n), fn);
@@ -1917,14 +1917,14 @@ void ibis::bitvector::write(const char * fn) const {
 #endif
 
     //     if (0 == fwrite((const void*)&nset, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Error", "ibis::bitvector::write() fail to "
+    // 	ibis::util::logMessage("Warning", "ibis::bitvector::write() fail to "
     // 			       "write nset to %s", fn);
     // 	fclose(out);
     // 	throw "bitvector::write failed to write the size";
     //     }
 
     //     if (0 == fwrite((const void*)&nbits, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Error", "ibis::bitvector::write() fail to "
+    // 	ibis::util::logMessage("Warning", "ibis::bitvector::write() fail to "
     // 			       "write nbits to %s", fn);
     // 	fclose(out);
     // 	throw "bitvector::write failed to write the cnt";
@@ -1949,7 +1949,7 @@ void ibis::bitvector::write(int out) const {
     word_t n = sizeof(word_t) * m_vec.size();
     word_t j = UnixWrite(out, (const void*)m_vec.begin(), n);
     if (j != n) {
-	ibis::util::logMessage("Error", "ibis::bitvector::write only "
+	ibis::util::logMessage("Warning", "ibis::bitvector::write only "
 			       "wrote %lu out of %lu bytes",
 			       static_cast<long unsigned>(j),
 			       static_cast<long unsigned>(n));
@@ -2227,7 +2227,7 @@ void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (m_vec.end() - x.it));
@@ -2235,7 +2235,7 @@ void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (rhs.m_vec.end() - y.it));
@@ -2306,7 +2306,7 @@ void ibis::bitvector::and_c1(const ibis::bitvector& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_c1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (rhs.m_vec.end() - i1));
@@ -2426,7 +2426,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (m_vec.end() - x.it));
@@ -2436,7 +2436,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 	if (y.it != rhs.m_vec.end()) {
 	    word_t nb0 = do_cnt() + active.nbits;
 	    word_t nb1 = rhs.do_cnt() + rhs.active.nbits;
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_d2 "
 				   "between two bit vectors of sizes "
 				   "%lu:%lu and %lu:%lu "
 				   "expects to exhaust i1 but there are %ld "
@@ -2451,7 +2451,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (res.m_vec.end() - ir));
@@ -2515,7 +2515,7 @@ void ibis::bitvector::and_d1(const ibis::bitvector& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::and_d1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::and_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (m_vec.end() - i0));
@@ -2599,9 +2599,10 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 		x.decode();
 	    if (y.nWords == 0)
 		y.decode();
+#if defined(_DEBUG) || defined(DEBUG)
 	    LOGGER((x.nWords == 0 || y.nWords == 0) && ibis::gVerbose >= 0)
 		<< " Error -- ibis::bitvector::or_c2 serious problem here ...";
-
+#endif
 	    if (x.isFill != 0) { // x points to a fill
 		// if both x and y point to fills, use the longer one
 		if (y.isFill != 0) {
@@ -2656,7 +2657,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (m_vec.end() - x.it));
@@ -2673,7 +2674,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2755,7 +2756,7 @@ void ibis::bitvector::or_c1(const ibis::bitvector& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_c1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - i1));
@@ -2867,7 +2868,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -2878,7 +2879,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2889,7 +2890,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
@@ -2960,7 +2961,7 @@ void ibis::bitvector::or_d1(const ibis::bitvector& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::or_d1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::or_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - i0));
@@ -3065,7 +3066,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
     } // while (x.it < m_vec.end())
 
     if (x.it != m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector::xor_c2 expects "
+	ibis::util::logMessage("Warning", "ibis::bitvector::xor_c2 expects "
 			       "to exhaust i0 but there are %ld word(s) left",
 			       static_cast<long int>(m_vec.end() - x.it));
 	throw "xor_c2 interal error";
@@ -3077,7 +3078,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
 	    lg.buffer() << "Bitvector 1\n" << *this << "\n Bitvector 2\n"
 			<< rhs << "\nXOR result so far\n" << res;
 	}
-	ibis::util::logMessage("Error", "ibis::bitvector::xor_c2 expects "
+	ibis::util::logMessage("Warning", "ibis::bitvector::xor_c2 expects "
 			       "to exhaust i1 but there are %ld word(s) left",
 			       static_cast<long int>(rhs.m_vec.end() - y.it));
 	throw "xor_c2 internal error";
@@ -3123,7 +3124,7 @@ void ibis::bitvector::xor_c1(const ibis::bitvector& rhs,
     } // while (i0 != m_vec.end())
 
     if (i1 != rhs.m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector::xor_c1 expects "
+	ibis::util::logMessage("Warning", "ibis::bitvector::xor_c1 expects "
 			       "to exhaust i1 but there are %ld word(s) left",
 			       static_cast<long int>(rhs.m_vec.end() - i1));
 	throw "xor_c1 iternal error";
@@ -3232,7 +3233,7 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::xor_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::xor_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long int>(m_vec.end() - x.it));
@@ -3240,7 +3241,7 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::xor_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::xor_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (rhs.m_vec.end() - y.it));
@@ -3248,7 +3249,7 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::xor_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::xor_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (res.m_vec.end() - ir));
@@ -3315,7 +3316,7 @@ void ibis::bitvector::xor_d1(const ibis::bitvector& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::xor_d1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::xor_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (m_vec.end() - i0));
@@ -3455,7 +3456,7 @@ void ibis::bitvector::minus_c2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (m_vec.end() - x.it));
@@ -3463,7 +3464,7 @@ void ibis::bitvector::minus_c2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_c2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (rhs.m_vec.end() - y.it));
@@ -3540,7 +3541,7 @@ void ibis::bitvector::minus_c1(const ibis::bitvector& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_c1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (rhs.m_vec.end() - i1));
@@ -3592,7 +3593,7 @@ void ibis::bitvector::minus_c1x(const ibis::bitvector& rhs,
     } // while (i1 != rhs.m_vec.end())
 
     if (i0 != m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector::minus_c1x expects "
+	ibis::util::logMessage("Warning", "ibis::bitvector::minus_c1x expects "
 			       "to exhaust i0 but there are %ld word(s) left",
 			       static_cast<long int>(m_vec.end() - i0));
 	throw "minus_c1x internal error";
@@ -3706,7 +3707,7 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long int>(m_vec.end() - x.it));
@@ -3714,7 +3715,7 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (rhs.m_vec.end() - y.it));
@@ -3722,7 +3723,7 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_d2 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (res.m_vec.end() - ir));
@@ -3785,7 +3786,7 @@ void ibis::bitvector::minus_d1(const ibis::bitvector& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector::minus_d1 "
+	    ibis::util::logMessage("Warning", "ibis::bitvector::minus_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long int>
 				   (m_vec.end() - i0));

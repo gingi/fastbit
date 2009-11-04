@@ -97,7 +97,11 @@ int ibis::sbiad::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
+#endif
     char header[] = "#IBIS\13\0\0";
     header[5] = (char)ibis::index::SBIAD;
     header[6] = (char)(useoffset64 ? 8 : 4);

@@ -1413,7 +1413,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	if (direction < 0) { // reverse the order
 	    for (uint32_t j = 0; j < cols.size(); ++ j)
 		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[i]->swap(i, ngroups-1-i);
+		    cols[j]->swap(i, ngroups-1-i);
 	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
 		const uint32_t j = ngroups - 1 - i;
 		ibis::RIDSet *tmp = rid2[i];
@@ -1703,7 +1703,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	if (direction < 0) { // reverse the order
 	    for (uint32_t j = 0; j < cols.size(); ++ j)
 		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[i]->swap(i, ngroups-1-i);
+		    cols[j]->swap(i, ngroups-1-i);
 	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
 		const uint32_t j = ngroups - 1 - i;
 		ibis::RIDSet *tmp = rid2[i];

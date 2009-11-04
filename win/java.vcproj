@@ -64,7 +64,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/fastbitjni.dll"
-				LinkIncremental="0"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/fastbitjni.pdb"
@@ -142,7 +141,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="$(OutDir)/fastbitjni.dll"
-				LinkIncremental="0"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -218,6 +216,10 @@
 			</File>
 			<File
 				RelativePath="..\src\colValues.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -338,10 +340,6 @@
 			</File>
 			<File
 				RelativePath="..\src\meshQuery.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -479,6 +477,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\java\FastBit.h"
 				>
 			</File>
@@ -527,6 +529,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\meshQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\part.h"
 				>
 			</File>
@@ -536,14 +542,6 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\meshQuery.h"
 				>
 			</File>
 			<File

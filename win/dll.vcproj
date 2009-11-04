@@ -50,7 +50,7 @@
 				BufferSecurityCheck="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				BrowseInformation="1"
+				BrowseInformation="0"
 				WarningLevel="1"
 				DebugInformationFormat="3"
 			/>
@@ -67,7 +67,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="dll/Debug/fastbit.dll"
-				LinkIncremental="0"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -131,6 +130,7 @@
 				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
+				BrowseInformation="0"
 				WarningLevel="1"
 				DebugInformationFormat="0"
 			/>
@@ -147,7 +147,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="dll/Release/fastbit.dll"
-				LinkIncremental="0"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -223,6 +222,10 @@
 			</File>
 			<File
 				RelativePath="..\src\colValues.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -335,10 +338,6 @@
 			</File>
 			<File
 				RelativePath="..\src\mensa.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -480,6 +479,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\fileManager.h"
 				>
 			</File>
@@ -524,6 +527,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\meshQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\part.h"
 				>
 			</File>
@@ -537,14 +544,6 @@
 			</File>
 			<File
 				RelativePath="..\src\query.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\meshQuery.h"
 				>
 			</File>
 			<File

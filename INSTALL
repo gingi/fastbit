@@ -175,6 +175,14 @@ FASTBIT_SYNC_WRITE
   program waits for disk operations to complete.  The delay can be
   especially painful if there are numerous write operaitons.
 
+FASTBIT_USE_LONG_OFFSETS
+
+  For FastBit to write index files with 64-bit bitmap offsets.  Without
+  defining this compiler macro, FastBit will only use 64-bit offsets if
+  the index size is expected to be larger than 2GB.  This macro only
+  affects the writing function, the reading function will always check
+  the header to determine the expected bitmap offset size.
+
 
 ----------
 Known Issues

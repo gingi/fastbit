@@ -60,7 +60,7 @@
 				AssemblerListingLocation="Debug/"
 				ObjectFile="Debug/"
 				ProgramDataBaseFileName="Debug/"
-				BrowseInformation="1"
+				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -81,7 +81,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="Debug/thula.exe"
-				LinkIncremental="0"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
@@ -179,7 +178,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
 				OutputFile="Release\thula.exe"
-				LinkIncremental="0"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				ProgramDatabaseFile="Release/thula.pdb"
@@ -249,6 +247,10 @@
 			</File>
 			<File
 				RelativePath="..\src\colValues.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -369,10 +371,6 @@
 			</File>
 			<File
 				RelativePath="..\src\meshQuery.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.cpp"
 				>
 			</File>
 			<File
@@ -509,6 +507,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\fileManager.h"
 				>
 			</File>
@@ -553,6 +555,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\meshQuery.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\part.h"
 				>
 			</File>
@@ -562,14 +568,6 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\countQuery.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\meshQuery.h"
 				>
 			</File>
 			<File

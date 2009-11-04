@@ -200,7 +200,11 @@ int ibis::fuge::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
+#endif
     const bool haveCoarseBins = ((cbounds.empty() || cbits.empty()) == false);
     char header[] = "#IBIS\4\0\0";
     header[5] = (char)(haveCoarseBins ? ibis::index::FUGE
@@ -1567,7 +1571,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	    << "Warning -- " << mesg << '(' << i << ", " << j
 	    << ") can not proceed for lacking of offset information";
     }
-    else if (offset64.size() > cbits.size()) {
+    else if (coffset64.size() > cbits.size()) {
 	if (str != 0) { // using an ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
 		<< mesg << '(' << i << ", " << j

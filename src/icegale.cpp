@@ -170,7 +170,11 @@ int ibis::egale::write(const char* dt) const {
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+#ifdef FASTBIT_USE_LONG_OFFSETS
+    const bool useoffset64 = true;
+#else
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000);
+#endif
     array_t<int32_t> offs(nbits+1);
     char header[] = "#IBIS\15\0\0";
     header[5] = (char)ibis::index::EGALE;

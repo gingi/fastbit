@@ -621,12 +621,17 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 
 	if (n0 > 0 && sel->nColumns() > 0) {
 	    sel->orderby(sstr);
-	    if (xfile.is_open() && xfile.good())
+	    if (xfile.is_open() && xfile.good()) {
 		sel->dump(xfile);
-	    else if (ibis::gVerbose > 2)
-		sel->dump(std::cout);
-	    else
-		printValues(*sel);
+	    }
+	    else {
+		try {
+		    sel->dump(std::cout);
+		}
+		catch (...) {
+		    printValues(*sel);
+		}
+	    }
 	}
 	std::cout  << "-- end printing --\n";
     }
@@ -741,12 +746,17 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    gb->describe(std::cout);
 
 	    if (gb->nRows() > 0 && gb->nColumns() > 0) {
-		if (xfile.is_open() && xfile.good())
+		if (xfile.is_open() && xfile.good()) {
 		    gb->dump(xfile);
-		else if (ibis::gVerbose > 2)
-		    gb->dump(std::cout);
-		else if (ibis::gVerbose > 0)
-		    printValues(*gb);
+		}
+		else {
+		    try {
+			gb->dump(std::cout);
+		    }
+		    catch (...) {
+			printValues(*gb);
+		    }
+		}
 	    }
 	    std::cout << "--  end  output of group by operation --\n"
 		      << std::endl;
