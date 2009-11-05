@@ -1378,7 +1378,7 @@ int ibis::fuzz::read(const char* f) {
     }
     // read the offsets
     begin = end;
-    end += sizeof(int32_t) * (dim[1] + 1);
+    end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG) || defined(_DEBUG)

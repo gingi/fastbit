@@ -609,11 +609,11 @@ double ibis::zona::estimateCost(const ibis::qContinuousRange& expr) const {
 
     const long fine =
 	(offset64.size() > bits.size()
-	 ? (offset32[hit1] - offset32[hit0] <=
-	     (offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
-	     ? offset32[hit1] - offset32[hit0]
-	     : ((offset32.back() - offset32[hit1])
-		+ (offset32[hit0] - offset32[0])))
+	 ? (offset64[hit1] - offset64[hit0] <=
+	     (offset64.back() - offset64[hit1]) + (offset64[hit0] - offset64[0])
+	     ? offset64[hit1] - offset64[hit0]
+	     : ((offset64.back() - offset64[hit1])
+		+ (offset64[hit0] - offset64[0])))
 	 : (offset32[hit1] - offset32[hit0] <=
 	    (offset32.back() - offset32[hit1]) + (offset32[hit0] - offset32[0])
 	    ? offset32[hit1] - offset32[hit0]

@@ -30,9 +30,17 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 	throw;
     }
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a "
+	    << nbases << "-component range index with "
+	    << nbits << " bitmap" << (nbits>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // constructor
 
@@ -48,9 +56,17 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 	throw;
     }
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a "
+	    << nbases << "-component range index with "
+	    << nbits << " bitmap" << (nbits>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // constructor
 
@@ -63,9 +79,17 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 	throw;
     }
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a "
+	    << nbases << "-component range index with "
+	    << nbits << " bitmap" << (nbits>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // copy from an ibis::bin
 
@@ -86,9 +110,18 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 ///@endcode
 ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::egale(c, st, start) {
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a " << nbases
+	    << "-component interval index with " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " from a storage object @ " << st
+	    << " starting from position " << start;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // reconstruct data from content of a file
 
@@ -139,9 +172,16 @@ int ibis::moins::write(const char* dt) const {
 	ierr = ibis::egale::write64(fdes); // use the function ibis::egale
     else
 	ierr = ibis::egale::write32(fdes); // use the function ibis::egale
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
+	LOGGER(ibis::gVerbose > 3)
+	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " to file " << name << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::moins::write
 
@@ -166,14 +206,11 @@ void ibis::moins::convert() {
     bits.resize(nbits);
     for (i = 0; i < nbits; ++i)
 	bits[i] = 0;
-    if (ibis::gVerbose > 3) {
-	col->logMessage("moins::convert", "converting %lu-bin %lu-component "
-			"index from equality encoding to range encoding "
-			"(using %lu bitvectors)",
-			static_cast<long unsigned>(nobs),
-			static_cast<long unsigned>(nbases),
-			static_cast<long unsigned>(nbits));
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "moins[" << col->partition()->name() << '.' << col->name()
+	<< "]::convert -- converting " << nobs << "-bin "
+	<< nbases << "-component index from equality encoding to "
+	"interval encoding (using " << nbits << " bitvectors)";
 
     // generate the correct bitmaps
     const uint32_t nrows = simple[0]->size();

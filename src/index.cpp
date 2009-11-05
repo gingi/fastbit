@@ -4412,7 +4412,7 @@ void ibis::index::activate() const {
     }
     if (offset64.size() > nobs) { // prefer to use offset64 if present
 	if (str) { // using a ibis::fileManager::storage as back store
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << " using ibis::fileManager::storage(0x" << str << ")";
 
 	    for (size_t i = 0; i < nobs; ++i) {
@@ -4442,7 +4442,7 @@ void ibis::index::activate() const {
 		errno = 0;
 		return;
 	    }
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << " using file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4488,7 +4488,7 @@ void ibis::index::activate() const {
 	}
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 5)
 	    << evt << " using ibis::fileManager::storage(0x" << str << ")";
 
 	for (size_t i = 0; i < nobs; ++i) {
@@ -4518,7 +4518,7 @@ void ibis::index::activate() const {
 	    errno = 0;
 	    return;
 	}
-	LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 5)
 	    << evt << " using file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4597,7 +4597,7 @@ void ibis::index::activate(uint32_t i) const {
 	    return;
 	}
 	else if (str) { // using a ibis::fileManager::storage as back store
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << "(" << i << ") using storage @ " << str;
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 5)
@@ -4616,7 +4616,7 @@ void ibis::index::activate(uint32_t i) const {
 	else if (fname) { // using the named file directly
 	    int fdes = UnixOpen(fname, OPEN_READONLY);
 	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose > 8)
+		LOGGER(ibis::gVerbose > 5)
 		    << evt << "(" << i << ") using file \"" << fname << "\"";
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4646,7 +4646,7 @@ void ibis::index::activate(uint32_t i) const {
 	return;
     }
     else if (str) { // using a ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 5)
 	    << evt << "(" << i << ") using storage @ " << str;
 #if defined(_DEBUG)
 	LOGGER(ibis::gVerbose > 5)
@@ -4665,7 +4665,7 @@ void ibis::index::activate(uint32_t i) const {
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
 	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << "(" << i << ") using file \"" << fname << "\"";
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
@@ -4732,7 +4732,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     }
     if (offset64.size() > bits.size()) {
 	if (str) { // using an ibis::fileManager::storage as back store
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << "(" << i << ", " << j
 		<< ") using ibis::fileManager::storage(0x" << str << ")";
 
@@ -4765,7 +4765,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		    return;
 		}
 
-		LOGGER(ibis::gVerbose > 8)
+		LOGGER(ibis::gVerbose > 5)
 		    << evt << "(" << i << ", " << j
 		    << ") using file \"" << fname << "\"";		    
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4812,7 +4812,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	}
     }
     else if (str) { // using an ibis::fileManager::storage as back store
-	LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 5)
 	    << evt << "(" << i << ", " << j
 	    << ") using ibis::fileManager::storage(0x" << str << ")";
 
@@ -4843,7 +4843,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		    << fname << "\" ... " << (errno ? strerror(errno) : "??");
 		return;
 	    }
-	    LOGGER(ibis::gVerbose > 8)
+	    LOGGER(ibis::gVerbose > 5)
 		<< evt << "(" << i << ", " << j
 		<< ") using file \"" << fname << "\"";
 

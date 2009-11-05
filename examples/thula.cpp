@@ -587,7 +587,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	if (n1 == 0U) return;
     }
     // function select returns a table containing the selected values
-    ibis::table *sel;
+    ibis::table *sel = 0;
     if (fstr == 0 || *fstr == 0) {
 	sel = tbl.select(sstr, wstr);
     }

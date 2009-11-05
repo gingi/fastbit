@@ -492,11 +492,6 @@ int ibis::keywords::read(const char* f) {
 	return -4;
     }
     nrows = dim[0];
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (dim[1]*8 >= FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     // read offsets
     begin = 8 + 2*sizeof(uint32_t);
     end = 8 + 2*sizeof(uint32_t) + header[6] * (dim[1] + 1);

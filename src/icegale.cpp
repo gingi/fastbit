@@ -43,9 +43,18 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	    convert();  // convert from 1 level to multilevel equality code
 	}
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "egale[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built a " << nbases
+		<< "-component equality encoded index with " << nbits
+		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
+		<< " bin" << (nobs>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -54,7 +63,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
     }
 } // constructor
 
-// a constructor that takes known bounds and bases
+/// Constructor.  It takes a set of known bin bounds and bases.
 ibis::egale::egale(const ibis::column* c, const char* f,
 		   const array_t<double>& bd, const array_t<uint32_t> bs)
     : ibis::bin(c, f, bd), nbits(bs[0]), nbases(bs.size()), bases(bs) {
@@ -73,9 +82,18 @@ ibis::egale::egale(const ibis::column* c, const char* f,
     try { // convert from simple equality code to multicomponent code
 	convert();
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "egale[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built a " << nbases
+		<< "-component equality encoded index with " << nbits
+		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
+		<< " bin" << (nobs>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -94,9 +112,17 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 	nbases = bases.size();
 	convert();
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "egale[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- converted a simple equality index into a "
+		<< nbases << "-component equality index with "
+		<< nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -135,10 +161,21 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	 +3*nobs*sizeof(double), nobs),
     bases(st, 8*((7+offset+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]+
 	  3*nobs*sizeof(double)+(nobs+1)*sizeof(int32_t), nbases) {
-    if (ibis::gVerbose > 8 &&
-	static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE) {
+    if (ibis::gVerbose > 8 ||
+	(ibis::gVerbose > 2 &&
+	 static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE)) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "egale[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- reconstructed a " << nbases
+	    << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
+	    << "index with " << nbits << " bitmap" << (nbits>1?"s":"")
+	    << " on " << nobs << " bin" << (nobs>1?"s":"")
+	    << " from storage object " << st << " starting at " << offset;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // reconstruct data from content of a file
 
@@ -191,9 +228,16 @@ int ibis::egale::write(const char* dt) const {
 	ierr = write64(fdes);
     else
 	ierr = write32(fdes);
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // flush to disk
+	(void) UnixFlush(fdes); // flush to disk
 #endif
+	LOGGER(ibis::gVerbose > 3)
+	    << "egale[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::egale::write
 
@@ -574,7 +618,7 @@ int ibis::egale::read(const char* f) {
     // initialized bits with nil pointers
     initBitmaps(fdes);
 
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 3)
 	<< "egale[" << col->partition()->name() << "." << col->name()
 	<< "]::read completed reading the header from " << fnm;
     return 0;
@@ -615,6 +659,12 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 	return ierr;
     }
 
+    begin += st->begin()[6] * (nbits+1);
+    {
+	array_t<uint32_t> ctmp(st, begin, nobs);
+	cnts.swap(ctmp);
+    }
+
     begin += sizeof(uint32_t) * nobs;
     nbases = *(reinterpret_cast<uint32_t*>(st->begin() + begin));
     begin += sizeof(uint32_t);
@@ -625,7 +675,10 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 
     // initialized bits with nil pointers
     initBitmaps(st);
-    return 0;
+    LOGGER(ibis::gVerbose > 3)
+	<< "egale[" << col->partition()->name() << "." << col->name()
+	<< "]::read completed reading the header from storage @ " << st;
+   return 0;
 } // ibis::egale::read
 
 // convert from the one component equality code to a multicomponent
@@ -649,14 +702,10 @@ void ibis::egale::convert() {
     for (i = 0; i < nbits; ++i)
 	bits[i] = 0;
     cnts.resize(nobs);
-    if (ibis::gVerbose > 3) {
-	col->logMessage("egale::convert", "initialized the array of "
-			"bitvectors, start converting %lu bitmaps into %lu-"
-			"component equality code (with %lu bitvectors)",
-			static_cast<long unsigned>(nobs),
-			static_cast<long unsigned>(nbases),
-			static_cast<long unsigned>(nbits));
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "egale[" << col->partition()->name() << "." << col->name()
+	<< "]::convert -- converting " << nobs << " bitmaps into " << nbases
+	<< "-component equality code (with " << nbits << " bitvectors)";
 
     // generate the correct bitmaps
     if (nbases > 1) {
@@ -689,7 +738,7 @@ void ibis::egale::convert() {
 #if defined(DEBUG)
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG: ibis::egale::convert " << i << " ...";
+		    << "DEBUG -- ibis::egale::convert " << i << " ...";
 	    }
 #endif
 	}
@@ -714,7 +763,7 @@ void ibis::egale::convert() {
 #if defined(DEBUG)
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG: ibis::egale::convert " << nobs << " DONE";
+	    << "DEBUG -- ibis::egale::convert " << nobs << " DONE";
     }
 #endif
     optionalUnpack(bits, col->indexSpec());
@@ -744,10 +793,11 @@ void ibis::egale::setBit(const uint32_t i, const double val) {
     }
 } // setBit
 
-// generate a new egale index by directly setting the bits in the
-// multicomponent bitvectors -- the alternative was to build a simple equality
-// index first than convert.  Directly build the multicomponent scheme might
-// use less space, at least we done have to generate the simple encoding.
+/// Generate a new egale index by directly setting the bits in the
+/// multicomponent bitvectors.  The alternative was to build a simple
+/// equality index first than convert.  Directly build the multicomponent
+/// scheme might use less space, at least we donot have to generate the
+/// simple encoding, however in many tests it takes longer time.
 void ibis::egale::construct(const char* f) {
     // determine the number of bitvectors to use
     nbits = bases[0];
@@ -992,11 +1042,17 @@ void ibis::egale::construct(const char* f) {
     // write out the current content
     if (ibis::gVerbose > 4) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+	lg.buffer() << "egale[" << col->partition()->name() << '.' << col->name()
+		    << "]::construct(" << fnm << ") -- finished constructing a "
+		    << nbases << "-component equality index";
+	if (ibis::gVerbose > 8) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::egale::construct
 
-// a simple function to test the speed of the bitvector operations
+/// A simple function to test the speed of the bitvector operations.
 void ibis::egale::speedTest(std::ostream& out) const {
     if (nrows == 0) return;
     uint32_t i, nloops = 1000000000 / nrows;
@@ -1025,9 +1081,9 @@ void ibis::egale::speedTest(std::ostream& out) const {
 		<< timer.realTime() / nloops << std::endl;
 	}
     }
-} // ibis::egale::speedTest()
+} // ibis::egale::speedTest
 
-// the printing function
+/// The printing function.
 void ibis::egale::print(std::ostream& out) const {
     out << col->partition()->name() << '.' << col->name()
 	<< ".index(MCBin equality code ncomp=" << bases.size()

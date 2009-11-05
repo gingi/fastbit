@@ -71,9 +71,16 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 			       "code %d", ierr);
 	throw ibis::bad_alloc("ibis::direkte construction failure");
     }
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "direkte[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a simple equality index with "
+	    << bits.size() << " bitmap" << (bits.size()>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::direkte::direkte
 
@@ -81,9 +88,10 @@ template <typename T>
 int ibis::direkte::construct(const char* dfname) {
     int ierr = 0;
     array_t<T> vals;
-    if (ibis::gVerbose > 4)
-	col->logMessage("direkte::construct", "starting to process file %s",
-			dfname);
+    LOGGER(ibis::gVerbose > 4)
+	<< "direkte[" << col->partition()->name() << '.' << col->name()
+	<< "]::construct -- starting to process file " << dfname << " as "
+	<< typeid(T).name();
     ibis::bitvector mask;
     col->getNullMask(mask);
     nrows = col->partition()->nRows();
@@ -148,10 +156,10 @@ int ibis::direkte::construct(const char* dfname) {
 	    return ierr;
 	}
 
-	if (ibis::gVerbose > 5)
-	    col->logMessage("direkte::construct", "starting to construct "
-			    "the index by reading the values from %s one "
-			    "at a time", dfname);
+	LOGGER(ibis::gVerbose > 5)
+	    << "direkte[" << col->partition()->name() << '.' << col->name()
+	    << "]::construct -- constructing the index by reading the values from "
+	    << dfname << " one at a time";
 	if (col->upperBound() > col->lowerBound()) {
 	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
 #ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
@@ -239,6 +247,7 @@ ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
     read(st);
 } // ibis::direkte::direkte
 
+/// The printing function.
 void ibis::direkte::print(std::ostream& out) const {
     if (ibis::gVerbose < 0) return;
     const uint32_t nobs = bits.size();
@@ -476,11 +485,6 @@ int ibis::direkte::read(const char* f) {
 	return -4;
     }
     nrows = dim[0];
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (dim[1]*8 >= FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     // read offsets
     begin = 8 + 2*sizeof(uint32_t);
     end = 8 + 2*sizeof(uint32_t) + header[6] * (dim[1] + 1);
@@ -517,7 +521,7 @@ int ibis::direkte::read(const char* f) {
 
     initBitmaps(fdes);
     str = 0;
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 3)
 	<< "direkte[" << col->name() << "]::read(" << fnm << ") finished "
 	"reading index header with nrows=" << nrows << " and bits.size()="
 	<< bits.size();
@@ -548,6 +552,10 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
     }
 
     initBitmaps(st);
+    LOGGER(ibis::gVerbose > 3)
+	<< "direkte[" << col->name() << "]::read(" << st << ") finished "
+	"reading index header with nrows=" << nrows << " and bits.size()="
+	<< bits.size();
     return 0;
 } // ibis::direkte::read
 

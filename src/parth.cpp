@@ -2063,7 +2063,7 @@ ibis::part::adaptiveInts(const array_t<T> &vals, const T vmin, const T vmax,
 
     array_t<uint32_t> fcnts(nfine, 0U);
     for (uint32_t i = 0; i < vals.size(); ++ i)
-	++ fcnts[vals[i]-vmin];
+	++ fcnts[(size_t)(vals[i]-vmin)];
 
     if (nbins <= 1) // too few bins, use 1000
 	nbins = 1000;

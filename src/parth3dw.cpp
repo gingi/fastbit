@@ -143,7 +143,7 @@ ibis::part::fill3DBinsWeighted(const ibis::bitvector &mask,
 		    weights[ibin] += wts[ivals];
 #if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
 		    LOGGER(ibis::gVerbose > 5)
-			<< "DEBUG: fill3DBinsWeighted -- vals1[" << ivals
+			<< "DEBUG -- fill3DBinsWeighted -- vals1[" << ivals
 			<< "]=" << vals1[ivals]
 			<< ", vals2[" << ivals << "]=" << vals2[ivals]
 			<< ", vals3[" << ivals << "]=" << vals3[ivals]

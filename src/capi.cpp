@@ -1359,7 +1359,7 @@ fastbit_add_values(const char *colname, const char *coltype,
     if (*colname == 0 || *coltype == 0) return ierr;
     if (nelem == 0) return 0;
 
-    ibis::TYPE_T type;
+    ibis::TYPE_T type = ibis::UNKNOWN_TYPE;
     ierr = 0;
     switch (*coltype) {
     default : ierr = -2; break;

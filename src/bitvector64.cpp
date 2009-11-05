@@ -3580,8 +3580,8 @@ const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
 	uint64_t expected = a.cnt();
 	expected *= b.cnt();
 	uint64_t diff = c.cnt() - oldcnt;
-	lg.buffer() << "ibis::util::outerProduct: adding the outer product between "
-	    "two bitvectors with "
+	lg.buffer() << "ibis::util::outerProduct: adding the outer product "
+	    "between two bitvectors with "
 		    << a.cnt() << " out of " << a.size() << " set bits and "
 		    << b.cnt() << " out of " << b.size()
 		    << " set bits produced " << c.cnt()
@@ -3598,7 +3598,7 @@ const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG: ibis::util::outerProduct\na" << a
+	lg.buffer() << "DEBUG -- ibis::util::outerProduct\na" << a
 		  << "\nb" << b << "\nresult" << c;
     }
 #endif
@@ -3687,8 +3687,8 @@ const ibis::bitvector64& ibis::util::outerProductUpper(const ibis::bitvector& a,
 	expected *= b.cnt();
 	uint64_t diff = c.cnt();
 	diff -= oldcnt;
-	lg.buffer() << "ibis::util::outerProductUpper: adding the outer product "
-	    "between two bitvectors with "
+	lg.buffer() << "ibis::util::outerProductUpper: adding the outer "
+	    "product between two bitvectors with "
 		  << a.cnt() << " out of " << a.size() << " set bits and "
 		  << b.cnt() << " out of " << b.size()
 		  << " set bits produced " << c.cnt()
@@ -3705,7 +3705,7 @@ const ibis::bitvector64& ibis::util::outerProductUpper(const ibis::bitvector& a,
 #if defined(DEBUG) && DEBUG + 0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG: ibis::util::outerProductUpper\na" << a
+	lg.buffer() << "DEBUG -- ibis::util::outerProductUpper\na" << a
 		    << "\nb" << b << "\nresult" << c;
     }
 #endif

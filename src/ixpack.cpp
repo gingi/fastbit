@@ -75,7 +75,8 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	    sub.clear();
 	}
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::pack::ctor starting to convert " << rhs.nobs
+	    << "pack[" << col->partition()->name() << "." << col->name()
+	    << "]::ctor starting to convert " << rhs.nobs
 	    << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has a subrange.
@@ -192,7 +193,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
 			    << "." << col->name() << "]::pack(0x"
-			    << stataic_cast<const void*>(st)
+			    << static_cast<const void*>(st)
 			    << ", " << start << ") -- offsets of subranges\n";
 		for (uint32_t i=0; i<=nobs; ++i)
 		    lg.buffer() << "offset[" << i << "] = " << nextlevel[i]
@@ -219,7 +220,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
 			    << "." << col->name() << "]::pack(0x"
-			    << stataic_cast<const void*>(st)
+			    << static_cast<const void*>(st)
 			    << ", " << start << ") -- offsets of subranges\n";
 		for (uint32_t i=0; i<=nobs; ++i)
 		    lg.buffer() << "offset[" << i << "] = " << nextlevel[i]
@@ -239,9 +240,14 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 		}
 	    }
 	}
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer() << "pack[" << col->partition()->name()
+			<< "." << col->name() << "]::pack(0x"
+			<< static_cast<const void*>(st)
+			<< ", " << start << ") completed";
+	    if (ibis::gVerbose > 6)
+		print(lg.buffer());
 	}
     }
     catch (...) {
@@ -303,7 +309,7 @@ int ibis::pack::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
 	(void) UnixFlush(fdes); // write to disk
 #endif
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 3)
 	    << "pack[" << col->partition()->name() << '.' << col->name()
 	    << "]::write -- wrote " << nobs << " coarse bin"
 	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
@@ -587,7 +593,7 @@ int ibis::pack::write64(int fdes) const {
     return (ierr == nextlevel[nobs] ? 0 : -13);
 } // ibis::pack::write64
 
-// read the content of a file
+/// Read the content of an index from the specified location.
 int ibis::pack::read(const char* f) {
     std::string fnm;
     indexFileName(f, fnm);
@@ -684,7 +690,7 @@ int ibis::pack::read(const char* f) {
     const bool trymmap = false;
 #endif
     begin = 8 + 2 * sizeof(uint32_t);
-    end = begin + (nobs+1) * sizeof(int32_t);
+    end = begin + (nobs+1) * header[6];
     ierr = initOffsets(fdes, header[6], begin, nobs);
     if (ierr < 0)
 	return ierr;
@@ -797,7 +803,7 @@ int ibis::pack::read(const char* f) {
     }
     ibis::fileManager::instance().recordPages(0, end);
 
-    // initialized bits with nil pointers
+    // initialize bits with nil pointers
     initBitmaps(fdes);
 
     // dealing with next levels
@@ -832,7 +838,7 @@ int ibis::pack::read(const char* f) {
 	    }
 	}
     }
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 3)
 	<< "pack[" << col->partition()->name() << "." << col->name()
 	<< "]::read completed reading the header from " << fnm;
     return 0;
@@ -880,6 +886,10 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
 	    }
 	}
     }
+    LOGGER(ibis::gVerbose > 3)
+	<< "pack[" << col->partition()->name() << "." << col->name()
+	<< "]::read completed reading the header from storage object "
+	<< st << " (" << (st->unnamed() ? "<NO NAME>" : st->filename()) << ')';
     return 0;
 } // ibis::pack::read
 
@@ -892,7 +902,8 @@ void ibis::pack::clear() {
     ibis::bin::clear();
 } // ibis::pack::clear
 
-// fill with zero bits or truncate
+/// Make sure all bitmaps have nr bits.  It appends zero bits to short
+/// bitmaps and or truncates long ones.
 void ibis::pack::adjustLength(uint32_t nr) {
     ibis::bin::adjustLength(nr); // the top level
     if (sub.size() == nobs) {
@@ -979,8 +990,8 @@ void ibis::pack::speedTest(std::ostream& out) const {
 void ibis::pack::print(std::ostream& out) const {
     out << "index (binned range-equality code) for "
 	<< col->partition()->name() << '.' << col->name()
-	<< " contains " << nobs+1 << " coarse bins for "
-	<< nrows << " objects \n";
+	<< " contains " << nobs+1 << (sub.size() >= nobs ? " coarse" : "")
+	<< " bins for " << nrows << " objects \n";
     if (ibis::gVerbose > 4) { // the long format
 	if (bits[0])
 	    out << "0: " << bits[0]->cnt() << "\t(..., " << bounds[0]

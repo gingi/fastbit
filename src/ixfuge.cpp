@@ -104,6 +104,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     if (offsetsize == 8) {
 	array_t<int64_t> tmp(st, start, ncb+1);
 	coffset64.swap(tmp);
+	coffset32.clear();
 	if (coffset64.back() > static_cast<int64_t>(st->size())) {
 	    coffset64.swap(tmp);
 	    array_t<uint32_t> tmp2;
@@ -114,6 +115,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     else {
 	array_t<int32_t> tmp(st, start, ncb+1);
 	coffset32.swap(tmp);
+	coffset64.clear();
 	if (coffset32.back() > static_cast<int32_t>(st->size())) {
 	    coffset32.swap(tmp);
 	    array_t<uint32_t> tmp2;
@@ -386,6 +388,7 @@ int ibis::fuge::read(const char* f) {
 
     // reading the coarse bins
     if (header[6] == 8) {
+	coffset32.clear();
 	ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
 	if (ierr == offset64.back()) {
 	    uint32_t nc;
@@ -399,7 +402,7 @@ int ibis::fuge::read(const char* f) {
 		clearCoarse();
 		return -5;
 	    }
-	    begin = offset32.back() + sizeof(nc);
+	    begin = offset64.back() + sizeof(nc);
 	    end = begin + sizeof(uint32_t)*(nc+1);
 	    if (ierr > 0 && nc > 0) {
 		array_t<uint32_t> tmp(fdes, begin, end);
@@ -420,6 +423,7 @@ int ibis::fuge::read(const char* f) {
 	}
     }
     else {
+	coffset64.clear();
 	ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
 	if (ierr == offset32.back()) {
 	    uint32_t nc;
@@ -470,12 +474,12 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
     if (offsetsize == 8 &&
 	str->size() > static_cast<uint64_t>(offset64.back())) {
 	const uint32_t nc =
-	    *(reinterpret_cast<uint32_t*>(str->begin() + offset32.back()));
+	    *(reinterpret_cast<uint32_t*>(str->begin() + offset64.back()));
 	const uint32_t ncb = nc + 1 - (nc+1) / 2;
-	if (nc > 0 && str->size() > offset32.back() +
+	if (nc > 0 && str->size() > offset64.back() +
 	    (sizeof(int32_t)+sizeof(uint32_t))*(nc+1)) {
 	    uint32_t start;
-	    start = offset32.back() + 4;
+	    start = offset64.back() + 4;
 	    array_t<uint32_t> btmp(str, start, nc+1);
 	    cbounds.swap(btmp);
 
@@ -498,6 +502,7 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
 		}
 	    }
 	}
+	coffset32.clear();
     }
     else if (str->size() > static_cast<uint32_t>(offset32.back())) {
 	const uint32_t nc =

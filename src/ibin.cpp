@@ -347,10 +347,11 @@ int ibis::bin::read(const char* f) {
     ibis::fileManager::instance().recordPages(0, end);
     initBitmaps(fdes);
 
-    LOGGER(ibis::gVerbose > 7)
-	<< "bin[" << col->name() << "]::read(" << fnm << ") finished reading "
-	"index header (type " << (int) header[5] << ") with nrows=" << nrows
-	<< " and nobs=" << nobs;
+    LOGGER(ibis::gVerbose > 7 ||
+	   (ibis::gVerbose > 3 && header[5] == (char)ibis::index::BINNING))
+	<< "bin[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << fnm << ") finished reading index header (type "
+	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
 
@@ -373,15 +374,13 @@ int ibis::bin::read(int fdes, size_t start,
     }
     str = 0;
 
-    int ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
+    off_t ierr = UnixRead(fdes, static_cast<void*>(&nrows), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	return -3;
     }
     ierr = UnixRead(fdes, static_cast<void*>(&nobs), sizeof(uint32_t));
     if (ierr < static_cast<int>(sizeof(uint32_t))) {
-	UnixClose(fdes);
 	nrows = 0;
 	nobs = 0;
 	return -4;
@@ -392,7 +391,7 @@ int ibis::bin::read(int fdes, size_t start,
     const bool trymmap = false;
 #endif
     begin = start + 2 * sizeof(uint32_t);
-    end = start + header[6]*(nobs+1)+2*sizeof(uint32_t);
+    end = start + 2*sizeof(uint32_t) + header[6]*(nobs+1);
     ierr = initOffsets(fdes, header[6], begin, nobs);
     if (ierr != 0)
 	return ierr;
@@ -434,6 +433,13 @@ int ibis::bin::read(int fdes, size_t start,
     }
     ibis::fileManager::instance().recordPages(start, end);
     initBitmaps(fdes);
+
+    LOGGER(ibis::gVerbose > 7 ||
+	   (ibis::gVerbose > 3 && header[5] == (char)ibis::index::BINNING))
+	<< "bin[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << fdes << ", " << start
+	<< ") finished reading index header (type "
+	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
 
@@ -446,7 +452,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     nobs = *(reinterpret_cast<uint32_t*>(st->begin()+8+sizeof(nrows)));
     uint32_t begin;
-    begin = 8*((sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+15)/8);
+    begin = 8*((st->begin()[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8);
     { // boundds
 	array_t<double> dbl(st, begin, nobs);
 	bounds.swap(dbl);
@@ -462,8 +468,17 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 	minval.swap(dbl);
     }
 
-    initOffsets(st, 8+sizeof(uint32_t), nobs);
+    int ierr = initOffsets(st, 8+sizeof(uint32_t), nobs);
+    if (ierr < 0)
+	return ierr;
     initBitmaps(st);
+
+    LOGGER(ibis::gVerbose > 7 ||
+	   (ibis::gVerbose > 3 && st->begin()[5] == (char)ibis::index::BINNING))
+	<< "bin[" << col->partition()->name() << '.' << col->name()
+	<< "]::read(" << st << ") finished reading index header (type "
+	<< (int) st->begin()[5] << ") with nrows=" << nrows << " and nobs="
+	<< nobs;
     return 0;
 } // ibis::bin::read
 
@@ -2349,9 +2364,17 @@ void ibis::bin::construct(const char* df) {
 	    offset64[j+1] = offset64[j] +
 		(bits[j] != 0 ? bits[j]->getSerialSize() : 0);
     }
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "bin[" << col->partition()->name() << '.' << col->name()
+	    << "]::construct(" << (df ? df : "") << ") -- finished "
+	    "constructing a simple equality index with " << nobs
+	    << " bin" << (nobs>1?"s":"");
+	if (ibis::gVerbose > 8) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::bin::construct
 
@@ -2385,6 +2408,18 @@ void ibis::bin::construct(const array_t<E>& varr) {
 	binning(varr);
     }
     optionalUnpack(bits, spec);
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	lg.buffer()
+	    << "bin[" << col->partition()->name() << '.' << col->name()
+	    << "]::construct(" << typeid(E).name() << '[' << varr.size()
+	    << "]) -- finished constructing a simple equality index with "
+	    << nobs << " bin" << (nobs>1?"s":"");
+	if (ibis::gVerbose > 8) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
+    }
 } // ibis::bin::construct
 
 template <typename E>
@@ -2665,7 +2700,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 #ifdef DEBUG
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: bin bounds before duplicate removal\n";
+	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
 		lg.buffer() << bounds[i] << " ";
 	}
@@ -2728,7 +2763,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 #ifdef DEBUG
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: bin bounds after duplicate removal\n";
+	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
 		lg.buffer() << bounds[i] << " ";
 	}
@@ -4202,7 +4237,7 @@ void ibis::bin::setBoundaries(const char* f) {
 #ifdef DEBUG
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: bin bounds before duplicate removal\n";
+	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
 		lg.buffer() << bounds[i] << " ";
 	}
@@ -4265,7 +4300,7 @@ void ibis::bin::setBoundaries(const char* f) {
 #ifdef DEBUG
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: bin bounds after duplicate removal\n";
+	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
 		lg.buffer() << bounds[i] << " ";
 	}
@@ -4914,7 +4949,7 @@ int ibis::bin::write(const char* dt) const {
 #endif
     (void) UnixClose(fdes);
 
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ibis::gVerbose > 3)
 	<< "bin[" << col->partition()->name() << '.' << col->name()
 	<< "]::write -- wrote " << nobs << " bitmap"
 	<< (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
@@ -4960,14 +4995,15 @@ int ibis::bin::write32(int fdes) const {
     }
 
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
-    if (ierr != (int)sizeof(nrows)) {
+    ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
+    if (ierr < (int)sizeof(nrows)*2) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write32(" << fdes
-	    << ") failed to write 4-byte value " << nrows;
+	    << ") failed to write nrows (" << nrows << ") or nobs ("
+	    << nobs << "), ierr = " << ierr;
 	return -6;
     }
-    (void) UnixWrite(fdes, &nobs, sizeof(nobs));
     (void) UnixSeek(fdes,
 		    ((start+sizeof(int32_t)*(nobs+1)+
 		      2*sizeof(uint32_t)+7)/8)*8,
@@ -4985,6 +5021,7 @@ int ibis::bin::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
+    offset64.clear();
     offset32.resize(nobs+1);
     for (uint32_t i = 0; i < nobs; ++i) {
 	offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -5043,14 +5080,15 @@ int ibis::bin::write64(int fdes) const {
     }
 
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
-    if (ierr != (int)sizeof(nrows)) {
+    ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
+    if (ierr != (int)sizeof(nrows)*2) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write64(" << fdes
-	    << ") failed to write 4-byte value " << nrows;
+	    << ") failed to write nrows (" << nrows << ") or nobs ("
+	    << nobs << "), ierr = " << ierr;
 	return -6;
     }
-    (void) UnixWrite(fdes, &nobs, sizeof(nobs));
     (void) UnixSeek(fdes,
 		    ((start+sizeof(int64_t)*(nobs+1)+
 		      2*sizeof(uint32_t)+7)/8)*8,
@@ -5068,6 +5106,7 @@ int ibis::bin::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
+    offset32.clear();
     offset64.resize(nobs+1);
     for (uint32_t i = 0; i < nobs; ++i) {
 	offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -5084,7 +5123,7 @@ int ibis::bin::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -8;
     }
-    (void) UnixWrite(fdes, offset64.begin(), sizeof(int32_t)*(nobs+1));
+    (void) UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET); // move to the end
     return (ierr == offset64[nobs] ? 0 : -9);
 } // ibis::bin::write64
@@ -5887,7 +5926,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG: ibis::bin::evaluate(" << expr << ")\nlower = \n" << lower;
+	<< "DEBUG -- ibis::bin::evaluate(" << expr << ")\nlower = \n" << lower;
 #endif
     return ierr0;
 } // ibis::bin::evaluate
@@ -5951,7 +5990,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG: ibis::bin::estimate("<< expr << ")\nlower = \n"
+	<< "DEBUG -- ibis::bin::estimate("<< expr << ")\nlower = \n"
 	<< lower << "upper = \n" << upper;
 #endif
 } // ibis::bin::estimate

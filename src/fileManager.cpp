@@ -800,7 +800,6 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     ibis::horometer timer;
     if (ibis::gVerbose > 7)
 	timer.start();
-    int readOrMap = 0; // default read
 #if defined(HAVE_FILE_MAP)
     // now we can ask the question: "to map or not to map?"
     size_t sz = minMapSize;
@@ -820,11 +819,9 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	if (tmp->begin()) {
 	    if (tmp->isFileMap()) {
 		mapped[tmp->filename()] = tmp;
-		readOrMap = 1;
 	    }
 	    else {
 		incore[tmp->filename()] = tmp;
-		readOrMap = 0;
 	    }
 	}
 	else {
@@ -969,7 +966,6 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     ibis::horometer timer;
     if (ibis::gVerbose > 7)
 	timer.start();
-    int readOrMap = 0; // default read
     // "to map or not to map", that is the question
 #if defined(HAVE_FILE_MAP)
     size_t sz = minMapSize;
@@ -988,7 +984,6 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	if (tmp->begin()) {
 	    if (tmp->isFileMap()) {
 		mapped[tmp->filename()] = tmp;
-		readOrMap = 1;
 	    }
 	    else {
 		incore[tmp->filename()] = tmp;

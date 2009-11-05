@@ -435,7 +435,7 @@ int ibis::fade::read(const char* f) {
 	return -3;
     }
 
-    uint32_t dim[3]; // nobs, card
+    uint32_t dim[3]; // nrows, nobs, card
     size_t begin, end;
     clear(); // clear the current content
     if (fname) delete [] fname;
@@ -458,7 +458,7 @@ int ibis::fade::read(const char* f) {
     vals.swap(dbl);
     // read the offsets
     begin = end;
-    end += sizeof(int32_t) * (dim[1] + 1);
+    end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     if (ierr < 0)
 	return ierr;
@@ -469,7 +469,8 @@ int ibis::fade::read(const char* f) {
     if (ierr != (off_t)end) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fade[" << col->partition()->name() << '.'
-	    << col->name() << "]::read(" << fnm << ") failed to seek to " << end;
+	    << col->name() << "]::read(" << fnm << ") failed to seek to "
+	    << end;
 	clear();
 	return -5;
     }

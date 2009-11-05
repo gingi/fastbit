@@ -25,9 +25,17 @@ ibis::entre::entre(const ibis::column* c, const char* f,
     try {
 	convert();	// convert from equality code to interval code
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "entre[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- constructed a "
+		<< nbases << "-component interval index with "
+		<< nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -45,7 +53,15 @@ ibis::entre::entre(const ibis::column* c, const char* f,
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "entre[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- constructed a "
+		<< nbases << "-component interval index with "
+		<< nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -60,7 +76,15 @@ ibis::entre::entre(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "entre[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- constructed a "
+		<< nbases << "-component interval index with "
+		<< nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -87,9 +111,18 @@ ibis::entre::entre(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 ///@endcode
 ibis::entre::entre(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::egale(c, st, start) {
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "entre[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- constructed a " << nbases
+	    << "-component interval index with " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " from a storage object @ " << st
+	    << " starting from position " << start;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // reconstruct data from content of a file
 
@@ -131,9 +164,16 @@ int ibis::entre::write(const char* dt) const {
 	ierr = ibis::egale::write64(fdes); // use the function ibis::egale
     else
 	ierr = ibis::egale::write32(fdes); // use the function ibis::egale
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
+	LOGGER(ibis::gVerbose > 3)
+	    << "entre[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::entre::write
 
@@ -144,15 +184,11 @@ void ibis::entre::convert() {
     //activate();
     // store the current bitvectors in simple
     std::vector<ibis::bitvector*> simple(bits);
-
-    if (ibis::gVerbose > 3) {
-	col->logMessage("entre::convert", "converting %lu-bin "
-			"%lu-component index from equality encoding to "
-			"interval encoding (using %lu bitvectors)",
-			static_cast<long unsigned>(nobs),
-			static_cast<long unsigned>(nbases),
-			static_cast<long unsigned>(nbits));
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "entre[" << col->partition()->name() << '.' << col->name()
+	<< "]::convert -- converting " << nobs << "-bin "
+	<< nbases << "-component index from equality encoding to "
+	"interval encoding (using " << nbits << " bitvectors)";
 
     nbases = bases.size();
     // generate the correct bitmaps
@@ -208,7 +244,7 @@ void ibis::entre::convert() {
     optionalUnpack(bits, col->indexSpec());
 } // convert
 
-// a simple function to test the speed of the bitvector operations
+/// A simple function to test the speed of the bitvector operations.
 void ibis::entre::speedTest(std::ostream& out) const {
     if (nrows == 0) return;
     uint32_t i, nloops = 1000000000 / nrows;
@@ -239,7 +275,7 @@ void ibis::entre::speedTest(std::ostream& out) const {
     }
 } // ibis::entre::speedTest
 
-// the printing function
+/// The printing function.
 void ibis::entre::print(std::ostream& out) const {
     out << col->partition()->name() << '.' << col->name()
 	<< ".index(MCBin interval code ncomp=" << bases.size()

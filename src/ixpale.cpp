@@ -285,7 +285,8 @@ int ibis::pale::write(const char* dt) const {
     const bool useoffset64 = (8+getSerialSize() > 0x80000000UL);
 #endif
     char header[] = "#IBIS\3\0\0";
-    header[5] = (char)ibis::index::PALE;
+    header[5] = (char)(sub.size() == nobs ? ibis::index::PALE
+		       : ibis::index::BINNING);
     header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
@@ -295,10 +296,18 @@ int ibis::pale::write(const char* dt) const {
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    if (useoffset64)
-	ierr = write64(fdes); // write recursively
-    else
-	ierr = write32(fdes); // write recursively
+    if (sub.size() == nobs) {
+	if (useoffset64)
+	    ierr = write64(fdes); // write recursively
+	else
+	    ierr = write32(fdes); // write recursively
+    }
+    else {
+	if (useoffset64)
+	    ierr = ibis::bin::write64(fdes); // write top level only
+	else
+	    ierr = ibis::bin::write32(fdes); // write top level only
+    }
 
     if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
@@ -306,7 +315,8 @@ int ibis::pale::write(const char* dt) const {
 #endif
 	LOGGER(ibis::gVerbose > 5)
 	    << "pale[" << col->partition()->name() << '.' << col->name()
-	    << "]::write -- wrote " << nobs << " coarse bin"
+	    << "]::write -- wrote " << nobs
+	    << (sub.size() == nobs ? " coarse " : "") << "bin"
 	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
     }

@@ -61,7 +61,7 @@ long ibis::part::count3DBins(const array_t<T1> &vals1,
 	++ counts[pos];
 #if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
 	LOGGER(ibis::gVerbose > 5)
-	    << "DEBUG: count3DBins -- vals1[" << ir << "]=" << vals1[ir]
+	    << "DEBUG -- count3DBins -- vals1[" << ir << "]=" << vals1[ir]
 	    << ", vals2[" << ir << "]=" << vals2[ir]
 	    << ", vals3[" << ir << "]=" << vals3[ir]
 	    << " --> bin (" << static_cast<uint32_t>((vals1[ir]-begin1)/stride1)
@@ -2477,7 +2477,7 @@ long ibis::part::count3DWeights(const array_t<T1> &vals1,
 	weights[pos] += wts[ir];
 #if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
 	LOGGER(ibis::gVerbose > 5)
-	    << "DEBUG: count3DBins -- vals1[" << ir << "]=" << vals1[ir]
+	    << "DEBUG -- count3DBins -- vals1[" << ir << "]=" << vals1[ir]
 	    << ", vals2[" << ir << "]=" << vals2[ir]
 	    << ", vals3[" << ir << "]=" << vals3[ir]
 	    << " --> bin (" << static_cast<uint32_t>((vals1[ir]-begin1)/stride1)

@@ -127,7 +127,7 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 #if (defined(_DEBUG) && _DEBUG+0 > 1) || (defined(DEBUG) && DEBUG+0 > 1)
 		    const uint32_t pos = ibin1*nbin23+ibin2*nbin3+ibin3;
 		    LOGGER(ibis::gVerbose > 5)
-			<< "DEBUG: fill3DBins -- vals1[" << ivals << "]="
+			<< "DEBUG -- fill3DBins -- vals1[" << ivals << "]="
 			<< vals1[ivals]
 			<< ", vals2[" << ivals << "]=" << vals2[ivals]
 			<< ", vals3[" << ivals << "]=" << vals3[ivals]

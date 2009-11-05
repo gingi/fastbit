@@ -274,7 +274,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 		}
 #ifdef DEBUG
 		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG: equiJoin examining "
+		    << "DEBUG -- equiJoin examining "
 		    << bar1.value(varind1) << " and "
 		    << bar2.value(varind2) << " for pair ("
 		    << static_cast<unsigned>(i/nEvents)
@@ -307,7 +307,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 #ifdef DEBUG
 		ibis::bitvector64::word_t j = ind[i];
 		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG: equiJoin examining "
+		    << "DEBUG -- equiJoin examining "
 		    << bar1.value(varind1) << " and "
 		    << bar2.value(varind2) << " for pair ("
 		    << static_cast<unsigned>(j/nEvents)

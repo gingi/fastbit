@@ -398,7 +398,7 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 #ifdef DEBUG
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: from ibis::ambit::ambit("
+	    lg.buffer() << "DEBUG -- from ibis::ambit::ambit("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ")" << "\n";
 	    for (uint32_t i=0; i<=nobs; ++i)

@@ -6072,7 +6072,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     {
 	ibis::util::logger lg(4);
 	const char* str = qtmp.getWhereClause();
-	lg.buffer() << "DEBUG: query[" << qtmp.id() << ", "
+	lg.buffer() << "DEBUG -- query[" << qtmp.id() << ", "
 		    << (str?str:"<NULL>") << "]::getRIDs returned "
 		    << rid1->size() << "\n";
 #if DEBUG > 2
@@ -6333,7 +6333,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 #if defined(DEBUG)
 		    seqhits.compress();
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "DEBUG: queryTest -- " << seqhits;
+			<< "DEBUG -- queryTest -- " << seqhits;
 #endif
 		}
 		else if (ibis::gVerbose > 3) {
@@ -6815,7 +6815,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG: doCompare" << array[j] << " is in "
+			    << "DEBUG -- doCompare" << array[j] << " is in "
 			    << cmp;
 #endif
 		    }
@@ -6829,7 +6829,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
+			    << "DEBUG -- doCompare " << array[j] << " is in "
 			    << cmp;
 #endif
 		    }
@@ -6849,7 +6849,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG: doCompare" << array[j] << " is in "
+			    << "DEBUG -- doCompare" << array[j] << " is in "
 			    << cmp << ", setting position " << k
 			    << " of hit vector to 1";
 #endif
@@ -6863,7 +6863,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG: doCompare " << array[j] << " is in "
+			    << "DEBUG -- doCompare " << array[j] << " is in "
 			    << cmp << ", setting position " << ii[k]
 			    << " of hit vector to 1";
 #endif
@@ -7184,7 +7184,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    ++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "DEBUG: negativeCompare " << array[j]
+			<< "DEBUG -- negativeCompare " << array[j]
 			<< " is not in " << cmp;
 #endif
 		}
@@ -7198,7 +7198,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    ++ ierr;
 #if defined(DEBUG) && DEBUG + 0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "DEBUG: negativeCompare " << array[j]
+			<< "DEBUG -- negativeCompare " << array[j]
 			<< " is no in " << cmp;
 #endif
 		}

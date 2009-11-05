@@ -1,3 +1,22 @@
+2009-11-05 John Wu <John.Wu at ACM.org>
+	* src/ibin.cpp:457 sizeof(int32_t) to st->begin()[6]
+	* src/icegale.cpp: in function read(storage*) update computation
+	of offsets and add code for cnts
+	* src/ixzona.cpp:611 offset32 should be offset64
+	* src/ibin.cpp:5126 sizeof(int32_t) should be sizeof(int64_t)
+
+2009-11-04 John Wu <John.Wu at ACM.org>
+	* src/capi.cpp, src/fileManager.cpp, src/tafel.cpp,
+	examples/thula.cpp: get rid off warnings issued by g++ compiler
+	* src/ixzone.cpp: in the constructor from a storage object,
+	mistakenly placed the offsets for the next level into offset64 and
+	offset32
+	* src/irange.cpp:461, src/irelic.cpp:549, src/islice.cpp:451,
+	src/ixbylt.cpp:2073, src/ixfuzz.cpp:381, src/ixpack.cpp:687 change
+	sizeof(int32_t) to header[6], corrects address computations
+	* src/ixfuge.cpp: in two version of read function, many instances
+	of offset32 should be offset64
+
 2009-11-03 John Wu <John.Wu at ACM.org>
 	* src/bitvector.h: change copy_runs and copy_runsn to chech the
 	values of nw before calling run::decode.  This avoids the warnings

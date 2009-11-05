@@ -5153,7 +5153,7 @@ int64_t ibis::query::countEqualPairs(const array_t<T1>& val1,
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #ifdef DEBUG
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: query::countEqualPairs found "
+		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
 		<< "] (" << val2[i2] << ")";
@@ -5232,7 +5232,7 @@ int64_t ibis::query::countEqualPairs(const array_t<uint32_t>& val1,
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #ifdef DEBUG
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: query::countEqualPairs found "
+		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
 		<< "] (" << val2[i2] << ")";
@@ -5276,13 +5276,13 @@ int64_t ibis::query::countDeltaPairs(const array_t<T1>& val1,
     } // for ..
 #ifdef DEBUG
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG: countDeltaPairs val1=[";
+    lg.buffer() << "DEBUG -- countDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
 	lg.buffer() << val1[ii] << ' ';
-    lg.buffer() << "]\n" << "DEBUG: countDeltaPairs val2=[";
+    lg.buffer() << "]\n" << "DEBUG -- countDeltaPairs val2=[";
     for (uint32_t ii = 0; ii < val2.size(); ++ ii)
 	lg.buffer() << val2[ii] << ' ';
-    lg.buffer() << "]\nDEBUG: cnt=" << cnt;
+    lg.buffer() << "]\nDEBUG -- cnt=" << cnt;
 #endif
     return cnt;
 } // ibis::query::countDeltaPairs
@@ -5310,7 +5310,7 @@ int64_t ibis::query::countDeltaPairs(const array_t<uint32_t>& val1,
 	cnt += i2 - i1;
 #ifdef DEBUG
 	LOGGER(ibis::gVerbose-1)
-	    << "DEBUG: query::countDeltaPairs found "
+	    << "DEBUG -- query::countDeltaPairs found "
 	    << "val2[" << i << "] (" << val2[i]
 	    << ") in the range of val1[" << i1 << ":" << i2
 	    << "] (" << val1[i1] << " -- " << val1[i2] << ")";
@@ -5400,7 +5400,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 	    }
 #ifdef DEBUG
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG: query::recordEqualPairs found "
+		<< "DEBUG -- query::recordEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
 		<< "] (" << val2[i2] << ")";
@@ -5625,27 +5625,27 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
     UnixClose(fdes);
 #ifdef DEBUG
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG: recordDeltaPairs val1=[";
+    lg.buffer() << "DEBUG -- recordDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
 	lg.buffer() << val1[ii] << ' ';
     lg.buffer() << "]\n";
     if (ind1.size() == val1.size()) {
-	lg.buffer() << "DEBUG: recordDeltaPairs ind1=[";
+	lg.buffer() << "DEBUG -- recordDeltaPairs ind1=[";
 	for (uint32_t ii = 0; ii < ind1.size(); ++ ii)
 	    lg.buffer() << ind1[ii] << ' ';
 	lg.buffer() << "]\n";
     }
-    lg.buffer() << "DEBUG: recordDeltaPairs val2=[";
+    lg.buffer() << "DEBUG -- recordDeltaPairs val2=[";
     for (uint32_t ii = 0; ii < val2.size(); ++ ii)
 	lg.buffer() << val2[ii] << ' ';
     lg.buffer() << "]\n";
     if (ind2.size() == val2.size()) {
-	lg.buffer() << "DEBUG: recordDeltaPairs ind2=[";
+	lg.buffer() << "DEBUG -- recordDeltaPairs ind2=[";
 	for (uint32_t ii = 0; ii < ind2.size(); ++ ii)
 	    lg.buffer() << ind2[ii] << ' ';
 	lg.buffer() << "]\n";
     }
-    lg.buffer() << "DEBUG: cnt=" << cnt;
+    lg.buffer() << "DEBUG -- cnt=" << cnt;
 #endif
     return cnt;
 } // ibis::query::recordDeltaPairs

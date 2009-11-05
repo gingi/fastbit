@@ -746,7 +746,7 @@ void ibis::meshQuery::blocknd
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
-		    lg.buffer() << "DEBUG: ibis::meshQuery[" << id()
+		    lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
 				<< "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
 			if (k > 0) lg.buffer() << ", ";
@@ -769,7 +769,7 @@ void ibis::meshQuery::blocknd
 	    if (block[dim.size()+dim.size()-2] == 0 &&
 		block.back() == dim.back()) {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG: ibis::meshQuery[" << id()
+		lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
 			    << "]::blocknd -- " << reg.size() << "\t(";
 		for (uint32_t k = 0; k < block.size(); ++k) {
 		    if (k > 0) lg.buffer() << ", ";
@@ -797,7 +797,7 @@ void ibis::meshQuery::blocknd
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
-		    lg.buffer() << "DEBUG: ibis::meshQuery[" << id()
+		    lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
 				<< "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
 			if (k > 0) lg.buffer() << ", ";
@@ -5045,7 +5045,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 	cnt = coords.size() / ndim;
 #if defined(DEBUG)
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG: ibis::meshQuery::bitvectorToCoordinates "
+	lg.buffer() << "DEBUG -- ibis::meshQuery::bitvectorToCoordinates "
 		    << "produced " << cnt << " points";
 	for (int i = 0; i < cnt; ++ i)
 	    lg.buffer() << "\n" << coords[i+i] << ", " << coords[i+i+1];

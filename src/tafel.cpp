@@ -153,7 +153,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 
 	while (*buf !=0 && isspace(*buf)) ++ buf;
 	switch (*buf) { // for data types
-	defaul: { // unknown type
+	default: { // unknown type
 		col = 0;
 		ibis::util::getString(tmp, buf, delim);
 		LOGGER(ibis::gVerbose > 0)
@@ -2717,7 +2717,7 @@ uint32_t ibis::tafel::capacity() const {
 	    return 0U;
 	}
 
-	uint32_t tmp;
+	uint32_t tmp = 0;
 	switch (col.type) {
 	case ibis::BYTE:
 	    tmp = static_cast<array_t<signed char>*>(col.values)->capacity();

@@ -1007,7 +1007,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 #ifdef DEBUG
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG: qExpr::reorder(" << *this
+	    lg.buffer() << "DEBUG -- qExpr::reorder(" << *this
 			<< ") -- (expression:weight,...)\n";
 	    for (i = 0; i < terms.size(); ++ i)
 		lg.buffer() << *(terms[i]) << ":" << wgt[i] << ", ";

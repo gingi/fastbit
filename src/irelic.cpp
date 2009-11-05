@@ -521,8 +521,8 @@ int ibis::relic::read(const char* f) {
     if (ierr < static_cast<int>(3*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- relic[" << col->partition()->name() << '.'
-	    << col->name() << "]::read failed to read the size inforamtion from index file "
-	    << fnm;
+	    << col->name() << "]::read failed to read the size inforamtion "
+	    "from index file " << fnm;
 	return -4;
     }
 
@@ -546,7 +546,7 @@ int ibis::relic::read(const char* f) {
     }
     // read the offsets
     begin = end;
-    end += sizeof(int32_t) * (dim[1] + 1);
+    end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     ibis::fileManager::instance().recordPages(0, end);
 #if defined(DEBUG)

@@ -448,7 +448,7 @@ int ibis::slice::read(const char* f) {
     }
     // read the offsets
     begin = end;
-    end += sizeof(int32_t) * (dim[1] + 1);
+    end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     if (ierr < 0)
 	return ierr;
