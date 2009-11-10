@@ -33,6 +33,19 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 
 	if (nobs == 0)
 	    construct(f);
+
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "bin[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an equality index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
+	}
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
@@ -62,9 +75,17 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	    binOrder(f);
 
 	optionalUnpack(bits, col->indexSpec());
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "bin[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an equality index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -94,9 +115,17 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	if (reorder)
 	    binOrder(f);
 	optionalUnpack(bits, col->indexSpec());
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "bin[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an equality index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -132,6 +161,19 @@ ibis::bin::bin(const ibis::bin& rhs)
 		offset64[i+1] = offset64[i];
 	    }
 	}
+
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "bin[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an equality index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
+	}
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
@@ -160,23 +202,49 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	       size_t start)
     : ibis::index(c, st),
       nobs(*(reinterpret_cast<uint32_t*>(st->begin()+start+sizeof(uint32_t)))),
-      bounds(st, 8*((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8),
+      bounds(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8),
 	     nobs),
-      maxval(st, 8*((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
+      maxval(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
 	     sizeof(double)*nobs, nobs),
-      minval(st, 8*((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
+      minval(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
 	     sizeof(double)*(nobs+nobs), nobs) {
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
-	initOffsets(st, start+2*sizeof(uint32_t), nobs);
-	initBitmaps(st);
 	if (c->partition()->getState() == ibis::part::STABLE_STATE &&
 	    nrows != c->partition()->nRows() && ibis::gVerbose > 0) {
 	    errno = 0;
-	    c->logWarning("readIndex", "the length (%lu) of the 1st "
-			  "bitvector is different from nRows(%lu)",
-			  static_cast<long unsigned>(nrows),
-			  static_cast<long unsigned>(c->partition()->nRows()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bin[" << col->partition()->name() << '.'
+		<< col->name() << "]::bin found nrows (" << nrows
+		<< ") to be different from that of the data partition "
+		<< c->partition()->name() << " ("
+		<< c->partition()->nRows() << ")";
+	}
+
+	int ierr = initOffsets(st, start+2*sizeof(uint32_t), nobs);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bin[" << col->partition()->name() << '.'
+		<< col->name() << "]::bin failed to initialize bitmap offsets"
+		<< " from storage object @ " << st << " with start = " << start
+		<< ", ierr = " << ierr;
+	    throw "bin::ctor failed to initOffsets from storage";
+	}
+
+	initBitmaps(st);
+
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg.buffer()
+		<< "bin[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an equality index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"")
+		<< " from a storage object @ " << st << " offset " << start;
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -185,7 +253,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
     }
 } // ibis::bin::bin
 
-/// A constructor to handle the common portion of multicomponent encodings.
+/// Constructor.  Handle the common portion of multicomponent encodings.
 ///@code
 /// nrows  (uint32_t)        -- number of bits in a bitvector
 /// nobs   (uint32_t)        -- number of bins
@@ -205,9 +273,31 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
       minval(st, 8*((7+start+3*sizeof(uint32_t))/8)+2*nobs*sizeof(double),
 	     nobs) {
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
-    start = 8*((7+start+3*sizeof(uint32_t))/8)+3*nobs*sizeof(double);
-    initOffsets(st, start, nbits);
+    size_t offpos = 8*((7+start+3*sizeof(uint32_t))/8)+3*nobs*sizeof(double);
+    int ierr = initOffsets(st, offpos, nbits);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::bin failed to initialize bitmap offsets"
+	    << " from storage object @ " << st << " with start = " << start
+	    << ", ierr = " << ierr;
+	throw "bin::ctor failed to initOffsets from storage";
+    }
     initBitmaps(st);
+
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg.buffer()
+	    << "bin[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- built an equality index with "
+	    << nobs << " bin" << (nobs>1?"s":"") << " for "
+	    << nrows << " row" << (nrows>1?"s":"")
+	    << " from a storage object @ " << st << " offset " << start;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
+    }
 } // ibis::bin::bin
 
 /// Read from a file named f.
@@ -452,7 +542,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     nobs = *(reinterpret_cast<uint32_t*>(st->begin()+8+sizeof(nrows)));
     uint32_t begin;
-    begin = 8*((st->begin()[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8);
+    begin = 8*(((*st)[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8);
     { // boundds
 	array_t<double> dbl(st, begin, nobs);
 	bounds.swap(dbl);
@@ -468,16 +558,16 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 	minval.swap(dbl);
     }
 
-    int ierr = initOffsets(st, 8+sizeof(uint32_t), nobs);
+    int ierr = initOffsets(st, 8+2*sizeof(uint32_t), nobs);
     if (ierr < 0)
 	return ierr;
     initBitmaps(st);
 
     LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && st->begin()[5] == (char)ibis::index::BINNING))
+	   (ibis::gVerbose > 3 && (*st)[5] == (char)ibis::index::BINNING))
 	<< "bin[" << col->partition()->name() << '.' << col->name()
 	<< "]::read(" << st << ") finished reading index header (type "
-	<< (int) st->begin()[5] << ") with nrows=" << nrows << " and nobs="
+	<< (int) (*st)[5] << ") with nrows=" << nrows << " and nobs="
 	<< nobs;
     return 0;
 } // ibis::bin::read
@@ -2412,8 +2502,8 @@ void ibis::bin::construct(const array_t<E>& varr) {
 	ibis::util::logger lg;
 	lg.buffer()
 	    << "bin[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct(" << typeid(E).name() << '[' << varr.size()
-	    << "]) -- finished constructing a simple equality index with "
+	    << "]::construct<" << typeid(E).name() << '[' << varr.size()
+	    << "]> -- finished constructing a simple equality index with "
 	    << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg.buffer() << "\n";
@@ -4882,6 +4972,7 @@ int ibis::bin::write(const char* dt) const {
 	    return -5;
 	}
     }
+    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4889,76 +4980,36 @@ int ibis::bin::write(const char* dt) const {
     char header[] = "#IBIS\0\0\0";
     header[5] = (char)ibis::index::BINNING;
     header[6] = (char)(useoffset64 ? 8 : 4);
-    int64_t ierr = UnixWrite(fdes, header, 8);
-    ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
-    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-
-    if (useoffset64) {
-	offset64.resize(nobs+1);
-	offset32.clear();
-	offset64[0] = 24 + 8 * nobs;
-	ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
-	if (ierr != offset64[0]) { // failed the seek operation
-	    UnixClose(fdes);
-	    remove(fnm.c_str());
-	    return -6;
-	}
-    }
-    else {
-	offset64.clear();
-	offset32.resize(nobs+1);
-	offset32[0] = ((2*sizeof(uint32_t)+sizeof(int32_t)*(nobs+1)+15)/8)*8;
-	ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
-	if (ierr != offset32[0]) { // failed the seek operation
-	    UnixClose(fdes);
-	    remove(fnm.c_str());
-	    return -6;
-	}
-    }
-
-    ierr = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	if (useoffset64)
-	    offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	else
-	    offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
-    }
-    if (useoffset64)
-	offset64[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    else
-	offset32[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    (void) UnixSeek(fdes, 16, SEEK_SET);
-    if (useoffset64)
-	ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
-    else
-	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
-    if (ierr < 0) {
+    int ierr = UnixWrite(fdes, header, 8);
+    if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write(" << fnm
-	    << ") failed to write the offsets for the bitmaps";
-	UnixClose(fdes);
-	remove(fnm.c_str());
-	return -7;
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -6;
     }
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
-#endif
-    (void) UnixClose(fdes);
 
-    LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << col->partition()->name() << '.' << col->name()
-	<< "]::write -- wrote " << nobs << " bitmap"
-	<< (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-	<< " object" << (nrows>1?"s":"") << ", file size "
-	<< (useoffset64 ? offset64.back() : (int64_t)offset32.back());
+    if (useoffset64)
+	ierr = write64(fdes);
+    else
+	ierr = write32(fdes);
+
+    if (ierr >= 0) {
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+	(void) UnixFlush(fdes); // write to disk
+#endif
+
+	LOGGER(ibis::gVerbose > 3)
+	    << "bin[" << col->partition()->name() << '.' << col->name()
+	    << "]::write -- wrote " << nobs << " bitmap"
+	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"") << ", file size "
+	    << (useoffset64 ? offset64.back() : (int64_t)offset32.back());
+    }
     return 0;
 } // ibis::bin::write
 
-/// write the content to a file already open.
+/// Write the content to a file already open.
 int ibis::bin::write32(int fdes) const {
     if (nobs <= 0) return -1;
     try {
@@ -4991,7 +5042,7 @@ int ibis::bin::write32(int fdes) const {
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write32(" << fdes
 	    << ") can not start at position " << start;
-	return -5;
+	return -7;
     }
 
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
@@ -5002,32 +5053,30 @@ int ibis::bin::write32(int fdes) const {
 	    << col->name() << "]::write32(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
-	return -6;
-    }
-    (void) UnixSeek(fdes,
-		    ((start+sizeof(int32_t)*(nobs+1)+
-		      2*sizeof(uint32_t)+7)/8)*8,
-		    SEEK_SET);
-    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    if (ierr != (off_t)(sizeof(double)*nobs)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
-	    << ") failed to write " << nobs << " double value"
-	    << (nobs>1?"s":"") << " to file descriptor " << fdes
-	    << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -7;
+	return -8;
     }
     offset64.clear();
     offset32.resize(nobs+1);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
+    offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr  = UnixSeek(fdes, offset32[0], SEEK_SET);
+    ierr += UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    offset32[0] += sizeof(double)*nobs*3;
+    if (ierr < offset32[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
+	    << ") expects to write the 1st bitmap at offset " << offset32[0]
+	    << ", but the current file position is " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -9;
     }
-    offset32[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+    for (uint32_t i = 0; i < nobs; ++i) {
+	if (bits[i] != 0)
+	    bits[i]->write(fdes);
+	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5036,11 +5085,20 @@ int ibis::bin::write32(int fdes) const {
 	    << ") failed to seek to " << start+2*sizeof(uint32_t)
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -8;
+	return -10;
     }
-    (void) UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write32(" << fdes
+	    << ") failed to write " << nobs+1 << " bitmap positions"
+	    << " to file descriptor " << fdes << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -11;
+    }
     ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET); // move to the end
-    return (ierr == offset32[nobs] ? 0 : -9);
+    return (ierr == offset32[nobs] ? 0 : -18);
 } // ibis::bin::write32
 
 /// write the content to a file already open.
@@ -5076,43 +5134,41 @@ int ibis::bin::write64(int fdes) const {
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write64(" << fdes
 	    << ") can not start at position " << start;
-	return -5;
+	return -12;
     }
 
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
-    if (ierr != (int)sizeof(nrows)*2) {
+    if (ierr < (int)(sizeof(nrows)*2)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::write64(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
-	return -6;
-    }
-    (void) UnixSeek(fdes,
-		    ((start+sizeof(int64_t)*(nobs+1)+
-		      2*sizeof(uint32_t)+7)/8)*8,
-		    SEEK_SET);
-    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr = UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    if (ierr != (off_t)(sizeof(double)*nobs)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
-	    << ") failed to write " << nobs << " double value"
-	    << (nobs>1?"s":"") << " to file descriptor " << fdes
-	    << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -7;
+	return -13;
     }
     offset32.clear();
     offset64.resize(nobs+1);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	bits[i]->write(fdes);
+    offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
+    ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
+    ierr += UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    offset64[0] += sizeof(double)*nobs*3;
+    if (ierr != offset64[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
+	    << ") expects the 1st bitmap to start at " << offset64[0]
+	    << ", but the current file position is " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -14;
     }
-    offset64[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
+    for (uint32_t i = 0; i < nobs; ++i) {
+	if (bits[i] != 0)
+	    bits[i]->write(fdes);
+	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+    }
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5121,11 +5177,20 @@ int ibis::bin::write64(int fdes) const {
 	    << ") failed to seek to " << start+2*sizeof(uint32_t)
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -8;
+	return -15;
     }
-    (void) UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::write64(" << fdes
+	    << ") failed to write " << nobs+1 << " bitmap positions"
+	    << " to file descriptor " << fdes << ", ierr = " << ierr;
+	(void) UnixSeek(fdes, start, SEEK_SET);
+	return -16;
+    }
     ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET); // move to the end
-    return (ierr == offset64[nobs] ? 0 : -9);
+    return (ierr == offset64[nobs] ? 0 : -17);
 } // ibis::bin::write64
 
 void ibis::bin::clear() {

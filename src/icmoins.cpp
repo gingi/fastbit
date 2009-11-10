@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////
 // functions of ibis::moins
 //
-// construct a bitmap index from current data
+/// Constructor.  Construct a bitmap index from current data.
 ibis::moins::moins(const ibis::column* c, const char* f,
 		   const uint32_t nb) : ibis::egale(c, f, nb) {
     if (c == 0) return; // nothing can be done
@@ -44,7 +44,7 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 } // constructor
 
-// a constructor that takes known bounds and bases
+/// Constructor.  It takes known bounds and bases.
 ibis::moins::moins(const ibis::column* c, const char* f,
 		   const array_t<double>& bd, const array_t<uint32_t> bs)
     : ibis::egale(c, f, bd, bs) {
@@ -70,6 +70,8 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 } // constructor
 
+/// Constructor.  Converts an equality encoded index to multi-component
+/// range encoding.
 ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     try {
 	convert();
@@ -93,7 +95,7 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     }
 } // copy from an ibis::bin
 
-/// Reconstruct an index from content of a storage object.
+/// Constructor.  Reconstruct an index from content of a storage object.
 /// The content of the file (following the 8-byte header) is
 ///@code
 /// nrows  (uint32_t)         -- number of bits in a bitvector
@@ -125,7 +127,9 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
     }
 } // reconstruct data from content of a file
 
-// the argument is the name of the directory or the file name
+/// Write the index to the specified location.  The argument to this
+/// function can be a directory or a file.  The actual index file name is
+/// determined by the function indexFileName.
 int ibis::moins::write(const char* dt) const {
     if (nobs == 0) return -1;
 

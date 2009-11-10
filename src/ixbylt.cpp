@@ -27,9 +27,19 @@ ibis::bylt::bylt(const ibis::column *c, const char *f)
 	else
 	    coarsen();
     }
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "egale[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- construct a range-equality index with "
+	    << cbits.size() << " coarse bitmap" << (cbits.size()>1?"s":"")
+	    << " and " << bits.size() << " fine bitmap"
+	    << (bits.size()>1?"s":"") << " for " << nrows << " row"
+	    << (nrows>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::bylt::bylt
 
@@ -81,6 +91,7 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     if (offsetsize == 8) {
 	array_t<int64_t> tmp(st, start, nc+1);
 	coffset64.swap(tmp);
+	coffset32.clear();
 	if (coffset64.back() <= coffset64.front()) {
 	    coffset64.swap(tmp);
 	    array_t<uint32_t> tmp2;
@@ -91,6 +102,7 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     else if (offsetsize == 4) {
 	array_t<int32_t> tmp(st, start, nc+1);
 	coffset32.swap(tmp);
+	coffset64.clear();
 	if (coffset32.back() <= coffset32.front()) {
 	    coffset32.swap(tmp);
 	    array_t<uint32_t> tmp2;
@@ -108,9 +120,19 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     for (unsigned i = 0; i < nc; ++ i)
 	cbits[i] = 0;
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "egale[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- construct a range-equality index with "
+	    << cbits.size() << " coarse bitmap" << (cbits.size()>1?"s":"")
+	    << " and " << bits.size() << " fine bitmap"
+	    << (bits.size()>1?"s":"") << " for " << nrows << " row"
+	    << (nrows>1?"s":"") << " from storage object at @ " << st;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::bylt::bylt
 
@@ -1190,9 +1212,14 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
 		sumBins(cbounds[c1-1], hit0, bv);
 		lower -= bv;
 	    }
-	    if (cbounds[c1] > hit1) {
+	    if (c1 < ncoarse && cbounds[c1] > hit1) {
 		ibis::bitvector bv;
 		sumBins(hit1, cbounds[c1], bv);
+		lower -= bv;
+	    }
+	    else if (c1 >= ncoarse && bits.size() > hit1) {
+		ibis::bitvector bv;
+		sumBins(hit1, bits.size(), bv);
 		lower -= bv;
 	    }
 	}

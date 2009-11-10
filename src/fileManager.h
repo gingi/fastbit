@@ -292,8 +292,12 @@ public:
 
     /// Starting address of the storage object.
     char* begin() {return m_begin;}
+    /// Ending address of the storage object.
     const char* end() const {return m_end;}
+    /// Starting address of the storage object.
     const char* begin() const {return m_begin;}
+    /// Unchecked index operator.  Returns the character at position i.
+    char operator[](size_t i) const {return m_begin[i];}
 
     /// Record a new active reference to this object.
     virtual void beginUse() {

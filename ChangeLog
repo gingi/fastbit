@@ -1,9 +1,44 @@
+2009-11-09 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h: add operator[] to storage object, make it
+	possible to shorten st->begin()[6] to (*st)[6]
+	* src/ibin.cpp:205-207 change sizeof(uint32_t) to (*st)[6]
+	* src/ifade.cpp:77-85 change sizeof(int32_t) to (*st)[6]
+	* src/ixzona.cpp: the constructor used offset32 blindly, change
+	hit1+1 to hit1 in function evaluate
+
+2009-11-06 John Wu <John.Wu at ACM.org>
+	* src/ixambit.cpp, src/ixpack.cpp, src/ixpale.cpp, src/ixzone.cpp:
+	capture the return from writing the elements of sub
+	* src/irange.cpp:529 change 4*(nobs+1) to sizeof(int64_t)*(nobs+1)
+	* src/bitvector.cpp:3285, src/bitvector64:2503 replace call to
+	flip with explict code to flip the bits in m_vec, the function
+	flip also turns the active bits which need to be handled
+	separately in this case
+	* src/islice.cpp, src/ifade.cpp: write32 and write64 mistakenly
+	used nbos in places of card
+	* src/ibin.cpp:484 the starting position of the offsets should be
+	8+2*sizeof(uint32_t) not 8+sizeof(uint32_t)
+	* src/imesa.cpp: remove mesa::write32 and mesa::write64, they are
+	the same as bin::write32 and bin::write64
+	* src/ixbylt.cpp:1220 add case for when c1 is in the unrecorded bin
+
 2009-11-05 John Wu <John.Wu at ACM.org>
 	* src/ibin.cpp:457 sizeof(int32_t) to st->begin()[6]
 	* src/icegale.cpp: in function read(storage*) update computation
 	of offsets and add code for cnts
 	* src/ixzona.cpp:611 offset32 should be offset64
 	* src/ibin.cpp:5126 sizeof(int32_t) should be sizeof(int64_t)
+	* src/ixpale.cpp:509 sizeof(int32_t) should be sizeof(int64_t)
+	* src/islice.cpp: functions write32 and write64 handles offsets
+	incorrectly
+	* src/ixpack.cpp:519 change sizeof(int32_t) to sizeof(int64_t)
+	* src/ibin.cpp: change ibis::bin::write to call bin::write32 and
+	write64
+	* src/irange.cpp: change ibis::range::write to use write32 and
+	write64, correct the statement in write64 that actually write the
+	64-bit offsets
+	* src/imesa.cpp: change ibis::mesa::write to use write32 and
+	write64 to reduce the code size
 
 2009-11-04 John Wu <John.Wu at ACM.org>
 	* src/capi.cpp, src/fileManager.cpp, src/tafel.cpp,
@@ -317,7 +352,7 @@
 	of bits (to address problems reported by David Reynolds < David
 	dot Reynolds at 3ds dot com>)
 	* src/bitvector.h: rename setSize to sloppySize and clarify its
-	functionality
+	functionality in doxygen documents
 
 2009-08-24 John Wu <John.Wu at ACM.org>
 	* src/table.h: clarify that ibis::tablex::write also updates

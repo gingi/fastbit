@@ -102,7 +102,8 @@ ibis::egale::egale(const ibis::column* c, const char* f,
     }
 } // constructor
 
-// Copy from an ibis::bin object.
+/// Constructor.  Convert an ibis::bin object into a multi-component
+/// equality encoded index.
 ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
     : ibis::bin(rhs), nbits(0), nbases(nb) {
     if (nbases < 2)
@@ -131,7 +132,7 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
     }
 } // copy from ibis::bin
 
-/// Reconstruct an index from content of a storage object.
+/// Constructor. Reconstruct an index from content of a storage object.
 /// The content of the file (following the 8-byte header) is:
 ///@code
 /// nrows  (uint32_t)        -- number of bits in a bitvector
@@ -148,18 +149,18 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 /// bitvectors               -- the bitvectors one after another
 ///@endcode
 ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
-		   size_t offset) :
+		   size_t start) :
     ibis::bin(c, *(reinterpret_cast<uint32_t*>
-		   (st->begin()+offset+2*sizeof(uint32_t))), st, offset),
+		   (st->begin()+start+2*sizeof(uint32_t))), st, start),
     nbits(*(reinterpret_cast<uint32_t*>
-	    (st->begin()+offset+2*sizeof(uint32_t)))),
+	    (st->begin()+start+2*sizeof(uint32_t)))),
     nbases(*(reinterpret_cast<uint32_t*>
-	     (st->begin()+8*((7+offset+3*sizeof(uint32_t))/8)+
+	     (st->begin()+8*((7+start+3*sizeof(uint32_t))/8)+
 	      nobs*sizeof(uint32_t)+(nbits+1)*st->begin()[6]+
 	      3*nobs*sizeof(double)))),
-    cnts(st, 8*((7+offset+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]
+    cnts(st, 8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]
 	 +3*nobs*sizeof(double), nobs),
-    bases(st, 8*((7+offset+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]+
+    bases(st, 8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]+
 	  3*nobs*sizeof(double)+(nobs+1)*sizeof(int32_t), nbases) {
     if (ibis::gVerbose > 8 ||
 	(ibis::gVerbose > 2 &&
@@ -171,7 +172,7 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	    << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
 	    << "index with " << nbits << " bitmap" << (nbits>1?"s":"")
 	    << " on " << nobs << " bin" << (nobs>1?"s":"")
-	    << " from storage object " << st << " starting at " << offset;
+	    << " from storage object " << st << " starting at " << start;
 	if (ibis::gVerbose > 6) {
 	    lg.buffer() << "\n";
 	    print(lg.buffer());

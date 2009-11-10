@@ -801,7 +801,7 @@ int ibis::query::estimate() {
 		state = QUICK_ESTIMATE;
 	    }
 	    catch (const ibis::bad_alloc& e) {
-		if (dslock) {
+		if (dslock != 0) {
 		    delete dslock;
 		    dslock = 0;
 		}
@@ -815,7 +815,7 @@ int ibis::query::estimate() {
 		return -9;
 	    }
 	    catch (const std::exception& e) {
-		if (dslock) {
+		if (dslock != 0) {
 		    delete dslock;
 		    dslock = 0;
 		}
@@ -828,7 +828,7 @@ int ibis::query::estimate() {
 		return -9;
 	    }
 	    catch (const char* s) {
-		if (dslock) {
+		if (dslock != 0) {
 		    delete dslock;
 		    dslock = 0;
 		}
@@ -841,7 +841,7 @@ int ibis::query::estimate() {
 		return -9;
 	    }
 	    catch (...) {
-		if (dslock) {
+		if (dslock != 0) {
 		    delete dslock;
 		    dslock = 0;
 		}
@@ -1019,7 +1019,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    }
 	}
 	catch (const ibis::bad_alloc& e) {
-	    if (dslock) {
+	    if (dslock != 0) {
 		delete dslock;
 		dslock = 0;
 	    }
@@ -1031,7 +1031,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    return -9;
 	}
 	catch (const std::exception& e) {
-	    if (dslock) {
+	    if (dslock != 0) {
 		delete dslock;
 		dslock = 0;
 	    }
@@ -1044,7 +1044,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    return -9;
 	}
 	catch (const char *e) {
-	    if (dslock) {
+	    if (dslock != 0) {
 		delete dslock;
 		dslock = 0;
 	    }
@@ -1057,7 +1057,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    return -9;
 	}
 	catch (...) {
-	    if (dslock) {
+	    if (dslock != 0) {
 		delete dslock;
 		dslock = 0;
 	    }
@@ -1111,7 +1111,8 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    logWarning("evaluate", "unable to construct ibis::bundle");
     }
 
-    if (dslock) { // make sure the read lock on the data partition is released
+    if (dslock != 0) {
+	// make sure the read lock on the data partition is released
 	delete dslock;
 	dslock = 0;
     }
@@ -2878,7 +2879,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	ierr = -1;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
+	    << "Warning -- query[" << myID << "]::sequentialScan("
 	    << *conds.getExpr()
 	    << ") failed due to a memory allocation problem, " << e.what();
     }
@@ -2886,7 +2887,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	ierr = -2;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
+	    << "Warning -- query[" << myID << "]::sequentialScan("
 	    << *conds.getExpr() << ") failed due to a std::exception, "
 	    << e.what();
     }
@@ -2894,32 +2895,43 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	ierr = -3;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
+	    << "Warning -- query[" << myID << "]::sequentialScan("
 	    << *conds.getExpr() << ") failed due to a string exception, " << e;
     }
     catch (...) {
 	ierr = -4;
 	res.clear();
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::query[" << myID << "]::sequentialScan("
+	    << "Warning -- query[" << myID << "]::sequentialScan("
 	    << *conds.getExpr() << ") failed due to an unexpected exception";
     }
 
-    if (ierr > 0 && ibis::gVerbose > 2) {
+    if (ierr >= 0 && ibis::gVerbose > 2) {
 	timer.stop();
-	logMessage("sequentialScan", "produced %ld hit%s in %g sec(CPU), "
-		   "%g sec(elapsed).", ierr, (ierr>1?"s":""),
-		   timer.CPUTime(), timer.realTime());
-	if (ibis::gVerbose > 4 && hits != 0 && state == FULL_EVALUATE) {
+	ibis::util::logger lg;
+	lg.buffer()
+	    << "query[" << myID << "]::sequentialScan produced " << ierr
+	    << " hit" << (ierr>1?"s":"") << " in " << timer.CPUTime()
+	    << " sec(CPU), " << timer.realTime() << " sec(elapsed)";
+	if (ibis::gVerbose > 3 && hits != 0 && state == FULL_EVALUATE) {
 	    ibis::bitvector diff;
 	    diff.copy(*hits);
 	    diff ^= res;
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+	    lg.buffer() << "\nExisting result\n";
+	    diff.print(lg.buffer());
+	    lg.buffer() << "\nsequentialScan result\n";
+	    res.print(lg.buffer());
+	    lg.buffer() << "\nXOR result\n";
+	    diff.print(lg.buffer());
+#endif
 	    if (diff.cnt()) {
-		logWarning("sequentialScan", "produced %lu hit%s that "
-			   "are different from the previous evaluation",
-			   static_cast<long unsigned>(diff.cnt()),
-			   (diff.cnt()>1?"s":""));
-		if (ibis::gVerbose > 6) {
+		lg.buffer()
+		    << "\nWarning -- query[" << myID
+		    << "]::sequentialScan produced " << diff.cnt()
+		    << " hit" << (diff.cnt()>1?"s":"")
+		     << " that are different from the previous evaluation";
+		if (ibis::gVerbose > 5) {
 		    uint32_t maxcnt = (ibis::gVerbose > 30 ? mypart->nRows()
 				       : (1U << ibis::gVerbose));
 		    if (maxcnt > diff.cnt())
@@ -2927,8 +2939,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 		    uint32_t cnt = 0;
 		    ibis::bitvector::indexSet is = diff.firstIndexSet();
 
-		    ibis::util::logger lg;
-		    lg.buffer() << "row numbers of mismatching hits\n";
+		    lg.buffer() << "\n  row numbers of mismatching hits\n";
 		    while (is.nIndices() && cnt < maxcnt) {
 			const ibis::bitvector::word_t *ii = is.indices();
 			if (is.isRange()) {
@@ -2944,7 +2955,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 		    }
 		    if (cnt < diff.cnt())
 			lg.buffer() << "... (" << diff.cnt() - cnt
-				    << " rows skipped\n";
+				    << " rows skipped)\n";
 		}
 	    }
 	}
@@ -4060,7 +4071,7 @@ void ibis::query::clear() {
 	hits = 0;
 	sup = 0;
     }
-    if (dslock) { // remove read lock on the associated data partition
+    if (dslock != 0) { // remove read lock on the associated data partition
 	delete dslock;
 	dslock = 0;
     }

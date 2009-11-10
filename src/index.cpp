@@ -1305,7 +1305,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			  "sec(CPU), %g sec(elapsed)", ind->name(),
 			  timer.CPUTime(), timer.realTime());
 	}
-	if (ibis::gVerbose > 2) {
+	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
 	    ind->print(lg.buffer());
 	}
@@ -1318,6 +1318,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
     fname(0), nrows(0) {
     if (c != 0 && s != 0) {
+	nrows = *reinterpret_cast<const uint32_t*>(s->begin()+8);
 	col = c;
 	str = s;
     }

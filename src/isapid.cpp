@@ -46,9 +46,18 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 	else {
 	    construct2(f, nbase); // scan data twice
 	}
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "sapid[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- construct a " << bases.size()
+		<< "-component equality index with "
+		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		<< " for " << nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -77,9 +86,19 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 ///@endcode
 ibis::sapid::sapid(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::fade(c, st, start) {
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "sapid[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- construct a " << bases.size()
+	    << "-component equality index with "
+	    << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+	    << " for " << nrows << " row" << (nrows>1?"s":"")
+	    << " from a storage object @ " << st;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // reconstruct data from content of a file
 
@@ -132,16 +151,21 @@ int ibis::sapid::write(const char* dt) const {
     else
 	ierr = ibis::fade::write32(fdes);
 
-    LOGGER(ierr >= 0 && ibis::gVerbose > 5)
-	<< "sapid[" << col->partition()->name() << "." << col->name()
-	<< "]::write wrote " << bits.size() << " bitmap"
-	<< (bits.size()>1?"s":"") << " to " << fnm;
+    if (ierr >= 0) {
+#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+	(void) UnixFlush(fdes); // write to disk
+#endif
+	LOGGER(ierr >= 0 && ibis::gVerbose > 5)
+	    << "sapid[" << col->partition()->name() << "." << col->name()
+	    << "]::write wrote " << bits.size() << " bitmap"
+	    << (bits.size()>1?"s":"") << " to " << fnm;
+    }
     return ierr;
 } // ibis::sapid::write
 
-// this version of the constructor take one pass throught the data by
-// constructing a ibis::index::VMap first than construct the sapid from the
-// VMap -- uses more computer memory than the two-pass version
+/// This version of the constructor take one pass throught the data.  It
+/// constructs an ibis::index::VMap first, then constructs the sapid from
+/// the VMap.  It uses more computer memory than the two-pass version.
 void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
     VMap bmap; // a map between values and their position
     try {

@@ -3282,7 +3282,15 @@ void ibis::bitvector::xor_d1(const ibis::bitvector& rhs) {
     if (rhs.m_vec.size() == 1) {
 	array_t<word_t>::const_iterator it = rhs.m_vec.begin();
 	if (*it > HEADER1) { // complement every bit
-	    flip();
+	    for (array_t<word_t>::iterator i=m_vec.begin(); i!=m_vec.end();
+		 ++i) {
+		if (*i > ALLONES)
+		    *i ^= FILLBIT;
+		else
+		    *i ^= ALLONES;
+	    }
+	    if (nset > 0)
+		nset = nbits - nset;
 	}
 	else if (*it <= ALLONES) {
 	    m_vec[0] = (*it ^ *(rhs.m_vec.begin()));

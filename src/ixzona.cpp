@@ -48,9 +48,6 @@ ibis::zona::zona(const ibis::column *c, const char *f)
  */
 ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 		 size_t start) : ibis::relic(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offset32.back()))
-	return; // no coarse bin
-
     if (offset64.size() > bits.size()) {
 	start = offset64.back();
     }
@@ -880,16 +877,16 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
 	// pair 1: fine level only
 	tmp = (offset64.size() > bits.size()
 	       ? ((offset64[hit1] - offset64[hit0]
-		   <= ((offset64.back()-offset64[hit1+1])
+		   <= ((offset64.back()-offset64[hit1])
 		       + (offset64[hit0]-offset64[0]))
 		   ? offset64[hit1] - offset64[hit0]
-		   : ((offset64.back()-offset64[hit1+1])
+		   : ((offset64.back()-offset64[hit1])
 		      + (offset64[hit0]-offset64[0]))))
 	       : ((offset32[hit1] - offset32[hit0]
-		   <= ((offset32.back()-offset32[hit1+1])
+		   <= ((offset32.back()-offset32[hit1])
 		       + (offset32[hit0]-offset32[0]))
 		   ? offset32[hit1] - offset32[hit0]
-		   : ((offset32.back()-offset32[hit1+1])
+		   : ((offset32.back()-offset32[hit1])
 		      + (offset32[hit0]-offset32[0])))));
 	if (cost > static_cast<long>(0.99*tmp)) { // slightly prefer 1
 	    cost = tmp;

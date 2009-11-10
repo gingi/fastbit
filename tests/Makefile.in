@@ -686,9 +686,9 @@ $(TESTDIR)/append.rc: $(TESTDIR)
 	@echo "preferMMapIndex=1" >> $(TESTDIR)/append.rc
 $(TESTDIR)/smallmem.rc: $(TESTDIR)
 #	@echo "fileManager.maxBytes=1.3GB" > $(TESTDIR)/smallmem.rc
-	@echo "fileManager.maxBytes=160MB" > $(TESTDIR)/smallmem.rc
+	@echo "fileManager.maxBytes=300MB" > $(TESTDIR)/smallmem.rc
 # the above configuration statement instructs ibis to limit the amount
-# of memory used to 160MB, which is not sufficient for many of the
+# of memory used to 300MB, which is not sufficient for many of the
 # operations such as index building.  However, it has been useful to
 # test the error handling functions to include this memory restriction.
 #

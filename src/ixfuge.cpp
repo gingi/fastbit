@@ -79,16 +79,13 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	clear();
 	return;
     }
-    if ((offsetsize == 8 &&
-	 st->size() <= static_cast<uint64_t>(offset64.back())) ||
-	(offsetsize == 4 &&
-	 st->size() <= static_cast<uint32_t>(offset32.back())))
-	return; // no coarse bin
-
     if (offsetsize == 8)
 	start = offset64.back();
     else
 	start = offset32.back();
+    if (st->size() <= start)
+	return; // no coarse bin
+
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
 	st->size() <= start + (sizeof(int32_t)+offsetsize)*(nc+1))
@@ -170,9 +167,19 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "fuge[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- built an interval-equality index with "
+	    << nobs << " find bin" << (nobs>1?"s":"") << " and " << nc
+	    << " coarse bin" << (nc>1?"s":"") << " for "
+	    << nrows << " row" << (nrows>1?"s":"")
+	    << " from a storage object @ " << st;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 } // ibis::fuge::fuge
 
@@ -468,8 +475,9 @@ int ibis::fuge::read(const char* f) {
 int ibis::fuge::read(ibis::fileManager::storage* st) {
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
-    const char offsetsize = st->begin()[6];
+    const char offsetsize = (*st)[6];
     if (offsetsize != 8 && offsetsize != 4) return -2;
+    clearCoarse();
 
     if (offsetsize == 8 &&
 	str->size() > static_cast<uint64_t>(offset64.back())) {

@@ -429,7 +429,9 @@ int ibis::zone::write32(int fdes) const {
 	for (i = 0; i < nobs; ++i) {
 	    nextlevel[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (sub[i]) {
-		sub[i]->write32(fdes);
+		ierr = sub[i]->write32(fdes);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	}
 	nextlevel[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
@@ -564,7 +566,9 @@ int ibis::zone::write64(int fdes) const {
 	for (i = 0; i < nobs; ++i) {
 	    nextlevel[i] = UnixSeek(fdes, 0, SEEK_CUR);
 	    if (sub[i]) {
-		sub[i]->write64(fdes);
+		ierr = sub[i]->write64(fdes);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	}
 	nextlevel[nobs] = UnixSeek(fdes, 0, SEEK_CUR);

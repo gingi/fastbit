@@ -15,6 +15,7 @@
 
 #include <string>
 
+/// Constructor.  Generate index from the base data.
 ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     if (c == 0) return;
     if (nrows == 0) return;
@@ -48,9 +49,17 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	    bits[i]->decompress();
 	optionalUnpack(bits, col->indexSpec());
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "mesa[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an interval index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -65,7 +74,8 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     }
 } // constructor
 
-/// Construct an interval encoded index from an equality encoded index.
+/// Constructor.  Construct an interval encoded index from an equality
+/// encoded index.
 ibis::mesa::mesa(const ibis::bin& rhs) {
     if (rhs.nrows == 0) return;
     if (rhs.nobs <= 2) { // rhs does not contain a valid index
@@ -98,9 +108,18 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 	    bits[i]->decompress();
 	optionalUnpack(bits, col->indexSpec());
 
-	if (ibis::gVerbose > 4) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    lg.buffer()
+		<< "mesa[" << col->partition()->name() << '.' << col->name()
+		<< "]::ctor -- built an interval index with "
+		<< nobs << " bin" << (nobs>1?"s":"") << " for "
+		<< nrows << " row" << (nrows>1?"s":"")
+		<< " from an equality index";
+	    if (ibis::gVerbose > 6) {
+		lg.buffer() << "\n";
+		print(lg.buffer());
+	    }
 	}
     }
     catch (...) {
@@ -112,14 +131,23 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
     }
 } // copy constructor (from bin)
 
-/// Reconstruct an index from a storage object.  The layout of data members
-/// are the same as ibis::bin.  The difference is that the last half of the
-/// bit vectors are always empty.
+/// Constructor.  Reconstruct an index from a storage object.  The layout
+/// of data members are the same as ibis::bin.  The difference is that the
+/// last half of the bit vectors are always empty.
 ibis::mesa::mesa(const ibis::column* c, ibis::fileManager::storage* st,
-		 size_t offset) : ibis::bin(c, st, offset) {
-    if (ibis::gVerbose > 8) {
+		 size_t start) : ibis::bin(c, st, start) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	lg.buffer()
+	    << "mesa[" << col->partition()->name() << '.' << col->name()
+	    << "]::ctor -- built an interval index with "
+	    << nobs << " bin" << (nobs>1?"s":"") << " for "
+	    << nrows << " row" << (nrows>1?"s":"")
+	    << " from a storage object @ " << st;
+	if (ibis::gVerbose > 6) {
+	    lg.buffer() << "\n";
+	    print(lg.buffer());
+	}
     }
 }
 
@@ -169,252 +197,24 @@ int ibis::mesa::write(const char* dt) const {
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
-    ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    if (ierr != 4) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write failed to write nrows to "
-	    << fnm << ", ierr = " << ierr;
-	return -4;
-    }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
-    ierr = ((header[6]*(nobs+1) + 2*sizeof(uint32_t)+15) >> 3) << 3;
-    if (ierr != UnixSeek(fdes, ierr, SEEK_SET)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write failed to seek to " << ierr
-	    << " in " << fnm;
-	return -4;
-    }
 
-    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    if (useoffset64) {
-	offset32.clear();
-	offset64.resize(nobs+1);
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	    if (bits[i])
-		bits[i]->write(fdes);
-	}
-	offset64[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-	ierr = UnixSeek(fdes, 16, SEEK_SET);
-	if (ierr != 16) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- mesa[" << col->partition()->name() << "."
-		<< col->name() << "]::write failed to seek to position 16, "
-		"ierr = " << ierr;
-	    return -5;
-	}
-	ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
-	ierr = (ierr == (off_t) (8*(nobs+1)) ? 0 : -9);
-    }
-    else {
-	offset64.clear();
-	offset32.resize(nobs+1);
-	for (uint32_t i = 0; i < nobs; ++i) {
-	    offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	    if (bits[i])
-		bits[i]->write(fdes);
-	}
-	offset32[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-	ierr = UnixSeek(fdes, 16, SEEK_SET);
-	if (ierr != 16) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- mesa[" << col->partition()->name() << "."
-		<< col->name() << "]::write failed to seek to position 16, "
-		"ierr = " << ierr;
-	    return -5;
-	}
-	ierr = UnixWrite(fdes, offset32.begin(), 4*(nobs+1));
-	ierr = (ierr == (off_t) (4*(nobs+1)) ? 0 : -9);
-    }
+    if (useoffset64)
+	ierr = ibis::bin::write64(fdes);
+    else
+	ierr = ibis::bin::write32(fdes);
+    if (ierr >= 0) {
 #if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    (void) UnixFlush(fdes); // write to disk
+	(void) UnixFlush(fdes); // write to disk
 #endif
 
-    LOGGER(ibis::gVerbose > 5 && ierr == 0)
-	<< "mesa[" << col->partition()->name() << "." << col->name()
-	<< "]::write completed writing " << nobs << " bin" << (nobs>1?"s":"")
-	<< " to file " << fnm << "for " << nrows << " object"
-	<< (nrows>1?"s":"");
+	LOGGER(ibis::gVerbose > 3)
+	    << "mesa[" << col->partition()->name() << "." << col->name()
+	    << "]::write completed writing " << nobs << " bin"
+	    << (nobs>1?"s":"") << " to file " << fnm << "for " << nrows
+	    << " row" << (nrows>1?"s":"");
+    }
     return ierr;
 } // ibis::mesa::write
-
-/// Write to a file already opened by the caller.  This function is used by
-/// a multi-level index.  The whole index file uses 32-bit offsets for
-/// bitmaps.
-int ibis::mesa::write32(int fdes) const {
-    if (nobs <= 0) return -1;
-    if (fname != 0 || str != 0)
-	activate(0U, nobs-(nobs-1)/2);
-    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
-    if (start < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 UnixSeek(" << fdes
-	    << ", 0, SEEK_CUR) returned " << start
-	    << ", but a value > 8 is expected ... "
-	    << (errno != 0 ? strerror(start) : "");
-	errno = 0;
-	return -1;
-    }
-
-    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    if (ierr < 4) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to write nrows to " << fdes
-	    << ", ierr = " << ierr;
-	return -2;
-    }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
-
-    offset64.clear();
-    offset32.resize(nobs+1);
-    offset32[0] = ((start+4*(nobs+1) + 2*sizeof(uint32_t)+7) >> 3) << 3;
-    ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
-    if (ierr != offset32[0]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::mesa::write(" << fdes << ") failed to seek to "
-	    << offset32[0];
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -3;
-    }
-
-    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offset32[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	if (bits[i])
-	    bits[i]->write(fdes);
-    }
-    offset32[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
-    if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to seek to "
-	    << start+sizeof(uint32_t)*2 << " in " << fdes << ", ierr = "
-	    << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -4;
-    }
-    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
-    if (ierr != (off_t)(sizeof(int32_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to write " << nobs+1
-	    << " bitmap offsets to file descriptor " << fdes
-	    << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -5;
-    }
-    // place the file pointer at the end
-    ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET);
-    if (ierr != offset32[nobs]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to seek to "
-	    << offset32[nobs] << " in " << fdes << ", ierr = "
-	    << ierr;
-	ierr = -9;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-    }
-    else {
-	ierr = 0;
-    }
-    return ierr;
-} // ibis::mesa::write32
-
-/// Write to a file already opened by the caller.  This function is used by
-/// a multi-level index.  The whole index file uses 64-bit offsets for
-/// bitmaps.
-int ibis::mesa::write64(int fdes) const {
-    if (nobs <= 0) return -1;
-    if (fname != 0 || str != 0)
-	activate(0U, nobs-(nobs-1)/2);
-    const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
-    if (start < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 UnixSeek(" << fdes
-	    << ", 0, SEEK_CUR) returned " << start
-	    << ", but a value > 8 is expected ... "
-	    << (errno != 0 ? strerror(start) : "");
-	errno = 0;
-	return -1;
-    }
-
-    off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
-    if (ierr < 4) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to write nrows to " << fdes
-	    << ", ierr = " << ierr;
-	return -2;
-    }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
-
-    offset32.clear();
-    offset64.resize(nobs+1);
-    offset64[0] = ((start+8*(nobs+1) + 2*sizeof(uint32_t)+7) >> 3) << 3;
-    ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
-    if (ierr != offset64[0]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::mesa::write(" << fdes << ") failed to seek to "
-	    << offset64[0];
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -3;
-    }
-
-    (void) UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    (void) UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    for (uint32_t i = 0; i < nobs; ++i) {
-	offset64[i] = UnixSeek(fdes, 0, SEEK_CUR);
-	if (bits[i])
-	    bits[i]->write(fdes);
-    }
-    offset64[nobs] = UnixSeek(fdes, 0, SEEK_CUR);
-    ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
-    if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to seek to "
-	    << start+sizeof(uint32_t)*2 << " in " << fdes << ", ierr = "
-	    << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -4;
-    }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
-    if (ierr != (off_t)(sizeof(int64_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to write " << nobs+1
-	    << " bitmap offsets to file descriptor " << fdes
-	    << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -5;
-    }
-    // place the file pointer at the end
-    ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET);
-    if (ierr != offset64[nobs]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to seek to "
-	    << offset64[nobs] << " in " << fdes << ", ierr = "
-	    << ierr;
-	ierr = -9;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-    }
-    else {
-	ierr = 0;
-    }
-    return ierr;
-} // ibis::mesa::write64
 
 /// Constructor an new index from data file in the specified location.
 /// This function first construct equality bins then convert to the

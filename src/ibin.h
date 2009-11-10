@@ -492,7 +492,7 @@ private:
     friend class ibis::pale; // pale uses ibis::range
 }; // ibis::range
 
-/// This class implements the two-side range encoding from Chan and
+/// This class implements the interval encoding of Chan and
 /// Ioannidis.
 class ibis::mesa : public ibis::bin {
 public:
@@ -539,10 +539,6 @@ protected:
 
 private:
     // private member functions
-    int write32(int fptr) const;
-    int write64(int fptr) const;
-    //void print(std::ostream& out, const uint32_t tot, const double& lbound,
-    //       const double& rbound) const;
 
     mesa(const mesa&);
     mesa& operator=(const mesa&);

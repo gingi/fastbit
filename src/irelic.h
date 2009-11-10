@@ -28,9 +28,9 @@ public:
 	  size_t start = 8);
 
     virtual void print(std::ostream& out) const;
-    virtual int write(const char* dt) const;
-    virtual int read(const char* idxfile);
-    virtual int read(ibis::fileManager::storage* st);
+    virtual int  write(const char* dt) const;
+    virtual int  read(const char* idxfile);
+    virtual int  read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -120,8 +120,8 @@ protected:
     int write64(int fdes) const;
     // protected member functions
     uint32_t locate(const double& val) const;
-    void   locate(const ibis::qContinuousRange& expr,
-		  uint32_t& hit0, uint32_t& hit1) const;
+    void     locate(const ibis::qContinuousRange& expr,
+		    uint32_t& hit0, uint32_t& hit1) const;
 
     // a dummy constructor
     relic() : ibis::index() {}
