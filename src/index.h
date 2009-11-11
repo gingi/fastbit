@@ -78,11 +78,6 @@ namespace ibis { // the concrete classes of index hierarchy
 /// ibis::index is for only one column.  The user is to create an new index
 /// through the function ibis::index::create and only use the functions
 /// defined in this class.
-///
-/// @note The positions of the bitmaps in an index file is recorded with a
-/// 32-bit integer.  If the index file size is more than 2^32 bytes, it is
-/// likely that at least one of the bitmaps stored in the file will not be
-/// reconstructed correctly, and therefore producing wrong answers!
 class ibis::index {
 public:
     /// The integer values of this enum type are used in the index files to

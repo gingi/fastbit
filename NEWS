@@ -1,3 +1,14 @@
+Tue Nov 10 14:17:41 PST 2009
+Version ibis1.1.4
+-- add code to switch bitmap offset between 4-byte and 8-byte integers.
+   This allows the index files to grow beyond 2GB, but the number of
+   rows in a data partition is still limited to 2 billion.
+-- apply patch from Jan Steemann to add new aggregation functions
+-- apply patch from Luca Deri to correct bundle computation
+-- fix functions segement in colValues.cpp after messing up the patch
+   from Alexandre Maurel
+-- fixes bugs discovered during regression testing
+
 Thu Sep 10 15:56:08 PDT 2009
 Version ibis1.1.3
 -- add function ibis::tablex::readSQLDump to read sql dump files, update

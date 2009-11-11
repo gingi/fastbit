@@ -1,3 +1,13 @@
+2009-11-10 John Wu <John.Wu at ACM.org>
+	* src/ixfuzz.cpp:51-52 remove statements that blindly refers to
+	offset32
+	* src/ixfuzz.cpp:485 neglected to test for size of coffset64
+	* src/colValues.cpp: remove extra statement ++ j in various
+	implementation of function segment to address the issue raised by
+	Alexandre Maurel
+	* src/ibis.h, src/index.h: remove warning about 32-bit bitmap
+	offsets
+
 2009-11-09 John Wu <John.Wu at ACM.org>
 	* src/fileManager.h: add operator[] to storage object, make it
 	possible to shorten st->begin()[6] to (*st)[6]

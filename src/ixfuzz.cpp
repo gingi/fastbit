@@ -48,13 +48,20 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
  */
 ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 		 size_t start) : ibis::relic(c, st, start) {
-    if (st->size() <= static_cast<uint32_t>(offset32.back()))
-	return; // no coarse bin
-
     if (offset64.size() > bits.size())
 	start = offset64.back();
-    else
+    else if (offset32.size() > bits.size())
 	start = offset32.back();
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fuzz[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor can not proceed further without "
+	    "bitmap size information";
+	clear();
+	return;
+    }
+    if (st->size() <= start+12) return;
+
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
 	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
@@ -248,7 +255,7 @@ void ibis::fuzz::activateCoarse() const {
 	missing = (cbits[i] == 0);
     if (missing == false) return;
 
-    if (coffset32.size() <= nobs || coffset64.size() <= nobs) {
+    if (coffset32.size() <= nobs && coffset64.size() <= nobs) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt
 	    << " can not proceed without coffset32 or coffset64";
@@ -290,9 +297,10 @@ void ibis::fuzz::activateCoarse() const {
 	    errno = 0;
 	    return;
 	}
+
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << " retrieving data from file \"" << fname << "\"";
-
+	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -321,8 +329,8 @@ void ibis::fuzz::activateCoarse() const {
 			bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG -- " << evt << " activating bitvector " << i
-			    << "by reading file " << fname
+			    << "DEBUG -- " << evt << " activating bitvector "
+			    << i << "by reading file " << fname
 			    << "coffset64[" << i << "]= " << coffset64[i]
 			    << ", coffset64[" << i+1 << "]= "
 			    << coffset64[i+1];
@@ -346,8 +354,8 @@ void ibis::fuzz::activateCoarse() const {
 			bits[i]->sloppySize(nrows);
 #if defined(DEBUG)
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG -- " << evt << " activating bitvector " << i
-			    << "by reading file " << fname
+			    << "DEBUG -- " << evt << " activating bitvector "
+			    << i << "by reading file " << fname
 			    << "coffset32[" << i << "]= " << coffset32[i]
 			    << ", coffset32[" << i+1 << "]= "
 			    << coffset32[i+1];
@@ -358,7 +366,6 @@ void ibis::fuzz::activateCoarse() const {
 	    }
 	    i = aj; // always advance i
 	}
-	UnixClose(fdes);
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -380,8 +387,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
     evt += "::activateCoarse";
     ibis::column::mutexLock lock(col, evt.c_str());
     if (cbits[i] != 0) return;	// already active
-    if (coffset32.size() <= cbits.size() &&
-	coffset64.size() <= cbits.size()) {
+    if (coffset32.size() <= cbits.size() && coffset64.size() <= cbits.size()) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " can not regenerate bitvector " << i
 	    << " without coffset32 or coffet64";
@@ -415,39 +421,38 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
     }
     else if (fname) { // using the named file directly
 	int fdes = UnixOpen(fname, OPEN_READONLY);
-	if (fdes >= 0) {
-	    LOGGER(ibis::gVerbose > 8)
-		<< evt << " retrieving bitvector " << i
-		<< " from file \"" << fname << "\"";
-
-#if defined(_WIN32) && defined(_MSC_VER)
-	    (void)_setmode(fdes, _O_BINARY);
-#endif
-	    if (coffset64.size() > cbits.size()) {
-		array_t<ibis::bitvector::word_t>
-		    a0(fdes, coffset64[i], coffset64[i+1]);
-		cbits[i] = new ibis::bitvector(a0);
-	    }
-	    else {
-		array_t<ibis::bitvector::word_t>
-		    a0(fdes, coffset32[i], coffset32[i+1]);
-		cbits[i] = new ibis::bitvector(a0);
-	    }
-	    cbits[i]->sloppySize(nrows);
-	    UnixClose(fdes);
-#if defined(DEBUG)
-	    LOGGER(ibis::gVerbose >= 0)
-		<< evt << " constructed bitvector " << i
-		<< " from range [" << coffset32[i]
-		<< ", "  << coffset32[i+1] << ") of file " << fname;
-#endif
-	}
-	else {
+	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << "failed to open file \""
 		<< fname << "\" ... " << (errno ? strerror(errno) : "??");
 	    errno = 0;
+	    return;
 	}
+
+	LOGGER(ibis::gVerbose > 8)
+	    << evt << " retrieving bitvector " << i
+	    << " from file \"" << fname << "\"";
+	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
+	if (coffset64.size() > cbits.size()) {
+	    array_t<ibis::bitvector::word_t>
+		a0(fdes, coffset64[i], coffset64[i+1]);
+	    cbits[i] = new ibis::bitvector(a0);
+	}
+	else {
+	    array_t<ibis::bitvector::word_t>
+		a0(fdes, coffset32[i], coffset32[i+1]);
+	    cbits[i] = new ibis::bitvector(a0);
+	}
+	cbits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+	LOGGER(ibis::gVerbose >= 0)
+	    << evt << " constructed bitvector " << i
+	    << " from range [" << coffset32[i]
+	    << ", "  << coffset32[i+1] << ") of file " << fname;
+#endif
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -475,11 +480,11 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
     while (i < j && cbits[i] != 0) ++ i;
     if (i >= j) return; // requested bitvectors active
 
-    if (coffset32.size() <= cbits.size() || coffset32[0] <= offset32.back()) {
+    if (coffset32.size() <= cbits.size() && coffset64.size() <= cbits.size()) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt
 	    << " can not regenerate coarse-level bitvectors " << i
-	    << ", " << j << " without coffset32 or coffset64";
+	    << " -- " << j << " without coffset32 or coffset64";
     }
     else if (str) { // using an ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
@@ -513,83 +518,80 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 	}
     }
     else if (fname) { // using the named file directly
-	if (coffset32[j] > coffset32[i]) {
-	    int fdes = UnixOpen(fname, OPEN_READONLY);
-	    if (fdes >= 0) {
-		LOGGER(ibis::gVerbose > 8)
-		    << evt << "(" << i << ", " << j
-		    << ") retrieving data from file \"" << fname << "\"";
+	int fdes = UnixOpen(fname, OPEN_READONLY);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << "failed to open file \""
+		<< fname << "\" ... " << (errno ? strerror(errno) : "??");
+	    errno = 0;
+	    return;
+	}
 
+	LOGGER(ibis::gVerbose > 8)
+	    << evt << "(" << i << ", " << j
+	    << ") retrieving data from file \"" << fname << "\"";
+	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
-		(void)_setmode(fdes, _O_BINARY);
+	(void)_setmode(fdes, _O_BINARY);
 #endif
-		while (i < j) {
-		    // skip to next empty bit vector
-		    while (i < j && cbits[i] != 0)
-			++ i;
-		    // the last bitvector to activate. can not be larger
-		    // than j
-		    uint32_t aj = (i<j ? i + 1 : j);
-		    while (aj < j && cbits[aj] == 0)
-			++ aj;
-		    if (coffset64.size() > cbits.size() &&
-			coffset64[aj] > coffset64[i]) {
-			const uint64_t start = coffset64[i];
-			ibis::fileManager::storage *a0 = new
-			    ibis::fileManager::storage(fdes, start,
-						       coffset64[aj]);
-			while (i < aj) {
-			    if (coffset64[i+1] > coffset64[i]) {
-				array_t<ibis::bitvector::word_t>
-				    a1(a0, coffset64[i]-start,
-				       (coffset64[i+1]-coffset64[i])/
-				       sizeof(ibis::bitvector::word_t));
-				cbits[i] = new ibis::bitvector(a1);
-				cbits[i]->sloppySize(nrows);
+	while (i < j) {
+	    // skip to next empty bit vector
+	    while (i < j && cbits[i] != 0)
+		++ i;
+	    // the last bitvector to activate. can not be larger
+	    // than j
+	    uint32_t aj = (i<j ? i + 1 : j);
+	    while (aj < j && cbits[aj] == 0)
+		++ aj;
+	    if (coffset64.size() > cbits.size() &&
+		coffset64[aj] > coffset64[i]) {
+		const uint64_t start = coffset64[i];
+		ibis::fileManager::storage *a0 = new
+		    ibis::fileManager::storage(fdes, start,
+					       coffset64[aj]);
+		while (i < aj) {
+		    if (coffset64[i+1] > coffset64[i]) {
+			array_t<ibis::bitvector::word_t>
+			    a1(a0, coffset64[i]-start,
+			       (coffset64[i+1]-coffset64[i])/
+			       sizeof(ibis::bitvector::word_t));
+			cbits[i] = new ibis::bitvector(a1);
+			cbits[i]->sloppySize(nrows);
 #if defined(DEBUG)
-				LOGGER(ibis::gVerbose >= 0)
-				    << evt << " constructed bitvector " << i
-				    << " from range [" << coffset64[i] << ", "
-				    << coffset64[i+1] << ") of file " << fname;
+			LOGGER(ibis::gVerbose >= 0)
+			    << evt << " constructed bitvector " << i
+			    << " from range [" << coffset64[i] << ", "
+			    << coffset64[i+1] << ") of file " << fname;
 #endif
-			    }
-			    ++ i;
-			}
 		    }
-		    else if (coffset32.size() > cbits.size() &&
-			     coffset32[aj] > coffset32[i]) {
-			const uint32_t start = coffset32[i];
-			ibis::fileManager::storage *a0 = new
-			    ibis::fileManager::storage(fdes, start,
-						       coffset32[aj]);
-			while (i < aj) {
-			    if (coffset32[i+1] > coffset32[i]) {
-				array_t<ibis::bitvector::word_t>
-				    a1(a0, coffset32[i]-start,
-				       (coffset32[i+1]-coffset32[i])/
-				       sizeof(ibis::bitvector::word_t));
-				cbits[i] = new ibis::bitvector(a1);
-				cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
-				LOGGER(ibis::gVerbose >= 0)
-				    << evt << " constructed bitvector " << i
-				    << " from range [" << coffset32[i] << ", "
-				    << coffset32[i+1] << ") of file " << fname;
-#endif
-			    }
-			    ++ i;
-			}
-		    }
-		    i = aj; // always advance i
+		    ++ i;
 		}
-		UnixClose(fdes);
 	    }
-	    else {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- " << evt << "failed to open file \""
-		    << fname << "\" ... " << (errno ? strerror(errno) : "??");
-		errno = 0;
+	    else if (coffset32.size() > cbits.size() &&
+		     coffset32[aj] > coffset32[i]) {
+		const uint32_t start = coffset32[i];
+		ibis::fileManager::storage *a0 = new
+		    ibis::fileManager::storage(fdes, start,
+					       coffset32[aj]);
+		while (i < aj) {
+		    if (coffset32[i+1] > coffset32[i]) {
+			array_t<ibis::bitvector::word_t>
+			    a1(a0, coffset32[i]-start,
+			       (coffset32[i+1]-coffset32[i])/
+			       sizeof(ibis::bitvector::word_t));
+			cbits[i] = new ibis::bitvector(a1);
+			cbits[i]->sloppySize(nrows);
+#if defined(DEBUG)
+			LOGGER(ibis::gVerbose >= 0)
+			    << evt << " constructed bitvector " << i
+			    << " from range [" << coffset32[i] << ", "
+			    << coffset32[i+1] << ") of file " << fname;
+#endif
+		    }
+		    ++ i;
+		}
 	    }
+	    i = aj; // always advance i
 	}
     }
     else {

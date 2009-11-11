@@ -188,12 +188,6 @@ index files.  The directory name is needed when constructing an ibis::part.
 This information may be indirectly provided through an RC file specified to
 the function  ibis::init.
 
-@note The positions of the bitmaps in an index file is recorded with a
-32-bit integer.  If the index file size is more than 2^32 bytes, it is
-likely that at least one of the bitmaps stored in the file will not be
-reconstructed correctly, and therefore producing wrong answers!  It is
-necessary to break up large data sets into smaller partitions.
-
 \section ack Acknowledgments
 
 The author gratefully acknowledges the support from Kurt Stockinger, Ekow

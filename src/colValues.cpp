@@ -2029,10 +2029,8 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2103,10 +2101,8 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2178,10 +2174,8 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2252,10 +2246,8 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2307,7 +2299,7 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colULongs::segment
 
-// mark the start positions of the segments with identical values
+/// Mark the start positions of the segments with identical values.
 ibis::array_t<uint32_t>*
 ibis::colFloats::segment(const array_t<uint32_t>* old) const {
     ibis::array_t<uint32_t>* res = new ibis::array_t<uint32_t>;
@@ -2327,10 +2319,8 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2402,10 +2392,8 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && (*array)[j] == target)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -2475,10 +2463,8 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
 		while (j < (*old)[i+1] && target.compare((*array)[j]) == 0)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm) {
+		if (j < nelm)
 		    target = (*array)[j];
-		    ++ j;
-		}
 	    }
 	}
     }
