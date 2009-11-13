@@ -3,6 +3,7 @@
 // Copyright 2006-2009 the Regents of the University of California
 #include "idirekte.h"
 #include "part.h"
+#include <typeinfo>	// typeid
 
 /// Constructing a new ibis::direkte object from base data in a file.
 ibis::direkte::direkte(const ibis::column* c, const char* f)

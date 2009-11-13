@@ -2,7 +2,7 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2008-2009 the Regents of the University of California
 #include "utilidor.h"
-#include <typeinfo>
+#include <typeinfo>	// typeid
 
 #ifndef FASTBIT_QSORT_MIN
 #define FASTBIT_QSORT_MIN 64
