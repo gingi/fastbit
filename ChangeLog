@@ -1,3 +1,11 @@
+2009-11-16 John Wu <John.Wu at ACM.org>
+	* src/array_t.cpp: in function nosharing, change the test to use
+	filename() != 0 instead of isFileMap() because named files are
+	tracked by the file manager and may be shared with others later
+	* src/bundle.cpp, src/colValues.cpp: add calls to nosharing before
+	modifying the content of the bundle or column values (to address
+	an issue raised by Alexandre Maurel)
+
 2009-11-10 John Wu <John.Wu at ACM.org>
 	* src/ixfuzz.cpp:51-52 remove statements that blindly refers to
 	offset32

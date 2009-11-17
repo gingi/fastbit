@@ -1037,8 +1037,8 @@ namespace ibis {
 	    timer& operator=(const timer&); // no assignment
 	}; // timer
 
-	/// A class hierarchy for clean up after durable resources.  It is
-	/// similar in spirit to Loki::ScopeGuard, but simpler.
+	/// A class hierarchy for cleaning up after durable resources.  It
+	/// is similar in spirit to Loki::ScopeGuard, but simpler.
 	class guardBase {
 	public:
 	    /// Tell the guard that the user has manually invoked the
@@ -1189,10 +1189,10 @@ inline uint32_t ibis::util::checksum(uint32_t a, uint32_t b) {
 /// Increment the input value to the next larger value.  If the math
 /// library has nextafter, it will use nextafter, otherwise, it will use
 /// the unit round-off error to compute the next larger value.  The success
-/// of this computation is high sensitive to the definition of DBL_EPSILON.
-/// It should be defined as the smallest value x such that (1+x) is
+/// of this computation is highly sensitive to the definition of
+/// DBL_EPSILON, which should be the smallest value x such that (1+x) is
 /// different from x.  For 64-bit IEEE floating-point number, it is
-/// approximately 2.2E-16 (2^{-52}) (May 2, 2001)
+/// approximately 2.2E-16 (2^{-52}).
 inline double ibis::util::incrDouble(const double& in) {
 #if defined(HAVE_NEXTAFTER)
     return nextafter(in, DBL_MAX);

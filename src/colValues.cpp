@@ -2487,7 +2487,7 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colStrings::segment
 
-// remove the duplicate elements accouting to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2495,7 +2495,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colInts::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colUInts::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2503,7 +2503,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colUInts::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colLongs::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2511,7 +2511,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colLongs::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colULongs::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2519,7 +2519,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colULongs::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colFloats::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2527,7 +2527,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colFloats::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// remove the duplicate elements according to the array starts
 void ibis::colDoubles::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2535,7 +2535,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colDoubles::reduce
 
-// remove the duplicate elements accouting to the array starts
+/// remove the duplicate elements according to the array starts
 void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
@@ -2543,7 +2543,7 @@ void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
     array->resize(nseg);
 } // ibis::colStrings::reduce
 
-// remove the duplicate elements according to the array starts
+/// remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 			   ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
@@ -2684,7 +2684,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colInts::reduce
 
-// remove the duplicate elements according to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 			    ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
@@ -2826,7 +2826,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colUInts::reduce
 
-// remove the duplicate elements according to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 			    ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
@@ -2967,7 +2967,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colLongs::reduce
 
-// remove the duplicate elements according to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 			     ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
@@ -3109,7 +3109,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colULongs::reduce
 
-// remove the duplicate elements according to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 			     ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;
@@ -3250,7 +3250,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
     array->resize(nseg);
 } // ibis::colFloats::reduce
 
-// remove the duplicate elements according to the array starts
+/// Remove the duplicate elements according to the array starts
 void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 			      ibis::selected::FUNCTION func) {
     const uint32_t nseg = starts.size() - 1;

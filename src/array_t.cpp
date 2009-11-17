@@ -276,14 +276,17 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
     }
 } // deepCopy
 
-/// @note This function makes a copy of the current content if the content
-/// is shared by two or more clients.  This does not guarantee that it
-/// would not become shared later.  The complete solution is to implement
-/// copy-on-write in all functions that modifies an array, but that may
-/// decrease performance of this class for rare cases of modifications.
+/// This function makes a copy of the current content if the content is
+/// shared by two or more clients.  This does not guarantee that it would
+/// not become shared later.  The complete solution is to implement
+/// copy-on-write in all functions that modifies an array, however, there
+/// are plenty of cases where the copying is unnecessary.  This function
+/// will create a private copy of the data if there are more than one
+/// active references on this object and when the underlying data is
+/// tracked by the file managers.
 template<class T>
 void ibis::array_t<T>::nosharing() {
-    if (actual != 0 && (actual->inUse() > 1 || actual->isFileMap())) {
+    if (actual != 0 && (actual->inUse() > 1 || actual->filename() != 0)) {
 	// follow copy-and-swap strategy
 	ibis::fileManager::storage *tmp =
 	    new ibis::fileManager::storage

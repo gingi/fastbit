@@ -4134,8 +4134,8 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
     ibis::fileManager::storage *raw = 0;
     // mask.size()*sizeof(T)/pagesize() -- number of pages
-    // mask.bytes()/sizeof(uint32_t) -- number of words (i.e. possible
-    // seeks to perform a read)
+    // mask.bytes()/sizeof(uint32_t) -- number of words (taken as the
+    // number of possible seeks needed to the desired data)
     if (mask.size() >= 1048576 && tot+tot <= mask.size() && mask.bytes()/4 <
 	mask.size()*sizeof(T)/ibis::fileManager::pageSize()/8) {
 	// if the file is in memory, use it

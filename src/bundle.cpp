@@ -645,7 +645,8 @@ void ibis::bundle1::printAll(std::ostream& out) const {
     }
 } // ibis::bundle1::printAll
 
-// sort the columns, remove the duplicate elements and generate the starts
+/// Sort the columns.  Remove the duplicate elements and generate the
+/// starts.
 void ibis::bundle1::sort() {
     if (col == 0) return;
 
@@ -680,13 +681,14 @@ void ibis::bundle1::sort() {
     }
 } // ibis::bundle1::sort
 
-// Change from ascending order to descending order.  Most lines of the code
-// deals with the re-ordering of the RIDs.
+/// Change from ascending order to descending order.  Most lines of the
+/// code deals with the re-ordering of the RIDs.
 void ibis::bundle1::reverse() {
     if (col == 0 || starts == 0) return;
     if (starts->size() <= 2) return;
     const uint32_t ngroups = starts->size() - 1;
 
+    col->nosharing();
     if (rids != 0) { // has a rid list
 	array_t<uint32_t> cnts(ngroups);
 	for (uint32_t i = 0; i < ngroups; ++ i)
@@ -1349,10 +1351,13 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	    reverse();
 	return;
     }
+    // make sure all columns are ready for modification
+    for (uint32_t i = 0; i < cols.size(); ++ i)
+	cols[i]->nosharing();
 
-    //  Note that for functions, it only looks at the attribute names not
-    // the actual funtion to match with the select clause, this is not a
-    // complete verification.
+    // verify the variable names.  Note that for functions, it only looks
+    // at the attribute names not the actual funtion to match with the
+    // select clause, this is not a complete verification.
     const uint32_t ngroups = starts->size() - 1;
     if (rids != 0) {
 	// turn a single list of RIDs into a number of smaller lists so
@@ -1503,7 +1508,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	}
 	starts->push_back(cumu);
     }
-    // new content, definitely not in file yet
+    // new content, definitely not in file
     infile = false;
 } // ibis::bundles::reorder
 
@@ -1514,6 +1519,9 @@ void ibis::bundles::reverse() {
     if (starts->size() <= 2) return;
     const uint32_t ngroups = starts->size() - 1;
 
+    // make sure all columns are ready for modification
+    for (uint32_t i = 0; i < cols.size(); ++ i)
+	cols[i]->nosharing();
     if (rids != 0) { // has a rid list
 	array_t<uint32_t> cnts(ngroups);
 	for (uint32_t i = 0; i < ngroups; ++ i)
@@ -1615,6 +1623,9 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	return size();
     }
 
+    // make sure all columns are ready for modification
+    for (uint32_t i = 0; i < cols.size(); ++ i)
+	cols[i]->nosharing();
     // Note that for functions, it only looks at the attribute names not
     // the actual funtion to match with the select clause, this is not a
     // complete verification.

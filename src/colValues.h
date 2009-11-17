@@ -159,8 +159,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -254,8 +256,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -337,8 +341,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -432,8 +438,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -515,8 +523,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -597,8 +607,10 @@ public:
     {array->bottomk(k, ind);}
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
+	    array->nosharing();
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
@@ -663,8 +675,9 @@ public:
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
     virtual long truncate(uint32_t keep) {
 	if (array == 0) return 0;
-	if (array->size() > keep)
+	if (array->size() > keep) {
 	    array->resize(keep);
+	}
 	return array->size();
     }
 
