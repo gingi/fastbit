@@ -645,13 +645,24 @@ void ibis::bundle1::printAll(std::ostream& out) const {
     }
 } // ibis::bundle1::printAll
 
-/// Sort the columns.  Remove the duplicate elements and generate the
+/// Sort the rows.  Remove the duplicate elements and generate the
 /// starts.
 void ibis::bundle1::sort() {
     if (col == 0) return;
 
     const uint32_t nrow = col->size();
     col->nosharing();
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundle1[" << id << "]::sort starting with "
+		    << nrow << " row" << (nrow > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nrow; ++ j) {
+	    lg.buffer() << "\n";
+	    col->write(lg.buffer(), j);
+	}
+    }
+#endif
 
     if (nrow < 2) { // not much to do
 	starts = new array_t<uint32_t>((uint32_t)2);
@@ -679,6 +690,18 @@ void ibis::bundle1::sort() {
 	(*starts)[0] = 0;
 	col->reduce(*starts, comps.getFunction(0));
     }
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	const size_t nGroups = starts->size()-1;
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundle1[" << id << "]::sort ending "
+		    << nGroups << " row" << (nGroups > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nGroups; ++ j) {
+	    lg.buffer() << "\n";
+	    col->write(lg.buffer(), j);
+	}
+    }
+#endif
 } // ibis::bundle1::sort
 
 /// Change from ascending order to descending order.  Most lines of the
@@ -900,7 +923,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
     }
     const ibis::selected& cmps = q.components();
     const uint32_t ncol = cmps.size();
-    if (ibis::util::getFileSize(bdlfile) > 0) {
+    if (q.dir() != 0 && ibis::util::getFileSize(bdlfile) > 0) {
 	// file bundles exists, attempt to read in its content
 	if (rids == 0) {
 	    rids = q.readRIDs();
@@ -1235,6 +1258,21 @@ void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort starting with "
+		    << ncol << " columns and " << nHits << " row"
+		    << (nHits > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nHits; ++ j) {
+	    lg.buffer() << "\n";
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (i > 0) lg.buffer() << ", ";
+		cols[i]->write(lg.buffer(), j);
+	    }
+	}
+    }
+#endif
     if (nHits < 2) { // not much to do
 	starts = new ibis::array_t<uint32_t>(2);
 	(*starts)[1] = nHits;
@@ -1336,6 +1374,21 @@ void ibis::bundles::sort() {
 		 static_cast<long unsigned>(cols[i1]->size()));
 	}
     }
+#if _DEBUG+0>2 || DEBUG+0>1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort ending "
+		    << ncol << " columns and " << nGroups << " row"
+		    << (nGroups > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nGroups; ++ j) {
+	    lg.buffer() << "\n";
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (i > 0) lg.buffer() << ", ";
+		cols[i]->write(lg.buffer(), j);
+	    }
+	}
+    }
+#endif
 } // ibis::bundles::sort
 
 /// Reorder the bundles according to the keys (names) given.

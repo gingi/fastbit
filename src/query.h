@@ -176,31 +176,9 @@ public:
     /// already there.
     long countHits() const;
 
-    /// Re-order the results according to the new "ORDER BY"
-    /// specification.  It returns 0 if it completes successfully.  It
-    /// returns a negative number to indicate error.
-    /// If @c direction >= 0, sort the values in ascending order,
-    /// otherwise, sort them in descending order.
-    ///
-    /// @note The results stored in ibis::bundle and ibis::query::result
-    /// are already ordered according to the columns specified in the
-    /// select clause.  One only needs to call this function to re-order
-    /// the results differently.
-    int orderby(const char *names, int direction) const;
-
-    /// Truncate the results to provide the top-K rows.  It returns the
-    /// number of results kept, which is the smaller of the current number
-    /// of rows and the input argument @c keep.  A negative value is
-    /// returned in case of error, e.g., query has not been fully
-    /// specified.  If the 4th argument is true, the internal hit vector is
-    /// updated to match the truncated solution.  Otherwise, the internal
-    /// hit vector is left unchanged.  Since the functions getNumHits and
-    /// getQualifiedTTT uses this internal hit vector, it is generally a
-    /// good idea to update the hit vector.  On the other hand, one may
-    /// wish to avoid this update if the hit vector is to be kept for some
-    /// purpose.
-    long int limit(const char *names, int direction, uint32_t keep,
-		   bool updateHits = true);
+    int  orderby(const char *names, int direction) const;
+    long limit(const char *names, int direction, uint32_t keep,
+	       bool updateHits = true);
 
     /// The functions @c getQualifiedTTT return the values of selected
     /// columns in the records that satisfies the specified conditions.

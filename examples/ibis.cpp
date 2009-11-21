@@ -7,17 +7,18 @@
 
    IBIS -- Interactive Bitmap Index Search
 
-   A sample code that exercises the main features of the FastBit bitmap
-   indexing search capabilities in this directory.  It provides the basic
-   functionality of creating a database, accepts a limited version of SQL
-   for query processing.  The queries may be entered either as command line
+   A sample code to exercises the main features of the FastBit bitmap
+   indexing and search capabilities.  It can ingest data through append
+   operations, build indexes, and answer a limited version of SQL select
+   statement.  These SQL statments may be entered either as command line
    arguments or from standard input.
 
-   The queries are specified in a much simplified SQL format.  A query is a
-   basically a SQL select statement of the form
+   The queries are specified in a simplified SQL statement of the form:
+<pre>
    [SELECT ...] [FROM ...] WHERE ... [ORDER BY ... [ASC | DESC]] [LIMIT ...]
+</pre>
 
-   The SELECT clause contains a list of column names and any of the
+   The SELECT clause contains a list of column names and some of the
    following one-argument functions, AVG, MAX, MIN, SUM, VARPOP, VARSAMP,
    STDPOP, STDSAMP, DISTINCT, e.g., "SELECT a, b, AVG(c), MIN(d)."  If
    specified, the named columns of qualified records will be displayed as
@@ -34,32 +35,40 @@
 
    The column names and partition names can be delimited by either ',', or
    ';'.  The leading space and trailing space of each name will be removed
-   but space in the middle of the names will be preserved.
+   and no space is allowed in the middle of the names.
 
    The WHERE clause specifies the condition of the query.  It is specified
    as range queries of the form
-
+<pre>
    RANGE LOGICAL_OP RANGE
-   LOGICAL_OP can be one of "and", "or", "xor", "minus", "&&", "&",
-   "||", "|", "^", "-"
+</pre>
+   where LOGICAL_OP can be one of "and", "or", "xor", "minus", "&&", "&",
+   "||", "|", "^", and "-".  Note the logical "minus" operations can be
+   viewed as a short-hand for "AND NOT," i.e., "A minus B" is exactly the
+   same as "A AND NOT B."
 
-   A range is specifed on one column of the form "ColumnA CMP Constant"
-   CMP can be one of =, ==, !=, >, >=, <, <=
+   A range is specifed on one column of the form
+<pre>
+   ColumnA CMP Constant
+</pre>
+   where CMP can be one of =, ==, !=, >, >=, <, <=.
+
    The ranges and expressions can also be negated with either '!' or '~'.
 
-   The expressions in the ORDER BY clause must be a proper subset of the
-   SELECT clause.  The modifiers ASC and DESC are optional.  By default ASC
-   (ascending) order is used.  One may use DESC to change to use the
-   descending order.
+   The ORDER BY clause and the LIMIT clause are applied after the implicit
+   GROUP BY operation has been performed.  The expressions in the ORDER BY
+   clause must be a proper subset of the SELECT clause.  The modifiers ASC
+   and DESC are optional.  By default ASC (ascending) order is used.  One
+   may use DESC to change to use the descending order.
 
    The LIMIT clause limits the maximum number of output rows.  Only number
    may follow the LIMIT keyword.  This clause has effects only if the
    preceeding WHERE clause selected less than or equal to the specified
    number of rows (after applying the implicit group by clause).
 
-<pre>
    Command line options:
-     -append data_dir [partition_name]
+<pre>
+     -append data_dir [output_dir / partition_name]
      -build-indexes [numThreads|indexSpec] -z[ap-existing-indexes]
      -conf conf_file
      -datadir data_dir
@@ -80,6 +89,9 @@
      -yank filename|conditions
 </pre>
 
+   An explanation of these command line arguments are provided at
+   <http://lbl.gov/~kwu/fastbit/doc/ibisCommandLine.html>.
+
    @note Options can be specified with the minimal distinguishing prefixes,
    which in most cases is just the first letter.
 
@@ -87,15 +99,15 @@
    exclusive, the one that appears later will overwrite the one that
    appears early on the same command line.
 
-   @note Option -t is interpreted as self-testing if specified alone;
-   however if any query is also specified, it is interpreted as indicating
-   the number of threads to use.
+   @note Option -t is interpreted as self-testing if no query is specified
+   on the same command line; however if there are any query, it is
+   interpreted as indicating the number of threads to use.
 
-   @note The select clause of "count(*)" will produce a result table with
-   one row and one column to hold the content of "count(*)" following the
-   SQL standard.  If no select clause is specified at all, this program
-   will print the number of hits.  In either case, one gets back the number
-   of hits, but the details are a little bit different.
+   @note The select clause of "count(*)" produces a result table with one
+   row and one column to hold the content of "count(*)" following the SQL
+   standard.  If no select clause is specified at all, this program will
+   print the number of hits.  In either case, one gets back the number of
+   hits, but different handling is required.
 
    @ingroup FastBitExamples
 */
@@ -173,7 +185,7 @@ namespace ibis {
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "List of options for " << name
-	      << "\n\t[-a[ppend] data_dir [partition_name]]"
+	      << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
 	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
 	"\n\t[-c[onf] conf_file]"
 	"\n\t[-d[atadir] data_dir]"
@@ -2295,7 +2307,7 @@ static void parse_args(int argc, char** argv,
 	    lg.buffer() << "\nappending data in the following director"
 			<< (alist.size()>1 ? "ies" : "y");
 	    if (appendto)
-		lg.buffer() << " to partition " << appendto;
+		lg.buffer() << " to " << appendto;
 	    for (uint32_t i = 0; i < alist.size(); ++ i)
 		lg.buffer() << "\n" << alist[i];
 	}
@@ -3060,8 +3072,17 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
     num1 = aQuery.getNumHits();
     if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
-	if (limit == 0) limit = num1;
-	aQuery.limit(ordkeys, direction, limit, (verify_rid || testing > 0));
+	if (limit == 0)
+	    num2 = aQuery.orderby(ordkeys, direction);
+	else
+	    num2 = aQuery.limit(ordkeys, direction, limit,
+				(verify_rid || testing > 0));
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "doQuery -- failed to reorder the results or truncate "
+		"the results";
+	    return;
+	}
     }
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
@@ -3551,12 +3572,28 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
     ibis::part *tbl = 0;
     bool newtable = true;
     if (appendto != 0) { // try to use the specified partition name
-	for (unsigned i = 0; i < tlist.size(); ++ i) {
-	    if (stricmp(appendto, tlist[i]->name()) == 0) {
-		// found an existing partition
-		tbl = tlist[i];
-		newtable = false;
-		break;
+	Stat_T tmp;
+	if (UnixStat(appendto, &tmp) == 0) {
+	    tbl = new ibis::part(appendto, static_cast<const char*>(0));
+	    if (tbl != 0) {
+		for (unsigned i = 0; i < tlist.size(); ++ i) {
+		    if (stricmp(tbl->name(), tlist[i]->name()) == 0) {
+			delete tbl;
+			tbl = tlist[i];
+			newtable = false;
+			break;
+		    }
+		}
+	    }
+	}
+	if (tbl == 0) {
+	    for (unsigned i = 0; i < tlist.size(); ++ i) {
+		if (stricmp(appendto, tlist[i]->name()) == 0) {
+		    // found an existing partition
+		    tbl = tlist[i];
+		    newtable = false;
+		    break;
+		}
 	    }
 	}
     }
@@ -4091,7 +4128,7 @@ static void parseString(ibis::partList& tlist, const char* uid,
 
     if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
 			   sstr.find(" as ") < sstr.size() ||
-			   verify_rid || !ordkeys.empty())) {
+			   verify_rid || !ordkeys.empty() || limit > 0)) {
 	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
 	    ibis::partList tl2;

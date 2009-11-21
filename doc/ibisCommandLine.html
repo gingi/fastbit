@@ -67,7 +67,7 @@ command line tool <code>ibis</code> works with data directories.
 
 <ul>
 <li><A href="#example">An example</A></li>
-<li><A href="#optioins">List of options</A></li>
+<li><A href="#options">List of options</A></li>
 <li><A href="#select">Query statement syntax</A></li>
 <li><A href="#output">Sample output</A></li>
 </ul>
@@ -126,19 +126,22 @@ instead of printed to standard output.  To use this option specify
 '-output output-file'.
 
 
-<h2><A name="optioins">List of options</A></h2>
+<h2><A name="options">List of options</A></h2>
 Here is the full list of options.
 
 <ul>
 
-<li><code>-a[ppend] data_dir [to table_name]</code>
-<br>Take the data in the named directory and append it to the table with
-the specified name.</p><p>
-<em>Note</em>: to specify a table name the keyword
-<code>to</code> must appear before the table name.  If a table name is
-not specified, ibis attempt to use the meta tags contained in the table
-to generate a name.  If no meta tags are found, it will generate a
-random name.
+<li><code>-a[ppend] data_dir [output_directory or partition_name]</code>
+<br>Take the data in the named directory and append it to the data
+parition with the specified name or a directory with the specified path.
+In the current implementation, the second argument
+following <code>-a</code> is checked to see it is a directory first.
+If it is a directory name, then it is used as a directory name,
+otherwise, the second argument is used to find a data partition with
+the same name (with a case-insensitive search).</p><p>
+<em>Note</em>: If no second argument is provided, ibis attempts to use
+the meta tags contained in the table to generate a name.  If no meta
+tags are found, it will generate a random name.
 <p>
 More information about loading data can be found in <A
 href="dataLoading.html">dataLoading.html</a>.

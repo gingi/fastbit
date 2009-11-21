@@ -2286,6 +2286,13 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 	}
 	res += buf;
     }
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    LOGGER(ibis::gVerbose > 5)
+	<< "DEBUG -- text[" << partition()->name() << '.' << m_name
+	<< "]::readString got string value \"" << res
+	<< "\" from file descriptor " << fdes << " offsets " << be << " -- "
+	<< en;
+#endif
     return 0;
 } // ibis::text::readString
 

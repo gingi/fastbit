@@ -3766,7 +3766,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	// find first alphabet or _
 	while (*str != 0) {
 	    if (*str == '#' || (*str == '-' && str[1] == '-')) return ret;
-	    else if(*str != '_' && isalpha(*str) == 0) ++ str;
+	    else if (*str != '_' && isalpha(*str) == 0) ++ str;
 	    else break;
 	}
 	nm.clear();

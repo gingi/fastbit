@@ -1722,6 +1722,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j,
 } // ibis::colDoubles::sort
 
 void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    const uint32_t istart = i;
+    const uint32_t jend = j;
+#endif
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -1784,11 +1788,24 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 		sort(i2, j, bdl);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
+		    << col->name() << "]::sort existing with the following:";
+	for (uint32_t ii = istart; ii < jend; ++ ii)
+	    lg.buffer() << "\narray[" << ii << "] = " << (*array)[ii];
+    }
+#endif
 } // colStrings::sort
 
 void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 			    ibis::colList::iterator head,
 			    ibis::colList::iterator tail) {
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    const uint32_t istart = i;
+    const uint32_t jend = j;
+#endif
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -1863,6 +1880,15 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 		sort(i2, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
+		    << col->name() << "]::sort existing with the following:";
+	for (uint32_t ii = istart; ii < jend; ++ ii)
+	    lg.buffer() << "\narray[" << ii << "] = " << (*array)[ii];
+    }
+#endif
 } // colStrings::sort
 
 void ibis::colStrings::sort(uint32_t i, uint32_t j,
@@ -2458,26 +2484,30 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
 	    j = (*old)[i];
 	    if (i == 0 || res->back() < j)
 		res->push_back(j);
-	    std::vector<std::string>::reference target = (*array)[j];
+	    uint32_t target = j;
 	    for (++ j; j < (*old)[i+1]; ++ j) {
-		while (j < (*old)[i+1] && target.compare((*array)[j]) == 0)
+		while (j < (*old)[i+1] &&
+		       (*array)[target].compare((*array)[j]) == 0)
 		    ++ j;
 		res->push_back(j);
-		if (j < nelm)
-		    target = (*array)[j];
+		if (j < (*old)[i+1]) {
+		    target = j;
+		    ++ j;
+		}
 	    }
 	}
     }
     else { // start with all elements in one segment
-	std::vector<std::string>::reference target = array->front();
+	uint32_t target = 0;
 	res->push_back(0); // the first number is always 0
 	j = 1;
 	while (j < nelm) {
-	    while (j < nelm && target.compare((*array)[j]) == 0)
+	    while (j < nelm &&
+		   (*array)[target].compare((*array)[j]) == 0)
 		++ j;
 	    res->push_back(j);
 	    if (j < nelm) {
-		target = (*array)[j];
+		target = j;
 		++ j;
 	    }
 	}
@@ -2539,7 +2569,8 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts) {
 void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
     for (uint32_t i = 0; i < nseg; ++i) 
-	(*array)[i].swap((*array)[starts[i]]);
+	if (starts[i] > i)
+	    (*array)[i].swap((*array)[starts[i]]);
     array->resize(nseg);
 } // ibis::colStrings::reduce
 
@@ -3626,7 +3657,7 @@ void ibis::colStrings::topk(uint32_t k, array_t<uint32_t> &ind) const {
 	    ind[front] = ind[back];
 	ind.resize(front);
     }
-#if defined(DEBUG) //|| defined(_DEBUG) //&& DEBUG > 2
+#if _DEBUG+0>2 || DEBUG+0>1
     ibis::util::logger lg(4);
     lg.buffer() << "colStrings::topk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)
@@ -3669,7 +3700,7 @@ void ibis::colStrings::bottomk(uint32_t k, array_t<uint32_t> &ind) const {
 	 back < array->size() && (*array)[k-1].compare((*array)[back]) == 0;
 	 ++ back);
     ind.resize(back);
-#if defined(DEBUG) //|| defined(_DEBUG) //&& DEBUG > 2
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "colStrings::bottomk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)

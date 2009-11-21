@@ -1,3 +1,17 @@
+2009-11-20 John Wu <John.Wu at ACM.org>
+	* src/colValues.cpp: an incorrect use of
+	std::vector<std::string>::reference causes it to overwrite some
+	values, which was the cause of a problem observed by Jan Hapke
+	* examples/ibis.cpp: modify doAppend to check whether the second
+	argument to -a is a directory name (to mimic a utility function
+	written by Luca Deri)
+	* examples/ibis.cpp: neglected to check the error code returned by
+	query::orderby and query::limit, which is the source of a couple of
+	problems reported by Jan Hapke.  Modify parseString to bypass the
+	problems.
+	* src/mensa.cpp: the function ibis::table::parseNames neglected
+	the underscore '_'
+
 2009-11-16 John Wu <John.Wu at ACM.org>
 	* src/array_t.cpp: in function nosharing, change the test to use
 	filename() != 0 instead of isFileMap() because named files are

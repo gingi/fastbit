@@ -3527,7 +3527,7 @@ void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
     }
 
     while (*ptr1 != 0) {
-	for (ptr2 = ptr1; *ptr2 != 0 && isalnum(*ptr2) != 0; ++ ptr2);
+	for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
 	while (*ptr2 == '(') {
 	    int nesting = 1;
 	    for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
