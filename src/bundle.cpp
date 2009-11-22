@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////
 // functions of class bundle
-// Create a bundle from a hit vector and a query object.
+/// Create a new bundle from previously stored information.
 ibis::bundle* ibis::bundle::create(const ibis::query& q,
 				   const ibis::bitvector& hits) {
     if (hits.size() == 0 || hits.cnt() == 0)
@@ -41,7 +41,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
     return bdl;
 } // ibis::bundle::create
 
-// recreate a bundle from previously stored information
+/// Create new bundle from a hit vector.  Write info to q.dir().
 ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
@@ -64,6 +64,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     return bdl;
 } // ibis::bundle::create
 
+/// Create a bundle using the values passed in through vals.
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selected& sel,
 				   const std::vector<void*>& vals) {
@@ -80,7 +81,7 @@ ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
     }
     else if (sel.size() == 1) {
 	if (vals.size() > 0)
-	    res = new ibis::bundles(tbl, sel, vals);
+	    res = new ibis::bundle1(tbl, sel, vals);
 	else
 	    ibis::util::logMessage("Warning", "ibis::bundle::create can not "
 				   "proceed with an empty vals array");
@@ -88,7 +89,7 @@ ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
     return res;
 } // ibis::bundle::create
 
-// sort RIDs in the range of [i, j)
+/// Sort RIDs in the range of [i, j)
 void ibis::bundle::sortRIDs(uint32_t i, uint32_t j) {
     std::less<ibis::rid_t> cmp;
     if (i+32 >= j) { // use buble sort
@@ -148,7 +149,7 @@ void ibis::bundle::sortRIDs(uint32_t i, uint32_t j) {
     }
 } // ibis::bundle::sortRIDs
 
-// Read the RIDs related to the ith bundle.
+/// Read the RIDs related to the ith bundle.
 const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 					   const uint32_t i) {
     char fn[PATH_MAX];
@@ -246,7 +247,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     else {
 	return 0;
     }
-} // ibis::bundle::readRIDs(uint32_t i)
+} // ibis::bundle::readRIDs
 
 /// Return the maximal int value.
 int32_t ibis::bundle::getInt(uint32_t, uint32_t) const {
@@ -320,7 +321,8 @@ void ibis::bundle0::printAll(std::ostream& out) const {
 //////////////////////////////////////////////////////////////////////
 // functions for ibis::bundle1
 //
-// constructor -- either read from files or use the current hit vector
+/// Constructor.  It attempt to read to read a bundle from files first.  If
+/// that fails, it attempts to create a bundle based on the current hits.
 ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     if (q.getNumHits() == 0)
 	return;
@@ -471,6 +473,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     }
 } // ibis::bundle1::bundle1
 
+/// Constructor.  It creates a bundle using the rows selected by hits.
 ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     : bundle(q, hits) {
     if (hits.cnt() == 0)
@@ -544,6 +547,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     }
 } // ibis::bundle1::bundle1
 
+/// Constructor.  It creates the bundle using the values passed in through
+/// vals.
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selected& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {
@@ -1063,7 +1068,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
     }
 } // ibis::bundles::bundles
 
-// constructor -- using a hit vector separated from the query
+/// Constructor.  It creates a bundle using the hits provided by the caller
+/// (instead of from the query object q).
 ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     : bundle(q, hits) {
     if (hits.cnt() == 0)
@@ -1128,6 +1134,8 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     }
 } // ibis::bundles::bundles
 
+/// Constructor.  It creates a bundle from the values provided by the
+/// caller.
 ibis::bundles::bundles(const ibis::part& tbl, const ibis::selected& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {

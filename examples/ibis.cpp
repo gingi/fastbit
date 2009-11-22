@@ -2409,6 +2409,27 @@ static void parse_args(int argc, char** argv,
     }
 } // parse_args
 
+// This print function takes the most general option in getting the values
+// out of a query.  All supported FastBit types can be retrieved as
+// strings, therefore, it is always fine to use getString to retrieve a
+// value.  However, if the values in the select clause are of known type,
+// those types should be used instead of @c getString.
+static void printQueryResults(std::ostream &out, ibis::query &q) {
+    ibis::query::result cursor(q);
+    out << "printing results of query " << q.id() << "(numHits="
+	<< q.getNumHits() << ")\n"
+	<< q.getSelectClause() << std::endl;
+    const ibis::selected& sel = q.components();
+    if (sel.size() == 0) return;
+
+    while (cursor.next()) {
+	out << cursor.getString(static_cast<uint32_t>(0U));
+	for (uint32_t i = 1; i < sel.size(); ++ i)
+	    out << ", " << cursor.getString(i);
+	out << "\n";
+    }
+} // printQueryResults
+
 // evaluate a single query -- directly retrieve values of selected columns
 static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     const char* sstr) {
@@ -2475,125 +2496,31 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
     LOGGER(ibis::gVerbose > 0) << "xdoQuery -- the number of hits = " << num1;
 
     if (asstr != 0 && *asstr != 0 && num1 > 0) {
-	ibis::nameList names(asstr);
-	for (ibis::nameList::const_iterator it = names.begin();
-	     it != names.end(); ++it) {
-	    ibis::column* col = tbl->getColumn(*it);
-	    if (col) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "xdoQuery -- retrieving qualified values of " << *it;
-
-		switch (col->type()) {
-		case ibis::UBYTE:
-		case ibis::BYTE:
-		case ibis::USHORT:
-		case ibis::SHORT:
-		case ibis::UINT:
-		case ibis::INT: {
-		    ibis::array_t<int32_t>* intarray;
-		    intarray = aQuery.getQualifiedInts(*it);
-		    ibis::util::logger lg;
-		    if (intarray->size() != static_cast<uint32_t>(num1))
-			lg.buffer()
-			    << "expected to retrieve " << num1
-			    << " entries, but got " << intarray->size();
-		    if (num1 < (2 << ibis::gVerbose) ||
-			ibis::gVerbose > 30) {
-			lg.buffer() << "selected entries of column " << *it
-				    << "\n";
-			for (ibis::array_t<int32_t>::const_iterator ait =
-				 intarray->begin();
-			     ait != intarray->end(); ++ait)
-			    lg.buffer() << *ait << "\n";
-		    }
-		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << intarray->size()
-				    << " ints (expecting " << num1 << ")\n";
-		    }
-		    delete intarray;
-		    break;}
-
-		case ibis::FLOAT: {
-		    ibis::array_t<float>* floatarray;
-		    floatarray = aQuery.getQualifiedFloats(*it);
-
-		    ibis::util::logger lg;
-		    if (floatarray->size() !=
-			static_cast<uint32_t>(num1))
-			lg.buffer() << "expected to retrieve " << num1
-				    << " entries, but got "
-				    << floatarray->size();
-		    if (num1 < (2 << ibis::gVerbose) ||
-			ibis::gVerbose > 30) {
-			lg.buffer() << "selected entries of column " << *it;
-			for (ibis::array_t<float>::const_iterator ait =
-				 floatarray->begin();
-			     ait != floatarray->end(); ++ait)
-			    lg.buffer() << "\n" << *ait;
-		    }
-		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << floatarray->size()
-				    << " floats (expecting " << num1 << ")";
-		    }
-		    delete floatarray;
-		    break;}
-
-		case ibis::DOUBLE: {
-		    ibis::array_t<double>* doublearray;
-		    doublearray = aQuery.getQualifiedDoubles(*it);
-
-		    ibis::util::logger lg;
-		    if (doublearray->size() !=
-			static_cast<uint32_t>(num1))
-			lg.buffer() << "expected to retrieve " << num1
-				    << " entries, but got "
-				    << doublearray->size();
-		    if (num1<(2<<ibis::gVerbose) || ibis::gVerbose>30) {
-			lg.buffer() << "selected entries of column " << *it;
-			for (ibis::array_t<double>::const_iterator ait =
-				 doublearray->begin();
-			     ait != doublearray->end(); ++ait)
-			    lg.buffer() << "\n" << *ait;
-		    }
-		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << doublearray->size()
-				    << " doubles (expecting " << num1 << ")";
-		    }
-		    delete doublearray;
-		    break;}
-		default:
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "column " << *it << " has an unsupported "
-			<< "type(" << static_cast<int>(col->type()) << ")";
-		}
-	    } // if (col)...
-	} // for ...
+	if (outputfile != 0 && *outputfile != 0) {
+	    std::ofstream output(outputfile,
+				 std::ios::out |
+				 (appendToOutput ? std::ios::app :
+				  std::ios::trunc));
+	    if (output) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "xdoQuery -- query (" <<  aQuery.getWhereClause()
+		    << ") results written to file \"" <<  outputfile << "\"";
+		printQueryResults(output, aQuery);
+	    }
+	    else {
+		ibis::util::logger lg;
+		lg.buffer() << "Warning ** xdoQuery failed to open \""
+			    << outputfile << "\" for writing query ("
+			    << aQuery.getWhereClause() << ")";
+		printQueryResults(lg.buffer(), aQuery);
+	    }
+	}
+	else {
+	    ibis::util::logger lg;
+	    printQueryResults(lg.buffer(), aQuery);
+	}
     } // if (asstr != 0 && num1 > 0)
 } // xdoQuery
-
-// This print function takes the most general option in getting the values
-// out of a query.  All supported FastBit types can be retrieved as
-// strings, therefore, it is always fine to use getString to retrieve a
-// value.  However, if the values in the select clause are of known type,
-// those types should be used instead of @c getString.
-static void printQueryResults(std::ostream &out, ibis::query &q) {
-    ibis::query::result cursor(q);
-    out << "printing results of query " << q.id() << "(numHits="
-	<< q.getNumHits() << ")\n"
-	<< q.getSelectClause() << std::endl;
-    const ibis::selected& sel = q.components();
-    if (sel.size() == 0) return;
-
-    while (cursor.next()) {
-	out << cursor.getString(static_cast<uint32_t>(0U));
-	for (uint32_t i = 1; i < sel.size(); ++ i)
-	    out << ", " << cursor.getString(i);
-	out << "\n";
-    }
-} // printQueryResults
 
 template<typename T>
 void findMissingValuesT(const ibis::column &col,
@@ -3071,60 +2998,29 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
     num1 = aQuery.getNumHits();
-    if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
-	if (limit == 0)
-	    num2 = aQuery.orderby(ordkeys, direction);
-	else
-	    num2 = aQuery.limit(ordkeys, direction, limit,
-				(verify_rid || testing > 0));
-	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "doQuery -- failed to reorder the results or truncate "
-		"the results";
-	    return;
-	}
-    }
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
-	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
-	    // read the values into memory, but avoid sorting the values
-	    const ibis::selected& cmps = aQuery.components();
-	    const uint32_t ncol = cmps.size();
-	    const ibis::bitvector* hits = aQuery.getHitVector();
-	    for (uint32_t i=0; i < ncol; ++i) {
-		const ibis::column* cptr = tbl->getColumn(cmps[i]);
-		if (cptr != 0) {
-		    ibis::colValues* tmp;
-		    tmp = ibis::colValues::create(cptr, *hits);
-		    delete tmp;
-		}
+	std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(aQuery));
+	if (bdl.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuery(" << sqlstring
+		<< ") failed to create the bundle object for output operations";
+	    return;
+	}
+
+	if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
+	    bdl->reorder(ordkeys, direction);
+	}
+	if (limit > 0 && limit < static_cast<unsigned long>(num1)) {
+	    num2 = bdl->truncate(limit);
+	    if (num2 < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "doQuery -- failed to truncate the bundle object";
+		return;
 	    }
 	}
-	else if (testing > 1) { // use the new cursor class for print
-	    if (outputfile != 0 && *outputfile != 0) {
-		std::ofstream output(outputfile,
-				     std::ios::out |
-				     (appendToOutput ? std::ios::app :
-				      std::ios::trunc));
-		if (output) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "doQuery -- query (" <<  aQuery.getWhereClause()
-			<< ") results written to file \""
-			<<  outputfile << "\"";
-		    printQueryResults(output, aQuery);
-		}
-		else {
-		    ibis::util::logger lg;
-		    lg.buffer() << "Warning ** doQuery failed to open \""
-				<< outputfile << "\" for writing query ("
-				<< aQuery.getWhereClause() << ")";
-		    printQueryResults(lg.buffer(), aQuery);
-		}
-	    }
-	    else {
-		ibis::util::logger lg;
-		printQueryResults(lg.buffer(), aQuery);
-	    }
+	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
+	    // no need to actually write anything to the output file
 	}
 	else if (outputfile != 0 && *outputfile != 0) {
 	    std::ofstream output(outputfile,
@@ -3137,9 +3033,9 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << ") results written to file \""
 		    <<  outputfile << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)
-		    aQuery.printSelectedWithRID(output);
+		    bdl->printAll(output);
 		else
-		    aQuery.printSelected(output);
+		    bdl->print(output);
 	    }
 	    else {
 		ibis::util::logger lg;
@@ -3147,19 +3043,19 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			    << outputfile << "\" for writing query ("
 			    << aQuery.getWhereClause() << ")\n";
 		if (ibis::gVerbose > 8 || verify_rid)
-		    aQuery.printSelectedWithRID(lg.buffer());
+		    bdl->printAll(lg.buffer());
 		else
-		    aQuery.printSelected(lg.buffer());
+		    bdl->print(lg.buffer());
 	    }
+	    appendToOutput = true; // all query output go to the same file
 	}
 	else {
 	    ibis::util::logger lg;
 	    if (ibis::gVerbose > 8 || verify_rid)
-		aQuery.printSelectedWithRID(lg.buffer());
+		bdl->printAll(lg.buffer());
 	    else
-		aQuery.printSelected(lg.buffer());
+		bdl->print(lg.buffer());
 	}
-	appendToOutput = true; // all query output go to the same file
     }
     if (ibis::gVerbose >= 0) {
 	timer.stop();
@@ -3194,7 +3090,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    }
 	}
     }
-    if (ibis::gVerbose > 5 || verify_rid) {
+    if (ibis::gVerbose > 5 || (verify_rid && ibis::gVerbose >= 0)) {
 	ibis::bitvector btmp;
 	num2 = aQuery.sequentialScan(btmp);
 	if (num2 < 0) {
@@ -3229,7 +3125,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
     }
 
-    if (verify_rid || testing > 1) {
+    if (ibis::gVerbose >= 0 && (verify_rid || testing > 1)) {
 	// retrieve RIDs as bundles
 	uint32_t nbdl = 0;
 	ibis::RIDSet* rid0 = new ibis::RIDSet;
@@ -4123,12 +4019,12 @@ static void parseString(ibis::partList& tlist, const char* uid,
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
 	lg.buffer() << "Warning parseString(" << qstr
-		  << ") expects the key word LIMIT, but got " << str;
+		    << ") expects the key word LIMIT, but got " << str;
     }
 
     if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
-			   sstr.find(" as ") < sstr.size() ||
-			   verify_rid || !ordkeys.empty() || limit > 0)) {
+			   sstr.find(" as ") < sstr.size())) {
+	//  || verify_rid || !ordkeys.empty() || limit > 0
 	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
 	    ibis::partList tl2;

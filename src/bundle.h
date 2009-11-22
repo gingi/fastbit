@@ -69,9 +69,7 @@ namespace ibis {
 ///
 class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:
-    /// Create a new bundle from previously stored information.
     static bundle* create(const ibis::query& q);
-    /// Create new bundle from a hit vector.  Write info to q.dir().
     static bundle* create(const ibis::query& q, const ibis::bitvector& hits);
     static bundle* create(const ibis::part&, const ibis::selected& sel,
 			  const std::vector<void*>& vals);
@@ -94,12 +92,12 @@ public:
     /// potential data loss due to type conversions.  User should employ
     /// the correct types to avoid actual loss of precision.
     /// @{
-    virtual int32_t getInt(uint32_t, uint32_t) const;
+    virtual int32_t  getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
-    virtual int64_t getLong(uint32_t, uint32_t) const;
+    virtual int64_t  getLong(uint32_t, uint32_t) const;
     virtual uint64_t getULong(uint32_t, uint32_t) const;
-    virtual float getFloat(uint32_t, uint32_t) const;
-    virtual double getDouble(uint32_t, uint32_t) const;
+    virtual float    getFloat(uint32_t, uint32_t) const;
+    virtual double   getDouble(uint32_t, uint32_t) const;
     /// Retrieve a string value.  It converts all data types to its string
     /// representation through the string stream library.
     /// @note This is generic, but slow!
@@ -242,12 +240,12 @@ public:
     virtual void print(std::ostream& out) const;
     // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
-    virtual int32_t getInt(uint32_t, uint32_t) const;
+    virtual int32_t  getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
-    virtual int64_t getLong(uint32_t, uint32_t) const;
+    virtual int64_t  getLong(uint32_t, uint32_t) const;
     virtual uint64_t getULong(uint32_t, uint32_t) const;
-    virtual float getFloat(uint32_t, uint32_t) const;
-    virtual double getDouble(uint32_t, uint32_t) const;
+    virtual float    getFloat(uint32_t, uint32_t) const;
+    virtual double   getDouble(uint32_t, uint32_t) const;
     virtual std::string getString(uint32_t, uint32_t) const;
 
     virtual ibis::TYPE_T columnType(uint32_t j) const {
@@ -300,12 +298,12 @@ public:
     virtual void print(std::ostream& out) const;
     // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
-    virtual int32_t getInt(uint32_t, uint32_t) const;
+    virtual int32_t  getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
-    virtual int64_t getLong(uint32_t, uint32_t) const;
+    virtual int64_t  getLong(uint32_t, uint32_t) const;
     virtual uint64_t getULong(uint32_t, uint32_t) const;
-    virtual float getFloat(uint32_t, uint32_t) const;
-    virtual double getDouble(uint32_t, uint32_t) const;
+    virtual float    getFloat(uint32_t, uint32_t) const;
+    virtual double   getDouble(uint32_t, uint32_t) const;
     virtual std::string getString(uint32_t, uint32_t) const;
 
     virtual ibis::TYPE_T columnType(uint32_t j) const {
@@ -330,9 +328,9 @@ private:
 }; // ibis::bundles
 
 /// The class ibis::query::result allows user to retrieve query result one
-/// row at a time.  It matches the semantics of an ODBC cursor.  That is
-/// the function @c next has to be called before the first set of results
-/// can be used.
+/// row at a time.  It matches the semantics of an ODBC cursor; that is the
+/// function @c next has to be called before the first set of results can
+/// be used.
 ///
 /// @note This implementation makes use of ibis::bundle for internal
 /// storage, which means the results returned are sorted, see documentation

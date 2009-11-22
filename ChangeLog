@@ -1,3 +1,11 @@
+2009-11-21 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: change doQuery to directly use an
+	ibis::bundle object (instead of routing the function calls through
+	the query object).  This addresses the issue on the order by
+	clause and the limit clause raised by Jan Hapke (but only for
+	queries not invoving any arithmetic expressions or aggregation
+	functions).
+
 2009-11-20 John Wu <John.Wu at ACM.org>
 	* src/colValues.cpp: an incorrect use of
 	std::vector<std::string>::reference causes it to overwrite some

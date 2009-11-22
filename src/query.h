@@ -23,10 +23,10 @@
 /// specified, it contains a list of column names.  These attributes must
 /// not be NULL in order for a record to be a hit.  The select clause may
 /// also contain column names appearing as the argument to one of the four
-/// aggregation functions: @c avg, @c var, @c max, @c min and @c sum.  For example,
-/// "temperature, pressure, average(ho2_concentration)" may be a select
-/// statement for a Chemistry application.  @note If one needs to include
-/// arithmetic expressions in the select clause, use the function
+/// aggregation functions: @c avg, @c var, @c max, @c min and @c sum.  For
+/// example, "temperature, pressure, average(ho2_concentration)" may be a
+/// select statement for a Chemistry application.  @note If one needs to
+/// include arithmetic expressions in the select clause, use the function
 /// ibis::table::select instead of using this class.
 ///
 /// The hits can be computed in two ways by using functions @c estimate or
@@ -37,15 +37,14 @@
 /// accuracy of the bounds depend on the nature of the indices available.
 /// If no index can be constructed, the lower bound would be empty and the
 /// upper bound would include every record.  When the function @c evaluate
-/// is called, the exact solution is computed no matter whether the function
-/// @c estimate has been called or not.  The solution produced is recorded
-/// as a bit vector.  The user may use ibis::bitvector::indexSet to
-/// extract the record numbers of the hits or use one of the functions @c
-/// getQualifiedInts, @c getQualifiedFloats, and @c getQualifiedDoubles to
-/// retrieve the values of the selected attributes.
-/// Additionally, one may call either @c printSelected or @c
-/// printSelectedWithRID to print the selected values to the specified I/O
-/// stream.
+/// is called, the exact solution is computed no matter whether the
+/// function @c estimate has been called or not.  The solution produced is
+/// recorded as a bit vector.  The user may use ibis::bitvector::indexSet
+/// to extract the record numbers of the hits or use one of the functions
+/// @c getQualifiedInts, @c getQualifiedFloats, and @c getQualifiedDoubles
+/// to retrieve the values of the selected attributes.  Additionally, one
+/// may call either @c printSelected or @c printSelectedWithRID to print
+/// the selected values to the specified I/O stream.
 ///
 /// @ingroup FastBitMain
 class FASTBIT_CXX_DLLSPEC ibis::query {
@@ -93,12 +92,13 @@ public:
     int setWhereClause(const ibis::qExpr* qexp);
     /// Specifies the select clause for the query.  The select clause is a
     /// string of attribute names (plus the four predefined functions, @c
-    /// avg, @c var, @c max, @c min and @c sum) separated by spaces, commas (,) or
-    /// semicolons(;).  Repeated calls to this function simply overwrite
-    /// the previous definition of the select clause.  If no select clause
-    /// is specified, the where clause alone determines whether record is a
-    /// hit or not.  The select clause will be reordered to make the plain
-    /// column names without functions appear before with functions.
+    /// avg, @c var, @c max, @c min and @c sum) separated by spaces, commas
+    /// (,) or semicolons(;).  Repeated calls to this function simply
+    /// overwrite the previous definition of the select clause.  If no
+    /// select clause is specified, the where clause alone determines
+    /// whether record is a hit or not.  The select clause will be
+    /// reordered to make the plain column names without functions appear
+    /// before with functions.
     virtual int setSelectClause(const char *str);
     /// Resets the data partition used to evaluate the query conditions to
     /// the partition specified in the argument.
@@ -153,15 +153,15 @@ public:
     /// Computes the exact hits.  The same answer shall be computed whether
     /// there is any index or not.  The argument evalSelect indicates
     /// whether the select clause should be evaluated at the same time.  If
-    /// its value is true, the columns specified in the select clause
-    /// will be retrieved from disk and stored in the temporary location for
-    /// this query.  If not, the qualified values will be retrieved from disk
-    /// when one of getRIDs, getQualifiedInts, getQualifiedFloats, and
+    /// its value is true, the columns specified in the select clause will
+    /// be retrieved from disk and stored in the temporary location for
+    /// this query.  If not, the qualified values will be retrieved from
+    /// disk when one of getRIDs, getQualifiedInts, getQualifiedFloats, and
     /// getQualifiedDoubles is issued.  In the later case, only the
-    /// specified column is retrieved.  In addition, the values of
-    /// column at the time of the function are read, which can be
-    /// potentially different different from the time when the function
-    /// evaluate was called.
+    /// specified column is retrieved.  In addition, the values of column
+    /// at the time of the function are read, which can be potentially
+    /// different different from the time when the function evaluate was
+    /// called.
     ///
     /// Returns 0 for success, a negative value for error.
     ///
