@@ -1,3 +1,15 @@
+2009-11-23 John Wu <John.Wu at ACM.org>
+	* src/selectParser.yy, src/whereParser.yy: change the
+	associativities of unary operators +, - and ! (not) to be right
+	associative following the common convention.  This also addresses
+	the problem reported by Andrew Olson about failure to parse
+	expression "stop-start+1"
+	* src/whereLexer.ll: change the return type of quoted string
+	literal from NOUNSTR to STRSEQ to ensure that the quoted strings
+	are recognized as string literals.  This addresses the problem
+	reported by Alexandre Maurel where the value of a string literal
+	is also the name of another column.
+
 2009-11-21 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: change doQuery to directly use an
 	ibis::bundle object (instead of routing the function calls through

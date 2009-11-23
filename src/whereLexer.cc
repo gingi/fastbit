@@ -1128,8 +1128,8 @@ YY_RULE_SETUP
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number sequence: " << yytext;
 #endif
-    yylval->stringVal = new std::string(yytext+1, yyleng-2);
-    return token::NUMSEQ;
+    yylval->stringVal = new std::string(yytext, yyleng);
+    return token::STRSEQ;
 }
 	YY_BREAK
 case 39:

@@ -74,11 +74,11 @@
 %left BITANDOP
 %left ADDOP MINUSOP
 %left MULTOP DIVOP REMOP
-%left EXPOP
+%right EXPOP
+%right NOTOP
 %nonassoc INOP
 %nonassoc ANYOP
 %nonassoc JOINOP
-%nonassoc NOTOP
 
 %type <whereNode> qexpr simpleRange compRange2 compRange3 mathExpr
 

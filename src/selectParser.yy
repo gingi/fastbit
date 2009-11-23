@@ -64,7 +64,7 @@
 %left BITANDOP
 %left ADDOP MINUSOP
 %left MULTOP DIVOP REMOP
-%left EXPOP
+%right EXPOP
 
 %type <selectNode> mathExpr
 

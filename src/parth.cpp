@@ -10,6 +10,7 @@
 #include <cmath>	// std::ceil, std::log, ...
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
+#include <memory>	// auto_ptr
 
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
@@ -107,12 +108,11 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals = col->selectInts(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<int32_t> > vals(col->selectInts(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -122,12 +122,11 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	array_t<uint32_t>* vals = col->selectUInts(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<uint32_t> > vals(col->selectUInts(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -135,36 +134,33 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals = col->selectLongs(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<int64_t> > vals(col->selectLongs(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
 	}
 	break;}
     case ibis::FLOAT: {
-	array_t<float>* vals = col->selectFloats(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<float> > vals(col->selectFloats(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
 	}
 	break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals = col->selectDoubles(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<double> > vals(col->selectDoubles(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -282,8 +278,8 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     }
 
     ierr = nbins;
-    array_t<double>* wts = wcol->selectDoubles(mask);
-    if (wts == 0) {
+    std::auto_ptr< array_t<double> > wts(wcol->selectDoubles(mask));
+    if (wts.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
 	    << "]::get1DDistribution failed retrieve values from column "
@@ -295,13 +291,12 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals = bcol->selectInts(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<int32_t> > vals(bcol->selectInts(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
 		    += (*wts)[i];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -311,13 +306,12 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	array_t<uint32_t>* vals = bcol->selectUInts(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<uint32_t> > vals(bcol->selectUInts(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
 		    += (*wts)[i];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -325,39 +319,36 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals = bcol->selectLongs(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<int64_t> > vals(bcol->selectLongs(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
 		    += (*wts)[i];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
 	}
 	break;}
     case ibis::FLOAT: {
-	array_t<float>* vals = bcol->selectFloats(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<float> > vals(bcol->selectFloats(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
 		    += (*wts)[i];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
 	}
 	break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals = bcol->selectDoubles(mask);
-	if (vals != 0) {
+	std::auto_ptr< array_t<double> > vals(bcol->selectDoubles(mask));
+	if (vals.get() != 0) {
 	    for (uint32_t i = 0; i < vals->size(); ++ i) {
 		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
 		    += (*wts)[i];
 	    }
-	    delete vals;
 	}
 	else {
 	    ierr = -4;
@@ -372,7 +363,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	ierr = -3;
 	break;}
     }
-    delete wts;
+
     if (ierr > 0 && ibis::gVerbose > 0) {
 	timer.stop();
 	logMessage("get1DDistribution", "computing the distribution of column "
@@ -1212,7 +1203,7 @@ ibis::part::fill1DBinsWeighted(const ibis::bitvector &mask,
 	return -11L;
     }
     return (long)nbins;
-} // ibis::part::fill1DBins
+} // ibis::part::fill1DBinsWeighted
 
 /// This version returns a vector of pointers to bit vectors.  It can
 /// reduce memory usage and reduce execution time if the majority of the
