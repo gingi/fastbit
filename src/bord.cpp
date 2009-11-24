@@ -1416,20 +1416,20 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
     if (keys.empty()) { // use all integral values
 	if (ibis::gVerbose > 2) {
 	    if (cols.empty()) {
-		logMessage("reorder", "user did not specify ordering keys, "
-			   "will attempt to use all integer columns as "
-			   "ordering keys");
+		LOGGER(true)
+		    << evt << " user did not specify ordering keys, will "
+		    "attempt to use all integer columns as ordering keys";
 	    }
 	    else {
 		std::ostringstream oss;
 		oss << cols[0];
 		for (unsigned i = 1; i < cols.size(); ++ i)
 		    oss << ", " << cols[i];
-		logMessage("reorder", "user specified ordering keys \"%s\" "
-			   "does not match any numerical columns with more "
-			   "than one distinct value, will attempt to use "
-			   "all integer columns as ordering keys",
-			   oss.str().c_str());
+		LOGGER(true)
+		    << evt << " user specified ordering keys \"" << oss.str()
+		    << "\" does not match any numerical columns with more "
+		    "than one distinct value, will attempt to use "
+		    "all integer columns as ordering keys";
 	    }
 	}
 
@@ -1478,8 +1478,8 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	}
     }
     if (keys.empty()) {
-	if (ibis::gVerbose > 1)
-	    logMessage("reorder", "no keys found for sorting, do nothing");
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " no keys found for sorting, do nothing";
 	return 0;
     }
     if (ibis::gVerbose > 1) {

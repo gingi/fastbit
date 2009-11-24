@@ -152,6 +152,8 @@ void ibis::bundle::sortRIDs(uint32_t i, uint32_t j) {
 /// Read the RIDs related to the ith bundle.
 const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 					   const uint32_t i) {
+    if (dir == 0) return 0;
+
     char fn[PATH_MAX];
     uint32_t len = strlen(dir);
     if (len+8 >= PATH_MAX) {

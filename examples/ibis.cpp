@@ -3109,19 +3109,6 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			    << num2 << " hit" << (num2 >1  ? "s" : "")
 			    << " with sequentialScan";
 	    }
-
-	    if (asstr != 0 && *asstr != 0) {
-		// create bundles, i.e., retrieve the selected values
-		timer.start();
-		ibis::bundle* bdl = ibis::bundle::create(aQuery, btmp);
-		delete bdl;
-		timer.stop();
-		ibis::util::logger lg;
-		lg.buffer() << "doQuery ibis::bundle::create generated "
-			    << num2 << " bundles in " << timer.CPUTime()
-			    << " CPU seconds, " << timer.realTime()
-			    << " elapsed seconds";
-	    }
 	}
     }
 
@@ -3136,6 +3123,10 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    ++ nbdl;
 	    tmp = aQuery.getRIDsInBundle(nbdl);
 	}
+	if (rid0->size() == 0) {
+	    delete rid0;
+	    return;
+	}
 	ibis::util::sortRIDs(*rid0);
 
 	// retrieve the RIDs in one shot
@@ -3145,6 +3136,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    return;
 	}
 
+	ibis::util::sortRIDs(*rid1);
 	if (rid1->size() == rid0->size()) {
 	    uint32_t i, cnt=0;
 	    ibis::util::logger lg;
@@ -3160,7 +3152,8 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			    << " mismatches out of a total of "
 			    << rid1->size();
 	    else
-		lg.buffer() << "RID query test successful";
+		lg.buffer() << "Successfully verified " << rid0->size()
+			    << " RID" << (rid0->size()>1?"s":"");
 	}
 	else if (sstr != 0) {
 	    ibis::util::logger lg;
@@ -3194,7 +3187,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    if (len == 0) len = 1024;
 	    rid1->resize(len);
 	}
-	ibis::util::sortRIDs(*rid1);
+
 	ibis::RIDSet* rid2 = new ibis::RIDSet;
 	rid2->deepCopy(*rid1);
 	delete rid1; // setRIDs removes the underlying file for rid1
@@ -3221,7 +3214,8 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			    << " mismatches out of a total of "
 			    << rid1->size();
 	    else
-		lg.buffer() << "RID query test successful";
+		lg.buffer() << "Successfully verified " << rid1->size()
+			    << " RID" << (rid1->size()>1?"s":"");
 	}
 	else {
 	    ibis::util::logger lg;

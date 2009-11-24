@@ -1382,7 +1382,7 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 
 // During the full estimate, query object is expected to write down the
 // bundles and the RIDs of qualified events in each file bundle.  This
-// function returns the RID set of the index'th (first one is zero'th) file
+// function returns the RID set of the bid'th (first one is zero'th) file
 // bundle.
 const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
     const ibis::RIDSet *rids = 0;
@@ -1426,7 +1426,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 	    logWarning("getRIDsInBundle", "unable to genererate bundle");
 	}
     }
-    else {
+    else if (myDir != 0) {
 	ibis::query::readLock lck2(this, "getRIDsInBundle");
 	rids = ibis::bundle::readRIDs(myDir, bid);
     }
@@ -1437,7 +1437,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 		       (rids->size()>1?"s":""),
 		       static_cast<long unsigned>(bid));
 	else
-	    logMessage("getRIDsInBundle", "got no RIDs for file bundle %lu",
+	    logWarning("getRIDsInBundle", "got no RIDs for file bundle %lu",
 		       static_cast<long unsigned>(bid));
     }
     return rids;
