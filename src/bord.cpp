@@ -1397,10 +1397,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	ibis::part::columnList::iterator it = columns.find(*nit);
 	if (it != columns.end()) {
 	    used.insert((*it).first);
-	    if (! (*it).second->isNumeric()) {
-		load.push_back((*it).second);
-	    }
-	    else if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
 		keys.push_back((*it).second);
 	    }
 	    else {
@@ -1505,49 +1502,50 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	    }
 
 	    switch (keys[i]->type()) {
+	    case ibis::TEXT:
 	    case ibis::CATEGORY:
-		ierr = reorderValues(* static_cast<array_t<uint32_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortStrings(* static_cast<std::vector<std::string>*>
+				   (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::DOUBLE:
-		ierr = reorderValues(* static_cast<array_t<double>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<double>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::FLOAT:
-		ierr = reorderValues(* static_cast<array_t<float>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<float>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::ULONG:
-		ierr = reorderValues(* static_cast<array_t<uint64_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<uint64_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::LONG:
-		ierr = reorderValues(* static_cast<array_t<int64_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<int64_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::UINT:
-		ierr = reorderValues(* static_cast<array_t<uint32_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<uint32_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::INT:
-		ierr = reorderValues(* static_cast<array_t<int32_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<int32_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::USHORT:
-		ierr = reorderValues(* static_cast<array_t<uint16_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<uint16_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::SHORT:
-		ierr = reorderValues(* static_cast<array_t<int16_t>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<int16_t>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::UBYTE:
-		ierr = reorderValues(* static_cast<array_t<unsigned char>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<unsigned char>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::BYTE:
-		ierr = reorderValues(* static_cast<array_t<char>*>
-				     (col->getArray()), ind1, ind0, starts);
+		ierr = sortValues(* static_cast<array_t<char>*>
+				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    default:
 		logWarning("reorder", "column %s type %d is not supported",
@@ -1654,106 +1652,257 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 } // ibis::bord::part::reorder
 
 template <typename T>
-long ibis::bord::part::reorderValues(array_t<T>& vals,
-				     const array_t<uint32_t>& indin,
-				     array_t<uint32_t>& indout,
-				     array_t<uint32_t>& starts) const {
+long ibis::bord::part::sortValues(array_t<T>& vals,
+				  const array_t<uint32_t>& idxin,
+				  array_t<uint32_t>& idxout,
+				  array_t<uint32_t>& starts) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
 
     if (vals.size() != nEvents ||
-	(indin.size() != vals.size() && ! indin.empty())) {
-	if (ibis::gVerbose > 1)
-	    logMessage("reorderValues", "array sizes do not match, both "
-		       "vals.size(%ld) and indin.size(%ld) are expected to "
-		       "be %ld", static_cast<long>(vals.size()),
-		       static_cast<long>(indin.size()),
-		       static_cast<long>(nEvents));
+	(idxin.size() != vals.size() && ! idxin.empty())) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- bord[" << name() << "]::part::sortValues<"
+	    << typeid(T).name() << "> can not proceed because array sizes do "
+	    "not match, both vals.size(" << vals.size() << ") and idxin.size("
+	    << idxin.size() << ") are expected to be " << nEvents;
 	return -3;
     }
-    if (indin.empty() || starts.size() < 2 || starts[0] != 0
+    if (idxin.empty() || starts.size() < 2 || starts[0] != 0
 	|| starts.back() != vals.size()) {
 	starts.resize(2);
 	starts[0] = 0;
 	starts[1] = vals.size();
-	if (ibis::gVerbose > 1)
-	    logMessage("reorderValues", "(re)set array starts to contain "
-		       "[0, %lu]", static_cast<long unsigned>(nEvents));
+	LOGGER(ibis::gVerbose > 1)
+	    << "bord[" << name() << "]::part::sortValues<" << typeid(T).name()
+	    << "> (re)set array starts to contain [0, " << nEvents << "]";
     }
 
     uint32_t nseg = starts.size() - 1;
+    bool needreorder = false;
     if (nseg > nEvents) { // no sorting necessary
-	indout.resize(nEvents);
-	for (uint32_t i = 0; i < nEvents; ++i)
-	    indout[i] = indin[i];
+	idxout.copy(idxin);
     }
     else if (nseg > 1) { // sort multiple blocks
-	indout.resize(nEvents);
+	idxout.resize(nEvents);
 	array_t<uint32_t> starts2;
 
 	for (uint32_t iseg = 0; iseg < nseg; ++ iseg) {
 	    const uint32_t segstart = starts[iseg];
 	    const uint32_t segsize = starts[iseg+1]-starts[iseg];
-	    if (segsize > 1) {
+	    if (segsize > 2) {
 		// copy the segment into a temporary array, then sort it
 		array_t<T> tmp(segsize);
 		array_t<uint32_t> ind0;
 		for (unsigned i = 0; i < segsize; ++ i)
-		    tmp[i] = vals[indin[i+segstart]];
+		    tmp[i] = vals[idxin[i+segstart]];
 		tmp.sort(ind0);
 
 		starts2.push_back(segstart);
 		T last = tmp[ind0[0]];
-		indout[segstart] = indin[ind0[0] + segstart];
+		idxout[segstart] = idxin[ind0[0] + segstart];
 		for (unsigned i = 1; i < segsize; ++ i) {
-		    indout[i+segstart] = indin[ind0[i] + segstart];
+		    idxout[i+segstart] = idxin[ind0[i] + segstart];
 		    if (tmp[ind0[i]] > last) {
 			starts2.push_back(i + segstart);
 			last = tmp[ind0[i]];
 		    }
 		}
 	    }
+	    else if (segsize == 2) { // two-element segment
+		if (vals[idxin[segstart]] < vals[idxin[segstart+1]]) {
+		    // in the right order
+		    idxout[segstart] = idxin[segstart];
+		    idxout[segstart+1] = idxin[segstart+1];
+		    starts2.push_back(segstart);
+		    starts2.push_back(segstart+1);
+		}
+		else if (vals[idxin[segstart]] == vals[idxin[segstart+1]]) {
+		    idxout[segstart] = idxin[segstart];
+		    idxout[segstart+1] = idxin[segstart+1];
+		    starts2.push_back(segstart);
+		}
+		else { // assum the 1st value is larger (could be
+		       // incomparable though)
+		    idxout[segstart] = idxin[segstart+1];
+		    idxout[segstart+1] = idxin[segstart];
+		    starts2.push_back(segstart);
+		    starts2.push_back(segstart+1);
+		}
+	    }
 	    else { // segment contains only one element
 		starts2.push_back(segstart);
-		indout[segstart] = indin[segstart];
+		idxout[segstart] = idxin[segstart];
 	    }
 	}
 	starts2.push_back(nEvents);
 	starts.swap(starts2);
+	needreorder = true;
     }
     else { // all in one block
-	vals.sort(indout);
+	idxout.resize(nEvents);
+	for (uint32_t j = 0; j < nEvents; ++ j)
+	    idxout[j] = j;
+	ibis::util::sortKeys(vals, idxout);
 
 	starts.clear();
 	starts.push_back(0U);
-	T last = vals[indout[0]];
+	T last = vals[0];
 	for (uint32_t i = 1; i < nEvents; ++ i) {
-	    if (vals[indout[i]] > last) {
+	    if (vals[i] > last) {
 		starts.push_back(i);
-		last = vals[indout[i]];
+		last = vals[i];
 	    }
 	}
 	starts.push_back(nEvents);
     }
 
-    { // place values in the new order
+    if (needreorder) { // place values in the new order
 	array_t<T> tmp(nEvents);
 	for (uint32_t i = 0; i < nEvents; ++ i)
-	    tmp[i] = vals[indout[i]];
+	    tmp[i] = vals[idxout[i]];
 	vals.swap(tmp);
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
 	nseg = starts.size() - 1;
-	logMessage("reorderValues", "reordered %lu value%s (into %lu "
+	logMessage("sortValues", "reordered %lu value%s (into %lu "
 		   "segment%s) in %g sec(CPU), %g sec(elapsed)",
 		   static_cast<long unsigned>(nEvents), (nEvents>1 ? "s" : ""),
 		   static_cast<long unsigned>(nseg), (nseg>1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
     return nEvents;
-} // ibis::part::reorderValues
+} // ibis::bord::part::sortValues
+
+/// Sort the string values.  It preserves the previous order determined
+/// represented by idxin and starts.
+long ibis::bord::part::sortStrings(std::vector<std::string>& vals,
+				  const array_t<uint32_t>& idxin,
+				  array_t<uint32_t>& idxout,
+				  array_t<uint32_t>& starts) const {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 4)
+	timer.start();
+
+    if (vals.size() != nEvents ||
+	(idxin.size() != vals.size() && ! idxin.empty())) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- bord[" << name() << "]::part::sortStrings "
+	    " can not proceed because array sizes do not match, both "
+	    "vals.size(" << vals.size() << ") and idxin.size(" << idxin.size()
+	    << ") are expected to be " << nEvents;
+	return -3;
+    }
+    if (idxin.empty() || starts.size() < 2 || starts[0] != 0
+	|| starts.back() != vals.size()) {
+	starts.resize(2);
+	starts[0] = 0;
+	starts[1] = vals.size();
+	LOGGER(ibis::gVerbose > 1)
+	    << "bord[" << name() << "]::part::sortStrings -- (re)set array "
+	    "starts to contain [0, " << nEvents << "]";
+    }
+
+    bool needreorder = false;
+    uint32_t nseg = starts.size() - 1;
+    if (nseg > nEvents) { // no sorting necessary
+	idxout.copy(idxin);
+    }
+    else if (nseg > 1) { // sort multiple blocks
+	idxout.resize(nEvents);
+	array_t<uint32_t> starts2;
+
+	for (uint32_t iseg = 0; iseg < nseg; ++ iseg) {
+	    const uint32_t segstart = starts[iseg];
+	    const uint32_t segsize = starts[iseg+1]-starts[iseg];
+	    if (segsize > 2) {
+		// copy the segment into a temporary array, then sort it
+		std::vector<std::string> tmp(segsize);
+		array_t<uint32_t> ind0(segsize);
+		for (unsigned i = segstart; i < starts[iseg+1]; ++ i) {
+		    tmp[i-segstart] = vals[idxin[i]];
+		    ind0[i-segstart] = idxin[i];
+		}
+		// sort tmp and move ind0
+		ibis::util::sortStrings(tmp, ind0);
+
+		starts2.push_back(segstart);
+		uint32_t last = 0;
+		idxout[segstart] = ind0[0];
+		for (unsigned i = 1; i < segsize; ++ i) {
+		    idxout[i+segstart] = ind0[i];
+		    if (tmp[i].compare(tmp[last]) != 0) {
+			starts2.push_back(i + segstart);
+			last = i;
+		    }
+		}
+	    }
+	    else if (segsize == 2) {
+		int cmp = vals[idxin[segstart]].compare(vals[idxin[segstart+1]]);
+		if (cmp < 0) { // in the right order, different strings
+		    idxout[segstart] = idxin[segstart];
+		    idxout[segstart+1] = idxin[segstart+1];
+		    starts2.push_back(segstart);
+		    starts2.push_back(segstart+1);
+		}
+		else if (cmp == 0) { // two strings are the same
+		    idxout[segstart] = idxin[segstart];
+		    idxout[segstart+1] = idxin[segstart+1];
+		    starts2.push_back(segstart);
+		}
+		else { // in the wrong order, different strings
+		    idxout[segstart] = idxin[segstart+1];
+		    idxout[segstart+1] = idxin[segstart];
+		    starts2.push_back(segstart);
+		    starts2.push_back(segstart+1);
+		}
+	    }
+	    else { // segment contains only one element
+		starts2.push_back(segstart);
+		idxout[segstart] = idxin[segstart];
+	    }
+	}
+	starts2.push_back(nEvents);
+	starts.swap(starts2);
+	needreorder = true;
+    }
+    else { // all in one block
+	idxout.resize(nEvents);
+	for (uint32_t j = 0; j < nEvents; ++ j)
+	    idxout[j] = j;
+	ibis::util::sortStrings(vals, idxout);
+
+	starts.clear();
+	starts.push_back(0U);
+	uint32_t last = 0;
+	for (uint32_t i = 1; i < nEvents; ++ i) {
+	    if (vals[i].compare(vals[last]) != 0) {
+		starts.push_back(i);
+		last = i;
+	    }
+	}
+	starts.push_back(nEvents);
+    }
+
+    if (needreorder) { // place values in the new order
+	std::vector<std::string> tmp(nEvents);
+	for (uint32_t i = 0; i < nEvents; ++ i)
+	    tmp[i].swap(vals[idxout[i]]);
+	vals.swap(tmp);
+    }
+    if (ibis::gVerbose > 4) {
+	timer.stop();
+	nseg = starts.size() - 1;
+	logMessage("sortStrings", "reordered %lu string%s (into %lu "
+		   "segment%s) in %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(nEvents), (nEvents>1 ? "s" : ""),
+		   static_cast<long unsigned>(nseg), (nseg>1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return nEvents;
+} // ibis::bord::part::sortStrings
 
 template <typename T>
 long ibis::bord::part::reorderValues(array_t<T>& vals,
@@ -1774,6 +1923,12 @@ long ibis::bord::part::reorderValues(array_t<T>& vals,
     return nEvents;
 } // ibis::bord::part::reorderValues
 
+/// Reorder the vector of strings.  To avoid recreating the content of the
+/// string values, this function uses swap operations to move the existing
+/// strings into their new locations.  It only works if ind is a proper
+/// permutation of integers between 0 and vals.size() (include 0 but
+/// exclude vals.size()), however, it does not check whether the input
+/// array is a proper permutation.
 long ibis::bord::part::reorderStrings(std::vector<std::string>& vals,
 				      const array_t<uint32_t>& ind) const {
     if (vals.size() != nEvents || ind.size() != vals.size()) {
@@ -1787,7 +1942,7 @@ long ibis::bord::part::reorderStrings(std::vector<std::string>& vals,
     }
     std::vector<std::string> tmp(vals.size());
     for (uint32_t i = 0; i < vals.size(); ++ i)
-	tmp[i] = vals[ind[i]];
+	tmp[i].swap(vals[ind[i]]);
     tmp.swap(vals);
     return nEvents;
 } // ibis::bord::part::reorderValues
@@ -4036,7 +4191,6 @@ void ibis::bord::column::reverseRows() {
 	    * static_cast<array_t<int64_t>*>(buffer);
 	std::reverse(prop.begin(), prop.end());
 	break;}
-    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
@@ -4075,6 +4229,12 @@ void ibis::bord::column::reverseRows() {
     case ibis::DOUBLE: {
 	array_t<double> &prop =
 	    * static_cast<array_t<double>*>(buffer);
+	std::reverse(prop.begin(), prop.end());
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	std::vector<std::string> &prop =
+	    * static_cast<std::vector<std::string>*>(buffer);
 	std::reverse(prop.begin(), prop.end());
 	break;}
     default: {
@@ -4084,62 +4244,81 @@ void ibis::bord::column::reverseRows() {
 } // ibis::bord::column::reverseRows
 
 int ibis::bord::column::limit(uint32_t nr) {
+    int ierr = 0;
     switch(m_type) {
     case ibis::ULONG: {
 	array_t<uint64_t> &prop =
 	    * static_cast<array_t<uint64_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::LONG: {
 	array_t<int64_t> &prop =
 	    * static_cast<array_t<int64_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
-    case ibis::CATEGORY:
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::INT: {
 	array_t<int32_t> &prop =
 	    * static_cast<array_t<int32_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> &prop =
 	    * static_cast<array_t<uint16_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::SHORT: {
 	array_t<int16_t> &prop =
 	    * static_cast<array_t<int16_t>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> &prop =
 	    * static_cast<array_t<unsigned char>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::BYTE: {
 	array_t<char> &prop =
 	    * static_cast<array_t<char>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::FLOAT: {
 	array_t<float> &prop =
 	    * static_cast<array_t<float>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     case ibis::DOUBLE: {
 	array_t<double> &prop =
 	    * static_cast<array_t<double>*>(buffer);
-	prop.resize(nr);
-	return 0;}
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	std::vector<std::string> &prop =
+	    * static_cast<std::vector<std::string>*>(buffer);
+	if (nr < prop.size())
+	    prop.resize(nr);
+	break;}
     default: {
 	logWarning("reverseRows", "incompatible data type");
-	return -1;}
+	ierr = -1;
+	break;}
     }
+    return ierr;
 } // ibis::bord::column::limit
 
 /// Convert the integer representation to string representation.  The

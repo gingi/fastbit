@@ -1401,7 +1401,10 @@ void ibis::bundles::sort() {
 #endif
 } // ibis::bundles::sort
 
-/// Reorder the bundles according to the keys (names) given.
+/// Reorder the bundles according to the keys (names) given.  If the
+/// argument direction is a negative number, the rows are reversed after
+/// sorting.  If no sorting is done, the reversal of rows is still
+/// performed.
 void ibis::bundles::reorder(const char *names, int direction) {
     if (names == 0 || *names == 0) return;
     if (starts == 0) return;
@@ -1409,7 +1412,10 @@ void ibis::bundles::reorder(const char *names, int direction) {
 
     ibis::selected sortkeys; // the new keys for sorting
     sortkeys.select(names, false); // preserve the order of the sort keys
-    if (sortkeys.size() == 0) {
+    bool nosort = true;
+    for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
+	nosort = (stricmp(sortkeys[j], comps[j]) == 0);
+    if (nosort) { // no need to sort
 	if (direction < 0)
 	    reverse();
 	return;
@@ -1571,6 +1577,8 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	}
 	starts->push_back(cumu);
     }
+    if (direction < 0)
+	reverse();
     // new content, definitely not in file
     infile = false;
 } // ibis::bundles::reorder
@@ -1616,7 +1624,7 @@ void ibis::bundles::reverse() {
 	}
 	rids->swap(tmpids);
 	(*starts)[0] = 0;
-	for (uint32_t i = 0; i <= ngroups; ++ i)
+	for (uint32_t i = 0; i < ngroups; ++ i)
 	    (*starts)[i+1] = (*starts)[i] + cnts[i];
     }
     else {

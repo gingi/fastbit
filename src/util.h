@@ -28,9 +28,9 @@
 //#endif
 #include <map>		// std::map
 #include <string>	// std::string
-
 #include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream used by ibis::util::logger
+
 #include <float.h>
 #include <math.h>	// fabs, floor, ceil, log10, ...
 #if !defined(unix) && defined(_WIN32)

@@ -111,8 +111,8 @@ public:
     /// implementation!  The caller has to call the function @c nosharing
     /// to make sure the underlying data is not shared with others.
     T& operator[](size_t i) {return m_begin[i];};
-    /// Make a not-shared copy of the array if it is actually a shared
-    /// array.
+    /// Make a not-shared copy of the array if it is currently shared
+    /// or read-only.
     void nosharing();
     /// Is the content of the array solely in memory?
     bool incore() const {return(actual != 0 ? actual->unnamed() != 0 : false);}

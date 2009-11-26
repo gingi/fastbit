@@ -1,3 +1,24 @@
+2009-11-25 John Wu <John.Wu at ACM.org>
+	* src/utilidor.cpp: add try-catch block in util::sortStrings
+	* examples/ibis.cpp:3997 add statements to work with order by
+	clauses with ASC and DESC keywords but without LIMIT clause (a
+	problem reported by Jan Hapke)
+	* src/bord.cpp: in bord::column::reverseRows and
+	bord::column::limit add code to handle string values
+	* src/colValues.cpp: in two versions of colStrings::sort, change
+	sep from std::string& to std::string
+	* tests/Makefile.am: add keyword DESC to the order by clause used
+	in check-marsdb case 3 (to verify the problem reported by Jan is
+	fixed)
+	* src/bundle.cpp:1627 i <= ngroups should be i < ngroups
+	(otherwise it writes to an element beyond the allocated memory for
+	starts)
+	* tests/marksdb-3: update the file to correct printout
+
+2009-11-24 John Wu <John.Wu at ACM.org>
+	* src/bord.cpp: add function ibis::bord::part::sortStrings, rename
+	some reorderValues that actually performs sorting to sortValues
+
 2009-11-23 John Wu <John.Wu at ACM.org>
 	* src/selectParser.yy, src/whereParser.yy: change the
 	associativities of unary operators +, - and ! (not) to be right

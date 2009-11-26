@@ -134,13 +134,17 @@ protected:
 	int limit(uint32_t);
 
 	template <typename T>
-	long reorderValues(array_t<T>& vals,
-			   const array_t<uint32_t>& indin,
-			   array_t<uint32_t>& indout,
-			   array_t<uint32_t>& starts) const;
+	long sortValues(array_t<T>& vals,
+			const array_t<uint32_t>& indin,
+			array_t<uint32_t>& indout,
+			array_t<uint32_t>& starts) const;
 	template <typename T>
 	long reorderValues(array_t<T>& vals,
 			   const array_t<uint32_t>& ind) const;
+	long sortStrings(std::vector<std::string>& vals,
+			 const array_t<uint32_t>& idxin,
+			 array_t<uint32_t>& idxout,
+			 array_t<uint32_t>& starts) const;
 	long reorderStrings(std::vector<std::string>& vals,
 			    const array_t<uint32_t>& ind) const;
 

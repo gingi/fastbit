@@ -1,3 +1,18 @@
+Version ibis1.1.5
+-- fix compilation problem with gcc 4.4 (idirekte.cpp neglected to
+   include typeinfo (reported by Luca Deri)
+-- change the test in array_t<>::nosharing to leave the content managed
+   by the fileManager as read-only (to address an issue raised by
+   Alexandre Maurel)
+-- update query parsing function in examples/ibis.cpp to correctly
+   handle order by clauses (to address problem reported by Jan Hapke)
+-- change the associativities of unary operators from left to right to
+   address the parser problem reported by Andrew Olson
+-- treat the quoted strings as string literal (and therefore remove
+   the possibility of treating it as a column name) to fix a problem
+   reported by Alexandre Maurel
+-- all string values to be used for group by operations
+
 Tue Nov 10 14:17:41 PST 2009
 Version ibis1.1.4
 -- add code to switch bitmap offset between 4-byte and 8-byte integers.

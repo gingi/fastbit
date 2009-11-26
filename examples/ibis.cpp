@@ -3994,6 +3994,14 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		direction = 1;
 		str += 4;
 	    }
+	    else if (0 == stricmp(str, "desc")) {
+		direction = -1;
+		str += 4;
+	    }
+	    else if (0 == stricmp(str, "asc")) {
+		direction = 1;
+		str += 3;
+	    }
 	}
 	else {
 	    while (*str) {

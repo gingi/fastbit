@@ -11957,14 +11957,14 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		ibis::util::logger lg;
 		if (stores[0])
 		    lg.buffer() << "stores[0]: "
-			      << static_cast<void*>(stores[0]->begin());
+				<< static_cast<void*>(stores[0]->begin());
 		else
 		    lg.buffer() << "file " << fdes[0];
 		for (uint32_t i = 1 ; i < size(); ++ i) {
 		    lg.buffer() << ", ";
 		    if (stores[i])
-			lg.buffer() << "stores[" << i << "]"
-				  << static_cast<void*>(stores[i]->begin());
+			lg.buffer() << "stores[" << i << "]: "
+				    << static_cast<void*>(stores[i]->begin());
 		    else
 			lg.buffer() << "file " << fdes[i];
 		}

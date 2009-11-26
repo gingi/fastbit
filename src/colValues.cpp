@@ -1753,23 +1753,31 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 		if (bdl) bdl->swapRIDs(i, i1);
 	    }
 	}
-	const std::string& sep = (*array)[i1]; // sep is the median of three
+	const std::string sep = (*array)[i1]; // sep is the median of three
 	i1 = i;
 	i2 = j - 1;
+	bool stayleft  = ((*array)[i1].compare(sep) < 0);
+	bool stayright = ((*array)[i2].compare(sep) >= 0);
 	while (i1 < i2) {
-	    const bool stayleft  = ((*array)[i1].compare(sep) < 0);
-	    const bool stayright = ((*array)[i2].compare(sep) >= 0);
 	    if (stayleft || stayright) {
-		i1 += (const int)(stayleft);
-		i2 -= (const int)(stayright);
+		if (stayleft) {
+		    ++ i1;
+		    stayleft  = ((*array)[i1].compare(sep) < 0);
+		}
+		if (stayright) {
+		    -- i2;
+		    stayright = ((*array)[i2].compare(sep) >= 0);
+		}
 	    }
 	    else { // both are in the wrong places, swap them
 		(*array)[i2].swap((*array)[i1]);
 		if (bdl) bdl->swapRIDs(i2, i1);
 		++ i1; -- i2;
+		stayleft  = ((*array)[i1].compare(sep) < 0);
+		stayright = ((*array)[i2].compare(sep) >= 0);
 	    }
 	}
-	i1 += (int)(sep.compare((*array)[i1]) > 0);
+	i1 += (int)stayleft;
 	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
@@ -1841,15 +1849,21 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 		    (*ii)->swap(i, i1);
 	    }
 	}
-	const std::string& sep = (*array)[i1]; // sep is the median of three
+	const std::string sep = (*array)[i1]; // sep is the median of three
 	i1 = i;
 	i2 = j - 1;
+	bool stayleft  = (sep.compare((*array)[i1]) > 0);
+	bool stayright = (sep.compare((*array)[i2]) <= 0);
 	while (i1 < i2) {
-	    const bool stayleft  = (sep.compare((*array)[i1]) > 0);
-	    const bool stayright = (sep.compare((*array)[i2]) <= 0);
 	    if (stayleft || stayright) { // at least one is in the right place
-		i1 += (const int) stayleft;
-		i2 -= (const int) stayright;
+		if (stayleft) {
+		    ++ i1;
+		    stayleft = (sep.compare((*array)[i1]) > 0);
+		}
+		if (stayright) {
+		    -- i2;
+		    stayright = (sep.compare((*array)[i2]) <= 0);
+		}
 	    }
 	    else { // both are in the wrong places, swap them
 		(*array)[i2].swap((*array)[i1]);
@@ -1857,9 +1871,11 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
 		    (*ii)->swap(i2, i1);
 		++ i1; -- i2;
+		stayleft  = (sep.compare((*array)[i1]) > 0);
+		stayright = (sep.compare((*array)[i2]) <= 0);
 	    }
 	}
-	i1 += (int)(sep.compare((*array)[i1]) > 0);
+	i1 += (int)stayleft;
 	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);

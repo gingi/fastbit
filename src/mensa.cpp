@@ -3645,8 +3645,8 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     std::vector<std::string> nls;
     ibis::table::typeList    tls;
     ibis::bord::bufferList   buff;
-    std::vector<uint32_t>      tmstouse;
-    uint32_t                   nplain = 0;
+    std::vector<uint32_t>    tmstouse;
+    uint32_t                 nplain = 0;
     if (tms.size() > 0) { // use a block to limit the scope of some variables
 	std::map<const char*, uint32_t> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
@@ -3891,33 +3891,33 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		}
 		break;}
 	    case ibis::CATEGORY: {
-		if (nplain >= tms.size()) { // no aggregation
-		    std::vector<std::string>* tmp = col->selectStrings(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    ibis::util::addStrings(buff[i], *tmp, nh);
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
+		std::vector<std::string>* tmp = col->selectStrings(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addStrings(buff[i], *tmp, nh);
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
 		    }
 		}
-		else {
-		    if (tls[i] != ibis::UINT)
-			tls[i] = ibis::UINT;
-		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    ibis::util::addIncoreData
-				(buff[i], *tmp, nh, static_cast<uint32_t>(0));
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
-		    }
-		}
+		// if (nplain >= tms.size()) { // no aggregation
+		// }
+		// else {
+		//     if (tls[i] != ibis::UINT)
+		// 	tls[i] = ibis::UINT;
+		//     array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		//     if (tmp != 0) {
+		// 	if (nh > 0) {
+		// 	    ibis::util::addIncoreData
+		// 		(buff[i], *tmp, nh, static_cast<uint32_t>(0));
+		// 	    delete tmp;
+		// 	}
+		// 	else {
+		// 	    buff[i] = tmp;
+		// 	}
+		//     }
+		// }
 		break;}
 	    default: {
 		LOGGER(ibis::gVerbose > 1)
@@ -4060,27 +4060,27 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     ibis::table *brd2 = brd1->groupby(caggr);
     delete brd1;
 
-    if (brd2 != 0) {
-	// locate all categorical values and replace the integer representation
-	// with actual string values
-	for (uint32_t j = 0; j < tms.size(); ++ j) {
-	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
-		const char* nm = tms.getName(j);
-		const ibis::column *col = repp.getColumn(nm);
-		if (col != 0 && col->type() == ibis::CATEGORY) {
-		    const int nr = brd2->nRows();
-		    int ierr = static_cast<ibis::bord*>(brd2)->
-			restoreCategoriesAsStrings(repp, nm);
-		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
-			<< "Warning -- " << mesg << " attempted to convert "
-			<< nr << " integer" << (nr > 1 ? "s" : "")
-			<< " to string" << (nr > 1 ? "s" : "")
-			<< " but restoreCategoriesAsStrings(" << nm
-			<< ") returned " << ierr;
-		}
-	    }
-	}
-    }
+    // if (brd2 != 0) {
+    // 	// locate all categorical values and replace the integer representation
+    // 	// with actual string values
+    // 	for (uint32_t j = 0; j < tms.size(); ++ j) {
+    // 	    if (tms.getAggregator(j) == ibis::selectClause::NIL) {
+    // 		const char* nm = tms.getName(j);
+    // 		const ibis::column *col = repp.getColumn(nm);
+    // 		if (col != 0 && col->type() == ibis::CATEGORY) {
+    // 		    const int nr = brd2->nRows();
+    // 		    int ierr = static_cast<ibis::bord*>(brd2)->
+    // 			restoreCategoriesAsStrings(repp, nm);
+    // 		    LOGGER(ierr < nr && ibis::gVerbose >= 0)
+    // 			<< "Warning -- " << mesg << " attempted to convert "
+    // 			<< nr << " integer" << (nr > 1 ? "s" : "")
+    // 			<< " to string" << (nr > 1 ? "s" : "")
+    // 			<< " but restoreCategoriesAsStrings(" << nm
+    // 			<< ") returned " << ierr;
+    // 		}
+    // 	    }
+    // 	}
+    // }
     return brd2;
 } // ibis::table::select
 
@@ -4391,33 +4391,33 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		}
 		break;}
 	    case ibis::CATEGORY: {
-		if (nplain >= tms.size()) { // no aggregation
-		    std::vector<std::string>* tmp = col->selectStrings(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    ibis::util::addStrings(buff[i], *tmp, nh);
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
+		std::vector<std::string>* tmp = col->selectStrings(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addStrings(buff[i], *tmp, nh);
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
 		    }
 		}
-		else {
-		    if (tls[i] != ibis::UINT)
-			tls[i] = ibis::UINT;
-		    array_t<uint32_t>* tmp = col->selectUInts(*hits);
-		    if (tmp != 0) {
-			if (nh > 0) {
-			    ibis::util::addIncoreData
-				(buff[i], *tmp, nh, static_cast<uint32_t>(0));
-			    delete tmp;
-			}
-			else {
-			    buff[i] = tmp;
-			}
-		    }
-		}
+		// if (nplain >= tms.size()) { // no aggregation
+		// }
+		// else {
+		//     if (tls[i] != ibis::UINT)
+		// 	tls[i] = ibis::UINT;
+		//     array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		//     if (tmp != 0) {
+		// 	if (nh > 0) {
+		// 	    ibis::util::addIncoreData
+		// 		(buff[i], *tmp, nh, static_cast<uint32_t>(0));
+		// 	    delete tmp;
+		// 	}
+		// 	else {
+		// 	    buff[i] = tmp;
+		// 	}
+		//     }
+		// }
 		break;}
 	    default: {
 		LOGGER(ibis::gVerbose > 1)

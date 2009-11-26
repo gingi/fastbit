@@ -95,8 +95,8 @@
 #ifndef FASTBIT_STRING
 #define FASTBIT_STRING "FastBit ibis"
 #endif
-#include <functional>	// std::less, std::binary_function<>
 #include <vector>	// std::vector
+#include <functional>	// std::less, std::binary_function<>
 
 // section to handle errno in a multithread program
 #if defined(__SUNPRO_CC)
@@ -144,12 +144,12 @@
 #  define mutable
 #  define explicit
 #else
-#  include <iostream>	// std::cout, std::clog
+#  include <iosfwd>	// std::cout, std::clog
 #endif
 //#elif _MSC_VER <= 1200
 //#include <iostream.h>
 #else
-#  include <iostream>	// std::cout, std::clog
+#  include <iosfwd>	// std::cout, std::clog
 #endif
 
 //

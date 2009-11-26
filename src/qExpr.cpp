@@ -1495,7 +1495,7 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
 } // constructor of ibis::math::stdFunction1
 
 ibis::math::term* ibis::math::stdFunction1::reduce() {
-#if defined(_DEBUG)
+#if _DEBUG+0>1 || DEBUG+0>1
     LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- stdFunction1::reduce  input:  " << *this;
 #endif
@@ -1610,7 +1610,7 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	    tmp->getLeft() = 0;
 	}
     }
-#if defined(_DEBUG)
+#if _DEBUG+0>1 || DEBUG+0>1
     LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- stdFunction1::reduce output:  " << *ret;
 #endif
@@ -1656,7 +1656,7 @@ void ibis::math::bediener::print(std::ostream& out) const {
 ibis::math::term* ibis::math::bediener::reduce() {
     reorder(); // reorder the expression for easier reduction
 
-#if defined(_DEBUG)
+#if _DEBUG+0>1 || DEBUG+0>1
     LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- bediener::reduce  input:  " << *this;
 #endif
@@ -1890,7 +1890,7 @@ ibis::math::term* ibis::math::bediener::reduce() {
 	    ret = tmp;
 	}
     }
-#if defined(_DEBUG)
+#if _DEBUG+0>1 || DEBUG+0>1
     LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- bediener::reduce output:  " << *ret;
 #endif
