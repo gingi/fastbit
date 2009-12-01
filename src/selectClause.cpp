@@ -8,34 +8,77 @@
 #include "selectClause.h"
 
 ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
+    if (cl == 0 || *cl == 0) return;
+
     int ierr = 0;
-    if (cl != 0 && *cl != 0) {
-	std::istringstream iss(clause_);
-	ibis::util::logger lg;
-	selectLexer lx(&iss, &(lg.buffer()));
-	selectParser parser(*this);
-	lexer = &lx;
+    std::istringstream iss(clause_);
+    ibis::util::logger lg;
+    selectLexer lx(&iss, &(lg.buffer()));
+    selectParser parser(*this);
+    lexer = &lx;
 #if defined(DEBUG) && DEBUG+0 > 2
-	parser.set_debug_level(DEBUG-1);
+    parser.set_debug_level(DEBUG-1);
 #endif
-	parser.set_debug_stream(lg.buffer());
-	ierr = parser.parse();
-	if (ierr == 0) {
-	    for (uint32_t it = 0; it < terms_.size(); ++ it) {
-		ibis::qExpr *tmp = terms_[it];
-		ibis::qExpr::simplify(tmp);
-		if (tmp != terms_[it]) {
-		    delete terms_[it];
-		    terms_[it] = static_cast<ibis::math::term*>(tmp);
-		}
+    parser.set_debug_stream(lg.buffer());
+    ierr = parser.parse();
+    lexer = 0;
+
+    if (ierr == 0) {
+	for (uint32_t it = 0; it < terms_.size(); ++ it) {
+	    ibis::qExpr *tmp = terms_[it];
+	    ibis::qExpr::simplify(tmp);
+	    if (tmp != terms_[it]) {
+		delete terms_[it];
+		terms_[it] = static_cast<ibis::math::term*>(tmp);
 	    }
-	    fillNames();
 	}
-	lexer = 0;
+	fillNames();
     }
-    if (ierr != 0) {
+    else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- selectWhere failed to parse string \"" << cl << "\"";
+	clear();
+    }
+} // ibis::selectClause::selectClause
+
+ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
+    for (size_t j = 0; j < sl.size(); ++ j) {
+	if (sl[j] != 0 && *(sl[j]) != 0) {
+	    if (! clause_.empty())
+		clause_ += ", ";
+	    clause_ += sl[j];
+	}
+    }
+    if (clause_.empty()) return;
+
+    int ierr = 0;
+    std::istringstream iss(clause_);
+    ibis::util::logger lg;
+    selectLexer lx(&iss, &(lg.buffer()));
+    selectParser parser(*this);
+    lexer = &lx;
+#if defined(DEBUG) && DEBUG+0 > 2
+    parser.set_debug_level(DEBUG-1);
+#endif
+    parser.set_debug_stream(lg.buffer());
+    ierr = parser.parse();
+    lexer = 0;
+
+    if (ierr == 0) {
+	for (uint32_t it = 0; it < terms_.size(); ++ it) {
+	    ibis::qExpr *tmp = terms_[it];
+	    ibis::qExpr::simplify(tmp);
+	    if (tmp != terms_[it]) {
+		delete terms_[it];
+		terms_[it] = static_cast<ibis::math::term*>(tmp);
+	    }
+	}
+	fillNames();
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- selectWhere failed to parse string \"" << clause_
+	    << "\"";
 	clear();
     }
 } // ibis::selectClause::selectClause
@@ -142,35 +185,42 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
     str = oss.str();
 } // ibis::selectClause::describe
 
-/// Fill array names_.  If an alias is present, it is used, if the term
-/// is a variable, the variable name is used, otherwise, a name of the form
-/// "shhh" is generated where "hhh" is the hexadecimal number.
+/// Fill array names_ and xnames_.  An alias for an aggregation operation
+/// is used as the external (outer) name.  This function resolves all
+/// external names first to establish all aliases, and then resolve the
+/// inner names to that the aliases may be used in aggregation functions.
+/// The arithmetic expressions that with external names are given names of
+/// the form "shhh", where "hhh" is the hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
+    xnames_.clear();
     if (terms_.size() == 0) return;
 
-    uint32_t prec = 0;
+    uint32_t prec = 0; // number of hexadecimal to use
     for (uint32_t j = terms_.size(); j > 0; j >>= 4)
 	++ prec;
 
     names_.resize(terms_.size());
-    // go through the aliases first
+    xnames_.resize(terms_.size());
+    // go through the aliases first to assign xnames_
     for (StringToInt::const_iterator it = alias_.begin();
 	 it != alias_.end(); ++ it)
-	names_[it->second] = it->first;
+	xnames_[it->second] = it->first;
 
-    // fill those without a specified name
+    // fill the inner names
     for (uint32_t j = 0; j < terms_.size(); ++ j) {
-	if (names_[j].empty()) {
-	    if (terms_[j]->termType() == ibis::math::VARIABLE) {
-		names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
-		    ->variableName();
-	    }
-	    else {
-		std::ostringstream oss;
-		oss << "s" << std::setprecision(prec) << j;
-		names_[j] = oss.str();
-	    }
+	if (terms_[j]->termType() == ibis::math::VARIABLE) {
+	    names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
+		->variableName();
+	    if (xnames_[j].empty())
+		xnames_[j] = names_[j];
+	}
+	else {
+	    std::ostringstream oss;
+	    oss << "s" << std::setprecision(prec) << j;
+	    names_[j] = oss.str();
+	    if (xnames_[j].empty())
+		describe(j, xnames_[j]);
 	}
     }
 } // ibis::selectClause::fillNames

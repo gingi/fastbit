@@ -11,9 +11,11 @@
 #include "query.h"	// ibis::query
 #include "countQuery.h"	// ibis::countQuery
 #include "bundle.h"	// ibis::bundle
-#include <algorithm>	// std::reverse, std::copy
-#include <sstream>	// std::ostringstream
+
 #include <limits>	// std::numeric_limits
+#include <sstream>	// std::ostringstream
+#include <typeinfo>	// std::typeid
+#include <algorithm>	// std::reverse, std::copy
 
 ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 		 const ibis::table::stringList &cn,
@@ -987,6 +989,18 @@ int ibis::bord::getPartitions(std::vector<const ibis::part*> &lst) const {
     return 1;
 } // ibis::bord::getPartitions
 
+ibis::table* 
+ibis::bord::groupby(const char* keys) const {
+    ibis::selectClause sel(keys);
+    return mypart.groupby(sel);
+} // ibis::bord::groupby
+
+ibis::table* 
+ibis::bord::groupby(const ibis::table::stringList& keys) const {
+    ibis::selectClause sel(keys);
+    return mypart.groupby(sel);
+} // ibis::bord::groupby
+
 /// Constructor.  This object can only store upto 4 billion rows because it
 /// uses a 32-bit unsigned integer to store the number of rows.
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
@@ -1228,20 +1242,161 @@ int ibis::bord::part::dump(std::ostream& out, uint32_t nr,
     return ierr;
 } // ibis::bord::part::dump
 
-ibis::table*
-ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
-    if (keys.empty() || nEvents == 0)
-	return 0;
+// ibis::table*
+// ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
+//     if (keys.empty() || nEvents == 0)
+// 	return 0;
 
-    ibis::selected sel;
-    sel.select(keys); // parse the incoming arguments
-    if (sel.size() == 0) return 0;
+//     ibis::selected sel;
+//     sel.select(keys); // parse the incoming arguments
+//     if (sel.size() == 0) return 0;
+
+//     std::vector<uint32_t> bad;
+//     ibis::bord::bufferList buf;
+//     buf.reserve(sel.size());
+//     for (uint32_t i = 0; i < sel.size(); ++ i) {
+// 	columnList::const_iterator it = columns.find(sel.innerName(i));
+// 	if (it != columns.end()) {
+// 	    const ibis::bord::column* col =
+// 		dynamic_cast<const ibis::bord::column*>((*it).second);
+// 	    if (col != 0) {
+// 		buf.push_back(col->getArray());
+// 	    }
+// 	    else {
+// 		bad.push_back(i);
+// 	    }
+// 	}
+// 	else {
+// 	    bad.push_back(i);
+// 	}
+//     }
+//     if (sel.size() == 0) {
+// 	if (ibis::gVerbose > 0) {
+// 	    ibis::util::logger lg;
+// 	    lg.buffer() << "ibis::bord::part::groupby -- none of the names "
+// 		"given in \"" << keys[0];
+// 	    for (uint32_t i = 1; i < keys.size(); ++ i)
+// 		lg.buffer() << ", " << keys[i];
+// 	    lg.buffer() << "\" are valid columns names with in-memory data";
+// 	}
+// 	return 0;
+//     }
+//     if (! bad.empty())
+// 	sel.remove(bad);
+
+//     // create bundle
+//     ibis::bundle *bdl = ibis::bundle::create(*this, sel, buf);
+//     if (bdl == 0) {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "ibis::bord::part::groupby -- failed to create "
+// 	    "bundle for \"" << *sel << "\" from in-memory data";
+
+// 	return 0;
+//     }
+//     const uint32_t nc = bdl->width();
+//     const uint32_t nr = bdl->size();
+//     if (nr == 0) {
+// 	if (ibis::gVerbose > 0) {
+// 	    ibis::util::logger lg;
+// 	    lg.buffer() << "Warning -- ibis::bord::part::groupby("
+// 			<< keys[0];
+// 	    for (uint32_t i = 1; i < keys.size(); ++ i)
+// 		lg.buffer() << ", " << keys[i];
+// 	    lg.buffer() << ") produced no answer on a table with nRows = "
+// 			<< nEvents;
+// 	}
+// 	delete bdl;
+// 	return 0;
+//     }
+
+//     // convert bundle back into a table, first generate the name and
+//     // description for the new table
+//     std::string td = "GROUP BY ";
+//     td += *sel;
+//     td += " on table ";
+//     td += m_name;
+//     td += " (";
+//     td += m_desc;
+//     td += ')';
+//     std::string tn = ibis::util::shortName(td);
+//     if (nc == 0)
+// 	return new ibis::tabula(tn.c_str(), td.c_str(), nr);
+
+//     // prepare the types and values for the new table
+//     std::vector<std::string> nms(nc);
+//     std::vector<const char*> nmc(nc);
+//     ibis::table::typeList tps(nc);
+//     buf.resize(nc);
+//     for (uint32_t i = 0; i < nc; ++ i) {
+// 	nms[i] = sel.getTerm(i);
+// 	nmc[i] = nms[i].c_str();
+// 	tps[i] = bdl->columnType(i);
+// 	void *bptr = bdl->columnArray(i);
+// 	if (bptr == 0) {
+// 	    buf[i] = 0;
+// 	    continue;
+// 	}
+
+// 	switch (tps[i]) {
+// 	case ibis::INT:
+// 	    buf[i] = new array_t<int32_t>
+// 		(* static_cast<const array_t<int32_t>*>(bptr));
+// 	    break;
+// 	case ibis::UINT:
+// 	    buf[i] = new array_t<uint32_t>
+// 		(* static_cast<const array_t<uint32_t>*>(bptr));
+// 	    break;
+// 	case ibis::LONG:
+// 	    buf[i] = new array_t<int64_t>
+// 		(* static_cast<const array_t<int64_t>*>(bptr));
+// 	    break;
+// 	case ibis::ULONG:
+// 	    buf[i] = new array_t<uint64_t>
+// 		(* static_cast<const array_t<uint64_t>*>(bptr));
+// 	    break;
+// 	case ibis::FLOAT:
+// 	    buf[i] = new array_t<float>
+// 		(* static_cast<const array_t<float>*>(bptr));
+// 	    break;
+// 	case ibis::DOUBLE:
+// 	    buf[i] = new array_t<double>
+// 		(* static_cast<const array_t<double>*>(bptr));
+// 	    break;
+// 	case ibis::TEXT:
+// 	case ibis::CATEGORY: {
+// 	    std::vector<std::string> &bstr =
+// 		* static_cast<std::vector<std::string>*>(bptr);
+// 	    std::vector<std::string> *tmp =
+// 		new std::vector<std::string>(bstr.size());
+// 	    for (uint32_t j = 0; j < bstr.size(); ++ j)
+// 		bstr[j].swap((*tmp)[j]);
+// 	    buf[i] = tmp;
+// 	    break;}
+// 	default:
+// 	    buf[i] = 0;
+// 	    break;
+// 	}
+//     }
+//     // count(*) is always appended to the end
+//     array_t<uint32_t>* cnts = new array_t<uint32_t>;
+//     bdl->rowCounts(*cnts);
+//     nmc.push_back("COUNT(*)");
+//     tps.push_back(ibis::UINT);
+//     buf.push_back(cnts);
+//     delete bdl;
+//     return new ibis::bord(tn.c_str(), td.c_str(), nr, nmc, tps, buf);
+// } // ibis::bord::part::groupby
+
+ibis::table*
+ibis::bord::part::groupby(const ibis::selectClause& sel) const {
+    if (sel.empty() || nEvents == 0)
+	return 0;
 
     std::vector<uint32_t> bad;
     ibis::bord::bufferList buf;
     buf.reserve(sel.size());
     for (uint32_t i = 0; i < sel.size(); ++ i) {
-	columnList::const_iterator it = columns.find(sel.getName(i));
+	columnList::const_iterator it = columns.find(sel.innerName(i));
 	if (it != columns.end()) {
 	    const ibis::bord::column* col =
 		dynamic_cast<const ibis::bord::column*>((*it).second);
@@ -1256,38 +1411,42 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	    bad.push_back(i);
 	}
     }
-    if (sel.size() == 0) {
-	if (ibis::gVerbose > 0) {
+    if (! bad.empty()) {
+	if (ibis::gVerbose >= 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "ibis::bord::part::groupby -- none of the names "
-		"given in \"" << keys[0];
-	    for (uint32_t i = 1; i < keys.size(); ++ i)
-		lg.buffer() << ", " << keys[i];
-	    lg.buffer() << "\" are valid columns names with in-memory data";
+	    lg.buffer() << "Warning -- bord::part::groupby found " << bad.size()
+			<< " unknown name" << (bad.size()>1?"s":"")
+			<< " in \"";
+	    sel.print(lg.buffer());
+	    lg.buffer() << "\", cannot perform groupby operation";
 	}
 	return 0;
     }
-    if (! bad.empty())
-	sel.remove(bad);
 
     // create bundle
     ibis::bundle *bdl = ibis::bundle::create(*this, sel, buf);
     if (bdl == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bord::part::groupby -- failed to create "
+	    << "Warning -- bord::part::groupby failed to create "
 	    "bundle for \"" << *sel << "\" from in-memory data";
 
 	return 0;
     }
     const uint32_t nc = bdl->width();
     const uint32_t nr = bdl->size();
+    if (nc != sel.size()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- bord::part::groupby created a bundle with "
+	    "unexpected number of columns, expected " << sel.size()
+	    << ", actual " << nc;
+	delete bdl;
+	return 0;
+    }
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- ibis::bord::part::groupby("
-			<< keys[0];
-	    for (uint32_t i = 1; i < keys.size(); ++ i)
-		lg.buffer() << ", " << keys[i];
+	    lg.buffer() << "Warning -- ibis::bord::part::groupby(";
+	    sel.print(lg.buffer());
 	    lg.buffer() << ") produced no answer on a table with nRows = "
 			<< nEvents;
 	}
@@ -1295,7 +1454,7 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	return 0;
     }
 
-    // convert bundle back into a table, first generate the name and
+    // convert bundle back into a partition, first generate the name and
     // description for the new table
     std::string td = "GROUP BY ";
     td += *sel;
@@ -1312,11 +1471,14 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
     std::vector<std::string> nms(nc);
     std::vector<const char*> nmc(nc);
     ibis::table::typeList tps(nc);
+    bool countstar = false;
     buf.resize(nc);
     for (uint32_t i = 0; i < nc; ++ i) {
-	nms[i] = sel.getTerm(i);
+	nms[i] = sel.outerName(i);
 	nmc[i] = nms[i].c_str();
 	tps[i] = bdl->columnType(i);
+	countstar = (strcmp(sel.innerName(i), "*") == 0 &&
+		     sel.getAggregator(i) == ibis::selectClause::CNT);
 	void *bptr = bdl->columnArray(i);
 	if (bptr == 0) {
 	    buf[i] = 0;
@@ -1363,12 +1525,13 @@ ibis::bord::part::groupby(const ibis::table::stringList& keys) const {
 	    break;
 	}
     }
-    // count(*) is always appended to the end
-    array_t<uint32_t>* cnts = new array_t<uint32_t>;
-    bdl->rowCounts(*cnts);
-    nmc.push_back("COUNT(*)");
-    tps.push_back(ibis::UINT);
-    buf.push_back(cnts);
+    if (! countstar) {// if count(*) is not already there, add it
+	array_t<uint32_t>* cnts = new array_t<uint32_t>;
+	bdl->rowCounts(*cnts);
+	nmc.push_back("COUNT(*)");
+	tps.push_back(ibis::UINT);
+	buf.push_back(cnts);
+    }
     delete bdl;
     return new ibis::bord(tn.c_str(), td.c_str(), nr, nmc, tps, buf);
 } // ibis::bord::part::groupby
@@ -1388,7 +1551,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	(*it).second->purgeIndexFile();
     }
 
-    // first gather all numerical valued columns
+    // look through all columns to match the incoming column names
     typedef std::vector<ibis::column*> colVector;
     std::set<const char*, ibis::lessi> used;
     colVector keys, load; // sort according to the keys

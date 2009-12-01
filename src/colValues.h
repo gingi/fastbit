@@ -30,7 +30,7 @@ public:
     virtual bool empty() const = 0;
     virtual void reduce(const array_t<uint32_t>& starts) = 0;
     virtual void reduce(const array_t<uint32_t>& starts,
-			ibis::selected::FUNCTION func) = 0;
+			ibis::selectClause::AGREGADO func) = 0;
     virtual void erase(uint32_t i, uint32_t j) = 0;
     virtual void swap(uint32_t i, uint32_t j) = 0;
     virtual uint32_t size() const = 0;
@@ -121,7 +121,7 @@ public:
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
@@ -210,7 +210,7 @@ public:
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
     void swap(colUInts& rhs) { // swap two colUInts
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint32_t>* a = rhs.array; rhs.array = array; array = a;}
@@ -301,7 +301,7 @@ public:
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
@@ -392,7 +392,7 @@ public:
 
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
     void swap(colULongs& rhs) { // swap two colULongs
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint64_t>* a = rhs.array; rhs.array = array; array = a;}
@@ -493,7 +493,7 @@ public:
 	array_t<float>* a = rhs.array; rhs.array = array; array = a;}
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
 
     // write out whole array as binary
     virtual uint32_t write(FILE* fptr) const {
@@ -577,7 +577,7 @@ public:
 	array_t<double>* a = rhs.array; rhs.array = array; array = a;}
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
 
     // write out whole array as binary
     virtual uint32_t write(FILE* fptr) const {
@@ -656,7 +656,7 @@ public:
 	std::vector<std::string>* a = rhs.array; rhs.array = array; array = a;}
     virtual void   reduce(const array_t<uint32_t>& starts);
     virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selected::FUNCTION func);
+			  ibis::selectClause::AGREGADO func);
 
     // write out whole array as binary
     virtual uint32_t write(FILE* fptr) const;

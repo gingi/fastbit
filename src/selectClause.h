@@ -8,9 +8,9 @@
 #ifndef IBIS_SELECTCLAUSE_H
 #define IBIS_SELECTCLAUSE_H
 #include "qExpr.h"
+#include "table.h"
 
 namespace ibis {
-    class selectClause;
     class selectLexer;
     class selectParser;
 }
@@ -21,6 +21,8 @@ class ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
     explicit selectClause(const char *cl=0);
+    /// Parse a list of strings.
+    selectClause(const ibis::table::stringList&);
     ~selectClause();
 
     /// Copy constructor.  Deep copy.
@@ -55,11 +57,17 @@ public:
     void clear();
 
     int find(const char*) const;
-    const char* getName(unsigned i) const {return names_[i].c_str();}
+    /// Name inside the aggregation function.
+    const char* innerName(unsigned i) const {return names_[i].c_str();}
+    /// Name given to the whole aggregation function.
+    const char* outerName(unsigned i) const {return xnames_[i].c_str();}
     void describe(unsigned i, std::string &str) const;
+    uint32_t nPlain() const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
-    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
+    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM,
+		   VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
+    /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
     int verify(const ibis::part&);
@@ -74,9 +82,11 @@ public:
     }
     /// Swap the content of two select clauses.
     void swap(selectClause& rhs) {
+	terms_.swap(rhs.terms_);
 	aggr_.swap(rhs.aggr_);
 	alias_.swap(rhs.alias_);
-	terms_.swap(rhs.terms_);
+	names_.swap(rhs.names_);
+	xnames_.swap(rhs.xnames_);
 	clause_.swap(rhs.clause_);
     }
 
@@ -88,8 +98,10 @@ protected:
     typedef std::map<std::string, unsigned> StringToInt;
     /// Aliases.
     StringToInt alias_;
-    /// Names of each term in the select clause.
+    /// Names of given to the variables inside the aggregation functions.
     std::vector<std::string> names_;
+    /// Names of given to the aggregation operations.
+    std::vector<std::string> xnames_;
 
     std::string clause_;	///< String version of the select clause.
 
@@ -102,6 +114,14 @@ protected:
     /// The actual work-horse to do the verification.
     int _verify(const ibis::part&, const ibis::math::term&) const;
 }; // class ibis::selectClause
+
+/// Number of terms without aggregation functions.
+inline uint32_t ibis::selectClause::nPlain() const {
+    uint32_t ret = 0;
+    for (uint32_t j = 0; j < aggr_.size(); ++j)
+	ret += (aggr_[j] == NIL);
+    return ret;
+} // ibis::selectClause::nPlain
 
 namespace std {
     inline ostream& operator<<(ostream&, const ibis::selectClause&);

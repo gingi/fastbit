@@ -7,8 +7,9 @@
 ///@file
 /// The header file defining the individual query objects.
 ///
-#include "part.h"	// class part
+#include "part.h"	// ibis::part
 #include "whereClause.h"	// ibis::whereClause
+#include "selectClause.h"	// ibis::selectClause
 
 /// A data structure for representing user queries.  This is the primary
 /// entry for user to take advantage of bitmap indexing facilities.  A
@@ -78,7 +79,7 @@ public:
     /// Return the pointer to the data partition used to process the query.
     const part* partition() const {return mypart;}
     /// Return a list of names specified in the select clause.
-    const selected& components() const {return comps;};
+    const selectClause& components() const {return comps;};
 
     /// Specify a list of Row IDs for the query object.
     int setRIDs(const RIDSet& set);
@@ -291,7 +292,7 @@ public:
 protected:
     char* user; 	///< Name of the user who specified the query
     whereClause conds;	///< Query conditions
-    selected comps;	///< Names of selected components
+    selectClause comps;	///< Names of selected components
     QUERY_STATE state;	///< Status of the query
     ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
     ibis::bitvector* sup;///< Estimated upper bound

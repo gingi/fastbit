@@ -2592,15 +2592,15 @@ void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
 
 /// remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts,
-			   ibis::selected::FUNCTION func) {
+			   ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
@@ -2613,14 +2613,14 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2628,7 +2628,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2636,10 +2636,10 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -2668,8 +2668,8 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -2679,8 +2679,8 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>(variance/count);
 		}
 		else {
@@ -2689,8 +2689,8 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
 			(((*array)[starts[i]]-avg)
 			 *((*array)[starts[i]]-avg)/count);
@@ -2703,7 +2703,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<int32_t> values;
             values.resize(starts[i+1]-starts[i]);
@@ -2733,15 +2733,15 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
-			    ibis::selected::FUNCTION func) {
+			    ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
@@ -2755,14 +2755,14 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2770,7 +2770,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2778,10 +2778,10 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -2810,8 +2810,8 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -2821,8 +2821,8 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>(variance/count);
 		}
 		else {
@@ -2831,8 +2831,8 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
 			(((*array)[starts[i]]-avg)
 			 *((*array)[starts[i]]-avg)/count);
@@ -2845,7 +2845,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<uint32_t> values;
             values.resize(starts[i+1]-starts[i]);
@@ -2875,15 +2875,15 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
-			    ibis::selected::FUNCTION func) {
+			    ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = static_cast<double>((*array)[starts[i]]);
@@ -2896,14 +2896,14 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2911,7 +2911,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -2919,10 +2919,10 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -2951,8 +2951,8 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -2962,8 +2962,8 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>(variance/count);
 		}
 		else {
@@ -2972,8 +2972,8 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
 			(((*array)[starts[i]]-avg)
 			 *((*array)[starts[i]]-avg)/count);
@@ -2986,7 +2986,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<int64_t> values;
             values.resize(starts[i+1]-starts[i]);
@@ -3016,15 +3016,15 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
-			     ibis::selected::FUNCTION func) {
+			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = static_cast<double>((*array)[starts[i]]);
@@ -3038,14 +3038,14 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3053,7 +3053,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3061,10 +3061,10 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -3093,8 +3093,8 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -3104,8 +3104,8 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>(variance/count);
 		}
 		else {
@@ -3114,8 +3114,8 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
 			(((*array)[starts[i]]-avg)
 			 *((*array)[starts[i]]-avg)/count);
@@ -3128,7 +3128,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<uint64_t> values;
             values.resize(starts[i+1]-starts[i]);
@@ -3158,15 +3158,15 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
-			     ibis::selected::FUNCTION func) {
+			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
@@ -3180,14 +3180,14 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3195,7 +3195,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3203,10 +3203,10 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -3235,8 +3235,8 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -3246,8 +3246,8 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<float>(variance/count);
 		}
 		else {
@@ -3256,8 +3256,8 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = ((*array)[starts[i]]-avg)
 			*((*array)[starts[i]]-avg)/count;
 		}
@@ -3269,7 +3269,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<float> values;
             values.resize(starts[i+1]-starts[i]);
@@ -3299,15 +3299,15 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
-			      ibis::selected::FUNCTION func) {
+			      ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selected::NIL:
+    case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
-    case ibis::selected::AVG: // average
+    case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
 		(*array)[i] = (*array)[starts[i]];
@@ -3320,14 +3320,14 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::SUM: // sum
+    case ibis::selectClause::SUM: // sum
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		(*array)[i] += (*array)[j];
 	}
 	break;
-    case ibis::selected::MIN: // min
+    case ibis::selectClause::MIN: // min
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3335,7 +3335,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::MAX: // max
+    case ibis::selectClause::MAX: // max
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    (*array)[i] = (*array)[starts[i]];
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -3343,10 +3343,10 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = (*array)[j];
 	}
 	break;
-    case ibis::selected::VARPOP:
-    case ibis::selected::VARSAMP:
-    case ibis::selected::STDPOP:
-    case ibis::selected::STDSAMP:
+    case ibis::selectClause::VARPOP:
+    case ibis::selectClause::VARSAMP:
+    case ibis::selectClause::STDPOP:
+    case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
     	// population functions are similar, and stddev can be derived from
     	// variance 
@@ -3375,8 +3375,8 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	    }
 
 
-            if ((func == ibis::selected::VARSAMP) ||
-		(func == ibis::selected::STDSAMP)) {
+            if ((func == ibis::selectClause::VARSAMP) ||
+		(func == ibis::selectClause::STDSAMP)) {
 		--count; // sample version denominator is number of rows -1
 	    }
 
@@ -3386,8 +3386,8 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = variance/count;
 		}
 		else {
@@ -3395,8 +3395,8 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		}
 	    }
 	    else {
-		if (func == ibis::selected::VARPOP ||
-		    func == ibis::selected::VARSAMP) {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = ((*array)[starts[i]]-avg)
 			*((*array)[starts[i]]-avg)/count;
 		}
@@ -3408,7 +3408,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selected::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct
 	for (uint32_t i = 0; i < nseg; ++i) {
             std::vector<double> values;
             values.resize(starts[i+1]-starts[i]);
@@ -3437,7 +3437,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 } // ibis::colDoubles::reduce
 
 void ibis::colStrings::reduce(const array_t<uint32_t>&,
-			      ibis::selected::FUNCTION) {
+			      ibis::selectClause::AGREGADO) {
     LOGGER(ibis::gVerbose >= 0 && col != 0)
 	<< "Warning -- colStrings::reduce can NOT apply any aggregate "
 	"function on column " << col->name() << " (type "

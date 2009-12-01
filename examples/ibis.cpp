@@ -2419,7 +2419,7 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
     out << "printing results of query " << q.id() << "(numHits="
 	<< q.getNumHits() << ")\n"
 	<< q.getSelectClause() << std::endl;
-    const ibis::selected& sel = q.components();
+    const ibis::selectClause& sel = q.components();
     if (sel.size() == 0) return;
 
     while (cursor.next()) {
@@ -2984,7 +2984,12 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg.buffer() << "doQuery:: estimate("
 			    << aQuery.getWhereClause() << ") took "
 			    << timer.CPUTime() << " CPU seconds, "
-			    << timer.realTime() << " elapsed seconds";
+			    << timer.realTime() << " elapsed seconds.";
+		if (num1 == num2)
+		    lg.buffer() << "  The number of hits is " << num1;
+		else
+		    lg.buffer() << "  The number of hits is between "
+				<< num1 << " and " << num2;
 	    }
 	    return; // stop here is only want to estimate
 	}
@@ -3029,7 +3034,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 				      std::ios::trunc));
 	    if (output) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "doQuery -- query (" <<  aQuery.getWhereClause()
+		    << "doQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    <<  outputfile << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)

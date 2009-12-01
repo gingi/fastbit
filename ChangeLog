@@ -1,3 +1,18 @@
+2009-11-30 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: consolidate two nearly identical versions of
+	ibis::table::select
+	* src/selectClause.h: add a constructor that takes
+	ibis::table::stringList
+	* src/bord.h, src/bord.cpp: change ibis::bord::part::groupby to
+	take ibis::selectClause as argument instead of a list of strings
+	(to better handle the aliases)
+	* src/query.h, src/query.cpp: replace ibis::select with
+	ibis::selectClause (to consolidate handling of select clauses)
+
+2009-11-28 John Wu <John.Wu at ACM.org>
+	* src/bord.cpp: include typeinfo to add compilation problem with
+	gcc 4.4.x (a problem reported by Jan Hapke)
+
 2009-11-25 John Wu <John.Wu at ACM.org>
 	* src/utilidor.cpp: add try-catch block in util::sortStrings
 	* examples/ibis.cpp:3997 add statements to work with order by

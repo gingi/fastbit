@@ -15,10 +15,7 @@
 ///
 /// The class ibis::query::result is a thin wrapper on top of ibis::bundle
 /// to provide row-wise data accesses.
-#include "util.h"
-#include "array_t.h"	// fileManager::storage, array_t<>
-#include "query.h"	// ibis::query
-#include "column.h"	// ibis::column
+#include "query.h"	// ibis::query, ibis::selectClause
 #include "colValues.h"	// ibis::colValues
 
 namespace ibis {
@@ -71,7 +68,7 @@ class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:
     static bundle* create(const ibis::query& q);
     static bundle* create(const ibis::query& q, const ibis::bitvector& hits);
-    static bundle* create(const ibis::part&, const ibis::selected& sel,
+    static bundle* create(const ibis::part&, const ibis::selectClause& sel,
 			  const std::vector<void*>& vals);
 
     /// Return the RIDs related to the ith bundle.
@@ -159,14 +156,14 @@ public:
     const ibis::RIDSet* getRIDs() const {return rids;}
 
 protected:
-    const ibis::selected& comps;
+    const ibis::selectClause& comps;
     array_t<uint32_t>* starts; // starting positions of bundles (in rids)
     ibis::RIDSet* rids;
     const char* id;
     mutable bool infile; // is the current content in file?
 
     // Hides constructors from others.
-    bundle(const ibis::selected& c)
+    bundle(const ibis::selectClause& c)
 	: comps(c), starts(0), rids(0), id(""), infile(false) {};
     // use ibis::query::getRIDs(const ibis::bitvector&) const to avoid the
     // read lock required by ibis::query::getRIDs() const.
@@ -229,7 +226,7 @@ class FASTBIT_CXX_DLLSPEC ibis::bundle1 : public ibis::bundle {
 public:
     explicit bundle1(const ibis::query& q);
     bundle1(const ibis::query& q, const ibis::bitvector& hits);
-    bundle1(const ibis::part& tbl, const ibis::selected& sel,
+    bundle1(const ibis::part& tbl, const ibis::selectClause& sel,
 	    const std::vector<void*>& vals);
     virtual ~bundle1() {delete col;}
     virtual void write(const ibis::query&) const;
@@ -286,7 +283,7 @@ class FASTBIT_CXX_DLLSPEC ibis::bundles : public ibis::bundle {
 public:
     explicit bundles(const ibis::query& q);
     bundles(const ibis::query& q, const ibis::bitvector& hits);
-    bundles(const ibis::part& tbl, const ibis::selected& sel,
+    bundles(const ibis::part& tbl, const ibis::selectClause& sel,
 	    const std::vector<void*>& vals);
     virtual ~bundles() {clear();}
     virtual void write(const ibis::query&) const;
@@ -409,7 +406,7 @@ public:
 private:
     ibis::query &que_;
     ibis::bundle *bdl_;
-    const ibis::selected& sel;
+    const ibis::selectClause& sel;
     uint32_t bid_; // 0 for unused.
     uint32_t lib_; // results left in the bundle.
 

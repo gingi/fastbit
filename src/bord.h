@@ -82,9 +82,7 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
-    virtual table* groupby(const char* str) const {
-	return ibis::table::groupby(str);
-    }
+    virtual table* groupby(const char* str) const;
     virtual void orderby(const ibis::table::stringList&);
     virtual void orderby(const char* str) {
 	ibis::table::orderby(str);
@@ -103,6 +101,7 @@ public:
     virtual ibis::table::cursor* createCursor() const;
 
     int restoreCategoriesAsStrings(const ibis::part&, const char*);
+    ibis::table* groupby(const ibis::selectClause&) const;
 
 protected:
     class column;
@@ -122,7 +121,7 @@ protected:
 		    ibis::bitvector& hits) const {
 	    return ibis::part::doScan(varr, cmp, mask, hits);}
 
-	ibis::table* groupby(const ibis::table::stringList&) const;
+	ibis::table* groupby(const ibis::selectClause&) const;
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
 
@@ -306,9 +305,8 @@ inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
     return mypart.dump(out, static_cast<uint32_t>(nr), del);
 } // ibis::bord::dump
 
-inline ibis::table* 
-ibis::bord::groupby(const ibis::table::stringList& keys) const {
-    return mypart.groupby(keys);
+inline ibis::table* ibis::bord::groupby(const ibis::selectClause &sc) const {
+    return mypart.groupby(sc);
 } // ibis::bord::groupby
 
 inline void ibis::bord::orderby(const ibis::table::stringList& keys) {

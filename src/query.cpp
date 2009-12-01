@@ -282,19 +282,13 @@ int ibis::query::setPartition(const part* tbl) {
     }
 
     mypart = tbl;
-    std::vector<uint32_t> badnames;
     for (uint32_t i = 0; i < comps.size(); ++i) {
-	if (0 == mypart->getColumn(comps[i])) {
-	    badnames.push_back(i);
+	if (0 == mypart->getColumn(comps.innerName(i))) {
 	    logWarning("setPartition", "partition %s does not contain a "
-		       "column named %s", mypart->name(), comps[i]);
+		       "column named %s", mypart->name(), comps.innerName(i));
+	    comps.clear();
+	    break;
 	}
-    }
-    if (!badnames.empty()) {
-	logWarning("setPartition", "The select clause \"%s\" contains %lu "
-		   "invalid column name(s).  It will be removed",
-		   *comps, static_cast<long unsigned>(badnames.size()));
-	comps.remove(badnames);
     }
 
     if (conds.empty()) {
@@ -339,63 +333,37 @@ int ibis::query::setPartition(const part* tbl) {
 } // ibis::query::setPartition
 
 int ibis::query::setSelectClause(const char* str) {
-    writeLock control(this, "setSelectClause");
-    std::string oldComps = *comps;
-    if (comps.size()) {
-	if (str == 0 || *str == 0 ||
-	    stricmp(str, oldComps.c_str()) != 0) { // different values
-	    if (ibis::gVerbose > 2)
-		logMessage("setSelectClause", "replace previous comps"
-			   " \"%s\" with \"%s\".", oldComps.c_str(),
-			   (str?str:""));
-	}
-	else {
-	    return 0; // no change needed
-	}
-    }
-    else if (str == 0 || *str == 0) {
-	return 0; // no change needed
+    if (str == 0 || *str == 0) return -2;
+    if (*comps != 0 && stricmp(*comps, str) == 0) return 0;
+
+    ibis::selectClause sc(str);
+    bool verified = (comps.size() > 0);
+    if (mypart != 0) {
+	for (uint32_t i = 0; verified && i < comps.size(); ++i)
+	    verified = (0 != mypart->getColumn(comps.innerName(i)));
     }
 
-    if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
-	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
-	dstime = 0;
-	if (hits == sup) {
-	    delete hits;
-	    hits = 0;
-	    sup = 0;
-	}
-	else {
-	    delete hits;
-	    delete sup;
-	    hits = 0;
-	    sup = 0;
-	}
-	removeFiles();
-    }
+    if (verified) {
+	writeLock control(this, "setSelectClause");
+	comps.swap(sc);
 
-    comps.select(str);
-    std::vector<uint32_t> badnames;
-    for (uint32_t i = 0; mypart != 0 && i < comps.size(); ++i) {
-	if (0 == mypart->getColumn(comps[i])) {
-	    badnames.push_back(i);
-	    logWarning("setSelectClause", "partition %s does not contain a "
-		       "column named %s", mypart->name(), comps[i]);
+	if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+	    state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+	    dstime = 0;
+	    if (hits == sup) {
+		delete hits;
+		hits = 0;
+		sup = 0;
+	    }
+	    else {
+		delete hits;
+		delete sup;
+		hits = 0;
+		sup = 0;
+	    }
+	    removeFiles();
 	}
-    }
-    if (! badnames.empty())
-	comps.remove(badnames);
-    if (comps.empty() && ! oldComps.empty()) {
-	if (ibis::gVerbose > 0)
-	    logMessage("setSelectClause", "The new Select clause \"%s\" "
-		       "is empty after removing %lu unknown column name%s.  "
-		       "Restore the old Select clause \"%s\"", str,
-		       static_cast<long unsigned>(badnames.size()),
-		       (badnames.size() > 1 ? "s" : ""), oldComps.c_str());
-	comps.select(oldComps.c_str());
-    }
 
-    if (comps.size() != 0) {
 	if (rids_in || conds.getExpr() != 0) {
 	    state = SPECIFIED;
 	    writeQuery();
@@ -2488,23 +2456,12 @@ void ibis::query::getBounds() {
     if (ibis::gVerbose > 7)
 	logMessage("getBounds", "compute upper and lower bounds of hits");
 
-    ibis::bitvector mask(mypart->getNullMask());
-    if (mask.size() != mypart->nRows())
-	mask.adjustSize(mypart->nRows(), mypart->nRows());
+    ibis::bitvector mask;
     if (comps.size() > 0) {
-	ibis::bitvector tmp;
-	ibis::selected::const_iterator it = comps.begin();
-	while (it != comps.end()) {
-	    mypart->getColumn(it->c_str())->getNullMask(tmp);
-	    mask &= tmp;
-#if defined(DEBUG)
-	    LOGGER(ibis::gVerbose >= 0) << *it << " null mask:\n" << tmp
-				   << "\nquery mask:\n" << mask;
-#endif
-	    ++ it;
-	}
+	comps.getNullMask(*mypart, mask);
     }
     else if (ibis::gVerbose > 3) {
+	mask.copy(mypart->getNullMask());
 	logMessage("getBounds", "no component selected");
     }
 
@@ -2800,7 +2757,7 @@ int ibis::query::computeHits() {
 	    if (hits == 0) return -1;
 	    hits->set(1, mypart->nRows());
 	    for (uint32_t i = 0; i < comps.size(); ++ i) {
-		const ibis::column *col = mypart->getColumn(comps[i]);
+		const ibis::column *col = mypart->getColumn(comps.innerName(i));
 		if (col != 0) {
 		    ibis::bitvector tmp;
 		    col->getNullMask(tmp);

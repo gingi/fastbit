@@ -273,12 +273,13 @@ namespace ibis {
     class roster;	///< A projection of a column in ascending order.
     class bitvector64;	///< The 64-bit version of bitvector class.
 
-    // col with (selected) values -- need to handle bundles
-    class bundle;
-    class colValues;
+    class bundle;	///< To organize in-memory data for group-by.
+    class colValues;	///< To store a column of in-memory data.
+    class whereClause;	///< Where clause.
+    class selectClause;	///< Select clause.
     /// @}
 
-    typedef std::vector<colValues*> colList;
+    typedef std::vector<colValues*> colList; /// List of in-memory data.
 
     /// The reference to the global configuration parameters.
     FASTBIT_CXX_DLLSPEC ibis::resource& gParameters();
@@ -369,7 +370,8 @@ namespace ibis {
 	const_iterator begin() const {return names.begin();}
 	const_iterator end() const {return names.end();}
 
-	enum FUNCTION {NIL, AVG, MAX, MIN, SUM, VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
+	enum FUNCTION {NIL, AVG, MAX, MIN, SUM,
+		       VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
 	FUNCTION getFunction(uint32_t i) const {return functions[i];}
 
     private:

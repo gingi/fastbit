@@ -158,11 +158,11 @@ public:
     /// Perform aggregate functions on the current table.  It produces a
     /// new table.  The list of strings passed to this function are
     /// interpreted as a set of names followed by a set of functions.
-    /// Currently, only functions COUNT, AVG, MIN, MAX, SUM, VARPOP, VARSAMP, 
-    /// STDPOP, STDSAMP and DISTINCT are supported, and the functions can only 
-    /// accept a column name as arguments.
+    /// Currently, only functions COUNT, AVG, MIN, MAX, SUM, VARPOP,
+    /// VARSAMP, STDPOP, STDSAMP and DISTINCT are supported, and the
+    /// functions can only accept a column name as arguments.
     virtual table* groupby(const stringList&) const =0;
-    /// Perform group-by operation.  The column names and operations are
+    /// Perform a group-by operation.  The column names and operations are
     /// separated by commas.
     virtual table* groupby(const char*) const;
     /// Reorder the rows.  Sort the rows in ascending order of the columns
