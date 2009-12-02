@@ -262,7 +262,9 @@ SUBDIRS = src examples java tests
 EXTRA_DIST = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
-	win/FlexLexer.h contrib
+	win/FlexLexer.h contrib/README contrib/fbmerge/fbmerge.cpp \
+	contrib/fbmerge/Makefile.am contrib/fbmerge/Makefile.in \
+	contrib/fbmerge/fbmerge.sln contrib/fbmerge/fbmerge.vcproj
 
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
@@ -781,7 +783,7 @@ clean: clean-recursive
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES) Makefile win/*.suo win/*.ncb win/*.obj win/*.exe win/*.exe.*
-	-rm -fr doc/html doc/latex win/Debug win/Release win/dll win/*.vcproj.*
+	-rm -fr autom4te.cache doc/html doc/latex win/Debug win/Release win/dll win/*.vcproj.*
 
 maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache

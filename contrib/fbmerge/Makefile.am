@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS=gnu
 EXTRA_DIST = fbmerge.sln fbmerge.vcproj
 
-#if BUILD_CONTRIB
+#if CONFIG_CONTRIB
 bin_PROGRAMS = fbmerge
 fbmerge_SOURCES = fbmerge.cpp
 fbmerge_DEPENDENCIES = ../../src/libfastbit.la

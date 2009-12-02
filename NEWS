@@ -12,6 +12,8 @@ Version ibis1.1.5
    the possibility of treating it as a column name) to fix a problem
    reported by Alexandre Maurel
 -- all string values to be used for group by operations
+-- add contrib directory to include the file fbmerge.cpp contributed by
+   Luca Deri and Valeria Lorenzetti
 
 Tue Nov 10 14:17:41 PST 2009
 Version ibis1.1.4

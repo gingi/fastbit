@@ -48,7 +48,7 @@ bool dump_mode = false;
 
 static void help () {
     printf("Usage: fbmerge [-h] [-d] -i <input dir> -o <output dir>\n\n");
-    printf("Merge fastbit directories enclosed in the root directory\n"
+    printf("Merge FastBit directories enclosed in the root directory\n"
 	   "specified with -i and saves merged data into the specified\n"
 	   "output directory\n");
     exit(0);
@@ -233,7 +233,7 @@ int main (int argc, char * argv []) {
     if((!input_dir) || (!output_dir))
 	help();
 
-    printf("Searching fastbit dirs on %s...\n", input_dir);
+    printf("Searching FastBit dirs on %s...\n", input_dir);
     walkDirs(input_dir, output_dir);
     printf("Merged %u records into directory %s...\n", tot_records, output_dir);
     printf("Leaving...\n");

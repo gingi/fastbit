@@ -885,7 +885,6 @@ enable_debug
 enable_xopt
 with_pthread
 with_java
-enable_contrib
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1529,8 +1528,6 @@ Optional Features:
   --enable-debug          turn on debugging (default: set by autoconf)
   --enable-xopt           turn on extra optimization (default: no, leave the
                           default CXXFLAGS alone)
-  --enable-contrib        build contributed code in contrib directory
-                          (default: no)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -5123,13 +5120,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5126: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5123: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5129: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5126: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5132: output\"" >&5)
+  (eval echo "\"\$as_me:5129: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6335,7 +6332,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6338 "configure"' > conftest.$ac_ext
+  echo '#line 6335 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8392,11 +8389,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8395: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8392: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8399: \$? = $ac_status" >&5
+   echo "$as_me:8396: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8731,11 +8728,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8734: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8731: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8738: \$? = $ac_status" >&5
+   echo "$as_me:8735: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8836,11 +8833,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8839: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8836: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8843: \$? = $ac_status" >&5
+   echo "$as_me:8840: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8891,11 +8888,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8894: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8891: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8898: \$? = $ac_status" >&5
+   echo "$as_me:8895: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11259,7 +11256,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11262 "configure"
+#line 11259 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11355,7 +11352,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11358 "configure"
+#line 11355 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13311,11 +13308,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13314: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13311: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13318: \$? = $ac_status" >&5
+   echo "$as_me:13315: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13410,11 +13407,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13413: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13410: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13417: \$? = $ac_status" >&5
+   echo "$as_me:13414: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13462,11 +13459,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13465: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13462: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13469: \$? = $ac_status" >&5
+   echo "$as_me:13466: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17146,7 +17143,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17149 "configure" */
+/* #line 17146 "configure" */
 public class Test {
 }
 EOF
@@ -17277,7 +17274,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 17280: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17277: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17354,7 +17351,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17357 "configure" */
+/* #line 17354 "configure" */
 public class Test {
 }
 EOF
@@ -17389,7 +17386,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17392 "configure" */
+/* [#]line 17389 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -17515,21 +17512,6 @@ else
 $as_echo "no" >&6; }
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to configure Makefiles in contrib" >&5
-$as_echo_n "checking whether to configure Makefiles in contrib... " >&6; }
-# Check whether --enable-contrib was given.
-if test "${enable_contrib+set}" = set; then :
-  enableval=$enable_contrib; if test "$enableval" = "yes" ; then contrib="yes" ; else contrib="no" ; fi
-else
-  contrib="no"
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $contrib" >&5
-$as_echo "$contrib" >&6; }
-if test "$enableval" = "yes" ; then
-ac_config_files="$ac_config_files contrib/Makefile contrib/fbmerge/Makefile"
-
-fi
 
 
 
@@ -17538,7 +17520,7 @@ fi
 
 #end stuff not generated by autoscan
 
-ac_config_files="$ac_config_files Makefile src/Makefile examples/Makefile tests/Makefile java/Makefile tests/scripts/fastbit-config"
+ac_config_files="$ac_config_files Makefile src/Makefile examples/Makefile tests/Makefile java/Makefile contrib/fbmerge/Makefile tests/scripts/fastbit-config"
 
 ac_config_commands="$ac_config_commands default-1"
 
@@ -18620,13 +18602,12 @@ do
     "src/fastbit-config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/fastbit-config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
-    "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
-    "contrib/fbmerge/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/fbmerge/Makefile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "java/Makefile") CONFIG_FILES="$CONFIG_FILES java/Makefile" ;;
+    "contrib/fbmerge/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/fbmerge/Makefile" ;;
     "tests/scripts/fastbit-config") CONFIG_FILES="$CONFIG_FILES tests/scripts/fastbit-config" ;;
     "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
 

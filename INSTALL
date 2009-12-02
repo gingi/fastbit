@@ -39,7 +39,7 @@ Configuration Options
 
 Run './configure --help' to review all options available.  The majority
 of the options are standard options available to all GNU build tools.
-There are only two additional options
+There are only a few additional options
   --enable-debug [debugging option]
   --enable-xopt  [extra optimization option]
 
@@ -59,7 +59,6 @@ If CXXFLAGS is specified on the command line of configure or is present
 as an evironment variable, the configure script will not add its usual
 default options, which is typically "-g -O2".  If CXXFLAGS is specified,
 it should include desired optimization flags.
-
 
 The configure script will attempt to detect whether a JDK is available
 when it is run, however, the detection mechanism primarily rely on the
@@ -90,6 +89,11 @@ NOTE: FastBit requires pthread support, one such library is pthread
       files using similar procedure.  The "Additional Libary
       Directories" that need to be modified is under "Linker" in the
       list of Configuration Properties.
+
+NOTE: The Makefiles in directory contrib are updated with the configure
+      script, but they are not built as part of normal make command.
+      One needs to go into each subdirectory of contrib and execute the
+      make command there.
 
 
 ----------
@@ -234,29 +238,27 @@ Known Issues
     machine.  If you have any suggestions on improving this setup,
     please email <fastbit-users@hpcrdm.lbl.gov>.
 
-(4) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
+(4) The tests in 'check-marksdb' involves a long series of arithmetic
+    operations.  Depending on the implementation of math library, a
+    slightly different d values may be outputted causing the tests to
+    fail.  Please examine the differences between file marksdb-[1234]
+    against the ones in directory tests.  If the values differ only in
+    the last one or two digits, then the tests run fine.  However, if
+    they different beyong the last two digits, please report the problem
+    to <fastbit-users@hpcrdm.lbl.gov>.
+
+(5) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
     choke up on a SGI Altix system.  It seems to work fine with newer
     versions of gcc or other compilers such Intel's icpc on the same
     system.
 
-(5) Valgrind will complain about FastBit access 4 bytes beyond the end
-    of allocated space in some functions of ibis::bitvector.  The
-    content of this read operation does no alter the logical of the
-    programs (there is a delayed decision to reduce the number of
-    if-tests), and the program executes correctly.  If this read
-    operation does cause trouble, it would probably cause the OS to
-    raise an access violation error.  We have never seen this one
-    actually happen and therefore do not know whether it could happen.
-    If you do encounter it, please send a stack trace to
-    <fastbit-users@hpcrdm.lbl.gov> to help use diagnose the problem.
-
-(6) Certain machines with large memory actually limits the amount of
-    memory each process may use.  In such cases, the default cache size
-    of half of the physical memory size may be over the limit of the
-    memory allowed by the OS.  It is important to coordinate these two
-    limits.  More specifically, the memory used by FastBit memory cache
-    should be less than the OS limit, otherwise, FastBit program may
-    crash due to memory allocation problem.  For example, on
+(6) Certain machines with a large mount of memory actually limits the
+    amount of memory each process may use.  In such cases, the default
+    cache size of half of the physical memory size may be over the limit
+    of the memory allowed by the OS.  It is important to coordinate
+    these two limits.  More specifically, the memory used by FastBit
+    memory cache should be less than the OS limit, otherwise, FastBit
+    program may crash due to memory allocation problem.  For example, on
     jacquard.nersc.gov, the maximum virtual memory allowed per process
     is 2GB for certain class of interactive jobs, but there are 6GB of
     physical memory.  By default, FastBit will attempt to use 3GB of

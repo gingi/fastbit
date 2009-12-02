@@ -1,3 +1,8 @@
+2009-12-02 John Wu <John.Wu at ACM.org>
+	* configure.ac: generate Makefile in contrib/fbmerge
+	* INSTALL: add note about floating-point value variations, remove
+	note about valgrind warning
+
 2009-12-01 John Wu <John.Wu at ACM.org>
 	* src/selectClause.cpp:10 move assignment of clause_ to the body
 	of the constructor to avoid problem with input argument being a
