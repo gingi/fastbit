@@ -5,7 +5,7 @@ SUBDIRS = src examples java tests
 EXTRA_DIST = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
-	win/FlexLexer.h
+	win/FlexLexer.h contrib
 
 dist_doc_DATA = doc/dataDistributions.html \
 	doc/index.html doc/quickstart.html doc/dataLoading.html \
@@ -15,8 +15,10 @@ docs:
 	cd src && $(MAKE) docs
 
 # three levels of thoroughness are available for checking the
-# correctness of FastBit functions: quick-check, check, full-check.
-# The normal check may take about ten minutes on a typical Linux machine.
+# correctness of FastBit functions: check, more-check, and full-check.
+# The normal check may take about a few seconds on a typical Linux machine,
+# more-check takes about ten to fifteen minutes, while full-check takes
+# several hours.
 more-check:
 	cd tests && $(MAKE) more-check
 

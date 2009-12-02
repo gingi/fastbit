@@ -337,10 +337,10 @@ int ibis::query::setSelectClause(const char* str) {
     if (*comps != 0 && stricmp(*comps, str) == 0) return 0;
 
     ibis::selectClause sc(str);
-    bool verified = (comps.size() > 0);
+    bool verified = (sc.size() > 0);
     if (mypart != 0) {
-	for (uint32_t i = 0; verified && i < comps.size(); ++i)
-	    verified = (0 != mypart->getColumn(comps.innerName(i)));
+	for (uint32_t i = 0; verified && i < sc.size(); ++i)
+	    verified = (0 != mypart->getColumn(sc.innerName(i)));
     }
 
     if (verified) {
@@ -2460,9 +2460,10 @@ void ibis::query::getBounds() {
     if (comps.size() > 0) {
 	comps.getNullMask(*mypart, mask);
     }
-    else if (ibis::gVerbose > 3) {
+    else {
 	mask.copy(mypart->getNullMask());
-	logMessage("getBounds", "no component selected");
+	if (ibis::gVerbose > 3)
+	    logMessage("getBounds", "no component selected");
     }
 
     if (rids_in) { // RID list

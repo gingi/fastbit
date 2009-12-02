@@ -2129,7 +2129,7 @@ static void parse_args(int argc, char** argv,
 		break;
 	    case 'r':
 	    case 'R': // RID/result check or reorder
-		if (argv[i][2] == 'i' || argv[i][2] == 'I') {
+		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
 		    verify_rid = true;
 		    if (i+1 < argc) { // there is one more argument
 			if (argv[i+1][0] != '-') { // assume to be a file name
@@ -2138,11 +2138,11 @@ static void parse_args(int argc, char** argv,
 			}
 		    }
 		}
-		else if (i+1 < argc && argv[i+1][0] != '-') {
+		else if (i+1 < argc && argv[i+1][0] != '-') { // reorder
 		    rdirs.push_back(argv[i+1]);
 		    ++ i;
 		}
-		else {
+		else { // rid
 		    verify_rid = true;
 		}
 		break;
@@ -2909,13 +2909,22 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	handle.read(rset, ridfile);
 	aQuery.setRIDs(rset);
     }
-    aQuery.setWhereClause(wstr);
+    num2 = aQuery.setWhereClause(wstr);
+    if (num2 < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doQuery failed to assigned the where clause \""
+	    << wstr << "\" to a query object, return value = " << num2;
+	return;
+    }
     if (sstr != 0 && *sstr != 0) {
-	aQuery.setSelectClause(sstr);
+	num2 = aQuery.setSelectClause(sstr);
+	LOGGER(num2 < 0 && ibis::gVerbose >= 0)
+	    << "Warning -- doQuery failed to assign the select clause \""
+	    << sstr << "\" to a query object, return value = " << num2;
 	asstr = aQuery.getSelectClause();
     }
     if (aQuery.getWhereClause() == 0 && ridfile == 0
-	&& aQuery.getSelectClause() == 0)
+	&& asstr == 0)
 	return;
     if (zapping && aQuery.getWhereClause()) {
 	std::string old = aQuery.getWhereClause();

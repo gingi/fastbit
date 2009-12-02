@@ -187,6 +187,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
@@ -206,7 +207,7 @@ ARDEAEXE = $(EXDIR)/ardea$(EXEEXT)
 THULAEXE = $(EXDIR)/thula$(EXEEXT)
 TCAPIEXE = $(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST = test0.csv test1.csv hist0 hist1 hist2 hist3 \
+EXTRA_DIST = test0.csv test1.csv hist0 hist1 hist2 hist3 text-0 \
     thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     scripts/fastbit-config.in \
@@ -547,8 +548,10 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@fgrep -v 'a, b' $(TESTDIR)/t0-0 | cut -d',' -f1 - > $(TESTDIR)/t0-4
 	@fgrep -v 'a, b' $(TESTDIR)/t0-3 | cut -d',' -f1 - > $(TESTDIR)/t0-5
 	@if [ `diff $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select floor(c/10), max(c) as mx, avg(c) as av where a in ('1', '11', '21') or c < 29 order by av desc" -o $(TESTDIR)/text-0 > /dev/null
+	@if [ `diff -w text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d,lon limit 180" -o $(TESTDIR)/marksdb-1 > /dev/null

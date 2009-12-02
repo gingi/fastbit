@@ -7,10 +7,11 @@
 #include "selectLexer.h"
 #include "selectClause.h"
 
-ibis::selectClause::selectClause(const char *cl) : clause_(cl), lexer(0) {
+ibis::selectClause::selectClause(const char *cl) : lexer(0) {
     if (cl == 0 || *cl == 0) return;
 
     int ierr = 0;
+    clause_ = cl;
     std::istringstream iss(clause_);
     ibis::util::logger lg;
     selectLexer lx(&iss, &(lg.buffer()));
@@ -194,7 +195,7 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
 void ibis::selectClause::fillNames() {
     names_.clear();
     xnames_.clear();
-    if (terms_.size() == 0) return;
+    if (terms_.empty()) return;
 
     uint32_t prec = 0; // number of hexadecimal to use
     for (uint32_t j = terms_.size(); j > 0; j >>= 4)

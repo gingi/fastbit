@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.1.4c],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.1.4d],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -591,6 +591,16 @@ AC_MSG_RESULT([yes])
 else
 AC_MSG_RESULT([no])
 fi
+
+AC_MSG_CHECKING(whether to build contrib)
+AC_ARG_ENABLE(contrib,
+              [AS_HELP_STRING([--enable-contrib],[build contributed code in contrib directory (default: no)])],
+	      [if test "$enableval" = "yes" ; then contrib="yes" ; else contrib="no" ; fi],[contrib="no"])
+AC_MSG_RESULT($contrib)
+if test "$enableval" = "yes" ; then
+AC_CONFIG_SUBDIRS([contrib])
+fi
+
 AC_SUBST(BUILD_JAVA_INTERFACE)
 AC_SUBST(LIB_VERSION_INFO)
 AC_SUBST(INCLUDES)

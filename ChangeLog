@@ -1,3 +1,14 @@
+2009-12-01 John Wu <John.Wu at ACM.org>
+	* src/selectClause.cpp:10 move assignment of clause_ to the body
+	of the constructor to avoid problem with input argument being a
+	nil pointer
+	* src/query.cpp:2463 change else if block to else block to always
+	initialize the bitvector mask
+	* src/query.cpp:340-344 compute verified with sc (instead of
+	comps)
+	* tests/Makefile.am: add a new test case 5 to check-text to test
+	the new order by functionality (requested by Jan Hapke)
+
 2009-11-30 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: consolidate two nearly identical versions of
 	ibis::table::select

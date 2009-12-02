@@ -250,7 +250,12 @@ public:
     virtual void* columnArray(uint32_t j) const {
 	return (j == 0 ? col->getArray() : 0);}
 
-    virtual void reorder(const char *names, int direction) {
+    /// Reorder the values.  Since there is only one column in the bundle,
+    /// the only valid name that can be passed in is the name of the sole
+    /// column.  Because the bundle is already sorted according to this
+    /// column, there is nothing to do expect to reverse the order of the
+    /// values based on the second argument.
+    virtual void reorder(const char *, int direction) {
 	if (direction < 0) {
 	    reverse();
 	    infile = false;
