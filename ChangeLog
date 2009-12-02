@@ -8,6 +8,8 @@
 	comps)
 	* tests/Makefile.am: add a new test case 5 to check-text to test
 	the new order by functionality (requested by Jan Hapke)
+	* contrib: add contrib directory to cvs/svn along with fbmerge.cpp
+	from Luca Deri
 
 2009-11-30 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: consolidate two nearly identical versions of

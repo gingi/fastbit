@@ -592,13 +592,13 @@ else
 AC_MSG_RESULT([no])
 fi
 
-AC_MSG_CHECKING(whether to build contrib)
+AC_MSG_CHECKING(whether to configure Makefiles in contrib)
 AC_ARG_ENABLE(contrib,
               [AS_HELP_STRING([--enable-contrib],[build contributed code in contrib directory (default: no)])],
 	      [if test "$enableval" = "yes" ; then contrib="yes" ; else contrib="no" ; fi],[contrib="no"])
 AC_MSG_RESULT($contrib)
 if test "$enableval" = "yes" ; then
-AC_CONFIG_SUBDIRS([contrib])
+AC_CONFIG_FILES([contrib/Makefile contrib/fbmerge/Makefile])
 fi
 
 AC_SUBST(BUILD_JAVA_INTERFACE)

@@ -34,10 +34,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = ibis$(EXEEXT) tcapi$(EXEEXT) thula$(EXEEXT) \
-	ardea$(EXEEXT) rara$(EXEEXT)
-subdir = examples
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+bin_PROGRAMS = fbmerge$(EXEEXT)
+subdir = contrib/fbmerge
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/tests/m4/libtool.m4 \
 	$(top_srcdir)/tests/m4/ltoptions.m4 \
@@ -53,29 +52,12 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_ardea_OBJECTS = ardea.$(OBJEXT)
-ardea_OBJECTS = $(am_ardea_OBJECTS)
-am_ibis_OBJECTS = ibis.$(OBJEXT)
-ibis_OBJECTS = $(am_ibis_OBJECTS)
-am_rara_OBJECTS = rara.$(OBJEXT)
-rara_OBJECTS = $(am_rara_OBJECTS)
-am_tcapi_OBJECTS = tcapi.$(OBJEXT)
-tcapi_OBJECTS = $(am_tcapi_OBJECTS)
-am_thula_OBJECTS = thula.$(OBJEXT)
-thula_OBJECTS = $(am_thula_OBJECTS)
+am_fbmerge_OBJECTS = fbmerge.$(OBJEXT)
+fbmerge_OBJECTS = $(am_fbmerge_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -85,10 +67,8 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
-	$(tcapi_SOURCES) $(thula_SOURCES)
-DIST_SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
-	$(tcapi_SOURCES) $(thula_SOURCES)
+SOURCES = $(fbmerge_SOURCES)
+DIST_SOURCES = $(fbmerge_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -217,26 +197,14 @@ top_srcdir = @top_srcdir@
 uudecode = @uudecode@
 z_check_pthread_config = @z_check_pthread_config@
 AUTOMAKE_OPTIONS = gnu
-#EXTRA_PROGRAMS =
-ibis_SOURCES = ibis.cpp
-ibis_DEPENDENCIES = ../src/libfastbit.la
-ibis_LDADD = ../src/libfastbit.la
-rara_SOURCES = rara.cpp
-rara_DEPENDENCIES = ../src/libfastbit.la
-rara_LDADD = ../src/libfastbit.la
-thula_SOURCES = thula.cpp
-thula_DEPENDENCIES = ../src/libfastbit.la
-thula_LDADD = ../src/libfastbit.la
-ardea_SOURCES = ardea.cpp
-ardea_DEPENDENCIES = ../src/libfastbit.la
-ardea_LDADD = ../src/libfastbit.la
-tcapi_SOURCES = tcapi.c
-tcapi_DEPENDENCIES = ../src/libfastbit.la
-tcapi_LDADD = ../src/libfastbit.la
+EXTRA_DIST = fbmerge.sln fbmerge.vcproj
+fbmerge_SOURCES = fbmerge.cpp
+fbmerge_DEPENDENCIES = ../../src/libfastbit.la
+fbmerge_LDADD = ../../src/libfastbit.la
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -246,9 +214,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu examples/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu contrib/fbmerge/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu examples/Makefile
+	  $(AUTOMAKE) --gnu contrib/fbmerge/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -310,18 +278,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-ardea$(EXEEXT): $(ardea_OBJECTS) $(ardea_DEPENDENCIES) 
-	@rm -f ardea$(EXEEXT)
-	$(CXXLINK) $(ardea_OBJECTS) $(ardea_LDADD) $(LIBS)
-ibis$(EXEEXT): $(ibis_OBJECTS) $(ibis_DEPENDENCIES) 
-	@rm -f ibis$(EXEEXT)
-	$(CXXLINK) $(ibis_OBJECTS) $(ibis_LDADD) $(LIBS)
-rara$(EXEEXT): $(rara_OBJECTS) $(rara_DEPENDENCIES) 
-	@rm -f rara$(EXEEXT)
-	$(CXXLINK) $(rara_OBJECTS) $(rara_LDADD) $(LIBS)
-thula$(EXEEXT): $(thula_OBJECTS) $(thula_DEPENDENCIES) 
-	@rm -f thula$(EXEEXT)
-	$(CXXLINK) $(thula_OBJECTS) $(thula_LDADD) $(LIBS)
+fbmerge$(EXEEXT): $(fbmerge_OBJECTS) $(fbmerge_DEPENDENCIES) 
+	@rm -f fbmerge$(EXEEXT)
+	$(CXXLINK) $(fbmerge_OBJECTS) $(fbmerge_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -329,32 +288,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ardea.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibis.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rara.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcapi.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thula.Po@am__quote@
-
-.c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fbmerge.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -580,12 +514,10 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
+#endif
 #
-../src/libfastbit.la::
-	cd ../src && $(MAKE) libfastbit.la
-# has to be linked with $(CXXLINK)
-tcapi$(EXEEXT): tcapi.$(OBJEXT) $(tcapi_LDADD)
-	$(CXXLINK) tcapi.$(OBJEXT) $(tcapi_LDADD) $(LIBS)
+../../src/libfastbit.la::
+	cd ../../src && $(MAKE) libfastbit.la
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR) .ibis
 	-rm -f Makefile
