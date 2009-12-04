@@ -1583,30 +1583,58 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     }
     md << "\nEND HEADER\n";
 
-    for (columnList::const_iterator it = cols.begin();
-	 it != cols.end(); ++ it) {
-	const column& col = *((*it).second);
-	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
-	   << ibis::TYPESTRING[(int) col.type];
-	if (!col.desc.empty())
-	    md << "\ndescription = " << col.desc;
-	if (! col.indexSpec.empty()) {
-	    md << "\nindex = " << col.indexSpec;
+    if (colorder.size() == cols.size()) { // in input order
+	for (size_t j = 0; j < cols.size(); ++ j) {
+	    const column& col = *(colorder[j]);
+	    md << "\nBegin Column\nname = " << col.name << "\ndata_type = "
+	       << ibis::TYPESTRING[(int) col.type];
+	    if (!col.desc.empty())
+		md << "\ndescription = " << col.desc;
+	    if (! col.indexSpec.empty()) {
+		md << "\nindex = " << col.indexSpec;
+	    }
+	    else if (col.type == ibis::TEXT) {
+		md << "\nindex = none";
+	    }
+	    else {
+		std::string idxkey = "ibis.";
+		idxkey += tname;
+		idxkey += ".";
+		idxkey += col.name;
+		idxkey += ".index";
+		const char* str = ibis::gParameters()[idxkey.c_str()];
+		if (str != 0)
+		    md << "\nindex = " << str;
+	    }
+	    md << "\nEnd Column\n";
 	}
-	else if (col.type == ibis::TEXT) {
-	    md << "\nindex = none";
+    }
+    else { // write columns in alphabetic order
+	for (columnList::const_iterator it = cols.begin();
+	     it != cols.end(); ++ it) {
+	    const column& col = *((*it).second);
+	    md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
+	       << ibis::TYPESTRING[(int) col.type];
+	    if (!col.desc.empty())
+		md << "\ndescription = " << col.desc;
+	    if (! col.indexSpec.empty()) {
+		md << "\nindex = " << col.indexSpec;
+	    }
+	    else if (col.type == ibis::TEXT) {
+		md << "\nindex = none";
+	    }
+	    else {
+		std::string idxkey = "ibis.";
+		idxkey += tname;
+		idxkey += ".";
+		idxkey += (*it).first;
+		idxkey += ".index";
+		const char* str = ibis::gParameters()[idxkey.c_str()];
+		if (str != 0)
+		    md << "\nindex = " << str;
+	    }
+	    md << "\nEnd Column\n";
 	}
-	else {
-	    std::string idxkey = "ibis.";
-	    idxkey += tname;
-	    idxkey += ".";
-	    idxkey += (*it).first;
-	    idxkey += ".index";
-	    const char* str = ibis::gParameters()[idxkey.c_str()];
-	    if (str != 0)
-		md << "\nindex = " << str;
-	}
-	md << "\nEnd Column\n";
     }
     md.close(); // close the file
     ibis::fileManager::instance().flushDir(dir);
@@ -2414,7 +2442,7 @@ void ibis::tafel::clearData() {
 /// @note
 /// If the caller does not store more rows than can be held in memory, the
 /// underlying data structure should automatically expand to accomodate the
-/// new rows.  However, it is definitely advantages in reserving space
+/// new rows.  However, it is definitely advantageous to reserve space
 /// ahead of time.  It will reduce the need to expand the underlying
 /// storage objects, which can reduce the execution time.  In addition,
 /// reserving a good fraction of the physical memory, say 10 - 40%, for
@@ -2498,6 +2526,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<signed char>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2516,6 +2545,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<unsigned char>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2534,6 +2564,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<int16_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2552,6 +2583,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<uint16_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2570,6 +2602,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<int32_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2588,6 +2621,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<uint32_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2606,6 +2640,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<int64_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2624,6 +2659,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<uint64_t>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2642,6 +2678,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<float>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2660,6 +2697,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new array_t<double>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2679,6 +2717,7 @@ int32_t ibis::tafel::doReserve(uint32_t maxr) {
 		delete tmp;
 		tmp = new std::vector<std::string>(maxr);
 		col.values = tmp;
+		tmp->resize(0);
 		ret = maxr;
 	    }
 	    else if (curr < maxr) {
@@ -2795,7 +2834,7 @@ uint32_t ibis::tafel::preferredSize() const {
 	    width += 8;
 	    break;
 	default:
-	    width += 16;
+	    width += 64;
 	    break;
 	} // switch
     } // for
@@ -2829,6 +2868,15 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     const uint32_t ncol = colorder.size();
     for (uint32_t i = 0; i < ncol; ++ i) {
 	column& col = *(colorder[i]);
+	if (col.values == 0) {
+	    reserveSpace(100000);
+	    if (col.values == 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- tafel::parseLine failed to acquire memory "
+		    "for column " << i << " ("<< col.name << ")";
+		return -1;
+	    }
+	}
 	switch (col.type) {
 	case ibis::BYTE: {
 	    ierr = ibis::util::readInt(itmp, str, del);
@@ -3678,13 +3726,18 @@ int ibis::tablex::readNamesAndTypes(const char* filename) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "tablex::readNamesAndTypes(" << filename
 	    << ") failed to open the named file for reading";
-	return -3;
+	return -2;
     }
 
     int ret = 0;
     bool more = true;
+    bool withHeader = false; // true is encounter begin column
+    bool skipHeader = false;
+    const char *str, *s1;
+    std::string buf2, b2;
     while (more) {
 	std::streampos linestart = ntfile.tellg();
+	// read a line from the input file, retry if encounter an error
 	while (! ntfile.getline(linebuf.address(), linebuf.size())) {
 	    if (ntfile.eof()) {
 		*(linebuf.address()) = 0;
@@ -3700,22 +3753,60 @@ int ibis::tablex::readNamesAndTypes(const char* filename) {
 		    << ") failed to allocate linebuf of " << nold+nold
 		    << " bytes";
 		more = false;
-		break;
+		return -3;
 	    }
 	    ntfile.clear(); // clear the error bit
+	    *(linebuf.address()) = 0;
 	    if (! ntfile.seekg(linestart, std::ios::beg)) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- tablex::readNamesAndTypes(" << filename
 		    << ") failed to seek to the beginning of a line";
-		*(linebuf.address()) = 0;
 		more = false;
-		break;
+		return -4;
 	    }
 	}
-	if (linebuf.address() != 0 && *(linebuf.address()) != 0) {
-	    int ierr = parseNamesAndTypes(linebuf.address());
-	    if (ierr >  0)
-		ret += ierr;
+
+	str = linebuf.address();
+	while (*str != 0 && isspace(*str) != 0) ++ str; // skip space
+	if (*str == 0 || *str == '#' || (*str == '-' && str[1] == '-')) {
+	    // do nothing
+	}
+	else if (skipHeader) { // reading the header
+	    skipHeader = (stricmp(str, "end header") != 0);
+	}
+	else if (stricmp(str, "begin header") == 0) {
+	    withHeader = true;
+	    skipHeader = true;
+	}
+	else if ((s1 = strstr(str, "name = ")) != 0) {
+	    s1 += 7;
+	    ibis::util::getString(buf2, s1);
+	}
+	else if ((s1 = strstr(str, "type = ")) != 0) {
+	    s1 += 7;
+	    ibis::util::getString(b2, s1);
+	    if (! b2.empty()) {
+		buf2 += ':';
+		buf2 += b2;
+	    }
+	}
+	else if (stricmp(str, "end column") == 0) {
+	    if (! buf2.empty()) {
+		int ierr = parseNamesAndTypes(buf2.c_str());
+		if (ierr > 0)
+		    ret += ierr;
+	    }
+	}
+	else if (withHeader == false) {
+	    if (stricmp(str, "begin column") == 0) {
+		withHeader  = true;
+	    }
+	    else {
+		// plain version of name:type pairs
+		int ierr = parseNamesAndTypes(str);
+		if (ierr >  0)
+		    ret += ierr;
+	    }
 	}
     } // while (more)
 
@@ -3787,7 +3878,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	}
 	type.clear();
 	while (*str != 0 && isalpha(*str) != 0) {
-	    type += *str;
+	    type += tolower(*str);
 	    ++ str;
 	}
 	if (type.compare("unsigned") == 0 || type.compare("signed") == 0) {
@@ -3795,8 +3886,8 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    if (type.compare("signed") == 0)
 		type.clear();
 	    while (*str != 0 && isspace(*str) != 0) ++ str;
-	    while (*str != 0 && isalpha(*str) != 0) {
-		type += *str;
+	    while (*str != 0 && isalnum(*str) != 0) {
+		type += tolower(*str);
 		++ str;
 	    }
 	}

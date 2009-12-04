@@ -115,7 +115,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
  	<< __FILE__ << ":" << __LINE__ << " got a quoted string: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext+1, yyleng-2);
-    return token::NOUNSTR;
+    return token::STRLIT;
 }
 
 \({WS}*{NUMBER}{SEP}+{NUMBER}({SEP}+{NUMBER})+{WS}*\) { /* a number series */
@@ -123,8 +123,8 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number sequence: " << yytext;
 #endif
-    yylval->stringVal = new std::string(yytext, yyleng);
-    return token::STRSEQ;
+    yylval->stringVal = new std::string(yytext+1, yyleng-2);
+    return token::NUMSEQ;
 }
 
 \({WS}*({QUOTED}|{NAME}){SEP}+({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {

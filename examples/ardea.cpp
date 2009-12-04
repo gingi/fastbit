@@ -131,6 +131,8 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		break;
 	    case 'd':
 	    case 'D':
+	    case 'o':
+	    case 'O':
 		if (i+1 < argc) {
 		    ++ i;
 		    outdir = argv[i];

@@ -2768,10 +2768,10 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 /// The object qString contains only two string values without any
 /// indication as what they represent.  This function actually uses the two
 /// string and decide what they are.  It first tries to match the left
-/// string against known column names of this part.  If the name matches
-/// one that is of type STRING or KEY, the search is performed on this
-/// column.  Otherwise the right string is compared against the column
-/// names, if a match is found, the search is performed on this column.  If
+/// string against known column names of this partition.  If the name
+/// matches one that is of type STRING or KEY, the search is performed on
+/// this column.  Otherwise the right string is compared against the column
+/// names, if a match is found, the search is performed on that column.  If
 /// both failed, the search returns no hit.
 long ibis::part::lookforString(const ibis::qString &cmp,
 			       ibis::bitvector &low) const {

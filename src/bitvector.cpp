@@ -1019,6 +1019,7 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator&=: A=" << *this << "B=" << rhs;
     }
 #endif
+    m_vec.nosharing(); // make sure the memory is not shared
     if (size() > rhs.size()) { // make a copy of RHS and extend its size
 	ibis::bitvector tmp(rhs);
 	tmp.adjustSize(0, size());
@@ -1253,6 +1254,7 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator|=: A=" << *this << "B=" << rhs;
     }
 #endif
+    m_vec.nosharing();
     if (size() > rhs.size()) {
 	ibis::bitvector tmp(rhs);
 	tmp.adjustSize(0, size());
@@ -1413,6 +1415,7 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator^=: A=" << *this << "B=" << rhs;
     }
 #endif
+    m_vec.nosharing();
     if (size() > rhs.size()) {
 	ibis::bitvector tmp(rhs);
 	tmp.adjustSize(0, size());
@@ -1556,6 +1559,7 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 	lg.buffer() << "operator-=: A=" << *this << "B=" << rhs;
     }
 #endif
+    m_vec.nosharing();
     if (size() > rhs.size()) {
 	ibis::bitvector tmp(rhs);
 	tmp.adjustSize(0, size());
@@ -1585,7 +1589,6 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
     else if (rhs.all1s()) { // zero out m_vec
 	nset = 0;
 	nbits = 0;
-	m_vec.nosharing();
 	m_vec.clear();
 	active.val &= ~(rhs.active.val);
 	append_counter(0, rhs.m_vec[0]&MAXCNT);

@@ -218,6 +218,11 @@ void ibis::fileManager::flushFile(const char* name) {
 		<< "\" because it is in use (" << (*it).second->inUse() << ')';
 	}
     }
+    else {
+	LOGGER(ibis::gVerbose > 5)
+	    << "fileManager::flushFile will do nothing because \"" << name
+	    << "\" is not tracked by the file manager";
+    }
 } // ibis::fileManager::flushFile
 
 // remove all files from the specified directory (include all sub
@@ -297,7 +302,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	    it = next;
 	}
 
-	if (cnt) {// there are files in use, wait for them to be released
+	if (cnt) {// there are files in use
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fileManager::flushDir(" << name
 		<< ") finished with " << cnt << " file"

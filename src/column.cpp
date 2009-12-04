@@ -4862,8 +4862,8 @@ void ibis::column::indexSpeedTest() const {
 void ibis::column::purgeIndexFile(const char *dir) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
 	return;
-    std::string fnm = (dir ? dir : thePart != 0 ? thePart->currentDataDir()
-		       : ".");
+    std::string fnm = (dir ? dir :
+		       thePart != 0 ? thePart->currentDataDir() : ".");
     if (fnm[fnm.size()-1] != FASTBIT_DIRSEP)
 	fnm += FASTBIT_DIRSEP;
     fnm += m_name;

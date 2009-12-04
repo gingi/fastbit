@@ -1,3 +1,20 @@
+2009-12-03 John Wu <John.Wu at ACM.org>
+	* src/tafel.cpp: change tablex::readNamesAndTypes to read
+	-part.txt as well, change ibis::tafel::writeMetaData to write the
+	columns in the order given on input
+	* src/whereLexer.ll: change return type of {QUOED} to STRLIT
+	(return the return type of the number sequence to NUMSEQ as it
+	should be, the previous modfication was incorrect)
+	* src/whereParse.yy: uncomment the rules for producing
+	ibis::qString, modify the rule on line 419 to provide a
+	work-around for the shift/reduce conflict
+	* tests/Makefile.am: add test cases for "index = none"
+	* src/bitvector.cpp: invoke nosharing on m_vec in all four
+	versions of bitwise logical operations that modifies the left-hand
+	side (only operator-= was doing it in some cases).  This might
+	address the problem reported by Jochen Schlosser because the
+	modified mask vector may still be using a map of the old mask file.
+
 2009-12-02 John Wu <John.Wu at ACM.org>
 	* configure.ac: generate Makefile in contrib/fbmerge
 	* INSTALL: add note about floating-point value variations, remove

@@ -1116,7 +1116,7 @@ YY_RULE_SETUP
  	<< __FILE__ << ":" << __LINE__ << " got a quoted string: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext+1, yyleng-2);
-    return token::NOUNSTR;
+    return token::STRLIT;
 }
 	YY_BREAK
 case 38:
@@ -1128,8 +1128,8 @@ YY_RULE_SETUP
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number sequence: " << yytext;
 #endif
-    yylval->stringVal = new std::string(yytext, yyleng);
-    return token::STRSEQ;
+    yylval->stringVal = new std::string(yytext+1, yyleng-2);
+    return token::NUMSEQ;
 }
 	YY_BREAK
 case 39:

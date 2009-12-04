@@ -157,7 +157,7 @@ namespace ibis
      NOUNSTR = 282,
      NUMSEQ = 283,
      STRSEQ = 284,
-     ASOP = 285
+     STRLIT = 285
    };
 
     };

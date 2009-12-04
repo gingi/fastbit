@@ -644,7 +644,13 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
 	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
-	done; done; echo; \
+	done; done; \
+	perl -pi -e "s/index = .*/index = none/" $(TESTDIR)/0/test?/-part.txt; \
+	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
+	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
+	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
+	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; echo; \
 	if [ $${npassed} -lt $${ncases} ]; then \
 	echo Did NOT pass `expr $${ncases} - $${npassed}` out of $${ncases} $@ test cases; \
 	else \
@@ -653,7 +659,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	@echo
 #
 multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
-	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
+	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" "none" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	echo; \

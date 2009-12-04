@@ -1334,6 +1334,11 @@ long ibis::part::deactivate(const ibis::bitvector& rows) {
 	amask.write(mskfile.c_str());
 	ibis::fileManager::instance().flushFile(mskfile.c_str());
     }
+    LOGGER(ibis::gVerbose > 0)
+	<< "part[" << (m_name?m_name:"?") << "]::deactivate marked "
+	<< rows.cnt() << " row" << (rows.cnt()>1?"s":"")
+	<< " as inactive, leaving " << amask.cnt() << " active row"
+	<< (amask.cnt()>1?"s":"") << " out of " << amask.size();
     return (amask.size() - amask.cnt());
 } // ibis::part::deactivate
 
@@ -1352,6 +1357,11 @@ long ibis::part::reactivate(const ibis::bitvector& rows) {
     else
 	remove(mskfile.c_str());
     ibis::fileManager::instance().flushFile(mskfile.c_str());
+    LOGGER(ibis::gVerbose > 0)
+	<< "part[" << (m_name?m_name:"?") << "]::reactivate marked "
+	<< rows.cnt() << " row" << (rows.cnt()>1?"s":"")
+	<< " as active, leaving " << amask.cnt() << " active row"
+	<< (amask.cnt()>1?"s":"") << " out of " << amask.size();
     return amask.cnt();
 } // ibis::part::reactivate
 
@@ -1382,6 +1392,9 @@ long ibis::part::deactivate(const char* conds) {
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);
+    LOGGER(ibis::gVerbose > 1)
+	<< "part[" << (m_name?m_name:"?") << "]::deactivate translated \""
+	<< conds << "\" into " << msk.cnt() << " row" << (msk.cnt()>1?"s":"");
     if (msk.cnt() > 0)
 	return deactivate(msk);
     else
@@ -1404,6 +1417,9 @@ long ibis::part::reactivate(const char* conds) {
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);
+    LOGGER(ibis::gVerbose > 1)
+	<< "part[" << (m_name?m_name:"?") << "]::reactivate translated \""
+	<< conds << "\" into " << msk.cnt() << " row" << (msk.cnt()>1?"s":"");
     if (msk.cnt() > 0)
 	return reactivate(msk);
     else
@@ -1416,6 +1432,11 @@ long ibis::part::purgeInactive() {
     int ierr = 0; 
     mutexLock lock(this, "purgeInactive");
     if (amask.cnt() == amask.size()) return nEvents;
+
+    LOGGER(ibis::gVerbose > 0)
+	<< "part[" << (m_name?m_name:"?") << "]::purgeInactive to remove "
+	<< amask.size()-amask.cnt() << " out of " << amask.size() << " row"
+	<< (amask.size()>1?"s":"");
 
     ibis::fileManager::buffer<char> buf_;
     char *mybuf = buf_.address();
