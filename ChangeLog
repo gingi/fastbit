@@ -2,6 +2,9 @@
 	* src/fileManager.cpp: move the mutex lock outside to the caller
 	because most of the callers have already a mutex lock, which
 	causes dead lock
+	* src/whereParser.yy: introduce special cases of operator IN
+	involving string literals (to address a problem reported by
+	Alexandre Maurel)
 
 2009-12-07 John Wu <John.Wu at ACM.org>
 	* win/win.Mak: remove '-o' from commands that build object files,
