@@ -597,12 +597,39 @@ namespace ibis {
 	    return str;
 	}
 #endif
-	/// A global IO mutex lock.
+
+	/// A class for logging messages.  The caller writes message to a
+	/// std::ostream returned by the function buffer as if to
+	/// std::cout.  Note that messages are stored in this buffer and
+	/// written out in the destructor of this class.  There is a macro
+	/// LOGGER that can simplify some of the routine stuff.  Use
+	/// function ibis::util::setLogFile to explicit name of the log
+	/// file or use RC file entry logfile to specify a file name.  By
+	/// default all messages are dump to stdout.
+	class FASTBIT_CXX_DLLSPEC logger {
+	public:
+	    /// Constructor.
+	    logger(int blanks=0);
+	    /// Destructor.
+	    ~logger();
+	    /// Retrun an output stream for caller to build a message.
+	    std::ostream& buffer() {return mybuffer;}
+
+	protected:
+	    /// The message is stored in this buffer.
+	    std::ostringstream mybuffer;
+
+	private:
+	    logger(const logger&);
+	    logger& operator=(const logger&);
+	}; // logger
+
+	/// A global I/O lock.  All ioLock objects share the same
+	/// underlying pthread_mutex lock.
 	class ioLock {
 	public:
 	    ioLock() {
-		int ierr = pthread_mutex_lock(&mutex);
-		if (ierr != 0)
+		if (0 != pthread_mutex_lock(&mutex))
 		    throw "ioLock failed to obtain a lock";
 	    }
 	    ~ioLock() {
@@ -621,18 +648,17 @@ namespace ibis {
 	public:
 	    mutexLock(pthread_mutex_t* lk, const char* m)
 		: mesg(m), lock(lk) {
-		if (ibis::gVerbose > 17)
-		    logMessage("mutexLock", "acquiring lock (0x%lx) for %s",
-			       lock, mesg);
-		int ierr = pthread_mutex_lock(lock);
-		if (ierr != 0) {
+		LOGGER(ibis::gVerbose > 10)
+		    << "util::mutexLock -- acquiring lock (" << lock
+		    << ") for " << mesg;
+		if (0 != pthread_mutex_lock(lock)) {
 		    throw "mutexLock failed to obtain a lock";
 		}
 	    }
 	    ~mutexLock() {
-		if (ibis::gVerbose > 17)
-		    logMessage("mutexLock", "releasing lock (0x%lx) for %s",
-			       lock, mesg);
+		LOGGER(ibis::gVerbose > 10)
+		    << "util::mutexLock -- releasing lock (" << lock
+		    << ") for " << mesg;
 		(void) pthread_mutex_unlock(lock);
 	    }
 
@@ -651,10 +677,8 @@ namespace ibis {
 	class quietLock {
 	public:
 	    quietLock(pthread_mutex_t* lk) : lock(lk) {
-		int ierr = pthread_mutex_lock(lock);
-		if (ierr != 0) {
+		if (0 != pthread_mutex_lock(lock))
 		    throw "quietLock failed to obtain a mutex lock";
-		}
 	    }
 	    ~quietLock() {
 		(void) pthread_mutex_unlock(lock);
@@ -673,8 +697,7 @@ namespace ibis {
 	public:
 	    readLock(pthread_rwlock_t* lk, const char* m)
 		: mesg(m), lock(lk) {
-		int ierr = pthread_rwlock_rdlock(lock);
-		if (ierr != 0) {
+		if (0 != pthread_rwlock_rdlock(lock)) {
 		    throw "readLock failed to obtain a lock";
 		}
 	    }
@@ -696,8 +719,7 @@ namespace ibis {
 	public:
 	    writeLock(pthread_rwlock_t* lk, const char* m)
 		: mesg(m), lock(lk) {
-		int ierr = pthread_rwlock_wrlock(lock);
-		if (ierr != 0) {
+		if (0 != pthread_rwlock_wrlock(lock)) {
 		    throw "writeLock failed to obtain a lock";
 		}
 	    }
@@ -719,8 +741,8 @@ namespace ibis {
 
 	/// A simple shared counter.  Each time the operator() is called,
 	/// it is incremented by 1.  Calls from different threads are
-	/// serialized through a mutual exclusion lock or atomic
-	/// operations.  Currently, it only knows about atomic operations
+	/// serialized through a mutual exclusion lock or an atomic
+	/// operation.  Currently, it only knows about atomic operations
 	/// provided by GCC and visual studio on WIN32.  The GCC automic
 	/// functions are determined in the configure script.
 	class FASTBIT_CXX_DLLSPEC counter {
@@ -989,32 +1011,6 @@ namespace ibis {
 	    sharedInt64(const sharedInt64&); // no copy constructor
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
-
-	/// A class for logging messages.  The caller writes message to a
-	/// std::ostream returned by the function buffer as if to
-	/// std::cout.  Note that messages are stored in this buffer and
-	/// written out in the destructor of this class.  There is a macro
-	/// LOGGER that can simplify some of the routine stuff.  Use
-	/// function ibis::util::setLogFile to explicit name of the log
-	/// file or use RC file entry logfile to specify a file name.  By
-	/// default all messages are dump to stdout.
-	class FASTBIT_CXX_DLLSPEC logger {
-	public:
-	    /// Constructor.
-	    logger(int blanks=0);
-	    /// Destructor.
-	    ~logger();
-	    /// Retrun an output stream for caller to build a message.
-	    std::ostream& buffer() {return mybuffer;}
-
-	protected:
-	    /// The message is stored in this buffer.
-	    std::ostringstream mybuffer;
-
-	private:
-	    logger(const logger&);
-	    logger& operator=(const logger&);
-	}; // logger
 
 	/// Print simply-formated timing information.  It starts the clock
 	/// in the constructor, stops the clock in the destructor, and

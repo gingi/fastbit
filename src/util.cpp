@@ -15,7 +15,7 @@
 #include <stdarg.h>	// vsprintf
 #if defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
 #include <pwd.h>	// getpwuid
-#include <unistd.h>	// getuid, rmdir
+#include <unistd.h>	// getuid, rmdir, sysconf
 #include <sys/stat.h>	// stat
 #include <dirent.h>	// opendir, readdir
 #endif
@@ -1014,6 +1014,7 @@ void ibis::util::int2string(std::string& str, unsigned val) {
 /// emoticon.
 const char* ibis::util::userName() {
     static std::string uid;
+    if (! uid.empty()) return uid.c_str();
     ibis::util::mutexLock lock(&ibis::util::envLock, "<(-_-)>");
 
     if (uid.empty()) {
@@ -1025,10 +1026,39 @@ const char* ibis::util::userName() {
 #elif defined(__MINGW32__)
 	// MinGW does not have support for user names?!
 #elif defined(_POSIX_VERSION)
+#if defined(_SC_GETPW_R_SIZE_MAX)
+	// use the thread-safe version of getpwuid_r
+	struct passwd  pass;
+	struct passwd *ptr1 = &pass;
+	int nbuf = sysconf(_SC_GETPW_R_SIZE_MAX);
+	int ierr = (nbuf > 0 ? 0 : -1);
+	if (ierr == 0) {
+	    char *buf = new char[nbuf];
+	    if (buf != 0) {
+		struct passwd *ptr2 = 0;
+		ierr = getpwuid_r(getuid(), ptr1, buf, nbuf, &ptr2);
+		if (ierr == 0) {
+		    uid = pass.pw_name;
+		}
+		if (ptr2 != ptr1)
+		    delete ptr2;
+		delete [] buf;
+	    }
+	}
+	if (ierr != 0) {
+	    // the trusted getpwuid(getuid()) combination
+	    struct passwd *pass = getpwuid(getuid());
+	    if (pass != 0)
+		uid = pass->pw_name;
+	    delete pass;
+	}
+#else
 	// the trusted getpwuid(getuid()) combination
 	struct passwd *pass = getpwuid(getuid());
 	if (pass != 0)
 	    uid = pass->pw_name;
+	delete pass;
+#endif
 #elif defined(L_cuserid) && defined(__USE_XOPEN)
 	// in the unlikely case that we are not on a POSIX-compliant system
 	// https://buildsecurityin.us-cert.gov/daisy/bsi-rules/home/g1/731.html
@@ -1052,7 +1082,7 @@ const char* ibis::util::userName() {
 	uid = getlogin();
 #endif
 	// final fall back option, assign a fixed string that is commonly
-	// interpreted as robot
+	// interpreted as a robot
 	if (uid.empty())
 	    uid = "<(-_-)>";
     }

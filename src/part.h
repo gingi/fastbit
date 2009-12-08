@@ -582,6 +582,8 @@ public:
     long reactivate(const char* conds);
     /// Purge all inactive rows from the partition.
     long purgeInactive();
+    /// Empty all unused resources in cache.
+    void emptyCache() const;
     /// Return a reference to the mask of active rows.
     const ibis::bitvector &getNullMask() const {return amask;}
 
@@ -643,13 +645,11 @@ protected:
     class cleaner;	///< Cleaner for the file manager.
     class writeLock;	///< A write lock on the partition.
     class advisoryLock; ///< A non-block version of writeLock.
-    class mutexLock;
 
     friend struct info;
     friend class cleaner;
     friend class readLock;
     friend class writeLock;
-    friend class mutexLock;
     friend class advisoryLock;
 
     /******************************************************************/
@@ -1311,7 +1311,7 @@ private:
 /// A cleaner to be used by the fileManager::unload function.
 class ibis::part::cleaner : public ibis::fileManager::cleaner {
 public:
-    inline virtual void operator()() const;
+    virtual void operator()() const;
     cleaner(const part* tbl) : thePart(tbl) {}
     virtual ~cleaner() {}
 
@@ -1357,10 +1357,11 @@ private:
 }; // ibis::part::writeLock
 
 /// An non-blocking version of writeLock.  The function @c acquired returns
-/// true is the object has acquired a lock successfully, otherwise the
+/// true is the object has acquired a write lock successfully, otherwise the
 /// function returns false.
 class ibis::part::advisoryLock {
 public:
+    /// Constructor.
     advisoryLock(const part* tbl, const char* m)
 	: thePart(tbl), mesg(m),
 	  locked(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
@@ -1369,7 +1370,10 @@ public:
 				 (locked==0?"acquired":"could not acquire"),
 				 mesg);
     }
+    /// Destructor.
     ~advisoryLock() {if (locked==0) thePart->releaseAccess(mesg);}
+    /// Have we acquired the desired lock?  Returns true if yes, otherwise
+    /// false.
     bool acquired() const {return (locked==0);}
 
 private:
@@ -1382,38 +1386,6 @@ private:
 	: thePart(rhs.thePart), mesg(rhs.mesg), locked(0) {};
     const advisoryLock &operator=(const advisoryLock&);
 }; // ibis::part::advisoryLock
-
-/// Provide a mutual exclusion lock on an ibis::part object.
-class ibis::part::mutexLock {
-public:
-    mutexLock(const part* tbl, const char* m) : thePart(tbl), mesg(m) {
-	if (ibis::gVerbose > 9)
-	    tbl->logMessage("gainExclusiveAccess",
-			    "pthread_mutex_lock for %s", m);
-	int ierr = pthread_mutex_lock(&(tbl->mutex));
-	if (0 != ierr)
-	    tbl->logWarning("gainExclusiveAccess", "pthread_mutex_lock for %s "
-			    "returned %d (%s)", m, ierr, strerror(ierr));
-    }
-    ~mutexLock() {
-	if (ibis::gVerbose > 9)
-	    thePart->logMessage("releaseExclusiveAccess",
-				 "pthread_mutex_unlock for %s", mesg);
-	int ierr = pthread_mutex_unlock(&(thePart->mutex));
-	if (0 != ierr)
-	    thePart->logWarning("releaseExclusiveAccess",
-				"pthread_mutex_unlock for %s returned %d (%s)",
-				mesg, ierr, strerror(ierr));
-    }
-
-private:
-    const part* thePart;
-    const char* mesg;
-
-    mutexLock() {}; // no default constructor
-    mutexLock(const mutexLock&) {}; // can not copy
-    const mutexLock &operator=(const mutexLock&);
-}; // ibis::part::mutexLock
 
 /// To read a list of variables at the same time.
 /// This implementation opens each data file and read the values from the
@@ -1550,8 +1522,8 @@ inline ibis::part::info* ibis::part::getInfo() const {
 }
 
 inline void ibis::part::releaseAccess(const char* mesg) const {
-    if (ibis::gVerbose > 9)
-	logMessage("releaseAccess", "releasing rwlock from %s", mesg);
+    if (ibis::gVerbose > 8)
+	logMessage("releaseAccess", "releasing rwlock for %s", mesg);
     int ierr = pthread_rwlock_unlock(&rwlock);
     if (0 != ierr) {
 	logWarning("releaseAccess", "pthread_rwlock_unlock for %s "
@@ -1560,7 +1532,7 @@ inline void ibis::part::releaseAccess(const char* mesg) const {
 } // ibis::part::releaseAccess
 
 inline void ibis::part::gainReadAccess(const char* mesg) const {
-    if (ibis::gVerbose > 9)
+    if (ibis::gVerbose > 8)
 	logMessage("gainReadAccess", "acquiring read lock for %s", mesg);
     int ierr = pthread_rwlock_rdlock(&rwlock);
     if (0 != ierr) {
@@ -1570,8 +1542,8 @@ inline void ibis::part::gainReadAccess(const char* mesg) const {
 } // ibis::part::gainReadAccess
 
 inline void ibis::part::gainWriteAccess(const char* mesg) const {
-    if (ibis::gVerbose > 9)
-	logMessage("gainWriteAccess", "acquiring write access for %s", mesg);
+    if (ibis::gVerbose > 8)
+	logMessage("gainWriteAccess", "acquiring write lock for %s", mesg);
     int ierr = pthread_rwlock_wrlock(&rwlock);
     if (0 != ierr)
 	logWarning("gainWriteAccess", "pthread_rwlock_wrlock for "
@@ -1630,6 +1602,7 @@ inline int64_t ibis::part::evaluateJoin
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
+/// Unload the indexes to free up come resources.
 inline void ibis::part::cleaner::operator()() const {
     const uint32_t sz = ibis::fileManager::bytesInUse();
     thePart->unloadIndexes();

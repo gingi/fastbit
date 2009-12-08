@@ -637,7 +637,7 @@ int ibis::zone::read(const char* f) {
     }
 
     if (header[0] != '#' || header[1] != 'I' ||
-	header[2] != 'B' && header[3] != 'I' || header[4] != 'S' ||
+	header[2] != 'B' || header[3] != 'I' || header[4] != 'S' ||
 	header[5] != static_cast<char>(ibis::index::ZONE) ||
 	(header[6] != 8 && header[6] != 4) ||
 	header[7] != static_cast<char>(0)) {

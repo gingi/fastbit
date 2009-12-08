@@ -301,7 +301,7 @@ int ibis::egale::write32(int fdes) const {
     ierr  = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*nobs);
     ierr += UnixWrite(fdes, &nbases, sizeof(uint32_t));
     ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nbases);
-    if (ierr < (off_t)sizeof(uint32_t)*(nobs+1+nbases)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nobs+1+nbases))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32 expected to write "
@@ -315,20 +315,20 @@ int ibis::egale::write32(int fdes) const {
 	bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    ierr = UnixSeek(fdes,
-		    8*((7+start+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs,
-		    SEEK_SET);
-    if (ierr < (off_t)(8*((15+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs)) {
+
+    const off_t offpos = 8*((7+start+3*sizeof(uint32_t))/8)
+	+ 3*sizeof(double)*nobs;
+    ierr = UnixSeek(fdes, offpos, SEEK_SET);
+    if (ierr < offpos) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32 failed to seek to "
-	    << 8*((15+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs
-	    << ", ierr = " << ierr;
+	    << offpos << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -9;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nbits+1));
-    if (ierr < (off_t)sizeof(int32_t)*(nbits+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32 expected to write "
@@ -401,7 +401,7 @@ int ibis::egale::write64(int fdes) const {
     ierr  = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*nobs);
     ierr += UnixWrite(fdes, &nbases, sizeof(uint32_t));
     ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nbases);
-    if (ierr < (off_t)sizeof(uint32_t)*(nobs+1+nbases)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nobs+1+nbases))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64 expected to write "
@@ -415,20 +415,20 @@ int ibis::egale::write64(int fdes) const {
 	bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
-    ierr = UnixSeek(fdes,
-		    8*((7+start+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs,
-		    SEEK_SET);
-    if (ierr < (off_t)(8*((15+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs)) {
+
+    const off_t offpos = 8*((7+start+3*sizeof(uint32_t))/8)
+	+ 3*sizeof(double)*nobs;
+    ierr = UnixSeek(fdes, offpos, SEEK_SET);
+    if (ierr < offpos) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64 failed to seek to "
-	    << 8*((15+3*sizeof(uint32_t))/8)+3*sizeof(double)*nobs
-	    << ", ierr = " << ierr;
+	    << offpos << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -9;
     }
     ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nbits+1));
-    if (ierr < (off_t)sizeof(int64_t)*(nbits+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64 expected to write "

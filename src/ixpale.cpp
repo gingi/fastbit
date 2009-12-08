@@ -379,7 +379,7 @@ int ibis::pale::write32(int fdes) const {
     ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    if (ierr < (off_t) (3*sizeof(double)*nobs)) {
+    if (ierr < static_cast<off_t>(3*sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32(" << fdes << ") failed to write "
@@ -403,7 +403,7 @@ int ibis::pale::write32(int fdes) const {
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
-    if (ierr != start+2*sizeof(uint32_t)) {
+    if (ierr != static_cast<long>(start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
@@ -412,7 +412,7 @@ int ibis::pale::write32(int fdes) const {
 	return -9;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
-    if (ierr != (off_t) (sizeof(int32_t)*(nobs+1))) {
+    if (ierr != static_cast<off_t>(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32(" << fdes << ") failed to write "
@@ -455,7 +455,7 @@ int ibis::pale::write32(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int32_t)*(nobs+1));
-    if (ierr != (off_t)(sizeof(int32_t)*(nobs+1))) {
+    if (ierr != static_cast<off_t>(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write32(" << fdes << ") failed to write "
@@ -517,7 +517,7 @@ int ibis::pale::write64(int fdes) const {
     ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
-    if (ierr < (off_t) (3*sizeof(double)*nobs)) {
+    if (ierr < static_cast<off_t>(3*sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64(" << fdes << ") failed to write "
@@ -540,7 +540,7 @@ int ibis::pale::write64(int fdes) const {
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
-    if (ierr != start+2*sizeof(uint32_t)) {
+    if (ierr != static_cast<off_t>(start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
@@ -549,7 +549,7 @@ int ibis::pale::write64(int fdes) const {
 	return -9;
     }
     ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
-    if (ierr != (off_t) (sizeof(int64_t)*(nobs+1))) {
+    if (ierr != static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64(" << fdes << ") failed to write "
@@ -592,7 +592,7 @@ int ibis::pale::write64(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int64_t)*(nobs+1));
-    if (ierr != (off_t)(sizeof(int64_t)*(nobs+1))) {
+    if (ierr != static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pale[" << col->partition()->name() << "."
 	    << col->name() << "]::write64(" << fdes << ") failed to write "

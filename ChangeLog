@@ -1,3 +1,40 @@
+2009-12-07 John Wu <John.Wu at ACM.org>
+	* win/win.Mak: remove '-o' from commands that build object files,
+	visual studio has deprecated -o
+	* src/array_t.cpp:301 check for nil m_begin or m_end
+	* src/bitvector.cpp: 454 check for nil m_vec.begin() or
+	m_vec.end()
+	* src/*.cpp: address issues raised by g++ -Wall, only warnings
+	left should be unused variables starting with g, which are
+	ibis::util::guard objects meant to be automatically cleaned by the
+	compiler
+	* src/fileManager.cpp: comment out line 1161 and 1162 to prevent
+	duplicate calls to fileManager::increaseUse, consolidate the
+	recording of files in getFile and tryGetFile with recordFile
+	(previous version may record roFile objects that have been deleted)
+
+2009-12-06 John Wu <John.Wu at ACM.org>
+	* src/util.cpp: change util::userName to prefer getpwuid_r, add
+	call to delete the object pass (under valgrind, this variable is
+	always shown as lost)
+
+2009-12-05 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h, src/qExpr.cpp: change all 'inline virtual'
+	functions to virtual functions (without inlining) (an attempt to
+	reduce the linking problems on cygwin with gcc)
+
+2009-12-04 John Wu <John.Wu at ACM.org>
+	* src/qExpr.cpp: change the default option in printFull to call
+	the print function, change the defaul options in both print and
+	printFull to use the output stream given by Jochen Schlosser
+	* src/fileManager.cpp, src/fileManager.h: remove
+	fileManager::mutexLock, use ibis::util::mutexLock instead
+	* src/part.h, src/parti.h, src/part.cpp: add function emptyCache,
+	replace ibis::part::mutexLock with ibis::util::mutexLock
+	* src/array_t.h, src/array_t.cpp: move function freeMemory from
+	array_t.h to array_t.cpp, add log statements to match the log
+	statement in the constructors
+
 2009-12-03 John Wu <John.Wu at ACM.org>
 	* src/tafel.cpp: change tablex::readNamesAndTypes to read
 	-part.txt as well, change ibis::tafel::writeMetaData to write the

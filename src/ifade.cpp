@@ -228,7 +228,7 @@ int ibis::fade::write32(int fdes) const {
 	return -7;
     }
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    if (ierr < (off_t)sizeof(double)*card) {
+    if (ierr < static_cast<off_t>(sizeof(double)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*card << " bytes to file descriptor "
@@ -249,7 +249,7 @@ int ibis::fade::write32(int fdes) const {
     ierr  = UnixWrite(fdes, &nb, sizeof(nb));
     ierr += UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
     ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
-    if (ierr < (off_t)sizeof(uint32_t)*(card+nb+1)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(card+nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(uint32_t)*(card+nb+1) << " bytes to file descriptor "
@@ -273,7 +273,7 @@ int ibis::fade::write32(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
-    if (ierr < (off_t)sizeof(int32_t)*(nobs+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int32_t)*(nobs+1) << " bytes to file descriptor "
@@ -335,7 +335,7 @@ int ibis::fade::write64(int fdes) const {
 	return -7;
     }
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    if (ierr < (off_t)sizeof(double)*card) {
+    if (ierr < static_cast<off_t>(sizeof(double)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*card << " bytes to file descriptor "
@@ -356,7 +356,7 @@ int ibis::fade::write64(int fdes) const {
     ierr  = UnixWrite(fdes, &nb, sizeof(nb));
     ierr += UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
     ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
-    if (ierr < (off_t)(sizeof(uint32_t)*(card+nb+1))) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(card+nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(uint32_t)*(card+nb+1) << " bytes to file descriptor "
@@ -380,7 +380,7 @@ int ibis::fade::write64(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
-    if (ierr < (off_t)sizeof(int64_t)*(nobs+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int64_t)*(nobs+1) << " bytes to file descriptor "

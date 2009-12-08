@@ -186,41 +186,27 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 	m_end = m_begin + 1;
 	*m_begin = elm;
     }
-    else if (actual->inUse() <= 1 && (char*)(m_end+1) <= actual->end() &&
-	     actual->end() > actual->begin() &&
-	     actual->begin() > 0) { // simply add value
+    else if (m_begin != 0 && m_end != 0 && actual->begin() > 0 &&
+	     actual->end() > actual->begin() && actual->inUse() <= 1 &&
+	     (char*)(m_end+1) <= actual->end()) { // simply add value
 	*m_end = elm;
 	++ m_end;
     }
     else { // copy-and-swap
 	const difference_type nexist = (m_end - m_begin);
-	size_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
+	const size_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
 	if ((long long) newsize < nexist) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
-	array_t<T> copy(newsize); // allocate new array
-	copy.resize(static_cast<size_t>(nexist+1));
+	array_t<T> tmp(newsize); // allocate new array
+	tmp.resize(static_cast<size_t>(nexist+1));
 	for (difference_type j = 0; j < nexist; ++ j) // copy
-	    copy.m_begin[j] = m_begin[j];
-	copy.m_begin[nexist] = elm;
-	swap(copy); // swap
+	    tmp.m_begin[j] = m_begin[j];
+	tmp.m_begin[nexist] = elm;
+	swap(tmp); // swap
     }
 } // ibis::array_t<T>::push_back
-
-/// Free the memory associated with the fileManager::storage.
-template<class T>
-inline void ibis::array_t<T>::freeMemory() {
-    m_end = 0;
-    m_begin = 0;
-    if (actual) {
-	const bool doDelete = (actual->unnamed() && 1 >= actual->inUse());
-	actual->endUse();//timer.CPUTime()
-	if (doDelete)
-	    delete actual;
-	actual = 0;
-    }
-} // ibis::array_t<T>::freeMemory
 
 /// The maximum number of elements can be stored with the current memory.
 template <class T>

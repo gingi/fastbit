@@ -1175,7 +1175,7 @@ int ibis::fuzz::writeCoarse32(int fdes) const {
 
     ierr =  UnixWrite(fdes, &nc, sizeof(nc));
     ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    if (ierr < (off_t)sizeof(uint32_t)*(nc+2)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nc+2))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write "
 	    << sizeof(uint32_t)*(nc+2) << " bytes to file descriptor "
@@ -1203,7 +1203,7 @@ int ibis::fuzz::writeCoarse32(int fdes) const {
     }
     
     ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nb+1));
-    if (ierr < (off_t) sizeof(int32_t)*(nb+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write " << nb+1
 	    << " 4-byte bitmap offsets to file descriptor " << fdes
@@ -1236,7 +1236,7 @@ int ibis::fuzz::writeCoarse64(int fdes) const {
 
     ierr =  UnixWrite(fdes, &nc, sizeof(nc));
     ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    if (ierr < (off_t)sizeof(uint32_t)*(nc+2)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nc+2))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write "
 	    << sizeof(uint32_t)*(nc+2) << " bytes to file descriptor "
@@ -1264,7 +1264,7 @@ int ibis::fuzz::writeCoarse64(int fdes) const {
     }
     
     ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nb+1));
-    if (ierr < (off_t) sizeof(int64_t)*(nb+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write " << nb+1
 	    << " 8-byte bitmap offsets to file descriptor " << fdes

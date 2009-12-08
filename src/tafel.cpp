@@ -2266,7 +2266,7 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
     int64_t stmp;
     if (spos > 0) {
 	ierr = UnixSeek(sdes, spos-selem, SEEK_SET);
-	if (ierr != spos-selem) {
+	if (ierr != static_cast<off_t>(spos-selem)) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "tafel::writeRaw failed to seek to " << spos-selem
 		<< " in file " << sdes << " for starting positions, "
@@ -2291,7 +2291,7 @@ int ibis::tafel::writeRaw(int bdes, int sdes,
     }
 
     const ibis::bitvector::word_t nold1 =
-	(spos > selem ? (spos / selem - 1) : 0);
+	(spos > static_cast<off_t>(selem) ? (spos / selem - 1) : 0);
     if (nold1 == 0) { // need to write the 1st number which is always 0
 	bpos = 0;
 	ierr = UnixWrite(sdes, &bpos, selem);
@@ -3305,7 +3305,8 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
 	LOGGER(ibis::gVerbose > 0 && (iline % pline) == 0)
 	    << "tafel::readCSV(" << filename << ") processed line "
 	    << iline << " ...";
-	if (mrows >= maxrows && maxrows > 1 && outdir != 0 && *outdir != 0) {
+	if (maxrows > 1 && mrows >= static_cast<unsigned>(maxrows) &&
+	    outdir != 0 && *outdir != 0) {
 	    ierr = write(outdir, 0, 0, 0);
 	    ret += mrows;
 	    if (ierr < 0)
@@ -3455,7 +3456,8 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 			}
 			mrows += (ierr > 0);
 
-			LOGGER(ibis::gVerbose > 1 && ierr < (colorder.size()))
+			LOGGER(ibis::gVerbose > 1 &&
+			       ierr < static_cast<long>(colorder.size()))
 			    << "tafel::readSQLDump(" << filename
 			    << ") expects to extract " << colorder.size()
 			    << " value" << (colorder.size()>1?"s":"")
@@ -3466,7 +3468,8 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 			    << "tafel::readSQLDump(" << filename
 			    << ") processed row " << mrows << " ...";
 
-			if (mrows >= maxrows && maxrows > 1 &&
+			if (maxrows > 1 &&
+			    mrows >= static_cast<unsigned>(maxrows) &&
 			    outdir != 0 && *outdir != 0) {
 			    ierr = write(outdir, tname.c_str(), 0, 0);
 			    ret += mrows;
@@ -3524,7 +3527,7 @@ int ibis::tafel::readSQLStatement(std::istream& sqlfile,
 		return 0;
 	    }
 
-	    if (bytes+1 == line.size()) { // line too small
+	    if (static_cast<size_t>(bytes+1) == line.size()) { // line too small
 		const uint32_t nold = (line.size() > 0 ? line.size() : 1048576);
 		// double the size of line
 		if (nold+nold != line.resize(nold+nold)) {

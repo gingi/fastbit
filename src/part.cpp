@@ -396,12 +396,13 @@ ibis::part::part(const char* adir, const char* bdir) :
 	try {
 	    amask.read(mskfile.c_str());
 	    if (amask.size() != nEvents) {
-		if (ibis::gVerbose > 1 && amask.size() > 0)
-		    ibis::util::logMessage
-			("Warning", "mask file \"%s\" contains only %lu "
-			 "bits but %lu was expected", mskfile.c_str(),
-			 static_cast<long unsigned>(amask.size()),
-			 static_cast<long unsigned>(nEvents));
+		LOGGER(ibis::gVerbose > 1 && amask.size() > 0)
+		    << "Warning -- ibis::part::ctor read a unexpected "
+		    "-part.msk, mask file \"" << mskfile
+		    << "\" contains only " << amask.size()
+		    << "bit" << (amask.size()>1?"s":"")
+		    << ", but " << nEvents << (nEvents>1?" were":" was")
+		    << " expected";
 		amask.adjustSize(nEvents, nEvents);
 		if (amask.cnt() < nEvents) {
 		    amask.write(mskfile.c_str());
@@ -411,13 +412,16 @@ ibis::part::part(const char* adir, const char* bdir) :
 		}
 		ibis::fileManager::instance().flushFile(mskfile.c_str());
 	    }
+	    LOGGER(ibis::gVerbose > 5)
+		<< "part::ctor -- mask for partition " << m_name << " has "
+		<< amask.cnt() << " set bit" << (amask.cnt()>1?"s":"")
+		<< " out of " << amask.size();
 	}
 	catch (...) {
-	    if (ibis::gVerbose > 1)
-		ibis::util::logMessage
-		    ("Warning", "unable to read mask file \"%s\", assume "
-		     "all %lu rows are active", mskfile.c_str(),
-		     static_cast<long unsigned>(nEvents));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- part::ctor failed to read mask file \""
+		<< mskfile << "\", assume all rows (" << nEvents
+		<< ") are active";
 	    amask.set(1, nEvents);
 	    remove(mskfile.c_str());
 	}
@@ -800,12 +804,13 @@ void ibis::part::init(const char* prefix) {
 	try {
 	    amask.read(mskfile.c_str());
 	    if (amask.size() != nEvents) {
-		if (ibis::gVerbose > 1 && amask.size() > 0)
-		    ibis::util::logMessage
-			("Warning", "mask file \"%s\" contains only %lu "
-			 "bits but %lu was expected", mskfile.c_str(),
-			 static_cast<long unsigned>(amask.size()),
-			 static_cast<long unsigned>(nEvents));
+		LOGGER(ibis::gVerbose > 1 && amask.size() > 0)
+		    << "Warning -- part::init read a unexpected "
+		    "-part.msk, mask file \"" << mskfile
+		    << "\" contains only " << amask.size()
+		    << "bit" << (amask.size()>1?"s":"")
+		    << ", but " << nEvents << (nEvents>1?" were":" was")
+		    << " expected";
 		amask.adjustSize(nEvents, nEvents);
 		if (amask.cnt() < nEvents)
 		    amask.write(mskfile.c_str());
@@ -813,13 +818,16 @@ void ibis::part::init(const char* prefix) {
 		    remove(mskfile.c_str());
 		ibis::fileManager::instance().flushFile(mskfile.c_str());
 	    }
+	    LOGGER(ibis::gVerbose > 5)
+		<< "part::init -- mask for partition " << m_name << " has "
+		<< amask.cnt() << " set bit" << (amask.cnt()>1?"s":"")
+		<< " out of " << amask.size();
 	}
 	catch (...) {
-	    if (ibis::gVerbose > 1)
-		ibis::util::logMessage
-		    ("Warning", "unable to read mask file \"%s\", assume "
-		     "all %lu rows are active", mskfile.c_str(),
-		     static_cast<long unsigned>(nEvents));
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- part::init failed to read mask file \""
+		<< mskfile << "\", assume all rows (" << nEvents
+		<< ") are active";
 	    amask.set(1, nEvents);
 	    remove(mskfile.c_str());
 	}
@@ -1778,7 +1786,7 @@ void ibis::part::sortRIDs() const {
     if (activeDir == 0 && rids == 0) return;
 
     char name[PATH_MAX];
-    mutexLock lck(this, "sortRIDs");
+    ibis::util::mutexLock lck(&mutex, "part::sortRIDs");
     //ibis::util::mutexLock lck(&ibis::util::envLock, "sortRIDs");
     sprintf(name, "%s%c-rids.srt", activeDir, FASTBIT_DIRSEP);
     uint32_t sz = ibis::util::getFileSize(name);
@@ -2930,7 +2938,7 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
     if (it != columns.end()) {
 	ret = (*it).second->estimateRange(cmp);
 	if (ret < 0) {
-	    mutexLock lock(this, "estimateRange");
+	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
 	    unloadIndexes();
 	    ret = (*it).second->estimateRange(cmp);
 	}
@@ -2957,7 +2965,7 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
     if (it != columns.end()) {
 	ret = (*it).second->estimateRange(cmp);
 	if (ret < 0) {
-	    mutexLock lock(this, "estimateRange");
+	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
 	    unloadIndexes();
 	    ret = (*it).second->estimateRange(cmp);
 	}
@@ -3063,7 +3071,7 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
     if (it != columns.end()) {
 	ierr = (*it).second->evaluateRange(cmp, mask, hits);
 	if (ierr < 0) {
-	    mutexLock lock(this, "evaluateRange");
+	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 	    unloadIndexes();
 	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
 	}
@@ -3095,7 +3103,7 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	if (it != columns.end()) {
 	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
 	    if (ierr < 0) {
-		mutexLock lock(this, "evaluateRange");
+		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
 		ierr = (*it).second->evaluateRange(cmp, mask, hits);
 	    }
@@ -5871,7 +5879,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     qtmp.setWhereClause(clause);
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
-	mutexLock lock(this, "quickTest");
+	ibis::util::mutexLock lock(&mutex, "part::quickTest");
 	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
@@ -5916,7 +5924,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	qtmp.setWhereClause(clause);
 	ierr = qtmp.evaluate();
 	if (ierr < 0) { // unload all indexes, try once more
-	    mutexLock lock(this, "quickTest");
+	    ibis::util::mutexLock lock(&mutex, "part::quickTest");
 	    unloadIndexes();
 	    ierr = qtmp.evaluate();
 	}
@@ -5959,7 +5967,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     qtmp.setWhereClause(clause);
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
-	mutexLock lock(this, "quickTest");
+	ibis::util::mutexLock lock(&mutex, "part::quickTest");
 	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
@@ -5994,7 +6002,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     qtmp.setWhereClause(clause);
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
-	mutexLock lock(this, "quickTest");
+	ibis::util::mutexLock lock(&mutex, "part::quickTest");
 	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
@@ -6104,7 +6112,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     qtmp.setRIDs(*rid1);
     ierr = qtmp.evaluate();
     if (ierr < 0) { // unload all indexes, try once more
-	mutexLock lock(this, "quickTest");
+	ibis::util::mutexLock lock(&mutex, "part::quickTest");
 	unloadIndexes();
 	ierr = qtmp.evaluate();
     }
@@ -6282,7 +6290,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	qtmp.estimate(); // to provide some timing data
 	int ierr = qtmp.evaluate();
 	if (ierr < 0) { // unload all indexes, try once more
-	    mutexLock lock(this, "queryTest");
+	    ibis::util::mutexLock lock(&mutex, "part::queryTest");
 	    unloadIndexes();
 	    ierr = qtmp.evaluate();
 	}
@@ -6348,7 +6356,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    qtmp.setWhereClause(predicate);
 	    ierr = qtmp.evaluate();
 	    if (ierr < 0) { // unload all indexes, try once more
-		mutexLock lock(this, "queryTest");
+		ibis::util::mutexLock lock(&mutex, "part::queryTest");
 		unloadIndexes();
 		ierr = qtmp.evaluate();
 	    }
@@ -6363,7 +6371,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    qtmp.setWhereClause(predicate);
 	    ierr = qtmp.evaluate();
 	    if (ierr < 0) { // unload all indexes, try once more
-		mutexLock lock(this, "queryTest");
+		ibis::util::mutexLock lock(&mutex, "part::queryTest");
 		unloadIndexes();
 		ierr = qtmp.evaluate();
 	    }
@@ -6987,7 +6995,7 @@ long ibis::part::doCompare(const char* file,
 		diff = ii[idx.nIndices()-1] - *ii + 1;
 		if (static_cast<uint32_t>(diff) < nbuf) {
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    if (ierr != *ii * elem) {
+		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
@@ -7297,7 +7305,7 @@ long ibis::part::negativeCompare(const char* file,
 		    if (i+diff > ii[1])
 			diff = ii[1] - i;
 		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
-		    if (ierr > 0 && static_cast<uint32_t>(diff) == diff) {
+		    if (ierr > 0 && static_cast<int32_t>(diff) == diff) {
 			j = diff;
 		    }
 		    else {
@@ -7318,7 +7326,7 @@ long ibis::part::negativeCompare(const char* file,
 		diff = ii[j] - *ii + 1;
 		if (static_cast<uint32_t>(diff) < nbuf) {
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
-		    if (ierr != *ii * elem) {
+		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
 			    << "Warning -- ibis::part["
 			    << (m_name ? m_name : "?")
@@ -12783,7 +12791,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 		tlist.push_back(it->second);
 	}
 	else {
-	    if (ibis::gVerbose > 4)
+	    if (ibis::gVerbose > 4) {
 		if (bdir == 0 || *bdir == 0)
 		    logMessage("tablesFromDir", "directory "
 			       "%s contains an invalid -part.txt or "
@@ -12792,6 +12800,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 		    logMessage("tablesFromDir", "directories %s and %s "
 			       "contain mismatching information or both of "
 			       "them are empty", adir, bdir);
+	    }
 	    delete tbl;
 	    tbl = 0;
 	}

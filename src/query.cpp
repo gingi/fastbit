@@ -881,10 +881,10 @@ int ibis::query::estimate() {
 		LOGGER(ibis::gVerbose >= 0) << "The hit vector" << *hits;
 	    }
 	    else {
-		if (hits)
-		    LOGGER(ibis::gVerbose >= 0) << "The sure hits" << *hits;
-		if (sup)
-		    LOGGER(ibis::gVerbose >= 0) << "The possible hit" << *sup;
+		LOGGER(ibis::gVerbose >= 0 && hits != 0)
+		    << "The sure hits" << *hits;
+		LOGGER(ibis::gVerbose >= 0 && sup != 0)
+		    << "The possible hit" << *sup;
 	    }
 	}
     }
@@ -1848,6 +1848,8 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
     if (pref != 0 || ibis::gParameters().isTrue(name.c_str())) {
 	setMyDir(pref);
     }
+    LOGGER(ibis::gVerbose > 4)
+	<< "query " << myID << " constructed for " << user;
 } // constructor for new query
 
 /// Construct a query from the content stored in the named directory.  It
@@ -1908,6 +1910,8 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 		state = UNINITIALIZED;
 	}
     }
+    LOGGER(ibis::gVerbose > 4)
+	<< "query " << myID << " read from " << dir;
 } // constructor from stored files
 
 // desctructor
@@ -4028,9 +4032,8 @@ void ibis::query::writeRIDs(const ibis::RIDSet* rids) const {
 
 /// It re-initializes the select clause and the where clause to blank.
 void ibis::query::clear() {
-    if (ibis::gVerbose > 4)
-	logMessage("clear",
-		   "clearing all stored information about the query");
+    LOGGER(ibis::gVerbose > 4)
+	<< "query[" << myID << "]::clear -- clearing stored information";
 
     writeLock lck(this, "clear");
     comps.clear();
@@ -7125,11 +7128,11 @@ void ibis::selected::select(const char *str, bool sort) {
 	}
 	if (*s == '(') { // tmp contains a function name
 	    if ((tmp[0] == 'm' || tmp[0] == 'M')) {
-		if (tmp[1] == 'i' || tmp[1] == 'I' &&
+		if ((tmp[1] == 'i' || tmp[1] == 'I') &&
 		    (tmp[2] == 'n' || tmp[2] == 'N')) {
 		    functions[terms] = ibis::selected::MIN;
 		}
-		else if (tmp[1] == 'a' || tmp[1] == 'A' &&
+		else if ((tmp[1] == 'a' || tmp[1] == 'A') &&
 			 (tmp[2] == 'x' || tmp[2] == 'X')) {
 		    functions[terms] = ibis::selected::MAX;
 		}

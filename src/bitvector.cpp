@@ -30,14 +30,16 @@ const ibis::bitvector::word_t ibis::bitvector::HEADER1 =
 ///  Creates a new empty bitvector.
 ibis::bitvector::bitvector() : nbits(0), nset(0), active(), m_vec() {
     LOGGER(ibis::gVerbose > 9)
-	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec);
+	<< "bitvector (" << static_cast<void*>(this)
+	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec);
 } // ctor default
 
 /// Underlying storage is reference counted.
 ibis::bitvector::bitvector(const bitvector& bv)
     : nbits(bv.nbits), nset(bv.nset), active(bv.active), m_vec(bv.m_vec) {
     LOGGER(ibis::gVerbose > 9)
-	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec)
+	<< "bitvector (" << static_cast<void*>(this)
+	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec)
 	<< " as a copy of " << static_cast<const void*>(&bv)
 	<< " with m_vec at " << static_cast<const void*>(&(bv.m_vec));
 }
@@ -94,7 +96,8 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 	clear();
     }
     LOGGER(ibis::gVerbose > 9)
-	<< "bitvector constructed with m_vec at " << static_cast<void*>(&m_vec)
+	<< "bitvector (" << static_cast<void*>(this)
+	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec)
 	<< " based on an array_t<word_t> at " << static_cast<const void*>(&arr)
 	<< " with m_begin at " << static_cast<const void*>(arr.begin());
 } // ctor from array_t
@@ -105,14 +108,16 @@ ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
     try {
 	read(file);
 	LOGGER(ibis::gVerbose > 9)
-	    << "bitvector constructed with m_vec at "
-	    << static_cast<void*>(&m_vec)
+	    << "bitvector (" << static_cast<void*>(this)
+	    << ") constructed with m_vec at " << static_cast<void*>(&m_vec)
 	    << " by reading file " << file;
     }
     catch(...) {
+	clear();
 	LOGGER(ibis::gVerbose > 9)
-	    << "bitvector constructed with m_vec at "
-	    << static_cast<void*>(&m_vec);
+	    << "bitvector constructed an empty bitvector with m_vec at "
+	    << static_cast<void*>(&m_vec) << " due to exception from read("
+	    << file << ")";
 	/*return empty bitvector*/
     }
 } // ctor from file
@@ -446,17 +451,18 @@ ibis::bitvector::word_t ibis::bitvector::compressible() const {
 ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     nset = 0;
     word_t nb = 0;
-
-    for (array_t<word_t>::const_iterator i = m_vec.begin();
-	 i < m_vec.end(); ++ i) {
-	if ((*i) < HEADER0) {
-	    nb += MAXBITS;
-	    nset += cnt_ones(*i);
-	}
-	else {
-	    word_t tmp = (*i & MAXCNT) * MAXBITS;
-	    nb += tmp;
-	    nset += tmp * ((*i) >= HEADER1);
+    if (m_vec.begin() != 0 && m_vec.end() != 0) {
+	for (array_t<word_t>::const_iterator it = m_vec.begin();
+	     it < m_vec.end(); ++ it) {
+	    if ((*it) < HEADER0) {
+		nb += MAXBITS;
+		nset += cnt_ones(*it);
+	    }
+	    else {
+		word_t tmp = (*it & MAXCNT) * MAXBITS;
+		nb += tmp;
+		nset += tmp * ((*it) >= HEADER1);
+	    }
 	}
     }
     return nb;
@@ -1717,11 +1723,10 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
 	}
 	else if (nset == 0) {
 	    word_t nb = do_cnt();
-	    if (nbits != nb && nbits > 0)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- FastBit::bitvector::print detected nbits ("
-		    << nbits << ") mismatching return value of do_cnt ("
-		    << nb << "), use the return value of do_cnt";
+	    LOGGER(nbits != nb && nbits > 0 && ibis::gVerbose >= 0)
+		<< "Warning -- FastBit::bitvector::print detected nbits ("
+		<< nbits << ") mismatching return value of do_cnt ("
+		<< nb << "), use the return value of do_cnt";
 	}
     }
     if (nbits == 0 && ! m_vec.empty())
@@ -1787,12 +1792,14 @@ std::ostream& operator<<(std::ostream& o, const ibis::bitvector& b) {
 // read vector from file (purge current contents first)
 // minimal amount of integrity checking
 void ibis::bitvector::read(const char * fn) {
+    if (fn == 0 || *fn == 0) return;
     // let the file manager handle IO to avoid extra copying
     int ierr = ibis::fileManager::instance().getFile(fn, m_vec);
     if (ierr != 0) {
-	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("ibis::bitvector", "read(%s) is "
-				   "unable to open the named file", fn);
+	LOGGER(ibis::gVerbose > 5)
+	    << "Warning -- failed to read the content of " << fn
+	    << " to reconstruct an ibis::bitvector, fileManager::getFile "
+	    "returned " << ierr;
 	return;
     }
 
@@ -3843,19 +3850,16 @@ void ibis::bitvector::minus_c0(const ibis::bitvector& rhs) {
 void ibis::bitvector::adjustSize(word_t nv, word_t nt) {
     if (nbits == 0 || nbits < m_vec.size() * MAXBITS)
 	nbits = do_cnt();
-    if (size() == nt) return;
+    const word_t sz = nbits + active.nbits;
+    if (sz == nt) return;
     m_vec.nosharing();
 
     if (nv > nt)
 	nv = nt;
-    if (size() < nv)
-	appendFill(1, nv - size());
-    if (size() < nt) {
-	appendFill(0, nt - size());
-    }
-    else if (size() > nt) {
-	erase(nt, size());
-    }
+    if (sz < nv)
+	appendFill(1, nv - sz);
+    if (nv < nt)
+	appendFill(0, nt - sz);
 } // ibis::bitvector::adjustSize
 
 void ibis::bitvector::reserve(unsigned nb, unsigned nc, double cf) {

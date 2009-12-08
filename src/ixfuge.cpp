@@ -919,7 +919,8 @@ void ibis::fuge::coarsen() {
 		ncoarse = j;
 	}
     }
-    if (ncoarse < 5U && offset32.back() > offset32[0]+nrows/31) {
+    if (ncoarse < 5U && offset32.back() >
+	offset32[0]+static_cast<int32_t>(nrows/31)) {
 	ncoarse = sizeof(ibis::bitvector::word_t);
 	const int wm1 = ncoarse*8 - 1;
 	const long sf = (offset32.back()-offset32[0]) / ncoarse;
@@ -1043,7 +1044,7 @@ int ibis::fuge::writeCoarse32(int fdes) const {
 	return -18;
     }
     ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nb+1));
-    if (ierr < (off_t)sizeof(int32_t)*(nb+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fuge[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse32(" << fdes
@@ -1073,7 +1074,7 @@ int ibis::fuge::writeCoarse64(int fdes) const {
     coffset64.resize(nb+1);
     ierr  = UnixWrite(fdes, &nc, sizeof(uint32_t));
     ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    if (ierr < (off_t)(sizeof(uint32_t)*(nc+2))) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nc+2))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fuge[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse64(" << fdes
@@ -1108,7 +1109,7 @@ int ibis::fuge::writeCoarse64(int fdes) const {
 	return -18;
     }
     ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nb+1));
-    if (ierr < (off_t)sizeof(int64_t)*(nb+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fuge[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse64(" << fdes

@@ -206,7 +206,7 @@ int ibis::slice::write32(int fdes) const {
     }
 
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    if (ierr < (off_t)sizeof(double)*card) {
+    if (ierr < static_cast<off_t>(sizeof(double)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*card << " bytes to file descriptor "
@@ -226,7 +226,7 @@ int ibis::slice::write32(int fdes) const {
 	return -9;
     }
     ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    if (ierr < (off_t)sizeof(uint32_t)*card) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int32_t)*card << " bytes to file descriptor "
@@ -250,7 +250,7 @@ int ibis::slice::write32(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nbits+1));
-    if (ierr < (off_t)sizeof(int32_t)*(nbits+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int32_t)*(nbits+1) << " bytes to file descriptor "
@@ -311,7 +311,7 @@ int ibis::slice::write64(int fdes) const {
     }
 
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
-    if (ierr < (off_t)sizeof(double)*card) {
+    if (ierr < static_cast<off_t>(sizeof(double)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*card << " bytes to file descriptor "
@@ -331,7 +331,7 @@ int ibis::slice::write64(int fdes) const {
 	return -9;
     }
     ierr = UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    if (ierr < (off_t)sizeof(uint32_t)*card) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int32_t)*card << " bytes to file descriptor "
@@ -355,7 +355,7 @@ int ibis::slice::write64(int fdes) const {
 	return -11;
     }
     ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nbits+1));
-    if (ierr < (off_t)sizeof(int64_t)*(nbits+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int64_t)*(nbits+1) << " bytes to file descriptor "
@@ -513,7 +513,10 @@ int ibis::slice::read(ibis::fileManager::storage* st) {
     pos += sizeof(uint32_t) + 7;
     pos = 8 * (pos / 8);
     int ierr = initOffsets(st, pos + sizeof(double)*card, nobs);
-    {
+    if (ierr < 0)
+	return ierr;
+
+    { // limit the scope of dbl
 	array_t<double> dbl(st, pos, card);
 	vals.swap(dbl);
     }

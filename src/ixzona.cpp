@@ -1112,7 +1112,7 @@ int ibis::zona::writeCoarse32(int fdes) const {
 			 cbounds.size()-1 : cbits.size());
     off_t ierr = UnixWrite(fdes, &nc, sizeof(nc));
     ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    if (ierr < (off_t)sizeof(uint32_t)*(nc+2)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nc+2))) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse(" << fdes << ") failed to write "
@@ -1139,7 +1139,7 @@ int ibis::zona::writeCoarse32(int fdes) const {
 	return -6;
     }
     ierr = UnixWrite(fdes, coffset32.begin(), sizeof(int32_t)*(nc+1));
-    if (ierr < (off_t) sizeof(int32_t)*(nc+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nc+1))) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse(" << fdes << ") failed to write "
@@ -1160,7 +1160,7 @@ int ibis::zona::writeCoarse64(int fdes) const {
 			 cbounds.size()-1 : cbits.size());
     off_t ierr = UnixWrite(fdes, &nc, sizeof(nc));
     ierr += UnixWrite(fdes, cbounds.begin(), sizeof(uint32_t)*(nc+1));
-    if (ierr < (off_t)sizeof(uint32_t)*(nc+2)) {
+    if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nc+2))) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse(" << fdes << ") failed to write "
@@ -1187,7 +1187,7 @@ int ibis::zona::writeCoarse64(int fdes) const {
 	return -6;
     }
     ierr = UnixWrite(fdes, coffset64.begin(), sizeof(int64_t)*(nc+1));
-    if (ierr < (off_t) sizeof(int64_t)*(nc+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nc+1))) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- zona[" << col->partition()->name() << "."
 	    << col->name() << "]::writeCoarse(" << fdes << ") failed to write "
@@ -1359,7 +1359,7 @@ int ibis::zona::read(const char* f) {
 
     uint32_t nc;
     ierr = UnixRead(fdes, &nc, sizeof(nc));
-    if (ierr < (off_t) sizeof(nc)) {
+    if (ierr < static_cast<off_t>(sizeof(nc))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- zona[" << col->partition()->name() << '.'
 	    << col->name() << "]:read(" << fnm
@@ -1450,7 +1450,7 @@ int ibis::zona::readCoarse(const char* fn) {
     uint32_t nc;
     size_t begin, end;
     ierr = UnixRead(fdes, &nc, sizeof(nc));
-    if (ierr < (off_t)sizeof(nc)) {
+    if (ierr < static_cast<off_t>(sizeof(nc))) {
 	return -3;
     }
     if (nc == 0) {

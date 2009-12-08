@@ -1251,10 +1251,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    const char* const end = buf + offset + ierr;
 	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
 		if (*s == 0) { // find a terminator
-		    if (1 > fwrite(&last, sizeof(last), 1, fsp))
+		    if (1 > fwrite(&last, sizeof(last), 1, fsp)) {
 			LOGGER(ibis::gVerbose >= 0)
 			    << evt << " -- unable to write integer value "
 			    << last << " to file \"" << spfile << "\"";
+		    }
 		    last = pos+1;
 		    ++ nnew;
 		    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
@@ -2327,7 +2328,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     (void)_setmode(des, _O_BINARY);
 #endif
     ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
-    if (ierr != (long) i*sizeof(int64_t)) {
+    if (ierr != static_cast<long>(i*sizeof(int64_t))) {
 	(void) UnixClose(des);
 	startPositions(thePart->currentDataDir(), 0, 0);
 	des = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -2347,7 +2348,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	}
     }
     ierr = UnixRead(des, &positions, sizeof(positions));
-    if (ierr != (long)sizeof(positions)) {
+    if (ierr != static_cast<long>(sizeof(positions))) {
 	(void) UnixClose(des);
 	startPositions(thePart->currentDataDir(), 0, 0);
 	des = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -2358,7 +2359,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	}
 
 	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
-	if (ierr != (long) i*sizeof(int64_t)) {
+	if (ierr != static_cast<long>(i*sizeof(int64_t))) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- text::readString(" << i << ") failed to seek to "
 		<< i*sizeof(int64_t) << " in " << fnm;
@@ -2367,7 +2368,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	}
 
 	ierr = UnixRead(des, &positions, sizeof(positions));
-	if (ierr != (long)sizeof(positions)) {
+	if (ierr != static_cast<long>(sizeof(positions))) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- text::readString(" << i << ") failed to read "
 		<< sizeof(positions) << " bytes from " << fnm;
@@ -2875,7 +2876,8 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    if (irow < idx[1]) {
 		(void) memset(buf, 0, nbuf);
 		pos = UnixSeek(rtfile, 0, SEEK_CUR);
-		for (int jtmp = irow; jtmp < (long) idx[1]; ++ jtmp) {
+		for (int jtmp = irow; jtmp < static_cast<long>(idx[1]);
+		     ++ jtmp) {
 		    ierr = UnixWrite(stfile, &pos, 8);
 		    if (ierr != 8) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -3222,7 +3224,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // close the destination .sp file just in case we need to truncate it
     UnixClose(sdest);
     gsdest.dismiss();
-    if (sj > (long)(spelem*(nold+nnew0))) {
+    if (sj > static_cast<long>(spelem*(nold+nnew0))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
 	truncate(spdest.c_str(), spelem*(nold+nnew0));
@@ -3510,7 +3512,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     (void) _commit(sdest);
 #endif
 #endif
-    if (dj < (long)(spelem*nnew)) {
+    if (dj < static_cast<long>(spelem*nnew)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expects to write " << spelem*nnew
 	    << " bytes to " << spdest << ", but the function write returned "
@@ -3521,7 +3523,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // close the destination .sp file just in case we need to truncate it
     UnixClose(sdest);
     gsdest.dismiss();
-    if (sj > (long) (spelem*(nold+nnew))) {
+    if (sj > static_cast<long>(spelem*(nold+nnew))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
 	truncate(spdest.c_str(), spelem*(nold+nnew));

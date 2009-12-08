@@ -92,8 +92,8 @@ public:
     inline void gainReadAccess(const char* mesg) const;
     /// Release a read lock on the file manager.
     inline void releaseAccess(const char* mesg) const;
-    /// An object who uses a file under the management of the file manager
-    /// should hold a readLock.
+    /// A read lock on the file manager.  Any object using a file under the
+    /// management of the file manager should hold a readLock.
     class readLock {
     public:
 	readLock(const char* m) : mesg(m) {
@@ -198,7 +198,7 @@ private:
     int unload(size_t size);	// try to unload size bytes
     void invokeCleaners() const;// invoke external cleaners
     inline void gainWriteAccess(const char* m) const;
-    /// A write lock for controlling access to the two interval lists.
+    /// A write lock for controlling access to the two internal lists.
     class writeLock {
     public:
 	writeLock(const fileManager* fm, const char* m) :
@@ -211,42 +211,42 @@ private:
 	writeLock(const writeLock&);
 	writeLock& operator=(const writeLock&);
     };
-    /// Used to prevent simultaneous modification of the two internal
-    /// lists.
-    class mutexLock {
-    public:
-	mutexLock(const fileManager& fm, const char* m)
-	    : manager(fm), mesg(m) {
-	    if (0 == pthread_mutex_lock(&(manager.mutex))) {
-		if (ibis::gVerbose > 12)
-		    ibis::util::logMessage("fileManager::mutexLock",
-					   "obtain lock for %s", mesg);
-	    }
-	    else
-		ibis::util::logMessage("Warning", "fileManager::mutexLock for "
-				       "%s failed to initialize -- %s ",
-				       mesg, strerror(errno));
-	}
-	~mutexLock() {
-	    if (0 == pthread_mutex_unlock(&(manager.mutex))) {
-		if (ibis::gVerbose > 12)
-		    ibis::util::logMessage("fileManager::mutexLock",
-					   "release lock for %s", mesg);
-	    }
-	    else
-		ibis::util::logMessage("Warning", "failed to release lock for "
-				       "%s -- %s", mesg,
-				       strerror(errno));
-	}
-    private:
-	const fileManager& manager;
-	const char* mesg;
+    // /// A mutual exclusion lock to prevent simultaneous modification of the
+    // /// two internal lists.
+    // class mutexLock {
+    // public:
+    // 	mutexLock(const fileManager& fm, const char* m)
+    // 	    : manager(fm), mesg(m) {
+    // 	    if (0 == pthread_mutex_lock(&(manager.mutex))) {
+    // 		if (ibis::gVerbose > 10)
+    // 		    ibis::util::logMessage("fileManager::mutexLock",
+    // 					   "obtain lock for %s", mesg);
+    // 	    }
+    // 	    else
+    // 		ibis::util::logMessage("Warning", "fileManager::mutexLock for "
+    // 				       "%s failed to initialize -- %s ",
+    // 				       mesg, strerror(errno));
+    // 	}
+    // 	~mutexLock() {
+    // 	    if (0 == pthread_mutex_unlock(&(manager.mutex))) {
+    // 		if (ibis::gVerbose > 10)
+    // 		    ibis::util::logMessage("fileManager::mutexLock",
+    // 					   "release lock for %s", mesg);
+    // 	    }
+    // 	    else
+    // 		ibis::util::logMessage("Warning", "failed to release lock for "
+    // 				       "%s -- %s", mesg,
+    // 				       strerror(errno));
+    // 	}
+    // private:
+    // 	const fileManager& manager;
+    // 	const char* mesg;
 
-	mutexLock(const mutexLock&);
-	mutexLock& operator=(const mutexLock&);
-    };
+    // 	mutexLock(const mutexLock&);
+    // 	mutexLock& operator=(const mutexLock&);
+    // };
+    // friend class mutexLock;
     friend class writeLock;
-    friend class mutexLock;
 }; // class fileManager
 
 /// The storage class treats all memory as @a char*.
@@ -375,14 +375,17 @@ public:
 //  	}
 //      };
 protected:
-    roFile() : storage(), opened(0), lastUse(0), mapped(0)
+    roFile() : storage(), opened(0), lastUse(0), mapped(0) {
 #if defined(_WIN32) && defined(_MSC_VER)
-	       , fdescriptor(INVALID_HANDLE_VALUE), fmap(INVALID_HANDLE_VALUE),
-	       map_begin(0)
+	fdescriptor = INVALID_HANDLE_VALUE;
+	fmap = INVALID_HANDLE_VALUE;
+	map_begin = 0;
 #elif (HAVE_MMAP+0 > 0)
-	, fdescriptor(-1), fsize(0), map_begin(0)
+	fdescriptor = -1;
+	fsize = 0;
+	map_begin = 0;
 #endif
-    {};
+    };
 
     // Read the whole file into memory.
     void doRead(const char* file);
@@ -468,42 +471,39 @@ inline uint64_t ibis::fileManager::bytesFree() {
 inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
-	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager::releaseAccess", "%s",
-				   mesg);
+	LOGGER(ibis::gVerbose > 9)
+	    << "fileManager::releaseAccess for " << mesg;
     }
     else {
-	ibis::util::logMessage("Warning", "ibis::fileManager::releaseAccess "
-			       "for %s" " returned %d -- %s",
-			       mesg, ierr, strerror(ierr));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::releaseAccess for " << mesg
+	    << " failed with error code " << ierr << " -- " << strerror(ierr);
     }
 } // ibis::fileManager::releaseAccess
 
 inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
     if (0 == ierr) {
-	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager::gainReadAccess",
-				   "%s", mesg);
+	LOGGER(ibis::gVerbose > 9)
+	    << "fileManager::gainReadAccess for " << mesg;
     }
     else {
-	ibis::util::logMessage("Warning", "ibis::fileManager::gainReadAccess "
-			       "for %s returned %d -- %s",
-			       mesg, ierr, strerror(ierr));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::gainReadAccess for " << mesg
+	    << " failed with error code " << ierr << " -- " << strerror(ierr);
     }
 } // ibis::fileManager::gainReadAccess
 
 inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     int ierr = pthread_rwlock_wrlock(&lock);
     if (0 == ierr) {
-	if (ibis::gVerbose > 12)
-	    ibis::util::logMessage("ibis::fileManager::gainWriteAccess",
-				   "%s", mesg);
+	LOGGER(ibis::gVerbose > 9)
+	    << "fileManager::gainWriteAccess for " << mesg;
     }
     else {
-	ibis::util::logMessage("Warning", "ibis::fileManager::gainWriteAccess "
-			       "for %s returned %i -- %s",
-			       mesg, ierr, strerror(ierr));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::gainWriteAccess for " << mesg
+	    << " failed with error code " << ierr << " -- " << strerror(ierr);
     }
 } // ibis::fileManager::gainWriteAccess
 

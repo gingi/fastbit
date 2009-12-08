@@ -793,7 +793,7 @@ void ibis::qExpr::print(std::ostream& out) const {
 	break;
     }
     default:
-	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
+	out << "UNKNOWN LOGICAL OPERATOR";
     }
     out << ')';
 } // ibis::qExpr::print
@@ -841,7 +841,8 @@ void ibis::qExpr::printFull(std::ostream& out) const {
 	break;
     }
     default:
-	LOGGER(ibis::gVerbose >= 0) << "UNKNOWN LOGICAL OPERATOR";
+	print(out);
+	break;
     }
 } // ibis::qExpr::printFull
 
@@ -1382,6 +1383,30 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
     } // end of switch right_op
 } // ibis::qContinuousRange::print
 
+/// Is val in the specified range?  Return true if the incoming value is in
+/// the specified range.
+bool ibis::qContinuousRange::inRange(double val) const {
+    volatile bool res0 = true; 
+    volatile bool res1 = true; 
+    switch (left_op) {
+    case OP_LT: res0 = (lower < val); break;
+    case OP_LE: res0 = (lower <= val); break;
+    case OP_GT: res0 = (lower > val); break;
+    case OP_GE: res0 = (lower >= val); break;
+    case OP_EQ: res0 = (lower == val); break;
+    default: break;
+    } // switch (left_op)
+    switch (right_op) {
+    case OP_LT: res1 = (val < upper); break;
+    case OP_LE: res1 = (val <= upper); break;
+    case OP_GT: res1 = (val > upper); break;
+    case OP_GE: res1 = (val >= upper); break;
+    case OP_EQ: res1 = (val == upper); break;
+    default:    break;
+    }
+    return res0 && res1;
+} // ibis::qContinuousRange::inRange
+
 /// The constructor of qString.  The string rs must have matching quote if
 /// it is quoted.  It may also contain meta character '\' that is used to
 /// escape the quote and other characters.  The meta character will also be
@@ -1447,6 +1472,89 @@ ibis::math::barrel::equivalent(const ibis::math::barrel& rhs) const {
     }
     return ret;
 } // ibis::math::barrel::equivalent
+
+/// Evaluate an operator.
+double ibis::math::bediener::eval() const {
+    double lhs, rhs;
+    double ret = 0.0; // initialize the return value to zero
+    switch (operador) {
+    default:
+    case ibis::math::UNKNOWN:
+	break;
+    case ibis::math::NEGATE: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	ret = -lhs;
+	break;
+    }
+    case ibis::math::BITOR: {
+	uint64_t i1 = (uint64_t) static_cast<const ibis::math::term*>
+	    (getLeft())->eval();
+	uint64_t i2 = (uint64_t) static_cast<const ibis::math::term*>
+	    (getRight())->eval();
+	ret = static_cast<double>(i1 | i2);
+	break;
+    }
+    case ibis::math::BITAND: {
+	uint64_t i1 = (uint64_t) static_cast<const ibis::math::term*>
+	    (getLeft())->eval();
+	uint64_t i2 = (uint64_t) static_cast<const ibis::math::term*>
+	    (getRight())->eval();
+	ret = static_cast<double>(i1 & i2);
+	break;
+    }
+    case ibis::math::PLUS: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	rhs = static_cast<const ibis::math::term*>(getRight())->eval();
+	ret = lhs + rhs;
+	break;
+    }
+    case ibis::math::MINUS: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	rhs = static_cast<const ibis::math::term*>(getRight())->eval();
+	ret = lhs - rhs;
+	break;
+    }
+    case ibis::math::MULTIPLY: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	rhs = static_cast<const ibis::math::term*>(getRight())->eval();
+	ret = lhs * rhs;
+	break;
+    }
+    case ibis::math::DIVIDE: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	if (lhs != 0.0) {
+	    rhs = static_cast<const ibis::math::term*>(getRight())
+		->eval();
+	    if (rhs != 0.0)
+		ret = lhs / rhs;
+	}
+	break;
+    }
+    case ibis::math::REMAINDER: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	if (lhs != 0.0) {
+	    rhs = static_cast<const ibis::math::term*>(getRight())
+		->eval();
+	    if (rhs != 0.0)
+		ret = fmod(lhs, rhs);
+	}
+	break;
+    }
+    case ibis::math::POWER: {
+	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
+	if (lhs != 0.0) {
+	    rhs = static_cast<const ibis::math::term*>(getRight())
+		->eval();
+	    if (rhs != 0.0)
+		ret = pow(lhs, rhs);
+	    else
+		ret = 1.0;
+	}
+	break;
+    }
+    }
+    return ret;
+} // ibis::math::bediener::eval
 
 // constructors of concrete terms in ibis::compRange
 ibis::math::stdFunction1::stdFunction1(const char* name) {
@@ -1617,6 +1725,36 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
     return ret;
 } // ibis::math::stdfunction1::reduce
 
+/// Evaluate one-argument standard functions from math.h.  The functions
+/// modf and frexp take two argument, but only one is an input argument,
+/// only the return value of these functions are returned.
+double ibis::math::stdFunction1::eval() const {
+    double arg =
+	static_cast<const ibis::math::term*>(getLeft())->eval();
+    switch (ftype) {
+    case ibis::math::ACOS: arg = acos(arg); break;
+    case ibis::math::ASIN: arg = asin(arg); break;
+    case ibis::math::ATAN: arg = atan(arg); break;
+    case ibis::math::CEIL: arg = ceil(arg); break;
+    case ibis::math::COS: arg = cos(arg); break;
+    case ibis::math::COSH: arg = cosh(arg); break;
+    case ibis::math::EXP: arg = exp(arg); break;
+    case ibis::math::FABS: arg = fabs(arg); break;
+    case ibis::math::FLOOR: arg = floor(arg); break;
+    case ibis::math::FREXP: {int expptr; arg = frexp(arg, &expptr); break;}
+    case ibis::math::LOG10: arg = log10(arg); break;
+    case ibis::math::LOG: arg = log(arg); break;
+    case ibis::math::MODF: {double intptr; arg = modf(arg, &intptr); break;}
+    case ibis::math::SIN: arg = sin(arg); break;
+    case ibis::math::SINH: arg = sinh(arg); break;
+    case ibis::math::SQRT: arg = sqrt(arg); break;
+    case ibis::math::TAN: arg = tan(arg); break;
+    case ibis::math::TANH: arg = tanh(arg); break;
+    default: break;
+    }
+    return arg;
+} // ibis::math::stdfunction1::eval
+
 ibis::math::stdFunction2::stdFunction2(const char* name) {
     if (0 == stricmp(name, "ATAN2"))
 	ftype = ibis::math::ATAN2;
@@ -1633,6 +1771,68 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
 	throw "unknown function name";
     }
 } // constructor of ibis::math::stdFunction2
+
+ibis::math::term* ibis::math::stdFunction2::reduce() {
+    ibis::math::term *lhs =
+	static_cast<ibis::math::term*>(getLeft());
+    ibis::math::term *rhs =
+	static_cast<ibis::math::term*>(getRight());
+    if (lhs->termType() == ibis::math::OPERATOR ||
+	lhs->termType() == ibis::math::STDFUNCTION1 ||
+	lhs->termType() == ibis::math::STDFUNCTION2) {
+	ibis::math::term *tmp = lhs->reduce();
+	if (tmp != lhs) { // replace LHS with the new term
+	    setLeft(tmp);
+	    lhs = tmp;
+	}
+    }
+    if (rhs->termType() == ibis::math::OPERATOR ||
+	rhs->termType() == ibis::math::STDFUNCTION1 ||
+	rhs->termType() == ibis::math::STDFUNCTION2) {
+	ibis::math::term *tmp = rhs->reduce();
+	if (tmp != rhs) { // replace RHS with the new term
+	    setRight(tmp);
+	    rhs = tmp;
+	}
+    }
+
+    ibis::math::term *ret = this;
+    if (lhs->termType() == ibis::math::NUMBER &&
+	rhs->termType() == ibis::math::NUMBER) {
+	switch (ftype) {
+	case ATAN2:
+	    ret = new ibis::math::number
+		(atan2(lhs->eval(), rhs->eval())); break;
+	case FMOD:
+	    ret = new ibis::math::number
+		(fmod(lhs->eval(), rhs->eval())); break;
+	case LDEXP:
+	    ret = new ibis::math::number
+		(ldexp(lhs->eval(), static_cast<int>(rhs->eval()))); break;
+	case POW:
+	    ret = new ibis::math::number
+		(pow(lhs->eval(), rhs->eval())); break;
+	default: break;
+	}
+    }
+    return ret;
+} // ibis::math::stdfunction2::reduce
+
+/// Evaluate the 2-argument standard functions.
+double ibis::math::stdFunction2::eval() const {
+    double lhs =
+	static_cast<const ibis::math::term*>(getLeft())->eval();
+    double rhs =
+	static_cast<const ibis::math::term*>(getRight())->eval();
+    switch (ftype) {
+    case ibis::math::ATAN2: lhs = atan2(lhs, rhs); break;
+    case ibis::math::FMOD: lhs = fmod(lhs, rhs); break;
+    case ibis::math::LDEXP: lhs = ldexp(lhs, static_cast<int>(rhs)); break;
+    case ibis::math::POW: lhs = pow(lhs, rhs); break;
+    default: break;
+    }
+    return lhs;
+} // ibis::math::stdfunction2::eval
 
 void ibis::math::bediener::print(std::ostream& out) const {
     switch (operador) {

@@ -36,8 +36,9 @@ ibis::array_t<T>::array_t()
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name() << "> constructed at "
 	    << static_cast<void*>(this) << " with actual="
-	    << static_cast<void*>(actual) << " and m_begin="
-	    << static_cast<void*>(m_begin);
+	    << static_cast<void*>(actual) << ", m_begin="
+	    << static_cast<void*>(m_begin) << " and actual->size()="
+	    << actual->size();
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -58,10 +59,11 @@ ibis::array_t<T>::array_t(size_t n)
 	actual->beginUse();
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name() << "> constructed at "
-	    << static_cast<void*>(this) << " with " << n << "element"
+	    << static_cast<void*>(this) << " with " << n << " element"
 	    << (n>1?"s":"") << ", actual="
-	    << static_cast<void*>(actual) << " and m_begin="
-	    << static_cast<void*>(m_begin);
+	    << static_cast<void*>(actual) << ", m_begin="
+	    << static_cast<void*>(m_begin) << " and actual->size()="
+	    << actual->size();
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -86,10 +88,11 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
 	}
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name() << "> constructed at "
-	    << static_cast<void*>(this) << " with " << n << "element"
+	    << static_cast<void*>(this) << " with " << n << " element"
 	    << (n>1?"s":"") << " of " << val << ", actual="
-	    << static_cast<void*>(actual) << " and m_begin="
-	    << static_cast<void*>(m_begin);
+	    << static_cast<void*>(actual) << ", m_begin="
+	    << static_cast<void*>(m_begin) << " and actual->size()="
+	    << actual->size();
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -114,8 +117,9 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << " and m_begin="
-	<< static_cast<void*>(m_begin) << ", copied from "
+	<< static_cast<void*>(actual) << ", m_begin="
+	<< static_cast<void*>(m_begin) << " and actual->size()="
+	<< actual->size() << ", copied from "
 	<< static_cast<const void*>(&rhs);
 }
 
@@ -129,8 +133,9 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << " and m_begin="
-	<< static_cast<void*>(m_begin) << ", copied from "
+	<< static_cast<void*>(actual) << ", m_begin="
+	<< static_cast<void*>(m_begin) << " and actual->size()="
+	<< actual->size() << ", copied from "
 	<< static_cast<const void*>(&rhs);
 }
 
@@ -148,8 +153,9 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t offset,
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << " and m_begin="
-	<< static_cast<void*>(m_begin) << ", copied " << nelm << " element"
+	<< static_cast<void*>(actual) << " m_begin="
+	<< static_cast<void*>(m_begin) << " and actual->size()="
+	<< actual->size() << ", copied " << nelm << " element"
 	<< (nelm>1?"s":"") << " from " << static_cast<const void*>(&rhs)
 	<< " starting with offset " << offset;
 }
@@ -166,6 +172,12 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 	throw "array_t can not handle more than 2 billion elements";
     }
     //timer.start();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " m_begin="
+	<< static_cast<void*>(m_begin) << " and actual->size()="
+	<< actual->size();
 }
 
 /// Construct an array from a section of the raw storage.
@@ -252,7 +264,7 @@ void ibis::array_t<T>::copy(const array_t<T>& rhs) {
     array_t<T> tmp(rhs);
     swap(tmp);
     // let compiler clean up the old content
-}
+} // ibis::array_t<T>::copy
 
 /// The deep copy function.  It makes an in-memory copy of @c rhs.
 template<class T> 
@@ -274,7 +286,7 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 	    swap(tmp);
 	}
     }
-} // deepCopy
+} // ibis::array_t<T>::deepCopy
 
 /// This function makes a copy of the current content if the content is
 /// shared by two or more clients.  This does not guarantee that it would
@@ -286,7 +298,8 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 /// tracked by the file managers.
 template<class T>
 void ibis::array_t<T>::nosharing() {
-    if (actual != 0 && (actual->inUse() > 1 || actual->filename() != 0)) {
+    if (actual != 0 && m_begin != 0 && m_end != 0 &&
+	(actual->inUse() > 1 || actual->filename() != 0)) {
 	// follow copy-and-swap strategy
 	ibis::fileManager::storage *tmp =
 	    new ibis::fileManager::storage
@@ -298,7 +311,30 @@ void ibis::array_t<T>::nosharing() {
 	actual->endUse();
 	actual = tmp;
     }
-} // nosharing
+} // ibis::array_t<T>::nosharing
+
+/// Free the memory associated with the fileManager::storage.
+template<class T>
+void ibis::array_t<T>::freeMemory() {
+    if (actual) {
+	LOGGER(ibis::gVerbose > 9)
+	    << "array_t<" << typeid(T).name()
+	    << ">::freeMemory this=" << static_cast<void*>(this)
+	    << " actual=" << static_cast<void*>(actual)
+	    << " and m_begin=" << static_cast<const void*>(m_begin)
+	    << " (active references: " << actual->inUse()
+	    << ", past references: " << actual->pastUse() << ')';
+
+	const bool doDelete = (actual->unnamed() && 1 >= actual->inUse());
+	actual->endUse();//timer.CPUTime()
+	if (doDelete) {
+	    delete actual;
+	}
+	actual = 0;
+    }
+    m_begin = 0;
+    m_end = 0;
+} // ibis::array_t<T>::freeMemory
 
 /// Find the position of the first element that is no less than @c val.
 /// Assuming @c ind was produced by the sort function,
@@ -326,7 +362,7 @@ uint32_t ibis::array_t<T>::find(const array_t<uint32_t>& ind,
 	}
     }
     return j;
-} // find
+} // ibis::array_t<T>::find
 
 /// Find the first position where the value is no less than @c val.
 /// Assuming the array is already sorted in ascending order,

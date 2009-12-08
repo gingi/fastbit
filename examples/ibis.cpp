@@ -179,7 +179,7 @@ namespace ibis {
 	joinspec() : part1(0), part2(0), jcol(0), cond1(0), cond2(0) {}
 	void print(std::ostream& out) const;
     }; // joinspec
-    typedef std::vector<joinspec> joinlist;
+    typedef std::vector<joinspec*> joinlist;
 }
 
 // printout the usage string
@@ -274,10 +274,10 @@ void ibis::joinspec::print(std::ostream& out) const {
     }
 } // ibis::joinspec::print
 
-std::ostream& operator<<(std::ostream& out, const ibis::joinspec& js) {
-    js.print(out);
-    return out;
-}
+// std::ostream& operator<<(std::ostream& out, const ibis::joinspec& js) {
+//     js.print(out);
+//     return out;
+// }
 
 // show column names
 static void printNames(const ibis::partList& tlist) {
@@ -2031,7 +2031,7 @@ static void parse_args(int argc, char** argv,
 		    js.selcol.push_back(argv[i]);
 		}
 		if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
-		    joins.push_back(js);
+		    joins.push_back(new ibis::joinspec(js));
 		}
 		else {
 		    LOGGER(1) << *argv << " -j option did not specify a "
@@ -2376,7 +2376,7 @@ static void parse_args(int argc, char** argv,
 			<< "[" << joins.size() << "]:\n";
 	    for (size_t j = 0; j < joins.size(); ++ j) {
 		lg.buffer() << "  ";
-		joins[j].print(lg.buffer());
+		joins[j]->print(lg.buffer());
 		lg.buffer() << "\n";
 	    }
 	}
@@ -3643,7 +3643,9 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 static void doJoin(const char* uid, const ibis::partList& parts,
 		   ibis::joinspec& js) {
     std::ostringstream oss;
-    oss << "doJoin(" << js << ")";
+    oss << "doJoin(";
+    js.print(oss);
+    oss << ')';
     ibis::util::timer tm(oss.str().c_str(), 1);
     ibis::partList::const_iterator pt1 = parts.begin();
     for (; pt1 != parts.end() && stricmp((*pt1)->name(), js.part1) != 0;
@@ -4365,7 +4367,7 @@ int main(int argc, char** argv) {
 
 	// process the joins one at a time
 	for (size_t j = 0; j < joins.size(); ++j) {
-	    doJoin(uid, tlist, joins[j]);
+	    doJoin(uid, tlist, *joins[j]);
 	}
 
 	if (interactive) {	// iteractive operations

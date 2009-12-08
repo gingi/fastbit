@@ -707,7 +707,7 @@ long ibis::part::append(const char* dir) {
     if (*activeDir == 0)
 	return -1;
 
-    mutexLock lock(this, "append");
+    ibis::util::mutexLock lock(&mutex, "part::append");
     // can only do this in RECEIVING state and have received something
     if (state == STABLE_STATE)
 	state = RECEIVING_STATE;
@@ -966,7 +966,7 @@ long ibis::part::rollback() {
     if (backupDir == 0 || *backupDir == 0 || activeDir == 0)
 	return ierr;
 
-    mutexLock lock(this, "rollback");
+    ibis::util::mutexLock lock(&mutex, "part::rollback");
     if (state != TRANSITION_STATE)
 	return ierr;
 
@@ -1078,7 +1078,7 @@ long ibis::part::commit(const char* dir) {
 	}
     }
 
-    mutexLock lock(this, "commit");
+    ibis::util::mutexLock lock(&mutex, "part::commit");
     try {
 	ierr = appendToBackup(dir); // make the backup copy
 	state = POSTTRANSITION_STATE;
@@ -1430,7 +1430,7 @@ long ibis::part::reactivate(const char* conds) {
 /// @note This operations is permanent and irreversible!
 long ibis::part::purgeInactive() {
     int ierr = 0; 
-    mutexLock lock(this, "purgeInactive");
+    ibis::util::mutexLock lock(&mutex, "part::purgeInactive");
     if (amask.cnt() == amask.size()) return nEvents;
 
     LOGGER(ibis::gVerbose > 0)
@@ -1456,7 +1456,7 @@ long ibis::part::purgeInactive() {
 		ierr = itmp;
 		break;
 	    }
-	    else if (ierr == 0 && itmp == amask.cnt()) {
+	    else if (ierr == 0 && itmp == static_cast<long>(amask.cnt())) {
 		ierr = itmp;
 	    }
 	}
@@ -1517,7 +1517,7 @@ long ibis::part::purgeInactive() {
 		ierr = itmp;
 		break;
 	    }
-	    else if (ierr == 0 && itmp == amask.cnt()) {
+	    else if (ierr == 0 && itmp == static_cast<long>(amask.cnt())) {
 		ierr = itmp;
 	    }
 	}
@@ -1549,6 +1549,17 @@ long ibis::part::purgeInactive() {
 
     return ierr;
 } // ibis::part::purgeInactive
+
+/// This function attempts to unload all the indexes and then remove all
+/// unused files from the file manager.
+void ibis::part::emptyCache() const {
+    if (myCleaner != 0)
+	(*myCleaner)(); // invoke the cleaner
+    if (backupDir != 0 && *backupDir != 0)
+	ibis::fileManager::instance().flushDir(backupDir);
+    if (activeDir != 0 && *activeDir != 0)
+	ibis::fileManager::instance().flushDir(activeDir);
+} // ibis::part::emptyCache
 
 /// The arithmetic expression is evaluated in double and casted to the
 /// specified type.
@@ -1651,7 +1662,7 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
 	    << "ibis::part[" << m_name << "]::addColumn successfully wrote "
 	    << ierr << " value" << (ierr > 1 ? "s" : "") << " for "
 	    << cname << "(" << oss.str() << ")";
-	mutexLock lock(this, "addColumn");
+	ibis::util::mutexLock lock(&mutex, "part::addColumn");
 	columns[xcol->name()] = xcol;
 	ierr = 0;
     }

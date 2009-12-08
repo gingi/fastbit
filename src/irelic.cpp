@@ -327,7 +327,7 @@ int ibis::relic::write32(int fdes) const {
 	return -7;
     }
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*nobs);
-    if (ierr < (off_t)sizeof(double)*nobs) {
+    if (ierr < static_cast<off_t>(sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*nobs << " bytes to file descriptor "
@@ -362,7 +362,7 @@ int ibis::relic::write32(int fdes) const {
 	return -10;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
-    if (ierr < (off_t)sizeof(int32_t)*(nobs+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int32_t)*(nobs+1) << " bytes to file descriptor "
@@ -422,7 +422,7 @@ int ibis::relic::write64(int fdes) const {
 	return -7;
     }
     ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*nobs);
-    if (ierr < (off_t)sizeof(double)*nobs) {
+    if (ierr < static_cast<off_t>(sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(double)*nobs << " bytes to file descriptor " << fdes
@@ -457,7 +457,7 @@ int ibis::relic::write64(int fdes) const {
 	return -10;
     }
     ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
-    if (ierr < (off_t)sizeof(int64_t)*(nobs+1)) {
+    if (ierr < static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
 	    << sizeof(int64_t)*(nobs+1) << " bytes to file descriptor "
