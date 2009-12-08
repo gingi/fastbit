@@ -592,7 +592,7 @@ ibis::fileManager::fileManager()
 	<< maxBytes << ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
 
-// destructor
+/// Destructor.
 ibis::fileManager::~fileManager() {
     clear();
     (void)pthread_rwlock_destroy(&lock);
@@ -600,7 +600,9 @@ ibis::fileManager::~fileManager() {
     (void)pthread_cond_destroy(&cond);
 } // ibis::fileManager::~fileManager
 
-// record a newly allocated storage in the two lists
+/// Record a newly allocated storage in the two lists.
+/// The caller needs to hold a mutex lock on the file manager to ensure
+/// correct operations.
 void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     if (st == 0) return;
     if (st->begin() == st->end()) return;
@@ -621,8 +623,6 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     if (st->filename() == 0)
 	return;
 
-    ibis::util::mutexLock lck(&mutex, evt.c_str());
-    //writeLock rock(this, "record");
     readLock rock(evt.c_str());
     if (st->mapped) {
 	fileList::const_iterator it = mapped.find(st->filename());
@@ -2286,7 +2286,8 @@ void ibis::fileManager::roFile::read(const char* file) {
 	return;
     }
     doRead(file);
-    if (m_end > m_begin) { // presumably read the file correctly
+    if (m_end > m_begin && m_begin != 0) { // presumably read the file correctly
+	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex, file);
 	ibis::fileManager::instance().recordFile(this);
     }
     else {

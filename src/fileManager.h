@@ -161,10 +161,12 @@ protected:
     void recordFile(roFile*); // record a new storage
 
     // parameters for controlling the resource usage
-    /// Total bytes of all managed objects.
+    /// The total number of bytes of all managed objects.
     static ibis::util::sharedInt64 totalBytes;
-    static uint64_t maxBytes;    ///< Maximum number of bytes allowed.
-    static unsigned int maxOpenFiles; ///< Maximum number of files opened.
+    /// The maximum number of bytes allowed.
+    static uint64_t maxBytes;
+    /// The Maximum number of files that can be kept open at the same time.
+    static unsigned int maxOpenFiles;
 
     // not implemented, to prevent compiler from generating these functions
     fileManager(const fileManager& rhs);

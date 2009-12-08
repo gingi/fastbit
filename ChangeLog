@@ -1,3 +1,8 @@
+2009-12-08 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: move the mutex lock outside to the caller
+	because most of the callers have already a mutex lock, which
+	causes dead lock
+
 2009-12-07 John Wu <John.Wu at ACM.org>
 	* win/win.Mak: remove '-o' from commands that build object files,
 	visual studio has deprecated -o
