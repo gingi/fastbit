@@ -21,6 +21,7 @@ namespace ibis { // additional names related to qExpr
     class compRange;	///< A comparisons involving arithmetic expression.
     class rangeJoin;	///< A special expression for range join operations.
     class qAnyAny;	///< A special form of any-match-any query.
+    class qLike;	///< A representation of the operator LIKE.
 }
 
 /// @ingroup FastBitIBIS
@@ -34,7 +35,7 @@ public:
     enum TYPE {
 	LOGICAL_UNDEFINED, LOGICAL_NOT, LOGICAL_AND, LOGICAL_OR, LOGICAL_XOR,
 	LOGICAL_MINUS, RANGE, DRANGE, STRING, MSTRING, COMPRANGE, MATHTERM,
-	JOIN, TOPK, ANYANY
+	JOIN, TOPK, ANYANY, LIKE
     };
     /// Comparison operator supported in RANGE.
     enum COMPARE {
@@ -341,7 +342,7 @@ private:
 class ibis::qString : public ibis::qExpr {
 public:
     // construct the qString from two strings
-    qString() : lstr(0), rstr(0) {};
+    qString() : qExpr(STRING), lstr(0), rstr(0) {};
     qString(const char* ls, const char* rs);
     virtual ~qString() {delete [] rstr; delete [] lstr;}
 
@@ -362,8 +363,40 @@ private:
     qString& operator=(const qString&);
 }; // ibis::qString
 
-// A data structure to hold the string-valued version of the IN expression,
-// name IN ('aaa', 'bbb', ...).
+/// Representing the operator 'LIKE'.
+class ibis::qLike : public ibis::qExpr {
+public:
+    /// Default constructor.
+    qLike() : qExpr(LIKE), lstr(0), rpat(0) {};
+    qLike(const char* ls, const char* rs);
+    /// Destructor.
+    virtual ~qLike() {delete [] rpat; delete [] lstr;}
+
+    /// Name of the column to be searched.
+    const char* colName() const {return lstr;}
+    /// The string form of the pattern.
+    const char* pattern() const {return rpat;}
+
+    virtual qLike* dup() const {return new qLike(*this);}
+    virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
+
+private:
+    /// Column name.
+    char* lstr;
+    /// Pattern
+    char* rpat;
+
+    /// Copy constructor.  Deep copy.
+    qLike(const qLike& rhs) : qExpr(LIKE),
+			      lstr(ibis::util::strnewdup(rhs.lstr)),
+			      rpat(ibis::util::strnewdup(rhs.rpat)) {}
+    qLike& operator=(const qLike&);
+}; // ibis::qLike
+
+/// The column contains one of the values in a list.  A data structure to
+/// hold the string-valued version of the IN expression, name IN ('aaa',
+/// 'bbb', ...).
 class ibis::qMultiString : public ibis::qExpr {
 public:
     qMultiString() : qExpr(MSTRING) {};

@@ -221,7 +221,13 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
 	const ibis::qString* tmp =
 	    reinterpret_cast<const ibis::qString*>(ex);
 	if (tmp != 0)
-	    res = dataset->estimateCost(*tmp);
+	    res = dataset->lookforString(*tmp);
+	break;}
+    case ibis::qExpr::LIKE: {
+	const ibis::qLike* tmp =
+	    reinterpret_cast<const ibis::qLike*>(ex);
+	if (tmp != 0)
+	    res = dataset->likeSearch(*tmp);
 	break;}
     default: { // most terms are evaluated through left and right children
 	if (ex->getLeft()) {
@@ -2683,6 +2689,11 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	    (*(reinterpret_cast<const ibis::qString*>(term)), low);
 	high.clear();
 	break;
+    case ibis::qExpr::LIKE:
+	mypart->likeSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), low);
+	high.clear();
+	break;
     case ibis::qExpr::MSTRING:
 	mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qMultiString*>(term)), low);
@@ -3056,6 +3067,13 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	    logMessage("doScan", "NOTE -- scanning the index for "
 		       "string comparisons");
 	break;
+    case ibis::qExpr::LIKE:
+	ierr = mypart->likeSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
+	if (ibis::gVerbose > 1)
+	    logMessage("doScan", "NOTE -- scanning the index for "
+		       "string comparisons");
+	break;
     case ibis::qExpr::COMPRANGE:
 	ierr = mypart->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
 			      ht);
@@ -3402,6 +3420,16 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 		       "string comparisons");
 	break;
     }
+    case ibis::qExpr::LIKE: {
+	ierr = mypart->likeSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
+	ht &= mask;
+	ierr = ht.cnt();
+	if (ibis::gVerbose > 1)
+	    logMessage("doScan", "NOTE -- scanning the index for "
+		       "string comparisons");
+	break;
+    }
     case ibis::qExpr::COMPRANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
@@ -3557,6 +3585,11 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
+	break;
+    }
+    case ibis::qExpr::LIKE: {
+	ierr = mypart->likeSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
@@ -3750,6 +3783,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
+	ht &= mask;
+	ierr = ht.cnt();
+	break;
+    }
+    case ibis::qExpr::LIKE: {
+	ierr = mypart->likeSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
 	ht &= mask;
 	ierr = ht.cnt();
 	break;

@@ -613,6 +613,11 @@ double ibis::category::estimateCost(const ibis::qMultiString& qstr) const {
     return ret;
 } // ibis::category::estimateCost
 
+/// Estimate the cost of evaluating a Like expression.
+double ibis::category::estimateCost(const ibis::qLike &cmp) const {
+    return likeSearch(cmp.pattern());
+} // ibis::category::estimateCost
+
 long ibis::category::search(const std::vector<std::string>& strs,
 			    ibis::bitvector& hits) const {
     if (strs.empty()) {
@@ -702,6 +707,90 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
     }
     return ret;
 } // ibis::category::search
+
+/// Estimate the number of hits for a string pattern.
+long ibis::category::likeSearch(const char *pat) const {
+    if (pat == 0 || *pat == 0) return -1;
+    prepareMembers();
+
+    if (idx == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
+	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	return -2;
+    }
+
+    const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+    if (rlc == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
+	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	return -3;
+    }
+
+    LOGGER(ibis::gVerbose > 5)
+	<< "category[" << (thePart != 0 ? thePart->name() : "??")
+	<< '.' << m_name << "]::likeSearch starting to match pattern " << pat;
+    long est = 0;
+    const uint32_t nd = dic.size();
+    for (uint32_t j = 1; j <= nd; ++ j) {
+	if (ibis::util::strMatch(dic[j], pat)) {
+	    const ibis::bitvector *bv = rlc->getBitvector(j);
+	    if (bv != 0)
+		est += bv->cnt();
+	}
+    }
+    return est;
+} // ibis::category::likeSearch
+
+/// Find the records with string values that match the given pattern.
+long ibis::category::likeSearch(const char *pat, ibis::bitvector &hits) const {
+    hits.clear();
+    if (pat == 0 || *pat == 0) return -1;
+    prepareMembers();
+
+    if (idx == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
+	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	return -2;
+    }
+
+    const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+    if (rlc == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
+	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	return -3;
+    }
+
+    LOGGER(ibis::gVerbose > 5)
+	<< "category[" << (thePart != 0 ? thePart->name() : "??")
+	<< '.' << m_name << "]::likeSearch starting to match pattern " << pat;
+    long est = 0;
+    uint32_t cnt = 0;
+    const uint32_t nd = dic.size();
+    for (uint32_t j = 1; j <= nd; ++ j) {
+	if (ibis::util::strMatch(dic[j], pat)) {
+	    const ibis::bitvector *bv = rlc->getBitvector(j);
+	    if (bv != 0) {
+		++ cnt;
+		est += bv->cnt();
+		if (hits.empty()) {
+		    hits.copy(*bv);
+		}
+		else {
+		    if (cnt > 32 || (j > 3 && cnt*16 > j))
+			hits.decompress();
+		    hits |= *bv;
+		}
+	    }
+	}
+    }
+    if (est > static_cast<long>(hits.size() >> 7))
+	hits.compress();
+    return est;
+} // ibis::category::likeSearch
 
 /// Retrieve the string value represented by the integer i.
 void ibis::category::getString(uint32_t i, std::string &str) const {

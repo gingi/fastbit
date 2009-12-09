@@ -2773,6 +2773,7 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
     return hits.cnt();
 } // ibis::part::evaluateRIDSet
 
+/// Find all records that has the exact string value.
 /// The object qString contains only two string values without any
 /// indication as what they represent.  This function actually uses the two
 /// string and decide what they are.  It first tries to match the left
@@ -2831,6 +2832,8 @@ long ibis::part::lookforString(const ibis::qString &cmp,
     return ierr;
 } // ibis::part::lookforString
 
+/// Return an upper bound of the number of records that have the exact
+/// string value.
 long ibis::part::lookforString(const ibis::qString &cmp) const {
     long ret = 0;
     if (columns.empty() || nEvents == 0)
@@ -2925,6 +2928,59 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
     // no match -- no hit
     return ret;
 } // ibis::part::lookforString
+
+/// Look for string like the given pattern.
+long ibis::part::likeSearch(const ibis::qLike &cmp) const {
+    if (columns.empty() || nEvents == 0) return 0;
+
+    columnList::const_iterator it = columns.find(cmp.colName());
+    if (it != columns.end()) {
+	if ((*it).second->type() == ibis::CATEGORY) {
+	    return static_cast<const ibis::category*>((*it).second)->
+		likeSearch(cmp.pattern());
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+		<< ") failed because " << (*it).first
+		<< " is not a categorical column";
+	}
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+	    << ") failed because " << cmp.colName()
+	    << " is not a known column name";
+    }
+    return -1L;
+} // ibis::part::likeSearch
+
+/// Look for string like the given pattern.
+long ibis::part::likeSearch(const ibis::qLike &cmp,
+			    ibis::bitvector &hits) const {
+    if (columns.empty() || nEvents == 0) return 0;
+
+    columnList::const_iterator it = columns.find(cmp.colName());
+    if (it != columns.end()) {
+	if ((*it).second->type() == ibis::CATEGORY) {
+	    return static_cast<const ibis::category*>((*it).second)->
+		likeSearch(cmp.pattern(), hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+		<< ") failed because " << (*it).first
+		<< " is not a categorical column";
+	}
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+	    << ") failed because " << cmp.colName()
+	    << " is not a known column name";
+    }
+    return -1L;
+} // ibis::part::likeSearch
 
 // simply pass the job to the named column
 long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {

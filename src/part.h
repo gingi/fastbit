@@ -212,13 +212,13 @@ public:
 			  const ibis::bitvector &mask,
 			  ibis::bitvector &hits) const;
 
-    /// Find all records that has the exact string value.
+    long likeSearch(const ibis::qLike &cmp,
+		    ibis::bitvector &low) const;
     long lookforString(const ibis::qString &cmp,
 		       ibis::bitvector &low) const;
     long lookforString(const ibis::qMultiString &cmp,
 		       ibis::bitvector &low) const;
-    /// Return an upper bound of the number of records that have the exact
-    /// string value.
+    long likeSearch(const ibis::qLike &cmp) const;
     long lookforString(const ibis::qString &cmp) const;
     long lookforString(const ibis::qMultiString &cmp) const;
 

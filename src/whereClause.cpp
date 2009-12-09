@@ -211,6 +211,20 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    }
 	}
 	break;}
+    case ibis::qExpr::LIKE: {
+	const ibis::qLike* str =
+	    static_cast<const ibis::qLike*>(xp0);
+	if (str->colName()) { // allow name to be NULL
+	    const ibis::column* col = part0.getColumn(str->colName());
+	    if (col == 0) {
+		++ ierr;
+		LOGGER(ibis::gVerbose > 0)
+		    << "ibis::whereClause::verify -- data partition "
+		    << part0.name() << " does not contain a column named "
+		    << str->colName();
+	    }
+	}
+	break;}
     case ibis::qExpr::MATHTERM: {
 	ibis::math::term* math =
 	    static_cast<ibis::math::term*>(xp0);

@@ -1582,7 +1582,7 @@ template class ibis::fileManager::buffer<uint64_t>;
 /// Allocate storage for an array of the specified size (in bytes).
 ibis::fileManager::storage::storage(size_t n)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ibis::gVerbose > 15)
 	<< "fileManager::storage::storage(" << n << ") ...";
     if (n < 8) n = 8; // at least 8 bytes
     if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
@@ -1630,6 +1630,9 @@ ibis::fileManager::storage::storage(const int fdes,
 				    const off_t end)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (end <= begin) return;
+    LOGGER(ibis::gVerbose > 15)
+	<< "fileManager::storage::storage(" << fdes << ", " << begin << ", " << end
+	<< ") ...";
     long nbytes = end - begin;
     if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
@@ -1708,6 +1711,9 @@ ibis::fileManager::storage::storage(const int fdes,
 ibis::fileManager::storage::storage(const char* begin, const char* end)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (end <= begin) return;
+    LOGGER(ibis::gVerbose > 15)
+	<< "fileManager::storage::storage(" << static_cast<const void*>(begin) << ", "
+	<< static_cast<const void*>(end) << ") ...";
     long nbytes = end - begin;
     if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
@@ -1751,6 +1757,9 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 /// Copy constructor.  Make an in-memory copy.
 ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
+    LOGGER(ibis::gVerbose > 15)
+	<< "fileManager::storage::storage(" << static_cast<const void*>(&rhs)
+	<< ") ... start copying";
     unsigned long nbytes = rhs.size();
     if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,

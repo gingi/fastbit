@@ -174,6 +174,9 @@ public:
     /// Estimate the total number of matches for a list of strings.
     virtual long search(const std::vector<std::string>& vals) const;
 
+    virtual long likeSearch(const char* pat) const;
+    virtual long likeSearch(const char* pat, ibis::bitvector &hits) const;
+    virtual double estimateCost(const ibis::qLike& cmp) const;
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
     virtual double estimateCost(const ibis::qContinuousRange& cmp) const {

@@ -5,6 +5,12 @@
 	* src/whereParser.yy: introduce special cases of operator IN
 	involving string literals (to address a problem reported by
 	Alexandre Maurel)
+	* src/qExpr.h: add qLike to represent the operator Like
+	* src/whereLexer.ll, src/whereParser.yy: add LIKEOP and defintion
+	of operator LIKE
+	* src/category.h, src/category.cpp, src/query.cpp,
+	src/countQuery.cpp, src/whereClause.cpp: update to work with
+	ibis::qLike through ibis::util::strMatch
 
 2009-12-07 John Wu <John.Wu at ACM.org>
 	* win/win.Mak: remove '-o' from commands that build object files,

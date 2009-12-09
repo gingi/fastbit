@@ -78,6 +78,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 [aA][nN][dD] {return token::ANDOP;}
 [aA][nN][yY] {return token::ANYOP;}
 [xX][oO][rR] {return token::XOROP;}
+[lL][iI][kK][eE] {return token::LIKEOP;}
 [mM][iI][nN][uU][sS] {return token::ANDNOTOP;}
 [aA][nN][dD][nN][oO][tT] {return token::ANDNOTOP;}
 [bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}

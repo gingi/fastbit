@@ -50,6 +50,7 @@
 %token <integerVal> XOROP	"xor"
 %token <integerVal> BETWEENOP	"between"
 %token <integerVal> INOP	"in"
+%token <integerVal> LIKEOP	"like"
 %token <integerVal> JOINOP	"self-join"
 %token <integerVal> ANYOP	"any"
 %token <integerVal> BITOROP	"|"
@@ -321,6 +322,26 @@ NOUNSTR INOP NUMSEQ {
     val += '"';
     $$ = new ibis::qMultiString($1->c_str(), val.c_str());
     delete $4;
+    delete $1;
+}
+| NOUNSTR LIKEOP NOUNSTR {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " LIKE ("
+	<< *$3 << ")";
+#endif
+    $$ = new ibis::qLike($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| NOUNSTR LIKEOP STRLIT {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " LIKE ("
+	<< *$3 << ")";
+#endif
+    $$ = new ibis::qLike($1->c_str(), $3->c_str());
+    delete $3;
     delete $1;
 }
 | NOUNSTR NOTOP INOP STRSEQ {

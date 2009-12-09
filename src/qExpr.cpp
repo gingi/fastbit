@@ -1418,7 +1418,7 @@ ibis::qString::qString(const char* ls, const char* rs) :
     const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
     const char* cptr = rs;
     char* dptr = rstr;
-    if (quote) ++cptr;
+    cptr += (quote != 0);
     while (*cptr != quote) {
 	if (*cptr != '\\') {
 	    *dptr = *cptr;
@@ -1435,6 +1435,37 @@ ibis::qString::qString(const char* ls, const char* rs) :
 void ibis::qString::print(std::ostream& out) const {
     if (lstr && rstr)
 	out << lstr << " == \"" << rstr << "\"";
+}
+
+/// Constructor.
+ibis::qLike::qLike(const char* ls, const char* rs) :
+    qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)) {
+#if defined(DEBUG)
+    LOGGER(ibis::gVerbose > 5)
+	<< "qLike::ctor(\"" << ls << "\", \"" << rs << "\") ...";
+#endif
+    // need to remove leading and trailing quote and the meta characters
+    rpat = new char[1+strlen(rs)];
+    const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
+    const char* cptr = rs;
+    char* dptr = rpat;
+    cptr += (quote != 0);
+    while (*cptr != quote) {
+	if (*cptr != '\\') {
+	    *dptr = *cptr;
+	}
+	else {
+	    ++cptr;
+	    *dptr = *cptr;
+	}
+	++cptr; ++dptr;
+    }
+    *dptr = 0; // terminate rpat with the NULL character
+}
+
+void ibis::qLike::print(std::ostream& out) const {
+    if (lstr && rpat)
+	out << lstr << " LIKE \"" << rpat << "\"";
 }
 
 /// Record all variables in @c term recursively.
