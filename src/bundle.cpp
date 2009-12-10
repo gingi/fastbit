@@ -1050,7 +1050,29 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		throw ibis::bad_alloc("unknown column name");
 	    }
 	}
-	sort();
+	if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
+	    // need to make sure the aggregations are at the end for easy
+	    // sorting
+	    ibis::colList ordered(ncol);
+	    uint32_t iplain = 0;
+	    uint32_t iaggr = comps.nPlain();
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
+		    ordered[iplain] = cols[i];
+		    ++ iplain;
+		}
+		else {
+		    ordered[iaggr] = cols[i];
+		    ++ iaggr;
+		}
+	    }
+	    ordered.swap(cols);
+	    sort();
+	    ordered.swap(cols);
+	}
+	else {
+	    sort();
+	}
     }
 
     if (ibis::gVerbose > 5) {
@@ -1081,13 +1103,13 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 
     // need to retrieve the named columns
     const ibis::part* tbl = q.partition();
-    const ibis::selectClause& nlist = q.components();
-    const uint32_t ncol = nlist.size();
+    const ibis::selectClause& cmps = q.components();
+    const uint32_t ncol = cmps.size();
     for (uint32_t i=0; i < ncol; ++i) {
-	const ibis::column* cptr = tbl->getColumn(nlist.innerName(i));
+	const ibis::column* cptr = tbl->getColumn(cmps.innerName(i));
 	if (cptr != 0) {
 	    ibis::colValues* tmp;
-	    switch (nlist.getAggregator(i)) {
+	    switch (cmps.getAggregator(i)) {
 	    case ibis::selectClause::AVG:
 	    case ibis::selectClause::SUM:
 	    case ibis::selectClause::VARPOP:
@@ -1106,7 +1128,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	else {
 	    ibis::util::logMessage("Error", "ibis::bundles::ctr \"%s\" is "
 				   "not the name of a column in table %s",
-				   nlist[i], tbl->name());
+				   cmps[i], tbl->name());
 	    throw ibis::bad_alloc("unknown column name");
 	}
     }
@@ -1117,7 +1139,28 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    rids = 0;
 	}
     }
-    sort();
+    if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
+	// need to make sure the aggregations are at the end for easy sorting
+	ibis::colList ordered(ncol);
+	uint32_t iplain = 0;
+	uint32_t iaggr = cmps.nPlain();
+	for (uint32_t i = 0; i < ncol; ++ i) {
+	    if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
+		ordered[iplain] = cols[i];
+		++ iplain;
+	    }
+	    else {
+		ordered[iaggr] = cols[i];
+		++ iaggr;
+	    }
+	}
+	ordered.swap(cols);
+	sort();
+	ordered.swap(cols);
+    }
+    else {
+	sort();
+    }
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
@@ -1169,13 +1212,35 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "bundles constructor skipping a unknown column "
-		"(cmps.innerName(" << i	<< ") = " << cmps.innerName(i)
+		<< "Warning -- bundles constructor encountered a unknown "
+		"column (cmps.innerName(" << i	<< ") = " << cmps.innerName(i)
 		<< ") or a column without data (vals["
 		<< i << "] = " << vals[i] << ")";
+	    throw "bundles with unknown column name or without data";
 	}
     }
-    sort();
+    if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
+	// need to make sure the aggregations are at the end for easy sorting
+	ibis::colList ordered(nc);
+	uint32_t iplain = 0;
+	uint32_t iaggr = cmps.nPlain();
+	for (uint32_t i = 0; i < nc; ++ i) {
+	    if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
+		ordered[iplain] = cols[i];
+		++ iplain;
+	    }
+	    else {
+		ordered[iaggr] = cols[i];
+		++ iaggr;
+	    }
+	}
+	ordered.swap(cols);
+	sort();
+	ordered.swap(cols);
+    }
+    else {
+	sort();
+    }
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;

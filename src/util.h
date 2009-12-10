@@ -663,8 +663,8 @@ namespace ibis {
 	    }
 
 	private:
-	    const char* const mesg;
-	    pthread_mutex_t* const lock;
+	    const char *mesg;
+	    pthread_mutex_t *lock;
 
 	    mutexLock() : mesg(0), lock(0) {}; // no default constructor
 	    mutexLock(const mutexLock&); // can not copy
@@ -676,7 +676,7 @@ namespace ibis {
 	/// ibis::util::logMessage.
 	class quietLock {
 	public:
-	    quietLock(pthread_mutex_t* lk) : lock(lk) {
+	    quietLock(pthread_mutex_t *lk) : lock(lk) {
 		if (0 != pthread_mutex_lock(lock))
 		    throw "quietLock failed to obtain a mutex lock";
 	    }
@@ -685,7 +685,7 @@ namespace ibis {
 	    }
 
 	private:
-	    pthread_mutex_t* const lock;
+	    pthread_mutex_t *lock;
 
 	    quietLock(); // no default constructor
 	    quietLock(const quietLock&); // can not copy
@@ -706,8 +706,8 @@ namespace ibis {
 	    }
 
 	private:
-	    const char* const mesg;
-	    pthread_rwlock_t* const lock;
+	    const char *mesg;
+	    pthread_rwlock_t *lock;
 
 	    readLock() : mesg(0), lock(0) {}; // no default constructor
 	    readLock(const readLock&); // can not copy
@@ -731,8 +731,8 @@ namespace ibis {
 	    }
 
 	private:
-	    const char* const mesg;
-	    pthread_rwlock_t* const lock;
+	    const char *mesg;
+	    pthread_rwlock_t *lock;
 
 	    writeLock() : mesg(0), lock(0) {}; // no default constructor
 	    writeLock(const writeLock&); // can not copy

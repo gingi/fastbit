@@ -1,3 +1,9 @@
+2009-12-10 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp: add code to temporarily move the aggregation
+	function to the end of the list of columns for easier sorting (to
+	address a problem with ordering of items in the selected clause
+	observed by Jan Hapke)
+
 2009-12-08 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: move the mutex lock outside to the caller
 	because most of the callers have already a mutex lock, which
