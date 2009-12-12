@@ -126,6 +126,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
 				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;DLL_EXPORT;CXX_USE_DLL"
 				RuntimeLibrary="0"
@@ -152,6 +153,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="dll/Release/fastbit.lib"

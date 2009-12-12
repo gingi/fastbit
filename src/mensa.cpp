@@ -3676,7 +3676,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
 	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
 
-	    const char* tname = tms.innerName(i);
+	    const char* tname = tms.argName(i);
 	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
 		*tname == '*') // skip count(*)
 		continue;
@@ -3691,7 +3691,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    tmstouse.resize(tms.size());
 	    for (uint32_t i = 0; i < tms.size(); ++ i) {
 		tls[i] = ibis::UNKNOWN_TYPE;
-		nls[i] = tms.innerName(i);
+		nls[i] = tms.argName(i);
 		buff[i] = 0;
 		tmstouse[i] = i;
 	    }
@@ -3712,7 +3712,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    buff.resize(nnames);
 	    tmstouse.resize(nnames);
 	    for (uint32_t i = 0; i < nnames; ++i) {
-		nls[i] = tms.innerName(pos[i]);
+		nls[i] = tms.argName(pos[i]);
 		tls[i] = ibis::UNKNOWN_TYPE;
 		buff[i] = 0;
 		tmstouse[i] = pos[i];
@@ -3723,7 +3723,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    tls.resize(1);
 	    buff.resize(1);
 	    tmstouse.resize(1);
-	    nls[0] = tms.innerName(0);
+	    nls[0] = tms.argName(0);
 	    tls[0] = ibis::UNKNOWN_TYPE;
 	    buff[0] = 0;
 	    tmstouse[0] = 0;
@@ -3796,10 +3796,10 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		continue;
 	    }
 
-	    const ibis::column* col = (*it)->getColumn(tms.innerName(itm));
+	    const ibis::column* col = (*it)->getColumn(tms.argName(itm));
 	    if (col == 0) {
 		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- \"" << tms.innerName(itm)
+		    << mesg << " -- \"" << tms.argName(itm)
 		    << "\" is not a column of partition " << (*it)->name();
 		continue;
 	    }
@@ -3936,7 +3936,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     ibis::table::stringList  cdesc(nls.size());
     for (uint32_t i = 0; i < nls.size(); ++ i) {
 	const uint32_t itm = tmstouse[i];
-	desc[i] = tms.outerName(itm);
+	desc[i] = tms.termName(itm);
 	cdesc[i] = desc[i].c_str();
 	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
     }
@@ -3954,56 +3954,56 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     // 	switch (tms.getAggregator(i)) {
     // 	default:
     // 	case ibis::selectClause::NIL:
-    // 	    aggr[i] = tms.innerName(i);
+    // 	    aggr[i] = tms.argName(i);
     // 	    break;
     // 	case ibis::selectClause::AVG:
     // 	    aggr[i] = "AVG(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::CNT:
     // 	    aggr[i] = "COUNT(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::MAX:
     // 	    aggr[i] = "MAX(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::MIN:
     // 	    aggr[i] = "MIN(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::SUM:
     // 	    aggr[i] = "SUM(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::VARPOP:
     // 	    aggr[i] = "VARPOP(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::VARSAMP:
     // 	    aggr[i] = "VARSAMP(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::STDPOP:
     // 	    aggr[i] = "STDPOP(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::STDSAMP:
     // 	    aggr[i] = "STDSAMP(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	case ibis::selectClause::DISTINCT:
     // 	    aggr[i] = "DISTINCT(";
-    // 	    aggr[i] += tms.innerName(i);
+    // 	    aggr[i] += tms.argName(i);
     // 	    aggr[i] += ")";
     // 	    break;
     // 	}

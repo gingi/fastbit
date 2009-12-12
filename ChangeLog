@@ -1,8 +1,22 @@
+2009-12-11 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: make sure ierr is set for LOGICAL_NOT operator
+	(address a problem reported by Alexandre Mauel)
+	* src/array_t.cpp: change nosharing to make a copy when m_begin !=
+	actual->begin()
+	* src/fileManager.cpp: constructor of fileManager::rofSegment
+	neglected to record the memory it allocated (address a problem
+	reported by Jan Hapke)
+
 2009-12-10 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp: add code to temporarily move the aggregation
-	function to the end of the list of columns for easier sorting (to
-	address a problem with ordering of items in the selected clause
-	observed by Jan Hapke)
+	functions to the end of the list of columns for easier sorting (to
+	address the problem with aggregations appears before the group-by
+	keys in the selected clause observed by Jan Hapke)
+	* src/util.h: consolidate the checking of atomic operations on
+	windows platforms
+	* src/selectClause.h: rename innerName to argName and outerName to
+	termName
+	* win/trydll.cpp: replace ibis::selected with ibis::selectClause
 
 2009-12-08 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp: move the mutex lock outside to the caller
@@ -2898,7 +2912,7 @@
 	correct problems with select clauses containing functions
 	* examples/thula.cpp: terminate doQuery when the select clause
 	contains functions (as indicated by the presence of '(')
-	
+
 2007-08-11 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add case number in print out and count the
 	number of successful test cases in match-counts

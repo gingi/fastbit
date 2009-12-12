@@ -1089,7 +1089,7 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
     out << "printing results of query " << q.id() << "(numHits="
 	<< q.getNumHits() << ")\n"
 	<< q.getSelectClause() << std::endl;
-    const ibis::selected& sel = q.components();
+    const ibis::selectClause& sel = q.components();
     if (sel.size() == 0) return;
 
     while (cursor.next()) {
@@ -1230,11 +1230,11 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	static bool appendToOutput = false;
 	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
 	    // read the values into memory, but avoid sorting the values
-	    const ibis::selected& cmps = aQuery.components();
+	    const ibis::selectClause& cmps = aQuery.components();
 	    const uint32_t ncol = cmps.size();
 	    const ibis::bitvector* hits = aQuery.getHitVector();
 	    for (uint32_t i=0; i < ncol; ++i) {
-		const ibis::column* cptr = tbl->getColumn(cmps[i]);
+		const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
 		    tmp = ibis::colValues::create(cptr, *hits);

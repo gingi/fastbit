@@ -121,6 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk1.6.0_10\include;C:\Tools\Java\jdk1.6.0_10\include\win32;."
 				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORT;JAVA_EXPORT"
 				RuntimeLibrary="0"
@@ -146,6 +147,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/fastbitjni.lib"

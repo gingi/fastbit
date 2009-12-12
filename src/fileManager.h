@@ -285,7 +285,8 @@ public:
     /// Is the storage object empty?
     bool empty() const {return (m_begin == 0 || m_begin >= m_end);}
     /// Return the size (bytes) of the object.
-    size_t size() const {return (m_begin >= m_end ? 0 : m_end - m_begin);}
+    size_t size() const {
+	return (m_begin != 0 && m_begin >= m_end ? 0 : m_end - m_begin);}
     /// Return the number of bytes contained in the object.
     size_t bytes() const {return (m_begin >= m_end ? 0 : m_end - m_begin);}
     /// Enlarge the current array by 61.8% if @c nelm is smaller than the

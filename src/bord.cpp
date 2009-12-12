@@ -1251,7 +1251,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     ibis::bord::bufferList buf;
     buf.reserve(sel.size());
     for (uint32_t i = 0; i < sel.size(); ++ i) {
-	columnList::const_iterator it = columns.find(sel.innerName(i));
+	columnList::const_iterator it = columns.find(sel.argName(i));
 	if (it != columns.end()) {
 	    const ibis::bord::column* col =
 		dynamic_cast<const ibis::bord::column*>((*it).second);
@@ -1329,10 +1329,10 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     bool countstar = false;
     buf.resize(nc);
     for (uint32_t i = 0; i < nc; ++ i) {
-	nms[i] = sel.outerName(i);
+	nms[i] = sel.termName(i);
 	nmc[i] = nms[i].c_str();
 	tps[i] = bdl->columnType(i);
-	countstar = (strcmp(sel.innerName(i), "*") == 0 &&
+	countstar = (strcmp(sel.argName(i), "*") == 0 &&
 		     sel.getAggregator(i) == ibis::selectClause::CNT);
 	void *bptr = bdl->columnArray(i);
 	if (bptr == 0) {

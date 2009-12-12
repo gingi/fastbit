@@ -58,9 +58,9 @@ public:
 
     int find(const char*) const;
     /// Name inside the aggregation function.
-    const char* innerName(unsigned i) const {return names_[i].c_str();}
+    const char* argName(unsigned i) const {return names_[i].c_str();}
     /// Name given to the whole aggregation function.
-    const char* outerName(unsigned i) const {return xnames_[i].c_str();}
+    const char* termName(unsigned i) const {return xnames_[i].c_str();}
     void describe(unsigned i, std::string &str) const;
     uint32_t nPlain() const;
 

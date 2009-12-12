@@ -73,6 +73,7 @@ int truncate(const char*, uint32_t);
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
+/// Guess about GCC atomic operations
 #if !defined(HAVE_GCC_ATOMIC32) && defined(WITHOUT_FASTBIT_CONFIG_H)
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC32 2
@@ -82,6 +83,32 @@ int truncate(const char*, uint32_t);
 #if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)
 #define HAVE_GCC_ATOMIC64 2
+#endif
+#endif
+#endif
+
+/// Guess about MS Windows automic operation support
+#if defined(_MSC_VER) && defined(_WIN32)
+#ifndef HAVE_WIN_ATOMIC32
+#if defined(NTDDI_VERSION) && defined(NTDDI_WIN2K)
+#if NTDDI_VERSION >= NTDDI_WIN2K
+#define HAVE_WIN_ATOMIC32
+#endif
+#elif defined(WINVER)
+#if WINVER >= 0x0500
+#define HAVE_WIN_ATOMIC32
+#endif
+#endif
+#endif
+#ifndef HAVE_WIN_ATOMIC64
+#if defined(NTDDI_VERSION) && defined(NTDDI_WINVISTA)
+#if NTDDI_VERSION >= NTDDI_WINVISTA
+#define HAVE_WIN_ATOMIC64
+#endif
+#elif defined(WINVER)
+#if WINVER >= 0x0600
+#define HAVE_WIN_ATOMIC64
+#endif
 #endif
 #endif
 #endif
@@ -749,14 +776,14 @@ namespace ibis {
 	public:
 	    ~counter() {
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 		(void)pthread_mutex_destroy(&lock_);
 #endif
 	    }
 	    counter() : count_(0) {
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 		if (0 != pthread_mutex_init(&lock_, 0))
 		    throw ibis::bad_alloc
@@ -768,7 +795,7 @@ namespace ibis {
 	    uint32_t operator()() {
 #if defined(HAVE_GCC_ATOMIC32)
 		return __sync_fetch_and_add(&count_, 1);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		return InterlockedIncrement((volatile long *)&count_)-1;
 #else
 		ibis::util::quietLock lck(&lock_);
@@ -781,7 +808,7 @@ namespace ibis {
 	    void reset() {
 #if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_fetch_and_sub(&count_, count_);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		(void) InterlockedExchange((volatile long *)&count_, 0);
 #else
 		ibis::util::quietLock lck(&lock_);
@@ -795,7 +822,7 @@ namespace ibis {
 
 	private:
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 	    mutable pthread_mutex_t lock_; ///< The mutex lock.
 #endif
@@ -825,7 +852,7 @@ namespace ibis {
 	public:
 	    sharedInt32() : val_(0) {
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
 		    throw "pthread_mutex_init failed for sharedInt";
@@ -834,7 +861,7 @@ namespace ibis {
 
 	    ~sharedInt32() {
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 		(void)pthread_mutex_destroy(&mytex);
 #endif
@@ -847,7 +874,7 @@ namespace ibis {
 	    uint32_t operator++() {
 #if defined(HAVE_GCC_ATOMIC32)
 		return __sync_add_and_fetch(&val_, 1);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		return InterlockedIncrement((volatile long *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -860,7 +887,7 @@ namespace ibis {
 	    uint32_t operator--() {
 #if defined(HAVE_GCC_ATOMIC32)
 		return __sync_add_and_fetch(&val_, -1);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		return InterlockedDecrement((volatile long *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -873,7 +900,7 @@ namespace ibis {
 	    void operator+=(const uint32_t rhs) {
 #if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_add_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_, rhs);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -885,7 +912,7 @@ namespace ibis {
 	    void operator-=(const uint32_t rhs) {
 #if defined(HAVE_GCC_ATOMIC32)
 		(void) __sync_sub_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 		(void) InterlockedExchangeAdd((volatile long *)&val_,
 					      -(long)rhs);
 #else
@@ -904,7 +931,7 @@ namespace ibis {
 	private:
 	    uint32_t volatile val_; ///< The actual integer value.
 #if defined(HAVE_GCC_ATOMIC32)
-#elif _MSC_VER+0 >= 1500 && defined(_WIN32)
+#elif defined(HAVE_WIN_ATOMIC32)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
 #endif
@@ -923,7 +950,7 @@ namespace ibis {
 	public:
 	    sharedInt64() : val_(0) {
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 #else
 		if (pthread_mutex_init(&mytex, 0) != 0)
 		    throw "pthread_mutex_init failed for sharedInt";
@@ -932,7 +959,7 @@ namespace ibis {
 
 	    ~sharedInt64() {
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 #else
 		(void)pthread_mutex_destroy(&mytex);
 #endif
@@ -945,7 +972,7 @@ namespace ibis {
 	    uint64_t operator++() {
 #if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, 1);
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 		return InterlockedIncrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -958,7 +985,7 @@ namespace ibis {
 	    uint64_t operator--() {
 #if defined(HAVE_GCC_ATOMIC64)
 		return __sync_add_and_fetch(&val_, -1);
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 		return InterlockedDecrement64((volatile LONGLONG *)&val_);
 #else
 		ibis::util::quietLock lock(&mytex);
@@ -971,7 +998,7 @@ namespace ibis {
 	    void operator+=(const uint64_t rhs) {
 #if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_add_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						rhs);
 #else
@@ -984,7 +1011,7 @@ namespace ibis {
 	    void operator-=(const uint64_t rhs) {
 #if defined(HAVE_GCC_ATOMIC64)
 		(void) __sync_sub_and_fetch(&val_, rhs);
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 		(void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
 						-(long)rhs);
 #else
@@ -1003,7 +1030,7 @@ namespace ibis {
 	private:
 	    uint64_t volatile val_; ///< The actual integer value.
 #if defined(HAVE_GCC_ATOMIC64)
-#elif _MSC_VER+0 >= 1500 && (WINVER+0 >= 0x0600 || (defined(NTDDI_VISTA) && NTDDI_VERSION >= NTDDI_VISTA))
+#elif defined(HAVE_WIN_ATOMIC64)
 #else
 	    pthread_mutex_t mytex; ///< The mutex for this object.
 #endif

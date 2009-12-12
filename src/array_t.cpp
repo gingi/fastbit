@@ -299,7 +299,8 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 template<class T>
 void ibis::array_t<T>::nosharing() {
     if (actual != 0 && m_begin != 0 && m_end != 0 &&
-	(actual->inUse() > 1 || actual->filename() != 0)) {
+	(m_begin != (T*)actual->begin() || actual->inUse() > 1 ||
+	 actual->filename() != 0)) {
 	// follow copy-and-swap strategy
 	ibis::fileManager::storage *tmp =
 	    new ibis::fileManager::storage
@@ -1147,23 +1148,24 @@ template<class T>
 void ibis::array_t<T>::resize(size_t n) {
     nosharing();
     if (actual != 0) {
-	if (m_begin < (T*)actual->begin())
-	    m_begin = (T*)actual->begin();
 	m_end = m_begin + n;
-	if (m_end > (T*)(actual->end())) {
-	    size_t offset = m_begin - (T*)(actual->begin());
-	    actual->enlarge((n+offset)*sizeof(T));
-	    m_begin = offset + (T*)(actual->begin());
-	    if (actual->begin()) {
-		m_end = m_begin + n;
-	    }
-	    else {
-		m_end = m_begin;
-		LOGGER(ibis::gVerbose >= 0)
-		    << "array_t: unable to allocate " << n
-		    << " bytes, previous content lost!";
-		throw ibis::bad_alloc("failed to resize array");
-	    }
+	if (m_end <= (T*)(actual->end()))
+	    return;
+    }
+
+    const size_t newsize = n*sizeof(T);
+    if (actual != 0) {
+	actual->enlarge(newsize);
+	if (actual->size() >= newsize) {
+	    m_begin = (T*)(actual->begin());
+	    m_end = m_begin + n;
+	}
+	else {
+	    m_end = m_begin;
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "array_t: unable to allocate " << n
+		<< " bytes, previous content lost!";
+	    throw ibis::bad_alloc("failed to resize array");
 	}
     }
     else {
@@ -1181,15 +1183,13 @@ template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
     nosharing();
     if (actual != 0) {
-	if (m_begin < (T*)(actual->begin()))
-	    m_begin = (T*)(actual->begin());
 	size_t n0 = (T*)(actual->end()) - m_begin;
 	if (n > n0) { // enlarge to requested size
-	    n0 = m_begin - (T*)(actual->begin());
-	    actual->enlarge((n0+n)*sizeof(T));
-	    size_t n1 = m_end - m_begin;
-	    if (actual->begin()) {
-		m_begin = (T*)(actual->begin()) + n0;
+	    n0 = (n0+n)*sizeof(T);
+	    const size_t n1 = size();
+	    actual->enlarge(n0);
+	    if (actual->size() >= n0) {
+		m_begin = (T*)(actual->begin());
 		m_end = m_begin + n1;
 	    }
 	    else {

@@ -348,10 +348,10 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     LOGGER(cmps.size() != 1 && ibis::gVerbose > 0)
 	<< "Warning -- ibis::bundle1 will only use the 1st terms of "
 	<< cmps.size();
-    ibis::column* c = tbl->getColumn(cmps.innerName(0));
+    ibis::column* c = tbl->getColumn(cmps.argName(0));
     if (c == 0) {
 	ibis::util::logMessage("Warning", "ibis::bundle1::ctor name %s "
-			       "is not a column in table ", cmps.innerName(0));
+			       "is not a column in table ", cmps.argName(0));
 	return;
     }
 
@@ -490,7 +490,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	}
     }
     const ibis::selectClause& cmps = q.components();
-    ibis::column* c = tbl->getColumn(cmps.innerName(0));
+    ibis::column* c = tbl->getColumn(cmps.argName(0));
     if (c != 0) {
 	if (cmps.getAggregator(0) == ibis::selectClause::NIL) {
 	    // use column type
@@ -526,7 +526,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     else {
 	ibis::util::logMessage("Error", "ibis::bundle1::ctor name \"%s\" "
 			       "is not a column in table %s",
-			       cmps.innerName(0), tbl->name());
+			       cmps.argName(0), tbl->name());
 	throw ibis::bad_alloc("not a valid column name");
     }
     sort();
@@ -559,7 +559,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	return;
 
     id = tbl.name();
-    ibis::column* c = tbl.getColumn(cmps.innerName(0));
+    ibis::column* c = tbl.getColumn(cmps.argName(0));
     if (c != 0 && vals[0] != 0) {
 	if (cmps.getAggregator(0) == ibis::selectClause::NIL) {
 	    // use column type
@@ -585,7 +585,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
     else {
 	LOGGER(ibis::gVerbose >= 0)
 		<< "bundle1 constructor skipping a unknown column ("
-		<< cmps.innerName(0) << ") or a column without data (" << vals[0] << ")";
+		<< cmps.argName(0) << ") or a column without data (" << vals[0] << ")";
 	return;
     }
     sort();
@@ -961,7 +961,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    // go through every selected column to construct the colValues
 	    uint32_t start = sizeof(uint32_t)*(ncol+2);
 	    for (uint32_t i=0; i < ncol; ++i) {
-		const ibis::column* cptr = tbl->getColumn(cmps.innerName(i));
+		const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
 		    switch (cmps.getAggregator(i)) {
@@ -987,7 +987,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    ibis::util::logMessage("Error", "ibis::bundles::ctor "
 					   "\"%s\" is not the name of a "
 					   "column in table %s",
-					   cmps.innerName(i), tbl->name());
+					   cmps.argName(i), tbl->name());
 		    throw ibis::bad_alloc("unknown column name");
 		}
 	    }
@@ -1023,7 +1023,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    throw ibis::bad_alloc("ibis::bundles::ctor -- no hit vector");
 	}
 	for (uint32_t i=0; i < ncol; ++i) {
-	    const ibis::column* cptr = tbl->getColumn(cmps.innerName(i));
+	    const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
 	    if (cptr != 0) {
 		ibis::colValues* tmp;
 		switch (cmps.getAggregator(i)) {
@@ -1046,7 +1046,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		ibis::util::logMessage("Error", "ibis::bundles::ctor "
 				       "\"%s\" is not the name of a "
 				       "column in table %s",
-				       cmps.innerName(i), tbl->name());
+				       cmps.argName(i), tbl->name());
 		throw ibis::bad_alloc("unknown column name");
 	    }
 	}
@@ -1106,7 +1106,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     const ibis::selectClause& cmps = q.components();
     const uint32_t ncol = cmps.size();
     for (uint32_t i=0; i < ncol; ++i) {
-	const ibis::column* cptr = tbl->getColumn(cmps.innerName(i));
+	const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
 	if (cptr != 0) {
 	    ibis::colValues* tmp;
 	    switch (cmps.getAggregator(i)) {
@@ -1190,7 +1190,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
     const uint32_t nc = (cmps.size() <= vals.size() ?
 			 cmps.size() : vals.size());
     for (unsigned i = 0; i < nc; ++ i) {
-	ibis::column* c = tbl.getColumn(cmps.innerName(i));
+	ibis::column* c = tbl.getColumn(cmps.argName(i));
 	if (c != 0 && vals[i] != 0) {
 	    ibis::colValues* cv = 0;
 	    switch (cmps.getAggregator(i)) {
@@ -1213,7 +1213,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- bundles constructor encountered a unknown "
-		"column (cmps.innerName(" << i	<< ") = " << cmps.innerName(i)
+		"column (cmps.argName(" << i	<< ") = " << cmps.argName(i)
 		<< ") or a column without data (vals["
 		<< i << "] = " << vals[i] << ")";
 	    throw "bundles with unknown column name or without data";
@@ -1482,7 +1482,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
     sortkeys.select(names, false); // preserve the order of the sort keys
     bool nosort = true;
     for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
-	nosort = (stricmp(sortkeys[j], comps.innerName(j)) == 0);
+	nosort = (stricmp(sortkeys[j], comps.argName(j)) == 0);
     if (nosort) { // no need to sort
 	if (direction < 0)
 	    reverse();

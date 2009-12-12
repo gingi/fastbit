@@ -289,9 +289,9 @@ int ibis::query::setPartition(const part* tbl) {
 
     mypart = tbl;
     for (uint32_t i = 0; i < comps.size(); ++i) {
-	if (0 == mypart->getColumn(comps.innerName(i))) {
+	if (0 == mypart->getColumn(comps.argName(i))) {
 	    logWarning("setPartition", "partition %s does not contain a "
-		       "column named %s", mypart->name(), comps.innerName(i));
+		       "column named %s", mypart->name(), comps.argName(i));
 	    comps.clear();
 	    break;
 	}
@@ -346,7 +346,7 @@ int ibis::query::setSelectClause(const char* str) {
     bool verified = (sc.size() > 0);
     if (mypart != 0) {
 	for (uint32_t i = 0; verified && i < sc.size(); ++i)
-	    verified = (0 != mypart->getColumn(sc.innerName(i)));
+	    verified = (0 != mypart->getColumn(sc.argName(i)));
     }
 
     if (verified) {
@@ -2773,7 +2773,7 @@ int ibis::query::computeHits() {
 	    if (hits == 0) return -1;
 	    hits->set(1, mypart->nRows());
 	    for (uint32_t i = 0; i < comps.size(); ++ i) {
-		const ibis::column *col = mypart->getColumn(comps.innerName(i));
+		const ibis::column *col = mypart->getColumn(comps.argName(i));
 		if (col != 0) {
 		    ibis::bitvector tmp;
 		    col->getNullMask(tmp);
@@ -3486,8 +3486,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
 	ierr = doEvaluate(term->getLeft(), ht);
-	if (ierr >= 0)
+	if (ierr >= 0) {
 	    ht.flip();
+	    ierr = ht.cnt();
+	}
 	break;
     }
     case ibis::qExpr::LOGICAL_AND: {
@@ -3616,6 +3618,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.set(1, mypart->nRows());
+	ierr = mypart->nRows();
 	break;
     }
     default:
@@ -3668,6 +3671,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ht.flip();
 	    ht &= mask;
+	    ierr = ht.cnt();
 	}
 	break;
     }
@@ -3703,8 +3707,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
-	    if (ierr >= 0)
+	    if (ierr >= 0) {
 		ht ^= b1;
+		ierr = ht.cnt();
+	    }
 	}
 	break;
     }
