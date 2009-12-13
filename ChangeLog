@@ -1,11 +1,21 @@
+2009-12-12 John Wu <John.Wu at ACM.org>
+	* src/bundle.h, src/bundle.cpp: add function bundles::sort2 to
+	handle the cases where the aggregation functions appear in the
+	middle of the select clause (the previous attempt to address this
+	issue on 12-10 neglected to move the aggregation functions with
+	the column values, and therefore produces the incorrect result.
+	Problem reported by Jan Hapke)
+
 2009-12-11 John Wu <John.Wu at ACM.org>
 	* src/query.cpp: make sure ierr is set for LOGICAL_NOT operator
-	(address a problem reported by Alexandre Mauel)
+	(address a problem reported by Alexandre Maurel)
 	* src/array_t.cpp: change nosharing to make a copy when m_begin !=
 	actual->begin()
 	* src/fileManager.cpp: constructor of fileManager::rofSegment
 	neglected to record the memory it allocated (address a problem
 	reported by Jan Hapke)
+	* win/*.vcproj: restore the Debug configurations to use Debug
+	options (they were accidentally change to use Release options)
 
 2009-12-10 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp: add code to temporarily move the aggregation

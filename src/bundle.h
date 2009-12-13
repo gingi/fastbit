@@ -321,6 +321,7 @@ private:
     colList cols;
 
     void sort();
+    void sort2();
     void clear();
     void reverse();
 

@@ -35,8 +35,8 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	q.logMessage("createBundle", "time to generate the bundle: "
-		      "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
-		      timer.realTime());
+		     "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
+		     timer.realTime());
     }
     return bdl;
 } // ibis::bundle::create
@@ -585,7 +585,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
     else {
 	LOGGER(ibis::gVerbose >= 0)
 		<< "bundle1 constructor skipping a unknown column ("
-		<< cmps.argName(0) << ") or a column without data (" << vals[0] << ")";
+		<< cmps.argName(0) << ") or a column without data ("
+		<< vals[0] << ")";
 	return;
     }
     sort();
@@ -1051,24 +1052,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    }
 	}
 	if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	    // need to make sure the aggregations are at the end for easy
-	    // sorting
-	    ibis::colList ordered(ncol);
-	    uint32_t iplain = 0;
-	    uint32_t iaggr = comps.nPlain();
-	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
-		    ordered[iplain] = cols[i];
-		    ++ iplain;
-		}
-		else {
-		    ordered[iaggr] = cols[i];
-		    ++ iaggr;
-		}
-	    }
-	    ordered.swap(cols);
-	    sort();
-	    ordered.swap(cols);
+	    sort2();
 	}
 	else {
 	    sort();
@@ -1140,23 +1124,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	}
     }
     if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	// need to make sure the aggregations are at the end for easy sorting
-	ibis::colList ordered(ncol);
-	uint32_t iplain = 0;
-	uint32_t iaggr = cmps.nPlain();
-	for (uint32_t i = 0; i < ncol; ++ i) {
-	    if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
-		ordered[iplain] = cols[i];
-		++ iplain;
-	    }
-	    else {
-		ordered[iaggr] = cols[i];
-		++ iaggr;
-	    }
-	}
-	ordered.swap(cols);
-	sort();
-	ordered.swap(cols);
+	sort2();
     }
     else {
 	sort();
@@ -1220,23 +1188,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	}
     }
     if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	// need to make sure the aggregations are at the end for easy sorting
-	ibis::colList ordered(nc);
-	uint32_t iplain = 0;
-	uint32_t iaggr = cmps.nPlain();
-	for (uint32_t i = 0; i < nc; ++ i) {
-	    if (cmps.getAggregator(i) == ibis::selectClause::NIL) {
-		ordered[iplain] = cols[i];
-		++ iplain;
-	    }
-	    else {
-		ordered[iaggr] = cols[i];
-		++ iaggr;
-	    }
-	}
-	ordered.swap(cols);
-	sort();
-	ordered.swap(cols);
+	sort2();
     }
     else {
 	sort();
@@ -1331,7 +1283,8 @@ void ibis::bundles::printAll(std::ostream& out) const {
 } // ibis::bundles::printAll
 
 /// Sort the columns.  Remove the duplicate elements and generate the
-/// starts.
+/// starts.  Assume all aggregations operations appear at the end of the
+/// list of columns.
 void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
@@ -1468,6 +1421,125 @@ void ibis::bundles::sort() {
     }
 #endif
 } // ibis::bundles::sort
+
+/// Sort the columns.  Remove the duplicate elements and generate the
+/// starts.  Internally, it reorders the columns so that those with
+/// aggregation functions are placed at the end of the list.  This
+/// simplifies the sorting and aggregation operations.  It restores the
+/// column order before returning to the caller.
+void ibis::bundles::sort2() {
+    const uint32_t ncol = cols.size();
+    const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
+    const uint32_t nplain = comps.nPlain();
+    if (nplain == 0 || nplain == ncol)
+	return sort();
+
+    uint32_t nGroups = nHits;
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort2 starting with "
+		    << ncol << " columns and " << nHits << " row"
+		    << (nHits > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nHits; ++ j) {
+	    lg.buffer() << "\n";
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (i > 0) lg.buffer() << ", ";
+		cols[i]->write(lg.buffer(), j);
+	    }
+	}
+    }
+#endif
+    if (nHits < 2) { // not much to do
+	starts = new ibis::array_t<uint32_t>(2);
+	(*starts)[1] = nHits;
+	(*starts)[0] = 0;
+    }
+    else { // more than one row to sort
+	for (uint32_t i = 0; i < ncol; ++ i)
+	    cols[i]->nosharing();
+
+	ibis::colList cols2(ncol);
+	std::vector<ibis::selectClause::AGREGADO> ops(ncol);
+	if (ncol > 0) { // move aggregation functions to the end of the list
+	    uint32_t iplain = 0;
+	    uint32_t iaggr = nplain;
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (comps.getAggregator(i) == ibis::selectClause::NIL) {
+		    cols2[iplain] = cols[i];
+		    ops[iplain] = ibis::selectClause::NIL;
+		    ++ iplain;
+		}
+		else {
+		    cols2[iaggr] = cols[i];
+		    ops[iaggr] = comps.getAggregator(i);
+		    ++ iaggr;
+		}
+	    }
+	    cols2.swap(cols);
+	}
+
+ 	// sort according to the values of the first column
+	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
+	starts = cols[0]->segment();
+	nGroups = starts->size() - 1;
+
+	// go through the rest of the columns if necessary
+	for (uint32_t i=1; i<nplain && nGroups<nHits; ++i) {
+	    uint32_t i1 = i + 1;
+	    for (uint32_t i2=0; i2<nGroups; ++i2) { // sort one group at a time
+		cols[i]->sort((*starts)[i2], (*starts)[i2+1], this,
+			      cols.begin()+i1, cols.end());
+	    }
+	    array_t<uint32_t>* tmp = cols[i]->segment(starts);
+	    delete starts;
+	    starts = tmp;
+	    nGroups = starts->size() - 1;
+	}
+
+	if (nGroups < nHits) {// erase the dupliate elements
+	    for (uint32_t i2 = 0; i2 < nplain; ++ i2)
+		cols[i2]->reduce(*starts);
+	    for (uint32_t i2 = nplain; i2 < ncol; ++ i2) {
+		cols[i2]->reduce(*starts, ops[i2]);
+	    }
+	}
+
+	// restore the input order of the columns
+	cols2.swap(cols);
+   }
+
+    // sort RIDs and perform sanity check
+    if (nGroups < nHits && rids && rids->size() == nHits) {
+	for (uint32_t i1=nGroups; i1>0; --i1)
+	    sortRIDs((*starts)[i1-1], (*starts)[i1]);
+    }
+    for (uint32_t i1 = 0; i1 < ncol; ++i1) {
+	if (cols[i1]->size() != nGroups) {
+	    ibis::util::logMessage
+		("Warning", "bundles::sort2 -- column # %lu (%s) is expected "
+		 "to have %lu values, but it actually has %lu",
+		 static_cast<long unsigned>(i1), (*(cols[i1]))->name(),
+		 static_cast<long unsigned>(nGroups),
+		 static_cast<long unsigned>(cols[i1]->size()));
+	}
+    }
+#if _DEBUG+0>2 || DEBUG+0>1
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort2 ending "
+		    << ncol << " columns and " << nGroups << " row"
+		    << (nGroups > 1 ? "s" : "");
+	for (uint32_t j = 0; j < nGroups; ++ j) {
+	    lg.buffer() << "\n";
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (i > 0) lg.buffer() << ", ";
+		cols[i]->write(lg.buffer(), j);
+	    }
+	}
+    }
+#endif
+} // ibis::bundles::sort2
 
 /// Reorder the bundles according to the keys (names) given.  If the
 /// argument direction is a negative number, the rows are reversed after
