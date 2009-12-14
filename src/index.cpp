@@ -4868,7 +4868,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		    while (i < aj) {
 #if defined(_DEBUG)
 			LOGGER(ibis::gVerbose > 5)
-			    << "DEBUG -- " << evt << ") construct bitvector "
+			    << "DEBUG -- " << evt << " constructing bitvector "
 			    << i << " from range [" << offset32[i] << ", "
 			    << offset32[i+1] << ") of file " << fname;
 #endif

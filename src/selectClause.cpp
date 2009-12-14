@@ -179,7 +179,7 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
 	oss << "STDSAMP(" << *(terms_[i]) << ")";
 	break;
     case DISTINCT:
-	oss << "DISTINCT(" << *(terms_[i]) << ")";
+	oss << "COUNTDISTINCT(" << *(terms_[i]) << ")";
 	break;
     }
 
@@ -282,7 +282,7 @@ int ibis::selectClause::find(const char* key) const {
 			oss << "STDSAMP(" << *(terms_[i]) << ")";
 			break;
 		    case DISTINCT:
-			oss << "DISTINCT(" << *(terms_[i]) << ")";
+			oss << "COUNTDISTINCT(" << *(terms_[i]) << ")";
 			break;
 		    }
 		    if (stricmp(oss.str().c_str(), key) == 0) {
@@ -339,7 +339,7 @@ void ibis::selectClause::print(std::ostream& out) const {
 	    out << "STDSAMP(" << *(terms_[i]) << ")";
 	    break;
 	case DISTINCT:
-	    out << "DISTINCT(" << *(terms_[i]) << ")";
+	    out << "COUNTDISTINCT(" << *(terms_[i]) << ")";
 	    break;
 	}
 	if (aliases[i] != 0)

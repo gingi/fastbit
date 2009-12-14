@@ -58,6 +58,7 @@ NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 [sS][tT][dD][pP][oO][pP] {return token::STDPOPOP;}
 [sS][tT][dD][sS][aA][mM][pP] {return token::STDSAMPOP;}
 [dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
+[cC][oO][uU][nN][tT][dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1

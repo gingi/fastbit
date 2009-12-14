@@ -65,8 +65,8 @@ public:
     uint32_t nPlain() const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
-    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM,
-		   VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
+    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM, DISTINCT,
+		   VARPOP, VARSAMP, STDPOP, STDSAMP};
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 

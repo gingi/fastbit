@@ -1,3 +1,22 @@
+2009-12-14 John Wu <John.Wu at ACM.org>
+	* src/bord.cpp: update bord::part::groupby to work with count(*)
+	as a term in the select clause
+	* src/bundle.h, src/bundle.cpp: allow count(*) in the select
+	clauses, consolidate ibis::bundles::sort and ibis::bundles::sort2
+	* src/util.h, src/query.cpp: remove class ibis::selected (replaced
+	with ibis::selectClause)
+	* src/bundle.cpp: replace ibis::selected with ibis::nameList in
+	function bundles::tuncate and bundles::reorder
+	* src/selectParser.ll: add keyword countdistinct
+
+2009-12-13 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h:214 construtor of qContinuous assigned operations to
+	the wrong side (a problem reported by Jan Hapke)
+	* src/countQuery.cpp:45 change conds.getString() to simply conds
+	(to make use of the operator<< defined in whereClause.h) to avoid
+	the problem with getString() returning nil pointer (which happens
+	when the query expression is directly passed in from the caller)
+
 2009-12-12 John Wu <John.Wu at ACM.org>
 	* src/bundle.h, src/bundle.cpp: add function bundles::sort2 to
 	handle the cases where the aggregation functions appear in the

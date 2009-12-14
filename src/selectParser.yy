@@ -246,6 +246,16 @@ sterm: AVGOP '(' mathExpr ')' ',' {
     driver.terms_.push_back($1);
     driver.aggr_.push_back(ibis::selectClause::NIL);
 }
+| DISTINCTOP '(' mathExpr ')' ASOP NOUNSTR ',' {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+| DISTINCTOP '(' mathExpr ')' ASOP NOUNSTR END {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
 ;
 
 mathExpr:

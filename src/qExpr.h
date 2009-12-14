@@ -213,7 +213,7 @@ public:
     /// Construct a range expression with an integer boundary.
     qContinuousRange(const char* col, COMPARE op, uint32_t val) :
 	qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(col)),
-	lower(val), upper(DBL_MAX), left_op(op), right_op(OP_UNDEFINED) {};
+	lower(DBL_MAX), upper(val), left_op(OP_UNDEFINED), right_op(op) {};
     /// Copy constructor.
     qContinuousRange(const qContinuousRange& rhs) :
 	qRange(ibis::qExpr::RANGE), name(ibis::util::strnewdup(rhs.name)),

@@ -342,77 +342,13 @@ namespace ibis {
 
     private:
 	typedef std::vector< const char * > compStore;
-	char* cstr;	// copy of the component string
+	char* cstr;	// copy of the names as a single string
 	char* buff;	// same as cstr, but delimiter is \0
 	compStore cvec;	// contains pointers to buff, for easier access
 
 	nameList(const nameList&);
 	nameList& operator=(const nameList&);
     }; // class nameList
-
-    /// A data structure to store the select clause of a query.  A select
-    /// clause may contain a list of names plus a list of simple functions.
-    /// The supported functions are @c avg, @c max, @c min and @c sum.
-    /// Each of these functions can only take a single name as it argument.
-    class selected {
-    public:
-	selected() {}; ///< The default constructor leaves data members empty.
-	selected(const char* str) {select(str);}
-	~selected() {};
-
-	bool empty() const {return names.empty();}
-	uint32_t size() const {return names.size();}
-	uint32_t nPlain() const {return nplain;}
-
-	/// Parse the select clause.  By default, place the functions last.
-	void select(const char *str, bool sort=true);
-	void select(const std::vector<const char*>& nl, bool sort=true);
-	/// Return the list of names stored internally.
-	const std::vector<std::string>& getNames() const {return names;}
-	/// Return the first occurrence of the string.  Returns the value of
-	/// @c size if the given @c key in not in the list of selected
-	/// components.
-	uint32_t find(const char *key) const;
-	void clear() {
-	    names.clear(); functions.clear(); mystr_.erase(); nplain=0;}
-	/// Remove the entries specified.
-	void remove(const std::vector<uint32_t>& ents);
-
-	/// Output a stringlized version of the select clause.
-	const char* operator*() const {return mystr_.c_str();}
-
-	/// Access the ith column name of the select clause.  In case of a
-	/// function, it returns the name of the argument rather than the
-	/// whole function.  This operator is only intended to be used to
-	/// extract the column values.
-	const char* getName(uint32_t i) const {return names[i].c_str();};
-	const char* operator[](uint32_t i) const {return names[i].c_str();};
-	/// Return all unique column names.
-	std::string uniqueNames() const;
-	/// Return the ith term, with the function name.
-	std::string getTerm(uint32_t i) const;
-
-	/// An iterator through the column names of the select clause.
-	typedef std::vector<std::string>::const_iterator const_iterator;
-	const_iterator begin() const {return names.begin();}
-	const_iterator end() const {return names.end();}
-
-	enum FUNCTION {NIL, AVG, MAX, MIN, SUM,
-		       VARPOP, VARSAMP, STDPOP, STDSAMP, DISTINCT};
-	FUNCTION getFunction(uint32_t i) const {return functions[i];}
-
-    private:
-	std::vector<std::string> names;
-	std::vector<FUNCTION> functions;
-	std::string mystr_;
-	uint32_t nplain;
-
-	void toString(std::string& str) const;
-	void print(uint32_t i, std::ostream& out) const;
-
-	selected(const selected&);
-	selected& operator=(const selected&);
-    }; // class selected
 
     /// An associative array for data partitions.  Only used internally for
     /// sorting data partitions.

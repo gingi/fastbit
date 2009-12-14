@@ -42,8 +42,7 @@ int ibis::countQuery::setPartition(const part* tbl) {
 	int ierr = conds.verify(*tbl, m_sel);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::countQuery where clause \""
-		<< conds.getString()
+		<< "Warning -- ibis::countQuery where clause \"" << conds
 		<< "\" can not be processed on data partition " << tbl->name()
 		<< ", ierr = " << ierr;
 	    return -6;
@@ -87,8 +86,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	if (tmp.getExpr() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- countQuery::setWhereClause failed to "
-		"parse \""
-		<< str << "\"";
+		"parse \"" << str << "\"";
 	    return -5;
 	}
 	if (mypart != 0) {

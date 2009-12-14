@@ -3476,7 +3476,7 @@ ibis::table* ibis::table::create(const ibis::partList& pl) {
 /// This implementation uses the class function ibis::table::select that
 /// accepts query conditions in the form of a pointer to ibis::qExpr.
 /// Unlike the version that accepts the query conditions as a string, this
-/// function returns a nil table of the select clause is empty of nil.
+/// function returns a nil table of the select clause is empty or nil.
 ibis::table*
 ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
     if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
@@ -3946,71 +3946,6 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     if (nplain >= tms.size() || brd1 == 0)
 	return brd1;
 
-    // perform the group-by operation to produce the final output
-    // std::vector<std::string> aggr(tms.size());
-    // ibis::table::stringList  caggr;
-    // caggr.reserve(tms.size());
-    // for (uint32_t i = 0; i < tms.size(); ++ i) {
-    // 	switch (tms.getAggregator(i)) {
-    // 	default:
-    // 	case ibis::selectClause::NIL:
-    // 	    aggr[i] = tms.argName(i);
-    // 	    break;
-    // 	case ibis::selectClause::AVG:
-    // 	    aggr[i] = "AVG(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::CNT:
-    // 	    aggr[i] = "COUNT(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::MAX:
-    // 	    aggr[i] = "MAX(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::MIN:
-    // 	    aggr[i] = "MIN(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::SUM:
-    // 	    aggr[i] = "SUM(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::VARPOP:
-    // 	    aggr[i] = "VARPOP(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::VARSAMP:
-    // 	    aggr[i] = "VARSAMP(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::STDPOP:
-    // 	    aggr[i] = "STDPOP(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::STDSAMP:
-    // 	    aggr[i] = "STDSAMP(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	case ibis::selectClause::DISTINCT:
-    // 	    aggr[i] = "DISTINCT(";
-    // 	    aggr[i] += tms.argName(i);
-    // 	    aggr[i] += ")";
-    // 	    break;
-    // 	}
-    // 	if (tms.getAggregator(i) != ibis::selectClause::CNT)
-    // 	    caggr.push_back(aggr[i].c_str());
-    // }
-    // ibis::table *brd2 = brd1->groupby(caggr);
     ibis::table *brd2 = brd1->groupby(tms);
     delete brd1;
     return brd2;

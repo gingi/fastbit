@@ -1249,6 +1249,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
     std::vector<uint32_t> bad;
     ibis::bord::bufferList buf;
+    const uint32_t nc = sel.size();
     buf.reserve(sel.size());
     for (uint32_t i = 0; i < sel.size(); ++ i) {
 	columnList::const_iterator it = columns.find(sel.argName(i));
@@ -1262,7 +1263,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 		bad.push_back(i);
 	    }
 	}
-	else {
+	else if (*(sel.argName(i)) != '*') {
 	    bad.push_back(i);
 	}
     }
@@ -1287,16 +1288,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
 	return 0;
     }
-    const uint32_t nc = bdl->width();
     const uint32_t nr = bdl->size();
-    if (nc != sel.size()) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- bord::part::groupby created a bundle with "
-	    "unexpected number of columns, expected " << sel.size()
-	    << ", actual " << nc;
-	delete bdl;
-	return 0;
-    }
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
@@ -1326,15 +1318,28 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     std::vector<std::string> nms(nc);
     std::vector<const char*> nmc(nc);
     ibis::table::typeList tps(nc);
-    bool countstar = false;
     buf.resize(nc);
+    uint32_t jbdl = 0;
+    bool countstar = false;
     for (uint32_t i = 0; i < nc; ++ i) {
+	void *bptr = 0;
 	nms[i] = sel.termName(i);
 	nmc[i] = nms[i].c_str();
+	if (*(sel.argName(i)) == '*' &&
+	    sel.getAggregator(i) == ibis::selectClause::CNT) {
+	    countstar = true;
+	    array_t<uint32_t>* cnts = new array_t<uint32_t>;
+	    bdl->rowCounts(*cnts);
+	    tps[i] = ibis::UINT;
+	    buf[i] = cnts;
+	    continue;
+	}
+	else {
+	    bptr = bdl->columnArray(jbdl);
+	    ++ jbdl;
+	}
+
 	tps[i] = bdl->columnType(i);
-	countstar = (strcmp(sel.argName(i), "*") == 0 &&
-		     sel.getAggregator(i) == ibis::selectClause::CNT);
-	void *bptr = bdl->columnArray(i);
 	if (bptr == 0) {
 	    buf[i] = 0;
 	    continue;

@@ -64,27 +64,20 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     return bdl;
 } // ibis::bundle::create
 
-/// Create a bundle using the values passed in through vals.
+/// Create a bundle using the values passed in through vals.  It assumes
+/// that the caller has processed the select clause and provided all the
+/// necessary values in vals.  Currently, the only column that does not
+/// require any actual input value is count(*).
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selectClause& sel,
 				   const std::vector<void*>& vals) {
+    const uint32_t nc = (vals.size() <= sel.size() ? vals.size() : sel.size());
     ibis::bundle* res = 0;
-    if (sel.size() > 1) {
-	if (vals.size() >= sel.size())
-	    res = new ibis::bundles(tbl, sel, vals);
-	else if (ibis::gVerbose > 0)
-	    ibis::util::logMessage("Warning", "ibis::bundle::create must "
-				   "have the same number of elements in "
-				   "sel[%ld] and vals[%ld]",
-				   static_cast<long>(sel.size()),
-				   static_cast<long>(vals.size()));
+    if (nc > 1) {
+	res = new ibis::bundles(tbl, sel, vals);
     }
-    else if (sel.size() == 1) {
-	if (vals.size() > 0)
-	    res = new ibis::bundle1(tbl, sel, vals);
-	else
-	    ibis::util::logMessage("Warning", "ibis::bundle::create can not "
-				   "proceed with an empty vals array");
+    else if (nc == 1) {
+	res = new ibis::bundle1(tbl, sel, vals);
     }
     return res;
 } // ibis::bundle::create
@@ -551,22 +544,31 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 } // ibis::bundle1::bundle1
 
 /// Constructor.  It creates the bundle using the values passed in through
-/// vals.
+/// vals.  It will use the values in vals[0] and take on the first column
+/// name in cmps that is not '*'.
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {
-    if (cmps.size() != 1 || vals.size() == 0)
+    if (cmps.size() == 0 || vals.size() == 0)
 	return;
 
     id = tbl.name();
-    ibis::column* c = tbl.getColumn(cmps.argName(0));
+    uint32_t icol = 0;
+    while (icol < cmps.size() && *(cmps.argName(icol)) == '*') ++ icol;
+    if (icol >= cmps.size()) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- bundle1::ctor failed to locate a valid column "
+	    "name in " << cmps;
+	throw "bundle1::ctor can not find a column name";
+    }
+    ibis::column* c = tbl.getColumn(cmps.argName(icol));
     if (c != 0 && vals[0] != 0) {
-	if (cmps.getAggregator(0) == ibis::selectClause::NIL) {
+	if (cmps.getAggregator(icol) == ibis::selectClause::NIL) {
 	    // use column type
 	    col = ibis::colValues::create(c, vals[0]);
 	}
 	else { // a function, treat AVG and SUM as double
-	    switch (cmps.getAggregator(0)) {
+	    switch (cmps.getAggregator(icol)) {
 	    case ibis::selectClause::AVG:
 	    case ibis::selectClause::SUM:
 	    case ibis::selectClause::VARPOP:
@@ -1051,12 +1053,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		throw ibis::bad_alloc("unknown column name");
 	    }
 	}
-	if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	    sort2();
-	}
-	else {
-	    sort();
-	}
+
+	sort();
     }
 
     if (ibis::gVerbose > 5) {
@@ -1123,12 +1121,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    rids = 0;
 	}
     }
-    if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	sort2();
-    }
-    else {
-	sort();
-    }
+    sort();
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
@@ -1158,7 +1151,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
     const uint32_t nc = (cmps.size() <= vals.size() ?
 			 cmps.size() : vals.size());
     for (unsigned i = 0; i < nc; ++ i) {
-	ibis::column* c = tbl.getColumn(cmps.argName(i));
+	const char* cn = cmps.argName(i);
+	ibis::column* c = tbl.getColumn(cn);
 	if (c != 0 && vals[i] != 0) {
 	    ibis::colValues* cv = 0;
 	    switch (cmps.getAggregator(i)) {
@@ -1178,7 +1172,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    if (cv != 0)
 		cols.push_back(cv);
 	}
-	else {
+	else if (*cn != '*') {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- bundles constructor encountered a unknown "
 		"column (cmps.argName(" << i	<< ") = " << cmps.argName(i)
@@ -1187,12 +1181,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    throw "bundles with unknown column name or without data";
 	}
     }
-    if (cmps.nPlain() < cmps.size() && cmps.nPlain() > 0) {
-	sort2();
-    }
-    else {
-	sort();
-    }
+    sort();
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
@@ -1283,10 +1272,11 @@ void ibis::bundles::printAll(std::ostream& out) const {
 } // ibis::bundles::printAll
 
 /// Sort the columns.  Remove the duplicate elements and generate the
-/// starts.  Assume all aggregations operations appear at the end of the
-/// list of columns.
+/// starts.  This function allows aggregation functions to appear in
+/// arbitrary positions in the select clause.
 void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
+    const uint32_t nplain = comps.nPlain();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
@@ -1309,7 +1299,7 @@ void ibis::bundles::sort() {
 	(*starts)[1] = nHits;
 	(*starts)[0] = 0;
     }
-    else if (comps.nPlain() == ncol) { // no functions
+    else if (nplain == ncol) { // no functions
 	for (uint32_t i = 0; i < ncol; ++ i)
 	    cols[i]->nosharing();
 	// sort according to the values of the first column
@@ -1335,20 +1325,7 @@ void ibis::bundles::sort() {
 		cols[i2]->reduce(*starts);
 	}
     }
-    else if (comps.nPlain() == 1) { // one column to sort
-	for (uint32_t i = 0; i < ncol; ++ i)
-	    cols[i]->nosharing();
-	// sort according to the values of the first column
-	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
-	starts = cols[0]->segment();
-	cols[0]->reduce(*starts); // remove duplicate values
-	nGroups = starts->size() - 1;
-	if (nGroups < nHits)
-	    for (uint32_t i = 1; i < ncol; ++ i) {
-		cols[i]->reduce(*starts, comps.getAggregator(i));
-	    }
-    }
-    else if (comps.nPlain() == 0) { // no column to sort
+    else if (nplain == 0) { // no column to sort
 	for (uint32_t i = 0; i < ncol; ++ i)
 	    cols[i]->nosharing();
 	delete starts;
@@ -1361,101 +1338,6 @@ void ibis::bundles::sort() {
 	}
     }
     else { // more than one column to sort
-	for (uint32_t i = 0; i < ncol; ++ i)
-	    cols[i]->nosharing();
- 	// sort according to the values of the first column
-	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
-	starts = cols[0]->segment();
-	nGroups = starts->size() - 1;
-
-	// go through the rest of the columns if necessary
-	for (uint32_t i=1; i<comps.nPlain() && nGroups<nHits; ++i) {
-	    uint32_t i1 = i + 1;
-	    for (uint32_t i2=0; i2<nGroups; ++i2) { // sort one group at a time
-		cols[i]->sort((*starts)[i2], (*starts)[i2+1], this,
-			      cols.begin()+i1, cols.end());
-	    }
-	    array_t<uint32_t>* tmp = cols[i]->segment(starts);
-	    delete starts;
-	    starts = tmp;
-	    nGroups = starts->size() - 1;
-	}
-
-	if (nGroups < nHits) {// erase the dupliate elements
-	    for (uint32_t i2 = 0; i2 < comps.nPlain(); ++ i2)
-		cols[i2]->reduce(*starts);
-	    for (uint32_t i2 = comps.nPlain(); i2 < ncol; ++ i2) {
-		cols[i2]->reduce(*starts, comps.getAggregator(i2));
-	    }
-	}
-   }
-
-    // sort RIDs and perform sanity check
-    if (nGroups < nHits && rids && rids->size() == nHits) {
-	for (uint32_t i1=nGroups; i1>0; --i1)
-	    sortRIDs((*starts)[i1-1], (*starts)[i1]);
-    }
-    for (uint32_t i1 = 0; i1 < ncol; ++i1) {
-	if (cols[i1]->size() != nGroups) {
-	    ibis::util::logMessage
-		("Warning", "bundles::sort -- column # %lu (%s) is expected "
-		 "to have %lu values, but it actually has %lu",
-		 static_cast<long unsigned>(i1), (*(cols[i1]))->name(),
-		 static_cast<long unsigned>(nGroups),
-		 static_cast<long unsigned>(cols[i1]->size()));
-	}
-    }
-#if _DEBUG+0>2 || DEBUG+0>1
-    if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort ending "
-		    << ncol << " columns and " << nGroups << " row"
-		    << (nGroups > 1 ? "s" : "");
-	for (uint32_t j = 0; j < nGroups; ++ j) {
-	    lg.buffer() << "\n";
-	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (i > 0) lg.buffer() << ", ";
-		cols[i]->write(lg.buffer(), j);
-	    }
-	}
-    }
-#endif
-} // ibis::bundles::sort
-
-/// Sort the columns.  Remove the duplicate elements and generate the
-/// starts.  Internally, it reorders the columns so that those with
-/// aggregation functions are placed at the end of the list.  This
-/// simplifies the sorting and aggregation operations.  It restores the
-/// column order before returning to the caller.
-void ibis::bundles::sort2() {
-    const uint32_t ncol = cols.size();
-    const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
-    const uint32_t nplain = comps.nPlain();
-    if (nplain == 0 || nplain == ncol)
-	return sort();
-
-    uint32_t nGroups = nHits;
-#if _DEBUG+0 > 2 || DEBUG+0 > 1
-    if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort2 starting with "
-		    << ncol << " columns and " << nHits << " row"
-		    << (nHits > 1 ? "s" : "");
-	for (uint32_t j = 0; j < nHits; ++ j) {
-	    lg.buffer() << "\n";
-	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (i > 0) lg.buffer() << ", ";
-		cols[i]->write(lg.buffer(), j);
-	    }
-	}
-    }
-#endif
-    if (nHits < 2) { // not much to do
-	starts = new ibis::array_t<uint32_t>(2);
-	(*starts)[1] = nHits;
-	(*starts)[0] = 0;
-    }
-    else { // more than one row to sort
 	for (uint32_t i = 0; i < ncol; ++ i)
 	    cols[i]->nosharing();
 
@@ -1517,7 +1399,7 @@ void ibis::bundles::sort2() {
     for (uint32_t i1 = 0; i1 < ncol; ++i1) {
 	if (cols[i1]->size() != nGroups) {
 	    ibis::util::logMessage
-		("Warning", "bundles::sort2 -- column # %lu (%s) is expected "
+		("Warning", "bundles::sort -- column # %lu (%s) is expected "
 		 "to have %lu values, but it actually has %lu",
 		 static_cast<long unsigned>(i1), (*(cols[i1]))->name(),
 		 static_cast<long unsigned>(nGroups),
@@ -1527,7 +1409,7 @@ void ibis::bundles::sort2() {
 #if _DEBUG+0>2 || DEBUG+0>1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort2 ending "
+	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort ending "
 		    << ncol << " columns and " << nGroups << " row"
 		    << (nGroups > 1 ? "s" : "");
 	for (uint32_t j = 0; j < nGroups; ++ j) {
@@ -1539,7 +1421,7 @@ void ibis::bundles::sort2() {
 	}
     }
 #endif
-} // ibis::bundles::sort2
+} // ibis::bundles::sort
 
 /// Reorder the bundles according to the keys (names) given.  If the
 /// argument direction is a negative number, the rows are reversed after
@@ -1550,8 +1432,8 @@ void ibis::bundles::reorder(const char *names, int direction) {
     if (starts == 0) return;
     if (starts->size() <= 2) return;
 
-    ibis::selected sortkeys; // the new keys for sorting
-    sortkeys.select(names, false); // preserve the order of the sort keys
+    ibis::nameList sortkeys; // the new keys for sorting
+    sortkeys.select(names); // preserve the order of the sort keys
     bool nosort = true;
     for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
 	nosort = (stricmp(sortkeys[j], comps.argName(j)) == 0);
@@ -1826,8 +1708,8 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
     if (starts->size() <= 2) return -3L;
     if (keep == 0) return -4L;
 
-    ibis::selected sortkeys; // the new keys for sorting
-    sortkeys.select(names, false); // preserve the order of the sort keys
+    ibis::nameList sortkeys; // the new keys for sorting
+    sortkeys.select(names); // preserve the order of the sort keys
     if (sortkeys.size() == 0) {
 	if (direction < 0)
 	    reverse();

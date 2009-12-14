@@ -80,6 +80,7 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual void estimate(const ibis::qExpr* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    using table::select;
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
     virtual table* groupby(const char* str) const;
@@ -358,7 +359,10 @@ ibis::bord::column::getRawData() const {
 
 inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     int ierr = -1;
-    if (buffer == 0) return ierr;
+    if (buffer == 0) {
+	out << "(no data in memory)";
+	return ierr;
+    }
 
     switch (m_type) {
     case ibis::BYTE: {

@@ -111,3 +111,12 @@ WITHOUT_FASTBIT_CONFIG_H to inform the compiler to not include
 ../src/configure either does not existing or was created for another
 system.  In this case, one need to defined WITHOUT_FASTBIT_CONFIG_H if
 not using VisualStudio compilers.
+
+Dec 13, 2009: complains about 'LPCWSTR'
+The FastBit source code is developed without considering multi-byte
+character sets nor unicode character set.  As such, the "Character Set"
+field in General tab of "Configuration Properties" of you visual studio
+project must be "Not Set", i.e., can not be either "multi-byte character
+set" nor "Unicode".  If you create a new visual studio project with a
+newer version of visual studio, the default character set might be
+unicode.  Be sure to change it to "Not Set."
