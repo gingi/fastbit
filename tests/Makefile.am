@@ -13,15 +13,15 @@ TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 text-0 \
     thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
+    maurel.csv scripts/fastbit-config.in \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
-    scripts/fastbit-config.in \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
 
 #
 # tests with different levels of thoroughness
 check: clean check-am
-	$(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) check-ibis \
-	&& $(MAKE) check-text && $(MAKE) check-marksdb
+	$(MAKE) check-thula && $(MAKE) check-tcapi && $(MAKE) check-ibis && \
+	$(MAKE) check-text && $(MAKE) check-marksdb && $(MAKE) check-maurel
 more-check: check small-tests
 full-check: more-check large-tests
 #
@@ -74,7 +74,7 @@ check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@if [ `diff $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select floor(c/10), max(c) as mx, avg(c) as av where a in ('1', '11', '21') or c < 29 order by av desc" -o $(TESTDIR)/text-0 > /dev/null
 	@if [ `diff -w text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 91' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
@@ -87,6 +87,15 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select floor(lat), floor(lon), avg(3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2)))) where time = 77328" -o $(TESTDIR)/marksdb-4 > /dev/null
 	@if [ `diff -w marksdb-4 $(TESTDIR)/marksdb-4 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@echo
+check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
+	@echo "Output from tests and data contributed by Alexandre Maurel (`/bin/date`)" > $(TESTDIR)/check-maurel.log
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor = 'Imatinib'" -output-with-header $(TESTDIR)/maurel-1a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor in ('Imatinib')" -output-with-header $(TESTDIR)/maurel-1b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@if [ -f $(TESTDIR)/maurel-1a -a -f $(TESTDIR)/maurel-1b -a `diff -w $(TESTDIR)/maurel-1a $(TESTDIR)/maurel-1b | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select Col,Array where (((((( ! Array == "D09") AND ( ! Array == "H07")) AND ( ! Array == "B04")) AND ( ! (Array == "B04" AND Visual_QC == "OK"))) AND Visual_QC == "OK") AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Col,Array where (((((( ! Array == "D09") AND ( ! Array == "H07")) AND ( ! Array == "B04")) AND ( ! (Array == "B04" AND Visual_QC == "OK"))) AND Visual_QC == "OK") AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@if [ -f $(TESTDIR)/maurel-2a -a -f $(TESTDIR)/maurel-2b -a `diff -w $(TESTDIR)/maurel-2a $(TESTDIR)/maurel-2b | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+#
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv
@@ -216,6 +225,9 @@ $(TESTDIR)/2: $(TESTDIR)
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv
 	rm -rf $(TESTDIR)/marksdb
 	./readcsv marksdb.csv $(TESTDIR)/marksdb
+$(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv
+	rm -rf $(TESTDIR)/maurel
+	./readcsv maurel.csv $(TESTDIR)/maurel
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
 	./readcsv test0.csv $(TESTDIR)/0/test0
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)
@@ -285,3 +297,4 @@ $(TCAPIEXE):
 .PHONY: clean multilevel match-counts large-sanity-check large-tests small-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
+.PHONY: check-marksdb check-maurel

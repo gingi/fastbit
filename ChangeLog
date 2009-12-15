@@ -1,3 +1,11 @@
+2009-12-15 John Wu <John.Wu at ACM.org>
+	* tests/readcsv.cpp: prefix the column names with comment
+	characters to allow other CSV reader to correctly read the CSV
+	file too, change the string type from text to category (to allow
+	indexing and searching)
+	* tests/Makefile.am: add check-maurel to exercise the test data
+	and queries contributed by Alexandre Maurel
+
 2009-12-14 John Wu <John.Wu at ACM.org>
 	* src/bord.cpp: update bord::part::groupby to work with count(*)
 	as a term in the select clause

@@ -1,6 +1,6 @@
+-- time, depth, lat, lon, temp, salinity, dist
 -- marksdb.csv is contributed by David B. Marks <marksdb @ cox.net>
 -- This is a small sample (300 rows) of a geospatial dataset
-time, depth, lat, lon, temp, salinity, dist
 77328, 3000, -10, 112, -18576, 14726, 0
 77328, 300, -10, 112, -9934, 14611, 0
 77328, 1100, -10, 112, -15543, 14631, 0

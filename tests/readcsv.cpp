@@ -3,19 +3,27 @@
 // Copyright 2002-2009 the Regents of the University of California
 /**   Read Comma-Separated Values.
 
-   This program takes one mandatory argument and one optional
-   argument.  The mandatory argument is the name of the file containing
+   Command line options:
+
+   csv-file-name [output-dir-name]
+
+   This program takes one mandatory argument and one optional argument.
+   The mandatory argument is the name of the file containing
    Comma-Separated Values.  This must be the first argument.  The second
    optional argument is the name of the directory to store the output
-   files.  The output files includes a file named -part.txt that describes
-   the contain in the rest of the files, and a list data files named after
-   the columns in the input file.  The content of these data files are raw
-   binary values.
+   files.  If the second argument is not provided, the directory named
+   'tmp' is used.  The output files includes a file named -part.txt that
+   describes the contain in the rest of the files, and a list data files
+   named after the columns in the input file.  The content of these data
+   files are raw binary values.  If the output directory already contains
+   files, files with the same names will be overwritten.
 
    The input file is expected to have comma-separated values.  Each line is
    to have the same number of fields and fields are separated by comma.
    The first line of the file must be a list of strings which are the names
-   of the columns.
+   of the columns.  This first line must be preceeded by '#' or '--' so
+   that it would not be interpreted by other CSV reader as a regular
+   entries.
 
    The values are outputed as raw binary into a set of files, one per
    column.  The type of the columns are determined as follows.
@@ -245,7 +253,7 @@ int readString(char *&tmp, std::string &str) {
 } // readString
 
 // Read a line of the input CSV file.
-int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
+int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
     long start = ftell(fptr); // start position
     int retry = 0;
     if (buf == 0) { // allocate a buffer of 1024 characters
@@ -282,7 +290,8 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
 	unsigned int len = strlen(buf);
 	if (len+1 < lbuf) {
 	    buf[len-1] = 0;
-	    if (buf[0] == '#' || (buf[0] == '-' && buf[1] == '-')) {
+	    if (skipcomment && (buf[0] == '#' ||
+				(buf[0] == '-' && buf[1] == '-'))) {
 		// comment line, try the next line
 		retry = 1;
 	    }
@@ -314,10 +323,11 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf) {
 // read the first line of the input file to retrieve the names of the
 // columns.
 void readColumnNames(FILE *fptr, char*& buf, unsigned& lbuf) {
-    int ierr = readALine(fptr, buf, lbuf);
+    int ierr = readALine(fptr, buf, lbuf, false);
     if (ierr <= 0) return;
 
     char* tmp = buf;
+    tmp += strspn(tmp, "#- \t"); // skip leading space and comment characters
     columns.clear();	// clear the list of columns
     while (*tmp != 0) {
 	std::string str;
@@ -554,7 +564,7 @@ int main(int argc, char** argv) {
 		"DataSet.Description = \"%s %s\"\n"
 		"Number_of_columns = %lu\n"
 		"Number_of_rows = %lu\n"
-		"Timestamp = %lu\nindex = <binning none/>\nEND HEADER\n",
+		"Timestamp = %lu\nEND HEADER\n",
 		dname.c_str(), argv[0], argv[1], columns.size(), cnt,
 		static_cast<long unsigned int>(time(0)));
 	for (cList::iterator it = columns.begin();
@@ -562,30 +572,30 @@ int main(int argc, char** argv) {
 	     ++ it) {
 	    switch ((*it).type) {
 	    default:
-	    case STRING:
+	    case STRING: // ibis::CATEGORY
 		fprintf(fptr,
 			"\nBegin Column\nname = \"%s\"\n"
-			"data_type = \"S\"\nEnd Column\n",
+			"data_type = \"category\"\nEnd Column\n",
 			(*it).name.c_str());
 		break;
-	    case DOUBLE:
+	    case DOUBLE: // ibis::DOUBLE
 		if ((*it).lo <= (*it).hi)
 		    fprintf(fptr,
 			    "\nBegin Column\nname = \"%s\"\n"
-			    "data_type = \"D\"\nminimum = %.15g\n"
+			    "data_type = \"double\"\nminimum = %.15g\n"
 			    "maximum = %.15g\nEnd Column\n",
 			    (*it).name.c_str(), (*it).lo, (*it).hi);
 		else
 		    fprintf(fptr,
 			    "\nBegin Column\nname = \"%s\"\n"
-			    "data_type = \"D\"\nEnd Column\n",
+			    "data_type = \"double\"\nEnd Column\n",
 			    (*it).name.c_str());
 		break;
-	    case INT:
+	    case INT: // ibis::INT
 		if ((*it).lo <= (*it).hi)
 		    fprintf(fptr,
 			    "\nBegin Column\nname = \"%s\"\n"
-			    "data_type = \"I\"\nminimum = %ld\n"
+			    "data_type = \"int\"\nminimum = %ld\n"
 			    "maximum = %ld\nEnd Column\n",
 			    (*it).name.c_str(),
 			    static_cast<long>((*it).lo),
@@ -593,7 +603,7 @@ int main(int argc, char** argv) {
 		else
 		    fprintf(fptr,
 			    "\nBegin Column\nname = \"%s\"\n"
-			    "data_type = \"I\"\nEnd Column\n",
+			    "data_type = \"int\"\nEnd Column\n",
 			    (*it).name.c_str());
 		break;
 	    }

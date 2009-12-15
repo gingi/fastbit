@@ -891,7 +891,8 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	return m_tags;
 
     char buf[MAX_LINE];
-    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
+    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
+			     FASTBIT_DIRSEP);
     if (ierr < 2 || ierr > MAX_LINE) {
 	ibis::util::logMessage("Warning", "part::readMetaTags failed "
 			       "to generate the metadata file name");
@@ -969,10 +970,13 @@ void ibis::part::readMeshShape(const char* const dir) {
 	return;
 
     char buf[MAX_LINE];
-    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
-    if (ierr < 2 || ierr > MAX_LINE) {
-	ibis::util::logMessage("Warning", "ibis::part::readMeshShape "
-			       "failed to generate the metadata file name");
+    long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
+			     FASTBIT_DIRSEP);
+    if (ierr < 10 || ierr > MAX_LINE) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::readMeshShape failed to generate the name "
+	    "of the metadata file, likely because the file name is longer "
+	    "than " << MAX_LINE << " bytes";
 	return;
     }
 
@@ -982,16 +986,13 @@ void ibis::part::readMeshShape(const char* const dir) {
 	file = fopen(buf, "r");
     }
     if (file == 0) {
-	ibis::util::logMessage("Warning", "ibis::part::readMeshShape "
-			       "failed to open file \"%s\" ... %s", buf,
-			       (errno ? strerror(errno) :
-				"no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::readMeshShape failed to open file \"" << buf
+	    << "\" ... " << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
-    if (ibis::gVerbose > 4) {
-	ibis::util::logMessage("ibis::part::readMeshShape()",
-			       "opened %s", buf);
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "ibis::part::readMeshShape() opened " << buf;
 
     // skip till begin header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
@@ -1000,11 +1001,9 @@ void ibis::part::readMeshShape(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("Warning", "readMeshShape may have "
-				   "encountered a line that has more than "
-				   "%d characters.", MAX_LINE);
-	}
+	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose >= 0)
+	    << "Warning -- part::readMeshShape may have encountered a line "
+	    "with more than " << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 14) << buf;
 
 	if (strnicmp(buf, "END HEADER", 10) == 0) {
@@ -1317,17 +1316,16 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     fclose(file); // close the tdc file
 
     if ((uint32_t)num_columns != plist.size() && num_columns < INT_MAX) {
-	ibis::util::logMessage("Warning", "ibis::part::readMetaData found %lu "
-			       "columns, but %lu were expected",
-			       static_cast<long unsigned>(plist.size()),
-			       static_cast<long unsigned>(num_columns));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::readMetaData found " << plist.size()
+	    << " columns, but " << num_columns << " were expected";
     }
     if (cnt != tot_columns && tot_columns != INT_MAX) {
-	ibis::util::logMessage("Warning", "ibis::part::readMetaData expects "
-			       "%lu columns, in the metadata file, but only "
-			       "%lu entries were found",
-			       static_cast<long unsigned>(tot_columns),
-			       static_cast<long unsigned>(cnt));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::readMetaData expects " << tot_columns
+	    << " column" << (tot_columns > 1 ? "s" : "")
+	    << " in the metadata file, but only " << cnt
+	    << " entr" << (cnt > 1 ? "ies" : "y") << " were found";
     }
 
     if (isActive) {
@@ -1370,10 +1368,9 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 
 	if (mt > 0 && activeDir != 0 && *activeDir != 0) {
 	    // write an updated metadata file
-	    if (ibis::gVerbose > 1)
-		logMessage("readMetaData", "found %lu meta tags not recorded "
-			   "as columns, writing new metadata file to %s",
-			   static_cast<unsigned long>(mt), dir);
+	    LOGGER(ibis::gVerbose > 1)
+		<< "part::readMetaData found " << mt << " meta tags not "
+		"recorded as columns, writing new metadata file to " << dir;
 	    writeMetaData(nEvents, plist, activeDir);
 	    if (backupDir)
 		writeMetaData(nEvents, plist, activeDir);
@@ -1388,14 +1385,23 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 			       const char* dir) const {
     if (dir == 0 || *dir == 0)
 	return;
-    char* filename = new char[strlen(dir)+16];
-    sprintf(filename, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
+    const int nfn = strlen(dir)+16;
+    char* filename = new char[nfn];
+    int ierr = UnixSnprintf(filename, nfn, "%s%c-part.txt", dir,
+			    FASTBIT_DIRSEP);
+    if (ierr < 10 || ierr > nfn) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::writeMeshShape failed to generate the name "
+	    "of the metadata file, very unexpected";
+	delete [] filename;
+	return;
+    }
     FILE *fptr = fopen(filename, "w");
     if (fptr == 0) {
-	ibis::util::logMessage
-	    ("Warning", "writeMetaData failed to open file \"%s\" for writing "
-	     "... %s", filename, (errno ? strerror(errno) :
-				  "no free stdio stream"));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::writeMetaData failed to open file \""
+	    << filename << "\" for writing ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	delete [] filename;
 	return;
     }
