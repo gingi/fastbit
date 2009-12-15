@@ -1341,11 +1341,10 @@ ibis::util::timer::~timer() {
 
 /// If the whole string matches the pattern, this function returns true,
 /// otherwise, it returns false.  The special cases are (1) if the two
-/// pointere are the same, it returns true; (2) if both arguments point to
+/// pointers are the same, it returns true; (2) if both arguments point to
 /// an empty string, it returns true; (3) if one of the two argument is a
-/// nil pointer, but the other is not, it returns false; (4) if one of the
-/// two arguments is an empty string, but the other is not, it returns
-/// false.
+/// nil pointer, but the other is not, it returns false; (4) if str is
+/// an empty string, it matches a pattern containing only '%' and '*'.
 ///
 /// The pattern may contain five special characters, two matches any number
 /// of characters, STRMATCH_META_CSH_ANY and STRMATCH_META_SQL_ANY, two
@@ -1354,9 +1353,8 @@ ibis::util::timer::~timer() {
 /// meta characters used in C-shell file name substitution and SQL LIKE
 /// clause. 
 ///
-/// @note The strings matched without considering the case, i.e., the match
-/// is case insensitive.
-/// @note This is not POSIX regular expression matching!
+/// @note The strings are matched without considering the case, i.e., the
+/// match is case insensitive.
 bool ibis::util::strMatch(const char *str, const char *pat) {
     static const char metaList[6] = "?*_%\\";
     /* Since the escape character is special to C/C++ too, the following initialization causes problem for some compilers!
@@ -1378,7 +1376,14 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 	return false;
     }
     else if (*str == 0) {
-	return false;
+	bool onlyany = false;
+	for (onlyany = (*pat == STRMATCH_META_CSH_ANY ||
+			*pat == STRMATCH_META_SQL_ANY),
+		 ++ pat;
+	     onlyany && *pat != 0; ++ pat)
+	    onlyany = (*pat == STRMATCH_META_CSH_ANY ||
+		       *pat == STRMATCH_META_SQL_ANY);
+	return onlyany;
     }
 
     const char *s1 = strpbrk(pat, metaList);

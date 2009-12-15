@@ -8,6 +8,11 @@
 	* src/bundle.cpp: replace ibis::selected with ibis::nameList in
 	function bundles::tuncate and bundles::reorder
 	* src/selectParser.ll: add keyword countdistinct
+	* test/Makefile.am: change test case 7 to avoid in-line editing of
+	output file
+	* src/util.cpp: change ibis::util::strMatch to make sure an empty
+	string can match the wild character '%' (zero or more of any
+	character - a problem reported by Jan Hapke)
 
 2009-12-13 John Wu <John.Wu at ACM.org>
 	* src/qExpr.h:214 construtor of qContinuous assigned operations to
