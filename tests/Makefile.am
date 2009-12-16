@@ -92,9 +92,11 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor = 'Imatinib'" -output-with-header $(TESTDIR)/maurel-1a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor in ('Imatinib')" -output-with-header $(TESTDIR)/maurel-1b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-1a -a -f $(TESTDIR)/maurel-1b -a `diff -w $(TESTDIR)/maurel-1a $(TESTDIR)/maurel-1b | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select Col,Array where (((((( ! Array == "D09") AND ( ! Array == "H07")) AND ( ! Array == "B04")) AND ( ! (Array == "B04" AND Visual_QC == "OK"))) AND Visual_QC == "OK") AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Col,Array where (((((( ! Array == "D09") AND ( ! Array == "H07")) AND ( ! Array == "B04")) AND ( ! (Array == "B04" AND Visual_QC == "OK"))) AND Visual_QC == "OK") AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select Col, Array where (((((( ! Array == 'D09') AND ( ! Array == 'H07')) AND ( ! Array == 'B04')) AND ( ! (Array == 'B04' AND Visual_QC == 'OK'))) AND Visual_QC == 'OK') AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Col, Array where (((((( ! Array == 'D09') AND ( ! Array == 'H07')) AND ( ! Array == 'B04')) AND ( ! (Array == 'B04' AND Visual_QC == 'OK'))) AND Visual_QC == 'OK') AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-2a -a -f $(TESTDIR)/maurel-2b -a `diff -w $(TESTDIR)/maurel-2a $(TESTDIR)/maurel-2b | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
+	@echo
 #
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1

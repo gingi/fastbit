@@ -300,7 +300,7 @@ void ibis::bundle0::printAll(std::ostream& out) const {
     if (rids) {
 	// print all RIDs one on a line
 	ibis::RIDSet::const_iterator it;
-	if (ibis::gVerbose > 0)
+	if (ibis::gVerbose > 2)
 	    out << "IDs of all qualified rows for bundle " << id
 		<< " (one per line)" << std::endl;
 	for (it = rids->begin(); it != rids->end(); ++it) {
@@ -608,12 +608,12 @@ void ibis::bundle1::print(std::ostream& out) const {
 	return;
 
     uint32_t nbdl = col->size();
-    if (ibis::gVerbose > 0)
+    if (ibis::gVerbose > 2)
 	out << "Bundle1 " << id << " has " << nbdl
 	    << (col->canSort() ? " distinct" : "")
 	    << (nbdl > 1 ? " values" : " value")
 	    << std::endl;
-    if (ibis::gVerbose > -1 && starts != 0) {
+    if (starts != 0) {
 	out << *comps << " (with counts)\n";
 	for (uint32_t i=0; i < nbdl; ++i) {
 	    col->write(out, i);
@@ -637,7 +637,7 @@ void ibis::bundle1::printAll(std::ostream& out) const {
     if (rids != 0 && starts != 0) {
 	ibis::util::ioLock lock;
 	uint32_t nbdl = col->size();
-	if (ibis::gVerbose > 0)
+	if (ibis::gVerbose > 2)
 	    out << "Bundle " << id << " has " << nbdl
 		<< (col->canSort() ? " distinct" : "")
 		<< (nbdl > 1 ? " values" : " value")
@@ -1207,11 +1207,11 @@ void ibis::bundles::print(std::ostream& out) const {
 	}
 	distinct = cols[i]->canSort();
     }
-    if (ibis::gVerbose > 0)
+    if (ibis::gVerbose > 2)
 	out << "Bundle " << id << " contains " << size
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << std::endl;
-    if (ibis::gVerbose > -1 && starts != 0) {
+    if (starts != 0) {
 	out << *comps << " (with counts)\n";
 	for (uint32_t i=0; i<size; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
@@ -1252,7 +1252,7 @@ void ibis::bundles::printAll(std::ostream& out) const {
     }
     const uint32_t size = cols[0]->size();
     ibis::util::ioLock lock;
-    if (ibis::gVerbose > 0)
+    if (ibis::gVerbose > 2)
 	out << "Bundle " << id << " contains " << size
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << " from "
@@ -1671,7 +1671,7 @@ void ibis::bundles::reverse() {
 	    (*starts)[i] = cumu;
 	    cumu += tmp;
 	}
-	if (cumu != (*starts)[ngroups] && ibis::gVerbose > -1) {
+	if (cumu != (*starts)[ngroups] && ibis::gVerbose >= 0) {
 	    ibis::util::logMessage
 		("Warning", "ibis::bundles::reverse internal error, "
 		 "cumu (%lu) and (*starts)[%lu] (%lu) are expected to "
