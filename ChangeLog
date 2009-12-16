@@ -1,3 +1,9 @@
+2009-12-16 John Wu <John.Wu at ACM.org>
+	* src/whereParser.yy: add rules to accept "name != 'string'" at
+	request of Alexandre Maurel
+	* tests/Makefile.am: add test case 3 in check-maurel to exercise
+	"name != 'string'"
+
 2009-12-15 John Wu <John.Wu at ACM.org>
 	* tests/readcsv.cpp: prefix the column names with comment
 	characters to allow other CSV reader to correctly read the CSV

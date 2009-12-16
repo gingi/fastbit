@@ -67,10 +67,10 @@
 %token <stringVal> STRSEQ	"string sequence"
 %token <stringVal> STRLIT	"string literal"
 
-%left EQOP NEQOP
 %left OROP
 %left XOROP
 %left ANDOP ANDNOTOP
+%left EQOP NEQOP
 %left BITOROP
 %left BITANDOP
 %left ADDOP MINUSOP
@@ -588,6 +588,42 @@ mathExpr EQOP mathExpr {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "whereParser.yy: rule mathExpr == 'string literal' is a "
 	    "kludge for Name == 'string literal'.  The mathExpr on the "
+	    "left can only be variable name, currently " << *me1;
+	delete $3;
+	delete me1;
+	throw "The rule on line 419 in whereParser.yy expects a simple "
+	    "variable name on the left-hand side";
+    }
+}
+| STRLIT NEQOP NOUNSTR %prec INOP {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$3 << " = "
+	<< *$1;
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qString($3->c_str(), $1->c_str()));
+    delete $3;
+    delete $1;
+}
+| mathExpr NEQOP STRLIT {
+    ibis::math::term *me1 = static_cast<ibis::math::term*>($1);
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *me1 << " != "
+	<< *$3;
+#endif
+    ibis::math::variable *var = dynamic_cast<ibis::math::variable*>(me1);
+    if (var != 0) {
+	$$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+	$$->setLeft(new ibis::qString(var->variableName(), $3->c_str()));
+	delete $3;
+	delete var;
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "whereParser.yy: rule mathExpr != 'string literal' is a "
+	    "kludge for Name != 'string literal'.  The mathExpr on the "
 	    "left can only be variable name, currently " << *me1;
 	delete $3;
 	delete me1;

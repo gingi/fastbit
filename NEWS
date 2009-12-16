@@ -14,6 +14,12 @@ Version ibis1.1.5
 -- all string values to be used for group by operations
 -- add contrib directory to include the file fbmerge.cpp contributed by
    Luca Deri and Valeria Lorenzetti
+-- add tests and data contributed by Alexandre Maurel to check for the
+   problem with parsing string valued query conditions
+-- add support for operator LIKE for comparing strings
+-- allow aggregation functions (in the select clauses) to appear before
+   the group-by columns
+-- allow count(*) to be explicitly used in a select clause
 
 Tue Nov 10 14:17:41 PST 2009
 Version ibis1.1.4
