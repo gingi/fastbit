@@ -78,7 +78,7 @@ OBJ =  parth3d.obj parth3da.obj parth3db.obj parth3dw.obj \
 
 #
 ibis: ibis.exe
-all: ibis.exe ardea.exe thula.exe tcapi.exe
+all: ibis.exe ardea.exe rara.exe thula.exe tcapi.exe
 
 lib: fastbit.lib
 fastbit.lib: $(OBJ)
@@ -86,6 +86,10 @@ fastbit.lib: $(OBJ)
 
 ibis.exe: ibis.obj fastbit.lib
 	$(LINK) /NOLOGO /out:$@ $(LIB) ibis.obj fastbit.lib
+
+rara: rara.exe
+rara.exe: rara.obj fastbit.lib
+	$(LINK) /NOLOGO $(LIB) /out:$@ rara.obj fastbit.lib
 
 thula: thula.exe
 thula.exe: thula.obj fastbit.lib

@@ -146,52 +146,114 @@ int ibis::selectClause::parse(const char *cl) {
 /// Write the string form of the ith term into str.
 void ibis::selectClause::describe(unsigned i, std::string &str) const {
     if (i >= terms_.size()) return;
-    std::ostringstream oss;
-    switch (aggr_[i]) {
-    default:
-	oss << *(terms_[i]);
-	break;
-    case AVG:
-	oss << "AVG(" << *(terms_[i]) << ")";
-	break;
-    case CNT:
-	oss << "COUNT(" << *(terms_[i]) << ")";
-	break;
-    case MAX:
-	oss << "MAX(" << *(terms_[i]) << ")";
-	break;
-    case MIN:
-	oss << "MIN(" << *(terms_[i]) << ")";
-	break;
-    case SUM:
-	oss << "SUM(" << *(terms_[i]) << ")";
-	break;
-    case VARPOP:
-	oss << "VARPOP(" << *(terms_[i]) << ")";
-	break;
-    case VARSAMP:
-	oss << "VARSAMP(" << *(terms_[i]) << ")";
-	break;
-    case STDPOP:
-	oss << "STDPOP(" << *(terms_[i]) << ")";
-	break;
-    case STDSAMP:
-	oss << "STDSAMP(" << *(terms_[i]) << ")";
-	break;
-    case DISTINCT:
-	oss << "COUNTDISTINCT(" << *(terms_[i]) << ")";
-	break;
+    if (! xnames_[i].empty()) {
+	str = xnames_[i];
     }
+    else if (! names_[i].empty()) {
+	switch (aggr_[i]) {
+	default:
+	    str = names_[i];
+	    break;
+	case AVG:
+	    str = "AVG(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case CNT:
+	    str = "COUNT(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case MAX:
+	    str = "MAX(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case MIN:
+	    str = "MIN(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case SUM:
+	    str = "SUM(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case VARPOP:
+	    str = "VARPOP(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case VARSAMP:
+	    str = "VARSAMP(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case STDPOP:
+	    str = "STDPOP(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case STDSAMP:
+	    str = "STDSAMP(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	case DISTINCT:
+	    str = "COUNTDISTINCT(";
+	    str += names_[i];
+	    str += ')';
+	    break;
+	}
+    }
+    else if (terms_[i] != 0) {
+	std::ostringstream oss;
+	switch (aggr_[i]) {
+	default:
+	    oss << *(terms_[i]);
+	    break;
+	case AVG:
+	    oss << "AVG(" << *(terms_[i]) << ')';
+	    break;
+	case CNT:
+	    oss << "COUNT(" << *(terms_[i]) << ')';
+	    break;
+	case MAX:
+	    oss << "MAX(" << *(terms_[i]) << ')';
+	    break;
+	case MIN:
+	    oss << "MIN(" << *(terms_[i]) << ')';
+	    break;
+	case SUM:
+	    oss << "SUM(" << *(terms_[i]) << ')';
+	    break;
+	case VARPOP:
+	    oss << "VARPOP(" << *(terms_[i]) << ')';
+	    break;
+	case VARSAMP:
+	    oss << "VARSAMP(" << *(terms_[i]) << ')';
+	    break;
+	case STDPOP:
+	    oss << "STDPOP(" << *(terms_[i]) << ')';
+	    break;
+	case STDSAMP:
+	    oss << "STDSAMP(" << *(terms_[i]) << ')';
+	    break;
+	case DISTINCT:
+	    oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
+	    break;
+	}
 
-    str = oss.str();
+	str = oss.str();
+    }
 } // ibis::selectClause::describe
 
 /// Fill array names_ and xnames_.  An alias for an aggregation operation
-/// is used as the external (outer) name.  This function resolves all
-/// external names first to establish all aliases, and then resolve the
-/// inner names to that the aliases may be used in aggregation functions.
-/// The arithmetic expressions that with external names are given names of
-/// the form "shhh", where "hhh" is the hexadecimal number.
+/// is used as the external name for the whole term.  This function
+/// resolves all external names first to establish all aliases, and then
+/// resolve the names of the arguments to the aggregation functions.  The
+/// arithmetic expressions without external names are given names of the
+/// form "shhh", where "hhh" is the hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
     xnames_.clear();
@@ -208,20 +270,22 @@ void ibis::selectClause::fillNames() {
 	 it != alias_.end(); ++ it)
 	xnames_[it->second] = it->first;
 
-    // fill the inner names
+    // fill the argument name and then the external name
     for (uint32_t j = 0; j < terms_.size(); ++ j) {
 	if (terms_[j]->termType() == ibis::math::VARIABLE) {
 	    names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
 		->variableName();
-	    if (xnames_[j].empty())
-		xnames_[j] = names_[j];
-	}
-	else {
-	    std::ostringstream oss;
-	    oss << "s" << std::setprecision(prec) << j;
-	    names_[j] = oss.str();
+
 	    if (xnames_[j].empty())
 		describe(j, xnames_[j]);
+	}
+	else {
+	    if (xnames_[j].empty())
+		describe(j, xnames_[j]);
+
+	    std::ostringstream oss;
+	    oss << "s" << std::hex << std::setprecision(prec) << j << std::dec;
+	    names_[j] = oss.str();
 	}
     }
 } // ibis::selectClause::fillNames
@@ -241,9 +305,9 @@ int ibis::selectClause::find(const char* key) const {
 	    ret = it->second;
 	}
 	else {
-	    // try to match short-hand names
+	    // try to match names of the terms one at a time
 	    for (ret = 0; ret < static_cast<int>(names_.size()); ++ ret) {
-		if (stricmp(names_[ret].c_str(), key) == 0)
+		if (stricmp(xnames_[ret].c_str(), key) == 0)
 		    break;
 	    }
 	    // try to match the string version of each arithmetic expression
@@ -255,34 +319,34 @@ int ibis::selectClause::find(const char* key) const {
 			oss << *(terms_[i]);
 			break;
 		    case AVG:
-			oss << "AVG(" << *(terms_[i]) << ")";
+			oss << "AVG(" << *(terms_[i]) << ')';
 			break;
 		    case CNT:
-			oss << "COUNT(" << *(terms_[i]) << ")";
+			oss << "COUNT(" << *(terms_[i]) << ')';
 			break;
 		    case MAX:
-			oss << "MAX(" << *(terms_[i]) << ")";
+			oss << "MAX(" << *(terms_[i]) << ')';
 			break;
 		    case MIN:
-			oss << "MIN(" << *(terms_[i]) << ")";
+			oss << "MIN(" << *(terms_[i]) << ')';
 			break;
 		    case SUM:
-			oss << "SUM(" << *(terms_[i]) << ")";
+			oss << "SUM(" << *(terms_[i]) << ')';
 			break;
 		    case VARPOP:
-			oss << "VARPOP(" << *(terms_[i]) << ")";
+			oss << "VARPOP(" << *(terms_[i]) << ')';
 			break;
 		    case VARSAMP:
-			oss << "VARSAMP(" << *(terms_[i]) << ")";
+			oss << "VARSAMP(" << *(terms_[i]) << ')';
 			break;
 		    case STDPOP:
-			oss << "STDPOP(" << *(terms_[i]) << ")";
+			oss << "STDPOP(" << *(terms_[i]) << ')';
 			break;
 		    case STDSAMP:
-			oss << "STDSAMP(" << *(terms_[i]) << ")";
+			oss << "STDSAMP(" << *(terms_[i]) << ')';
 			break;
 		    case DISTINCT:
-			oss << "COUNTDISTINCT(" << *(terms_[i]) << ")";
+			oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
 			break;
 		    }
 		    if (stricmp(oss.str().c_str(), key) == 0) {
@@ -312,34 +376,34 @@ void ibis::selectClause::print(std::ostream& out) const {
 	    out << *(terms_[i]);
 	    break;
 	case AVG:
-	    out << "AVG(" << *(terms_[i]) << ")";
+	    out << "AVG(" << *(terms_[i]) << ')';
 	    break;
 	case CNT:
-	    out << "COUNT(" << *(terms_[i]) << ")";
+	    out << "COUNT(" << *(terms_[i]) << ')';
 	    break;
 	case MAX:
-	    out << "MAX(" << *(terms_[i]) << ")";
+	    out << "MAX(" << *(terms_[i]) << ')';
 	    break;
 	case MIN:
-	    out << "MIN(" << *(terms_[i]) << ")";
+	    out << "MIN(" << *(terms_[i]) << ')';
 	    break;
 	case SUM:
-	    out << "SUM(" << *(terms_[i]) << ")";
+	    out << "SUM(" << *(terms_[i]) << ')';
 	    break;
 	case VARPOP:
-	    out << "VARPOP(" << *(terms_[i]) << ")";
+	    out << "VARPOP(" << *(terms_[i]) << ')';
 	    break;
 	case VARSAMP:
-	    out << "VARSAMP(" << *(terms_[i]) << ")";
+	    out << "VARSAMP(" << *(terms_[i]) << ')';
 	    break;
 	case STDPOP:
-	    out << "STDPOP(" << *(terms_[i]) << ")";
+	    out << "STDPOP(" << *(terms_[i]) << ')';
 	    break;
 	case STDSAMP:
-	    out << "STDSAMP(" << *(terms_[i]) << ")";
+	    out << "STDSAMP(" << *(terms_[i]) << ')';
 	    break;
 	case DISTINCT:
-	    out << "COUNTDISTINCT(" << *(terms_[i]) << ")";
+	    out << "COUNTDISTINCT(" << *(terms_[i]) << ')';
 	    break;
 	}
 	if (aliases[i] != 0)

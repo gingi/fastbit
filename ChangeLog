@@ -3,6 +3,9 @@
 	request of Alexandre Maurel
 	* tests/Makefile.am: add test case 3 in check-maurel to exercise
 	"name != 'string'"
+	* src/selectClause.cpp: change functions describe and fillNames to
+	produce external names with the aggregation function when no alias
+	is provided
 
 2009-12-15 John Wu <John.Wu at ACM.org>
 	* tests/readcsv.cpp: prefix the column names with comment

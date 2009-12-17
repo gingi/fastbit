@@ -72,7 +72,7 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
 
 #
 ibis: ibis.exe
-all: ibis.exe ardea.exe thula.exe
+all: ibis.exe ardea.exe rara.exe thula.exe tcapi.exe
 IBISEXE=./ibis.exe
 ARDEAEXE=./ardea.exe
 
@@ -86,6 +86,10 @@ ibis.exe: ibis.o libfastbit.a
 thula: thula.exe
 thula.exe: thula.o libfastbit.a
 	$(CXX) $(OPT) -o $@ thula.o libfastbit.a $(LIB)
+
+rara: rara.exe
+rara.exe: rara.o libfastbit.a
+	$(CXX) $(OPT) -o $@ rara.o libfastbit.a $(LIB)
 
 ardea: ardea.exe
 ardea.exe: ardea.o libfastbit.a
