@@ -1903,7 +1903,7 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	try {
 	    ibis::fileManager::storage cp(nelm);
 	    memcpy(cp.m_begin, m_begin, oldsize);
-	    cp.m_end;
+	    cp.m_end = cp.m_begin + oldsize;
 	    swap(cp);
 	}
 	catch (...) {

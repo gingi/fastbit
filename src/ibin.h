@@ -41,6 +41,9 @@ public:
     virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::index::evaluate;
+    using ibis::index::estimate;
+    using ibis::index::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -438,6 +441,8 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
+    using ibis::bin::estimateCost;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -513,6 +518,8 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
+    using ibis::bin::estimateCost;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -567,6 +574,8 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
+    using ibis::bin::estimateCost;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -630,6 +639,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -685,6 +695,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -744,6 +755,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -803,6 +815,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -868,6 +881,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -937,6 +951,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::egale::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
@@ -997,6 +1012,7 @@ public:
 	return ibis::index::evaluate(expr, hits);
     }
 
+    using ibis::egale::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;

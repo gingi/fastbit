@@ -128,7 +128,6 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 
     clear(); // clear all existing content
     std::string colname, tmp;
-    ibis::TYPE_T coltype;
     ibis::tafel::column *col;
     const char *delim = " ,\t\n\v";
     while (*buf != 0 && *buf != ')') { // loop till closing )
@@ -275,7 +274,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 		    col->values = new ibis::array_t<uint16_t>();
 		}
 		else {
-		    coltype = ibis::SHORT;
+		    col->type = ibis::SHORT;
 		    col->values = new ibis::array_t<int16_t>();
 		}
 	    }
@@ -549,10 +548,11 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	break;}
     case ibis::FLOAT: {
 	errno = 0;
-#if defined(_WIN32) && defined(_MSC_VER)
-	float tmp = strtod(val, &ptr);
-#else
+#if defined(_ISOC99_SOURCE)|| defined(_ISOC9X_SOURCE) \
+    || (__STDC_VERSION__+0 >= 199901L) || (_XOPEN_SOURCE+0 >= 600)
 	float tmp = strtof(val, &ptr);
+#else
+	float tmp = strtod(val, &ptr);
 #endif
 	if (errno == 0) { // no conversion error
 	    float *actual = new float;
@@ -598,8 +598,7 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	    << "tafel::assignDefaultValue(" << col.name << ", " << val
 	    << ") can not handle column type "
 	    << ibis::TYPESTRING[(int)col.type];
-	return -3;
-	break;}
+	return -3;}
     } // switch (col.type)
     return 0;
 } // ibis::tafel::assignDefault

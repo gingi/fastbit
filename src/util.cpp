@@ -1026,7 +1026,8 @@ const char* ibis::util::userName() {
 #elif defined(__MINGW32__)
 	// MinGW does not have support for user names?!
 #elif defined(_POSIX_VERSION)
-#if defined(_SC_GETPW_R_SIZE_MAX)
+#if (defined(_REENTRANT) || defined(_THREAD_SAFE) || \
+     defined(_POSIX_THREAD_SAFE_FUNCTIONS)) && defined(_SC_GETPW_R_SIZE_MAX)
 	// use the thread-safe version of getpwuid_r
 	struct passwd  pass;
 	struct passwd *ptr1 = &pass;
@@ -1040,8 +1041,8 @@ const char* ibis::util::userName() {
 		if (ierr == 0) {
 		    uid = pass.pw_name;
 		}
-		if (ptr2 != ptr1)
-		    delete ptr2;
+		// if (ptr2 != ptr1)
+		//     delete ptr2;
 		delete [] buf;
 	    }
 	}
@@ -1066,7 +1067,8 @@ const char* ibis::util::userName() {
 	(void) cuserid(buf);
 	if (*buf)
 	    uid = buf;
-#elif defined(_REENTRANT) || defined(_THREAD_SAFE) || defined(_POSIX_THREAD_SAFE_FUNCTIONS)
+#elif defined(_REENTRANT) || defined(_THREAD_SAFE) || \
+    defined(_POSIX_THREAD_SAFE_FUNCTIONS)
 	// in case we are not on a posix-compliant system and no cuserid,
 	// try getlogin, however getlongin and variants need a TTY or utmp
 	// entry to function correctly.  They may cause a core dump if this
@@ -1135,10 +1137,17 @@ FILE* ibis::util::getLogFile() {
     if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr,
-			   "\nibis::util::getLogFile opened %s on %s\n",
-			   fname, tstr);
+	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
+			   FASTBIT_STRING, fname, tstr);
 	    if (ierr > 1) {
+#ifdef FASTBIT_BUGREPORT
+		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
+			       FASTBIT_BUGREPORT);
+#endif
+#ifdef FASTBIT_URL
+		(void) fprintf(fptr, "\tread more about the package at %s\n",
+			       FASTBIT_URL);
+#endif
 		ibis_util_logfilepointer = fptr;
 		ibis_util_logfilename = fname;
 		return fptr;
@@ -1150,10 +1159,17 @@ FILE* ibis::util::getLogFile() {
     if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr,
-			   "\nibis::util::getLogFile opened %s on %s\n",
-			   fname, tstr);
+	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
+			   FASTBIT_STRING, fname, tstr);
 	    if (ierr > 1) {
+#ifdef FASTBIT_BUGREPORT
+		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
+			       FASTBIT_BUGREPORT);
+#endif
+#ifdef FASTBIT_URL
+		(void) fprintf(fptr, "\tread more about the package at %s\n",
+			       FASTBIT_URL);
+#endif
 		ibis_util_logfilepointer = fptr;
 		ibis_util_logfilename = fname;
 		return fptr;
@@ -1167,10 +1183,17 @@ FILE* ibis::util::getLogFile() {
     if (fname != 0 && *fname == 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr,
-			   "\nibis::util::getLogFile opened %s on %s\n",
-			   fname, tstr);
+	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
+			   FASTBIT_STRING, fname, tstr);
 	    if (ierr > 1) {
+#ifdef FASTBIT_BUGREPORT
+		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
+			       FASTBIT_BUGREPORT);
+#endif
+#ifdef FASTBIT_URL
+		(void) fprintf(fptr, "\tread more about the package at %s\n",
+			       FASTBIT_URL);
+#endif
 		ibis_util_logfilepointer = fptr;
 		ibis_util_logfilename = fname;
 		return fptr;
@@ -1209,9 +1232,8 @@ int ibis::util::setLogFileName(const char* filename) {
     ibis::util::ioLock lock;
     FILE* fptr = fopen(filename, "a");
     if (fptr != 0) {
-	int ierr = fprintf
-	    (fptr, "\nibis::util::setLogFileName opened %s on %s for %s\n",
-	     filename, tstr, FASTBIT_STRING);
+	int ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
+			   FASTBIT_STRING, filename, tstr);
 	if (ierr > 1) {
 	    if (ibis_util_logfilepointer != 0 &&
 		! ibis_util_logfilename.empty()) // close existing file
@@ -1219,8 +1241,12 @@ int ibis::util::setLogFileName(const char* filename) {
 	    ibis_util_logfilename = filename;
 	    ibis_util_logfilepointer = fptr;
 #ifdef FASTBIT_BUGREPORT
-	    ierr = fprintf(fptr, "\tsend comments and bug reports to %s\n",
+	    (void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
 			   FASTBIT_BUGREPORT);
+#endif
+#ifdef FASTBIT_URL
+	    (void) fprintf(fptr, "\tread more about the package at %s\n",
+			   FASTBIT_URL);
 #endif
 	    return 0;
 	}

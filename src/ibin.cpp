@@ -23,7 +23,7 @@
 #define IBIS_DEFAULT_NBINS 10000
 #endif
 
-/// Construct a bitmap index from current data.
+/// Constructor.  Construct a bitmap index from current data.
 ibis::bin::bin(const ibis::column* c, const char* f)
     : ibis::index(c), nobs(0) {
     if (c == 0) return;  // nothing can be done
@@ -56,6 +56,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
     }
 } // constructor
 
+/// Constructor.  Construct an index with the given bin boundaries.
 ibis::bin::bin(const ibis::column* c, const char* f,
 	       const array_t<double>& bd)
     : ibis::index(c), nobs(0) {
@@ -97,6 +98,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
     }
 } // constructor
 
+/// Constructor.  Construct an index with the given bin boundaries.
 ibis::bin::bin(const ibis::column* c, const char* f,
 	       const std::vector<double>& bd)
     : ibis::index(c), nobs(0) {
@@ -137,7 +139,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
     }
 } // constructor
 
-// deep copy
+/// Copy constructor.  It performs a deep copy.
 ibis::bin::bin(const ibis::bin& rhs)
     : ibis::index(rhs.col), nobs(rhs.nobs) {
     clear();
@@ -184,7 +186,7 @@ ibis::bin::bin(const ibis::bin& rhs)
     }
 } // copy constructor
 
-/// Reconstruct from content of fileManager::storage.
+/// Constructor.  Reconstruct from content of fileManager::storage.
 ///@code
 /// The common portion of the index files writen by derived classes of bin
 /// 8-byte header

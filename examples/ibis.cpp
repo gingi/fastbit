@@ -3583,10 +3583,9 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 		<< ierr << " error" << (ierr > 1 ? "s." : ".")
 		<< " Will attempt to roll back the changes.";
 	    ierr = tbl->rollback();
-	    if (ierr <= 0)
-		LOGGER(ibis::gVerbose >= 0)
-		    << "doAppend(" << dir << "): rollback returned with "
-		    << ierr << "\n";
+	    LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
+		<< "doAppend(" << dir << "): rollback returned with "
+		<< ierr << "\n";
 	    if (newtable)
 		delete tbl;
 	    return;

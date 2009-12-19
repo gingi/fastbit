@@ -16,8 +16,9 @@ namespace ibis {
     class whereParser;
 }
 
-/// A class to parse a string into an ibis::qExpr object.  One may access
-/// the functions defined for ibis::qExpr through the operator->.
+/// A representation of the where clause.  It parses a string into an
+/// ibis::qExpr object.  One may access the functions defined for
+/// ibis::qExpr through the operator->.
 ///
 /// A where clause is a set of range conditions joined together with
 /// logical operators.  The supported logical operators are

@@ -1,3 +1,4 @@
+Thu Dec 17 14:14:28 PST 2009
 Version ibis1.1.5
 -- fix compilation problem with gcc 4.4 (idirekte.cpp neglected to
    include typeinfo (reported by Luca Deri)

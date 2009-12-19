@@ -34,7 +34,7 @@
     double		doubleVal;
     std::string 	*stringVal;
     ibis::math::term	*selectNode;
-}
+};
 
 %token              END       0 "end of input"
 %token <integerVal> ASOP	"as"

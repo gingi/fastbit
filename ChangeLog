@@ -1,3 +1,23 @@
+2009-12-18 John Wu <John.Wu at ACM.org>
+	* src/configure.ac: add AC_PACKAGE_URL
+	* src/util.cpp: print FastBit version, mailing list address and
+	web url at the beginning of log file
+	* src/tafel.cpp:551-555 update the check on the availability of
+	strtof (default to strtod)
+	* src/ibin.h: using statement can only refer to members of direct
+	base class
+	* src/fileManager.cpp:1906 neglected to assign the value of
+	cp.m_end
+	* example/ibis.cpp:3586 merge the if test with the test in LOGGER
+	statment to avoid ambuguious if statement (warning from gcc)
+	* INSTALL: update known problem (9)
+
+2009-12-17 John Wu <John.Wu at ACM.org>
+	* src/ibin.h, src/irelic.h: add using statements to quiet
+	complains about partially overwritten functions
+	* src/part.cpp: the function quickTest produced select clauses
+	without expected separators
+
 2009-12-16 John Wu <John.Wu at ACM.org>
 	* src/whereParser.yy: add rules to accept "name != 'string'" at
 	request of Alexandre Maurel

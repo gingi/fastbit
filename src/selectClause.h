@@ -15,8 +15,40 @@ namespace ibis {
     class selectParser;
 }
 
-/// A class to parse a string into a list of arithmetic expressions and
-/// aggregation functions.
+/// A class to represent the select clause.  It parses a string into a list
+/// of arithmetic expressions and aggregation functions.
+///
+/// The terms in a select clause are to be separated by coma ',' and each
+/// term may be an arithmetic expression or an aggregation function over an
+/// arithmetic expression, e.g., "age, avg(income)" and "temperature,
+/// sqrt(vx*vx+vy*vy+vz*vz) as speed, max(duration * speed)".  An
+/// arithmetic expression may contain any valid combination of numbers and
+/// column names connected with operators +, -, *, /, %, ^, ** and standard
+/// functions with one and two arguements (defined in math.h).  The
+/// supported aggregation functions are:
+///
+/// - count(*): count the number of rows in each group
+/// - countdistinct(expression): count the number of distinct values
+///   computed by the expression, equivalent to SQL expression
+///   'count(distinct expression)'
+/// - avg(expression): compute the average of the expression, (note that
+///   the computation is always performed in double-precision
+///   floating-point values)
+/// - sum(expression): compute the sum of the expression
+/// - max(expression): compute the maximum value of the expression
+/// - min(expression): compute the minimum value of the expression
+/// - varpop(expression): compute the population variance, i.e., the sum of
+///   squared differences from the mean divided by the number of rows in
+///   the group
+/// - varsamp(expression): compute the sample variance, i.e., the sum of
+///   squared differences from the mean divided by the number of rows in
+///   the group minus 1
+/// - stdpop(expression): compute the population standard deviation, i.e.,
+///   the square root of the sum of squared differences from the mean
+///   divided by the number of rows
+/// - stdsamp(expression): compute the sample standard deviation, i.e., the
+///   square root of the sum of squared differences from the mean divided
+///   by the number of rows minus 1.
 class ibis::selectClause {
 public:
     /// Parse a new string as a select clause.

@@ -33,6 +33,8 @@ public:
     virtual int  read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::index::estimate;
+    using ibis::index::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -208,6 +210,8 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::relic::estimate;
+    using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -284,6 +288,8 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::relic::estimate;
+    using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -423,6 +429,9 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::relic::evaluate;
+    using ibis::relic::estimate;
+    using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
@@ -481,6 +490,9 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::relic::evaluate;
+    using ibis::relic::estimate;
+    using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
@@ -532,6 +544,9 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::relic::evaluate;
+    using ibis::relic::estimate;
+    using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;

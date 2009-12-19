@@ -118,7 +118,7 @@ sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	else \
 	$(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 > $(TESTDIR)/sanity-check.log; \
 	fi
-	@if [ `fgrep 'self tests' $(TESTDIR)/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/sanity-check.log.; else echo Passed internal sanity checks.; fi
+	@if [ `fgrep 'self tests' $(TESTDIR)/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 -o `scripts/printWarning.pl $(TESTDIR)/sanity-check.log | wc -l` -gt 0 ]; then echo Did NOT pass $@.  Please look through $(TESTDIR)/sanity-check.log.; else echo Passed internal sanity checks.; fi
 	@echo
 # a test of append operations, 10 copies of data in test0 and test1
 append-test: $(TESTDIR)/append.log
@@ -184,6 +184,7 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem.rc
 	else echo "  Did NOT complete case $${jcase} of $@: $(IBISEXE) exited with $${test_status}"; fi \
 	done;
 	@numpasses=`fgrep 'self tests' $(TESTDIR)/large-sanity-check.log | fgrep 'found no error' | wc -l` && if [ $${numpasses} -lt 370 ]; then echo Did NOT pass $@: passed $${numpasses} out 370 cases..  Please look through $(TESTDIR)/large-sanity-check.log.; else echo Passed large internal sanity checks.; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/large-sanity-check.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/large-sanity-check.log; fi
 	@echo
 #
 match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc

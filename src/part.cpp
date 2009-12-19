@@ -5840,12 +5840,12 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     ibis::column* att = (*it).second;
     if (it != columns.begin()) {
 	-- it;
-	sprintf(clause, "%s %s", (*it).first, att->name());
+	sprintf(clause, "%s, %s", (*it).first, att->name());
     }
     else if (columns.size() > 1) {
 	it = columns.end();
 	-- it;
-	sprintf(clause, "%s %s", (*it).first, att->name());
+	sprintf(clause, "%s, %s", (*it).first, att->name());
     }
     else {
 	strcpy(clause, att->name());
