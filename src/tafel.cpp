@@ -750,7 +750,7 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
     default:
 	break;
     }
-#if defined(_DEBUG) || defined(DEBUG)
+#if _DEBUG+0 > 0 || DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 6)
 	<< "tafel::append(" << cn  << ", " << begin << ", " << end
 	<< ", " << values << ") worked with column "
@@ -2203,8 +2203,8 @@ int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
 	ibis::util::logger lg;
 	lg.buffer() << "tafel::writeString wrote " << pos
 		    << " strings (" << nnew << " expected)\n";
-#if DEBUG+0>0
-	lg.buffer() << "vals[" << vals.size() << "]:\n"
+#if DEBUG+0>0 || _DEBUG+0>0
+	lg.buffer() << "vals[" << vals.size() << "]:\n";
 	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
 	     ++ j)
 	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
@@ -3635,7 +3635,7 @@ void ibis::tafel::describe(std::ostream &out) const {
 	 it != cols.end(); ++ it) {
 	const ibis::tafel::column& col = *((*it).second);
 	out << "\n  " << (*it).first
-#if defined(_DEBUG) || defined(DEBUG)
+#if _DEBUG+0 > 0 || DEBUG+0 > 0
 	    << "(" << static_cast<void*>((*it).second) << ")"
 #endif
 	    << ", " << ibis::TYPESTRING[col.type]

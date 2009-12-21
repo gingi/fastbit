@@ -667,7 +667,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<unsigned char>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    unsigned char tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -691,7 +691,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<char>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    char tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -715,7 +715,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<uint16_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    uint16_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -739,7 +739,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<int16_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    int16_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -763,7 +763,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<uint32_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    uint32_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -787,7 +787,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<int32_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    int32_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -811,7 +811,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<uint64_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    uint64_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -835,7 +835,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<int64_t>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    int64_t tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -859,7 +859,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<float>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    float tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
@@ -883,7 +883,7 @@ void ibis::roster::icSort(const char* fin) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    const_cast<const array_t<double>&>(val).stableSort(indim);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    double tmp;
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);

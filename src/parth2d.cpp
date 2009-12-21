@@ -4318,7 +4318,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	if (ierr > 0) {
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
 		counts[i] = bv.count(*bins2[i]);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		ibis::bitvector *tmp = bv  &(*bins2[i]);
 		if (tmp != 0) {
 		    if (tmp->cnt() != counts[i]) {
@@ -4363,7 +4363,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    if (ierr > 0) {
 		for (unsigned i = 0; i < bins2.size(); ++ i) {
 		    counts[jc + i] = bv.count(*bins2[i]);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    ibis::bitvector *tmp = bv  &(*bins2[i]);
 		    if (tmp != 0) {
 			if (tmp->cnt() != counts[jc+i]) {
@@ -4406,7 +4406,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    const uint32_t jc = (bounds1.size()-2) * bins2.size();
 	    for (unsigned i = 0; i < bins2.size(); ++ i) {
 		counts[jc + i] = bv.count(*bins2[i]);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		ibis::bitvector *tmp = bv  &(*bins2[i]);
 		if (tmp != 0) {
 		    if (tmp->cnt() != counts[jc+i]) {

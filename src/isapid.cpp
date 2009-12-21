@@ -254,7 +254,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 	    }
 
 	    delete (*it).second; // no longer need the bitmap
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
 		LOGGER(ibis::gVerbose >= 0) << i << " ... ";
 	    }
@@ -276,7 +276,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 	    bits[i] = (*it).second;
     }
     bmap.clear();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0) << vals.size() << " DONE";
     }

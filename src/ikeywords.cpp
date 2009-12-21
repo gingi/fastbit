@@ -216,7 +216,7 @@ int ibis::keywords::readLine(std::istream &in,
 	    in.get(eol);
 	    if (eol == '\n') {
 		idlist.push_back(id);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "ibis::keywords::readLine -- keyword:" << key
 		    << ", count:" << idlist.size() << " ("
@@ -499,7 +499,7 @@ int ibis::keywords::read(const char* f) {
     if (ierr < 0)
 	return ierr;
     ibis::fileManager::instance().recordPages(0, end);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])

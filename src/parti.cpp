@@ -153,7 +153,7 @@ long ibis::part::reorder() {
 	    }
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
@@ -401,7 +401,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	}
     }
 
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "ibis::part[" << m_name << "]::reorder --\n";

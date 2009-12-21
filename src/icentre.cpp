@@ -350,7 +350,7 @@ long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
 
 // compute the bitvector that is the answer for the query x = b
 void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::entre::evalEQ(" << b << ")...";
 #endif
@@ -438,7 +438,7 @@ void ibis::entre::evalEQ(ibis::bitvector& res, uint32_t b) const {
 
 // compute the bitvector that is the answer for the query x <= b
 void ibis::entre::evalLE(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::entre::evalLE(" << b << ")...";
 #endif
@@ -599,7 +599,7 @@ void ibis::entre::evalLE(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that answers the query b0 < x <= b1
 void ibis::entre::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::entre::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
@@ -658,7 +658,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 			if (bits[j])
 			    low |= *(bits[j]);
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -692,7 +692,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 			if (bits[j])
 			    res |= *(bits[j]);
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -820,7 +820,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 			    }
 			}
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -899,7 +899,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 			    res.set(0, res.size());
 			}
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -988,7 +988,7 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 			}
 			++ offset;
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)

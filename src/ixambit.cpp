@@ -395,7 +395,7 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 	    offs(st,
 		 8*((offset+sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
 		 sizeof(double)*(nobs*3+2), nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- from ibis::ambit::ambit("
@@ -609,7 +609,7 @@ int ibis::ambit::read(const char* f) {
 	    nextlevel32.swap(tmp);
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::ambit::read(";
@@ -818,7 +818,7 @@ int ibis::ambit::read(int fdes, size_t start, const char *fn,
 	    nextlevel32.swap(tmp);
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::ambit::read(";
@@ -1155,7 +1155,7 @@ int ibis::ambit::write32(int fdes) const {
 	for (i = 0; i < nobs; ++i)
 	    nextlevel[i] = nextlevel[nobs];
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- from ambit[" << col->partition()->name() << "."
@@ -1309,7 +1309,7 @@ int ibis::ambit::write64(int fdes) const {
 	for (i = 0; i < nobs; ++i)
 	    nextlevel[i] = nextlevel[nobs];
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- from ambit[" << col->partition()->name() << "."

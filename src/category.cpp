@@ -1062,7 +1062,7 @@ long ibis::category::append(const char* dt, const char* df,
 		       "valid records out of %lu", dest.c_str(),
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0) << mtot;
 #endif
 	}
@@ -3432,7 +3432,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 		       "records out of %lu", filename.c_str(),
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0) << mtot;
 #endif
 	}

@@ -757,12 +757,12 @@ double ibis::util::compactValue(double left, double right,
 	}
     }
     if (! (sep > left && sep <= right)) {
-	sep = right;
-#if defined(_DEBUG) || defined(DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	ibis::util::logMessage("Warning", "util::compactValue produced "
 			       "a value, %g (%g) out of range (%g, %g]",
 			       sep, diff, left, right);
 #endif
+	sep = right;
     }
     return sep;
 } // ibis::util::compactValue
@@ -842,12 +842,12 @@ double ibis::util::compactValue2(double left, double right,
 	}
     }
     if (! (sep > left && sep <= right)) {
-	sep = right;
-#if defined(_DEBUG) || defined(DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	ibis::util::logMessage("Warning", "util::compactValue2 produced "
 			       "a value, %g (%g) out of range (%g, %g]",
 			       sep, diff, left, right);
 #endif
+	sep = right;
     }
     return sep;
 } // ibis::util::compactValue2

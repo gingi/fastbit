@@ -1146,7 +1146,7 @@ inline void ibis::bitvector::clear() {
     nbits = 0; nset = 0; active.reset(); m_vec.clear();
     LOGGER(ibis::gVerbose > 9)
 	<< "bitvector (" << static_cast<void*>(this)
-	<< ") cleared the content of bitvector with m_vec at "
+	<< ") clear the content of bitvector with m_vec at "
 	<< static_cast<void*>(&m_vec);
 }
 

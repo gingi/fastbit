@@ -14,14 +14,20 @@ ibis::whereClause::~whereClause() {
 ibis::whereClause::whereClause(const char* cl) : expr_(0) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "whereClause::ctor creating a new where clause with \"" << cl
+	    << "\"";
+
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
 	whereLexer lx(&iss, &(lg.buffer()));
 	whereParser parser(*this);
 	lexer = &lx;
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2
 	parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+	parser.set_debug_level(_DEBUG-1);
 #endif
 	parser.set_debug_stream(lg.buffer());
 	ierr = parser.parse();
@@ -53,14 +59,20 @@ ibis::whereClause& ibis::whereClause::operator=(const ibis::whereClause& rhs) {
 int ibis::whereClause::parse(const char* cl) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "whereClause::parse receives a new where clause \"" << cl
+	    << "\"";
+
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
 	whereLexer lx(&iss, &(lg.buffer()));
 	whereParser parser(*this);
 	lexer = &lx;
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2
 	parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+	parser.set_debug_level(_DEBUG-1);
 #endif
 	parser.set_debug_stream(lg.buffer());
 

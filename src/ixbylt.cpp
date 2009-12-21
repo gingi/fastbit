@@ -345,7 +345,7 @@ void ibis::bylt::activateCoarse() const {
 			       sizeof(ibis::bitvector::word_t));
 			bits[i] = new ibis::bitvector(a1);
 			bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- " << evt
 			    << " activating bitvector " << i
@@ -371,7 +371,7 @@ void ibis::bylt::activateCoarse() const {
 			       sizeof(ibis::bitvector::word_t));
 			bits[i] = new ibis::bitvector(a1);
 			bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- " << evt
 			    << " activating bitvector " << i
@@ -430,7 +430,7 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 		  sizeof(ibis::bitvector::word_t));
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
-// #if defined(DEBUG)
+// #if DEBUG+0 > 0 || _DEBUG+0 > 0
 // 	    LOGGER(ibis::gVerbose >= 0)
 // 		<< "DEBUG -- " << evt << "(" << i
 // 		<< ") constructed a bitvector from range ["
@@ -445,7 +445,7 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 		  sizeof(ibis::bitvector::word_t));
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
-// #if defined(DEBUG)
+// #if DEBUG+0 > 0 || _DEBUG+0 > 0
 // 	    LOGGER(ibis::gVerbose >= 0)
 // 		<< "DEBUG -- " << evt << "(" << i
 // 		<< ") constructed a bitvector from range ["
@@ -476,7 +476,7 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 	    array_t<ibis::bitvector::word_t> a0(fdes, coffset64[i],
 						coffset64[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- " << evt << "(" << i
 		<< ") constructed a bitvector from range ["
@@ -488,7 +488,7 @@ void ibis::bylt::activateCoarse(uint32_t i) const {
 	    array_t<ibis::bitvector::word_t> a0(fdes, coffset32[i],
 						coffset32[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- " << evt << "(" << i
 		<< ") constructed a bitvector from range ["
@@ -550,7 +550,7 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
-// #if defined(DEBUG)
+// #if DEBUG+0 > 0 || _DEBUG+0 > 0
 // 		LOGGER(ibis::gVerbose >= 0)
 // 		    << evt << " constructed bitvector " << i << " from range ["
 // 		    << coffset64[i] << ", " << coffset64[i+1]
@@ -565,7 +565,7 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
-// #if defined(DEBUG)
+// #if DEBUG+0 > 0 || _DEBUG+0 > 0
 // 	    LOGGER(ibis::gVerbose >= 0)
 // 		<< evt << " constructed bitvector " << i << " from range ["
 // 		<< coffset32[i] << ", " << coffset32[i+1]
@@ -616,7 +616,7 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 			       sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a1);
 			cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << evt << " constructed bitvector " << i
 			    << " from range [" << coffset64[i] << ", "
@@ -640,7 +640,7 @@ void ibis::bylt::activateCoarse(uint32_t i, uint32_t j) const {
 			       sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a1);
 			cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << evt << " constructed a bitvector " << i
 			    << " from range [" << coffset32[i] << ", "

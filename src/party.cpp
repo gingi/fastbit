@@ -272,7 +272,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 		    }
 		    bar2.read();
 		}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- equiJoin examining "
 		    << bar1.value(varind1) << " and "
@@ -304,7 +304,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 		    break;
 		}
 		bar2.read();
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		ibis::bitvector64::word_t j = ind[i];
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- equiJoin examining "
@@ -1109,7 +1109,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 				if (ix2.isRange()) { // a range
 				    for (unsigned j = *ind2;
 					 j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 					logMessage("equiJoinLoop1",
 						   "val1[%lu]=%lu, "
 						   "val2[%lu]=%lu, %s",
@@ -1127,7 +1127,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 				else { // a list
 				    for (unsigned j = 0; j < ix2.nIndices();
 					 ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 					logMessage("equiJoinLoop1",
 						   "val1[%lu]=%lu, val2[%lu]=%lu,"
 						   " %s",
@@ -1174,7 +1174,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 				if (ix2.isRange()) { // a range
 				    for (unsigned j = *ind2;
 					 j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 					logMessage("equiJoinLoop1",
 						   "val1[%lu]=%lu, val2[%lu]=%lu,"
 						   " %s",
@@ -1192,7 +1192,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 				else { // a list
 				    for (unsigned j = 0; j < ix2.nIndices();
 					 ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 					logMessage("equiJoinLoop1",
 						   "val1[%lu]=%lu, val2[%lu]=%lu,"
 						   " %s",
@@ -2166,7 +2166,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    if (ix2.isRange()) {
 			for (unsigned j = *ind2;
 			     j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop val1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i, (double)arr1[i],
@@ -2181,7 +2181,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    }
 		    else {
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i, (double)arr1[i],
@@ -2227,7 +2227,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    const ibis::bitvector::word_t *ind2 = ix2.indices();
 		    if (ix2.isRange()) {
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
@@ -2241,7 +2241,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    }
 		    else {
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
@@ -2304,7 +2304,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    const ibis::bitvector::word_t *ind2 = ix2.indices();
 		    if (ix2.isRange()) {
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i,
@@ -2317,7 +2317,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    }
 		    else {
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i,
@@ -2360,7 +2360,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    const ibis::bitvector::word_t *ind2 = ix2.indices();
 		    if (ix2.isRange()) {
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
@@ -2373,7 +2373,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 		    }
 		    else {
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
 				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],

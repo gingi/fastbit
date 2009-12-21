@@ -327,7 +327,7 @@ void ibis::fuzz::activateCoarse() const {
 			       sizeof(ibis::bitvector::word_t));
 			bits[i] = new ibis::bitvector(a1);
 			bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- " << evt << " activating bitvector "
 			    << i << "by reading file " << fname
@@ -352,7 +352,7 @@ void ibis::fuzz::activateCoarse() const {
 			       sizeof(ibis::bitvector::word_t));
 			bits[i] = new ibis::bitvector(a1);
 			bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- " << evt << " activating bitvector "
 			    << i << "by reading file " << fname
@@ -447,7 +447,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	    cbits[i] = new ibis::bitvector(a0);
 	}
 	cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	LOGGER(ibis::gVerbose >= 0)
 	    << evt << " constructed bitvector " << i
 	    << " from range [" << coffset32[i]
@@ -557,7 +557,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 			       sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a1);
 			cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << evt << " constructed bitvector " << i
 			    << " from range [" << coffset64[i] << ", "
@@ -581,7 +581,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 			       sizeof(ibis::bitvector::word_t));
 			cbits[i] = new ibis::bitvector(a1);
 			cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << evt << " constructed bitvector " << i
 			    << " from range [" << coffset32[i] << ", "
@@ -1383,7 +1383,7 @@ int ibis::fuzz::read(const char* f) {
     end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     ibis::fileManager::instance().recordPages(0, end);
-#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])

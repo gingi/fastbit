@@ -589,7 +589,7 @@ void ibis::bin::adjustLength(uint32_t nr) {
 
 /// Find the smallest i such that bounds[i] > val.
 uint32_t ibis::bin::locate(const double& val) const {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logMessage("ibis::bin::locate", "searching for %g in an "
 			   "array of %lu doubles in the range of [%g, %g]",
 			   val,
@@ -621,7 +621,7 @@ uint32_t ibis::bin::locate(const double& val) const {
 		i0 = it;
 	    it = (i0 + i1) / 2;
 	}
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	col->logMessage("bin::locate", "element %lu (%g) out of %lu is no "
 			"less than %g",
 			static_cast<long unsigned>(i1), bounds[i1],
@@ -636,7 +636,7 @@ uint32_t ibis::bin::locate(const double& val) const {
     else { // do linear search
 	for (uint32_t i = 1; i < nobs; ++i) {
 	    if (val < bounds[i]) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		col->logMessage
 		    ("bin::locate", "element %lu (%g) out of %lu is no "
 		     "less than %g",
@@ -2356,7 +2356,7 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 			     ((*it).first, DBL_MAX));
 	}
     }
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
@@ -2789,7 +2789,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 	// ensure bounds are sorted and are unique
 	std::sort(bounds.begin(), bounds.end());
 	const uint32_t nb1 = bounds.size();
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
@@ -2852,7 +2852,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 	    }
 	    bounds.resize(i+1);
 	}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
@@ -3912,7 +3912,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	}
 	if (col->type() == ibis::FLOAT ||
 	    col->type() == ibis::DOUBLE) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "scanAndPartition: raw bin boundaries\n"
@@ -3945,7 +3945,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 		}
 		bounds.push_back(tmp);
 	    }
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "scanAndPartition: actual bin boundaries\n"
@@ -4030,7 +4030,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 			     ((*it).first, DBL_MAX));
 	}
     }
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
@@ -4326,7 +4326,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	// ensure bounds are sorted and are unique
 	std::sort(bounds.begin(), bounds.end());
 	const uint32_t nb1 = bounds.size();
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
@@ -4389,7 +4389,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	    }
 	    bounds.resize(i+1);
 	}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
@@ -4881,7 +4881,7 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
 	parts[0] = 1;
 	tot = tmp[nbms-2];
 	while (i < nparts-2 && nparts-i < nbms-parts[i-1]) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "divideBitmaps -- i=" << i << ", parts["
 		<< i-1 << "]=" << parts[i-1] << ", nparts-i-1="
@@ -7760,7 +7760,7 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 			    "-- clearing arrays",
 			    static_cast<long unsigned>(bds.size()),
 			    static_cast<long unsigned>(cts.size()));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
@@ -7806,7 +7806,7 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 			    "-- clearing arrays",
 			    static_cast<long unsigned>(bds.size()),
 			    static_cast<long unsigned>(cts.size()));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";

@@ -3131,7 +3131,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			    ++ ((*it).second);
 			}
 			else {
-#if defined(DEBUG) && DEBUG+0>1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			    LOGGER(ibis::gVerbose > 5)
 				<< "DEBUG -- index::mapValues adding value "
 				<< val[i] << " to the histogram of size "
@@ -4418,7 +4418,7 @@ void ibis::index::activate() const {
 
 	    for (size_t i = 0; i < nobs; ++i) {
 		if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose > 5)
 			<< "DEBUG -- " << evt << " activating bitvector "
 			<< i << " from a raw storage ("
@@ -4465,7 +4465,7 @@ void ibis::index::activate() const {
 			ibis::fileManager::storage(fdes, start,
 						   offset64[aj]);
 		    while (i < aj) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose > 5)
 			    << "DEBUG -- " << evt << " activating bitvector "
 			    << i << " by reading file " << fname
@@ -4494,7 +4494,7 @@ void ibis::index::activate() const {
 
 	for (size_t i = 0; i < nobs; ++i) {
 	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		LOGGER(ibis::gVerbose > 5)
 		    << "DEBUG -- " << evt << " activating bitvector "
 		    << i << " from a raw storage ("
@@ -4541,7 +4541,7 @@ void ibis::index::activate() const {
 		    ibis::fileManager::storage(fdes, start,
 					       offset32[aj]);
 		while (i < aj) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose > 5)
 			<< "DEBUG -- " << evt << " activating bitvector " << i
 			<< " by reading from file " << fname
@@ -4600,7 +4600,7 @@ void ibis::index::activate(uint32_t i) const {
 	else if (str) { // using a ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 5)
 		<< evt << "(" << i << ") using storage @ " << str;
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- " << evt << " constructing bitvector " << i
 		<< " from range [" << offset64[i] << ", " << offset64[i+1]
@@ -4623,7 +4623,7 @@ void ibis::index::activate(uint32_t i) const {
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdes, _O_BINARY);
 #endif
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		LOGGER(ibis::gVerbose > 5)
 		    << "DEBUG -- " << evt << "(" << i
 		    << ") constructing the bitvector from range ["
@@ -4649,7 +4649,7 @@ void ibis::index::activate(uint32_t i) const {
     else if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 5)
 	    << evt << "(" << i << ") using storage @ " << str;
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- " << evt << " constructing bitvector " << i
 		<< " from range [" << offset32[i] << ", " << offset32[i+1]
@@ -4671,7 +4671,7 @@ void ibis::index::activate(uint32_t i) const {
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fdes, _O_BINARY);
 #endif
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 5)
 		    << "DEBUG -- " << evt << " construct bitvector "
 		    << i << " from range [" << offset32[i] << ", "
@@ -4738,7 +4738,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 		<< ") using ibis::fileManager::storage(0x" << str << ")";
 
 	    while (i < j) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		LOGGER(ibis::gVerbose > 5)
 		    << "DEBUG -- " << evt << " to construct bitvector "
 		    << i << " from range [" << offset64[i] << ", "
@@ -4787,7 +4787,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 			    ibis::fileManager::storage(fdes, start,
 						       offset64[aj]);
 			while (i < aj) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			    LOGGER(ibis::gVerbose > 5)
 				<< "DEBUG -- " << evt
 				<< " constructing bitvector " << i
@@ -4818,7 +4818,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 	    << ") using ibis::fileManager::storage(0x" << str << ")";
 
 	while (i < j) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- " << evt << " constructing bitvector " << i
 		<< " from range [" << offset32[i] << ", " << offset32[i+1]
@@ -4866,7 +4866,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 			ibis::fileManager::storage(fdes, start,
 						   offset32[aj]);
 		    while (i < aj) {
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose > 5)
 			    << "DEBUG -- " << evt << " constructing bitvector "
 			    << i << " from range [" << offset32[i] << ", "
@@ -5009,7 +5009,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 		que.pop();
 		tmp.second = true;
 		tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- addBins-using priority queue: "
 		    << op1.first->bytes()
@@ -5086,7 +5086,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 			       static_cast<long unsigned>(res.bytes()),
 			       timer.CPUTime(), timer.realTime());
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- addBins(" << ib << ", " << ie << "):" << res;
@@ -5307,7 +5307,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- addBins-using priority queue: "
 			    << op1.first->bytes()
@@ -5470,7 +5470,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- addBins-using priority queue: "
 			    << op1.first->bytes()
@@ -5602,7 +5602,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			       static_cast<long unsigned>(res.bytes()),
 			       timer.CPUTime(), timer.realTime());
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- addBins(" << ib << ", " << ie << "):" << res;
@@ -5875,7 +5875,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- sumBins-using priority queue: "
 			    << op1.first->bytes()
@@ -6051,7 +6051,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- sumBins-using priority queue: "
 			    << op1.first->bytes()
@@ -6183,7 +6183,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			       static_cast<long unsigned>(res.bytes()),
 			       timer.CPUTime(), timer.realTime());
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- sumBins(" << ib << ", " << ie << "):" << res;
@@ -6275,7 +6275,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    sumBins(ib, ie, res);
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- sumBins(" << ib << ", " << ie << "):" << res;
@@ -6378,7 +6378,7 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 		que.pop();
 		tmp.second = true;
 		tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- addBits-using priority queue: "
 		    << op1.first->bytes()
@@ -6435,7 +6435,7 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- addBits(" << ib << ", " << ie << "):" << res;
@@ -6613,7 +6613,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 	res.copy(*(ind[0]));
 	for (uint32_t i = 1; i < na; ++i) {
 	    res |= *(ind[i]);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- sumBits-option 2: " << i << ", "
 		<< ind[i]->bytes();
@@ -6663,7 +6663,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 		que.pop();
 		tmp.second = true;
 		tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- sumBits-option 3: " << op1.first->bytes()
 		    << (op1.second ? "(transient), " : ", ")
@@ -6842,7 +6842,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			    que.pop();
 			    tmp.second = true;
 			    tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "DEBUG -- sumBits-using priority queue: "
 				<< op1.first->bytes()
@@ -6973,7 +6973,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			    que.pop();
 			    tmp.second = true;
 			    tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "DEBUG -- sumBits-using priority queue: "
 				<< op1.first->bytes()
@@ -7386,7 +7386,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- sumBits-using priority queue: "
 			    << op1.first->bytes()
@@ -7520,7 +7520,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			que.pop();
 			tmp.second = true;
 			tmp.first = *(op1.first) | *(op2.first);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- sumBits-using priority queue: "
 			    << op1.first->bytes()
@@ -7626,7 +7626,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			       timer.CPUTime(), timer.realTime());
     }
 #endif
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- sumBits(" << ib << ", " << ie << "):" << res;
@@ -7737,7 +7737,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			       static_cast<long unsigned>(ie),
 			       timer.CPUTime(), timer.realTime());
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- sumBits(" << ib << ", " << ie << "):" << res;

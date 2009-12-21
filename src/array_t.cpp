@@ -695,7 +695,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     }
     // call qsort to do the actual work
     qsort(ind, 0, n);
-#if defined(DEBUG) && DEBUG > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
     lg.buffer() << "sort(" << n << ")";
     for (size_t i = 0; i < n; ++i)
@@ -760,7 +760,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 	    ind[back] = ind[front];
 	ind.resize(back); // return only the sorted values
     }
-#if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "topk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
@@ -816,7 +816,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 	 back < size() && m_begin[ind[back]] == m_begin[k-1];
 	 ++ back);
     ind.resize(back); // drop the indices of partially sorted indices
-#if defined(DEBUG) || defined(_DEBUG) //&& DEBUG > 2
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "bottomk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
@@ -882,7 +882,7 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     }
     // use insertion sort to clean up the few left over elements
     isort(ind, front, back);
-#if defined(DEBUG) && DEBUG > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
     lg.buffer() << "qsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i)
@@ -934,7 +934,7 @@ void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
 	// the temporary index goes to its final location
 	ind[curr] = itmp;
     } // while (1)
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "hsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i) {
@@ -976,7 +976,7 @@ void ibis::array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
 	    }
 	}
     }
-#if defined(DEBUG) && DEBUG > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
     lg.buffer() << "isort(" << front << ", " << back << ")\n";
     for (i = front; i < back; ++i)
@@ -1130,7 +1130,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 	pivot = i + 1;
     else
 	pivot = i;
-#if defined(DEBUG) && DEBUG > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
     lg.buffer() << "partition(" << front << ", " << back << ") = "
 		<< pivot << ", target = " << target << "\nfirst half: ";
@@ -1482,7 +1482,7 @@ void ibis::array_t<T>::printStatus(std::ostream& out) const {
     out << "array_t: m_begin = " << static_cast<void*>(m_begin)
 	<< ", m_end = " <<  static_cast<void*>(m_end) << ", size = "
 	<< m_end - m_begin << "\n";
-#if defined(DEBUG)
+#if defined(DEBUG) || defined(_DEBUG)
     if (actual != 0 && ibis::gVerbose > 6)
 	actual->printStatus(out);
 #else

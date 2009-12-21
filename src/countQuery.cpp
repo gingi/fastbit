@@ -838,13 +838,13 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	ierr = -1;
 	break;}
     }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg;
     lg.buffer() << "countQuery::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
-#if DEBUG + 0 > 1
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
     if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))

@@ -886,7 +886,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 /// read the whole file into memory.
 int ibis::fileManager::tryGetFile(const char* name, storage** st,
 				  ACCESS_PREFERENCE pref) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
 	<< "fileManager::tryGetFile -- attempt to retrieve \"" << name
 	<< "\", currently there are " << mapped.size() << " mapped files and "
@@ -1028,7 +1028,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 /// class rofSegment.
 ibis::fileManager::storage*
 ibis::fileManager::getFileSegment(const char* name, off_t b, off_t e) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
 	<< "fileManager::getFileSegment -- attempt to retrieve \"" << name
 	<< "\", currently there are " << mapped.size() << " mapped files and "
@@ -1953,14 +1953,16 @@ void ibis::fileManager::storage::printStatus(std::ostream& out) const {
 	out << "file name       " << name << "\n";
     out << "storage @ " << static_cast<const void*>(this) << ", "
 	<< static_cast<const void*>(m_begin);
-    if (m_begin != 0)
-	out << ", as int " << *reinterpret_cast<long*>(m_begin)
-	    << ", as float " << *reinterpret_cast<float*>(m_begin)
-	    << ", as double " << *reinterpret_cast<double*>(m_begin);
+    if (m_begin != 0 && m_end > m_begin) {
+	out << ", 1st 32 bits = " << std::hex
+	    << *reinterpret_cast<uint32_t*>(m_begin) << std::dec;
+	if (m_end >= m_begin+8)
+	    out << ", 1st 64 bits = " << std::hex
+		<< *reinterpret_cast<uint64_t*>(m_begin) << std::dec;
+    }
     out << "\n# of bytes      " << size()
-	<< "\n# of past acc   " << nacc
-	<< "\n# of active acc " << nref()
-	<< std::endl;
+	<< "\t# of past acc   " << nacc
+	<< "\t# of active acc " << nref() << std::endl;
 } // ibis::fileManager::storage::printStatus
 
 /// Read part of a open file [begin, end).
@@ -2178,11 +2180,13 @@ void ibis::fileManager::roFile::printBody(std::ostream& out) const {
     ibis::util::secondsToString(lastUse, tstr1);
     out << "storage @ " << static_cast<const void*>(this) << ", "
 	<< static_cast<const void*>(m_begin);
-    if (m_begin != 0)
-	out << ", as int " << *reinterpret_cast<long*>(m_begin)
-	    << ", as float " << *reinterpret_cast<float*>(m_begin)
-	    << ", as double " << *reinterpret_cast<double*>(m_begin)
-	    << "\n# of bytes      " << size();
+    if (m_begin != 0 && m_end > m_begin) {
+	out << ", 1st 32 bits = " << std::hex
+	    << *reinterpret_cast<uint32_t*>(m_begin) << std::dec;
+	if (m_end >= m_begin+8)
+	    out << ", 1st 64 bits = " << std::hex
+		<< *reinterpret_cast<uint64_t*>(m_begin) << std::dec;
+    }
 #if (HAVE_MMAP+0 > 0)
     if (fdescriptor >= 0) {
 	out << "\nfile descriptor " << fdescriptor
@@ -2196,11 +2200,12 @@ void ibis::fileManager::roFile::printBody(std::ostream& out) const {
 	    << "\nbase address    " << map_begin;
     }
 #endif
-    out << "\nopened at       " << tstr0
-	<< "\nlast used at    " << tstr1
-	<< "\n# of past acc   " << nacc
-	<< "\n# of active acc " << nref()
-	<< "\nmapped          " << (mapped?"y\n":"n\n") << std::endl;
+    out << "\nmapped          " << (mapped?"y":"n")
+	<< "\topened at       " << tstr0
+	<< "\tlast used at    " << tstr1
+	<< "\n# of bytes      " << size()
+	<< "\t# of past acc   " << nacc
+	<< "\t# of active acc " << nref() << std::endl;
 } // ibis::fileManager::roFile::printBody
 
 void ibis::fileManager::roFile::read(const char* file) {

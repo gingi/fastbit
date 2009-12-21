@@ -1914,7 +1914,7 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
 	}
 	else {
 	    ind = ridx[ind3+2];
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    logMessage("searchSortedRIDs", "RID(%lu, %lu) ==> %lu",
 		       static_cast<long unsigned>(rid.num.run),
 		       static_cast<long unsigned>(rid.num.event),
@@ -1924,7 +1924,7 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
 	}
     }
 
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     logMessage("searchSortedRIDs", "can not find RID(%lu, %lu)",
 	       static_cast<long unsigned>(rid.num.run),
 	       static_cast<long unsigned>(rid.num.event));
@@ -1938,7 +1938,7 @@ uint32_t ibis::part::searchRIDs(const ibis::rid_t &rid) const {
     uint32_t i = nEvents;
     for (i=0; i<nEvents; ++i) {
 	if ((*rids)[i].value == rid.value) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    logMessage("searchRIDs", "RID(%lu, %lu) ==> %lu",
 		       static_cast<long unsigned>(rid.num.run),
 		       static_cast<long unsigned>(rid.num.event),
@@ -1947,7 +1947,7 @@ uint32_t ibis::part::searchRIDs(const ibis::rid_t &rid) const {
 	    return i;
 	}
     }
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     logMessage("searchRIDs", "can not find RID(%lu, %lu)",
 	       static_cast<long unsigned>(rid.num.run),
 	       static_cast<long unsigned>(rid.num.event));
@@ -2011,7 +2011,7 @@ void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
 	}
 	else { // two RIDs are the same
 	    res.setBit(ridx[i0+2], 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    logMessage("searchSortedRIDs", "RID(%lu, %lu) ==> %lu",
 		       static_cast<long unsigned>(ridx[i0]),
 		       static_cast<long unsigned>(ridx[i0+1]),
@@ -2041,7 +2041,7 @@ void ibis::part::searchRIDs(const ibis::RIDSet &in,
 	ibis::RIDSet::const_iterator it = std::find(in.begin(), in.end(),
 						    (*rids)[i]);
 	if (it != in.end()) { // found one
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    logMessage("searchRIDs", "RID(%lu, %lu) ==> %lu",
 		       static_cast<long unsigned>((*it).num.run),
 		       static_cast<long unsigned>((*it).num.event),
@@ -3938,7 +3938,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 	    for (uint32_t i = iix[0]; i < last; ++ i) {
 		if (cmp.inRange(varr[i])) {
 		    hits.setBit(i, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0) << varr[i] << " is in " << cmp;
 #endif
 		}
@@ -3948,7 +3948,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 	    for (uint32_t i = 0; i < is.nIndices(); ++ i) {
 		if (iix[i] < varr.size() && cmp.inRange(varr[iix[i]])) {
 		    hits.setBit(i, 1);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
 			<< varr[iix[i]] << " is in " << cmp;
 #endif
@@ -3967,7 +3967,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 		    << " (total: " << mask.size() << ") took "
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << (hits.cnt() > 1 ? " hits" : " hit");
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "\nmask\n" << mask;
 	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
@@ -5036,7 +5036,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 		    << nEvents << ") took " << timer.realTime()
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
@@ -6138,7 +6138,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	}
 	return;
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
 	const char* str = qtmp.getWhereClause();
@@ -6155,7 +6155,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     if (rid1->size() > 2048)
 	rid1->resize(1024+(1023 & rid1->size()));
     std::sort(rid1->begin(), rid1->end());
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "rid1 after query[" << qtmp.id()
@@ -6400,7 +6400,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 			       "produced %lu different result%s", predicate,
 			       static_cast<long unsigned>(seqhits.cnt()),
 			       (seqhits.cnt() > 1 ? "s" : ""));
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    seqhits.compress();
 		    LOGGER(ibis::gVerbose >= 0)
 			<< "DEBUG -- queryTest -- " << seqhits;
@@ -6883,7 +6883,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    if (cmp.inRange(array[j])) {
 			hits.setBit(j, 1);
 			++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- doCompare" << array[j] << " is in "
 			    << cmp;
@@ -6897,7 +6897,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    if (cmp.inRange(array[j])) {
 			hits.setBit(j, 1);
 			++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- doCompare " << array[j] << " is in "
 			    << cmp;
@@ -6917,7 +6917,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    if (cmp.inRange(array[j++])) {
 			hits.setBit(k, 1);
 			++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- doCompare" << array[j] << " is in "
 			    << cmp << ", setting position " << k
@@ -6931,7 +6931,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    if (cmp.inRange(array[j++])) {
 			hits.setBit(ii[k], 1);
 			++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(ibis::gVerbose >= 0)
 			    << "DEBUG -- doCompare " << array[j] << " is in "
 			    << cmp << ", setting position " << ii[k]
@@ -6968,7 +6968,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    << "] took " << timer.realTime()
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
@@ -7214,7 +7214,7 @@ long ibis::part::doCompare(const char* file,
 		    << " from file \"" << file << "\" took "
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
@@ -7252,7 +7252,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		if (! cmp.inRange(array[j])) {
 		    hits.setBit(j, 1);
 		    ++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
 			<< "DEBUG -- negativeCompare " << array[j]
 			<< " is not in " << cmp;
@@ -7266,7 +7266,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		if (j < nelm && ! cmp.inRange(array[j])) {
 		    hits.setBit(j, 1);
 		    ++ ierr;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
 			<< "DEBUG -- negativeCompare " << array[j]
 			<< " is no in " << cmp;
@@ -7294,7 +7294,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    << "] took " << timer.realTime()
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
@@ -7539,7 +7539,7 @@ long ibis::part::negativeCompare(const char* file,
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer()
 	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
@@ -8408,7 +8408,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "\nmask\n" << mask;
 	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
@@ -9149,7 +9149,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "\nmask\n" << mask;
 	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif
@@ -9889,7 +9889,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg.buffer() << "\nmask\n" << mask;
 	lg.buffer() << "\nhit vector\n" << hits << "\n";
 #endif

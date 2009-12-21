@@ -643,13 +643,13 @@ void ibis::slice::construct1(const char* f) {
 	    }
 	}
 	delete (*it).second; // no longer need this one
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 11 && (tmp & 1023) == 1023) {
 	    LOGGER(ibis::gVerbose >= 0) << tmp << " ... ";
 	}
 #endif
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0) << "DONE";
     }

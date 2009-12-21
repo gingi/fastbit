@@ -61,7 +61,7 @@ int ibis::bak2::read(const char* f) {
 // locates the first bin that is just to the right of val or covers val
 // return the smallest i such that maxval[i] >= val
 uint32_t ibis::bak2::locate(const double& val) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     ibis::util::logMessage("ibis::bak2::locate", "searching for %g in an "
 			   "array of %lu double(s) in the range of [%g, %g]",
 			   val, static_cast<long unsigned>(minval.size()),
@@ -87,7 +87,7 @@ uint32_t ibis::bak2::locate(const double& val) const {
 		i0 = it;
 	    it = (i0 + i1) / 2;
 	}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu", val,
 			       maxval[i0], maxval[i1],
 			       static_cast<long unsigned>(i1));
@@ -97,7 +97,7 @@ uint32_t ibis::bak2::locate(const double& val) const {
     else { // do linear search
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (val <= maxval[i]) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		if (i > 0)
 		    ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu",
 					   val, maxval[i-1], maxval[i],

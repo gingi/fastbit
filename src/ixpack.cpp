@@ -196,7 +196,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 	    +sizeof(double)*(nobs*3+2);
 	if (offsetsize == 8) {
 	    array_t<int64_t> nextlevel(st, nloff, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
@@ -223,7 +223,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 	else {
 	    array_t<int32_t> nextlevel(st, nloff, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- pack[" << col->partition()->name()
@@ -453,7 +453,7 @@ int ibis::pack::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
@@ -594,7 +594,7 @@ int ibis::pack::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
@@ -776,7 +776,7 @@ int ibis::pack::read(const char* f) {
 	    array_t<int64_t> tmp(fdes, begin, end);
 	    nextlevel64.swap(tmp);
 	}
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."
@@ -801,7 +801,7 @@ int ibis::pack::read(const char* f) {
 	    array_t<int32_t> tmp(fdes, begin, end);
 	    nextlevel32.swap(tmp);
 	}
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- pack[" << col->partition()->name() << "."

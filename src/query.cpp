@@ -2715,12 +2715,12 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	high.set(1, mypart->nRows());
 	low.set(1, mypart->nRows());
     }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose >= 0)
 	<< "ibis::query[" << myID << "]::doEstimate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", " << high.cnt() << "]";
-#if DEBUG + 0 > 1
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0) << "low \n" << low
 			   << "\nhigh \n" << high;
 #else
@@ -3450,12 +3450,12 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     }
     if (ierr < 0) // no confirmed hits
 	ht.set(0, mypart->nRows());
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doScan("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
-#if DEBUG + 0 > 1
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
     if (ibis::gVerbose > 30 || (ht.bytes() < (2 << ibis::gVerbose)))
@@ -3627,12 +3627,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mypart->nRows());
 	ierr = -1;
     }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
-#if DEBUG + 0 > 1
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
     if (ibis::gVerbose > 30 || (ht.bytes() < (2 << ibis::gVerbose)))
@@ -3835,13 +3835,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ht.set(0, mask.size());
 	ierr = -1;
     }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "ibis::query[" << myID << "]::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
-#if DEBUG + 0 > 1
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg.buffer() << "ht \n" << ht;
 #else
     if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))
@@ -4049,7 +4049,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
 	rids = 0;
     }
     else {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logger lg(4);
 	lg.buffer() << "query[" << myID << "::readRIDs() got " << rids->size()
 		    << "\n";
@@ -4884,7 +4884,7 @@ int64_t ibis::query::processJoin() {
 	    surepairs &= tmp;
 	    iffypairs &= tmp;
 	    iffypairs -= surepairs;
-#if defined(DEBUG) && DEBUG > 2
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
 	    if (surepairs.cnt() > 0) { // verify the pairs in surepairs
 		int64_t ct1 = mypart->evaluateJoin(*(terms.back()),
 						   surepairs, tmp);
@@ -4922,7 +4922,7 @@ int64_t ibis::query::processJoin() {
 						   iffypairs, tmp);
 		if (ct2 > 0 && tmp.size() == surepairs.size())
 		    surepairs |= tmp;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		ct2 = mypart->evaluateJoin(*(terms.back()), mask, iffypairs);
 		if (ct2 > 0 && iffypairs.size() == surepairs.size())
 		    iffypairs ^= surepairs;
@@ -5005,7 +5005,7 @@ int64_t ibis::query::processJoin() {
 			   "evaluateJoin failed with error code %ld",
 			   static_cast<long int>(ct4));
 	    }
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    ct4 = mypart->evaluateJoin(terms, mask, iffypairs);
 	    if (ct4 > 0 && iffypairs.size() == surepairs.size())
 		iffypairs ^= surepairs;
@@ -5189,7 +5189,7 @@ int64_t ibis::query::countEqualPairs(const array_t<T1>& val1,
 	    // next, find out how many values are equal
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
@@ -5268,7 +5268,7 @@ int64_t ibis::query::countEqualPairs(const array_t<uint32_t>& val1,
 	    // next, find out how many values are equal
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
@@ -5312,7 +5312,7 @@ int64_t ibis::query::countDeltaPairs(const array_t<T1>& val1,
 	    ++ i2;
 	cnt += i2 - i1;
     } // for ..
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "DEBUG -- countDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
@@ -5346,7 +5346,7 @@ int64_t ibis::query::countDeltaPairs(const array_t<uint32_t>& val1,
 	while (i2 < n1 && val1[i2] <= hi)
 	    ++ i2;
 	cnt += i2 - i1;
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	LOGGER(ibis::gVerbose-1)
 	    << "DEBUG -- query::countDeltaPairs found "
 	    << "val2[" << i << "] (" << val2[i]
@@ -5436,7 +5436,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1])
 			UnixWrite(fdes, idbuf, idsize);
 	    }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- query::recordEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
@@ -5600,7 +5600,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     for (uint32_t i = 0; i < ind1.size(); ++ i)
 	if (ind1[i] > mypart->nRows())
 	    logWarning("recordDeltaPairs", "ind1[%lu] = %lu is out of "
@@ -5638,7 +5638,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
 		UnixWrite(fdes, idbuf, idsize);
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 		if (idbuf[0] != ind1[jj] || idbuf[1] !=
 		    (ind2.size() == val2.size() ? ind2[i] : i) ||
 		    idbuf[0] >= mypart->nRows() ||
@@ -5661,7 +5661,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	cnt += i2 - i1;
     } // for ..
     UnixClose(fdes);
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg.buffer() << "DEBUG -- recordDeltaPairs val1=[";
     for (uint32_t ii = 0; ii < val1.size(); ++ ii)
@@ -5831,6 +5831,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -5839,6 +5841,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5849,6 +5853,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5858,6 +5864,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5867,6 +5875,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5882,6 +5892,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -5890,6 +5902,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5900,6 +5914,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5909,6 +5925,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5918,6 +5936,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5932,6 +5952,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -5940,6 +5962,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5950,6 +5974,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5959,6 +5985,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5968,6 +5996,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -5982,6 +6012,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -5990,6 +6022,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -6000,6 +6034,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -6009,6 +6045,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -6018,6 +6056,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countEqualPairs(val1, val2);
@@ -6075,6 +6115,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -6083,6 +6125,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6093,6 +6137,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6102,6 +6148,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6111,6 +6159,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6129,6 +6179,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -6137,6 +6189,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6147,6 +6201,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6156,6 +6212,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6165,6 +6223,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6181,6 +6241,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -6189,6 +6251,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6199,6 +6263,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6208,6 +6274,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6217,6 +6285,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6233,6 +6303,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	{
 	    array_t<uint32_t> ind1;
 	    ierr = col1->selectValues(mask, &val1, ind1);
+	    if (ierr < 0)
+		return ierr;
 	}
 	std::sort(val1.begin(), val1.end());
 	switch (col2->type()) {
@@ -6241,6 +6313,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6251,6 +6325,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6260,6 +6336,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6269,6 +6347,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    {
 		array_t<uint32_t> ind2;
 		ierr = col2->selectValues(mask, &val2, ind2);
+		if (ierr < 0)
+		    return ierr;
 	    }
 	    std::sort(val2.begin(), val2.end());
 	    cnt = countDeltaPairs(val1, val2, delta);
@@ -6330,6 +6410,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	array_t<int32_t> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{ // to limit the scope of tmp;
 	    array_t<int32_t> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6340,6 +6422,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6352,6 +6436,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6363,6 +6449,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6374,6 +6462,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6391,6 +6481,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	array_t<uint32_t> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<uint32_t> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6401,6 +6493,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6413,6 +6507,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6424,6 +6520,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6435,6 +6533,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6451,6 +6551,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	array_t<float> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<float> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6461,6 +6563,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6473,6 +6577,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6484,6 +6590,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6495,6 +6603,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6511,6 +6621,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	array_t<double> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<double> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6521,6 +6633,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6533,6 +6647,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6544,6 +6660,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6555,6 +6673,8 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6617,6 +6737,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	array_t<int32_t> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<int32_t> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6627,6 +6749,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6639,6 +6763,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6650,6 +6776,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6661,6 +6789,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6681,7 +6811,9 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	array_t<uint32_t> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
-#if defined(DEBUG)
+	if (ierr < 0)
+	    return ierr;
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	for (uint32_t i = 0; i < ind1.size(); ++ i)
 	    if (ind1[i] > mypart->nRows())
 		logWarning("sortRangeJoin", "before sorting: ind1[%lu] = %lu "
@@ -6695,7 +6827,7 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> itmp(val1.size());
 	    array_t<uint32_t>::stableSort(val1, ind1, tmp, itmp);
 	}
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	for (uint32_t i = 0; i < ind1.size(); ++ i)
 	    if (ind1[i] > mypart->nRows())
 		logWarning("sortRangeJoin", "after sorting: ind1[%lu] = %lu "
@@ -6709,6 +6841,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6721,6 +6855,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6732,6 +6868,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6743,6 +6881,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6761,6 +6901,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	array_t<float> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<float> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6771,6 +6913,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6783,6 +6927,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6794,6 +6940,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6805,6 +6953,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6823,6 +6973,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	array_t<double> val1;
 	array_t<uint32_t> ind1;
 	ierr = col1->selectValues(mask, &val1, ind1);
+	if (ierr < 0)
+	    return ierr;
 	{
 	    array_t<double> tmp(val1.size());
 	    array_t<uint32_t> itmp(val1.size());
@@ -6833,6 +6985,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<int32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6845,6 +6999,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<uint32_t> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6856,6 +7012,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<float> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<float> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6867,6 +7025,8 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 	    array_t<double> val2;
 	    array_t<uint32_t> ind2;
 	    ierr = col2->selectValues(mask, &val2, ind2);
+	    if (ierr < 0)
+		return ierr;
 	    {
 		array_t<double> tmp(val2.size());
 		array_t<uint32_t> itmp(val2.size());
@@ -6916,7 +7076,7 @@ void ibis::query::orderPairs(const char *pfile) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     if (ibis::fileManager::instance().bytesFree() > npairs) {
 #endif
 	npairs /= sizeof(ibis::rid_t);
@@ -6948,10 +7108,10 @@ void ibis::query::orderPairs(const char *pfile) const {
 		       "content of %s), will use out-of-core sorting",
 		       pfile);
 	}
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     }
 #endif
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
     const uint32_t mblock = PREFERRED_BLOCK_SIZE / (2*sizeof(uint32_t));
     array_t<ibis::rid_t> buf1(mblock), buf2(mblock);
     // the initial sorting of the blocks.
@@ -7085,7 +7245,7 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 	while (ierr >= static_cast<int>(idsize) &&
 	       (buf1[0] < buf2[0] ||
 		(buf1[0] == buf2[0] && buf1[1] < buf2[1]))) {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	    uint32_t tmp[2];
 	    ierr = UnixRead(indes, tmp, idsize);
 	    if (tmp[0] < buf1[0] ||
@@ -7105,7 +7265,7 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 	while (ierr >= static_cast<int>(idsize) &&
 	       (buf1[0] > buf2[0] ||
 		(buf1[0] == buf2[0] && buf1[1] > buf2[1]))) {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	    uint32_t tmp[2];
 	    ierr = UnixRead(olddes, tmp, idsize);
 	    if (tmp[0] < buf2[0] ||

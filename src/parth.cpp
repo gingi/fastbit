@@ -3574,7 +3574,7 @@ ibis::part::getDistribution
     std::vector<double> bds;
     std::vector<uint32_t> cts;
     long mbc = getDistribution(name, bds, cts);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getDistribution(" << name
@@ -3873,7 +3873,7 @@ ibis::part::getDistribution
 	    bds[i] = bounds[i];
     }
     long mbc = getDistribution(constraints, name, bds, cts);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getDistribution(" << name << ", "
@@ -3935,7 +3935,7 @@ ibis::part::getCumulativeDistribution
     std::vector<double> bds;
     std::vector<uint32_t> cts;
     long mbc = getCumulativeDistribution(name, bds, cts);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- getCumulativeDistribution(" << name
@@ -4192,7 +4192,7 @@ long ibis::part::packDistribution
 		cptr[i] += cts[next];
 		++ next;
 	    }
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- i=" << i << ", j = " << j << ", bds[j]="
 		<< bds[j] << ", next=" << next << ", bds[next]="
@@ -4282,7 +4282,7 @@ long ibis::part::packCumulativeDistribution
 	    uint32_t tgt = cts[j] + (top - cts[j]) / (nbc-i-1);
 	    while (cts[next] < tgt && nbc+next <= mbc+i-1)
 		++ next;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- i=" << i << ", next=" << next << ", bds[next]="
 		<< bds[next] << ", cts[next]=" << cts[next];

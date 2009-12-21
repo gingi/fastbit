@@ -9,6 +9,9 @@
 
 ibis::selectClause::selectClause(const char *cl) : lexer(0) {
     if (cl == 0 || *cl == 0) return;
+    LOGGER(ibis::gVerbose > 5)
+	<< "selectClause::ctor creating a new select clause with \"" << cl
+	<< "\"";
 
     int ierr = 0;
     clause_ = cl;
@@ -17,8 +20,10 @@ ibis::selectClause::selectClause(const char *cl) : lexer(0) {
     selectLexer lx(&iss, &(lg.buffer()));
     selectParser parser(*this);
     lexer = &lx;
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2
     parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+    parser.set_debug_level(_DEBUG-1);
 #endif
     parser.set_debug_stream(lg.buffer());
     ierr = parser.parse();
@@ -52,6 +57,9 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
 	}
     }
     if (clause_.empty()) return;
+    LOGGER(ibis::gVerbose > 5)
+	<< "selectClause::ctor creating a new select clause with \"" << clause_
+	<< "\"";
 
     int ierr = 0;
     std::istringstream iss(clause_);
@@ -59,8 +67,10 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
     selectLexer lx(&iss, &(lg.buffer()));
     selectParser parser(*this);
     lexer = &lx;
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2
     parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+    parser.set_debug_level(_DEBUG-1);
 #endif
     parser.set_debug_stream(lg.buffer());
     ierr = parser.parse();
@@ -110,6 +120,10 @@ void ibis::selectClause::clear() {
 int ibis::selectClause::parse(const char *cl) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "selectClause::parse cleared existing content before parsing \""
+	    << cl << "\"";
+
 	clear();
 	clause_ = cl;
 	std::istringstream iss(clause_);
@@ -117,8 +131,10 @@ int ibis::selectClause::parse(const char *cl) {
 	selectLexer lx(&iss, &(lg.buffer()));
 	selectParser parser(*this);
 	lexer = &lx;
-#if defined(DEBUG) && DEBUG+0 > 2
+#if DEBUG+0 > 2
 	parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+	parser.set_debug_level(_DEBUG-1);
 #endif
 	parser.set_debug_stream(lg.buffer());
 	ierr = parser.parse();

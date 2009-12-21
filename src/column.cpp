@@ -585,7 +585,7 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
     if (mask_.size() == thePart->nRows()) {
 	ibis::bitvector tmp(mask_);
 	mask.swap(tmp);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("getNullMask", "copying an existing mask(%lu, %lu)",
 		   static_cast<long unsigned>(mask.cnt()),
 		   static_cast<long unsigned>(mask.size()));
@@ -594,7 +594,7 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
     else if (m_type == ibis::OID) {
 	const_cast<column*>(this)->mask_.set(1, thePart->nRows());
 	mask.set(1, thePart->nRows());
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("getNullMask", "asking for the mask of OIDs (%lu, %lu)",
 		   static_cast<long unsigned>(mask.cnt()),
 		   static_cast<long unsigned>(mask.size()));
@@ -1523,19 +1523,19 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectInts mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -1547,7 +1547,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -1559,14 +1559,14 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -1581,7 +1581,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2161,19 +2161,19 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectLongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -2185,7 +2185,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2197,14 +2197,14 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -2219,7 +2219,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2271,19 +2271,19 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectLongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -2295,7 +2295,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2307,14 +2307,14 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -2329,7 +2329,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2369,19 +2369,19 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectLongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -2393,7 +2393,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2405,14 +2405,14 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -2427,7 +2427,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2755,19 +2755,19 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -2779,7 +2779,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2791,14 +2791,14 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -2813,7 +2813,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2865,19 +2865,19 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	uint32_t i = 0;
 	array->resize(tot);
 	const long unsigned nprop = prop.size();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
 	if (nprop >= mask.size()) { // no need to check loop bounds
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>(idx0[1]),
@@ -2889,7 +2889,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -2901,14 +2901,14 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    }
 	}
 	else { // need to check loop bounds against nprop
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering checked loops");
 #endif
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (*idx0 >= nprop) break;
 		if (index.isRange()) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
 			       static_cast<long unsigned>(*idx0),
 			       static_cast<long unsigned>
@@ -2923,7 +2923,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			logMessage("DEBUG", "copying value %lu to i=%lu",
 				   static_cast<long unsigned>(idx0[j]),
 				   static_cast<long unsigned>(i));
@@ -4111,7 +4111,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     const char *dfn = dataFileName(sname);
     if (dfn == 0)
 	return -3;
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
@@ -4321,7 +4321,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     std::string sname;
     const char *dfn = dataFileName(sname);
     if (dfn == 0) return -3;
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
@@ -4485,7 +4485,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
 } // ibis::column::selectValuesT
 
 /// Return selected rows of the column in an array_t object.
-/// The caller must provide the correct array_t<type>* for vals!  Not type
+/// The caller must provide the correct array_t<type>* for vals!  No type
 /// casting is performed in this function.  Only elementary numerical types
 /// are supported.
 long ibis::column::selectValues(const bitvector& mask, void* vals) const {
@@ -5098,7 +5098,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		low &= mymask;
 	    }
 	    else { // index::evaluate failed
-#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose > 2)
 		    << "INFO -- ibis::column[" << thePart->name()
 		    << "." << name() << "]::evaluateRange(" << cmp.colName()
@@ -5636,7 +5636,7 @@ long ibis::column::append(const char* dt, const char* df,
 		       "records out of %lu", filename.c_str(),
 		       static_cast<long unsigned>(mtot.cnt()),
 		       static_cast<long unsigned>(mtot.size()));
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0) << mtot;
 #endif
 	}
@@ -9612,7 +9612,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 /// Constructor of index lock.
 ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
-#if defined(DEBUG) && DEBUG > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logMessage("column::indexLock",
 			   "locking column %s for %s", col->name(),
 			   (m ? m : "?"));
@@ -9639,7 +9639,7 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 
 /// Destructor of index lock.
 ibis::column::indexLock::~indexLock() {
-#if defined(DEBUG) && DEBUG > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logMessage("column::indexLock",
 			   "unlocking column %s (%s)", theColumn->name(),
 			   (mesg ? mesg : "?"));

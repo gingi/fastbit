@@ -61,7 +61,7 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 		    ("Warning", "the serialized version of bitvector contains "
 		     "an unexpected last word (0x%.8lx)",
 		     static_cast<long unsigned>(m_vec.back()));
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		{ // print the array out
 		    word_t nb = 0;
 		    ibis::util::logger lg(4);
@@ -474,7 +474,7 @@ ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
 // When the given index (ind) is beyond the end of the current sequence, the
 // unspecified bits in the range of [size(), ind) are assumed to be 0.
 void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "ibis::bitvector::setBit(" << ind << ", " << val << ") "
@@ -884,7 +884,7 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	    << ") res.size(" << res.size() << ") is expected to be "
 	    << size()-(j-i) << ", but is not";
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 2)
 	<< "DEBUG -- ibis::bitvector::erase(" << i << ", " << j
 	<< ") ...\nInput\n" << *this << "\nOutput\n" << res;
@@ -938,7 +938,7 @@ ibis::bitvector::count(const ibis::bitvector& mask) const {
 // toggle every bit of the bit sequence
 void ibis::bitvector::flip() {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) > bytes()) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "Before flipping:" << *this;
@@ -974,7 +974,7 @@ void ibis::bitvector::flip() {
     if (active.nbits > 0) { // also need to toggle active_word
 	active.val ^= ((1<<active.nbits) - 1);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = do_cnt();
     if (nb != nbits)
 	ibis::util::logMessage("Warning", "ibis::bitvector::flip() expects "
@@ -1018,7 +1018,7 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 			       static_cast<long unsigned>(rhs.size()));
     }
 #endif
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
 				(1U << ibis::gVerbose) >= rhs.bytes())) {
 	ibis::util::logger lg(4);
@@ -1090,7 +1090,7 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 	and_c2(rhs, res);
 	swap(res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = do_cnt();
     if (nbits == 0)
 	nbits = nb;
@@ -1225,7 +1225,7 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     else {
 	and_c2(rhs, *res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = res->do_cnt();
     if (nb != rhs.nbits && rhs.nbits > 0)
 	ibis::util::logMessage("Warning", "ibis::bitvector::operator&() "
@@ -1253,7 +1253,7 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 			       static_cast<long unsigned>(rhs.size()));
     }
 #endif
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
 				(1U << ibis::gVerbose) >= rhs.bytes())) {
 	ibis::util::logger lg(4);
@@ -1305,7 +1305,7 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 	or_c2(rhs, res);
 	swap(res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = do_cnt();
     if (nbits == 0)
 	nbits = nb;
@@ -1386,7 +1386,7 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     else {
 	or_c2(rhs, *res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = res->do_cnt();
     if (nb != rhs.nbits && rhs.nbits > 0)
 	ibis::util::logMessage("Warning", "ibis::bitvector::operator|() "
@@ -1414,7 +1414,7 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 			       static_cast<long unsigned>(rhs.size()));
     }
 #endif
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
 				(1U << ibis::gVerbose) >= rhs.bytes())) {
 	ibis::util::logger lg(4);
@@ -1457,7 +1457,7 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 	xor_c2(rhs, res);
 	swap(res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = do_cnt();
     if (nbits == 0)
 	nbits = nb;
@@ -1530,7 +1530,7 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     else {
 	xor_c2(rhs, *res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = res->do_cnt();
     if (nb != rhs.nbits && rhs.nbits > 0)
 	ibis::util::logMessage("Warning", "ibis::bitvector::operator^() "
@@ -1558,7 +1558,7 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 			       static_cast<long unsigned>(rhs.size()));
     }
 #endif
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
 				(1U << ibis::gVerbose) >= rhs.bytes())) {
 	ibis::util::logger lg(4);
@@ -1617,7 +1617,7 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 	minus_c2(rhs, res);
 	swap(res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = do_cnt();
     if (nbits == 0)
 	nbits = nb;
@@ -1704,7 +1704,7 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
     else {
 	minus_c2(rhs, *res);
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     word_t nb = res->do_cnt();
     if (nb != rhs.nbits && rhs.nbits > 0)
 	ibis::util::logMessage("Warning", "ibis::bitvector::operator-() "
@@ -1743,7 +1743,7 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
 	  << std::endl;
     if (size() == 0)
 	return o;
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 6)
 	m_vec.printStatus(o);
 #else
@@ -1843,7 +1843,7 @@ void ibis::bitvector::read(const char * fn) {
     nbits = 0;
     nset = 0;
 #endif
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (nbits == 0 && ! m_vec.empty())
 	nbits = do_cnt();
     if (size() > 0) {
@@ -1896,7 +1896,7 @@ void ibis::bitvector::write(const char * fn) const {
 	fclose(out);
 	throw "bitvector::write failed to write all bytes";
     }
-#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0 || defined(_DEBUG)
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
 	tmp.nbits = active.nbits % MAXBITS;
@@ -1965,7 +1965,7 @@ void ibis::bitvector::write(int out) const {
 			       static_cast<long unsigned>(n));
 	throw "bitvector::write failed to write all bytes";
     }
-#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0 || defined(_DEBUG)
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
 	tmp.nbits = active.nbits % MAXBITS;
@@ -2002,7 +2002,7 @@ void ibis::bitvector::write(array_t<ibis::bitvector::word_t>& arr) const {
     arr.reserve(m_vec.size()+2);
     arr.resize(m_vec.size());
     (void) memcpy(arr.begin(), m_vec.begin(), sizeof(word_t)*m_vec.size());
-#if defined(DEBUG) || defined(_DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0 || defined(_DEBUG)
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
 	tmp.nbits = active.nbits % MAXBITS;
@@ -2258,7 +2258,7 @@ void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
 	res.active.val = active.val & rhs.active.val;
 	res.active.nbits = active.nbits;
     }
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result of AND " << res;
 #endif
@@ -2327,7 +2327,7 @@ void ibis::bitvector::and_c1(const ibis::bitvector& rhs,
     // the last thing -- work with the two active_words
     res.active.val = active.val & rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result of AND " << res;
 #endif
@@ -2336,7 +2336,7 @@ void ibis::bitvector::and_c1(const ibis::bitvector& rhs,
 // and operation on two compressed bitvectors, generates uncompressed result
 void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 			     ibis::bitvector& res) const {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 2)
 	<< "DEBUG -- ibis::bitvector::and_d2 -- starting with \nOperand 1\n"
 	<< *this << "\nOperand 2\n" << rhs;
@@ -2472,7 +2472,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
     // work with the two active_words
     res.active.val = active.val & rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "operand 1 of AND" << *this << std::endl;
     lg.buffer() << "operand 2 of AND" << rhs << std::endl;
@@ -2484,7 +2484,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 // AND operation and overwrites *this with the result
 void ibis::bitvector::and_d1(const ibis::bitvector& rhs) {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "operand 1 of AND" << *this << std::endl;
@@ -2535,7 +2535,7 @@ void ibis::bitvector::and_d1(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val &= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "result of AND" << *this;
@@ -2556,7 +2556,7 @@ void ibis::bitvector::and_c0(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val &= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result of AND " << *this;
 #endif
@@ -2671,7 +2671,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left", static_cast<long>
 				   (m_vec.end() - x.it));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "*this: " << *this << std::endl;
@@ -2688,7 +2688,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "*this: " << *this << std::endl;
@@ -2704,7 +2704,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
     // work with the two active_words
     res.active.val = active.val | rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "operand 1 of OR" << *this << std::endl;
     lg.buffer() << "operand 2 of OR" << rhs << std::endl;
@@ -2777,7 +2777,7 @@ void ibis::bitvector::or_c1(const ibis::bitvector& rhs,
     // the last thing -- work with the two active_words
     res.active.val = active.val | rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "operand 1 of OR" << *this << std::endl;
     lg.buffer() << "operand 2 of OR" << rhs << std::endl;
@@ -2914,7 +2914,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
     // work with the two active_words
     res.active.val = active.val | rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< "Operand 1 or or_d2 " << *this
 	<< "\nOperand 2 or or_d2 " << rhs
@@ -2926,7 +2926,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
 // the OR operation and overwrites *this with the result
 void ibis::bitvector::or_d1(const ibis::bitvector& rhs) {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "operand 1 of OR" << *this << std::endl;
@@ -2981,7 +2981,7 @@ void ibis::bitvector::or_d1(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val |= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "result of OR" << *this;
@@ -2992,7 +2992,7 @@ void ibis::bitvector::or_d1(const ibis::bitvector& rhs) {
 // both operands of the 'or' operation are not compressed
 void ibis::bitvector::or_c0(const ibis::bitvector& rhs) {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "operand 1 of OR" << *this << std::endl;
@@ -3009,7 +3009,7 @@ void ibis::bitvector::or_c0(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val |= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     word_t nb = do_cnt();
     if (nbits == 0)
 	nbits = nb;
@@ -3097,7 +3097,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
     // the last thing -- work with the two active_words
     res.active.val = active.val ^ rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result of XOR " << res << std::endl;
 #endif
@@ -3144,7 +3144,7 @@ void ibis::bitvector::xor_c1(const ibis::bitvector& rhs,
     res.active.val = active.val ^ rhs.active.val;
     res.active.nbits = active.nbits;
 
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result XOR " << res;
 #endif
@@ -3270,7 +3270,7 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
     // work with the two active_words
     res.active.val = active.val ^ rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "operand 1 of XOR" << *this << std::endl;
     lg.buffer() << "operand 2 of XOR" << rhs << std::endl;
@@ -3282,7 +3282,7 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
 // performs the XOR operation and overwrites *this with the result
 void ibis::bitvector::xor_d1(const ibis::bitvector& rhs) {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "operand 1 of XOR" << *this << std::endl;
@@ -3344,7 +3344,7 @@ void ibis::bitvector::xor_d1(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val ^= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "result of XOR" << *this;
@@ -3365,7 +3365,7 @@ void ibis::bitvector::xor_c0(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val ^= rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result XOR " << *this << std::endl;
     /*
@@ -3493,7 +3493,7 @@ void ibis::bitvector::minus_c2(const ibis::bitvector& rhs,
     // the last thing -- work with the two active_words
     res.active.val = active.val & ~(rhs.active.val);
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result MINUS " << res;
     /*
@@ -3571,7 +3571,7 @@ void ibis::bitvector::minus_c1(const ibis::bitvector& rhs,
     res.active.val = active.val & ~(rhs.active.val);
     res.active.nbits = active.nbits;
 
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result MINUS " << res;
 #endif
@@ -3621,7 +3621,7 @@ void ibis::bitvector::minus_c1x(const ibis::bitvector& rhs,
     res.active.val = active.val & ~(rhs.active.val);
     res.active.nbits = active.nbits;
 
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result MINUS " << res;
 #endif
@@ -3752,7 +3752,7 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
     // work with the two active_words
     res.active.val = active.val & ~rhs.active.val;
     res.active.nbits = active.nbits;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "operand 1 of MINUS" << *this << std::endl;
     lg.buffer() << "operand 2 of MINUS" << rhs << std::endl;
@@ -3764,7 +3764,7 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
 // the MINUS operation and overwrites *this with the result
 void ibis::bitvector::minus_d1(const ibis::bitvector& rhs) {
     m_vec.nosharing(); // make sure *this is not shared!
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "operand 1 of MINUS" << *this << std::endl;
@@ -3814,7 +3814,7 @@ void ibis::bitvector::minus_d1(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val &= ~rhs.active.val;
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
 	lg.buffer() << "result of MINUS" << *this;
@@ -3836,7 +3836,7 @@ void ibis::bitvector::minus_c0(const ibis::bitvector& rhs) {
 
     // the last thing -- work with the two active_words
     active.val &= ~(rhs.active.val);
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
     lg.buffer() << "result MINUS " << *this;
 #endif
@@ -3899,7 +3899,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 	const double sz1 = 3.0 + nw - sz;
 	double ds = 0.0;
 	f = f0;
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::bitvector:clusteringFactor(" << nb << ", " << nc
 	    << ", " << sz << "): sz=" << sz << ", den = "
@@ -3933,7 +3933,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 	    ds2 = sz1 - nw *
 		((1.0-den) * pow(1.0-den/((1.0-den)*f2), tw3) +
 		 den * pow(1.0-1.0/f2, tw3));
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- ibis::bitvector:clusteringFactor(" << nb
 		<< ", " << nc << ", " << sz << "): computed size="
@@ -3968,7 +3968,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 			    a = b;
 			    b = c;
 			}
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(1) << "a = " << a << ", b = " << b
 				  << ", linear extrapolation = "
 				  << f - (f - f2) * ds / (ds - ds2)

@@ -736,7 +736,7 @@ void ibis::egale::convert() {
 	    else {
 		cnts[i] = 0;
 	    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- ibis::egale::convert " << i << " ...";
@@ -761,7 +761,7 @@ void ibis::egale::convert() {
 	}
     }
     simple.clear();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::egale::convert " << nobs << " DONE";
@@ -1259,7 +1259,7 @@ void ibis::egale::addBits_(uint32_t ib, uint32_t ie,
 
 // compute the bitvector that is the answer for the query x = b
 void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalEQ(" << b << ")...";
 #endif
@@ -1272,7 +1272,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 	for (uint32_t i=0; i < bases.size(); ++i) {
 	    uint32_t k = b % bases[i];
 	    const uint32_t j = offset + k;
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- ibis::egale::evalEQ(" << b << ")... component "
 		<< i << " = " << k << ", bits[" << j << "]";
@@ -1289,7 +1289,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 
 // compute the bitvector that is the answer for the query x <= b
 void ibis::egale::evalLE(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalLE(" << b << ")...";
 #endif
@@ -1355,7 +1355,7 @@ void ibis::egale::evalLE(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that answers the query b0 < x <= b1
 void ibis::egale::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::egale::evalLL(" << b0 << ", " << b1 << ")...";
 #endif

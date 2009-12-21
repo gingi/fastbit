@@ -1,3 +1,13 @@
+2009-12-21 John Wu <John.Wu at ACM.org>
+	* src/ixfuge.cpp, src/index.cpp, src/array_t.cpp,
+	src/bitvector.cpp: change conditional compilation statement #if
+	defined(_DEBUG) to be #if  DEBUG+0 > 1 || _DEBUG+0 > 1, minor
+	updates to address errors in the logging statements
+	* src/fileManager.cpp: replace the statement that reinterpret
+	m_begin as float and double with casts to uint32_t and uint64_t,
+	PGI compiler appears to be doing some extra checking and does not
+	like the recast values
+
 2009-12-18 John Wu <John.Wu at ACM.org>
 	* src/configure.ac: add AC_PACKAGE_URL
 	* src/util.cpp: print FastBit version, mailing list address and

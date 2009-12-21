@@ -106,7 +106,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	    if (ind[i] < card) {
 		bits[ind[i]]->setBit(i, 1);
 	    }
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    else {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- relic[" << col->partition()->name() << '.'
@@ -583,7 +583,7 @@ int ibis::relic::read(const char* f) {
     end += header[6] * (dim[1] + 1);
     ierr = initOffsets(fdes, header[6], begin, dim[1]);
     ibis::fileManager::instance().recordPages(0, end);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])
@@ -1210,7 +1210,7 @@ uint32_t ibis::relic::locate(const double& val) const {
 		i0 = it;
 	    it = (i0 + i1) / 2;
 	}
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu", val,
 			       vals[i0], vals[i1],
 			       static_cast<long unsigned>(i1));
@@ -1220,7 +1220,7 @@ uint32_t ibis::relic::locate(const double& val) const {
     else { // do linear search
 	for (uint32_t i = 0; i < nval; ++i) {
 	    if (val < vals[i]) {
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		if (i > 0)
 		    ibis::util::logMessage("locate", "%g in [%g, %g) ==> %lu",
 					   val, vals[i-1], vals[i],
@@ -1858,7 +1858,7 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 			    "bds[%lu] and cts[%lu] sizes do not match",
 			    static_cast<long unsigned>(bds.size()),
 			    static_cast<long unsigned>(cts.size()));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";
@@ -1906,7 +1906,7 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 			    "bds[%lu] and cts[%lu] sizes do not match",
 			    static_cast<long unsigned>(bds.size()),
 			    static_cast<long unsigned>(cts.size()));
-#if defined(DEBUG) && DEBUG + 0 > 1
+#if DEBUG+0 > 0 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- bds array:\n";

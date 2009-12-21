@@ -198,7 +198,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	    +sizeof(double)*nobs*3;
 	if (offsetsize == 8) {
 	    array_t<int64_t> offs(st, nloff, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- zone[" << col->partition()->name()
@@ -223,7 +223,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 	else {
 	    array_t<int32_t> offs(st, nloff, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG -- zone[" << col->partition()->name()
@@ -464,13 +464,13 @@ int ibis::zone::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- zone::write32(" << col->name() << ", "
 		    << start << ") -- offsets of the file levels\n";
 	for (i=0; i<=nobs; ++i)
-	    lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
+	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
 #endif
     ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
@@ -601,13 +601,13 @@ int ibis::zone::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- zone::write64(" << col->name() << ", "
 		    << start << ") -- offsets of the file levels\n";
 	for (i=0; i<=nobs; ++i)
-	    lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
+	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
 #endif
     ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
@@ -1153,7 +1153,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
     }
     upper.clear();
     lower.clear();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 0 && nobs > 10 && bits[10] != 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- zone::estimate(" << expr
@@ -1961,7 +1961,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		    bin0 = sub[j]->nobs-1;
 		if (bin1 >= sub[j]->nobs)
 		    bin1 = sub[j]->nobs-1;
-#if defined(DEBUG) && DEBUG+0 > 1
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- sub[" << j << "]: lbound=" << lbound
 		    << ", rbound="
@@ -2262,7 +2262,7 @@ void ibis::zone::estimate(const ibis::qContinuousRange& expr,
 		upper |= *(bits[cand0]);
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 0 && nobs > 10 && bits[10] != 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- zone::estimate(" << expr

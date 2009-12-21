@@ -697,7 +697,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	}
 
 	if (cr != 0 && cr != expr) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "replace a compRange with a qRange " << *expr;
 #endif
@@ -706,7 +706,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	}
 	else if (expr->getType() == ibis::qExpr::COMPRANGE &&
 		 static_cast<ibis::compRange*>(expr)->isSimpleRange()) {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "replace a compRange with a qRange " << *expr;
 #endif
@@ -1005,7 +1005,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	    }
 	}
 
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "DEBUG -- qExpr::reorder(" << *this
@@ -1093,7 +1093,7 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 	if (terms[i]->isSimple())
 	    ++ i;
 
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg(4);
 	    lg.buffer() << "qExpr::separateSimple -- terms joined with AND\n";
@@ -1245,7 +1245,7 @@ ibis::qContinuousRange::qContinuousRange
 	upper = (*rstr)?atof(rstr):(DBL_MAX);
     else
 	upper = DBL_MAX;
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "column: " << name << "\n"
 	<< "left string: \"" << (lstr?lstr:"<NULL>")
@@ -1440,7 +1440,7 @@ void ibis::qString::print(std::ostream& out) const {
 /// Constructor.
 ibis::qLike::qLike(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)) {
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 5)
 	<< "qLike::ctor(\"" << ls << "\", \"" << rs << "\") ...";
 #endif
@@ -2184,7 +2184,7 @@ void ibis::math::bediener::reorder() {
 	ptr->setLeft(terms[j]);
     }
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
-    ,    LOGGER(ibis::gVerbose > 4)
+    LOGGER(ibis::gVerbose > 4)
 	<< "DEBUG -- bediener::reorder output:  " << *this;
 #endif
 } // ibis::math::bediener::reorder

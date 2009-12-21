@@ -1261,7 +1261,7 @@ void ibis::fuge::activateCoarse() const {
 
 	    for (uint32_t i = 0; i < nobs; ++i) {
 		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
-// #if defined(_DEBUG)
+// #if DEBUG+0 > 1 || _DEBUG+0 > 1
 // 		    LOGGER(ibis::gVerbose > 5)
 // 			<< "DEBUG -- " << mesg << " activating bitvector "
 // 			<< i << " from a raw storage ("
@@ -1309,7 +1309,7 @@ void ibis::fuge::activateCoarse() const {
 				       sizeof(ibis::bitvector::word_t));
 				bits[i] = new ibis::bitvector(a1);
 				bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 				LOGGER(ibis::gVerbose >= 0)
 				    << "DEBUG -- " << mesg
 				    << " activating bitvector " << i
@@ -1346,7 +1346,7 @@ void ibis::fuge::activateCoarse() const {
 
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
-// #if defined(_DEBUG)
+// #if DEBUG+0 > 1 || _DEBUG+0 > 1
 // 		LOGGER(ibis::gVerbose >= 0)
 // 		    << "DEBUG -- " << mesg << " activating bitvector "
 // 		    << i << " from a raw storage ("
@@ -1394,7 +1394,7 @@ void ibis::fuge::activateCoarse() const {
 				   sizeof(ibis::bitvector::word_t));
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "DEBUG -- " << mesg
 				<< " activating bitvector " << i
@@ -1459,7 +1459,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 		  sizeof(ibis::bitvector::word_t));
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "fuge::activateCoarse(" << i
 		<< ") constructed a bitvector from range ["
@@ -1483,7 +1483,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 		cbits[i] = new ibis::bitvector(a0);
 		cbits[i]->sloppySize(nrows);
 		UnixClose(fdes);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose >= 0)
 		    << "DEBUG -- " << mesg << "(" << i
 		    << ") constructed a bitvector from range ["
@@ -1516,7 +1516,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	      sizeof(ibis::bitvector::word_t));
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	LOGGER(ibis::gVerbose >= 0)
 	    << "fuge::activateCoarse(" << i
 	    << ") constructed a bitvector from range ["
@@ -1539,7 +1539,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	    cbits[i] = new ibis::bitvector(a0);
 	    cbits[i]->sloppySize(nrows);
 	    UnixClose(fdes);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- " << mesg << "(" << i
 		<< ") constructed a bitvector from range ["
@@ -1599,7 +1599,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 			  sizeof(ibis::bitvector::word_t));
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 5)
 			<< "DEBUG -- " << mesg << " constructed bitvector "
 			<< i << " from range [" << coffset64[i] << ", "
@@ -1642,7 +1642,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 					   sizeof(ibis::bitvector::word_t));
 				    cbits[i] = new ibis::bitvector(a1);
 				    cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 				    LOGGER(ibis::gVerbose >= 5)
 					<< mesg << " constructed bitvector "
 					<< i << " from range [" << coffset64[i]
@@ -1683,7 +1683,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 		      sizeof(ibis::bitvector::word_t));
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
-#if defined(_DEBUG)
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 		LOGGER(ibis::gVerbose >= 5)
 		    << "DEBUG -- " << mesg << " constructed bitvector "
 		    << i << " from positions " << coffset32[i] << " - "
@@ -1726,7 +1726,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 				       sizeof(ibis::bitvector::word_t));
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->sloppySize(nrows);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 				LOGGER(ibis::gVerbose >= 0)
 				    << mesg << " constructed bitvector " << i
 				    << " from range [" << coffset32[i]

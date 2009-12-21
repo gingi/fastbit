@@ -742,7 +742,7 @@ void ibis::meshQuery::blocknd
 		    block[k+k] = 0;
 		    block[k+k+1] = dim[k];
 		}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
@@ -765,7 +765,7 @@ void ibis::meshQuery::blocknd
 		block[k+k] = 0;
 		block[k+k+1] = dim[k];
 	    }
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (block[dim.size()+dim.size()-2] == 0 &&
 		block.back() == dim.back()) {
 		ibis::util::logger lg(4);
@@ -793,7 +793,7 @@ void ibis::meshQuery::blocknd
 		    block[k+k] = 0;
 		    block[k+k+1] = dim[k];
 		}
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
@@ -5043,7 +5043,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 	    }
 	}
 	cnt = coords.size() / ndim;
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- ibis::meshQuery::bitvectorToCoordinates "
 		    << "produced " << cnt << " points";

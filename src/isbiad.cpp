@@ -244,7 +244,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	    bits[i]->set(0, nrows);
 	}
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::sbiad::construct1 converted"
@@ -298,7 +298,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
 	throw;
     }
     beq.clear();
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::sbiad::construct1 completed "
@@ -1011,7 +1011,7 @@ long ibis::sbiad::append(const char* dt, const char* df, uint32_t nnew) {
 
 // compute the bitvector that represents the answer for x = b
 void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::sbiad::evalEQ(" << b << ")...";
 #endif
@@ -1097,7 +1097,7 @@ void ibis::sbiad::evalEQ(ibis::bitvector& res, uint32_t b) const {
 
 // compute the bitvector that is the answer for the query x <= b
 void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::sbiad::evalLE(" << b << ")...";
 #endif
@@ -1250,7 +1250,7 @@ void ibis::sbiad::evalLE(ibis::bitvector& res, uint32_t b) const {
 // compute the bitvector that answers the query b0 < x <= b1
 void ibis::sbiad::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
 	<< "DEBUG -- ibis::sbiad::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
@@ -1306,7 +1306,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 			if (bits[offset+k0-nb2] != 0)
 			    low |= *(bits[offset+k0-nb2]);
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -1338,7 +1338,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 			if (bits[offset+k1-nb2] != 0)
 			    res |= *(bits[offset+k1-nb2]);
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -1467,7 +1467,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 			    low.set(0, low.size());
 			}
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(low.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -1544,7 +1544,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 			    res.set(0, res.size());
 			}
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -1657,7 +1657,7 @@ void ibis::sbiad::evalLL(ibis::bitvector& res,
 			}
 			++ offset;
 		    }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    if (ibis::gVerbose > 30 ||
 			(res.bytes() < (1U << ibis::gVerbose))) {
 			LOGGER(ibis::gVerbose >= 0)

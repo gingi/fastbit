@@ -192,7 +192,7 @@ ibis::pale::pale(const ibis::column* c, ibis::fileManager::storage* st,
 	    +sizeof(double)*nobs*3;
 	if (8 == offsetsize) {
 	    array_t<int64_t> nextlevel(st, nlposition, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG from pale[" << col->partition()->name()
@@ -219,7 +219,7 @@ ibis::pale::pale(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 	else {
 	    array_t<int32_t> nextlevel(st, nlposition, nobs+1);
-#ifdef DEBUG
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg.buffer() << "DEBUG from pale[" << col->partition()->name()
@@ -463,7 +463,7 @@ int ibis::pale::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- pale[" << col->partition()->name() << "."
@@ -600,7 +600,7 @@ int ibis::pale::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -12;
     }
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- pale[" << col->partition()->name() << "."
@@ -778,7 +778,7 @@ int ibis::pale::read(const char* f) {
 	}
     }
     ibis::fileManager::instance().recordPages(0, end);
-#if defined(DEBUG)
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg.buffer() << "DEBUG -- pale[" << col->partition()->name() << '.'
@@ -788,8 +788,16 @@ int ibis::pale::read(const char* f) {
 	else
 	    lg.buffer() << fdes;
 	lg.buffer() << ") got the starting positions of the fine levels\n";
-	for (uint32_t i = 0; i <= nobs; ++ i)
-	    lg.buffer() << "offset[" << i << "] = " << nextlevel[i] << "\n";
+	if (header[6] == 8) {
+	    for (uint32_t i = 0; i <= nobs; ++ i)
+		lg.buffer() << "offset[" << i << "] = " << nextlevel64[i]
+			    << "\n";
+	}
+	else {
+	    for (uint32_t i = 0; i <= nobs; ++ i)
+		lg.buffer() << "offset[" << i << "] = " << nextlevel32[i]
+			    << "\n";
+	}
     }
 #endif
 
