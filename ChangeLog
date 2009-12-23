@@ -1,3 +1,22 @@
+2009-12-23 John Wu <John.Wu at ACM.org>
+	* src/category.cpp:2500 prevent the nil terminator from being
+	inserted into the output string object (when it is inserted, it
+	creates a nil terminator in other strings that includes this one
+	and make the values following the string invisible in print outs)
+	* src/util.cpp: update readInt and readDouble to detect empty
+	strings, add check for str.size() before using str[str.size()-1]
+	* src/tafel.cpp: change parseLine to record parser errors as null
+	values instead of treating them as errors and terminating the
+	function (to address a need to input null values through CSV files
+	raised by Andreas Streichardt andreas dot streichardt at
+	globalpark dot com)
+
+2009-12-22 John Wu <John.Wu at ACM.org>
+	* examples/ardea.cpp: assign "," as the default delimiter for
+	readCSV
+	* src/util.cpp: change getString to remove the (assumed) space
+	delimiter
+
 2009-12-21 John Wu <John.Wu at ACM.org>
 	* src/ixfuge.cpp, src/index.cpp, src/array_t.cpp,
 	src/bitvector.cpp: change conditional compilation statement #if

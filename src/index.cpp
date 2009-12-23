@@ -7746,28 +7746,32 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 } // ibis::index::sumBits
 
 /// Fill the array bases with the values that cover the range [0, card).
-/// Assumes at least two components.  For one component case use indexes
-/// defined explicit for one component cases.
+/// Assumes at least two components.  For the one-component case, use
+/// indexes defined explicit for one component.  Since the base size of
+/// each component can not be less two, the maximum number of components
+/// can be used is to have each component uses base size two.  If the input
+/// argument ncomp is larger than ceiling(log_2(card)), the return array
+/// bases shall have ceiling(log_2(card)) elements.
 void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
-			   uint32_t nbase) {
+			   uint32_t ncomp) {
     if (card < 4) { // very low cardinality, use only one component
 	bases.resize(1);
 	bases[0] = card;
 	return;
     }
 
-    if (nbase > 2) { // more than two components
-	uint32_t b = static_cast<uint32_t>(ceil(pow((double)card, 1.0/nbase)));
+    if (ncomp > 2) { // more than two components
+	uint32_t b = static_cast<uint32_t>(ceil(pow((double)card, 1.0/ncomp)));
 	if (b > 2) {
-	    bases.resize(nbase);
+	    bases.resize(ncomp);
 	    uint32_t tot = 1;
-	    for (uint32_t i = 0; i < nbase; ++i) {
+	    for (uint32_t i = 0; i < ncomp; ++i) {
 		bases[i] = b;
 		tot *= b;
 	    }
-	    for (uint32_t i = 0; i < nbase; ++i) {
+	    for (uint32_t i = 0; i < ncomp; ++i) {
 		if ((tot/b)*(b-1) >= card) {
-		    bases[nbase-i-1] = b - 1;
+		    bases[ncomp-i-1] = b - 1;
 		    tot /= b;
 		    tot *= b - 1;
 		}
@@ -7776,14 +7780,14 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 		}
 	    }
 	    // remove the last few bases that are one
-	    while (nbase > 0 && bases[nbase-1] == 1)
-		-- nbase;
-	    bases.resize(nbase);
+	    while (ncomp > 0 && bases[ncomp-1] == 1)
+		-- ncomp;
+	    bases.resize(ncomp);
 	}
 	else { // use base size 2
-	    bases.reserve(nbase);
+	    bases.reserve(ncomp);
 	    uint32_t tot = 1;
-	    for (uint32_t i = 0; i < nbase && tot < card; ++ i) {
+	    for (uint32_t i = 0; i < ncomp && tot < card; ++ i) {
 		bases.push_back(2);
 		tot <<= 1;
 	    }
@@ -7791,7 +7795,7 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 		bases[0] = (uint32_t)(ceil(2.0 * card / tot));
 	}
     }
-    else if (card > 2 && nbase > 1) { // assume two components
+    else if (card > 2 && ncomp > 1) { // assume two components
 	uint32_t b =
 	    static_cast<uint32_t>(ceil(sqrt(static_cast<double>(card))));
 	bases.resize(2);

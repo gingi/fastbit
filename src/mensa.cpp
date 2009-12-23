@@ -2810,7 +2810,17 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
 		static_cast<const ibis::text*>(col)
 		    ->ibis::text::getString
 		    (static_cast<uint32_t>(i+bBegin-pBegin), val);
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+		LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- mensa::cursor::dump(" << i << ", " << j
+		    << ") printing string " << val << " to position "
+		    << static_cast<off_t>(out.tellp()) << " of output stream "
+		    << static_cast<void*>(&out);
+#endif
 		out << '"' << val << '"';
+	    }
+	    else {
+		ierr = -3;
 	    }
 	}
 	break;}
@@ -2843,8 +2853,18 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
 		    out << std::dec;
 		}
 	    }
+	    else {
+		ierr = -5;
+	    }
 	}
 	break;}
+    }
+    if (ierr >= 0 && ! out) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- mensa::cursor::dumpIJ(" << i << ", " << j
+	    << ") failed to write to the output stream at offset "
+	    << static_cast<off_t>(out.tellp());
+	ierr = -4;
     }
     return ierr;
 } // ibis::mensa::cursor::dumpIJ

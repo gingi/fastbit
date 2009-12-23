@@ -440,12 +440,14 @@ public:
     /// the number of rows in the table by 1.  The unfilled rows are
     /// assumed to be null.
     ///
-    /// @note A null value of an integer column is recorded as the maximum
-    /// possible of the type of integer.  A null value of a floating-point
-    /// valued column is recorded as a quiet NaN (Not-a-Number).  A null
-    /// value of a string-valued column is recorded as an empty string.  In
-    /// all cases, a null mask is used to indicate that they are null
-    /// values.
+    /// @note A null value is internally denoted with a mask separated from
+    /// the data values.  However, since the rows corresponding to the null
+    /// values must be filled with some value in this implementation, the
+    /// following is how their values are filled.  A null value of an
+    /// integer column is filled as the maximum possible of the type of
+    /// integer.  A null value of a floating-point valued column is filled
+    /// as a quiet NaN (Not-a-Number).  A null value of a string-valued
+    /// column is filled with an empty string.
     virtual int appendRow(const ibis::table::row&) =0;
     /// Append a row stored in ASCII form.  The ASCII form of the values
     /// are assumed to be separated by comma (,) or space, but additional

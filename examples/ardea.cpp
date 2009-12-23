@@ -693,7 +693,7 @@ int main(int argc, char** argv) {
     const char* outdir = "tmp";
     const char* sel;
     const char* dsn = 0;
-    const char* del = 0; // delimiters
+    const char* del = ","; // delimiters
     int ierr, nrpf;
     qList qcnd;
     std::ostringstream oss;

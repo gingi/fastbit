@@ -3899,7 +3899,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 	const double sz1 = 3.0 + nw - sz;
 	double ds = 0.0;
 	f = f0;
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	LOGGER(ibis::gVerbose >= 0)
 	    << "DEBUG -- ibis::bitvector:clusteringFactor(" << nb << ", " << nc
 	    << ", " << sz << "): sz=" << sz << ", den = "
@@ -3933,7 +3933,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 	    ds2 = sz1 - nw *
 		((1.0-den) * pow(1.0-den/((1.0-den)*f2), tw3) +
 		 den * pow(1.0-1.0/f2, tw3));
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "DEBUG -- ibis::bitvector:clusteringFactor(" << nb
 		<< ", " << nc << ", " << sz << "): computed size="
@@ -3968,7 +3968,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 			    a = b;
 			    b = c;
 			}
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
 			LOGGER(1) << "a = " << a << ", b = " << b
 				  << ", linear extrapolation = "
 				  << f - (f - f2) * ds / (ds - ds2)

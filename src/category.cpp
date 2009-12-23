@@ -2497,7 +2497,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	    LOGGER(ibis::gVerbose > 2 && ierr < len)
 		<< "Warning -- text::readString(" << i << ") expected to read "
 		<< len << " bytes, but only read " << ierr;
-	    ret.insert(ret.end(), buf, buf+ierr);
+	    ret.insert(ret.end(), buf, buf + ierr - (buf[ierr-1] == 0));
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 1)

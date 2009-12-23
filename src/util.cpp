@@ -194,14 +194,13 @@ char* ibis::util::getString(const char* buf) {
 } // ibis::util::getString
 
 /// Copy the next string to the output variable str.  Leading blank spaces
-/// are skipped.  In addition to blank space, delimiters supplied by the
-/// third argument will also be skipped.  The content of str will be empty
-/// if buf is nil or an empty string.  If the string is quoted, only spaces
-/// before the quote is skipped, and the content of the string will be
-/// everything after the first quote to the last character before the
-/// matching quote or end of buffer.  If delim is not provided (i.e., is
-/// 0), and the 1st nonblank character is not a quote, then string will
-/// terminate at the 1st space character following the nonblank character.
+/// are skipped.  The content of str will be empty if buf is nil or an
+/// empty string.  If the string is quoted, only spaces before the quote is
+/// skipped, and the content of the string will be everything after the
+/// first quote to the last character before the matching quote or end of
+/// buffer.  If delim is not provided (i.e., is 0), and the 1st nonblank
+/// character is not a quote, then string will terminate at the 1st space
+/// character following the nonblank character.
 void ibis::util::getString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
@@ -250,12 +249,12 @@ void ibis::util::getString(std::string& str, const char *&buf,
 	    ++ buf;
 	} // while (*buf)
     }
-    else { // space separated string
-	if (delim == 0 || *delim == 0) {
+    else { // delimiter separated string
+	if (delim == 0 || *delim == 0) { // assume space as delimiter
 	    while (*buf) {
 		if (!isspace(*buf))
 		    str += *buf;
-		else if (str[str.size()-1] == '\\')
+		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
 		    return;
@@ -264,9 +263,9 @@ void ibis::util::getString(std::string& str, const char *&buf,
 	}
 	else if (delim[1] == 0) {
 	    while (*buf) {
-		if (!isspace(*buf) && *delim != *buf)
+		if (*delim != *buf)
 		    str += *buf;
-		else if (str[str.size()-1] == '\\')
+		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
 		    return;
@@ -275,9 +274,9 @@ void ibis::util::getString(std::string& str, const char *&buf,
 	}
 	else if (delim[2] == 0) {
 	    while (*buf) {
-		if (!isspace(*buf) && *delim != *buf && delim[1] != *buf)
+		if (*delim != *buf && delim[1] != *buf)
 		    str += *buf;
-		else if (str[str.size()-1] == '\\')
+		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
 		    return;
@@ -286,9 +285,9 @@ void ibis::util::getString(std::string& str, const char *&buf,
 	}
 	else {
 	    while (*buf) {
-		if (!isspace(*buf) && (delim == 0 || 0 == strchr(delim, *buf)))
+		if (0 == strchr(delim, *buf))
 		    str += *buf;
-		else if (str[str.size()-1] == '\\')
+		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
 		    return;
@@ -298,14 +297,23 @@ void ibis::util::getString(std::string& str, const char *&buf,
     }
 } // ibis::util::getString
 
-/// Attempt to convert the incoming string into an integer.
-/// Return zero (0) if all characters in @c str are decimal integers and
-/// the content does not overflow.
+/// Attempt to convert the incoming string into an integer.  It skips
+/// leading space and converts an optional +/- sign followed by a list of
+/// decimal digits to an integer.  On successful completion of this
+/// function, the argument val contains the converted value and str points
+/// to the next unused character in the input string.  In this case, it
+/// returns 0.  It returns -1 if the input string is a null string, is an
+/// empty string, has only blank spaces or have one of the delimiters
+/// immediately following the leading blank spaces.  It returns -2 to
+/// indicate overflow, in which case, it resets val to 0 and move str to
+/// the next character that is not a decimal digit.
 int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     int64_t tmp = 0;
     val = 0;
     if (str == 0 || *str == 0) return -1;
     for (; isspace(*str); ++ str); // skip leading space
+    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+	return -1;
 
     const bool neg = (*str == '-');
     if (*str == '-' || *str == '+') ++ str;
@@ -314,30 +322,37 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
 	if (tmp > val) {
 	    val = tmp;
 	}
-	else if (val > 0) {
-	    return -2; // overflow
+	else if (val > 0) { // overflow
+	    val = 0;
+	    while (*str != 0 && isdigit(*str) != 0) ++ str;
+	    return -2;
 	}
 	++ str;
     }
     if (neg) val = -val;
-    //for (; isspace(*str); ++ str);
-    if (*str == 0 || isspace(*str) || strchr(del, *str) != 0) return 0;
-    else return 1;
+    return 0;
 } // ibis::util::readInt
 
-/// Attempt to convert the incoming string into a double.
+/// Attempt to convert the incoming string into a double.  The format
+/// recodnized is the following
+///@code
+/// [+-]?\d*\.\d*[[eE][+-]?\d+]
+///@endcode
+/// Note that the decimal point is the period!  This function leads str at
+/// the first character that does not follow the above pattern.
 int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     val = 0;
     if (str == 0 || *str == 0) return -1;
     for (; isspace(*str); ++ str); // skip leading space
+    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+	return -1;
 
     double tmp;
     const char *s0 = str;
     const bool neg = (*str == '-');
-    const unsigned width =  16;
     if (*str == '-' || *str == '+') ++ str;
-    // limit the number of digits in the integer portion to 16
-    while (*str != 0 && str <= s0+width && isdigit(*str) != 0) {
+    // extract the values before the decimal point
+    while (*str != 0 && isdigit(*str) != 0) {
 	val = 10 * val + static_cast<double>(*str - '0');
 	++ str;
     }
@@ -364,14 +379,8 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
 	}
     }
 
-    //for (; isspace(*str); ++ str);
-    if (*str == 0 || isspace(*str) || strchr(del, *str) != 0) {
-	if (neg) val = - val;
-	return 0;
-    }
-    else { // incorrect format
-	return 2;
-    }
+    if (neg) val = - val;
+    return 0;
 } // ibis::util::readDouble
 
 // return the size of file in bytes, file that does not exist has size zero
