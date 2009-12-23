@@ -49,8 +49,8 @@ public:
 
     /// Return descriptive information about the data partition.
     inline info* getInfo() const;
-    /// Return the current state of data partition.
     TABLE_STATE getState() const;
+    /// Return the current state of data partition.
     TABLE_STATE getStateNoLocking() const {return state;}
 
     /// Make sure indexes for all columns are available.

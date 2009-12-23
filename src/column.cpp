@@ -4758,7 +4758,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    if (idx == 0) {
 		idx = tmp;
 	    }
-	    else { // somehow another thread has created an index
+	    else if (idx != tmp) { // another thread has created an index
 		LOGGER(ibis::gVerbose >= 0)
 		    << "column[" << (thePart ? thePart->name() : "?") << '.'
 		    << m_name << "]::loadIndex found an index (" << idx->name()

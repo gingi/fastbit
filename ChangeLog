@@ -10,6 +10,15 @@
 	function (to address a need to input null values through CSV files
 	raised by Andreas Streichardt andreas dot streichardt at
 	globalpark dot com)
+	* src/category.cpp: replace all getState call with
+	getStateNoLocking to remove the problem with dead locks while
+	attempting to create indexes on string-valued columns (first
+	reported by Elaheh Pourabbas <elaheh.pourabbas at iasi.cnr.it>)
+	* src/column.cpp:4761 add 'if (idx != tmp)' to prevent current
+	index being deleted
+	* tests/Makefile.am: change check-text to test the functions for
+	building indexes in bulk (which how Elaheh discovered the problem
+	with index building procedure)
 
 2009-12-22 John Wu <John.Wu at ACM.org>
 	* examples/ardea.cpp: assign "," as the default delimiter for

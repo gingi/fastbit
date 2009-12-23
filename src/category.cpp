@@ -423,7 +423,7 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 	uint32_t nbuf = mybuf.size();
 	const bool iscurrent =
 	    (strcmp(dir, thePart->currentDataDir()) == 0 &&
-	     thePart->getState() != ibis::part::PRETRANSITION_STATE);
+	     thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE);
 	array_t<uint32_t> ints;
 	do {
 	    array_t<uint32_t> tmp;
@@ -460,7 +460,8 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 			}
 		    }
 		}
-		else if (thePart->getState() != ibis::part::PRETRANSITION_STATE
+		else if (thePart->getStateNoLocking()
+			 != ibis::part::PRETRANSITION_STATE
 			 && ibis::gVerbose > 1) {
 		    logMessage("category::fillIndex", "found %u strings while "
 			       "expecting %lu, truncating the list of values",
@@ -471,7 +472,7 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 	    else if (ints.size() < thePart->nRows()) {
 		ints.insert(ints.end(), thePart->nRows() - ints.size(), 0);
 	    }
-	    if (thePart->getState() != ibis::part::PRETRANSITION_STATE)
+	    if (thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE)
 		ints.resize(thePart->nRows());
 #if defined(WRITE_INT_VALUES_FOR_KEYS)
 	    data += ".int";

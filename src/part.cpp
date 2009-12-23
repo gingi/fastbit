@@ -5464,7 +5464,9 @@ void ibis::part::indexSpec(const char *spec) {
 	writeMetaData(nEvents, columns, backupDir);
 } // ibis::part::indexSpec
 
-// need a read lock to ensure the sanity of the state
+/// Retrieve the current state of data partition.  It holds a read lock to
+/// ensure the sanity of the state.   The function getStateNoLocking may
+/// return a transient value unless the caller hold a lock.
 ibis::part::TABLE_STATE ibis::part::getState() const {
     readLock lock(this, "getState");
     return state;
