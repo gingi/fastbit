@@ -19,6 +19,9 @@
 	* tests/Makefile.am: change check-text to test the functions for
 	building indexes in bulk (which how Elaheh discovered the problem
 	with index building procedure)
+	* src/index.cpp:4118 fname should be fdes
+	* src/index.cpp: check the return values of read function of
+	different indexes
 
 2009-12-22 John Wu <John.Wu at ACM.org>
 	* examples/ardea.cpp: assign "," as the default delimiter for

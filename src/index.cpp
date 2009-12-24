@@ -313,7 +313,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::bin(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::RANGE: // new range index
@@ -323,7 +327,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::range(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::AMBIT: // multilevel range index
@@ -333,7 +341,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::ambit(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::PALE: // two-level bin/range index
@@ -343,7 +355,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::pale(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::PACK: // two-level range/bin index
@@ -353,7 +369,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::pack(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::ZONE: // two-level bin/bin index
@@ -363,7 +383,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::zone(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::MESA: // one-level (interval) encoded index
@@ -373,7 +397,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::mesa(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::RELIC: // the basic bitmap index
@@ -391,7 +419,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::slice(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::FADE: // multicomponent range-encoded
@@ -401,7 +433,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::fade(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::SAPID: // multicomponent equality-encoded
@@ -411,7 +447,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::sapid(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::SBIAD: // multicomponent interval-encoded
@@ -421,7 +461,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::sbiad(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::EGALE:
@@ -432,7 +476,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::egale(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::MOINS:
@@ -443,7 +491,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::moins(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::ENTRE:
@@ -454,7 +506,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::entre(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::BAK:
@@ -465,7 +521,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::bak(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::BAK2:
@@ -476,7 +536,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::bak2(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::KEYWORDS:
@@ -498,7 +562,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    else {
 			ind = new ibis::direkte(0);
 			ind->col = c;
-			ind->read(file.c_str());
+			ierr = ind->read(file.c_str());
+			if (ierr < 0) {
+			    delete ind;
+			    ind = 0;
+			}
 		    }
 		    break;
 		case ibis::index::BYLT:
@@ -4115,12 +4183,15 @@ int ibis::index::initOffsets(int fdes, const char offsize, size_t start,
 		offset32.swap(tmp);
 	    }
 	    else {
-		array_t<int32_t> tmp(fname, start, start+offbytes);
+		array_t<int32_t> tmp(fdes, start, start+offbytes);
 		offset32.swap(tmp);
 	    }
 	}
     }
     catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::initOffsets(" << fdes << ", " << offsize
+	    << ", " << start << ", " << nobs << ") received an exception";
 	offset32.clear();
 	offset64.clear();
 	return -13;
