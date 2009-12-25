@@ -1798,8 +1798,7 @@ void ibis::bitvector::read(const char * fn) {
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 5)
 	    << "Warning -- failed to read the content of " << fn
-	    << " to reconstruct an ibis::bitvector, fileManager::getFile "
-	    "returned " << ierr;
+	    << ", fileManager::getFile returned " << ierr;
 	return;
     }
 

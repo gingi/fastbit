@@ -86,7 +86,8 @@ public:
 		ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
     int tryGetFile(const char* name, storage** st,
 		   ACCESS_PREFERENCE pref=MMAP_LARGE_FILES);
-    storage* getFileSegment(const char* name, off_t b, off_t e);
+    static storage* getFileSegment(const char* name, const int fdes,
+				   const off_t b, const off_t e);
 
     /// Obtain a read lock on the file manager.
     inline void gainReadAccess(const char* mesg) const;
@@ -267,14 +268,12 @@ public:
     explicit storage(size_t n); // allocate n bytes
     virtual ~storage() {clear();}
 
-    /// Read part of a file [start, end).
+    storage(const char* fname, const off_t begin, const off_t end);
     storage(const int fdes, const off_t begin, const off_t end);
-    // the following three functions all make in-memory copies
+    storage(const char* begin, const char* end);
     storage(const storage& rhs);
     storage& operator=(const storage& rhs);
     void copy(const storage& rhs);
-    /// Make another copy of the content in the range [begin, end).
-    storage(const char* begin, const char* end);
 
     /// Those storage not associated with files do not have names.  They
     /// are not tracked by the file manager and should be immediately freed
@@ -322,9 +321,8 @@ public:
     virtual bool isFileMap() const {return false;}
     // IO functions
     virtual void printStatus(std::ostream& out) const;
-    /// Read part of an open file.  Return the number of bytes read.
+    off_t read(const char* fname, const off_t begin, const off_t end);
     off_t read(const int fdes, const off_t begin, const off_t end);
-    /// Write the content to the named file.
     void write(const char* file) const;
 
     inline void swap(storage& rhs) throw ();

@@ -1,3 +1,10 @@
+2009-12-24 John Wu <John.Wu at ACM.org>
+	* src/array_t.h, src/array_t.cpp, src/fileManager.h,
+	src/fileManager.cpp, src/i*.cpp: consolidate all uses of trymmap
+	into one function named ibis::fileManager::getFileSegment,
+	consolidate the implementation of array_t constructor to use the
+	function read (remove duplicate code for reading the file contant)
+	
 2009-12-23 John Wu <John.Wu at ACM.org>
 	* src/category.cpp:2500 prevent the nil terminator from being
 	inserted into the output string object (when it is inserted, it

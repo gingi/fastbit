@@ -708,11 +708,6 @@ int ibis::zone::read(const char* f) {
 	nobs = 0;
 	return -5;
     }
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (nobs >= FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     begin = 8 + 2 * sizeof(uint32_t);
     end = begin + (nobs+1) * header[6];
     ierr = initOffsets(fdes, header[6], begin, nobs);
@@ -722,36 +717,24 @@ int ibis::zone::read(const char* f) {
     // read bounds
     begin = 8 * ((end + 7)/8);
     end = begin + sizeof(double)*nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	bounds.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	bounds.swap(dbl);
     }
 
     // read maxval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	maxval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	maxval.swap(dbl);
     }
 
     // read minval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	minval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	minval.swap(dbl);
     }
 
@@ -760,24 +743,12 @@ int ibis::zone::read(const char* f) {
     array_t<int32_t> nextlevel32;
     array_t<int64_t> nextlevel64;
     if (header[6] == 8) {
-	if (trymmap) {
-	    array_t<int64_t> tmp(fname, begin, end);
-	    nextlevel64.swap(tmp);
-	}
-	else {
-	    array_t<int64_t> tmp(fdes, begin, end);
-	    nextlevel64.swap(tmp);
-	}
+	array_t<int64_t> tmp(fname, fdes, begin, end);
+	nextlevel64.swap(tmp);
     }
     else {
-	if (trymmap) {
-	    array_t<int32_t> tmp(fname, begin, end);
-	    nextlevel32.swap(tmp);
-	}
-	else {
-	    array_t<int32_t> tmp(fdes, begin, end);
-	    nextlevel32.swap(tmp);
-	}
+	array_t<int32_t> tmp(fname, fdes, begin, end);
+	nextlevel32.swap(tmp);
     }
     ibis::fileManager::instance().recordPages(0, end);
 

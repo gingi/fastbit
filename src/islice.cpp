@@ -457,20 +457,11 @@ int ibis::slice::read(const char* f) {
 
     ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
     nrows = dim[0];
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (dim[2]*8 > ibis::fileManager::pageSize());
-#else
-    const bool trymmap = false;
-#endif
     // read vals
     begin = 8*((3*sizeof(uint32_t) + 15) / 8);
     end = begin + dim[2] * sizeof(double);
-    if (trymmap) {
-	array_t<double> dbl(fnm.c_str(), begin, end);
-	vals.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fnm.c_str(), fdes, begin, end);
 	vals.swap(dbl);
     }
     // read the offsets
@@ -483,12 +474,8 @@ int ibis::slice::read(const char* f) {
     // cnts
     begin = end;
     end += sizeof(uint32_t) * dim[2];
-    if (trymmap) {
-	array_t<uint32_t> szt(fnm.c_str(), begin, end);
-	cnts.swap(szt);
-    }
-    else {
-	array_t<uint32_t> szt(fdes, begin, end);
+    {
+	array_t<uint32_t> szt(fnm.c_str(), fdes, begin, end);
 	cnts.swap(szt);
     }
     ibis::fileManager::instance().recordPages(0, end);

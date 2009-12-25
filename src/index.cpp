@@ -4159,33 +4159,16 @@ int ibis::index::initOffsets(int fdes, const char offsize, size_t start,
     if (start != static_cast<size_t>(UnixSeek(fdes, start, SEEK_SET)))
 	return -12;
     size_t offbytes = nobs*offsize+offsize;
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = ((offbytes >= FASTBIT_MIN_MAP_SIZE) && (fname != 0));
-#else
-    const bool trymmap = false;
-#endif
     try {
 	if (offsize == 8) {
 	    offset32.clear();
-	    if (trymmap) {
-		array_t<int64_t> tmp(fname, start, start+offbytes);
-		offset64.swap(tmp);
-	    }
-	    else {
-		array_t<int64_t> tmp(fdes, start, start+offbytes);
-		offset64.swap(tmp);
-	    }
+	    array_t<int64_t> tmp(fname, fdes, start, start+offbytes);
+	    offset64.swap(tmp);
 	}
 	else {
 	    offset64.clear();
-	    if (trymmap) {
-		array_t<int32_t> tmp(fname, start, start+offbytes);
-		offset32.swap(tmp);
-	    }
-	    else {
-		array_t<int32_t> tmp(fdes, start, start+offbytes);
-		offset32.swap(tmp);
-	    }
+	    array_t<int32_t> tmp(fname, fdes, start, start+offbytes);
+	    offset32.swap(tmp);
 	}
     }
     catch (...) {

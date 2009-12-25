@@ -561,21 +561,12 @@ int ibis::relic::read(const char* f) {
     }
 
     nrows = dim[0];
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (dim[2]*8 >= FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     // read vals
     begin = 8*((3*sizeof(uint32_t) + 15) / 8);
     end = begin + dim[2] * sizeof(double);
-    if (trymmap) {
+    {
 	// try to use memory map to enable reading only the needed values
-	array_t<double> dbl(fname, begin, end);
-	vals.swap(dbl);
-    }
-    else { // read all values into memory
-	array_t<double> dbl(fdes, begin, end);
+	array_t<double> dbl(fname, fdes, begin, end);
 	vals.swap(dbl);
     }
     // read the offsets

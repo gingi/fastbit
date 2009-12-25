@@ -479,11 +479,6 @@ int ibis::fade::read(const char* f) {
 	return -4;
     }
     nrows = dim[0];
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (dim[2]*8 > FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     // read vals
     begin = 8*((3*sizeof(uint32_t) + 15) / 8);
     end = begin + dim[2] * sizeof(double);
@@ -515,12 +510,8 @@ int ibis::fade::read(const char* f) {
     }
     begin = end + sizeof(uint32_t);
     end += sizeof(uint32_t)*(dim[2]+1);
-    if (trymmap) {
-	array_t<uint32_t> szt(fname, begin, end);
-	cnts.swap(szt);
-    }
-    else {
-	array_t<uint32_t> szt(fdes, begin, end);
+    {
+	array_t<uint32_t> szt(fname, fdes, begin, end);
 	cnts.swap(szt);
     }
     begin = end;

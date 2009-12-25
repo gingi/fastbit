@@ -233,7 +233,27 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
 
 template<class T>
 ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
-    : actual(ibis::fileManager::instance().getFileSegment(fn, begin, end)),
+    : actual(new ibis::fileManager::storage(fn, begin, end)),
+      m_begin(actual ? (T*) actual->begin() : (T*)0),
+      m_end(actual ? (T*) actual->end() : (T*)0) {
+    if (m_begin == 0 || m_begin + (end - begin)/sizeof(T) != m_end) {
+	delete actual;
+	throw ibis::bad_alloc("array_t failed to read file segment");
+    }
+    if (actual != 0)
+	actual->beginUse();
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", content from file " << fn
+	<< " beginning at " << begin << " ending at " << end;
+}
+
+template<class T>
+ibis::array_t<T>::array_t(const char *fn, const int fdes,
+			  const off_t begin, const off_t end)
+    : actual(ibis::fileManager::getFileSegment(fn, fdes, begin, end)),
       m_begin(actual ? (T*) actual->begin() : (T*)0),
       m_end(actual ? (T*) actual->end() : (T*)0) {
     if (m_begin == 0 || m_begin + (end - begin)/sizeof(T) != m_end) {

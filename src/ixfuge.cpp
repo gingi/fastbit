@@ -344,11 +344,6 @@ int ibis::fuge::read(const char* f) {
 	nobs = 0;
 	return -5;
     }
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (nobs*8 > FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     begin = 8+2*sizeof(uint32_t);
     end = 8+2*sizeof(uint32_t)+(nobs+1)*header[6];
     ierr = initOffsets(fdes, header[6], begin, nobs);
@@ -356,36 +351,24 @@ int ibis::fuge::read(const char* f) {
     // read bounds
     begin = 8 * ((7 + end)/8);
     end = begin + sizeof(double)*nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	bounds.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	bounds.swap(dbl);
     }
 
     // read maxval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	maxval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	maxval.swap(dbl);
     }
 
     // read minval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	minval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	minval.swap(dbl);
     }
     ibis::fileManager::instance().recordPages(0, end);

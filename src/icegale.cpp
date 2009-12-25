@@ -535,44 +535,27 @@ int ibis::egale::read(const char* f) {
 	return -6;
     }
 
-#if defined(HAVE_FILE_MAP)
-    const bool trymmap = (nobs*8 >= FASTBIT_MIN_MAP_SIZE);
-#else
-    const bool trymmap = false;
-#endif
     // read bounds
     begin = 8*((15 + 3 * sizeof(uint32_t))/8);
     end = begin + sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	bounds.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	bounds.swap(dbl);
     }
 
     // read maxval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	maxval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	maxval.swap(dbl);
     }
 
     // read minval
     begin = end;
     end += sizeof(double) * nobs;
-    if (trymmap) {
-	array_t<double> dbl(fname, begin, end);
-	minval.swap(dbl);
-    }
-    else {
-	array_t<double> dbl(fdes, begin, end);
+    {
+	array_t<double> dbl(fname, fdes, begin, end);
 	minval.swap(dbl);
     }
 
@@ -585,14 +568,11 @@ int ibis::egale::read(const char* f) {
     // cnts
     begin = end;
     end += sizeof(uint32_t) * (nobs);
-    if (trymmap) {
-	array_t<uint32_t> szt(fname, begin, end);
+    {
+	array_t<uint32_t> szt(fname, fdes, begin, end);
 	cnts.swap(szt);
     }
-    else {
-	array_t<uint32_t> szt(fdes, begin, end);
-	cnts.swap(szt);
-    }
+
     // nbases and bases
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != (off_t) end) {

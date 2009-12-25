@@ -357,6 +357,9 @@ namespace ibis {
     /// A specialization of std::bad_alloc.
     class bad_alloc : public std::bad_alloc {
     public:
+	/// Constructor.  The argument is expected to be a static string so
+	/// that there is no need to allocate any memory for the error
+	/// message.
 	bad_alloc(const char *m="unknown") throw() : mesg_(m) {};
 	virtual ~bad_alloc() throw() {}
 	virtual const char* what() const throw() {return mesg_;}

@@ -46,11 +46,10 @@ public:
     array_t<T>(ibis::fileManager::storage* rhs);
     array_t<T>(ibis::fileManager::storage* rhs, const size_t start,
 	       const size_t nelm);
-    /// Read a portion of an open file into an array.
     array_t<T>(const int fdes, const off_t begin, const off_t end);
-    /// Retrieve a portion of the named file to an array.  Prefer memory
-    /// map if possible.
     array_t<T>(const char *fn, const off_t begin, const off_t end);
+    array_t<T>(const char *fn, const int fdes,
+	       const off_t begin, const off_t end);
 
     array_t<T>& operator=(const array_t<T>& rhs);
     void copy(const array_t<T>& rhs);
