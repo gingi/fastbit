@@ -4993,13 +4993,38 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	logWarning("evaluateRange", "received a unanticipated excetpion");
     }
 
-    // Common exception handling -- retry the basic option of scanning data
+    // Common exception handling -- retry the basic options
     low.clear();
     unloadIndex();
-    //purgeIndexFile();
     if (thePart != 0) {
 	try {
-	    ierr = thePart->doScan(cmp, mymask, low);
+	    if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
+		ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+		sleep(1);
+#endif
+	    }
+	    thePart->emptyCache();
+	    if (m_sorted) {
+		ierr = searchSorted(cmp, low);
+	    }
+	    else {
+		indexLock lock(this, "evaluateRange");
+		if (idx != 0) {
+		    idx->evaluate(cmp, low);
+		    if (low.size() < mymask.size()) {
+			ibis::bitvector high, delta;
+			high.adjustSize(low.size(), mymask.size());
+			high.flip();
+			ierr = thePart->doScan(cmp, high, delta);
+			low |= delta;
+		    }
+		    low &= mymask;
+		}
+		else {
+		    ierr = thePart->doScan(cmp, mymask, low);
+		}
+	    }
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
@@ -5181,13 +5206,38 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	logWarning("evaluateRange", "received a unanticipated excetpion");
     }
 
-    // Common exception handling -- retry the basic option of scanning data
+    // Common exception handling -- retry the basic options
     low.clear();
     unloadIndex();
-    //purgeIndexFile();
     if (thePart != 0) {
 	try {
-	    ierr = thePart->doScan(cmp, mymask, low);
+	    if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
+		ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+		sleep(1);
+#endif
+	    }
+	    thePart->emptyCache();
+	    if (m_sorted) {
+		ierr = searchSorted(cmp, low);
+	    }
+	    else {
+		indexLock lock(this, "evaluateRange");
+		if (idx != 0) {
+		    idx->evaluate(cmp, low);
+		    if (low.size() < mymask.size()) {
+			ibis::bitvector high, delta;
+			high.adjustSize(low.size(), mymask.size());
+			high.flip();
+			ierr = thePart->doScan(cmp, high, delta);
+			low |= delta;
+		    }
+		    low &= mymask;
+		}
+		else {
+		    ierr = thePart->doScan(cmp, mymask, low);
+		}
+	    }
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)

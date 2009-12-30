@@ -4054,12 +4054,44 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    }
 		}
 	    }
-	    tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			ordkeys.c_str(), direction, limit);
+	    try {
+		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+	    }
+	    catch (...) {
+		if (ibis::util::serialNumber() % 3 == 0) {
+		    ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+		    sleep(1);
+#endif
+		}
+		for (ibis::partList::iterator it = tl2.begin();
+		     it != tl2.end(); ++ it) {
+		    (*it)->emptyCache();
+		}
+		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+	    }
 	}
 	else {
-	    tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
-			ordkeys.c_str(), direction, limit);
+	    try {
+		tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+	    }
+	    catch (...) {
+		if (ibis::util::serialNumber() % 3 == 0) {
+		    ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+		    sleep(1);
+#endif
+		}
+		for (ibis::partList::iterator it = tlist.begin();
+		     it != tlist.end(); ++ it) {
+		    (*it)->emptyCache();
+		}
+		tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+	    }
 	}
     }
     else if (! qtables.empty()) {
@@ -4070,14 +4102,58 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		if (stricmp(tlist[k]->name(), qtables[j]) == 0 ||
 		    ibis::util::strMatch(tlist[k]->name(), qtables[j])) {
 		    if (verify_rid || sequential_scan ||
-			tlist[k]->getMeshShape().empty())
-			doQuery(tlist[k], uid, wstr.c_str(), sstr.c_str(),
-				ordkeys.c_str(), direction, limit);
-		    else
-			doMeshQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
+			tlist[k]->getMeshShape().empty()) {
+			try {
+			    doQuery(tlist[k], uid, wstr.c_str(), sstr.c_str(),
+				    ordkeys.c_str(), direction, limit);
+			}
+			catch (...) {
+			    if (ibis::util::serialNumber() % 3 == 0) {
+				ibis::util::quietLock
+				    lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+				sleep(1);
+#endif
+			    }
+			    tlist[k]->emptyCache();
+			    doQuery(tlist[k], uid, wstr.c_str(), sstr.c_str(),
+				    ordkeys.c_str(), direction, limit);
+			}
+		    }
+		    else {
+			try {
+			    doMeshQuery(tlist[k], uid, wstr.c_str(),
+					sstr.c_str());
+			}
+			catch (...) {
+			    if (ibis::util::serialNumber() % 3 == 0) {
+				ibis::util::quietLock
+				    lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+				sleep(1);
+#endif
+			    }
+			    tlist[k]->emptyCache();
+			    doMeshQuery(tlist[k], uid, wstr.c_str(),
+					sstr.c_str());
+			}
+		    }
 
-		    if (ibis::gVerbose > 7 || testing > 0)
-			xdoQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
+		    if (ibis::gVerbose > 7 || testing > 0) {
+			try {
+			    xdoQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
+			}
+			catch (...) {
+			    if (ibis::util::serialNumber() % 3 == 0) {
+				ibis::util::quietLock
+				    lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+				sleep(1);
+#endif
+			    }
+			    tlist[k]->emptyCache();
+			}
+		    }
 		    break;
 		}
 	    }
@@ -4087,14 +4163,54 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	for (ibis::partList::iterator tit = tlist.begin();
 	     tit != tlist.end(); ++ tit) {
 	    // go through every partition and process the user query
-	    if (verify_rid || sequential_scan || (*tit)->getMeshShape().empty())
-		doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			ordkeys.c_str(), direction, limit);
-	    else
-		doMeshQuery((*tit), uid, wstr.c_str(), sstr.c_str());
+	    if (verify_rid || sequential_scan ||
+		(*tit)->getMeshShape().empty()) {
+		try {
+		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+		}
+		catch (...) {
+		    if (ibis::util::serialNumber() % 3 == 0) {
+			ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+			sleep(1);
+#endif
+		    }
+		    (*tit)->emptyCache();
+		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), direction, limit);
+		}
+	    }
+	    else {
+		try {
+		    doMeshQuery((*tit), uid, wstr.c_str(), sstr.c_str());
+		}
+		catch (...) {
+		    if (ibis::util::serialNumber() % 3 == 0) {
+			ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+			sleep(1);
+#endif
+		    }
+		    (*tit)->emptyCache();
+		    doMeshQuery((*tit), uid, wstr.c_str(), sstr.c_str());
+		}
+	    }
 
-	    if (ibis::gVerbose > 7 || testing > 0)
-		xdoQuery((*tit), uid, wstr.c_str(), sstr.c_str());
+	    if (ibis::gVerbose > 7 || testing > 0) {
+		try {
+		    xdoQuery((*tit), uid, wstr.c_str(), sstr.c_str());
+		}
+		catch (...) {
+		    if (ibis::util::serialNumber() % 3 == 0) {
+			ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+			sleep(1);
+#endif
+		    }
+		    (*tit)->emptyCache();
+		}
+	    }
 	}
     }
 } // parseString
@@ -4312,7 +4428,7 @@ int main(int argc, char** argv) {
 		<< *argv << " must have at least one data partition "
 		"to process any query.";
 	}
-	else if (qlist.size() > 1 && threading > 0) {
+	else if (qlist.size() > 1 && threading > 1) {
 #if defined(_DEBUG) || defined(DEBUG)
 	    for (stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
@@ -4321,11 +4437,11 @@ int main(int argc, char** argv) {
 #else
 	    // process queries in a thread pool
 	    const int nth =
-		(threading < qlist.size() ? threading : qlist.size()-1);
+		(threading <= qlist.size() ? threading : qlist.size()) - 1;
 	    ibis::util::counter taskpool;
 	    thArg args(uid, qlist, tlist, taskpool);
 	    std::vector<pthread_t> tid(nth);
-	    for (int i =0; i < nth; ++ i) { // 
+	    for (int i = 0; i < nth; ++ i) { // 
 		int ierr = pthread_create(&(tid[i]), 0, thFun, (void*)&args);
 		if (ierr != 0) {
 		    LOGGER(ibis::gVerbose >= 0)
@@ -4395,14 +4511,14 @@ int main(int argc, char** argv) {
 		case 'p': // print command
 		case 'P':
 		    print(str.c_str(), tlist); break;
-		case 's': // query must start with of the key words
+		case 's': // a select statement
 		case 'f':
 		case 'w':
 		case 'S':
 		case 'F':
-		case 'W':
-		    //std::cout << str << std::endl;
-		    parseString(tlist, uid, str.c_str()); break;
+		case 'W': {
+		    parseString(tlist, uid, str.c_str());
+		    break;}
 		case 'a':
 		case 'A': {
 		    const char* dir = str.c_str();

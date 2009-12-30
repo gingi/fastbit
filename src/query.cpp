@@ -992,55 +992,76 @@ int ibis::query::evaluate(const bool evalSelect) {
 		}
 	    }
 	}
-	catch (const ibis::bad_alloc& e) {
-	    if (dslock != 0) {
-		delete dslock;
-		dslock = 0;
-	    }
-	    LOGGER(ibis::gVerbose >= 0)
-		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
-		    "<long expression>" : "<RID query>") << ") failed "
-		<< "due to a memory allocation problem, " << e.what();
-	    return -9;
-	}
-	catch (const std::exception& e) {
-	    if (dslock != 0) {
-		delete dslock;
-		dslock = 0;
-	    }
-
-	    LOGGER(ibis::gVerbose >= 0)
-		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
-		    "<long expression>" : "<RID query>") << ") failed "
-		<< "due to " << e.what();
-	    return -9;
-	}
-	catch (const char *e) {
-	    if (dslock != 0) {
-		delete dslock;
-		dslock = 0;
-	    }
-
-	    LOGGER(ibis::gVerbose >= 0)
-		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
-		    "<long expression>" : "<RID query>") << ") failed "
-		<< "due to " << e;
-	    return -9;
-	}
 	catch (...) {
-	    if (dslock != 0) {
-		delete dslock;
-		dslock = 0;
+	    try {
+		if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
+		    ibis::util::quietLock lock(&ibis::util::envLock);
+#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+		    sleep(1);
+#endif
+		}
+		mypart->emptyCache();
+		ierr = computeHits(); // do actual computation here
+		if (ierr < 0) return ierr;
+		if (hits != 0 && hits->cnt() > 0 && ! conds.empty()) {
+		    if (conds->hasJoin()) {// has join conditions
+			if (myDir == 0)
+			    setMyDir(mypart->name());
+			processJoin();
+		    }
+		}
 	    }
-	    LOGGER(ibis::gVerbose >= 0)
-		<< " Error *** ibis::query[" << myID << "]::evaluate("
-		<< (conds.getString() ? conds.getString() : conds.getExpr() ?
-		    "<long expression>" : "<RID query>") << ") failed "
-		<< "due to a unknown exception ";
-	    return -9;
+	    catch (const ibis::bad_alloc& e) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** ibis::query[" << myID << "]::evaluate("
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed due to a memory allocation problem -- "
+		    << e.what();
+		return -9;
+	    }
+	    catch (const std::exception& e) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
+
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** ibis::query[" << myID << "]::evaluate("
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed -- " << e.what();
+		return -9;
+	    }
+	    catch (const char *e) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
+
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** ibis::query[" << myID << "]::evaluate("
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed -- " << e;
+		return -9;
+	    }
+	    catch (...) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** ibis::query[" << myID << "]::evaluate("
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed due to a unexpected exception";
+		return -9;
+	    }
 	}
 	if (ibis::gVerbose > 0) {
 	    const long unsigned nhits = hits->cnt();

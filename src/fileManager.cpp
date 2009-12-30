@@ -39,6 +39,7 @@
 #endif
 
 // initialize static varialbes (class members) of fileManager
+time_t ibis::fileManager::hbeat = 0;
 uint64_t ibis::fileManager::maxBytes = 0;
 uint32_t ibis::fileManager::pagesize = 8192;
 unsigned int ibis::fileManager::maxOpenFiles = 0;
@@ -443,7 +444,7 @@ ibis::fileManager& ibis::fileManager::instance() {
 /// efficient to read the whole content into memory rather than keeping a
 /// file open.  The default value is defined by the macro FASTBIT_MIN_MAP_SIZE.
 ibis::fileManager::fileManager()
-    : _hbeat(0), page_count(0), minMapSize(FASTBIT_MIN_MAP_SIZE), nwaiting(0) {
+    : page_count(0), minMapSize(FASTBIT_MIN_MAP_SIZE), nwaiting(0) {
     {
 	unsigned long sz = static_cast<unsigned long>
 	    (ibis::gParameters().getNumber("fileManager.maxBytes"));

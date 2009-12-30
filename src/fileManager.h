@@ -52,7 +52,7 @@ public:
     /// Returns a pointer to the one and only file manager.
     static fileManager& instance();
     /// Returns the value of a simple counter.  It is not thread-safe!
-    time_t iBeat() const {return _hbeat++;}
+    static time_t iBeat() {return hbeat++;}
     /// Returns the number of pages accessed by function read from stdlib.h.
     const double& pageCount() const {return page_count;}
     /// Returns the page size (in bytes) used by the file system.
@@ -182,11 +182,8 @@ private:
     fileList incore; // files that have been read into the main memory
     nameList reading;// files that are being read by the function getFile
     cleanerList cleaners; // list of external cleaners
-    mutable time_t _hbeat;	// a simple counter, no mutex lock
     /// The number of pages read by read from @c unistd.h.
     double page_count;
-    /// The number of bytes in a page.
-    static uint32_t pagesize;
     /// the minimum size of a file before it is memory mapped.
     uint32_t minMapSize;
     /// Number of threads waiting for memory.
@@ -197,6 +194,10 @@ private:
     mutable pthread_rwlock_t lock; // the multiple read single write lock
     mutable pthread_mutex_t mutex; // control access to incore and mapped
     mutable pthread_cond_t cond;   // conditional variable -- unload(), etc..
+
+    static time_t hbeat;	// a simple counter, no mutex lock
+    /// The number of bytes in a page.
+    static uint32_t pagesize;
 
     int unload(size_t size);	// try to unload size bytes
     void invokeCleaners() const;// invoke external cleaners

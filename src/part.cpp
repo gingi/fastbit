@@ -92,7 +92,7 @@ extern "C" {
 	if (myList->et == 0)
 	    return reinterpret_cast<void*>(-2L);
 	const ibis::part *et0 = myList->et;
-	const time_t myid = ibis::fileManager::instance().iBeat();
+	const time_t myid = ibis::fileManager::iBeat();
 	LOGGER(ibis::gVerbose > 2)
 	    << "INFO: thread (local id " << myid
 	    << ") start evaluating queries on partition " << et0->name();
@@ -1761,7 +1761,7 @@ void ibis::part::fillRIDs(const char* fn) const {
     sfile += ".srt";
     FILE* sf = fopen(sfile.c_str(), "wb");
 
-    uint32_t ir = ibis::fileManager::instance().iBeat();
+    uint32_t ir = ibis::fileManager::iBeat();
     rid_t tmp;
     tmp.num.run = ir;
     tmp.num.event = 0;

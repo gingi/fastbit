@@ -1,10 +1,28 @@
+2009-12-30 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add hcompare.pl to EXTRA_DIST
+	* src/query.cpp: add one more layer of try-catch block to attempt
+	to recover from failure during query evaluation
+
+2009-12-29 John Wu <John.Wu at ACM.org>
+	* src/column.cpp: in the catch block of evaluateRange add code to
+	empty cache and retry the query evaluation
+	* examples/ibis.cpp: add catch block to parseString
+
+2009-12-28 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp:4324 keep the total number of threads equal to
+	that specified by the option -t
+
+2009-12-25 John Wu <John.Wu at ACM.org>
+	* tests/scripts/hcompare.pl, tests/Makefile.am: add hcompare.pl to
+	compare the histograms produced for the test cases in chek-marksdb
+
 2009-12-24 John Wu <John.Wu at ACM.org>
 	* src/array_t.h, src/array_t.cpp, src/fileManager.h,
 	src/fileManager.cpp, src/i*.cpp: consolidate all uses of trymmap
 	into one function named ibis::fileManager::getFileSegment,
 	consolidate the implementation of array_t constructor to use the
 	function read (remove duplicate code for reading the file contant)
-	
+
 2009-12-23 John Wu <John.Wu at ACM.org>
 	* src/category.cpp:2500 prevent the nil terminator from being
 	inserted into the output string object (when it is inserted, it

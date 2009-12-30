@@ -3423,8 +3423,7 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
 	desc_ += p.description();
     }
     else { // produce a random name from the size of the data partition
-	const unsigned v2 = (p.nColumns() ^
-			     ibis::fileManager::instance().iBeat());
+	const unsigned v2 = (p.nColumns() ^ ibis::fileManager::iBeat());
 	std::string tmp;
 	ibis::util::int2string(tmp, p.nRows(), v2);
 	desc_ += oss.str();
