@@ -3492,27 +3492,6 @@ ibis::table* ibis::table::create(const ibis::partList& pl) {
     return new ibis::liga(pl);
 } // ibis::table::create
 
-/// This implementation uses the class function ibis::table::select that
-/// accepts query conditions in the form of a pointer to ibis::qExpr.
-/// Unlike the version that accepts the query conditions as a string, this
-/// function returns a nil table of the select clause is empty or nil.
-ibis::table*
-ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
-    if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
-	return 0;
-
-    std::vector<const ibis::part*> parts;
-    int ierr = getPartitions(parts);
-    if (ierr <= 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::table::select failed to getPartitions, ierr="
-	    << ierr;
-	return 0;
-    }
-
-    return ibis::table::select(parts, sel, cond);
-} // ibis::table::select
-
 /// If the incoming directory name is nil or an empty string, it attempts
 /// to use the directories specified in the configuration files.
 ibis::table* ibis::table::create(const char* dir) {
@@ -3608,9 +3587,31 @@ void ibis::table::orderby(const char* str) {
     delete [] buf;
 } // ibis::table::orderby
 
-/// Upon successful completion of this function, it produce an in-memory
-/// data partition holding the selected data records.  It will fail if the
-/// selected records can not fit in the available memory.
+/// This implementation of the member function uses the class function
+/// ibis::table::select that takes the similar arguments along with the
+/// full list of data partitions to work with.  This function returns a nil
+/// table when the select clause is empty or nil.
+ibis::table*
+ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
+    if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
+	return 0;
+
+    std::vector<const ibis::part*> parts;
+    int ierr = getPartitions(parts);
+    if (ierr <= 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::table::select failed to getPartitions, ierr="
+	    << ierr;
+	return 0;
+    }
+
+    return ibis::table::select(parts, sel, cond);
+} // ibis::table::select
+
+/// Upon successful completion of this function, it produces an in-memory
+/// data partition holding the selected data records.  It will fail in a
+/// unpredictable way if the selected records can not fit in the available
+/// memory.
 ///
 /// It expects the arguments sel and cond to be valid and non-trivial.  It
 /// will return a nil pointer if those arguments are nil pointers or empty
@@ -3625,8 +3626,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 } // ibis::table::select
 
 /// Upon successful completion of this function, it produce an in-memory
-/// data partition holding the selected data records.  It will fail if the
-/// selected records can not fit in available memory.
+/// data partition holding the selected data records.  It will fail in an
+/// unpredictable way if the selected records can not fit in available
+/// memory.
 ///
 /// It expects the arguments sel and cond to be valid and non-trivial.  It
 /// will return a nil pointer if those arguments are nil pointers or empty

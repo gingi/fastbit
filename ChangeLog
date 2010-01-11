@@ -1,3 +1,7 @@
+2010-01-11 John Wu <John.Wu at ACM.org>
+	* countQuery.cpp: add calls to m_sel->getNullMask to exclude null
+	values in the select clause
+
 2009-12-30 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add hcompare.pl to EXTRA_DIST
 	* src/query.cpp: add one more layer of try-catch block to attempt

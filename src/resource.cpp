@@ -62,7 +62,7 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (conf == 0) {
-	// thrid choice is a file in this directory
+	// third choice is a file in this directory
 	name = "ibis.rc";
 	conf = fopen(name, "r");
 	if (tried.empty())
@@ -84,7 +84,7 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (conf == 0) {
-	// the last choice is .ibisrc in user's home directory
+	// the fifth choice is .ibisrc in the home directory
 	name = getenv("HOME");
 	if (name != 0 && *name != 0) {
 #if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
@@ -108,7 +108,7 @@ void ibis::resource::read(const char* fn) {
     }
     if (0 == conf) {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::resource::read -- can not find any of the "
+	    << "resource::read -- can not open any of the "
 	    "following configuration files:\n" << tried.c_str();
 	return;
     }

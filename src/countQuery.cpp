@@ -191,7 +191,11 @@ int ibis::countQuery::estimate() {
     }
 #endif
 
-    ibis::bitvector mask(mypart->getNullMask());
+    ibis::bitvector mask;
+    if (m_sel != 0)
+	m_sel->getNullMask(*mypart, mask);
+    else
+	mask.copy(mypart->getNullMask());
     if (mask.size() != mypart->nRows())
 	mask.adjustSize(mypart->nRows(), mypart->nRows());
 
@@ -276,7 +280,15 @@ int ibis::countQuery::evaluate() {
 	    delete cand;
 	    cand = 0;
 	    hits = new ibis::bitvector;
-	    ierr = doEvaluate(conds.getExpr(), mypart->getNullMask(), *hits);
+	    ibis::bitvector mask;
+	    if (m_sel != 0)
+		m_sel->getNullMask(*mypart, mask);
+	    else
+		mask.copy(mypart->getNullMask());
+	    if (mask.size() != mypart->nRows())
+		mask.adjustSize(mypart->nRows(), mypart->nRows());
+
+	    ierr = doEvaluate(conds.getExpr(), mask, *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();

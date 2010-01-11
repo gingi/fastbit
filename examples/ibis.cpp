@@ -2197,8 +2197,8 @@ static void parse_args(int argc, char** argv,
 			++ testing;
 		    }
 		}
-		else {
-		    testing += atoi(++ptr);
+		else { // override previous values
+		    testing = atoi(++ptr);
 		}
 		break;}
 	    case 'v':
@@ -2218,8 +2218,8 @@ static void parse_args(int argc, char** argv,
 			++ ibis::gVerbose;
 		    }
 		}
-		else {
-		    ibis::gVerbose += atoi(++ptr);
+		else { // override previous values
+		    ibis::gVerbose = atoi(++ptr);
 		}
 		break;}
 	    case 'y':
@@ -2240,7 +2240,7 @@ static void parse_args(int argc, char** argv,
 	} // normal arguments
 	else { // argument not started with '-' and not following
 	       // apropriate '-' operations are assumed to be names of the
-	       // data directories and are read two at a time
+	       // data directories and are read one at a time
 	    dirs.push_back(argv[i]);
 	}
     } // for (inti=1; ...)
@@ -2267,13 +2267,13 @@ static void parse_args(int argc, char** argv,
 	    GetSystemInfo(&myinfo);
 	    threading = myinfo.dwNumberOfProcessors;
 #endif
-	    if (threading > 2) // more than two processor, leave one for OS
+	    if (threading > 2) // more than two processors, leave one for OS
 		-- threading;
 	}
 	if (threading > qlist.size())
 	    threading = static_cast<unsigned>
 		(ceil(sqrt(static_cast<double>(qlist.size()))));
-	if (threading <= 1) // make sure it exactly 0
+	if (threading <= 1) // make sure it is exactly 0
 	    threading = 0;
     }
     if (mesgfile != 0 && *mesgfile != 0) {
