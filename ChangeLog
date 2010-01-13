@@ -1,3 +1,10 @@
+2010-01-12 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp:3951 change return value from a nil pointer to a
+	new empty table
+	* src/mensa.cpp: add code to catch paser error and return a nil
+	pointer from ibis::table::select as suggested by Andreas
+	Streichardt
+
 2010-01-11 John Wu <John.Wu at ACM.org>
 	* countQuery.cpp: add calls to m_sel->getNullMask to exclude null
 	values in the select clause

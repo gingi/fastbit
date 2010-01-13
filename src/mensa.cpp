@@ -3605,7 +3605,15 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
 	return 0;
     }
 
-    return ibis::table::select(parts, sel, cond);
+    try {
+	return ibis::table::select(parts, sel, cond);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::table::select absorbed an exception, "
+	    "will return a nil pointer";
+	return 0;
+    }
 } // ibis::table::select
 
 /// Upon successful completion of this function, it produces an in-memory
@@ -3621,8 +3629,17 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
 	return 0;
 
-    ibis::whereClause wc(cond);
-    return ibis::table::select(mylist, sel, wc.getExpr());
+    try {
+	ibis::whereClause wc(cond);
+	if (wc.empty()) return 0; // failed to parse the where clause
+	return ibis::table::select(mylist, sel, wc.getExpr());
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::table::select absorbed an exception, "
+	    "will return a nil pointer";
+	return 0;
+    }
 } // ibis::table::select
 
 /// Upon successful completion of this function, it produce an in-memory
@@ -3648,7 +3665,16 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     }
 
     ibis::util::timer atimer(mesg.c_str(), 2);
-    ibis::selectClause tms(sel);
+    ibis::selectClause tms;
+    try {
+	tms.parse(sel);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << mesg << " failed to parse the select clause \""
+	    << sel << "\", return a nil pointer to indicate error";
+	return 0;
+    }
     if (tms.size() == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " translated select clause \"" << sel
@@ -3947,8 +3973,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	}
 	nh += nqq;
     }
-    if (nh == 0)
-	return 0;
+    if (nh == 0) { // return an empty table of type tabula
+	return new ibis::tabula(nh);
+    }
 
     // convert the selection into a in-memory data partition
     std::string tn = ibis::util::shortName(mesg);

@@ -26,7 +26,8 @@ namespace ibis {
 } // namespace ibis
 
 /// A trivial class for table with no columns.  This type of table is
-/// generated when the select clause is blank or not specified.
+/// generated when the select clause is blank or not specified.  It is also
+/// use to represent an empty table with zero rows.
 class ibis::tabula : public ibis::table {
 public:
     tabula(const char* na, const char* de, uint64_t nr) :
@@ -42,9 +43,15 @@ public:
     virtual void describe(std::ostream&) const;
     virtual void dumpNames(std::ostream&, const char*) const {}
     virtual int dump(std::ostream& out, const char*) const {
-	if (ibis::gVerbose > 0) out << "(empty table)\n"; return 0;}
+	if (ibis::gVerbose > 0)
+	    out << "(empty table, " << nrows << " row" << (nrows>1?"s":"")
+		<< ", 0 column)\n";
+	return 0;}
     virtual int dump(std::ostream& out, uint64_t, const char*) const {
-	if (ibis::gVerbose > 0) out << "(empty table)\n"; return 0;}
+	if (ibis::gVerbose > 0)
+	    out << "(empty table, " << nrows << " row" << (nrows>1?"s":"")
+		<< ", 0 column)\n";
+	return 0;}
 
     virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
     virtual int64_t getColumnAsUBytes(const char*,
