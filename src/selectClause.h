@@ -27,28 +27,58 @@ namespace ibis {
 /// functions with one and two arguements (defined in math.h).  The
 /// supported aggregation functions are:
 ///
-/// - count(*): count the number of rows in each group
-/// - countdistinct(expression): count the number of distinct values
+/// - count(*): count the number of rows in each group.
+/// - countdistinct(expression): count the number of distinct values.
 ///   computed by the expression, equivalent to SQL expression
-///   'count(distinct expression)'
+///   'count(distinct expression)'.
 /// - avg(expression): compute the average of the expression, (note that
 ///   the computation is always performed in double-precision
-///   floating-point values)
-/// - sum(expression): compute the sum of the expression
-/// - max(expression): compute the maximum value of the expression
-/// - min(expression): compute the minimum value of the expression
-/// - varpop(expression): compute the population variance, i.e., the sum of
+///   floating-point values).
+/// - sum(expression): compute the sum of the expression.
+/// - max(expression): compute the maximum value of the expression.
+/// - min(expression): compute the minimum value of the expression.
+/// - median(expression): compute the median of the expression.  Note that
+///   if the arithmetic expression is a simple column name, the value
+///   retuned by this function has the same type as the column.  In cases
+///   requires the computation of the average of two values, the average is
+///   computed using the arithmetic in the type of the column.  This means
+///   the median of a set of integers is always an integer, which can be
+///   slightly different from what one might expect.  Arithmetic
+///   expressions are evaluated in double-precision arithmetic, their
+///   median values will also be double-precision floating-point numbers.
+/// - var(expression): compute the sample variance, i.e., the sum of
 ///   squared differences from the mean divided by the number of rows in
-///   the group
-/// - varsamp(expression): compute the sample variance, i.e., the sum of
+///   the group minus 1.  This function name may also appears as varsamp or
+///   variance.
+/// - varp(expression): compute the population variance, i.e., the sum of
 ///   squared differences from the mean divided by the number of rows in
-///   the group minus 1
-/// - stdpop(expression): compute the population standard deviation, i.e.,
-///   the square root of the sum of squared differences from the mean
-///   divided by the number of rows
-/// - stdsamp(expression): compute the sample standard deviation, i.e., the
+///   the group.  This function name may also appears as varpop because the
+///   origianal contributor of this function, Jan, used varpop.
+/// - stdev(expression): compute the sample standard deviation, i.e., the
 ///   square root of the sum of squared differences from the mean divided
-///   by the number of rows minus 1.
+///   by the number of rows minus 1.  Thisfunction name may also appears as
+///   stdsamp or stddev.
+/// - stdevp(expression): compute the population standard deviation, i.e.,
+///   the square root of the sum of squared differences from the mean
+///   divided by the number of rows.  This function name may also appears
+///   as stdpop.
+///
+/// @note All select operations excludes null values.  In most SQL
+/// implementations, the function 'count(*)' includes the null values.
+/// However, in FastBit, null values are always excluded.  For example, the
+/// return value for 'count(*)' in the following two select statements may
+/// be different if there are any null values in column A,
+/// @code
+/// select count(*) from ...;
+/// select avg(A), count(*) from ...;
+/// @endcode
+/// In the first case, the number reported is purely determined by the
+/// where clause.  However, in the second case, because the select clause
+/// also involves the column A, all of null values of A are excluded,
+/// therefore 'count(*)' reports the number of rows actually used to
+/// compute the average in function 'avg(A)'.  In other SQL
+/// implementations, the number of rows used to compute the average is
+/// reported through 'count(A)'.
 class ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
@@ -98,7 +128,7 @@ public:
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM, DISTINCT,
-		   VARPOP, VARSAMP, STDPOP, STDSAMP};
+		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 

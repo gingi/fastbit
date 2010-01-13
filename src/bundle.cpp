@@ -383,7 +383,6 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	        case ibis::selectClause::VARSAMP:
 	        case ibis::selectClause::STDPOP:
 	        case ibis::selectClause::STDSAMP:
-	        case ibis::selectClause::DISTINCT:
 		    col = new ibis::colDoubles
 			(c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
 		    break;
@@ -427,7 +426,6 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	        case ibis::selectClause::VARSAMP:
 	        case ibis::selectClause::STDPOP:
 	        case ibis::selectClause::STDSAMP:
-	        case ibis::selectClause::DISTINCT:
 		    col = new ibis::colDoubles(c, *hits);
 		    break;
 		default:
@@ -497,7 +495,6 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	    case ibis::selectClause::VARSAMP:
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
-	    case ibis::selectClause::DISTINCT:
 		col = new ibis::colDoubles(c, hits);
 		break;
 	    default:
@@ -575,7 +572,6 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    case ibis::selectClause::VARSAMP:
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
-	    case ibis::selectClause::DISTINCT:
 		col = new ibis::colDoubles(c, vals[0]);
 		break;
 	    default:
@@ -974,7 +970,6 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	            case ibis::selectClause::VARSAMP:
 	            case ibis::selectClause::STDPOP:
 	            case ibis::selectClause::STDSAMP:
-	            case ibis::selectClause::DISTINCT:
 			tmp = new ibis::colDoubles
 			    (cptr, bdlstore, start, sizes[0]);
 			break;
@@ -1036,7 +1031,6 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	        case ibis::selectClause::VARSAMP:
 	        case ibis::selectClause::STDPOP:
 	        case ibis::selectClause::STDSAMP:
-	        case ibis::selectClause::DISTINCT:
 		    tmp = new ibis::colDoubles(cptr, *hits);
 		    break;
 		default:
@@ -1098,7 +1092,6 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    case ibis::selectClause::VARSAMP:
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
-	    case ibis::selectClause::DISTINCT:
 		tmp = new ibis::colDoubles(cptr, hits);
 		break;
 	    default:
@@ -1162,7 +1155,6 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    case ibis::selectClause::VARSAMP:
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
-	    case ibis::selectClause::DISTINCT:
 		cv = new ibis::colDoubles(c, vals[i]);
 		break;
 	    default:

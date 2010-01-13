@@ -1,3 +1,19 @@
+2010-01-13 John Wu <John.Wu at ACM.org>
+	* src/selectLexer.ll: add var and variance as aliases of varsamp,
+	varp as an aliases of varpop, stdev and stddev as aliases of
+	stdsamp, and stdevp as an alias of stdpop, these new names are
+	more commonly used in SQL implementations, add aggregation
+	function median
+	* src/selectParser.yy: add rule for aggregation function median
+	* src/colValues.cpp: add code to compute the median, update
+	computations of distinct counts to avoid making copies of the
+	values to be sorted, change the type of the variable lastValue for
+	diciding whether the values have changed for follow the type of
+	the array
+	* src/bundle.cpp: create colValues in the same type as the
+	incoming values for aggregation function DISTINCT, previously it
+	always uses double which may require copying the incoming values
+
 2010-01-12 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp:3951 change return value from a nil pointer to a
 	new empty table

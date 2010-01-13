@@ -53,9 +53,16 @@ NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 [mM][iI][nN] {return token::MINOP;}
 [sS][uU][mM] {return token::SUMOP;}
 [cC][oO][uU][nN][tT] {return token::CNTOP;}
+[mM][eE][dD][iI][aA][nN] {return token::MEDIANOP;}
+[vV][aA][rR][pP] {return token::VARPOPOP;}
 [vV][aA][rR][pP][oO][pP] {return token::VARPOPOP;}
+[vV][aA][rR] {return token::VARSAMPOP;}
 [vV][aA][rR][sS][aA][mM][pP] {return token::VARSAMPOP;}
+[vV][aA][rR][iI][aA][nN][cC][eE] {return token::VARSAMPOP;}
+[sS][tT][dD][eE][vV][pP] {return token::STDPOPOP;}
 [sS][tT][dD][pP][oO][pP] {return token::STDPOPOP;}
+[sS][tT][dD][eE][vV] {return token::STDSAMPOP;}
+[sS][tT][dD][dD][eE][vV] {return token::STDSAMPOP;}
 [sS][tT][dD][sS][aA][mM][pP] {return token::STDSAMPOP;}
 [dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
 [cC][oO][uU][nN][tT][dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}

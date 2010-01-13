@@ -38,7 +38,7 @@
 #include "selectParser.hh"
 
 /* User implementation prologue.  */
-#line 74 "selectParser.yy"
+#line 75 "selectParser.yy"
 
 #include "selectLexer.h"
 
@@ -204,13 +204,13 @@ namespace ibis
 
     switch (yytype)
       {
-        case 23: /* "\"name\"" */
-#line 71 "selectParser.yy"
+        case 24: /* "\"name\"" */
+#line 72 "selectParser.yy"
 	{ delete (yyvaluep->stringVal); };
 #line 211 "selectParser.cc"
 	break;
-      case 30: /* "mathExpr" */
-#line 72 "selectParser.yy"
+      case 31: /* "mathExpr" */
+#line 73 "selectParser.yy"
 	{ delete (yyvaluep->selectNode); };
 #line 216 "selectParser.cc"
 	break;
@@ -409,7 +409,7 @@ namespace ibis
     switch (yyn)
       {
 	  case 4:
-#line 83 "selectParser.yy"
+#line 84 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::AVG);
@@ -417,7 +417,7 @@ namespace ibis
     break;
 
   case 5:
-#line 87 "selectParser.yy"
+#line 88 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::AVG);
@@ -425,7 +425,7 @@ namespace ibis
     break;
 
   case 6:
-#line 91 "selectParser.yy"
+#line 92 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::CNT);
@@ -433,7 +433,7 @@ namespace ibis
     break;
 
   case 7:
-#line 95 "selectParser.yy"
+#line 96 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::CNT);
@@ -441,7 +441,7 @@ namespace ibis
     break;
 
   case 8:
-#line 99 "selectParser.yy"
+#line 100 "selectParser.yy"
     {
     driver.terms_.push_back(new ibis::math::variable("*"));
     driver.aggr_.push_back(ibis::selectClause::CNT);
@@ -449,7 +449,7 @@ namespace ibis
     break;
 
   case 9:
-#line 103 "selectParser.yy"
+#line 104 "selectParser.yy"
     {
     driver.terms_.push_back(new ibis::math::variable("*"));
     driver.aggr_.push_back(ibis::selectClause::CNT);
@@ -457,7 +457,7 @@ namespace ibis
     break;
 
   case 10:
-#line 107 "selectParser.yy"
+#line 108 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::MAX);
@@ -465,7 +465,7 @@ namespace ibis
     break;
 
   case 11:
-#line 111 "selectParser.yy"
+#line 112 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::MAX);
@@ -473,7 +473,7 @@ namespace ibis
     break;
 
   case 12:
-#line 115 "selectParser.yy"
+#line 116 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::MIN);
@@ -481,7 +481,7 @@ namespace ibis
     break;
 
   case 13:
-#line 119 "selectParser.yy"
+#line 120 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::MIN);
@@ -489,7 +489,7 @@ namespace ibis
     break;
 
   case 14:
-#line 123 "selectParser.yy"
+#line 124 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::SUM);
@@ -497,7 +497,7 @@ namespace ibis
     break;
 
   case 15:
-#line 127 "selectParser.yy"
+#line 128 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::SUM);
@@ -505,7 +505,7 @@ namespace ibis
     break;
 
   case 16:
-#line 131 "selectParser.yy"
+#line 132 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::VARPOP);
@@ -513,7 +513,7 @@ namespace ibis
     break;
 
   case 17:
-#line 135 "selectParser.yy"
+#line 136 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::VARPOP);
@@ -521,7 +521,7 @@ namespace ibis
     break;
 
   case 18:
-#line 139 "selectParser.yy"
+#line 140 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::VARSAMP);
@@ -529,7 +529,7 @@ namespace ibis
     break;
 
   case 19:
-#line 143 "selectParser.yy"
+#line 144 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::VARSAMP);
@@ -537,7 +537,7 @@ namespace ibis
     break;
 
   case 20:
-#line 147 "selectParser.yy"
+#line 148 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::STDPOP);
@@ -545,7 +545,7 @@ namespace ibis
     break;
 
   case 21:
-#line 151 "selectParser.yy"
+#line 152 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::STDPOP);
@@ -553,7 +553,7 @@ namespace ibis
     break;
 
   case 22:
-#line 155 "selectParser.yy"
+#line 156 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::STDSAMP);
@@ -561,7 +561,7 @@ namespace ibis
     break;
 
   case 23:
-#line 159 "selectParser.yy"
+#line 160 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::STDSAMP);
@@ -569,7 +569,7 @@ namespace ibis
     break;
 
   case 24:
-#line 163 "selectParser.yy"
+#line 164 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::DISTINCT);
@@ -577,7 +577,7 @@ namespace ibis
     break;
 
   case 25:
-#line 167 "selectParser.yy"
+#line 168 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::DISTINCT);
@@ -585,68 +585,75 @@ namespace ibis
     break;
 
   case 26:
-#line 171 "selectParser.yy"
+#line 172 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
 ;}
     break;
 
   case 27:
-#line 175 "selectParser.yy"
+#line 176 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
 ;}
     break;
 
   case 28:
-#line 179 "selectParser.yy"
+#line 180 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::AVG);
+    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL);
 ;}
     break;
 
   case 29:
 #line 184 "selectParser.yy"
     {
+    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL);
+;}
+    break;
+
+  case 30:
+#line 188 "selectParser.yy"
+    {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::AVG);
 ;}
     break;
 
-  case 30:
-#line 189 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-;}
-    break;
-
   case 31:
-#line 194 "selectParser.yy"
+#line 193 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.aggr_.push_back(ibis::selectClause::AVG);
 ;}
     break;
 
   case 32:
-#line 199 "selectParser.yy"
+#line 198 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
     driver.aggr_.push_back(ibis::selectClause::CNT);
 ;}
     break;
 
   case 33:
-#line 204 "selectParser.yy"
+#line 203 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
+;}
+    break;
+
+  case 34:
+#line 208 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back(new ibis::math::variable("*"));
@@ -654,35 +661,35 @@ namespace ibis
 ;}
     break;
 
-  case 34:
-#line 209 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-;}
-    break;
-
   case 35:
-#line 214 "selectParser.yy"
+#line 213 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 ;}
     break;
 
   case 36:
-#line 219 "selectParser.yy"
+#line 218 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MIN);
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 ;}
     break;
 
   case 37:
-#line 224 "selectParser.yy"
+#line 223 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MAX);
+;}
+    break;
+
+  case 38:
+#line 228 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
@@ -690,35 +697,35 @@ namespace ibis
 ;}
     break;
 
-  case 38:
-#line 229 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-;}
-    break;
-
   case 39:
-#line 234 "selectParser.yy"
+#line 233 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 ;}
     break;
 
   case 40:
-#line 239 "selectParser.yy"
+#line 238 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 ;}
     break;
 
   case 41:
-#line 244 "selectParser.yy"
+#line 243 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
+;}
+    break;
+
+  case 42:
+#line 248 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
@@ -726,26 +733,53 @@ namespace ibis
 ;}
     break;
 
-  case 42:
-#line 249 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-;}
-    break;
-
   case 43:
-#line 254 "selectParser.yy"
+#line 253 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+    driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL);
 ;}
     break;
 
   case 44:
-#line 262 "selectParser.yy"
+#line 258 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+;}
+    break;
+
+  case 45:
+#line 263 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+;}
+    break;
+
+  case 46:
+#line 268 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+;}
+    break;
+
+  case 47:
+#line 273 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+;}
+    break;
+
+  case 48:
+#line 281 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -760,8 +794,8 @@ namespace ibis
 ;}
     break;
 
-  case 45:
-#line 274 "selectParser.yy"
+  case 49:
+#line 293 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -776,8 +810,8 @@ namespace ibis
 ;}
     break;
 
-  case 46:
-#line 286 "selectParser.yy"
+  case 50:
+#line 305 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -792,8 +826,8 @@ namespace ibis
 ;}
     break;
 
-  case 47:
-#line 298 "selectParser.yy"
+  case 51:
+#line 317 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -808,8 +842,8 @@ namespace ibis
 ;}
     break;
 
-  case 48:
-#line 310 "selectParser.yy"
+  case 52:
+#line 329 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -824,8 +858,8 @@ namespace ibis
 ;}
     break;
 
-  case 49:
-#line 322 "selectParser.yy"
+  case 53:
+#line 341 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -840,8 +874,8 @@ namespace ibis
 ;}
     break;
 
-  case 50:
-#line 334 "selectParser.yy"
+  case 54:
+#line 353 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -856,8 +890,8 @@ namespace ibis
 ;}
     break;
 
-  case 51:
-#line 346 "selectParser.yy"
+  case 55:
+#line 365 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -872,8 +906,8 @@ namespace ibis
 ;}
     break;
 
-  case 52:
-#line 358 "selectParser.yy"
+  case 56:
+#line 377 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -888,8 +922,8 @@ namespace ibis
 ;}
     break;
 
-  case 53:
-#line 370 "selectParser.yy"
+  case 57:
+#line 389 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -905,8 +939,8 @@ namespace ibis
 ;}
     break;
 
-  case 54:
-#line 383 "selectParser.yy"
+  case 58:
+#line 402 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -919,22 +953,22 @@ namespace ibis
 ;}
     break;
 
-  case 55:
-#line 393 "selectParser.yy"
+  case 59:
+#line 412 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
 ;}
     break;
 
-  case 56:
-#line 396 "selectParser.yy"
+  case 60:
+#line 415 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
 ;}
     break;
 
-  case 57:
-#line 399 "selectParser.yy"
+  case 61:
+#line 418 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -945,8 +979,8 @@ namespace ibis
 ;}
     break;
 
-  case 58:
-#line 407 "selectParser.yy"
+  case 62:
+#line 426 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -958,7 +992,7 @@ namespace ibis
 
 
     /* Line 675 of lalr1.cc.  */
-#line 962 "selectParser.cc"
+#line 996 "selectParser.cc"
 	default: break;
       }
     YY_SYMBOL_PRINT ("-> $$ =", yyr1_[yyn], &yyval, &yyloc);
@@ -1165,24 +1199,25 @@ namespace ibis
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const signed char selectParser::yypact_ninf_ = -23;
+  const signed char selectParser::yypact_ninf_ = -24;
   const short int
   selectParser::yypact_[] =
   {
-        93,   -22,   -21,   -19,   -18,   -17,    -1,     1,    47,    49,
-      51,   259,   259,   -23,    53,   259,    43,    93,    21,   259,
-     255,   259,   259,   259,   259,   259,   259,   259,   259,    60,
-      60,   259,   117,   -23,   -23,   -23,    72,   259,   259,   259,
-     259,   259,   259,   259,   259,   -23,   129,    82,   141,   153,
-     165,   177,   189,   201,   213,   225,   237,   104,   -23,    18,
-     269,   275,   279,   279,    60,    60,    60,    60,    19,    46,
-      48,    50,    52,    54,    34,    58,    61,    62,    56,   -23,
-     259,   -23,   -23,   -23,    85,   -23,   -23,    88,   -23,   -23,
-      89,   -23,   -23,    90,   -23,   -23,    91,   -23,   -23,   103,
-     -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,
-     105,   -23,   249,    63,    64,    65,    66,    67,    68,    70,
-     -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,   -23,
-     -23,   -23,   -23,   -23,   -23
+       102,   -23,   -22,   -20,   -19,   -18,    -1,     0,     1,    59,
+      72,    77,   280,   280,   -24,    79,   280,    45,   102,    20,
+     280,   276,   280,   280,   280,   280,   280,   280,   280,   280,
+     280,    57,    57,   280,   126,   -24,   -24,   -24,    75,   280,
+     280,   280,   280,   280,   280,   280,   280,   -24,   138,    91,
+     150,   162,   174,   186,   198,   210,   222,   234,   246,   258,
+     113,   -24,    43,   290,   296,   300,   300,    57,    57,    57,
+      57,    19,    48,    49,    50,    54,    55,    44,    61,    62,
+      64,    56,    60,   -24,   280,   -24,   -24,   -24,    94,   -24,
+     -24,    97,   -24,   -24,    98,   -24,   -24,    99,   -24,   -24,
+     100,   -24,   -24,   112,   -24,   -24,   -24,   -24,   -24,   -24,
+     -24,   -24,   -24,   -24,   114,   -24,   -24,   125,   -24,   270,
+      65,    66,    67,    68,    69,    73,    74,    78,   -24,   -24,
+     -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,
+     -24,   -24,   -24,   -24,   -24
   };
 
   /* YYDEFACT[S] -- default rule to reduce with in state S when YYTABLE
@@ -1192,33 +1227,34 @@ namespace ibis
   selectParser::yydefact_[] =
   {
          0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    58,    57,     0,     0,     2,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,    55,
-      54,     0,     0,     1,     3,    27,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    26,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,    56,     0,
-      51,    50,    44,    45,    46,    47,    48,    49,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,    52,
-       0,    41,    40,     5,     0,     4,     9,     0,     8,     7,
-       0,     6,    13,     0,    12,    11,     0,    10,    15,     0,
-      14,    17,    16,    19,    18,    21,    20,    23,    22,    25,
-       0,    24,     0,     0,     0,     0,     0,     0,     0,     0,
-      53,    29,    28,    33,    32,    31,    30,    37,    36,    35,
-      34,    39,    38,    43,    42
+       0,     0,     0,     0,    62,    61,     0,     0,     2,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    59,    58,     0,     0,     1,     3,    29,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    28,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    60,     0,    55,    54,    48,    49,    50,    51,    52,
+      53,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,    56,     0,    43,    42,     5,     0,     4,
+       9,     0,     8,     7,     0,     6,    13,     0,    12,    11,
+       0,    10,    15,     0,    14,    17,    16,    19,    18,    21,
+      20,    23,    22,    25,     0,    24,    27,     0,    26,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    57,    31,
+      30,    35,    34,    33,    32,    39,    38,    37,    36,    41,
+      40,    45,    44,    47,    46
   };
 
   /* YYPGOTO[NTERM-NUM].  */
   const signed char
   selectParser::yypgoto_[] =
   {
-       -23,    69,   -23,   -11
+       -24,    80,   -24,   -12
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
   const signed char
   selectParser::yydefgoto_[] =
   {
-        -1,    16,    17,    18
+        -1,    17,    18,    19
   };
 
   /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -1228,74 +1264,78 @@ namespace ibis
   const unsigned char
   selectParser::yytable_[] =
   {
-        29,    30,    19,    20,    32,    21,    22,    23,    46,    48,
-      49,    50,    51,    52,    53,    54,    55,    56,    81,    83,
-      57,    35,    84,    24,    36,    25,    60,    61,    62,    63,
-      64,    65,    66,    67,   101,    37,    38,    39,    40,    41,
-      42,    43,    44,    33,    82,    85,    86,    45,    89,    87,
-      92,    90,    95,    93,    98,    96,   109,    99,   103,   110,
-     102,   105,   107,   121,   123,   125,   127,   129,   131,   112,
-     133,    26,    88,    27,    91,    28,    94,    31,    97,     0,
-     100,    44,   111,     0,   104,     0,    34,   106,   108,   122,
-     124,   126,   128,   130,   132,    59,   134,     1,     2,     3,
-       4,     5,     6,     7,     8,     9,    10,    69,   113,    11,
-      12,   114,   115,   116,   117,    13,    14,    15,    37,    38,
-      39,    40,    41,    42,    43,    44,   118,     0,   119,    79,
-      80,    37,    38,    39,    40,    41,    42,    43,    44,     0,
-       0,     0,    58,    37,    38,    39,    40,    41,    42,    43,
-      44,     0,     0,     0,    68,    37,    38,    39,    40,    41,
-      42,    43,    44,     0,     0,     0,    70,    37,    38,    39,
-      40,    41,    42,    43,    44,     0,     0,     0,    71,    37,
-      38,    39,    40,    41,    42,    43,    44,     0,     0,     0,
-      72,    37,    38,    39,    40,    41,    42,    43,    44,     0,
-       0,     0,    73,    37,    38,    39,    40,    41,    42,    43,
-      44,     0,     0,     0,    74,    37,    38,    39,    40,    41,
-      42,    43,    44,     0,     0,     0,    75,    37,    38,    39,
-      40,    41,    42,    43,    44,     0,     0,     0,    76,    37,
-      38,    39,    40,    41,    42,    43,    44,     0,     0,     0,
-      77,    37,    38,    39,    40,    41,    42,    43,    44,     0,
-       0,     0,    78,    37,    38,    39,    40,    41,    42,    43,
-      44,    11,    12,    47,   120,    11,    12,    13,    14,    15,
-       0,    13,    14,    15,    38,    39,    40,    41,    42,    43,
-      44,    39,    40,    41,    42,    43,    44,    41,    42,    43,
-      44
+        31,    32,    20,    21,    34,    22,    23,    24,    48,    50,
+      51,    52,    53,    54,    55,    56,    57,    58,    59,    87,
+      37,    60,    88,    38,    25,    26,    27,    63,    64,    65,
+      66,    67,    68,    69,    70,    39,    40,    41,    42,    43,
+      44,    45,    46,    85,   105,    35,    89,    47,    90,    93,
+      96,    91,    94,    97,    99,   102,   113,   100,   103,   114,
+     116,   107,   109,   117,   111,   129,   131,   133,   135,   137,
+      86,   106,   119,   139,   141,    92,    95,    98,   143,    46,
+       0,   101,   104,   115,    28,     0,     0,   118,   108,   110,
+       0,   112,   130,   132,   134,   136,   138,    29,    36,    62,
+     140,   142,    30,     0,    33,   144,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    72,   120,    12,
+      13,   121,   122,   123,   124,    14,    15,    16,    39,    40,
+      41,    42,    43,    44,    45,    46,   125,     0,   126,    83,
+      84,    39,    40,    41,    42,    43,    44,    45,    46,   127,
+       0,     0,    61,    39,    40,    41,    42,    43,    44,    45,
+      46,     0,     0,     0,    71,    39,    40,    41,    42,    43,
+      44,    45,    46,     0,     0,     0,    73,    39,    40,    41,
+      42,    43,    44,    45,    46,     0,     0,     0,    74,    39,
+      40,    41,    42,    43,    44,    45,    46,     0,     0,     0,
+      75,    39,    40,    41,    42,    43,    44,    45,    46,     0,
+       0,     0,    76,    39,    40,    41,    42,    43,    44,    45,
+      46,     0,     0,     0,    77,    39,    40,    41,    42,    43,
+      44,    45,    46,     0,     0,     0,    78,    39,    40,    41,
+      42,    43,    44,    45,    46,     0,     0,     0,    79,    39,
+      40,    41,    42,    43,    44,    45,    46,     0,     0,     0,
+      80,    39,    40,    41,    42,    43,    44,    45,    46,     0,
+       0,     0,    81,    39,    40,    41,    42,    43,    44,    45,
+      46,     0,     0,     0,    82,    39,    40,    41,    42,    43,
+      44,    45,    46,    12,    13,    49,   128,    12,    13,    14,
+      15,    16,     0,    14,    15,    16,    40,    41,    42,    43,
+      44,    45,    46,    41,    42,    43,    44,    45,    46,    43,
+      44,    45,    46
   };
 
   /* YYCHECK.  */
   const signed char
   selectParser::yycheck_[] =
   {
-        11,    12,    24,    24,    15,    24,    24,    24,    19,    20,
-      21,    22,    23,    24,    25,    26,    27,    28,     0,     0,
-      31,     0,     3,    24,     3,    24,    37,    38,    39,    40,
-      41,    42,    43,    44,     0,    14,    15,    16,    17,    18,
-      19,    20,    21,     0,    26,    26,     0,    26,     0,     3,
-       0,     3,     0,     3,     0,     3,     0,     3,     0,     3,
-      26,     0,     0,     0,     0,     0,     0,     0,     0,    80,
-       0,    24,    26,    24,    26,    24,    26,    24,    26,    -1,
-      26,    21,    26,    -1,    26,    -1,    17,    26,    26,    26,
-      26,    26,    26,    26,    26,    23,    26,     4,     5,     6,
-       7,     8,     9,    10,    11,    12,    13,    25,    23,    16,
-      17,    23,    23,    23,    23,    22,    23,    24,    14,    15,
-      16,    17,    18,    19,    20,    21,    23,    -1,    23,    25,
-      26,    14,    15,    16,    17,    18,    19,    20,    21,    -1,
-      -1,    -1,    25,    14,    15,    16,    17,    18,    19,    20,
-      21,    -1,    -1,    -1,    25,    14,    15,    16,    17,    18,
-      19,    20,    21,    -1,    -1,    -1,    25,    14,    15,    16,
-      17,    18,    19,    20,    21,    -1,    -1,    -1,    25,    14,
-      15,    16,    17,    18,    19,    20,    21,    -1,    -1,    -1,
-      25,    14,    15,    16,    17,    18,    19,    20,    21,    -1,
-      -1,    -1,    25,    14,    15,    16,    17,    18,    19,    20,
-      21,    -1,    -1,    -1,    25,    14,    15,    16,    17,    18,
-      19,    20,    21,    -1,    -1,    -1,    25,    14,    15,    16,
-      17,    18,    19,    20,    21,    -1,    -1,    -1,    25,    14,
-      15,    16,    17,    18,    19,    20,    21,    -1,    -1,    -1,
-      25,    14,    15,    16,    17,    18,    19,    20,    21,    -1,
-      -1,    -1,    25,    14,    15,    16,    17,    18,    19,    20,
-      21,    16,    17,    18,    25,    16,    17,    22,    23,    24,
-      -1,    22,    23,    24,    15,    16,    17,    18,    19,    20,
-      21,    16,    17,    18,    19,    20,    21,    18,    19,    20,
-      21
+        12,    13,    25,    25,    16,    25,    25,    25,    20,    21,
+      22,    23,    24,    25,    26,    27,    28,    29,    30,     0,
+       0,    33,     3,     3,    25,    25,    25,    39,    40,    41,
+      42,    43,    44,    45,    46,    15,    16,    17,    18,    19,
+      20,    21,    22,     0,     0,     0,    27,    27,     0,     0,
+       0,     3,     3,     3,     0,     0,     0,     3,     3,     3,
+       0,     0,     0,     3,     0,     0,     0,     0,     0,     0,
+      27,    27,    84,     0,     0,    27,    27,    27,     0,    22,
+      -1,    27,    27,    27,    25,    -1,    -1,    27,    27,    27,
+      -1,    27,    27,    27,    27,    27,    27,    25,    18,    24,
+      27,    27,    25,    -1,    25,    27,     4,     5,     6,     7,
+       8,     9,    10,    11,    12,    13,    14,    26,    24,    17,
+      18,    24,    24,    24,    24,    23,    24,    25,    15,    16,
+      17,    18,    19,    20,    21,    22,    24,    -1,    24,    26,
+      27,    15,    16,    17,    18,    19,    20,    21,    22,    24,
+      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
+      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
+      20,    21,    22,    -1,    -1,    -1,    26,    15,    16,    17,
+      18,    19,    20,    21,    22,    -1,    -1,    -1,    26,    15,
+      16,    17,    18,    19,    20,    21,    22,    -1,    -1,    -1,
+      26,    15,    16,    17,    18,    19,    20,    21,    22,    -1,
+      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
+      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
+      20,    21,    22,    -1,    -1,    -1,    26,    15,    16,    17,
+      18,    19,    20,    21,    22,    -1,    -1,    -1,    26,    15,
+      16,    17,    18,    19,    20,    21,    22,    -1,    -1,    -1,
+      26,    15,    16,    17,    18,    19,    20,    21,    22,    -1,
+      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
+      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
+      20,    21,    22,    17,    18,    19,    26,    17,    18,    23,
+      24,    25,    -1,    23,    24,    25,    16,    17,    18,    19,
+      20,    21,    22,    17,    18,    19,    20,    21,    22,    19,
+      20,    21,    22
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -1304,19 +1344,20 @@ namespace ibis
   selectParser::yystos_[] =
   {
          0,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    16,    17,    22,    23,    24,    28,    29,    30,    24,
-      24,    24,    24,    24,    24,    24,    24,    24,    24,    30,
-      30,    24,    30,     0,    28,     0,     3,    14,    15,    16,
-      17,    18,    19,    20,    21,    26,    30,    18,    30,    30,
-      30,    30,    30,    30,    30,    30,    30,    30,    25,    23,
-      30,    30,    30,    30,    30,    30,    30,    30,    25,    25,
+      13,    14,    17,    18,    23,    24,    25,    29,    30,    31,
       25,    25,    25,    25,    25,    25,    25,    25,    25,    25,
-      26,     0,    26,     0,     3,    26,     0,     3,    26,     0,
-       3,    26,     0,     3,    26,     0,     3,    26,     0,     3,
-      26,     0,    26,     0,    26,     0,    26,     0,    26,     0,
-       3,    26,    30,    23,    23,    23,    23,    23,    23,    23,
-      25,     0,    26,     0,    26,     0,    26,     0,    26,     0,
-      26,     0,    26,     0,    26
+      25,    31,    31,    25,    31,     0,    29,     0,     3,    15,
+      16,    17,    18,    19,    20,    21,    22,    27,    31,    19,
+      31,    31,    31,    31,    31,    31,    31,    31,    31,    31,
+      31,    26,    24,    31,    31,    31,    31,    31,    31,    31,
+      31,    26,    26,    26,    26,    26,    26,    26,    26,    26,
+      26,    26,    26,    26,    27,     0,    27,     0,     3,    27,
+       0,     3,    27,     0,     3,    27,     0,     3,    27,     0,
+       3,    27,     0,     3,    27,     0,    27,     0,    27,     0,
+      27,     0,    27,     0,     3,    27,     0,     3,    27,    31,
+      24,    24,    24,    24,    24,    24,    24,    24,    26,     0,
+      27,     0,    27,     0,    27,     0,    27,     0,    27,     0,
+      27,     0,    27,     0,    27
   };
 
 #if YYDEBUG
@@ -1327,7 +1368,7 @@ namespace ibis
   {
          0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,    40,    41,    44
+     275,   276,   277,   278,   279,    40,    41,    44
   };
 #endif
 
@@ -1335,12 +1376,13 @@ namespace ibis
   const unsigned char
   selectParser::yyr1_[] =
   {
-         0,    27,    28,    28,    29,    29,    29,    29,    29,    29,
-      29,    29,    29,    29,    29,    29,    29,    29,    29,    29,
-      29,    29,    29,    29,    29,    29,    29,    29,    29,    29,
-      29,    29,    29,    29,    29,    29,    29,    29,    29,    29,
-      29,    29,    29,    29,    30,    30,    30,    30,    30,    30,
-      30,    30,    30,    30,    30,    30,    30,    30,    30
+         0,    28,    29,    29,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    31,    31,
+      31,    31,    31,    31,    31,    31,    31,    31,    31,    31,
+      31,    31,    31
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -1349,10 +1391,11 @@ namespace ibis
   {
          0,     2,     1,     2,     5,     5,     5,     5,     5,     5,
        5,     5,     5,     5,     5,     5,     5,     5,     5,     5,
-       5,     5,     5,     5,     5,     5,     2,     2,     7,     7,
+       5,     5,     5,     5,     5,     5,     5,     5,     2,     2,
        7,     7,     7,     7,     7,     7,     7,     7,     7,     7,
-       4,     4,     7,     7,     3,     3,     3,     3,     3,     3,
-       3,     3,     4,     6,     2,     2,     3,     1,     1
+       7,     7,     4,     4,     7,     7,     7,     7,     3,     3,
+       3,     3,     3,     3,     3,     3,     4,     6,     2,     2,
+       3,     1,     1
   };
 
 #if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
@@ -1363,8 +1406,8 @@ namespace ibis
   {
     "\"end of input\"", "error", "$undefined", "\"as\"", "\"avg\"",
   "\"count\"", "\"min\"", "\"max\"", "\"sum\"", "\"varpop\"",
-  "\"varsamp\"", "\"stdpop\"", "\"stdsamp\"", "\"distinct\"", "\"|\"",
-  "\"&\"", "\"+\"", "\"-\"", "\"*\"", "\"/\"", "\"%\"", "\"**\"",
+  "\"varsamp\"", "\"stdpop\"", "\"stdsamp\"", "\"distinct\"", "\"median\"",
+  "\"|\"", "\"&\"", "\"+\"", "\"-\"", "\"*\"", "\"/\"", "\"%\"", "\"**\"",
   "\"numerical value\"", "\"name\"", "'('", "')'", "','", "$accept",
   "slist", "sterm", "mathExpr", 0
   };
@@ -1375,39 +1418,42 @@ namespace ibis
   const selectParser::rhs_number_type
   selectParser::yyrhs_[] =
   {
-        28,     0,    -1,    29,    -1,    29,    28,    -1,     4,    24,
-      30,    25,    26,    -1,     4,    24,    30,    25,     0,    -1,
-       5,    24,    30,    25,    26,    -1,     5,    24,    30,    25,
-       0,    -1,     5,    24,    18,    25,    26,    -1,     5,    24,
-      18,    25,     0,    -1,     7,    24,    30,    25,    26,    -1,
-       7,    24,    30,    25,     0,    -1,     6,    24,    30,    25,
-      26,    -1,     6,    24,    30,    25,     0,    -1,     8,    24,
-      30,    25,    26,    -1,     8,    24,    30,    25,     0,    -1,
-       9,    24,    30,    25,    26,    -1,     9,    24,    30,    25,
-       0,    -1,    10,    24,    30,    25,    26,    -1,    10,    24,
-      30,    25,     0,    -1,    11,    24,    30,    25,    26,    -1,
-      11,    24,    30,    25,     0,    -1,    12,    24,    30,    25,
-      26,    -1,    12,    24,    30,    25,     0,    -1,    13,    24,
-      30,    25,    26,    -1,    13,    24,    30,    25,     0,    -1,
-      30,    26,    -1,    30,     0,    -1,     4,    24,    30,    25,
-       3,    23,    26,    -1,     4,    24,    30,    25,     3,    23,
-       0,    -1,     5,    24,    30,    25,     3,    23,    26,    -1,
-       5,    24,    30,    25,     3,    23,     0,    -1,     5,    24,
-      18,    25,     3,    23,    26,    -1,     5,    24,    18,    25,
-       3,    23,     0,    -1,     7,    24,    30,    25,     3,    23,
-      26,    -1,     7,    24,    30,    25,     3,    23,     0,    -1,
-       6,    24,    30,    25,     3,    23,    26,    -1,     6,    24,
-      30,    25,     3,    23,     0,    -1,     8,    24,    30,    25,
-       3,    23,    26,    -1,     8,    24,    30,    25,     3,    23,
-       0,    -1,    30,     3,    23,    26,    -1,    30,     3,    23,
-       0,    -1,    13,    24,    30,    25,     3,    23,    26,    -1,
-      13,    24,    30,    25,     3,    23,     0,    -1,    30,    16,
-      30,    -1,    30,    17,    30,    -1,    30,    18,    30,    -1,
-      30,    19,    30,    -1,    30,    20,    30,    -1,    30,    21,
-      30,    -1,    30,    15,    30,    -1,    30,    14,    30,    -1,
-      23,    24,    30,    25,    -1,    23,    24,    30,    26,    30,
-      25,    -1,    17,    30,    -1,    16,    30,    -1,    24,    30,
-      25,    -1,    23,    -1,    22,    -1
+        29,     0,    -1,    30,    -1,    30,    29,    -1,     4,    25,
+      31,    26,    27,    -1,     4,    25,    31,    26,     0,    -1,
+       5,    25,    31,    26,    27,    -1,     5,    25,    31,    26,
+       0,    -1,     5,    25,    19,    26,    27,    -1,     5,    25,
+      19,    26,     0,    -1,     7,    25,    31,    26,    27,    -1,
+       7,    25,    31,    26,     0,    -1,     6,    25,    31,    26,
+      27,    -1,     6,    25,    31,    26,     0,    -1,     8,    25,
+      31,    26,    27,    -1,     8,    25,    31,    26,     0,    -1,
+       9,    25,    31,    26,    27,    -1,     9,    25,    31,    26,
+       0,    -1,    10,    25,    31,    26,    27,    -1,    10,    25,
+      31,    26,     0,    -1,    11,    25,    31,    26,    27,    -1,
+      11,    25,    31,    26,     0,    -1,    12,    25,    31,    26,
+      27,    -1,    12,    25,    31,    26,     0,    -1,    13,    25,
+      31,    26,    27,    -1,    13,    25,    31,    26,     0,    -1,
+      14,    25,    31,    26,    27,    -1,    14,    25,    31,    26,
+       0,    -1,    31,    27,    -1,    31,     0,    -1,     4,    25,
+      31,    26,     3,    24,    27,    -1,     4,    25,    31,    26,
+       3,    24,     0,    -1,     5,    25,    31,    26,     3,    24,
+      27,    -1,     5,    25,    31,    26,     3,    24,     0,    -1,
+       5,    25,    19,    26,     3,    24,    27,    -1,     5,    25,
+      19,    26,     3,    24,     0,    -1,     7,    25,    31,    26,
+       3,    24,    27,    -1,     7,    25,    31,    26,     3,    24,
+       0,    -1,     6,    25,    31,    26,     3,    24,    27,    -1,
+       6,    25,    31,    26,     3,    24,     0,    -1,     8,    25,
+      31,    26,     3,    24,    27,    -1,     8,    25,    31,    26,
+       3,    24,     0,    -1,    31,     3,    24,    27,    -1,    31,
+       3,    24,     0,    -1,    13,    25,    31,    26,     3,    24,
+      27,    -1,    13,    25,    31,    26,     3,    24,     0,    -1,
+      14,    25,    31,    26,     3,    24,    27,    -1,    14,    25,
+      31,    26,     3,    24,     0,    -1,    31,    17,    31,    -1,
+      31,    18,    31,    -1,    31,    19,    31,    -1,    31,    20,
+      31,    -1,    31,    21,    31,    -1,    31,    22,    31,    -1,
+      31,    16,    31,    -1,    31,    15,    31,    -1,    24,    25,
+      31,    26,    -1,    24,    25,    31,    27,    31,    26,    -1,
+      18,    31,    -1,    17,    31,    -1,    25,    31,    26,    -1,
+      24,    -1,    23,    -1
   };
 
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
@@ -1417,22 +1463,24 @@ namespace ibis
   {
          0,     0,     3,     5,     8,    14,    20,    26,    32,    38,
       44,    50,    56,    62,    68,    74,    80,    86,    92,    98,
-     104,   110,   116,   122,   128,   134,   140,   143,   146,   154,
-     162,   170,   178,   186,   194,   202,   210,   218,   226,   234,
-     242,   247,   252,   260,   268,   272,   276,   280,   284,   288,
-     292,   296,   300,   305,   312,   315,   318,   322,   324
+     104,   110,   116,   122,   128,   134,   140,   146,   152,   155,
+     158,   166,   174,   182,   190,   198,   206,   214,   222,   230,
+     238,   246,   254,   259,   264,   272,   280,   288,   296,   300,
+     304,   308,   312,   316,   320,   324,   328,   333,   340,   343,
+     346,   350,   352
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned short int
   selectParser::yyrline_[] =
   {
-         0,    82,    82,    82,    83,    87,    91,    95,    99,   103,
-     107,   111,   115,   119,   123,   127,   131,   135,   139,   143,
-     147,   151,   155,   159,   163,   167,   171,   175,   179,   184,
-     189,   194,   199,   204,   209,   214,   219,   224,   229,   234,
-     239,   244,   249,   254,   262,   274,   286,   298,   310,   322,
-     334,   346,   358,   370,   383,   393,   396,   399,   407
+         0,    83,    83,    83,    84,    88,    92,    96,   100,   104,
+     108,   112,   116,   120,   124,   128,   132,   136,   140,   144,
+     148,   152,   156,   160,   164,   168,   172,   176,   180,   184,
+     188,   193,   198,   203,   208,   213,   218,   223,   228,   233,
+     238,   243,   248,   253,   258,   263,   268,   273,   281,   293,
+     305,   317,   329,   341,   353,   365,   377,   389,   402,   412,
+     415,   418,   426
   };
 
   // Print the state stack on the debug stream.
@@ -1476,7 +1524,7 @@ namespace ibis
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      24,    25,     2,     2,    26,     2,     2,     2,     2,     2,
+      25,    26,     2,     2,    27,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1499,7 +1547,7 @@ namespace ibis
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,    21,    22,    23
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24
     };
     if ((unsigned int) t <= yyuser_token_number_max_)
       return translate_table[t];
@@ -1508,20 +1556,20 @@ namespace ibis
   }
 
   const int selectParser::yyeof_ = 0;
-  const int selectParser::yylast_ = 300;
+  const int selectParser::yylast_ = 322;
   const int selectParser::yynnts_ = 4;
   const int selectParser::yyempty_ = -2;
-  const int selectParser::yyfinal_ = 33;
+  const int selectParser::yyfinal_ = 35;
   const int selectParser::yyterror_ = 1;
   const int selectParser::yyerrcode_ = 256;
-  const int selectParser::yyntokens_ = 27;
+  const int selectParser::yyntokens_ = 28;
 
-  const unsigned int selectParser::yyuser_token_number_max_ = 278;
+  const unsigned int selectParser::yyuser_token_number_max_ = 279;
   const selectParser::token_number_type selectParser::yyundef_token_ = 2;
 
 } // namespace ibis
 
-#line 416 "selectParser.yy"
+#line 435 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {

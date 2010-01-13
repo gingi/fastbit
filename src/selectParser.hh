@@ -141,16 +141,17 @@ namespace ibis
      STDPOPOP = 266,
      STDSAMPOP = 267,
      DISTINCTOP = 268,
-     BITOROP = 269,
-     BITANDOP = 270,
-     ADDOP = 271,
-     MINUSOP = 272,
-     MULTOP = 273,
-     DIVOP = 274,
-     REMOP = 275,
-     EXPOP = 276,
-     NUMBER = 277,
-     NOUNSTR = 278
+     MEDIANOP = 269,
+     BITOROP = 270,
+     BITANDOP = 271,
+     ADDOP = 272,
+     MINUSOP = 273,
+     MULTOP = 274,
+     DIVOP = 275,
+     REMOP = 276,
+     EXPOP = 277,
+     NUMBER = 278,
+     NOUNSTR = 279
    };
 
     };

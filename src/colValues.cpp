@@ -2703,28 +2703,56 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<int32_t> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		int32_t lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            int lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<int32_t>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = static_cast<int> (distinct);
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }
@@ -2845,28 +2873,56 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<uint32_t> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		uint32_t lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            unsigned lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<uint32_t>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = static_cast<unsigned> (distinct);
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }
@@ -2986,28 +3042,56 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<int64_t> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		int64_t lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            int lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<int64_t>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = static_cast<int> (distinct);
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }
@@ -3128,28 +3212,56 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<uint64_t> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		uint64_t lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            unsigned lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<uint64_t>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = static_cast<unsigned> (distinct);
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }
@@ -3269,28 +3381,56 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<float> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		float lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            float lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<float>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = static_cast<float> (distinct);
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }
@@ -3408,28 +3548,56 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	    }
 	}
 	break;
-    case ibis::selectClause::DISTINCT: // count distinct
+    case ibis::selectClause::DISTINCT: // count distinct values
 	for (uint32_t i = 0; i < nseg; ++i) {
-            std::vector<double> values;
-            values.resize(starts[i+1]-starts[i]);
-            uint32_t c = 0;
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
 
-	    for (uint32_t j = starts[i]; j < starts[i+1]; ++ j) {
-                values[c++]=(*array)[j];
-            }
-            std::sort(values.begin(), values.end());
+		double lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
 
-            double lastVal = *(values.begin());
- 	    uint32_t distinct = 1;
-
-            std::vector<double>::iterator v;
-            for (v = values.begin() +1 ; v < values.end(); ++v) {
-                if (*v != lastVal) {
-		    lastVal=*v;
-		    ++distinct;
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
 		}
-            }
-	    (*array)[i] = distinct;
+		(*array)[i] = static_cast<int> (distinct);
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = 1;
+		}
+		else {
+		    (*array)[i] = 2;
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = 1;
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		if (nv % 2 == 1) {
+		    (*array)[i] = (*array)[starts[i] + nv/2];
+		}
+		else {
+		    (*array)[i] = ((*array)[starts[i] + nv/2 - 1]
+				   + (*array)[starts[i] + nv/2]) / 2;
+		}
+	    }
+	    else if (nv == 2) {
+		(*array)[i] = ((*array)[starts[i]]
+			       + (*array)[starts[i] + 1]) / 2;
+	    }
+	    else if (nv == 1 && starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
 	}
 	break;
     }

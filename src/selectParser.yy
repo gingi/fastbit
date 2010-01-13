@@ -48,6 +48,7 @@
 %token <integerVal> STDPOPOP	"stdpop"
 %token <integerVal> STDSAMPOP	"stdsamp"
 %token <integerVal> DISTINCTOP	"distinct"
+%token <integerVal> MEDIANOP	"median"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
 %token <integerVal> ADDOP	"+"
@@ -168,6 +169,14 @@ sterm: AVGOP '(' mathExpr ')' ',' {
     driver.terms_.push_back($3);
     driver.aggr_.push_back(ibis::selectClause::DISTINCT);
 }
+| MEDIANOP '(' mathExpr ')' ',' {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+| MEDIANOP '(' mathExpr ')' END {
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
 | mathExpr ',' {
     driver.terms_.push_back($1);
     driver.aggr_.push_back(ibis::selectClause::NIL);
@@ -255,6 +264,16 @@ sterm: AVGOP '(' mathExpr ')' ',' {
     driver.alias_[*$6] = driver.terms_.size();
     driver.terms_.push_back($3);
     driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+| MEDIANOP '(' mathExpr ')' ASOP NOUNSTR ',' {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+| MEDIANOP '(' mathExpr ')' ASOP NOUNSTR END {
+    driver.alias_[*$6] = driver.terms_.size();
+    driver.terms_.push_back($3);
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
 }
 ;
 
