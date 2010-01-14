@@ -330,11 +330,46 @@ int ibis::countQuery::evaluate() {
     return 0;
 } // ibis::countQuery::evaluate
 
+/// A negative number will be returned if the query has not been evaluated.
 long ibis::countQuery::getNumHits() const {
     long nHits = (hits != 0 && (cand == 0 || cand == hits) ?
 		  static_cast<long int>(hits->cnt()) : -1);
     return nHits;
 } // ibis::countQuery::getNumHits
+
+/// Extract the positions of the bits that are 1s in the solution.  This is
+/// only valid after the query has been evaluated.  If it has not been
+/// evaluated, it will return a negative number to indicate error.  Upon
+/// a successful completion of this function, the return value should be
+/// the rids.size().
+long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
+    if (hits == 0 || (cand != 0 && cand != hits))
+	return -1; // no accurate solution yet
+
+    long ierr = hits->cnt();
+    try {
+	rids.clear();
+	rids.reserve(hits->cnt());
+	for (ibis::bitvector::indexSet is = hits->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++ j)
+		    rids.push_back(j);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    rids.push_back(ii[j]);
+	    }
+	}
+	return ierr;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "countQuery::getHitRows failed to extract the 1s in hits";
+	return -2;
+    }
+} // ibis::countQuery::getHitRows
 
 // perform quick estimation only
 void ibis::countQuery::doEstimate(const ibis::qExpr* term,

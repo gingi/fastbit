@@ -1171,6 +1171,41 @@ long int ibis::query::getNumHits() const {
     return nHits;
 } // ibis::query::getNumHits
 
+/// Extract the positions of the bits that are 1s in the solution.  This is
+/// only valid after the query has been evaluated.  If it has not been
+/// evaluated, it will return a negative number to indicate error.  Upon
+/// a successful completion of this function, the return value should be
+/// the rids.size().
+long ibis::query::getHitRows(std::vector<uint32_t> &rids) const {
+    if (hits == 0 || (sup != 0 && sup != hits))
+	return -1; // no accurate solution yet
+
+    long ierr = hits->cnt();
+    try {
+	rids.clear();
+	rids.reserve(hits->cnt());
+	for (ibis::bitvector::indexSet is = hits->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++ j)
+		    rids.push_back(j);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    rids.push_back(ii[j]);
+	    }
+	}
+	return ierr;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "query[" << myID
+	    << "]::getHitRows failed to extract the 1s in hits";
+	return -2;
+    }
+} // ibis::countQuery::getHitRows
+
 // Caution: This function does not obtain a read lock on the query or the
 // partition.  Call it at your own risk.
 long ibis::query::countHits() const {

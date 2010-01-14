@@ -55,11 +55,13 @@ public:
 
     /// Computes the exact hits.
     int evaluate();
+    /// Return the number of records in the exact solution.
+    long getNumHits() const;
+    /// Get the row numbers of the hits.
+    long getHitRows(std::vector<uint32_t> &rids) const;
     /// Return the pointer to the internal hit vector.  The user should NOT
     /// attempt to free the returned pointer.
     const ibis::bitvector* getHitVector() const {return hits;}
-    /// Return the number of records in the exact solution.
-    long getNumHits() const;
 
     /// Releases the resources held by the query object and re-initialize
     /// the select clause and the where clause to blank.

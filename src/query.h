@@ -173,6 +173,8 @@ public:
     const ibis::bitvector* getHitVector() const {return hits;}
     /// Return the number of records in the exact solution.
     long getNumHits() const;
+    /// Get the row numbers of the hits.
+    long getHitRows(std::vector<uint32_t> &rids) const;
     /// Count the number of hits.  Don't generate the hit vector if not
     /// already there.
     long countHits() const;
