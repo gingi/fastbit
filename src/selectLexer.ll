@@ -31,7 +31,7 @@ typedef ibis::selectParser::token_type token_type;
 WS	[ \t\v\n]
 SEP	[ \t\v\n,;]
 NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
-NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
+NUMBER	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 
 %%
 %{
@@ -76,7 +76,7 @@ NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
     return token::NOUNSTR;
 }
 
-{NUMBER} { /* a floating-point number */
+{NUMBER} { /* a number (let parser deal with the sign) */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number: " << yytext;

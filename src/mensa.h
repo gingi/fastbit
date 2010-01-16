@@ -83,11 +83,6 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     using table::select;
     virtual table* select(const char* sel, const char* cond) const;
-    /// A variation of the function select defined in ibis::table.  It
-    /// accepts an extra argument for caller to specify a list of names of
-    /// data partitions that will participate in the select operation.  The
-    /// argument pts may contain wild characters accepted by SQL function
-    /// 'LIKE', more specifically, '_' and '%'.
     virtual table* select2(const char* sel, const char* cond,
 			   const char* pts) const;
 

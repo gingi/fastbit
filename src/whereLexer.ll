@@ -39,6 +39,7 @@ NAME	[_a-zA-Z]((->)?[_a-zA-Z0-9.:\[\]]+)*
 */
 WS	[ \t\v\n]
 SEP	[ \t\v\n,;]
+UNSIGNED	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 QUOTED	\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\'
 NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
@@ -92,7 +93,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     return token::NOUNSTR;
 }
 
-{NUMBER} { /* a floating-point number */
+{UNSIGNED} { /* an integer or a floating-point number (without a sign) */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ":" << __LINE__ << " got a number: " << yytext;

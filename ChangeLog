@@ -1,3 +1,14 @@
+2010-01-16 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp:2924 stop in case the return value of
+	setSlectClause is negative
+	* src/mensa.cpp:3680 capture the return value of
+	ibis::selectClause::parse (it was previously ignored)
+	* src/whereLexer.ll: add UNSIGNED to create tokens of numbers
+	without a sign, leave the parser to deal with the sign
+	* src/selectLexer.ll: remove the sign from NUMBER to let the
+	parser deal with the sign (to address a parser error discovered by
+	Andreas Streichardt)
+
 2010-01-13 John Wu <John.Wu at ACM.org>
 	* src/selectLexer.ll: add var and variance as aliases of varsamp,
 	varp as an aliases of varpop, stdev and stddev as aliases of

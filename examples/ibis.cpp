@@ -2918,9 +2918,13 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
     if (sstr != 0 && *sstr != 0) {
 	num2 = aQuery.setSelectClause(sstr);
-	LOGGER(num2 < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- doQuery failed to assign the select clause \""
-	    << sstr << "\" to a query object, return value = " << num2;
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuery failed to assign the select clause \""
+		<< sstr << "\" to a query object, return value = " << num2;
+	    return;
+	}
+
 	asstr = aQuery.getSelectClause();
     }
     if (aQuery.getWhereClause() == 0 && ridfile == 0

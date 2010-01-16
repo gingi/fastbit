@@ -1,3 +1,19 @@
+Version ibis1.1.6
+-- minor changes to avoid some problems with PGI compilers
+-- allow the input of null values from csv files at the request of
+   Andreas Streichardt
+-- remove the default space delimiters when reading CSV inputs to
+   address an issue raised by Elaheh Pourabbas
+-- address an indexing building problem involving categorical values
+   reported by Elaheh Pourabbas
+-- add tests/scripts/hcompare.pl to allow small variations in the
+   histograms produced in the tests
+-- exclude the null values in the select clause in ibis::countQuery,
+   ibis::query already does this, to address an issue raised by Andreas
+   Streichardt
+-- add aggregation function median, update the implementation of
+   counting distinct values to avoid copying data
+
 Thu Dec 17 14:14:28 PST 2009
 Version ibis1.1.5
 -- fix compilation problem with gcc 4.4 (idirekte.cpp neglected to

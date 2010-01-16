@@ -409,12 +409,21 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
     }
 } // ibis::mensa::select
 
+/// A variation of the function select defined in ibis::table.  It accepts
+/// an extra argument for caller to specify a list of names of data
+/// partitions that will participate in the select operation.  The argument
+/// pts may contain wild characters accepted by SQL function 'LIKE', more
+/// specifically, '_' and '%'.  If the argument pts is a nil pointer or an
+/// empty string
 ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 				  const char* pts) const {
-    if (cond == 0 || *cond == 0) return 0;
+    if (cond == 0 || *cond == 0 || pts == 0 || *pts == 0) return 0;
+    while (isspace(*pts)) ++ pts;
+    while (isspace(*cond)) ++ cond;
     if (sel != 0) // skip leading space
 	while (isspace(*sel)) ++ sel;
-    if (pts == 0 || *pts == 0) return select(sel, cond);
+    if (*pts == 0) return 0;
+    if (*pts == '%' || *pts == '*') return select(sel, cond);
 
     ibis::nameList patterns(pts);
     if (patterns.empty()) {
@@ -3666,12 +3675,21 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 
     ibis::util::timer atimer(mesg.c_str(), 2);
     ibis::selectClause tms;
+    long int ierr;
     try {
-	tms.parse(sel);
+	ierr = tms.parse(sel);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " failed to parse \""
+		<< sel << "\" (ierr=" << ierr
+		<< "), return a nil pointer to indicate error";
+	    return 0;
+	}
+	    
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << mesg << " failed to parse the select clause \""
+	    << "Warning -- " << mesg << " failed to parse \""
 	    << sel << "\", return a nil pointer to indicate error";
 	return 0;
     }
@@ -3703,7 +3721,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 
     // a single query object is used for different data partitions
     ibis::countQuery qq;
-    long int ierr = qq.setWhereClause(cond);
+    ierr = qq.setWhereClause(cond);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "

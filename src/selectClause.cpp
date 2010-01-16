@@ -153,7 +153,7 @@ int ibis::selectClause::parse(const char *cl) {
     }
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- selectWhere::parse failed to parse string\""
+	    << "Warning -- selectClause::parse failed to parse string \""
 	    << cl << "\"";
 	clear();
     }
