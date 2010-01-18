@@ -371,11 +371,17 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
     }
 } // ibis::countQuery::getHitRows
 
-// perform quick estimation only
+/// Attempt to estimate the number of hits based on indexes.  Interpret a
+/// null expression as satisfy everything to allow empty where clause to
+/// follow the SQL standard.
 void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 				  ibis::bitvector& low,
 				  ibis::bitvector& high) const {
-    if (term == 0) return;
+    if (term == 0) {
+	high.set(1, mypart->nRows());
+	low.set(1, mypart->nRows());
+	return;
+    }
     LOGGER(ibis::gVerbose > 7)
 	<< "countQuery::doEstimate -- starting to estimate "
 	<< *term;
@@ -560,16 +566,31 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), low, high);
 	break;
     case ibis::qExpr::COMPRANGE:
-	// can not estimate complex range condition yet
-	high.set(1, mypart->nRows());
-	low.set(0, mypart->nRows());
+	if (term->isConstant()) {
+	    const int tf = (reinterpret_cast<const ibis::compRange*>(term)
+			    ->inRange() ? 1 : 0);
+	    high.set(tf, mypart->nRows());
+	    low.set(tf, mypart->nRows());
+	}
+	else {	// can not estimate complex range condition yet
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
 	break;
     default:
-	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- countQuery::doEstimate unable to estimate "
-	    "query term of unexpected type, presume every row is a hit";
-	high.set(1, mypart->nRows());
-	low.set(1, mypart->nRows());
+	if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
+	    const int tf = (reinterpret_cast<const ibis::math::term*>
+			    (term)->isTrue() ? 1 : 0);
+	    high.set(tf, mypart->nRows());
+	    low.set(tf, mypart->nRows());
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- countQuery::doEstimate encountered a "
+		"unexpected term, presume every row is a possible hit";
+	    high.set(1, mypart->nRows());
+	    low.set(1, mypart->nRows());
+	}
     }
 } // ibis::countQuery::doEstimate
 
@@ -578,7 +599,10 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 			     const ibis::bitvector& mask,
 			     ibis::bitvector& ht) const {
     int ierr = 0;
-    if (term == 0) return ierr;
+    if (term == 0) {
+	ht.copy(mask);
+	return mask.cnt();
+    }
     if (mask.cnt() == 0) { // no hits
 	ht.set(0, mask.size());
 	return ierr;
@@ -684,13 +708,43 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	    << "countQuery::doScan -- scanning the index for a pattern";
 	break;}
     case ibis::qExpr::COMPRANGE: {
-	ierr = mypart->doScan
-	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(cr, mask, ht);
+	}
 	break;}
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = -2;
+	break;}
+    case ibis::qExpr::MATHTERM: { // arithmetic expressions as true/false
+	const ibis::math::term &mt =
+	    *reinterpret_cast<const ibis::math::term*>(term);
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 0)
@@ -852,8 +906,21 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	ierr = ht.cnt();
 	break;}
     case ibis::qExpr::COMPRANGE: {
-	ierr = mypart->doScan
-	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
+	const ibis::compRange &cr =
+	    *reinterpret_cast<const ibis::compRange*>(term);
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(cr, mask, ht);
+	}
 	break;}
     case ibis::qExpr::ANYANY: {
 	const ibis::qAnyAny *tmp =
@@ -876,6 +943,23 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = mask.cnt();
+	break;}
+    case ibis::qExpr::MATHTERM: { // arithmetic expressions as true/false
+	const ibis::math::term &mt =
+	    *reinterpret_cast<const ibis::math::term*>(term);
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 0)

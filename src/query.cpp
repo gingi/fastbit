@@ -2572,10 +2572,16 @@ void ibis::query::getBounds() {
     }
 } // ibis::query::getBounds
 
-// perform quick estimation only
+/// Use the indexes only.  Treat nil term as matching every row to allow
+/// empty where clauses to be interpreted as matching everything (to
+/// conform to SQL standard).
 void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 			     ibis::bitvector& high) const {
-    if (term == 0) return;
+    if (term == 0) {
+	high.set(1, mypart->nRows());
+	low.set(1, mypart->nRows());
+	return;
+    }
     LOGGER(ibis::gVerbose > 7)
 	<< "query[" << myID << "]::doEstimate -- starting to estimate "
 	<< *term;
@@ -2759,17 +2765,34 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	mypart->estimateMatchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), low, high);
 	break;
-    case ibis::qExpr::COMPRANGE:
-	// can not estimate complex range condition yet
-	high.set(1, mypart->nRows());
-	low.set(0, mypart->nRows());
-	break;
+    case ibis::qExpr::COMPRANGE: {
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    const bool tf = cr.inRange();
+	    high.set(tf, mypart->nRows());
+	    low.set(tf, mypart->nRows());
+	}
+	else {// can not estimate complex range condition yet
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
+	break;}
     default:
-	if (ibis::gVerbose > 2)
-	    logMessage("doEstimate", "unable to estimate query term of "
-		       "unknown type, presume every row is a hit");
-	high.set(1, mypart->nRows());
-	low.set(1, mypart->nRows());
+	if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
+	    const ibis::math::term &mt =
+		*(reinterpret_cast<const ibis::math::term*>(term));
+	    const bool tf = mt.isTrue();
+	    high.set(tf, mypart->nRows());
+	    low.set(tf, mypart->nRows());
+	}
+	else {
+	    if (ibis::gVerbose > 2)
+		logMessage("doEstimate", "unable to estimate query term of "
+			   "unknown type, presume every row is a possible hit");
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
     }
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose >= 0)
@@ -3130,10 +3153,44 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	    logMessage("doScan", "NOTE -- scanning the index for "
 		       "string comparisons");
 	break;
-    case ibis::qExpr::COMPRANGE:
-	ierr = mypart->doScan(*(reinterpret_cast<const ibis::compRange*>(term)),
-			      ht);
-	break;
+    case ibis::qExpr::COMPRANGE: {
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.set(1, mypart->nRows());
+		ierr = mypart->nRows();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ibis::bitvector mask;
+	    mask.set(1, mypart->nRows());
+	    ierr = mypart->doScan(cr, mask, ht);
+	}
+	break;}
+    case ibis::qExpr::MATHTERM: { // arithmetic expressions as true/false
+	const ibis::math::term &mt =
+	    *reinterpret_cast<const ibis::math::term*>(term);
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.set(1, mypart->nRows());
+		ierr = mypart->nRows();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ibis::bitvector mask;
+	    mask.set(1, mypart->nRows());
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
+	break;}
     case ibis::qExpr::TOPK:
     case ibis::qExpr::JOIN: { // pretend every row qualifies
 	ht.set(1, mypart->nRows());
@@ -3487,8 +3544,39 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = mypart->doScan
-	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(cr, mask, ht);
+	}
+	break;
+    }
+    case ibis::qExpr::MATHTERM: {
+	const ibis::math::term &mt =
+	    *(reinterpret_cast<const ibis::math::term*>(term));
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
 	break;
     }
     case ibis::qExpr::TOPK:
@@ -3530,8 +3618,8 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 /// Combines the operations on index and the sequential scan in one function.
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    ibis::bitvector& ht) const {
-    if (term == 0) { // no hits
-	ht.set(0, mypart->nRows());
+    if (term == 0) { // match everything
+	ht.set(1, mypart->nRows());
 	return 0;
     }
     LOGGER(ibis::gVerbose > 5)
@@ -3651,8 +3739,41 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = mypart->doScan
-	    (*(reinterpret_cast<const ibis::compRange*>(term)), ht);
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.set(1, mypart->nRows());
+		ierr = mypart->nRows();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(cr, ht);
+	}
+	break;
+    }
+    case ibis::qExpr::MATHTERM: {
+	const ibis::math::term &mt =
+	    *(reinterpret_cast<const ibis::math::term*>(term));
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.set(1, mypart->nRows());
+		ierr = mypart->nRows();
+	    }
+	    else {
+		ht.set(0, mypart->nRows());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ibis::bitvector mask;
+	    mask.set(1, mypart->nRows());
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
 	break;
     }
     case ibis::qExpr::ANYANY: {
@@ -3709,8 +3830,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    const ibis::bitvector& mask,
 			    ibis::bitvector& ht) const {
     int ierr = 0;
-    if (term == 0) { // no hits
-	ht.set(0, mypart->nRows());
+    if (term == 0) { // all hits
+	ht.set(1, mypart->nRows());
 	return ierr;
     }
     if (mask.cnt() == 0) { // no hits
@@ -3857,8 +3978,39 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::COMPRANGE: {
-	ierr = mypart->doScan
-	    (*(reinterpret_cast<const ibis::compRange*>(term)), mask, ht);
+	const ibis::compRange &cr =
+	    *(reinterpret_cast<const ibis::compRange*>(term));
+	if (cr.isConstant()) {
+	    if (cr.inRange()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(cr, mask, ht);
+	}
+	break;
+    }
+    case ibis::qExpr::MATHTERM: {
+	const ibis::math::term &mt =
+	    *(reinterpret_cast<const ibis::math::term*>(term));
+	if (mt.isConstant()) {
+	    if (mt.isTrue()) {
+		ht.copy(mask);
+		ierr = mask.cnt();
+	    }
+	    else {
+		ht.set(0, mask.size());
+		ierr = 0;
+	    }
+	}
+	else {
+	    ierr = mypart->doScan(mt, mask, ht);
+	}
 	break;
     }
     case ibis::qExpr::ANYANY: {

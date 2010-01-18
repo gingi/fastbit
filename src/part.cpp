@@ -5132,6 +5132,91 @@ long ibis::part::calculate(const ibis::math::term &trm,
     return ierr;
 } // ibis::part::calculate
 
+/// Treat the arithmetic expression as true or false.  The arithmetic
+/// expression is evaluated, nonzero values are treated as true and others
+/// are treated as false.  This function only uses the test 'eval() != 0',
+/// which will treat all NaN as false.
+long ibis::part::doScan(const ibis::math::term &trm,
+			const ibis::bitvector &msk,
+			ibis::bitvector &res) const {
+    res.clear();
+    if (columns.empty() || nEvents == 0 || msk.size() == 0)
+	return 0;
+    if (msk.cnt() == 0) {
+	res.copy(msk);
+	return 0;
+    }
+
+    long ierr = 0;
+    ibis::part::barrel vlist(this);
+    vlist.recordVariable(&trm);
+    if (vlist.size() == 0) { // a constant expression
+	const double val = trm.eval();
+	if (val != 0) {
+	    res.copy(msk);
+	    if (msk.size() < nEvents)
+		res.adjustSize(msk.size(), nEvents);
+	    ierr = msk.cnt();
+	}
+	else {
+	    res.set(0, nEvents);
+	    ierr = 0;
+	}
+	return ierr;
+    }
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "ibis::part[" << m_name
+	    << "]::doScan - starting to evaluate \"" << trm
+	    << "\" with mask (" << msk.cnt() << " out of "
+	    << msk.size() << ")";
+	timer.start();
+    }
+
+    // open all necessary files
+    vlist.open();
+    // feed the values into vlist and evaluate the arithmetic expression
+    ibis::bitvector::indexSet idx = msk.firstIndexSet();
+    const ibis::bitvector::word_t *iix = idx.indices();
+    while (idx.nIndices() > 0) {
+	if (idx.isRange()) {
+	    // move the file pointers of open files
+	    vlist.seek(*iix);
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.read();
+		if (trm.eval() != 0)
+		    res.setBit(*iix + j, 1);
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+	else {
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.seek(iix[j]);
+		vlist.read();
+		if (trm.eval() != 0)
+		    res.setBit(iix[j], 1);
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+
+	++ idx;
+    } // while (idx.nIndices() > 0)
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+		    << "]::doScan -- evaluating " << trm << " on "
+		    << msk.cnt() << " records (total: " << nEvents
+		    << ") took " << timer.realTime()
+		    << " sec elapsed time and produced " << res.cnt()
+		    << " hit" << (res.cnt() > 1 ? "s" : "");
+    }
+    if (ierr >= 0)
+	ierr = res.cnt();
+    return ierr;
+} // ibis::part::doScan
+
 long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 			  ibis::bitvector &hits) const {
     if (cmp.getPrefix() == 0 || cmp.getValues().empty()) return -1;

@@ -114,8 +114,13 @@ int ibis::whereClause::verify(const ibis::part& part0,
 			      const ibis::selectClause *sel) {
     if (expr_ != 0) {
 	ibis::qExpr::simplify(expr_);
-	amplify(part0);
-	return _verify(part0, expr_, sel);
+	if (expr_ == 0) {
+	    return -1;
+	}
+	else {
+	    amplify(part0);
+	    return _verify(part0, expr_, sel);
+	}
     }
     else {
 	return 0;

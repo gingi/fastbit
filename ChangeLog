@@ -1,3 +1,27 @@
+2010-01-18 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h: add function isTrue to ibis::math::term
+	* src/part.h, src/part.cpp: add a variation of doScan to treat an
+	arithmetic expression as true or false
+	* src/countQuery.cpp, src/query.cpp: add code to work with
+	arithmetic expressions
+	* src/qExpr.cpp: replace ibis::math::number(0.0) with call to
+	ibis::compRange::makeConstantFalse.  Because the existing parser
+	will not accpet a standard alone arithmethic expression (without
+	a comparison operator), the number written to query files will not
+	be read in correctly.  (To address the crash problem with a where
+	clause that obviously does not select any rows, reported by
+	Valeria Lorenzetti)
+	* src/qExpr.cpp: the paser of negation operator generates a right
+	child of the tree, but the evaluation procedures in qExpr.cpp used
+	left child instead. a number of other minor changes to work with
+	negation operator correctly
+
+2010-01-17 John Wu <John.Wu at ACM.org>
+	* src/whereClause.cpp: in functin verify check the value of expr_
+	after calling qExpr::amplify
+	* src/qExpr.cpp: replace nil expression with the address of
+	ibis::math::number(0.0) (which will be interpretted as false)
+
 2010-01-16 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp:2924 stop in case the return value of
 	setSlectClause is negative

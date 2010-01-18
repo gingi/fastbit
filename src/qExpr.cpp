@@ -47,7 +47,7 @@ bool ibis::math::preserveInputExpressions = false;
 /// ibis::math::preserveInputExpressions to true.
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ibis::gVerbose > 4)
 	<< "ibis::qExpr::simplify --  input expression " << *expr;
 
     switch (expr->getType()) {
@@ -281,7 +281,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
@@ -292,7 +292,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 	    }
@@ -308,7 +308,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
@@ -319,7 +319,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 	    }
@@ -334,7 +334,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 		else if (tm2->right_op == ibis::qExpr::OP_EQ) {
@@ -345,7 +345,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 	    }
@@ -360,7 +360,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 		else if (tm1->right_op == ibis::qExpr::OP_EQ) {
@@ -371,7 +371,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		    else {
 			delete expr;
-			expr = 0;
+			expr = ibis::compRange::makeConstantFalse();
 		    }
 		}
 	    }
@@ -719,7 +719,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 // 	ibis::qContinuousRange *cr =
 // 	    reinterpret_cast<ibis::qContinuousRange*>(expr);
 // 	if (cr->empty()) {
-// 	    expr = 0;
+// 	    expr = new ibis::math::numer((double)0.0);
 // 	    delete cr;
 // 	}
 	break;}
@@ -747,24 +747,25 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	break;}
     } // switch(...
 
-    if (ibis::gVerbose > 5) {
+    if (ibis::gVerbose > 4 || (ibis::gVerbose >= 0 && expr == 0)) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::qExpr::simplify -- output expression ";
-	if (expr) {
-	    lg.buffer() << "(@" << static_cast<const void*>(expr) << ") ";
+	if (expr != 0) {
+	    lg.buffer() << "ibis::qExpr::simplify -- output expression "
+			<< "(@" << static_cast<const void*>(expr) << ") ";
 	    if (ibis::gVerbose > 8)
 		expr->printFull(lg.buffer());
 	    else
 		expr->print(lg.buffer());
 	}
 	else {
-	    lg.buffer() << "is nil";
+	    lg.buffer() << "Warning -- ibis::qExpr::simply has turned a "
+		"non-nil expression into nil";
 	}
     }
 } // ibis::qExpr::simplify
 
-/// The short-form of the print function only prints information about the
-/// current node of the query expression tree.
+/// The short-form of the print function.  It only prints information about
+/// the current node of the query expression tree.
 void ibis::qExpr::print(std::ostream& out) const {
     out << '(';
     switch (type) {
@@ -798,8 +799,8 @@ void ibis::qExpr::print(std::ostream& out) const {
     out << ')';
 } // ibis::qExpr::print
 
-/// The long form of the print function recursively prints out the whole
-/// query expression tree.
+/// The long form of the print function.  It recursively prints out the
+/// whole query expression tree, which can be quite long.
 void ibis::qExpr::printFull(std::ostream& out) const {
     switch (type) {
     case LOGICAL_AND: {
@@ -1513,8 +1514,12 @@ double ibis::math::bediener::eval() const {
     case ibis::math::UNKNOWN:
 	break;
     case ibis::math::NEGATE: {
-	lhs = static_cast<const ibis::math::term*>(getLeft())->eval();
-	ret = -lhs;
+	if (getRight() != 0)
+	    ret = -static_cast<const ibis::math::term*>(getRight())->eval();
+	else if (getLeft() != 0)
+	    ret = -static_cast<const ibis::math::term*>(getLeft())->eval();
+	else
+	    ibis::util::setNaN(ret);
 	break;
     }
     case ibis::math::BITOR: {
@@ -1913,7 +1918,7 @@ ibis::math::term* ibis::math::bediener::reduce() {
 	    rhs = tmp;
 	}
     }
-    if (lhs == 0 || rhs == 0) return this;
+    if (lhs == 0 && rhs == 0) return this;
 
     ibis::math::term *ret = this;
     switch (operador) {
@@ -1921,7 +1926,9 @@ ibis::math::term* ibis::math::bediener::reduce() {
     case ibis::math::UNKNOWN:
 	break;
     case ibis::math::NEGATE: {
-	if (lhs->termType() == ibis::math::NUMBER)
+	if (rhs != 0 && rhs->termType() == ibis::math::NUMBER)
+	    ret = new ibis::math::number(- rhs->eval());
+	else if (lhs != 0 && lhs->termType() == ibis::math::NUMBER)
 	    ret = new ibis::math::number(- lhs->eval());
 	break;}
     case ibis::math::BITOR: {
@@ -2576,6 +2583,13 @@ ibis::qContinuousRange* ibis::compRange::simpleRange() const {
     }
     return res;
 } // ibis::compRange::simpleRange
+
+/// Create a constant expression that always evaluates to false.
+ibis::compRange* ibis::compRange::makeConstantFalse() {
+    ibis::math::number *one = new ibis::math::number(1.0);
+    ibis::math::number *two = new ibis::math::number(2.0);
+    return new ibis::compRange(one, ibis::qExpr::OP_EQ, two);
+} // ibis::compRange::makeConstantFalse
 
 /// Construct a discrete range from two strings.  Used by the parser.
 ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)

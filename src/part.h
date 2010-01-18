@@ -172,6 +172,8 @@ public:
 			      const ibis::bitvector &mask,
 			      ibis::bitvector &hits) const;
 
+    long doScan(const ibis::math::term&, const ibis::bitvector&,
+		ibis::bitvector&) const;
     /// Locate the records that satisfy the complex range condition.
     virtual long doScan(const ibis::compRange &cmp,
 			ibis::bitvector &hits) const;

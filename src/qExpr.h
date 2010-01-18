@@ -102,14 +102,19 @@ public:
 	return res;
     }
 
+    /// Is this expression a constant?  A constant remains the same not
+    /// matter which row it is applied to.
+    virtual bool isConstant() const {return false;}
+    /// Is this expression a terminal node of an expression tree?
     bool isTerminal() const {return (left==0 && right==0);}
+    /// Can the expression be directly evaluated?
     bool directEval() const
     {return (type==RANGE || type==STRING || type==COMPRANGE ||
 	     type==DRANGE || type==MSTRING || type==ANYANY ||
 	     (type==LOGICAL_NOT && left && left->directEval()));}
 
-    /// Is the expression simple, i.e., containing only simple range
-    /// conditions joined with logical operators ?
+    /// Is the expression simple? A simple expression contains only range
+    /// conditions joined with logical operators.
     virtual bool isSimple() const {
 	if (left) {
 	    if (right) return left->isSimple() && right->isSimple();
@@ -444,21 +449,24 @@ namespace ibis {
 	extern const char* stdfun2_name[];
 	/// Whether to keep arithmetic expression as user inputed them.
 	/// - If it is true, FastBit will not consolidate constant
-	/// expressions nor perform other simply optimizations.
+	/// expressions nor perform other simple optimizations.
 	/// - If it is false, the software will attempt to minimize the
-	/// number of actual operations needed to apply them on data
-	/// records.
+	/// number of operations needed to apply them on data records.
 	///
-	///  Keep the arithmetic expressions unaltered will preserve its
-	/// round-off properties and produce exactly the same numeric
+	/// @note Keep the arithmetic expressions unaltered will preserve
+	/// its round-off properties and produce exactly the same numeric
 	/// results as one might expect.  However, this is normally not the
 	/// most important consideration as the differences are typically
 	/// quite small.  Therefore, the default value of this variable is
 	/// false.
 	extern bool preserveInputExpressions;
 
-	/// All types of terms allowed in a compRange.
-	class term : public ibis::qExpr { // abstract term class
+	/// The abstract base class for arithmetic terms.  All allowed
+	/// arithmetic expressions in a compRange or a select expression
+	/// are derived from this class.  Constant expressions are also
+	/// allowed to represent where clauses that are always true or
+	/// always false.
+	class term : public ibis::qExpr {
 	public:
 	    virtual ~term() {};
 
@@ -466,6 +474,10 @@ namespace ibis {
 
 	    /// Evaluate the term.
 	    virtual double eval() const = 0;
+	    /// Should the value be treated as true?  This implementation
+	    /// captures the normal case, where an arithmetic expression is
+	    /// treated as 'true' if it is not zero.
+	    virtual bool isTrue() const {return(eval() != 0);}
 	    /// Make a duplicate copy of the term.
 	    virtual term* dup() const = 0;
 	    /// Print a human readable version of the expression.
@@ -577,10 +589,12 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << val;}
+	    virtual bool isConstant() const {return true;}
+	    virtual bool isTrue() const {return(val != 0);}
 
-	    // to negate the value
+	    /// To negate the value
 	    void negate() {val = -val;}
-	    // to invert the value
+	    /// To invert the value
 	    void invert() {val = 1.0/val;}
 
 	private:
@@ -598,6 +612,13 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return ibis::math::STRING;}
 	    virtual literal* dup() const {return new literal(str);}
 	    virtual double eval() const {return 0.0;}
+	    virtual bool isConstant() const {return true;}
+	    /// Should the string literal be interpreted as true?  A string
+	    /// literal is interpretted as true if it starts with letter
+	    /// 't' or 'T', or it equals to "1".
+	    virtual bool isTrue() const {
+		return(str != 0 && (*str == 't' || *str == 'T' ||
+				    (*str == '1' && *str == 0)));}
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << str;}
@@ -619,8 +640,10 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return OPERATOR;}
 	    virtual bediener* dup() const {
 		bediener *tmp = new bediener(operador);
-		tmp->setRight(getRight()->dup());
-		tmp->setLeft(getLeft()->dup());
+		if (getRight() != 0)
+		    tmp->setRight(getRight()->dup());
+		if (getLeft() != 0)
+		    tmp->setLeft(getLeft()->dup());
 		return tmp;
 	    }
 	    virtual double eval() const;
@@ -729,15 +752,20 @@ public:
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const {print(out);}
 
+    virtual bool isConstant() const {
+	return ((getLeft() != 0 ? getLeft()->isConstant() : true) &&
+		(getRight() != 0 ? getRight()->isConstant() : true) &&
+		(expr3 != 0 ? expr3->isConstant() : true));}
     virtual bool isSimple() const {return isSimpleRange();}
     /// Is this a simple range expression that can be stored as ibis::qRange?
     inline bool isSimpleRange() const;
 
-    /// Is the string a possible simple string comparison.
+    /// Is the expression possibly a simple string comparison?
     bool maybeStringCompare() const;
 
     // convert a simple expression to qContinuousRange
     ibis::qContinuousRange* simpleRange() const;
+    static compRange* makeConstantFalse();
 
 private:
     ibis::math::term *expr3;	// the right most expression
