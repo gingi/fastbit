@@ -868,10 +868,10 @@ static void parse_args(int argc, char** argv,
 
     // construct the paritions using both the command line arguments and
     // the resource files
-    ibis::util::tablesFromResources(tlist, ibis::gParameters());
+    ibis::util::gatherParts(tlist, ibis::gParameters());
     for (std::vector<const char*>::const_iterator it = dirs.begin();
 	 it != dirs.end(); ++ it) {
-	ibis::util::tablesFromDir(tlist, *it);
+	ibis::util::gatherParts(tlist, *it);
     }
 
     if (ibis::gVerbose > 1) {

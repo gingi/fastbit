@@ -1,3 +1,21 @@
+2010-01-22 John Wu <John.Wu at ACM.org>
+	* src/part.h, src/part.cpp: change names ibis::util::tablesFromDir
+	and ibis::util::tablesFromResource to ibis::util::gatherParts, add
+	optional argument to indicate whether the data partitions are to
+	be created for reading only
+	* src/mensa.cpp: change all data partitions in mensa to be read-only
+
+2010-01-20 John Wu <John.Wu at ACM.org>
+	* README, INSTALL: add note about nightly snapshots and sudo
+	problem with configure
+	* src/part.h, src/part.cpp, src/parti.cpp: add protected member
+	variable readonly, throw exception if readonly flag is set but the
+	data directory is not properly configured
+
+2010-01-19 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: update setWhereClause, setSelectClause and
+	setPartition to print out the data partition name in case of error
+
 2010-01-18 John Wu <John.Wu at ACM.org>
 	* src/qExpr.h: add function isTrue to ibis::math::term
 	* src/part.h, src/part.cpp: add a variation of doScan to treat an

@@ -698,13 +698,9 @@ long ibis::part::reorderValues(const char *fname,
 /// the append operation before commit.
 long ibis::part::append(const char* dir) {
     long ierr = 0;
-    if (dir == 0)
+    if (dir == 0 || *dir == 0)
 	return ierr;
-    if (*dir == 0)
-	return ierr;
-    if (activeDir == 0)
-	return -1;
-    if (*activeDir == 0)
+    if (activeDir == 0 || *activeDir == 0 || readonly)
 	return -1;
 
     ibis::util::mutexLock lock(&mutex, "part::append");
@@ -746,12 +742,12 @@ long ibis::part::append(const char* dir) {
 /// Perform append operation using only only one data directory.  Must wait
 /// for all queries on the partition to finish before preceding.
 long ibis::part::append1(const char *dir) {
-    long ierr = 0;
-    uint32_t ntot = 0;
     // can not handle dir == activeDir
     if (strcmp(dir, activeDir) == 0)
-	return ierr;
+	return -1;
 
+    long ierr = 0;
+    uint32_t ntot = 0;
     {   // need an exclusive lock to allow file manager to close all
 	// open files
 	writeLock rw(this, "append");
@@ -963,7 +959,7 @@ long ibis::part::append2(const char *dir) {
 /// operation on the data partition.
 long ibis::part::rollback() {
     long ierr = 0;
-    if (backupDir == 0 || *backupDir == 0 || activeDir == 0)
+    if (backupDir == 0 || *backupDir == 0 || activeDir == 0 || readonly)
 	return ierr;
 
     ibis::util::mutexLock lock(&mutex, "part::rollback");
@@ -1060,7 +1056,7 @@ long ibis::part::rollback() {
 /// Return the number of records committed.
 long ibis::part::commit(const char* dir) {
     long ierr = 0;
-    if (state == STABLE_STATE)
+    if (state == STABLE_STATE || readonly)
 	return ierr;
     if (backupDir == 0 || *backupDir == 0 || activeDir == 0)
 	return ierr;
@@ -1132,14 +1128,12 @@ long ibis::part::commit(const char* dir) {
 /// Return the number of rows actually appended.
 long ibis::part::appendToBackup(const char* dir) {
     long ierr = 0;
-    if (dir == 0)
+    if (dir == 0 || *dir == 0)
 	return ierr;
-    if (*dir == 0)
-	return ierr;
-    if (backupDir == 0 || *backupDir == 0) // no backup directory to append to
+    if (backupDir == 0 || *backupDir == 0 || readonly)
 	return -1;
     if (strcmp(dir, backupDir) == 0)
-	return ierr;
+	return -1;
 
     uint32_t napp;
     columnList clist; // combined list of attributes
@@ -1322,6 +1316,9 @@ long ibis::part::appendToBackup(const char* dir) {
 /// @note Inactive rows will no longer participate in future query
 /// evaluations.
 long ibis::part::deactivate(const ibis::bitvector& rows) {
+    if (readonly)
+	return -1;
+
     std::string mskfile(activeDir);
     if (! mskfile.empty())
 	mskfile += FASTBIT_DIRSEP;
@@ -1344,6 +1341,9 @@ long ibis::part::deactivate(const ibis::bitvector& rows) {
 
 /// Mark the rows identified in @c rows as active.
 long ibis::part::reactivate(const ibis::bitvector& rows) {
+    if (readonly)
+	return -1;
+
     std::string mskfile(activeDir);
     if (! mskfile.empty())
 	mskfile += FASTBIT_DIRSEP;
@@ -1372,6 +1372,9 @@ long ibis::part::reactivate(const ibis::bitvector& rows) {
 /// @note Inactive rows will no longer participate in future query
 /// evaluations.
 long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
+    if (readonly)
+	return -1;
+
     if (rows.empty() || nEvents == 0) return 0;
 
     ibis::bitvector msk;
@@ -1388,7 +1391,10 @@ long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
 /// @note All inactive rows will no longer participate in any future query
 /// processing.
 long ibis::part::deactivate(const char* conds) {
-    if (conds == 0 || *conds == 0 || nEvents == 0) return 0;
+    if (readonly)
+	return -1;
+    if (conds == 0 || *conds == 0 || nEvents == 0)
+	return 0;
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);
@@ -1402,7 +1408,10 @@ long ibis::part::deactivate(const char* conds) {
 } // ibis::part::deactivate
 
 long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
-    if (rows.empty() || nEvents == 0) return 0;
+    if (readonly)
+	return -1;
+    if (rows.empty() || nEvents == 0)
+	return 0;
 
     ibis::bitvector msk;
     numbersToBitvector(rows, msk);
@@ -1413,7 +1422,10 @@ long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
 } // ibis::part::reactivate
 
 long ibis::part::reactivate(const char* conds) {
-    if (conds == 0 || *conds == 0 || nEvents == 0) return 0;
+    if (readonly)
+	return -1;
+    if (conds == 0 || *conds == 0 || nEvents == 0)
+	return 0;
 
     ibis::bitvector msk;
     stringToBitvector(conds, msk);
@@ -1429,6 +1441,8 @@ long ibis::part::reactivate(const char* conds) {
 /// Return the number of rows left or error code.
 /// @note This operations is permanent and irreversible!
 long ibis::part::purgeInactive() {
+    if (readonly)
+	return -1;
     int ierr = 0; 
     ibis::util::mutexLock lock(&mutex, "part::purgeInactive");
     if (amask.cnt() == amask.size()) return nEvents;
@@ -1565,7 +1579,7 @@ void ibis::part::emptyCache() const {
 /// specified type.
 long ibis::part::addColumn(const char* aexpr, const char* cname,
 			   ibis::TYPE_T ctype) {
-    if (aexpr == 0 || cname == 0 || *aexpr == 0 || *cname == 0)
+    if (readonly || aexpr == 0 || cname == 0 || *aexpr == 0 || *cname == 0)
 	return -1L;
 
     ibis::selectClause xpr(aexpr);
@@ -1586,7 +1600,8 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
 long ibis::part::addColumn(const ibis::math::term* xpr,
 			   ibis::bitvector& mask, const char* cname,
 			   ibis::TYPE_T ctype) {
-    if (xpr == 0 || cname == 0 || *cname == 0) return -1L;
+    if (readonly || xpr == 0 || cname == 0 || *cname == 0)
+	return -1L;
 
     array_t<double> vals;
     long ierr = calculate(*xpr, mask, vals);

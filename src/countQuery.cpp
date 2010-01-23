@@ -9,7 +9,6 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 #include "countQuery.h"		// class countQuery
-#include "selectClause.h"	// ibis::selectClause
 #include "query.h"		// ibis::query
 
 #include <memory>	// std::auto_ptr

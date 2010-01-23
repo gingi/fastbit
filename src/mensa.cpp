@@ -25,9 +25,9 @@
 /// ibis::gParameter() to find data partitions.
 ibis::mensa::mensa(const char* dir) : nrows(0) {
     if (dir != 0 && *dir != 0)
-	ibis::util::tablesFromDir(parts, dir);
+	ibis::util::gatherParts(parts, dir, true);
     if (parts.empty())
-	ibis::util::tablesFromResources(parts, ibis::gParameters());
+	ibis::util::gatherParts(parts, ibis::gParameters(), true);
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	(*it)->combineNames(naty);
@@ -67,10 +67,10 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
 ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     if (*dir1 == 0 && *dir2 == 0) return;
     if (dir1 != 0 && *dir1 != 0) {
-	ibis::util::tablesFromDir(parts, dir1, dir2);
+	ibis::util::gatherParts(parts, dir1, dir2, true);
     }
     if (parts.empty())
-	ibis::util::tablesFromResources(parts, ibis::gParameters());
+	ibis::util::gatherParts(parts, ibis::gParameters(), true);
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	(*it)->combineNames(naty);
@@ -124,9 +124,9 @@ int ibis::mensa::addPartition(const char* dir) {
     const uint64_t nrold = nrows;
     unsigned int newparts = 0;
     if (dir != 0 && *dir != 0)
-	newparts = ibis::util::tablesFromDir(parts, dir);
+	newparts = ibis::util::gatherParts(parts, dir, true);
     else
-	newparts = ibis::util::tablesFromResources(parts, ibis::gParameters());
+	newparts = ibis::util::gatherParts(parts, ibis::gParameters(), true);
     if (newparts == 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "ibis::mensa::addPartition(" << dir

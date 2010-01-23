@@ -22,12 +22,13 @@
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::find, std::less, ...
 #include <typeinfo>	// typeid
+#include <stdexcept>	// std::invalid_exception
+#include <cmath>	// std::floor, std::ceil
 #include <stdio.h>
 #include <stdlib.h>	// RAND_MAX, rand()
 #include <stdarg.h>	// vsprintf(), ...
 #include <signal.h>
 #include <ctype.h>	// tolower
-#include <cmath>	// std::floor, std::ceil
 #include <float.h>	// DBL_MAX, _finite
 
 #if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
@@ -209,14 +210,26 @@ extern "C" {
     } // ibis_part_build_indexes
 } // extern "C"
 
-/// The default prefix (NULL) tells it to use names in global namespace of
-/// the resource list (ibis::gParameters).  When a valid string is
-/// specified, it looks for data directory names under
-/// 'prefix.dataDir1=aaaa' and 'prefix.dataDir2=bbbb'.
-ibis::part::part(const char* prefix) :
+/// The incoming argument can be a directory name or a data partition name.
+/// If it contains any forward or backward slash, it is assumed to be a
+/// directory name.  Otherwise, it is assumed to be the name of a data
+/// partition.  In which case, this function looks for data directory names
+/// in the global parameter list under the parameters 'name.activeDir' and
+/// 'name.backupDir' or 'name.dataDir1' and 'name.dataDir2'.  If the name
+/// is a directory name, then no attempt shall be made to produce a second
+/// directory name.
+///
+/// The default value for name is a nil pointer.  In this case, it will
+/// find 'dataDir1' and 'dataDir2' from the global parameter list.
+///
+/// The default argument for ro is false, which allows new directory to be
+/// created and new data records to be appended.  If the argument ro is
+/// true, then the specified data directory must already exist, otherwise,
+/// an exception is thrown.
+ibis::part::part(const char* name, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
-    myCleaner(0) {
+    myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
@@ -227,18 +240,19 @@ ibis::part::part(const char* prefix) :
 	throw "ibis::part unable to initialize the rwlock";
     }
 
-    // for the special "incore" data partition, there is no need to call
-    // the function init
-    if (stricmp(prefix, "incore") != 0)
-	init(prefix);
+    // for the special "in-core" data partition, there is no need to call
+    // the function init, note that a valid data partition name can not
+    // contain a dash
+    if (stricmp(name, "in-core") != 0)
+	init(name);
 } // the default constructor of ibis::part
 
 /// The meta tags are specified as a list of name-value strings, where each
 /// string in one name-value pair.
-ibis::part::part(const std::vector<const char*> &mtags) :
+ibis::part::part(const std::vector<const char*> &mtags, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
-    myCleaner(0) {
+    myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
@@ -257,10 +271,10 @@ ibis::part::part(const std::vector<const char*> &mtags) :
 } // constructor from a vector of strings
 
 /// The name-value pairs are specified in a structured form.
-ibis::part::part(const ibis::resource::vList &mtags) :
+ibis::part::part(const ibis::resource::vList &mtags, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
-    myCleaner(0) {
+    myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
@@ -282,11 +296,17 @@ ibis::part::part(const ibis::resource::vList &mtags) :
 /// was designed to work with a pair of directories, @c adir and @c bdir.
 /// Therefore, the constructor takes a pair of directory names.  In many
 /// cases, data is stored only in one directory, in which simply give the
-/// data directory as @c adir and leave @c bdir as null.
-ibis::part::part(const char* adir, const char* bdir) :
+/// data directory as @c adir and leave @c bdir as null.  Prefer to have
+/// full and complete path.
+///
+/// The default argument for ro is false, which allows new directory to be
+/// created and new data records to be appended.  If the argument ro is
+/// true, then the specified data directory must already exist, otherwise,
+/// an exception is thrown.
+ibis::part::part(const char* adir, const char* bdir, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
-    myCleaner(0) {
+    myCleaner(0), readonly(ro) {
     (void) ibis::fileManager::instance(); // initialize the file manager
     // initialize the locks
     if (pthread_mutex_init(&mutex, 0)) {
@@ -339,6 +359,11 @@ ibis::part::part(const char* adir, const char* bdir) :
 	    nEvents = rids->size();
 	if (nEvents > 0 && switchTime == 0)
 	    switchTime = time(0);
+    }
+    else if (readonly) { // missing directory or metadata
+	std::string msg(activeDir);
+	msg += " does not exist or missing -part.txt";
+	throw std::invalid_argument(msg);
     }
 
     if (m_name == 0) {
@@ -575,92 +600,119 @@ void ibis::part::genName(const ibis::resource::vList &mtags,
 } // ibis::part::genName
 
 /// Determines where to store the data.
-void ibis::part::init(const char* prefix) {
+void ibis::part::init(const char* iname) {
     // make sure the file manager is initialized
     (void) ibis::fileManager::instance();
 
     int j = 0;
-    if (prefix != 0 && *prefix != 0)
-	j = strlen(prefix);
-    char* fn = new char[j+64];
-    strcpy(fn, "ibis.");
-    if (prefix != 0 && *prefix != 0) {
-	strcpy(fn+5, prefix);
-	fn[j+5] = '.';
+    const char* str;
+    delete [] activeDir;
+    delete [] backupDir;
+    activeDir = 0;
+    backupDir = 0;
+
+    if (iname != 0 && *iname != 0) {
+	if (strchr(iname, '/') != 0) {
+	    activeDir = ibis::util::strnewdup(iname);
+	}
+	else if (strchr(iname, '\\') != 0) {
+	    activeDir = ibis::util::strnewdup(iname);
+	}
+	else {
+	    Stat_T tmp;
+	    if (UnixStat(iname, &tmp) == 0) {
+		if ((tmp.st_mode & S_IFDIR) == S_IFDIR)
+		    activeDir = ibis::util::strnewdup(iname);
+	    }
+	}
+
+	if (activeDir == 0)
+	    j = strlen(iname);
+    }
+
+    char *pname = new char[j+64];
+    strcpy(pname, "ibis.");
+    if (j > 0) {
+	strcpy(pname+5, iname);
+	pname[j+5] = '.';
     }
     j += 6;
 
-    // get the active directory name
-    const char* str;
-    strcpy(fn+j, "activeDir");
-    str = ibis::gParameters()[fn];
-    if (str != 0) {
-	activeDir = ibis::util::strnewdup(str);
-	strcpy(fn+j, "backupDir");
-	str = ibis::gParameters()[fn];
-	if (str != 0 && *str != 0)
-	    backupDir = ibis::util::strnewdup(str);
-    }
-    else {
-	strcpy(fn+j, "DataDir1");
-	str = ibis::gParameters()[fn];
-	if (str != 0) {
+    if (activeDir == 0) {// get the active directory name
+	strcpy(pname+j, "activeDir");
+	str = ibis::gParameters()[pname];
+	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(fn+j, "DataDir2");
-	    str = ibis::gParameters()[fn];
+	    strcpy(pname+j, "backupDir");
+	    str = ibis::gParameters()[pname];
+	    if (str != 0 && *str != 0)
+		backupDir = ibis::util::strnewdup(str);
+	}
+    }
+    if (activeDir == 0) {
+	strcpy(pname+j, "DataDir1");
+	str = ibis::gParameters()[pname];
+	if (str != 0 && *str != 0) {
+	    activeDir = ibis::util::strnewdup(str);
+	    strcpy(pname+j, "DataDir2");
+	    str = ibis::gParameters()[pname];
+	    if (str != 0 && *str != 0)
+		backupDir = ibis::util::strnewdup(str);
+	}
+    }
+    if (activeDir == 0) {
+	strcpy(pname+j, "activeDirectory");
+	str = ibis::gParameters()[pname];
+	if (str != 0 && *str != 0) {
+	    activeDir = ibis::util::strnewdup(str);
+	    strcpy(pname+j, "backupDirectory");
+	    str = ibis::gParameters()[pname];
+	    if (str != 0 && *str != 0)
+		backupDir = ibis::util::strnewdup(str);
+	}
+    }
+    if (activeDir == 0) {
+	strcpy(pname+j, "DataDir");
+	str = ibis::gParameters()[pname];
+	if (str != 0 && *str != 0) {
+	    activeDir = ibis::util::strnewdup(str);
+	    strcpy(pname+j, "backupDir");
+	    str = ibis::gParameters()[pname];
+	    if (str != 0 && *str != 0)
+		backupDir = ibis::util::strnewdup(str);
+	}
+    }
+    if (activeDir == 0) {
+	strcpy(pname+j, "DataDirectory");
+	str = ibis::gParameters()[pname];
+	if (str != 0 && *str != 0) {
+	    activeDir = ibis::util::strnewdup(str);
+	    strcpy(pname+j, "backupDirectory");
+	    str = ibis::gParameters()[pname];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
 	else {
-	    strcpy(fn+j, "activeDirectory");
-	    str = ibis::gParameters()[fn];
-	    if (str != 0) {
+	    strcpy(pname+j, "IndexDirectory");
+	    str = ibis::gParameters()[pname];
+	    if (str != 0 && *str != 0) {
 		activeDir = ibis::util::strnewdup(str);
-		strcpy(fn+j, "backupDirectory");
-		str = ibis::gParameters()[fn];
-		if (str != 0 && *str != 0)
-		    backupDir = ibis::util::strnewdup(str);
 	    }
 	    else {
-		strcpy(fn+j, "DataDir");
-		str = ibis::gParameters()[fn];
-		if (str != 0) {
-		    activeDir = ibis::util::strnewdup(str);
-		    strcpy(fn+j, "backupDir");
-		    str = ibis::gParameters()[fn];
-		    if (str != 0 && *str != 0)
-			backupDir = ibis::util::strnewdup(str);
-		}
-		else {
-		    strcpy(fn+j, "DataDirectory");
-		    str = ibis::gParameters()[fn];
-		    if (str != 0) {
-			activeDir = ibis::util::strnewdup(str);
-			strcpy(fn+j, "backupDirectory");
-			str = ibis::gParameters()[fn];
-			if (str != 0 && *str != 0)
-			    backupDir = ibis::util::strnewdup(str);
-		    }
-		    else {
-			strcpy(fn+j, "IndexDirectory");
-			str = ibis::gParameters()[fn];
-			if (str != 0) {
-			    activeDir = ibis::util::strnewdup(str);
-			}
-			else {
-			    strcpy(fn+j, "DataDir2");
-			    str = ibis::gParameters()[fn];
-			    if (0 != str) {
-				backupDir = ibis::util::strnewdup(str);
-			    }
-			}
-		    }
+		strcpy(pname+j, "DataDir2");
+		str = ibis::gParameters()[pname];
+		if (0 != str && *str != 0) {
+		    backupDir = ibis::util::strnewdup(str);
 		}
 	    }
 	}
     }
     if (activeDir == 0) {
-	if (FASTBIT_DIRSEP == '/') {
+	if (readonly) {
+	    throw std::invalid_argument
+		("part::init failed to determine a data directory");
+	}
+	else if (FASTBIT_DIRSEP == '/') {
 	    activeDir = ibis::util::strnewdup(".ibis/dir1");
 	}
 	else {
@@ -670,9 +722,15 @@ void ibis::part::init(const char* prefix) {
 
     ibis::util::removeTail(activeDir, FASTBIT_DIRSEP);
     try {
-	int ierr = ibis::util::makeDir(activeDir); // make sure it exists
-	if (ierr < 0)
-	    throw "Can NOT generate the necessary data directory";
+	if (! readonly) {
+	    int ierr = ibis::util::makeDir(activeDir); // make sure it exists
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "part::init(" << (iname!=0 ? iname : "")
+		    << ") failed to create directory " << activeDir;
+		throw "Can NOT generate the necessary data directory";
+	    }
+	}
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -693,16 +751,21 @@ void ibis::part::init(const char* prefix) {
 
     // read metadata file in activeDir
     int maxLength = readMetaData(nEvents, columns, activeDir);
+    if (maxLength <= 0 && readonly) {
+	std::string msg(activeDir);
+	msg += " does not exist or missing -part.txt";
+	throw std::invalid_argument(msg);
+    }
     const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
-    const bool useDir = (maxLength <=0 &&
-			 (prefix == 0 || *prefix == 0 ||
-			  (tmp != 0 ?			     
-			   (0 == strcmp(tmp+1, prefix)) :
-			   (0 == strcmp(activeDir, prefix)))));
+    const bool useDir = (iname == 0 || *iname == 0 ||
+			 strcmp(activeDir, iname) == 0 ||
+			 (tmp != 0 ?
+			  (0 == strcmp(tmp+1, iname)) :
+			  (0 == strcmp(activeDir, iname))));
     if (! useDir) { // need a new subdirectory
 	std::string subdir = activeDir;
 	subdir += FASTBIT_DIRSEP;
-	subdir += prefix;
+	subdir += iname;
 	ibis::util::makeDir(subdir.c_str());
 	delete [] activeDir;
 	activeDir = ibis::util::strnewdup(subdir.c_str());
@@ -715,6 +778,11 @@ void ibis::part::init(const char* prefix) {
 	    subdir.erase();
 	}
 	maxLength = readMetaData(nEvents, columns, activeDir);
+	if (maxLength <= 0 && readonly) {
+	    std::string msg(activeDir);
+	    msg += " does not exist or missing -part.txt";
+	    throw std::invalid_argument(msg);
+	}
 	if (backupDir != 0) {
 	    if (verifyBackupDir() != 0) {
 		if (! subdir.empty()) {
@@ -724,20 +792,24 @@ void ibis::part::init(const char* prefix) {
 	    }
 	}
 
-	strcpy(fn+j, "useBackupDir");
-	if (ibis::gParameters().isTrue(fn) && backupDir == 0) {
-	    // use backup dir
-	    if (! subdir.empty()) {
-		subdir += FASTBIT_DIRSEP;
-		subdir += prefix;
-		int ierr = ibis::util::makeDir(subdir.c_str());
-		if (ierr >= 0)
-		    backupDir = ibis::util::strnewdup(subdir.c_str());
+	if (backupDir == 0) {
+	    strcpy(pname+j, "useBackupDir");
+	    if (ibis::gParameters().isTrue(pname)) {
+		// use backup dir
+		if (! subdir.empty()) {
+		    subdir += FASTBIT_DIRSEP;
+		    subdir += iname;
+		    int ierr = ibis::util::makeDir(subdir.c_str());
+		    if (ierr >= 0)
+			backupDir = ibis::util::strnewdup(subdir.c_str());
+		}
+		if (backupDir == 0)
+		    deriveBackupDirName();
 	    }
-	    if (backupDir == 0)
-		deriveBackupDirName();
 	}
     }
+    delete [] pname;
+
     if (maxLength > 0) { // metadata file exists
 	// read in the RIDs
 	readRIDs();
@@ -756,11 +828,9 @@ void ibis::part::init(const char* prefix) {
 	}
     }
 
-    delete [] fn;
-
     if (m_name == 0) { // should assign a name
-	if (prefix != 0) {  // use argument to this function
-	    m_name = ibis::util::strnewdup(prefix);
+	if (iname != 0) {  // use argument to this function
+	    m_name = ibis::util::strnewdup(iname);
 	}
 	else if (nEvents > 0) {
 	    // use the directory name
@@ -12801,19 +12871,20 @@ uint32_t ibis::part::vault::tellReal() const {
 /// family of functions.
 ///
 /// Returns the number of data partitions found.
-unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
+unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
+				 bool ro) {
     if (dir1 == 0) return 0;
     unsigned int cnt = 0;
     if (ibis::gVerbose > 1)
-	logMessage("tablesFromDir", "examining %s", dir1);
+	logMessage("gatherParts", "examining %s", dir1);
 
     try {
-	ibis::part* tmp = new ibis::part(dir1, 0);
+	ibis::part* tmp = new ibis::part(dir1, static_cast<const char*>(0), ro);
 	if (tmp != 0) {
 	    if (tmp->name() != 0 && tmp->nRows() > 0) {
 		++ cnt;
 		ibis::util::mutexLock
-		    lock(&ibis::util::envLock, "tablesFromDir");
+		    lock(&ibis::util::envLock, "gatherParts");
 		ibis::partAssoc sorted;
 		for (ibis::partList::iterator it = tlist.begin();
 		     it != tlist.end(); ++ it) {
@@ -12821,8 +12892,8 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 		}
 		ibis::partAssoc::iterator it = sorted.find(tmp->name());
 		if (it != sorted.end()) { // deallocate the old table
-		    logMessage("tablesFromDir", "replacing the old partition "
-			       "named %s with new data from %s",
+		    logMessage("gatherParts", "replacing the old partition "
+			       "named %s with new data partition from %s",
 			       (*it).first, dir1);
 		    delete (*it).second;
 		    sorted.erase(it);
@@ -12835,7 +12906,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 	    }
 	    else {
 		if (ibis::gVerbose > 4)
-		    logMessage("tablesFromDir", "directory %s "
+		    logMessage("gatherParts", "directory %s "
 			       "does not contain a valid \"-part.txt\" file "
 			       "or contains an empty partition",
 			       dir1);
@@ -12844,15 +12915,15 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 	}
     }
     catch (const std::exception &e) {
-	logMessage("tablesFromDir", "received a std::exception -- %s",
+	logMessage("gatherParts", "received a std::exception -- %s",
 		   e.what());
     }
     catch (const char* s) {
-	logMessage("tablesFromDir", "received a string exception -- %s",
+	logMessage("gatherParts", "received a string exception -- %s",
 		   s);
     }
     catch (...) {
-	logMessage("tablesFromDir", "received an unexpected exception");
+	logMessage("gatherParts", "received an unexpected exception");
     }
 #if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     // on unix machines, we know how to traverse the subdirectories
@@ -12869,7 +12940,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 	    continue;
 	}
 	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
-	    ibis::util::logMessage("tablesFromDir",
+	    ibis::util::logMessage("gatherParts",
 				   "name (%s%c%s) too long",
 				   dir1, FASTBIT_DIRSEP, ent->d_name);
 	    continue;
@@ -12879,35 +12950,35 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist, const char *dir1) {
 	Stat_T st1;
 	if (UnixStat(nm1, &st1)==0) {
 	    if ((st1.st_mode  &S_IFDIR) == S_IFDIR) {
-		cnt += tablesFromDir(tlist, nm1);
+		cnt += gatherParts(tlist, nm1, ro);
 	    }
 	}
     }
     closedir(dirp);
 #endif
     return cnt;
-} // ibis::util::tablesFromDir
+} // ibis::util::gatherParts
 
 /// Read the two directories, if there are matching subdirs, construct an
 /// ibis::part from them.  Will descend into the subdirectories when run on
 /// unix systems to look for matching subdirectories.
 ///
 /// Returns the number of data partitions found.
-unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
-				   const char* adir, const char* bdir) {
+unsigned ibis::util::gatherParts(ibis::partList &tlist,
+				 const char* adir, const char* bdir, bool ro) {
     if (adir == 0 || *adir == 0) return 0;
     unsigned int cnt = 0;
     if (ibis::gVerbose > 1)
-	logMessage("tablesFromDir", "examining %s (%s)", adir,
+	logMessage("gatherParts", "examining %s (%s)", adir,
 		   (bdir ? bdir : "?"));
 
     try {
-	part* tbl = new ibis::part(adir, bdir);
+	part* tbl = new ibis::part(adir, bdir, ro);
 	if (tbl != 0 && tbl->name() != 0 && tbl->nRows() > 0 &&
 	    tbl->nColumns()>0) {
 	    ++ cnt;
 	    ibis::util::mutexLock
-		lock(&ibis::util::envLock, "tablesFromDir");
+		lock(&ibis::util::envLock, "gatherParts");
 	    ibis::partAssoc sorted;
 	    for (ibis::partList::iterator it = tlist.begin();
 		 it != tlist.end(); ++ it) {
@@ -12917,12 +12988,12 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	    if (it == sorted.end()) { // a new name
 		sorted[tbl->name()] = tbl;
 		if (ibis::gVerbose > 1)
-		    logMessage("tablesFromDir",
+		    logMessage("gatherParts",
 			       "add new partition \"%s\"", tbl->name());
 	    }
 	    else {
 		if (ibis::gVerbose > 1)
-		    logMessage("tablesFromDir", "there "
+		    logMessage("gatherParts", "there "
 			       "is already an ibis::part with name of "
 			       "\"%s\"(%s) in the list of tables "
 			       "-- will discard the previous "
@@ -12942,11 +13013,11 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	else {
 	    if (ibis::gVerbose > 4) {
 		if (bdir == 0 || *bdir == 0)
-		    logMessage("tablesFromDir", "directory "
+		    logMessage("gatherParts", "directory "
 			       "%s contains an invalid -part.txt or "
 			       "an empty partition", adir);
 		else
-		    logMessage("tablesFromDir", "directories %s and %s "
+		    logMessage("gatherParts", "directories %s and %s "
 			       "contain mismatching information or both of "
 			       "them are empty", adir, bdir);
 	    }
@@ -12956,15 +13027,15 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	//if (tbl) return cnt; // if a new part.has been created, return now
     }
     catch (const char* s) {
-	logMessage("tablesFromDir", "received a string "
+	logMessage("gatherParts", "received a string "
 		   "exception -- %s", s);
     }
     catch (const std::exception &e) {
-	logMessage("tablesFromDir", "received a library "
+	logMessage("gatherParts", "received a library "
 		   "exception -- %s", e.what());
     }
     catch (...) {
-	logMessage("tablesFromDir", "received an unexpected "
+	logMessage("gatherParts", "received an unexpected "
 		   "exception");
     }
 #if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
@@ -12987,7 +13058,7 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	}
 	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "util::tablesFromDir name (" << adir << FASTBIT_DIRSEP
+		<< "util::gatherParts name (" << adir << FASTBIT_DIRSEP
 		<< ent->d_name << " | " << bdir << FASTBIT_DIRSEP
 		<< ent->d_name << ") too long";
 	    continue;
@@ -12999,20 +13070,20 @@ unsigned ibis::util::tablesFromDir(ibis::partList &tlist,
 	if (stat(nm1, &st1)==0 && stat(nm2, &st2)==0) {
 	    if (((st1.st_mode  &S_IFDIR) == S_IFDIR) &&
 		((st2.st_mode  &S_IFDIR) == S_IFDIR)) {
-		cnt += tablesFromDir(tlist, nm1, nm2);
+		cnt += gatherParts(tlist, nm1, nm2, ro);
 	    }
 	}
     }
     closedir(dirp);
 #endif
     return cnt;
-} // ibis::util::tablesFromDir
+} // ibis::util::gatherParts
 
 /// Read the parameters dataDir1 and dataDir2 to build data partitions.
 ///
 /// Returns the number of data partitions found.
-unsigned ibis::util::tablesFromResources(ibis::partList &tables,
-					 const ibis::resource &res) {
+unsigned ibis::util::gatherParts(ibis::partList &tables,
+				 const ibis::resource &res, bool ro) {
     unsigned int cnt = 0;
     const char* dir1 = res.getValue("activeDir");
     if (dir1 == 0) {
@@ -13042,19 +13113,19 @@ unsigned ibis::util::tablesFromResources(ibis::partList &tables,
 	    }
 	}
 	if (ibis::gVerbose > 1)
-	    logMessage("tablesFromResources", "examining %s (%s)", dir1,
+	    logMessage("gatherParts", "examining %s (%s)", dir1,
 		       (dir2 ? dir2 : "?"));
 	if (dir2 != 0 && *dir2 != 0)
-	    cnt = tablesFromDir(tables, dir1, dir2);
+	    cnt = gatherParts(tables, dir1, dir2, ro);
 	else
-	    cnt = tablesFromDir(tables, dir1);
+	    cnt = gatherParts(tables, dir1, ro);
     }
 
     for (ibis::resource::gList::const_iterator it = res.gBegin();
 	 it != res.gEnd(); ++it)
-	cnt += tablesFromResources(tables, *((*it).second));
+	cnt += gatherParts(tables, *((*it).second), ro);
     return cnt;
-} // ibis::util::tablesFromResources
+} // ibis::util::gatherParts
 
 void ibis::util::clean(ibis::partList &pl) throw() {
     const uint32_t npl = pl.size();

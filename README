@@ -61,3 +61,9 @@ questions to the FastBit mailing list.  You need to first join the
 mailing list by visiting
 https://hpcrdm.lbl.gov/mailman/listinfo/fastbit-users.
 
+Before reporting a problem, it might be helpful to check whether the
+problem still exist with the current source code.  A nightly snapshot of
+the SVN repository for the code is available for download at
+<https://codeforge.lbl.gov/snapshots.php?group_id=44>.  The snapshot is
+built daily between 2 and 3 AM Pacific Time zone (USA).
+

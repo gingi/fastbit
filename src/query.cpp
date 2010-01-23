@@ -265,6 +265,36 @@ int ibis::query::setPartition(const part* tbl) {
     if (tbl == mypart) return 0;
     if (tbl->nRows() == 0 || tbl->nColumns() == 0) return -1;
 
+    // check the select clause against the new data partition
+    if (! comps.empty()) {
+	int ierr = comps.verify(*tbl);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setPartition can "
+		"not assign the new partition " << tbl->name()
+		<< " because the function verify returned " << ierr;
+	    return -3;
+	}
+    }
+    // check the where clause against the new partition
+    if (! conds.empty()) {
+	int ierr = conds.verify(*tbl);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setPartition failed to "
+		"find all names in \""
+		<< (conds.getString()?conds.getString():"<long expression>")
+		<< "\" in data partition " << tbl->name()
+		<< ", the function verify returned " << ierr;
+	    return -6;
+	}
+	if (conds.getExpr() == 0) {
+	    logWarning("setPartition", "The WHERE clause \"%s\" simplified to "
+		       "an empty expression", conds.getString());
+	    return -5;
+	}
+    }
+
     writeLock control(this, "setPartition");
     if (dslock != 0) { // release the read lock on the data partition
 	delete dslock;
@@ -288,38 +318,6 @@ int ibis::query::setPartition(const part* tbl) {
     }
 
     mypart = tbl;
-    for (uint32_t i = 0; i < comps.size(); ++i) {
-	if (0 == mypart->getColumn(comps.argName(i))) {
-	    logWarning("setPartition", "partition %s does not contain a "
-		       "column named %s", mypart->name(), comps.argName(i));
-	    comps.clear();
-	    break;
-	}
-    }
-
-    if (conds.empty()) {
-	state = UNINITIALIZED;
-    }
-    else {
-	int ierr = conds.verify(*mypart);
-	if (ierr != 0) {
-	    logWarning("setPartition", "The WHERE clause \"%s\" contains "
-		       "%d incorrect name(s). It will be removed",
-		       (conds.getString() ? conds.getString() :
-			"<long expression>"), ierr);
-	    if (comps.size())
-		state = SET_COMPONENTS;
-	    else
-		state = UNINITIALIZED;
-	    conds.clear();
-	}
-	if (conds.getExpr() == 0) {
-	    logWarning("setPartition", "The WHERE clause \"%s\" simplified to "
-		       "an empty expression", conds.getString());
-	    return -5;
-	}
-    }
-
     if (comps.size() != 0) {
 	if (rids_in != 0 || conds.getExpr() != 0) {
 	    state = SPECIFIED;
@@ -343,48 +341,48 @@ int ibis::query::setSelectClause(const char* str) {
     if (*comps != 0 && stricmp(*comps, str) == 0) return 0;
 
     ibis::selectClause sc(str);
-    bool verified = (sc.size() > 0);
     if (mypart != 0) {
-	for (uint32_t i = 0; verified && i < sc.size(); ++i)
-	    verified = (0 != mypart->getColumn(sc.argName(i)));
+	int ierr = sc.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setSelectClause(" << str
+		<< ") failed to find all column names in data partition "
+		<< mypart->name();
+	    return -3;
+	}
     }
 
-    if (verified) {
-	writeLock control(this, "setSelectClause");
-	comps.swap(sc);
+    writeLock control(this, "setSelectClause");
+    comps.swap(sc);
 
-	if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
-	    state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
-	    dstime = 0;
-	    if (hits == sup) {
-		delete hits;
-		hits = 0;
-		sup = 0;
-	    }
-	    else {
-		delete hits;
-		delete sup;
-		hits = 0;
-		sup = 0;
-	    }
-	    removeFiles();
-	}
-
-	if (rids_in || conds.getExpr() != 0) {
-	    state = SPECIFIED;
-	    writeQuery();
+    if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+	dstime = 0;
+	if (hits == sup) {
+	    delete hits;
+	    hits = 0;
+	    sup = 0;
 	}
 	else {
-	    state = SET_COMPONENTS;
+	    delete hits;
+	    delete sup;
+	    hits = 0;
+	    sup = 0;
 	}
-	if (ibis::gVerbose > 1) {
-	    logMessage("setSelectClause", "SELECT %s", *comps);
-	}
-	return 0;
+	removeFiles();
+    }
+
+    if (rids_in || conds.getExpr() != 0) {
+	state = SPECIFIED;
+	writeQuery();
     }
     else {
-	return -3;
+	state = SET_COMPONENTS;
     }
+    if (ibis::gVerbose > 1) {
+	logMessage("setSelectClause", "SELECT %s", *comps);
+    }
+    return 0;
 } // ibis::query::setSelectClause
 
 /// The where clause is a string representing a list of range conditions.
@@ -407,14 +405,18 @@ int ibis::query::setWhereClause(const char* str) {
 	if (mypart != 0) {
 	    int ierr = tmp.verify(*mypart);
 	    if (ierr != 0) {
-		logWarning("setWhereClause", "The WHERE clause \"%s\" contains "
-			   "%d incorrect name(s).  It will not be used.",
-			   str, ierr);
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- query[" << myID << "]::setWhereClause "
+		    "failed to verify the where clause \"" << str
+		    << "\" with partition " << mypart->name()
+		    << ", the function verify returned " << ierr;
 		return -6;
 	    }
 	    if (tmp.getExpr() == 0) {
-		logWarning("setWhereClause", "The WHERE clause \"%s\" produced "
-			   "an empty expression", str);
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- query[" << myID << "]::setWhereClause "
+		    "failed to simplify \"" << str
+		    << "\" into a valid query expression";
 		return -5;
 	    }
 	}
@@ -457,14 +459,14 @@ int ibis::query::setWhereClause(const char* str) {
 	}
     }
     catch (...) {
-	logWarning("setWhereClause", "failed to parse the WHERE clause "
+	logWarning("setWhereClause", "failed to parse the where clause "
 		   "\"%s\"", str);
 	return -5;
     }
 
     if (ibis::gVerbose > 0) {
 	ibis::util::logger lg;
-	lg.buffer() << "query[" << myID << "]::setWhereClause -- WHERE \""
+	lg.buffer() << "query[" << myID << "]::setWhereClause -- where \""
 		    << str << "\"";
 	if (ibis::gVerbose > 3) {
 	    lg.buffer() << "\n  Translated the WHERE clause into: ";
@@ -546,11 +548,14 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	expr->setRight(tmp);
     }
     if (mypart != 0) {
-	int ierr = conds.verify(*mypart);
+	ibis::whereClause wc;
+	wc.setExpr(expr);
+	int ierr = wc.verify(*mypart);
 	if (ierr != 0) {
-	    logWarning("setWhereClause", "The WHERE clause specified in three "
-		       "arrays contain %d incorrect name(s).  "
-		       "Revert to old values.", ierr);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setWhereClause failed "
+		"to find some variable names in data partition "
+		<< mypart->name() << ", the function verify returned " << ierr;
 	    if (comps.size())
 		state = SET_COMPONENTS;
 	    else
@@ -558,9 +563,12 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	    delete expr;
 	    return -6;
 	}
-	if (conds.getExpr() == 0) {
-	    logWarning("setWhereClause", "The WHERE clause specified in three "
-		       "arrays contains an empty expression");
+	if (wc.getExpr() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setWhereClause failed "
+		"to simplify " << names.size() << " range condition"
+		<< (names.size() > 1 ? "s" : "")
+		<< " into a valid query expression";
 	    if (comps.size())
 		state = SET_COMPONENTS;
 	    else
@@ -614,9 +622,11 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     if (mypart != 0) {
 	int ierr = wc.verify(*mypart);
 	if (ierr != 0) {
-	    logWarning("setWhereClause", "The WHERE clause expressed in the "
-		       "qExpr object contains %d incorrect name(s).  Revert to "
-		       "old value", ierr);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setWhereClause failed "
+		"to find some names used in the input qExpr "
+		<< static_cast<const void*>(qx) << " in data partition "
+		<< mypart->name() << ", the function verify returned " << ierr;
 	    if (comps.size())
 		state = SET_COMPONENTS;
 	    else
@@ -624,8 +634,10 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	    return -6;
 	}
 	if (wc.getExpr() == 0) {
-	    logWarning("setWhereClause", "The WHERE clause specified "
-		       "simplified to an empty expression");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::setWhereClause failed "
+		"to simplify the input qExpr " << static_cast<const void*>(qx)
+		<< " into a valid query expression";
 	    if (comps.size())
 		state = SET_COMPONENTS;
 	    else

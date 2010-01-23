@@ -16,11 +16,14 @@
 #include <string>
 #include <vector>
 
-/// @ingroup FastBitMain
 /// The class ibis::part represents a partition of a relational table.  The
 /// current implementation is designed to work with vertically partitioned
 /// data files.  This class contains common information and operations on a
-/// partition.
+/// data partition.  It must have a name.  Following SQL convention, the
+/// name must start with a underscore or an ASCII alphabet and may be
+/// followed by any number of ASCII alphanumeric characters or underscore.
+///
+/// @ingroup FastBitMain
 class FASTBIT_CXX_DLLSPEC ibis::part {
 public:
     enum TABLE_STATE {
@@ -36,16 +39,14 @@ public:
 
     /// Destuctor.
     virtual ~part();
-    /// Initialize a data partition object.  Use ibis::gParameters to get
-    /// the file names.
-    explicit part(const char* prefix=0);
-    /// Initialize a table from the named directories.  Prefer to have full
-    /// and complete path.
-    part(const char* adir, const char* bdir);
+    /// Initialize a data partition object.
+    explicit part(const char* name=0, bool ro=false);
+    /// Initialize a table from the named directories.
+    part(const char* adir, const char* bdir, bool ro=false);
     /// Initialize a partition with given meta tags.
-    part(const std::vector<const char*> &mtags);
+    part(const std::vector<const char*> &mtags, bool ro=false);
     /// Initialize a partition with given meta tags.
-    part(const ibis::resource::vList &mtags);
+    part(const ibis::resource::vList &mtags, bool ro=false);
 
     /// Return descriptive information about the data partition.
     inline info* getInfo() const;
@@ -71,7 +72,7 @@ public:
     /// Replace existing index specification with a new one.
     void indexSpec(const char*);
     /// Return the time stamp on the partition.
-    time_t 	timestamp()	const {return switchTime;}
+    time_t timestamp()		const {return switchTime;}
     /// Return the list of meta tags as a single string.  The meta tags
     /// appears as 'name=value' pairs separated by comma (,).
     std::string metaTags()	const;
@@ -675,6 +676,7 @@ protected:
     std::vector<uint32_t> shapeSize;	///< Sizes of the dimensions.
 
     ibis::part::cleaner* myCleaner;	///< The cleaner for the file manager.
+    bool readonly;			///< Don't change the data.
 
 
     /******************************************************************/
@@ -1192,8 +1194,8 @@ private:
 
     /******************************************************************/
     // private member variables
-    mutable pthread_mutex_t mutex;	//< Mutex for partition manipulation.
-    mutable pthread_rwlock_t rwlock;	//< Rwlock for access control.
+    mutable pthread_mutex_t mutex;	///< Mutex for partition manipulation.
+    mutable pthread_rwlock_t rwlock;	///< Rwlock for access control.
 
     /******************************************************************/
     // private funcations
@@ -1276,17 +1278,18 @@ namespace ibis {
     // Extends the name space ibis::util to contain three more functions to
     // deal with the reconstruction of partitions.
     namespace util {
-	/// Look for data directories in the given pair of directories.
+	/// Look for data partitions in the given pair of directories.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList &parts,
-		      const char *adir, const char *bdir);
-	/// Look into the given directory for table.tdc files
+	gatherParts(ibis::partList &parts,
+		    const char *adir, const char *bdir, bool ro=false);
+	/// Look for data partitions in the given directory.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromDir(ibis::partList &parts, const char *adir);
+	gatherParts(ibis::partList &parts, const char *adir, bool ro=false);
 	/// Reconstruct partitions using data directories specified in the
-	/// resources.
+	/// resource list.
 	unsigned int FASTBIT_CXX_DLLSPEC
-	tablesFromResources(ibis::partList &parts, const ibis::resource &res);
+	gatherParts(ibis::partList &parts, const ibis::resource &res,
+		    bool ro=false);
     } // namespace util
 } // namespace ibis
 
