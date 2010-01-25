@@ -1351,23 +1351,23 @@ void ibis::bundles::sort() {
 
 	ibis::colList cols2(ncol);
 	std::vector<ibis::selectClause::AGREGADO> ops(ncol);
-	if (ncol > 0) { // move aggregation functions to the end of the list
-	    uint32_t iplain = 0;
-	    uint32_t iaggr = nplain;
-	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (comps.getAggregator(i) == ibis::selectClause::NIL) {
-		    cols2[iplain] = cols[i];
-		    ops[iplain] = ibis::selectClause::NIL;
-		    ++ iplain;
-		}
-		else {
-		    cols2[iaggr] = cols[i];
-		    ops[iaggr] = comps.getAggregator(i);
-		    ++ iaggr;
-		}
+	// move aggregation functions to the end of the list
+	for (uint32_t i1 = 0, i2 = 0, iplain = 0, iaggr = nplain;
+	     i1 < comps.size(); ++ i1) {
+	    if (comps.getAggregator(i1) == ibis::selectClause::NIL) {
+		cols2[iplain] = cols[i2];
+		ops[iplain] = ibis::selectClause::NIL;
+		++ iplain;
+		++ i2;
 	    }
-	    cols2.swap(cols);
+	    else if (strcmp(comps.argName(i1), "*") != 0) {
+		cols2[iaggr] = cols[i2];
+		ops[iaggr] = comps.getAggregator(i1);
+		++ iaggr;
+		++ i2;
+	    }
 	}
+	cols2.swap(cols);
 
  	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
@@ -1388,8 +1388,9 @@ void ibis::bundles::sort() {
 	}
 
 	if (nGroups < nHits) {// erase the dupliate elements
-	    for (uint32_t i2 = 0; i2 < nplain; ++ i2)
+	    for (uint32_t i2 = 0; i2 < nplain; ++ i2) {
 		cols[i2]->reduce(*starts);
+	    }
 	    for (uint32_t i2 = nplain; i2 < ncol; ++ i2) {
 		cols[i2]->reduce(*starts, ops[i2]);
 	    }

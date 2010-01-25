@@ -7,6 +7,11 @@
 	* src/bundles.cpp: change the constructor of bundles that takes a
 	list of values to skip over '*'
 	* src/bord.cpp: columnType(i) --> columnType(jbdl)
+	* tests/Makefile.am: modify test case 5 of check-text to exercise
+	the order-by functionality more
+	* src/mensa.cpp:390 match 'count(*)' exactly, not just 'count('
+	* src/bundle.cpp: update bundles::sort to deal with the case there
+	ncol is not the same as comps.size()
 
 2010-01-23 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: handle code to fill RIDs in the constructor that

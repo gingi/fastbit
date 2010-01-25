@@ -387,7 +387,7 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 	    return new ibis::tabula(cond, des.c_str(), nhits);
 	}
     }
-    else if (strnicmp(sel, "count(", 6) == 0) { // count(*)
+    else if (stricmp(sel, "count(*)") == 0) { // count(*)
 	int64_t nhits = computeHits(cond);
 	if (nhits < 0) {
 	    return 0;

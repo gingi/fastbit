@@ -573,9 +573,10 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		int32_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -658,9 +659,10 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		int32_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -764,9 +766,10 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		uint32_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -849,9 +852,10 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		uint32_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -955,9 +959,10 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		int64_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1040,9 +1045,10 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		int64_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1146,9 +1152,10 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		uint64_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1231,9 +1238,10 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		uint64_t tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1337,9 +1345,10 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		float tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1422,9 +1431,10 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		float tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1528,9 +1538,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		double tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1613,9 +1624,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		double tmp = (*array)[i1];
 		(*array)[i1] = (*array)[imin];
@@ -1723,9 +1735,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2].compare((*array)[imin]) < 0)
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		(*array)[i1].swap((*array)[imin]);
 		if (bdl) bdl->swapRIDs(i1, imin);
@@ -1811,9 +1824,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[i2] < (*array)[imin])
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		(*array)[i1].swap((*array)[imin]);
 		if (bdl) bdl->swapRIDs(i1, imin);
@@ -1920,9 +1934,10 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2)
+	    for (uint32_t i2=i1+1; i2<j; ++i2) {
 		if ((*array)[ind[i2]].compare((*array)[ind[imin]]) < 0)
 		    imin = i2;
+	    }
 	    if (imin > i1) {
 		uint32_t tmp = ind[i1];
 		ind[i1] = ind[imin];
