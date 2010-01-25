@@ -689,36 +689,38 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 } // stableSort
 
 /// Sort the array to produce @c ind so that array_t[ind[i]] is in
-/// ascending order.
+/// ascending order.  Uses the quicksort algorithm with introspection.  On
+/// entering this function, if the values in ind are less than size(), then
+/// this function only sorts the subset of elements identified by the
+/// indices.  Otherwise, it is fill with values between 0 and size()-1.  It
+/// returns an empty array ind to indicate errors.
 template<class T>
 void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
-    const size_t n = size();
-    if (n < 2) {
-	if (n == 1) {
-	    ind.resize(1);
-	    ind[0] = 0;
-	}
-	else {
-	    ind.clear();
-	}
+    const size_t na = size();
+    size_t ni = ind.size();
+    bool keepind = (ni > 0);
+    for (size_t j = 0; keepind && j < ni; ++ j)
+	keepind = (ind[j] < na);
+    if (! keepind) { // initalize ind to [0:na-1]
+	ni = na;
+	ind.resize(na);
+	for (size_t i = 0; i < na; ++i)
+	    ind[i] = i;
+    }
+    if (ni < 2) { // no need to sort
 	return;
     }
-    if (n > 0xFFFFFFFFUL) {
+    if (ni > 0xFFFFFFFFUL) { // do not support arrays of this size?
 	ind.clear();
 	return;
     }
 
-    if (ind.size() != n) { // the list of indices must be the right size
-	ind.resize(n);
-	for (size_t i = 0; i < n; ++i)
-	    ind[i] = i;
-    }
     // call qsort to do the actual work
-    qsort(ind, 0, n);
+    qsort(ind, 0, ni);
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "sort(" << n << ")";
-    for (size_t i = 0; i < n; ++i)
+    lg.buffer() << "sort(ind[" << ni << "])";
+    for (size_t i = 0; i < ni; ++i)
 	lg.buffer() << "\n" << i << "\t" << ind[i] << "\t" << m_begin[ind[i]];
 #endif
 } // sort

@@ -756,8 +756,7 @@ void ibis::colInts::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<int32_t> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colInts::sort
 
@@ -948,8 +947,7 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<uint32_t> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colUInts::sort
 
@@ -1140,8 +1138,7 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<int64_t> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colLongs::sort
 
@@ -1332,8 +1329,7 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<uint64_t> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colULongs::sort
 
@@ -1524,8 +1520,7 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<float> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colFloats::sort
 
@@ -1716,8 +1711,7 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j,
 	ind.reserve(j-i);
 	for (uint32_t k = i; k < j; ++ k)
 	    ind.push_back(k);
-	array_t<double> tmp(*array, i, j-i);
-	tmp.sort(ind);
+	array->sort(ind);
     }
 } // ibis::colDoubles::sort
 

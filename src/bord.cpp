@@ -1335,11 +1335,11 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	    continue;
 	}
 	else {
+	    tps[i] = bdl->columnType(jbdl);
 	    bptr = bdl->columnArray(jbdl);
 	    ++ jbdl;
 	}
 
-	tps[i] = bdl->columnType(i);
 	if (bptr == 0) {
 	    buf[i] = 0;
 	    continue;

@@ -1,3 +1,20 @@
+2010-01-25 John Wu <John.Wu at ACM.org>
+	* src/array_t.cpp: change the sort function that takes an index
+	array to sort the elements identified by the input array when the
+	input array is a valid subset of indices
+	* src/colValues.cpp: change sort function that takes an index
+	array to make use new sort function of array_t
+	* src/bundles.cpp: change the constructor of bundles that takes a
+	list of values to skip over '*'
+	* src/bord.cpp: columnType(i) --> columnType(jbdl)
+
+2010-01-23 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: handle code to fill RIDs in the constructor that
+	takes two directory names
+	* src/bundle.cpp: a number of loops with g as loop variable, but
+	actually used i instead, they cause the function reorder to
+	mebehavior (a problem reported by Valeria Lorenzetti)
+
 2010-01-22 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: change names ibis::util::tablesFromDir
 	and ibis::util::tablesFromResource to ibis::util::gatherParts, add

@@ -330,14 +330,17 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 		maxLength = readMetaData(nEvents, columns, activeDir);
 	    }
 	    else {
-		ibis::util::logMessage("Warning", "ibis::part::ctor(%s): "
-				       "stat.st_mode=%d is not a directory",
-				       adir, static_cast<int>(tmp.st_mode));
-		throw "ibis::part::ctor the given name is not a directory";
+		LOGGER(ibis::gVerbose > 5)
+		    << "Warning -- part::part(" << adir << ", "
+		    << (const void*)bdir << "): stat.st_mode="
+		    << static_cast<int>(tmp.st_mode) << " is not a directory";
+		throw std::invalid_argument("the argument to part::part "
+					    "was not a directory name");
 	    }
 	}
 	else {
-	    if (errno == ENOENT) { // no such directory, make one
+	    if (errno == ENOENT && readonly == false) {
+		// no such directory, make one
 		int ierr = ibis::util::makeDir(adir);
 		if (ierr < 0)
 		    throw "Can NOT generate the necessary directory for data";
@@ -347,7 +350,8 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 		    << "Warning -- ibis::part::part(" << (void*)adir << ", "
 		    << (void*)bdir << ") stat(" << adir << ") failed ... "
 		    << strerror(errno);
-		throw "ibis::part::ctor -- named directory does not exist.";
+		throw std::invalid_argument("the argument to part::part "
+					    "was not a directory name");
 	    }
 	}
     }
@@ -359,10 +363,22 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	    nEvents = rids->size();
 	if (nEvents > 0 && switchTime == 0)
 	    switchTime = time(0);
+
+	if (rids->size() == 0) {
+	    std::string fillrids(m_name);
+	    fillrids += ".fillRIDs";
+	    if (readonly == false &&
+		ibis::gParameters().isTrue(fillrids.c_str())) {
+		std::string fname(activeDir);
+		fname += FASTBIT_DIRSEP;
+		fname += "-rids";
+		fillRIDs(fname.c_str());
+	    }
+	}
     }
     else if (readonly) { // missing directory or metadata
 	std::string msg(activeDir);
-	msg += " does not exist or missing -part.txt";
+	msg += " does not exist or missing metadata file -part.txt";
 	throw std::invalid_argument(msg);
     }
 
@@ -413,12 +429,13 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	}
     }
 
-    if (nEvents > 0) { // read mask of the partition
+    if (nEvents > 0) {
 	std::string mskfile(activeDir);
 	if (! mskfile.empty())
 	    mskfile += FASTBIT_DIRSEP;
 	mskfile += "-part.msk";
 	try {
+	    // read mask of the partition
 	    amask.read(mskfile.c_str());
 	    if (amask.size() != nEvents) {
 		LOGGER(ibis::gVerbose > 1 && amask.size() > 0)
@@ -753,7 +770,7 @@ void ibis::part::init(const char* iname) {
     int maxLength = readMetaData(nEvents, columns, activeDir);
     if (maxLength <= 0 && readonly) {
 	std::string msg(activeDir);
-	msg += " does not exist or missing -part.txt";
+	msg += " does not exist or missing metadata file -part.txt";
 	throw std::invalid_argument(msg);
     }
     const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
@@ -780,7 +797,7 @@ void ibis::part::init(const char* iname) {
 	maxLength = readMetaData(nEvents, columns, activeDir);
 	if (maxLength <= 0 && readonly) {
 	    std::string msg(activeDir);
-	    msg += " does not exist or missing -part.txt";
+	    msg += " does not exist or missing metadata file -part.txt";
 	    throw std::invalid_argument(msg);
 	}
 	if (backupDir != 0) {
@@ -810,21 +827,23 @@ void ibis::part::init(const char* iname) {
     }
     delete [] pname;
 
-    if (maxLength > 0) { // metadata file exists
+    if (maxLength > 0 && nEvents > 0) { // metadata file exists
 	// read in the RIDs
 	readRIDs();
 	if (rids->size() > 0 && rids->size() != nEvents)
 	    nEvents = rids->size();
 	if (nEvents > 0 && switchTime == 0)
 	    switchTime = time(0);
-
-	std::string fillrids(m_name);
-	fillrids += ".fillRIDs";
-	if (nEvents > 0 && ibis::gParameters().isTrue(fillrids.c_str())) {
-	    std::string fname(activeDir);
-	    fname += FASTBIT_DIRSEP;
-	    fname += "-rids";
-	    fillRIDs(fname.c_str());
+	if (rids->size() == 0) {
+	    std::string fillrids(m_name);
+	    fillrids += ".fillRIDs";
+	    if (readonly == false &&
+		ibis::gParameters().isTrue(fillrids.c_str())) {
+		std::string fname(activeDir);
+		fname += FASTBIT_DIRSEP;
+		fname += "-rids";
+		fillRIDs(fname.c_str());
+	    }
 	}
     }
 
@@ -12879,7 +12898,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 	logMessage("gatherParts", "examining %s", dir1);
 
     try {
-	ibis::part* tmp = new ibis::part(dir1, static_cast<const char*>(0), ro);
+	ibis::part* tmp = new ibis::part(dir1, ro);
 	if (tmp != 0) {
 	    if (tmp->name() != 0 && tmp->nRows() > 0) {
 		++ cnt;

@@ -610,7 +610,7 @@ void ibis::bundle1::print(std::ostream& out) const {
 	    << (nbdl > 1 ? " values" : " value")
 	    << std::endl;
     if (starts != 0) {
-	out << *comps << " (with counts)\n";
+	out << (*col)->name() << " (with counts)\n";
 	for (uint32_t i=0; i < nbdl; ++i) {
 	    col->write(out, i);
 	    out << ",\t" << (*starts)[i+1] - (*starts)[i] << "\n";
@@ -1141,36 +1141,48 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 		       const std::vector<void*>& vals)
     : bundle(cmps) {
     id = tbl.name();
-    const uint32_t nc = (cmps.size() <= vals.size() ?
-			 cmps.size() : vals.size());
-    for (unsigned i = 0; i < nc; ++ i) {
-	const char* cn = cmps.argName(i);
+    for (unsigned ic = 0,  iv = 0; ic < cmps.size() && iv < vals.size();
+	 ++ ic) {
+	const char* cn = cmps.argName(ic);
 	ibis::column* c = tbl.getColumn(cn);
-	if (c != 0 && vals[i] != 0) {
-	    ibis::colValues* cv = 0;
-	    switch (cmps.getAggregator(i)) {
-	    case ibis::selectClause::AVG:
-	    case ibis::selectClause::SUM:
-	    case ibis::selectClause::VARPOP:
-	    case ibis::selectClause::VARSAMP:
-	    case ibis::selectClause::STDPOP:
-	    case ibis::selectClause::STDSAMP:
-		cv = new ibis::colDoubles(c, vals[i]);
-		break;
-	    default:
-		cv = ibis::colValues::create(c, vals[i]);
-		break;
+	if (c != 0) {
+	    if (vals[iv] != 0) {
+		ibis::colValues* cv = 0;
+		switch (cmps.getAggregator(ic)) {
+		case ibis::selectClause::AVG:
+		case ibis::selectClause::SUM:
+		case ibis::selectClause::VARPOP:
+		case ibis::selectClause::VARSAMP:
+		case ibis::selectClause::STDPOP:
+		case ibis::selectClause::STDSAMP:
+		    cv = new ibis::colDoubles(c, vals[iv]);
+		    break;
+		default:
+		    cv = ibis::colValues::create(c, vals[iv]);
+		    break;
+		}
+		if (cv != 0)
+		    cols.push_back(cv);
+		LOGGER(cv == 0 && ibis::gVerbose > 1)
+		    << "Warning -- bundles(" << tbl.name() << ", "
+		    << cmps << ", vals[" << vals.size()
+		    << "]) failed to create colValues object from column "
+		    << c->name() << " and vals[" << iv << "]";
 	    }
-	    if (cv != 0)
-		cols.push_back(cv);
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- bundles(" << tbl.name() << ", "
+		    << cmps << ", vals[" << vals.size()
+		    << "]) can not associate column " << c->name()
+		    << " with a nil pointer for values";
+	    }
+	    ++ iv;
 	}
 	else if (*cn != '*') {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- bundles constructor encountered a unknown "
-		"column (cmps.argName(" << i	<< ") = " << cmps.argName(i)
-		<< ") or a column without data (vals["
-		<< i << "] = " << vals[i] << ")";
-	    throw "bundles with unknown column name or without data";
+		<< "Warning -- bundles(" << tbl.name() << ", " << cmps
+		<< ", vals[" << vals.size() << "]) can not find a column named "
+		<< (cn ? cn : "");
 	}
     }
     sort();
@@ -1204,7 +1216,11 @@ void ibis::bundles::print(std::ostream& out) const {
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << std::endl;
     if (starts != 0) {
-	out << *comps << " (with counts)\n";
+	for (uint32_t i = 0; i < ncol; ++ i) {
+	    if (i > 0) out << ", ";
+	    out << (*(cols[i]))->name();
+	}
+	out << " (with counts)\n";
 	for (uint32_t i=0; i<size; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
 		cols[ii]->write(out, i);
@@ -1422,7 +1438,7 @@ void ibis::bundles::sort() {
 void ibis::bundles::reorder(const char *names, int direction) {
     if (names == 0 || *names == 0) return;
     if (starts == 0) return;
-    if (starts->size() <= 2) return;
+    if (starts->size() <= 2) return; // one group, no need to sort
 
     ibis::nameList sortkeys; // the new keys for sorting
     sortkeys.select(names); // preserve the order of the sort keys
@@ -1452,7 +1468,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	    rid2.push_back(new array_t<ibis::rid_t>
 			   (*rids, (*starts)[i], (*starts)[i+1]-(*starts)[i]));
 
-	if (sortkeys.size() > 1) {
+	if (sortkeys.size() > 1) { // multiple keys
 	    array_t<uint32_t> gb;
 	    gb.reserve(ngroups);
 	    gb.push_back(0);
@@ -1466,14 +1482,13 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		array_t<uint32_t> ind0; // indices over all ngroups
 		ind0.reserve(ngroups);
 		for (uint32_t g = 0; g < gb.size()-1; ++ g) {
-		    if (gb[i+1] > gb[i]+1) { // more than one group
+		    if (gb[g+1] > gb[g]+1) { // more than one group
 			array_t<uint32_t> ind1; // indices for group g
-			cols[j]->sort(gb[i], gb[i+1], ind1);
-			for (uint32_t k = 0; k < ind1.size(); ++ k)
-			    ind0.push_back(ind1[k]);
+			cols[j]->sort(gb[g], gb[g+1], ind1);
+			ind0.insert(ind0.end(), ind1.begin(), ind1.end());
 		    }
 		    else { // a single group
-			ind0.push_back(gb[i]);
+			ind0.push_back(gb[g]);
 		    }
 		}
 		for (uint32_t k = 0; k < cols.size(); ++ k)
@@ -1487,7 +1502,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		}
 	    }
 	}
-	else {
+	else { // a single key
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.size()) {
 		array_t<uint32_t> ind;
@@ -1510,7 +1525,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	    }
 	}
 
-	// time to put the smaller lists together again, also updates starts
+	// time to put the smaller lists together again, and update starts
 	ibis::RIDSet rid1;
 	rid1.reserve(rids->size());
 	for (uint32_t i = 0; i < ngroups; ++ i) {
@@ -1760,11 +1775,10 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 		if (j >= comps.size()) continue;
 
 		for (uint32_t g = 0; g < gb.size()-1; ++ g) {
-		    if (gb[i+1] > gb[i]+1) { // more than one group
+		    if (gb[g+1] > gb[g]+1) { // more than one group
 			array_t<uint32_t> ind1; // indices for group g
-			cols[j]->sort(gb[i], gb[i+1], ind1);
-			for (uint32_t k = 0; k < ind1.size(); ++ k)
-			    ind0.push_back(ind1[k]);
+			cols[j]->sort(gb[g], gb[g+1], ind1);
+			ind0.insert(ind0.end(), ind1.begin(), ind1.end());
 		    }
 		    else { // a single group
 			ind0.push_back(gb[i]);
