@@ -3465,14 +3465,15 @@ ibis::liga::liga(const ibis::partList &l) : ibis::mensa() {
 			 l.size() :
 			 (ibis::gVerbose > 2 ? (1 << ibis::gVerbose) : 5));
 	    if (mp > l.size()) mp = l.size();
-	    uint32_t jp = 1;
 	    desc_ = "a simple list of partition";
 	    if (l.size() > 1) desc_ += "s";
 	    desc_ += ": ";
 	    desc_ += parts[0]->name();
+	    uint32_t jp = 1;
 	    while (jp < mp) {
 		desc_ += (jp+1 < parts.size() ? ", " : " and ");
 		desc_ += parts[jp]->name();
+		++ jp;
 	    }
 	    if (jp < parts.size()) {
 		std::ostringstream oss;
@@ -3481,16 +3482,12 @@ ibis::liga::liga(const ibis::partList &l) : ibis::mensa() {
 	    }
 	}
     }
-    if (ibis::gVerbose > 0 && ! name_.empty()) {
-	ibis::util::logger lg;
-	lg.buffer() << "ibis::liga -- constructed table "
-		    << name_ << " (" << desc_ << ") from a list of "
-		    << l.size() << " data partition"
-		    << (l.size()>1 ? "s" : "")
-		    << ", with " << naty.size() << " column"
-		    << (naty.size()>1 ? "s" : "") << " and "
-		    << nrows << " row" << (nrows>1 ? "s" : "");
-    }
+    LOGGER(ibis::gVerbose > 0 && ! name_.empty())
+	<< "ibis::liga -- constructed table " << name_ << " (" << desc_
+	<< ") from a list of " << l.size() << " data partition"
+	<< (l.size()>1 ? "s" : "") << ", with " << naty.size() << " column"
+	<< (naty.size()>1 ? "s" : "") << " and " << nrows << " row"
+	<< (nrows>1 ? "s" : "");
 } // ibis::liga::liga
 
 ibis::table* ibis::table::create(ibis::part& p) {

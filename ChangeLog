@@ -1,3 +1,8 @@
+2010-01-28 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp:3476 add '++jp' to increment the loop index, an
+	error reported by Joel Dolisy <Joel dot Dolisy at solarwinds dot
+	com>
+
 2010-01-27 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp: remove extra call to reverse the row order
 	(address a problem reported by Valeria Lorenzetti)

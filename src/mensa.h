@@ -213,12 +213,13 @@ private:
 }; // ibis::mensa::cursor
 
 /// A specialization of class mensa.  It holds a list of data partitions
-/// that it does not own.  It does not create these partitions nor delete
+/// but does not own them.  It does not create these partitions nor delete
 /// them.  It inherits the public functions of mensa without making any
 /// additions or modifications.
 ///
 /// @note About the name: Liga is the Danish translation of the term
-/// "league table."
+/// "league table."  Oh, well, guess we are running out short names for a
+/// table.
 class ibis::liga : public ibis::mensa {
 public:
     liga(ibis::part&);
