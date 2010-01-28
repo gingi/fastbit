@@ -16,10 +16,11 @@
 #include <limits>	// std::numeric_limits
 
 /// Reorder all columns of a partition.  The lowest cardinality column is
-/// ordered first.  Only integral valued columns are used in sorting.
+/// ordered first.  Only integer-valued columns are used in sorting.
 /// Returns the number of rows reordered when successful, otherwise return
 /// a negative number and the base data is corrupt!
-/// Danger: This function does not update null masks!
+///
+///  @note Danger: This function does not update null masks!
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
 	amask.cnt() != amask.size()) return 0;
@@ -30,20 +31,7 @@ long ibis::part::reorder() {
     std::string evt = "part[";
     evt += m_name;
     evt += "]::reorder";
-    writeLock lock(this, evt.c_str()); // can't process other operations
-    for (columnList::const_iterator it = columns.begin();
-	 it != columns.end();
-	 ++ it) { // purge all index files
-	if (! it->second->isNumeric()) return -1L;
-	ibis::bitvector msk;
-	it->second->getNullMask(msk);
-	if (msk.cnt() != msk.size()) return -2L;
-
-	(*it).second->unloadIndex();
-	(*it).second->purgeIndexFile();
-    }
-
-    // first gather all integral valued columns
+    // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
     colVector keys, load; // sort according to the keys
     array_t<uint64_t> ranges;
@@ -95,7 +83,24 @@ long ibis::part::reorder() {
 	oss << ')';
 	evt = oss.str();
     }
+
+    writeLock lock(this, evt.c_str()); // can't process other operations
     ibis::util::timer mytimer(evt.c_str(), 1);
+    for (columnList::const_iterator it = columns.begin();
+	 it != columns.end();
+	 ++ it) { // purge all index files
+	if (! it->second->isNumeric()) return -1L;
+	ibis::bitvector msk;
+	it->second->getNullMask(msk);
+	if (msk.cnt() != msk.size()) return -2L;
+
+	(*it).second->unloadIndex();
+	(*it).second->purgeIndexFile();
+    }
+    if (backupDir != 0 && *backupDir != 0)
+	ibis::fileManager::instance().flushDir(backupDir);
+    if (activeDir != 0 && *activeDir != 0)
+	ibis::fileManager::instance().flushDir(activeDir);
 
     // the sorting loop
     ierr = nRows();
@@ -159,7 +164,7 @@ long ibis::part::reorder() {
 	lg.buffer() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
-	    if (i != ind1[i])
+	    if (ibis::gVerbose > 6)
 		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < marks.size())
 		marks[ind1[i]] = true;
@@ -268,20 +273,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
     std::string evt = "part[";
     evt += m_name;
     evt += "]::reorder";
-    writeLock lock(this, evt.c_str()); // can't process other operations
-    for (columnList::const_iterator it = columns.begin();
-	 it != columns.end();
-	 ++ it) { // purge all index files
-	if (! it->second->isNumeric()) return -1L;
-	ibis::bitvector msk;
-	it->second->getNullMask(msk);
-	if (msk.cnt() != msk.size()) return -2L;
-
-	(*it).second->unloadIndex();
-	(*it).second->purgeIndexFile();
-    }
-
-    // first gather all numerical valued columns
+    // first gather all columns with numerical values
     typedef std::vector<column*> colVector;
     std::set<const char*, ibis::lessi> used;
     colVector keys, load; // sort according to the keys
@@ -327,13 +319,6 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	}
 	return 0;
     }
-    for (ibis::part::columnList::const_iterator it = columns.begin();
-	 it != columns.end(); ++ it) {
-	std::set<const char*, ibis::lessi>::const_iterator uit =
-	    used.find((*it).first);
-	if (uit == used.end())
-	    load.push_back((*it).second);
-    }
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
 	oss << evt << '(' << keys[0]->name();
@@ -342,7 +327,32 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	oss << ')';
 	evt = oss.str();
     }
+
+    writeLock lock(this, evt.c_str()); // can't process other operations
     ibis::util::timer mytimer(evt.c_str(), 1);
+    for (columnList::const_iterator it = columns.begin();
+	 it != columns.end();
+	 ++ it) { // purge all index files
+	if (! it->second->isNumeric()) return -1L;
+	ibis::bitvector msk;
+	it->second->getNullMask(msk);
+	if (msk.cnt() != msk.size()) return -2L;
+
+	(*it).second->unloadIndex();
+	(*it).second->purgeIndexFile();
+    }
+    if (backupDir != 0 && *backupDir != 0)
+	ibis::fileManager::instance().flushDir(backupDir);
+    if (activeDir != 0 && *activeDir != 0)
+	ibis::fileManager::instance().flushDir(activeDir);
+
+    for (ibis::part::columnList::const_iterator it = columns.begin();
+	 it != columns.end(); ++ it) {
+	std::set<const char*, ibis::lessi>::const_iterator uit =
+	    used.find((*it).first);
+	if (uit == used.end())
+	    load.push_back((*it).second);
+    }
 
     // the sorting loop
     ierr = nRows();
@@ -407,7 +417,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	lg.buffer() << "ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
-	    if (i != ind1[i])
+	    if (ibis::gVerbose > 6)
 		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < ind1.size())
 		marks[ind1[i]] = true;

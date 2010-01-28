@@ -2,6 +2,11 @@
 	* src/mensa.cpp:3476 add '++jp' to increment the loop index, an
 	error reported by Joel Dolisy <Joel dot Dolisy at solarwinds dot
 	com>
+	* src/parti.cpp: add code to empty the memory cache in the
+	functions that perform reordering, otherwise, some files to be
+	modified by the reordering could be hold in memory in read-only
+	mode.  Joel Dolisy reported that such situation can cause file
+	sharing violation on MS Windows
 
 2010-01-27 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp: remove extra call to reverse the row order

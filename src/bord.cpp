@@ -1592,7 +1592,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	lg.buffer() << "DEBUG -- bord[" << name() << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
-	    if (i != ind1[i])
+	    if (ibis::gVerbose > 6)
 		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < marks.size())
 		marks[ind1[i]] = true;

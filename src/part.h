@@ -1607,7 +1607,7 @@ inline int64_t ibis::part::evaluateJoin
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
-/// Unload the indexes to free up come resources.
+/// Unload the indexes to free up some resources.
 inline void ibis::part::cleaner::operator()() const {
     const uint32_t sz = ibis::fileManager::bytesInUse();
     thePart->unloadIndexes();

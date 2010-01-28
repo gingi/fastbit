@@ -617,7 +617,8 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
@@ -797,7 +798,8 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
@@ -999,7 +1001,8 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 				<< ")\n";
 		}
 		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp = cptrw->selectDoubles(*(bins[i]));
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
 			lg.buffer() << "** failed to retrieve "
 				    << bins[i]->cnt() << " value"
