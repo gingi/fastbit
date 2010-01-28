@@ -1,3 +1,11 @@
+2010-01-27 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp: remove extra call to reverse the row order
+	(address a problem reported by Valeria Lorenzetti)
+	* src/qExpr.h: make sure the name is a valid name before recording
+	it is a barrel object in function ibis::variable::recordVariable
+	* src/part.cpp:12114 make sure column has a valid name before
+	print a warning message about not able to locate a column
+
 2010-01-25 John Wu <John.Wu at ACM.org>
 	* src/array_t.cpp: change the sort function that takes an index
 	array to sort the elements identified by the input array when the

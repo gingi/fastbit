@@ -564,8 +564,10 @@ namespace ibis {
 	    const char* variableName() const {return name;}
 
 	    void recordVariable(barrel& bar) const {
-		varind = bar.recordVariable(name);
-		myBar = &bar;
+		if (name != 0 && *name != 0 && *name != '*') {
+		    varind = bar.recordVariable(name);
+		    myBar = &bar;
+		}
 	    }
 
 	private:

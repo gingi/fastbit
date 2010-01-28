@@ -1443,6 +1443,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 
     ibis::nameList sortkeys; // the new keys for sorting
     sortkeys.select(names); // preserve the order of the sort keys
+
     bool nosort = true;
     for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
 	nosort = (stricmp(sortkeys[j], comps.argName(j)) == 0);
@@ -1502,27 +1503,34 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		    delete tmp;
 		}
 	    }
+
+	    if (direction < 0) { // reverse the order
+		for (uint32_t j = 0; j < cols.size(); ++ j)
+		    for (uint32_t i = 0; i < ngroups/2; ++ i)
+			cols[j]->swap(i, ngroups-1-i);
+		for (uint32_t i = 0; i < ngroups/2; ++ i) {
+		    const uint32_t j = ngroups - 1 - i;
+		    ibis::RIDSet *tmp = rid2[i];
+		    rid2[i] = rid2[j];
+		    rid2[j] = tmp;
+		}
+	    }
 	}
 	else { // a single key
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.size()) {
 		array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
+		if (direction < 0) { // reverse the order of ind
+		    for (uint32_t i = 0; i < ngroups/2; ++ i) {
+			const uint32_t itmp = ind[i];
+			ind[i] = ind[ngroups-1-i];
+			ind[ngroups-1-i] = itmp;
+		    }
+		}
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(rid2, ind);
-	    }
-	}
-
-	if (direction < 0) { // reverse the order
-	    for (uint32_t j = 0; j < cols.size(); ++ j)
-		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[j]->swap(i, ngroups-1-i);
-	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		const uint32_t j = ngroups - 1 - i;
-		ibis::RIDSet *tmp = rid2[i];
-		rid2[i] = rid2[j];
-		rid2[j] = tmp;
 	    }
 	}
 
@@ -1574,27 +1582,34 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		    delete tmp;
 		}
 	    }
+
+	    if (direction < 0) { // reverse the order
+		for (uint32_t j = 0; j < cols.size(); ++ j)
+		    for (uint32_t i = 0; i < ngroups/2; ++ i)
+			cols[j]->swap(i, ngroups-1-i);
+		for (uint32_t i = 0; i < ngroups/2; ++ i) {
+		    const uint32_t j = ngroups - 1 - i;
+		    const uint32_t tmp = (*starts)[i];
+		    (*starts)[i] = (*starts)[j];
+		    (*starts)[j] = tmp;
+		}
+	    }
 	}
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.size()) {
 		ibis::array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
+		if (direction < 0) { // reverse the order of ind
+		    for (uint32_t i = 0; i < ngroups/2; ++ i) {
+			const uint32_t itmp = ind[i];
+			ind[i] = ind[ngroups-1-i];
+			ind[ngroups-1-i] = itmp;
+		    }
+		}
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(*(starts), ind);
-	    }
-	}
-
-	if (direction < 0) { // reverse the order
-	    for (uint32_t j = 0; j < cols.size(); ++ j)
-		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[j]->swap(i, ngroups-1-i);
-	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		const uint32_t j = ngroups - 1 - i;
-		const uint32_t tmp = (*starts)[i];
-		(*starts)[i] = (*starts)[j];
-		(*starts)[j] = tmp;
 	    }
 	}
 
@@ -1607,8 +1622,6 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	}
 	starts->push_back(cumu);
     }
-    if (direction < 0)
-	reverse();
     // new content, definitely not in file
     infile = false;
 } // ibis::bundles::reorder

@@ -717,11 +717,12 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 
     // call qsort to do the actual work
     qsort(ind, 0, ni);
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "sort(ind[" << ni << "])";
+    lg.buffer() << "DEBUG -- sort(ind[" << ni << "])";
     for (size_t i = 0; i < ni; ++i)
-	lg.buffer() << "\n" << i << "\t" << ind[i] << "\t" << m_begin[ind[i]];
+	lg.buffer() << "\nind[" << i << "]=" << ind[i] << "\t"
+		    << m_begin[ind[i]];
 #endif
 } // sort
 
@@ -784,7 +785,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "topk(" << k << ")\n";
+    lg.buffer() << "DEBUG -- topk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
@@ -840,7 +841,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
     ind.resize(back); // drop the indices of partially sorted indices
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "bottomk(" << k << ")\n";
+    lg.buffer() << "DEBUG -- bottomk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
@@ -906,7 +907,7 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     isort(ind, front, back);
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "qsort(" << front << ", " << back << ")\n";
+    lg.buffer() << "DEBUG -- qsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
@@ -956,9 +957,9 @@ void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
 	// the temporary index goes to its final location
 	ind[curr] = itmp;
     } // while (1)
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "hsort(" << front << ", " << back << ")\n";
+    lg.buffer() << "DEBUG -- hsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i) {
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]];
 	if (i > front && m_begin[ind[i-1]] > m_begin[ind[i]])
@@ -1000,7 +1001,7 @@ void ibis::array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
     }
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "isort(" << front << ", " << back << ")\n";
+    lg.buffer() << "DEBUG -- isort(" << front << ", " << back << ")\n";
     for (i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
@@ -1095,7 +1096,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 	}
 	else if (m_begin[ind[tmp]] > target) {
 	    // swap the larger value to the end -- to make sure it is in
-	    // the right position for the operatioin '--j' at the beginning
+	    // the right position for the operation '--j' at the beginning
 	    // of the next while block
 	    i = ind[j];
 	    ind[j] = ind[tmp];
@@ -1154,7 +1155,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 	pivot = i;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "partition(" << front << ", " << back << ") = "
+    lg.buffer() << "DEBUG -- partition(" << front << ", " << back << ") = "
 		<< pivot << ", target = " << target << "\nfirst half: ";
     for (i = front; i < pivot; ++i)
 	lg.buffer() << m_begin[ind[i]] << " ";

@@ -12107,13 +12107,13 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     for (uint32_t i = 0; i < size(); ++ i) {
 	ibis::bitvector tmp(_tbl->getNullMask());
 	if (cols.size()<=i || cols[i]==0) {
-	    const ibis::column* col = _tbl->getColumn(name(i));
+	    const char *nm = name(i);
+	    const ibis::column* col = _tbl->getColumn(nm);
 	    if (col)
 		col->getNullMask(tmp);
-	    else
+	    else if (nm != 0 && *nm != 0 && *nm != '*')
 		_tbl->logWarning("barrell::getNullMask",
-				 "can not find a column named \"%s\"",
-				 name(i));
+				 "can not find a column named \"%s\"", nm);
 	}
 	else {
 	    cols[i]->getNullMask(tmp);

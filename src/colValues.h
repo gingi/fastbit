@@ -125,7 +125,9 @@ public:
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
-	int tmp = (*array)[i]; (*array)[i] = (*array)[j]; (*array)[j] = tmp;}
+	int32_t tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
+	(*array)[j] = tmp;}
 
     void swap(colInts& rhs) { // swap two colInts
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
@@ -205,7 +207,8 @@ public:
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
-	unsigned tmp = (*array)[i]; (*array)[i] = (*array)[j];
+	uint32_t tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
 	(*array)[j] = tmp;}
 
     virtual void   reduce(const array_t<uint32_t>& starts);
@@ -387,7 +390,8 @@ public:
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
-	uint64_t tmp = (*array)[i]; (*array)[i] = (*array)[j];
+	uint64_t tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
 	(*array)[j] = tmp;}
 
     virtual void   reduce(const array_t<uint32_t>& starts);
@@ -569,7 +573,8 @@ public:
     virtual void   erase(uint32_t i, uint32_t j) {
 	array->erase(array->begin()+i, array->begin()+j);}
     virtual void   swap(uint32_t i, uint32_t j) {
-	double tmp = (*array)[i]; (*array)[i] = (*array)[j];
+	double tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
 	(*array)[j] = tmp;}
 
     void swap(colDoubles& rhs) { // swap two colDoubles
