@@ -1,3 +1,12 @@
+2010-01-29 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: add test data directory t2 to exercise the
+	functions that work with multiple data partitions
+	* src/parti.cpp, examples/ibis.cpp: add more print out to
+	reordering operations
+	* src/fileManager.cpp: storage::enlarge used copy-and-swap idiom
+	incorrectly and caused the client to assume the operation was a
+	failure
+
 2010-01-28 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp:3476 add '++jp' to increment the loop index, an
 	error reported by Joel Dolisy <Joel dot Dolisy at solarwinds dot
@@ -36,7 +45,7 @@
 	takes two directory names
 	* src/bundle.cpp: a number of loops with g as loop variable, but
 	actually used i instead, they cause the function reorder to
-	mebehavior (a problem reported by Valeria Lorenzetti)
+	misbehavior (a problem reported by Valeria Lorenzetti)
 
 2010-01-22 John Wu <John.Wu at ACM.org>
 	* src/part.h, src/part.cpp: change names ibis::util::tablesFromDir

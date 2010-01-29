@@ -11,7 +11,7 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 text-0 \
+EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 hist4 text-0 \
     thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
     maurel.csv scripts/fastbit-config.in scripts/hcompare.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
@@ -34,19 +34,20 @@ small-tests: append-test sanity-check match-counts
 large-tests: large-append-test
 	 $(MAKE) multilevel && $(MAKE) large-sanity-check
 #
-check-thula: $(TESTDIR)/t1/-part.txt $(THULAEXE)
+check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and -1 < c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 > /dev/null && if [ `diff -w thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 > /dev/null && if [ `diff -w thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@echo
 check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and -2 <= c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@echo
-check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
+check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0 OR a = -1 OR a = -2" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and -3 < c < exp(log(9.5))" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
@@ -60,6 +61,9 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(IBISEXE) -d $(TESTDIR)/t1 -p "weighted a b : c>80" > $(TESTDIR)/hist3 && if [ `diff -w hist3 $(TESTDIR)/hist3 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select c where b > 90 order by c" -r -v 2 | if [ `fgrep "Successfully verified 18 RIDs" - | wc -l` -gt 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-12.log && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-12.log | wc -l` -eq 1 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
+	@$(IBISEXE) -r $(TESTDIR)/t2/t2c -v 2 | if [ `fgrep 'reorder' - | fgrep 'completed successfully' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else  echo Did NOT pass $@ case 13; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select floor(b/10) as sb, avg(c), countdistinct(c) where a < 25" -o $(TESTDIR)/hist4 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@if [ ` diff -w hist4 $(TESTDIR)/hist4 | wc -l ` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@echo
 check-text: $(IBISEXE) $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0 -b -v -v > $(TESTDIR)/check-text.log 2>&1
@@ -105,15 +109,25 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
+$(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
+	rm -rf $(TESTDIR)/t0
+	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t1
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv
-$(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
-	rm -rf $(TESTDIR)/t0
-	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	@echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
+$(TESTDIR)/t2/t2a/-part.txt: $(ARDEAEXE) test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv
+$(TESTDIR)/t2/t2b/-part.txt: $(ARDEAEXE) test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv
+$(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
 # a simple internal sanity check
 sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	@echo

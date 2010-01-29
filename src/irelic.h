@@ -411,7 +411,7 @@ private:
     sapid& operator=(const sapid&);
 }; // ibis::sapid
 
-/// The two-level interval-equality code.
+/// The precise version of two-level interval-equality index.
 ///
 /// @note In fuzzy classification / clustering, many interval equality
 /// conditions are used.  Hence the crazy name.
@@ -472,7 +472,7 @@ private:
     fuzz& operator=(const fuzz&);
 }; // ibis::fuzz
 
-/// The two-level range-equality code.
+/// The precise version of the two-level range-equality index.
 ///
 /// @note Bylt is Danish word for pack, the name of the binned version of
 /// the two-level range-equality code.
@@ -527,8 +527,9 @@ private:
     bylt& operator=(const bylt&);
 }; // ibis::bylt
 
-/// The two-level equality-equality code.
-/// @note zone is Italian word for zone, the name of the binned version of
+/// The precise version of the two-level equality-equality index.
+///
+/// @note Zona is Italian word for zone, the name of the binned version of
 /// the two-level equality-equality code.
 class ibis::zona : public ibis::relic {
 public:

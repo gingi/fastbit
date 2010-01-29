@@ -24,13 +24,14 @@
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
 	amask.cnt() != amask.size()) return 0;
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::reorder";
+    ibis::util::timer mytimer(evt.c_str(), 1);
 
     long ierr = purgeInactive();
     if (ierr <= 0) return ierr;
 
-    std::string evt = "part[";
-    evt += m_name;
-    evt += "]::reorder";
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
     colVector keys, load; // sort according to the keys
@@ -83,9 +84,10 @@ long ibis::part::reorder() {
 	oss << ')';
 	evt = oss.str();
     }
+    LOGGER(ibis::gVerbose > 2)
+	<< evt << " start sorting ...";
 
     writeLock lock(this, evt.c_str()); // can't process other operations
-    ibis::util::timer mytimer(evt.c_str(), 1);
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
@@ -184,6 +186,8 @@ long ibis::part::reorder() {
 	(*it).second->isSorted((*it).second == keys[0]);
     }
 
+    LOGGER(ibis::gVerbose > 2 && load.size() > 0)
+	<< evt << " start moving unsorted columns ...";
     for (uint32_t i = 0; i < load.size(); ++ i) {
 	std::string sname;
 	const char *fname = load[i]->dataFileName(sname);
@@ -229,9 +233,9 @@ long ibis::part::reorder() {
 	    continue;
 	}
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << evt << " failed to write data to " << fname << " for column "
-	    << load[i]->name() << " (type " << ibis::TYPESTRING[load[i]->type()]
-	    << "), ierr = " << ierr;
+	    << "Warning -- "<< evt << " failed to write data to " << fname
+	    << " for column " << load[i]->name() << " (type "
+	    << ibis::TYPESTRING[load[i]->type()] << "), ierr = " << ierr;
     }
 
     if (rids != 0 && rids->size() == nEvents) {
@@ -242,13 +246,13 @@ long ibis::part::reorder() {
 	fname += "-rids";
 	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << evt << " failed to write data to " << fname
+	    << "Warning -- " << evt << " failed to write data to " << fname
 	    << ", ierr = " << ierr;
 	if (ierr > 0 && static_cast<unsigned>(ierr) == nEvents) {
 	    rids = new ibis::RIDSet;
 	    ierr = ibis::fileManager::instance().getFile(fname.c_str(), *rids);
 	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-		<< evt << " failed to read " << fname
+		<< "Warning -- " << evt << " failed to read " << fname
 		<< " after reordering, ierr = " << ierr;
 	}
     }
@@ -262,17 +266,21 @@ long ibis::part::reorder() {
 	m_desc += currtime;
     }
     writeMetaData(nEvents, columns, activeDir);
+    LOGGER(ibis::gVerbose > 1 && ierr >= 0)
+	<< evt << " completed successfully";
     return ierr;
 } // ibis::part::reorder
 
 long ibis::part::reorder(const ibis::table::stringList& names) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
-    long ierr = purgeInactive();
-    if (ierr <= 0) return ierr;
-
     std::string evt = "part[";
     evt += m_name;
     evt += "]::reorder";
+    ibis::util::timer mytimer(evt.c_str(), 1);
+
+    long ierr = purgeInactive();
+    if (ierr <= 0) return ierr;
+
     // first gather all columns with numerical values
     typedef std::vector<column*> colVector;
     std::set<const char*, ibis::lessi> used;
@@ -327,9 +335,10 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	oss << ')';
 	evt = oss.str();
     }
+    LOGGER(ibis::gVerbose > 2)
+	<< evt << " start sorting ...";
 
     writeLock lock(this, evt.c_str()); // can't process other operations
-    ibis::util::timer mytimer(evt.c_str(), 1);
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
@@ -437,7 +446,8 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	(*it).second->isSorted((*it).second == keys[0]);
     }
 
-
+    LOGGER(ibis::gVerbose > 2 && load.size() > 0)
+	<< evt << " start moving unsorted columns ...";
     for (uint32_t i = 0; i < load.size(); ++ i) {
 	std::string sname;
 	const char *fname = load[i]->dataFileName(sname);
@@ -479,9 +489,9 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	    continue;
 	}
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << evt << " failed to write data to " << fname << " for column "
-	    << load[i]->name() << " (type " << ibis::TYPESTRING[load[i]->type()]
-	    << "), ierr = " << ierr;
+	    << "Warning -- " << evt << " failed to write data to " << fname
+	    << " for column " << load[i]->name() << " (type "
+	    << ibis::TYPESTRING[load[i]->type()] << "), ierr = " << ierr;
     }
 
     if (rids != 0 && rids->size() == nEvents) {
@@ -492,13 +502,13 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	fname += "-rids";
 	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << evt << " failed to write data to " << fname
+	    << "Warning -- " << evt << " failed to write data to " << fname
 	    << ", ierr = " << ierr;
 	if (ierr > 0 && static_cast<unsigned>(ierr) == nEvents) {
 	    rids = new ibis::RIDSet;
 	    ierr = ibis::fileManager::instance().getFile(fname.c_str(), *rids);
 	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-		<< evt << " failed to read " << fname
+		<< "Warning -- " << evt << " failed to read " << fname
 		<< " after reordering, ierr = " << ierr;
 	}
     }
@@ -512,6 +522,8 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	m_desc += currtime;
     }
     writeMetaData(nEvents, columns, activeDir);
+    LOGGER(ibis::gVerbose > 1 && ierr >= 0)
+	<< evt << " completed successfully";
     return ierr;
 } // ibis::part::reorder
 

@@ -2332,6 +2332,8 @@ static void parse_args(int argc, char** argv,
     // reorder the data directories first, a data directory may be followed
     // by ':' and column names
     for (unsigned i = 0; i < rdirs.size(); ++ i) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << *argv << " -reorder " << rdirs[i];
 	char* str = const_cast<char*>(strrchr(rdirs[i], ':'));
 	if (str != 0 && str > rdirs[i] && str[1] != '/' && str[1] != '\\') {
 	    std::string dir;

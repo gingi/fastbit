@@ -1839,11 +1839,10 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    << static_cast<void*>(m_begin);
 	ibis::fileManager::increaseUse(nelm, evt.c_str());
     }
-    else { // resize the current storage object
+    else { // resize the current storage object with copy-and-swap
 	try {
 	    ibis::fileManager::storage cp(nelm);
 	    memcpy(cp.m_begin, m_begin, oldsize);
-	    cp.m_end = cp.m_begin + oldsize;
 	    swap(cp);
 	}
 	catch (...) {

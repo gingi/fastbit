@@ -13,6 +13,13 @@ Version ibis1.1.6
    Streichardt
 -- add aggregation function median, update the implementation of
    counting distinct values to avoid copying data
+-- correct the handling of signs in front of numbers to correct an issue
+   reported by Andreas Strechardt
+-- streamline the handling of constant expressions
+-- fix bugs in group-by operations reported by Valeria Lorenzetti
+-- fix a bug in the constructor of ibis::liga (reported by Joel Dolisy)
+-- clear the cache before performing the reordering function as the
+   suggestion of Joel Dolisy
 
 Thu Dec 17 14:14:28 PST 2009
 Version ibis1.1.5
