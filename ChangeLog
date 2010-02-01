@@ -1,3 +1,10 @@
+2010-02-01 John Wu <John.Wu at ACM.org>
+	* src/part.cpp:780 modify the tests to take into account the
+	trailing directory separator (which is removed internally) to
+	address an issue reported by Valeria Lorenzetti
+	* tests/Makefile.am: add trailing / to a few test cases to verify
+	the fix
+
 2010-01-29 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add test data directory t2 to exercise the
 	functions that work with multiple data partitions

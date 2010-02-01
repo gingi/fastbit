@@ -774,11 +774,15 @@ void ibis::part::init(const char* iname) {
 	throw std::invalid_argument(msg);
     }
     const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
-    const bool useDir = (iname == 0 || *iname == 0 ||
-			 strcmp(activeDir, iname) == 0 ||
-			 (tmp != 0 ?
-			  (0 == strcmp(tmp+1, iname)) :
-			  (0 == strcmp(activeDir, iname))));
+    // use the current activeDir if it contains a valid data partition, the
+    // name was derived from global resource parameters, or activeDir
+    // matches exactly the input name.
+    const bool useDir = ((m_name != 0 && nEvents > 0) ||
+			 iname == 0 || *iname == 0 ||
+			 (iname[strlen(iname)-1] != FASTBIT_DIRSEP ?
+			  strcmp(activeDir, iname) == 0 :
+			  strncmp(activeDir, iname, strlen(iname)-1) == 0) ||
+			 (tmp != 0 && 0 == strcmp(tmp+1, iname)));
     if (! useDir) { // need a new subdirectory
 	std::string subdir = activeDir;
 	subdir += FASTBIT_DIRSEP;
@@ -12894,8 +12898,8 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 				 bool ro) {
     if (dir1 == 0) return 0;
     unsigned int cnt = 0;
-    if (ibis::gVerbose > 1)
-	logMessage("gatherParts", "examining %s", dir1);
+    LOGGER(ibis::gVerbose > 1)
+	<< "util::gatherParts -- examining " << dir1;
 
     try {
 	ibis::part* tmp = new ibis::part(dir1, ro);
@@ -12924,11 +12928,10 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 		    tlist.push_back(it->second);
 	    }
 	    else {
-		if (ibis::gVerbose > 4)
-		    logMessage("gatherParts", "directory %s "
-			       "does not contain a valid \"-part.txt\" file "
-			       "or contains an empty partition",
-			       dir1);
+		LOGGER(ibis::gVerbose > 4)
+		    << "util::gatherParts -- directory " << dir1
+		    << "does not contain a valid \"-part.txt\" file "
+		    "or contains an empty partition";
 		delete tmp;
 	    }
 	}
@@ -12959,9 +12962,10 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 	    continue;
 	}
 	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
-	    ibis::util::logMessage("gatherParts",
-				   "name (%s%c%s) too long",
-				   dir1, FASTBIT_DIRSEP, ent->d_name);
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- util::gatherParts skipping " << dir1
+		<< FASTBIT_DIRSEP << ent->d_name
+		<< " because the name has more than " << PATH_MAX << " bytes";
 	    continue;
 	}
 
@@ -12987,9 +12991,9 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
 				 const char* adir, const char* bdir, bool ro) {
     if (adir == 0 || *adir == 0) return 0;
     unsigned int cnt = 0;
-    if (ibis::gVerbose > 1)
-	logMessage("gatherParts", "examining %s (%s)", adir,
-		   (bdir ? bdir : "?"));
+    LOGGER(ibis::gVerbose > 1)
+	<< "util::gatherParts -- examining directories " << adir << " and "
+	<< (bdir ? bdir : "?");
 
     try {
 	part* tbl = new ibis::part(adir, bdir, ro);
@@ -13006,19 +13010,17 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
 	    ibis::partAssoc::iterator it = sorted.find(tbl->name());
 	    if (it == sorted.end()) { // a new name
 		sorted[tbl->name()] = tbl;
-		if (ibis::gVerbose > 1)
-		    logMessage("gatherParts",
-			       "add new partition \"%s\"", tbl->name());
+		LOGGER(ibis::gVerbose > 1)
+		    << "util::gatherParts -- add new partition \""
+		    << tbl->name() << "\"";
 	    }
 	    else {
-		if (ibis::gVerbose > 1)
-		    logMessage("gatherParts", "there "
-			       "is already an ibis::part with name of "
-			       "\"%s\"(%s) in the list of tables "
-			       "-- will discard the previous "
-			       "data partition from %s", tbl->name(),
-			       (*it).second->currentDataDir(),
-			       tbl->currentDataDir());
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- util::gatherParts found a new partition "
+		    "named \"" << tbl->name() << "\" from "
+		    << tbl->currentDataDir()
+		    << ", discarding the old one from "
+		    << (*it).second->currentDataDir();
 		delete (*it).second;
 		sorted.erase(it);
 		sorted[tbl->name()] = tbl;
@@ -13131,9 +13133,6 @@ unsigned ibis::util::gatherParts(ibis::partList &tables,
 		dir2 = res.getValue("backupDirectory");
 	    }
 	}
-	if (ibis::gVerbose > 1)
-	    logMessage("gatherParts", "examining %s (%s)", dir1,
-		       (dir2 ? dir2 : "?"));
 	if (dir2 != 0 && *dir2 != 0)
 	    cnt = gatherParts(tables, dir1, dir2, ro);
 	else

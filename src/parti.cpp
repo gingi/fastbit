@@ -725,7 +725,13 @@ long ibis::part::append(const char* dir) {
     if (activeDir == 0 || *activeDir == 0 || readonly)
 	return -1;
 
-    ibis::util::mutexLock lock(&mutex, "part::append");
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::append(";
+    evt += dir;
+    evt += ')';
+    ibis::util::mutexLock lock(&mutex, evt.c_str());
+    ibis::util::timer mytimer(evt.c_str());
     // can only do this in RECEIVING state and have received something
     if (state == STABLE_STATE)
 	state = RECEIVING_STATE;
@@ -737,10 +743,14 @@ long ibis::part::append(const char* dir) {
 
     try {
 	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
-	    strcmp(activeDir, backupDir) != 0)
+	    strcmp(activeDir, backupDir) != 0) {
+	    ibis::fileManager::instance().flushDir(backupDir);
 	    ierr = append2(dir);
-	else
+	}
+	else {
+	    ibis::fileManager::instance().flushDir(activeDir);
 	    ierr = append1(dir);
+	}
     }
     catch (const char* s) { // revert to previous state
 	logWarning("append", "received the following error message, "
@@ -1479,6 +1489,7 @@ long ibis::part::purgeInactive() {
     uint32_t nbuf = buf_.size();
 
     if (backupDir != 0 && *backupDir != 0) { // has backup dir
+	ibis::fileManager::instance().flushDir(backupDir);
 	for (columnList::iterator it = columns.begin();
 	     it != columns.end();
 	     ++ it) {
@@ -1540,6 +1551,7 @@ long ibis::part::purgeInactive() {
     }
     else { // only have one directory
 	writeLock lock(this, "purgeInactive");
+	ibis::fileManager::instance().flushDir(activeDir);
 	for (columnList::iterator it = columns.begin();
 	     it != columns.end();
 	     ++ it) {
