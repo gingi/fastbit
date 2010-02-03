@@ -8019,7 +8019,7 @@ float ibis::index::undecidable(const ibis::qDiscreteRange& expr,
 // force to implement these functions.  It indicates that every row is
 // undecidable by the index.
 void ibis::index::estimate(const ibis::index& idx2,
-			   const ibis::rangeJoin& expr,
+			   const ibis::deprecatedJoin& expr,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
@@ -8036,7 +8036,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 } // ibis::index::estimate
 
 void ibis::index::estimate(const ibis::index& idx2,
-			   const ibis::rangeJoin& expr,
+			   const ibis::deprecatedJoin& expr,
 			   const ibis::bitvector& mask,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
@@ -8055,7 +8055,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 } // ibis::index::estimate
 
 void ibis::index::estimate(const ibis::index& idx2,
-			   const ibis::rangeJoin& expr,
+			   const ibis::deprecatedJoin& expr,
 			   const ibis::bitvector& mask,
 			   const ibis::qRange* const range1,
 			   const ibis::qRange* const range2,
@@ -8074,7 +8074,7 @@ void ibis::index::estimate(const ibis::index& idx2,
     ibis::util::outerProduct(mask, mask, upper);
 } // ibis::index::estimate
 
-void ibis::index::estimate(const ibis::rangeJoin& expr,
+void ibis::index::estimate(const ibis::deprecatedJoin& expr,
 			   const ibis::bitvector& mask,
 			   const ibis::qRange* const range1,
 			   const ibis::qRange* const range2,
@@ -8094,7 +8094,7 @@ void ibis::index::estimate(const ibis::rangeJoin& expr,
 } // ibis::index::estimate
 
 int64_t ibis::index::estimate(const ibis::index& idx2,
-			      const ibis::rangeJoin& expr) const {
+			      const ibis::deprecatedJoin& expr) const {
     if (col == 0) return -1;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
@@ -8107,7 +8107,7 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 } // ibis::index::estimate
 
 int64_t ibis::index::estimate(const ibis::index& idx2,
-			      const ibis::rangeJoin& expr,
+			      const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask) const {
     if (col == 0) return -1;
     LOGGER(ibis::gVerbose > 1)
@@ -8123,7 +8123,7 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 } // ibis::index::estimate
 
 int64_t ibis::index::estimate(const ibis::index& idx2,
-			      const ibis::rangeJoin& expr,
+			      const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
@@ -8140,7 +8140,7 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
     return nb;
 } // ibis::index::estimate
 
-int64_t ibis::index::estimate(const ibis::rangeJoin& expr,
+int64_t ibis::index::estimate(const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {

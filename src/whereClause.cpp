@@ -424,8 +424,8 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    }
 	}
 	break;}
-    case ibis::qExpr::JOIN : {
-	ibis::rangeJoin *rj = reinterpret_cast<ibis::rangeJoin*>(xp0);
+    case ibis::qExpr::DEPRECATEDJOIN : {
+	ibis::deprecatedJoin *rj = reinterpret_cast<ibis::deprecatedJoin*>(xp0);
 	const ibis::column* c1 = part0.getColumn(rj->getName1());
 	if (c1 == 0) {
 	    ++ ierr;
@@ -459,7 +459,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 /// @note This name is intentionally vague to discourage its use.  It might
 /// be completely removed in a later release.
 void ibis::whereClause::amplify(const ibis::part& part0) {
-    std::vector<const ibis::rangeJoin*> terms;
+    std::vector<const ibis::deprecatedJoin*> terms;
     expr_->extractJoins(terms);
     if (terms.empty()) // no join terms to use
 	return;
@@ -468,7 +468,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
 	<< "ibis::whereClause::amplify -- current query expression\n" << *expr_;
 
     for (uint32_t i = 0; i < terms.size(); ++ i) {
-	const ibis::rangeJoin* jn = terms[i];
+	const ibis::deprecatedJoin* jn = terms[i];
 	double delta = 0.0;
 	if (jn->getRange()) {
 	    const ibis::math::term *tm = jn->getRange();

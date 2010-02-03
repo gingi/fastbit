@@ -73,12 +73,12 @@ public:
     /// Estimate the pairs for the range join operator.  Only records that
     /// are masked are evaluated.
     virtual void estimate(const ibis::relic& idx2,
-			  const ibis::rangeJoin& expr,
+			  const ibis::deprecatedJoin& expr,
 			  const ibis::bitvector& mask,
 			  ibis::bitvector64& lower,
 			  ibis::bitvector64& upper) const;
     virtual void estimate(const ibis::relic& idx2,
-			  const ibis::rangeJoin& expr,
+			  const ibis::deprecatedJoin& expr,
 			  const ibis::bitvector& mask,
 			  const ibis::qRange* const range1,
 			  const ibis::qRange* const range2,
@@ -87,10 +87,10 @@ public:
     /// Estimate an upper bound for the number of pairs produced from
     /// marked records.
     virtual int64_t estimate(const ibis::relic& idx2,
-			     const ibis::rangeJoin& expr,
+			     const ibis::deprecatedJoin& expr,
 			     const ibis::bitvector& mask) const;
     virtual int64_t estimate(const ibis::relic& idx2,
-			     const ibis::rangeJoin& expr,
+			     const ibis::deprecatedJoin& expr,
 			     const ibis::bitvector& mask,
 			     const ibis::qRange* const range1,
 			     const ibis::qRange* const range2) const;
@@ -143,7 +143,7 @@ private:
     // private member functions
     int64_t equiJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     ibis::bitvector64& hits) const;
-    int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
+    int64_t deprecatedJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const double& delta, ibis::bitvector64& hits) const;
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     const ibis::math::term& delta,
@@ -151,7 +151,7 @@ private:
 
     int64_t equiJoin(const ibis::relic& idx2,
 		     const ibis::bitvector& mask) const;
-    int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
+    int64_t deprecatedJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const double& delta) const;
     int64_t compJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		     const ibis::math::term& delta) const;
@@ -160,7 +160,7 @@ private:
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2,
 		     ibis::bitvector64& hits) const;
-    int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
+    int64_t deprecatedJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const ibis::qRange* const range1,
 		      const ibis::qRange* const range2,
 		      const double& delta, ibis::bitvector64& hits) const;
@@ -178,7 +178,7 @@ private:
 		     const ibis::bitvector& mask,
 		     const ibis::qRange* const range1,
 		     const ibis::qRange* const range2) const;
-    int64_t rangeJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
+    int64_t deprecatedJoin(const ibis::relic& idx2, const ibis::bitvector& mask,
 		      const ibis::qRange* const range1,
 		      const ibis::qRange* const range2,
 		      const double& delta) const;

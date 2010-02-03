@@ -7801,7 +7801,7 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 /// Evaluate the range join condition using the ibis::bin index.  Record
 /// the definite hits in @c lower, and all possible hits in @c upper.
 /// NOTE: @c upper includes all entries in @c lower.
-void ibis::bin::estimate(const ibis::rangeJoin& expr,
+void ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			 ibis::bitvector64& lower,
 			 ibis::bitvector64& upper) const {
     lower.clear();
@@ -7823,7 +7823,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	    equiJoin(lower, upper);
 	}
 	else {
-	    rangeJoin(delta, lower, upper);
+	    deprecatedJoin(delta, lower, upper);
 	}
     }
     else {
@@ -7851,7 +7851,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
     }
 } // ibis::bin::estimate
 
-void ibis::bin::estimate(const ibis::rangeJoin& expr,
+void ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& lower,
 			 ibis::bitvector64& upper) const {
@@ -7874,7 +7874,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	    equiJoin(mask, lower, upper);
 	}
 	else {
-	    rangeJoin(delta, mask, lower, upper);
+	    deprecatedJoin(delta, mask, lower, upper);
 	}
     }
     else {
@@ -7903,7 +7903,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 } // ibis::bin::estimate
 
 void ibis::bin::estimate(const ibis::bin& idx2,
-			 const ibis::rangeJoin& expr,
+			 const ibis::deprecatedJoin& expr,
 			 ibis::bitvector64& lower,
 			 ibis::bitvector64& upper) const {
     lower.clear();
@@ -7926,7 +7926,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	    equiJoin(idx2, lower, upper);
 	}
 	else {
-	    rangeJoin(idx2, delta, lower, upper);
+	    deprecatedJoin(idx2, delta, lower, upper);
 	}
     }
     else {
@@ -7955,7 +7955,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 } // ibis::bin::estimate
 
 void ibis::bin::estimate(const ibis::bin& idx2,
-			 const ibis::rangeJoin& expr,
+			 const ibis::deprecatedJoin& expr,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& lower,
 			 ibis::bitvector64& upper) const {
@@ -7979,7 +7979,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	    equiJoin(idx2, mask, lower, upper);
 	}
 	else {
-	    rangeJoin(idx2, delta, mask, lower, upper);
+	    deprecatedJoin(idx2, delta, mask, lower, upper);
 	}
     }
     else {
@@ -8008,7 +8008,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 } // ibis::bin::estimate
 
 void ibis::bin::estimate(const ibis::bin& idx2,
-			 const ibis::rangeJoin& expr,
+			 const ibis::deprecatedJoin& expr,
 			 const ibis::bitvector& mask,
 			 const ibis::qRange* const range1,
 			 const ibis::qRange* const range2,
@@ -8037,7 +8037,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 	if (dlt == 0.0)
 	    equiJoin(idx2, mask, range1, range2, lower, upper);
 	else
-	    rangeJoin(idx2, dlt, mask, range1, range2, lower, upper);
+	    deprecatedJoin(idx2, dlt, mask, range1, range2, lower, upper);
     }
     else {
 	compJoin(idx2, expr.getRange(), mask, range1, range2, lower, upper);
@@ -8068,7 +8068,7 @@ void ibis::bin::estimate(const ibis::bin& idx2,
 } // ibis::bin::estimate
 
 int64_t ibis::bin::estimate(const ibis::bin& idx2,
-			    const ibis::rangeJoin& expr,
+			    const ibis::deprecatedJoin& expr,
 			    const ibis::bitvector& mask,
 			    const ibis::qRange* const range1,
 			    const ibis::qRange* const range2) const {
@@ -8088,7 +8088,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 	if (dlt == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2);
 	else
-	    cnt = rangeJoin(idx2, dlt, mask, range1, range2);
+	    cnt = deprecatedJoin(idx2, dlt, mask, range1, range2);
     }
     else {
 	cnt = compJoin(idx2, expr.getRange(), mask, range1, range2);
@@ -8117,7 +8117,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 } // ibis::bin::estimate
 
 int64_t ibis::bin::estimate(const ibis::bin& idx2,
-			    const ibis::rangeJoin& expr,
+			    const ibis::deprecatedJoin& expr,
 			    const ibis::bitvector& mask) const {
     return estimate(idx2, expr, mask,
 		    static_cast<const ibis::qRange* const>(0),
@@ -8125,7 +8125,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 } // ibis::bin::estimate
 
 int64_t ibis::bin::estimate(const ibis::bin& idx2,
-			    const ibis::rangeJoin& expr) const {
+			    const ibis::deprecatedJoin& expr) const {
     ibis::bitvector mask;
     col->getNullMask(mask);
     if (idx2.col) {
@@ -8136,7 +8136,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
     return estimate(idx2, expr, mask);
 } // ibis::bin::estimate
 
-void ibis::bin::estimate(const ibis::rangeJoin& expr,
+void ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			 const ibis::bitvector& mask,
 			 const ibis::qRange* const range1,
 			 const ibis::qRange* const range2,
@@ -8165,7 +8165,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
 	if (dlt == 0.0)
 	    equiJoin(mask, range1, range2, lower, upper);
 	else
-	    rangeJoin(dlt, mask, range1, range2, lower, upper);
+	    deprecatedJoin(dlt, mask, range1, range2, lower, upper);
     }
     else {
 	compJoin(expr.getRange(), mask, range1, range2, lower, upper);
@@ -8195,7 +8195,7 @@ void ibis::bin::estimate(const ibis::rangeJoin& expr,
     }
 } // ibis::bin::estimate
 
-int64_t ibis::bin::estimate(const ibis::rangeJoin& expr,
+int64_t ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			    const ibis::bitvector& mask,
 			    const ibis::qRange* const range1,
 			    const ibis::qRange* const range2) const {
@@ -8215,7 +8215,7 @@ int64_t ibis::bin::estimate(const ibis::rangeJoin& expr,
 	if (dlt == 0.0)
 	    cnt = equiJoin(mask, range1, range2);
 	else
-	    cnt = rangeJoin(dlt, mask, range1, range2);
+	    cnt = deprecatedJoin(dlt, mask, range1, range2);
     }
     else {
 	cnt = compJoin(expr.getRange(), mask, range1, range2);
@@ -8310,12 +8310,12 @@ void ibis::bin::equiJoin(ibis::bitvector64& sure,
 } // ibis::bin::equiJoin
 
 // A range join on the same variable.
-void ibis::bin::rangeJoin(const double& delta,
+void ibis::bin::deprecatedJoin(const double& delta,
 			  ibis::bitvector64& sure,
 			  ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g)", col->name(),
 	     col->name(), delta, col->name(), delta);
 
@@ -8402,14 +8402,14 @@ void ibis::bin::rangeJoin(const double& delta,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nobs << ", sure.cnt()=" << sure.cnt()
 		      << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
 	++ il1;
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join on the same column with a complex distance function.  This
 /// implementation relys on the fact that the expression @c expr is
@@ -8424,7 +8424,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(delta, sure, iffy);
+	    deprecatedJoin(delta, sure, iffy);
 	else
 	    equiJoin(sure, iffy);
 	return;
@@ -8599,13 +8599,13 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 } // ibis::bin::equiJoin
 
 /// A range join on two different columns.
-void ibis::bin::rangeJoin(const ibis::bin& idx2,
+void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			  const double& delta,
 			  ibis::bitvector64& sure,
 			  ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g)", col->name(),
 	     idx2.col->name(), delta, idx2.col->name(), delta);
 
@@ -8694,14 +8694,14 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nobs << ", sure.cnt()=" << sure.cnt()
 		      << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
 	++ il1;
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join between two different columns with a complex distance
 /// function.  This implementation relys on the fact that the expression @c
@@ -8717,7 +8717,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(idx2, delta, sure, iffy);
+	    deprecatedJoin(idx2, delta, sure, iffy);
 	else
 	    equiJoin(idx2, sure, iffy);
 	return;
@@ -8906,7 +8906,7 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 } // ibis::bin::equiJoin
 
 // A range join on the same variable.
-void ibis::bin::rangeJoin(const double& delta,
+void ibis::bin::deprecatedJoin(const double& delta,
 			  const ibis::bitvector& mask,
 			  ibis::bitvector64& sure,
 			  ibis::bitvector64& iffy) const {
@@ -8917,7 +8917,7 @@ void ibis::bin::rangeJoin(const double& delta,
 
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu",
 	     col->name(), col->name(), delta, col->name(), delta,
 	     static_cast<long unsigned>(mask.cnt()));
@@ -9018,13 +9018,13 @@ void ibis::bin::rangeJoin(const double& delta,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nobs << ", sure.cnt()=" << sure.cnt()
 		      << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join on the same column with a complex distance function.  This
 /// implementation relys on the fact that the expression @c expr is
@@ -9040,7 +9040,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(delta, mask, sure, iffy);
+	    deprecatedJoin(delta, mask, sure, iffy);
 	else
 	    equiJoin(mask, sure, iffy);
 	return;
@@ -9267,7 +9267,7 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 } // ibis::bin::equiJoin
 
 // A range join on the same variable.
-void ibis::bin::rangeJoin(const double& delta,
+void ibis::bin::deprecatedJoin(const double& delta,
 			  const ibis::bitvector& mask,
 			  const ibis::qRange* const range1,
 			  const ibis::qRange* const range2,
@@ -9287,7 +9287,7 @@ void ibis::bin::rangeJoin(const double& delta,
     }
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu "
 	     "and %s explicit range constraint",
 	     col->name(), col->name(), delta, col->name(), delta,
@@ -9403,13 +9403,13 @@ void ibis::bin::rangeJoin(const double& delta,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nbmax << ", sure.cnt()=" << sure.cnt()
 		      << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join on the same column with a complex distance function.  This
 /// implementation relys on the fact that the expression @c expr is
@@ -9435,7 +9435,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(delta, mask, range1, range2, sure, iffy);
+	    deprecatedJoin(delta, mask, range1, range2, sure, iffy);
 	else
 	    equiJoin(mask, range1, range2, sure, iffy);
 	return;
@@ -9655,7 +9655,7 @@ int64_t ibis::bin::equiJoin(const ibis::bitvector& mask,
 } // ibis::bin::equiJoin
 
 // A range join on the same variable.
-int64_t ibis::bin::rangeJoin(const double& delta,
+int64_t ibis::bin::deprecatedJoin(const double& delta,
 			     const ibis::bitvector& mask,
 			     const ibis::qRange* const range1,
 			     const ibis::qRange* const range2) const {
@@ -9667,7 +9667,7 @@ int64_t ibis::bin::rangeJoin(const double& delta,
     }
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu and %s "
 	     "range constraint",
 	     col->name(), col->name(), delta, col->name(), delta,
@@ -9734,14 +9734,14 @@ int64_t ibis::bin::rangeJoin(const double& delta,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nbmax << ", current count="
 		      << cnt;
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
     return cnt;
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join on the same column with a complex distance function.  This
 /// implementation relys on the fact that the expression @c expr is
@@ -9760,7 +9760,7 @@ int64_t ibis::bin::compJoin(const ibis::math::term *expr,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    return rangeJoin(delta, mask, range1, range2);
+	    return deprecatedJoin(delta, mask, range1, range2);
 	else
 	    return equiJoin(mask, range1, range2);
     }
@@ -9949,14 +9949,14 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 } // ibis::bin::equiJoin
 
 /// A range join on two different columns.
-void ibis::bin::rangeJoin(const ibis::bin& idx2,
+void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			  const double& delta,
 			  const ibis::bitvector& mask,
 			  ibis::bitvector64& sure,
 			  ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu",
 	     col->name(), idx2.col->name(), delta,
 	     idx2.col->name(), delta, static_cast<long unsigned>(mask.cnt()));
@@ -10057,13 +10057,13 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nobs << ", sure.cnt()=" << sure.cnt()
 		      << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join between two different columns with a complex distance
 /// function.  This implementation relys on the fact that the expression @c
@@ -10080,7 +10080,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(idx2, delta, sure, iffy);
+	    deprecatedJoin(idx2, delta, sure, iffy);
 	else
 	    equiJoin(idx2, sure, iffy);
 	return;
@@ -10311,7 +10311,7 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 } // ibis::bin::equiJoin
 
 /// A range join on two different columns.
-void ibis::bin::rangeJoin(const ibis::bin& idx2,
+void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			  const double& delta,
 			  const ibis::bitvector& mask,
 			  const ibis::qRange* const range1,
@@ -10327,7 +10327,7 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
     }
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu",
 	     col->name(), idx2.col->name(), delta,
 	     idx2.col->name(), delta, static_cast<long unsigned>(mask.cnt()));
@@ -10455,13 +10455,13 @@ void ibis::bin::rangeJoin(const ibis::bin& idx2,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nb1max << ", sure.cnt()="
 		      << sure.cnt() << ", iffy.cnt()=" << iffy.cnt();
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join between two different columns with a complex distance
 /// function.  This implementation relys on the fact that the expression @c
@@ -10487,7 +10487,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    rangeJoin(idx2, delta, sure, iffy);
+	    deprecatedJoin(idx2, delta, sure, iffy);
 	else
 	    equiJoin(idx2, sure, iffy);
 	return;
@@ -10720,7 +10720,7 @@ int64_t ibis::bin::equiJoin(const ibis::bin& idx2,
 } // ibis::bin::equiJoin
 
 /// A range join on two different columns.
-int64_t ibis::bin::rangeJoin(const ibis::bin& idx2,
+int64_t ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			     const double& delta,
 			     const ibis::bitvector& mask,
 			     const ibis::qRange* const range1,
@@ -10733,7 +10733,7 @@ int64_t ibis::bin::rangeJoin(const ibis::bin& idx2,
 	return equiJoin(idx2, mask, range1, range2);
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
-	    ("bin::rangeJoin", "start processing a range-join ("
+	    ("bin::deprecatedJoin", "start processing a range-join ("
 	     "%s between %s - %g and %s + %g) with mask size %lu",
 	     col->name(), idx2.col->name(), delta,
 	     idx2.col->name(), delta, static_cast<long unsigned>(mask.cnt()));
@@ -10812,14 +10812,14 @@ int64_t ibis::bin::rangeJoin(const ibis::bin& idx2,
 		      << "): just completed processing bin " << il1
 		      << " out of " << nb1max << ", current count="
 		      << cnt;
-		ibis::util::logMessage("bin::rangeJoin", "%s",
+		ibis::util::logMessage("bin::deprecatedJoin", "%s",
 				       ostmp.str().c_str());
 		tlast = tcurr;
 	    }
 	}
     }
     return cnt;
-} // ibis::bin::rangeJoin
+} // ibis::bin::deprecatedJoin
 
 /// A range join between two different columns with a complex distance
 /// function.  This implementation relys on the fact that the expression @c
@@ -10840,7 +10840,7 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
 	if (delta > 0.0)
-	    return rangeJoin(idx2, delta, mask, range1, range2);
+	    return deprecatedJoin(idx2, delta, mask, range1, range2);
 	else
 	    return equiJoin(idx2, mask, range1, range2);
     }

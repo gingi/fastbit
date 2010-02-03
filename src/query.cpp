@@ -3204,7 +3204,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	}
 	break;}
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.set(1, mypart->nRows());
 	ierr = -2;
 	break;
@@ -3592,7 +3592,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	break;
     }
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = -2;
 	break;
@@ -3805,7 +3805,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.set(1, mypart->nRows());
 	ierr = mypart->nRows();
 	break;
@@ -4044,7 +4044,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = ht.cnt();
 	break;
@@ -4579,9 +4579,9 @@ int64_t ibis::query::processJoin() {
     if (hits == 0 || hits->cnt() == 0) return ret; // no hits
 
     ibis::horometer timer;
-    std::vector<const ibis::rangeJoin*> terms;
+    std::vector<const ibis::deprecatedJoin*> terms;
 
-    // extract all rangeJoin objects from the root of the expression tree
+    // extract all deprecatedJoin objects from the root of the expression tree
     // to the first operator that is not AND
     conds->extractJoins(terms);
     if (terms.empty())
@@ -4613,7 +4613,7 @@ int64_t ibis::query::processJoin() {
 		    ++ ii;
 		}
 		else { // swap
-		    const ibis::rangeJoin *tmp = terms[ii];
+		    const ibis::deprecatedJoin *tmp = terms[ii];
 		    terms[ii] = terms[jj];
 		    terms[jj] = tmp;
 		    ++ ii;
@@ -4621,7 +4621,7 @@ int64_t ibis::query::processJoin() {
 		}
 	    }
 	    else { // swap
-		const ibis::rangeJoin *tmp = terms[ii];
+		const ibis::deprecatedJoin *tmp = terms[ii];
 		terms[ii] = terms[jj];
 		terms[jj] = tmp;
 		++ ii;
@@ -5298,7 +5298,7 @@ int64_t ibis::query::processJoin() {
 } // ibis::query::processJoin
 
 // The merge sort join algorithm.
-int64_t ibis::query::sortJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::query::sortJoin(const ibis::deprecatedJoin& cmp,
 			      const ibis::bitvector& mask) const {
     int64_t cnt = 0;
     if (cmp.getRange() == 0)
@@ -5327,7 +5327,7 @@ int64_t ibis::query::sortJoin(const ibis::rangeJoin& cmp,
 } // ibis::query::sortJoin
 
 int64_t
-ibis::query::sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
+ibis::query::sortJoin(const std::vector<const ibis::deprecatedJoin*>& terms,
 		      const ibis::bitvector& mask) const {
     if (terms.size() > 1) {
 	if (myDir == 0) {
@@ -6024,7 +6024,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<int32_t>& val1,
 /// version reads the values marked to be 1 in the bitvector @c mask and
 /// performs the actual operation of counting the number of pairs with
 /// equal values in memory.
-int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::query::sortEquiJoin(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
@@ -6306,7 +6306,7 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 
 /// Performing a range join by sorting the selected values.  The sorting is
 /// performed through @c std::sort algorithm.
-int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::query::sortRangeJoin(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
@@ -6600,7 +6600,7 @@ int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
 /// Perform equi-join by sorting the selected values.  This version reads
 /// the values marked to be 1 in the bitvector @c mask.  It writes the
 /// the pairs satisfying the join condition to a file name @c pairfile.
-int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::query::sortEquiJoin(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector& mask,
 				  const char* pairfile) const {
     if (pairfile == 0 || *pairfile == 0)
@@ -6925,7 +6925,7 @@ int64_t ibis::query::sortEquiJoin(const ibis::rangeJoin& cmp,
 } // ibis::query::sortEquiJoin
 
 /// Performing range join by sorting the selected values.
-int64_t ibis::query::sortRangeJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::query::sortRangeJoin(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask,
 				   const char* pairfile) const {
     if (pairfile == 0 || *pairfile == 0)

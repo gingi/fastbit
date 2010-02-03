@@ -179,18 +179,18 @@ public:
 
     /// Estimate the pairs for the range join operator.
     virtual void estimate(const ibis::index& idx2,
-			  const ibis::rangeJoin& expr,
+			  const ibis::deprecatedJoin& expr,
 			  ibis::bitvector64& lower,
 			  ibis::bitvector64& upper) const;
     /// Estimate the pairs for the range join operator.  Only records that
     /// are masked are evaluated.
     virtual void estimate(const ibis::index& idx2,
-			  const ibis::rangeJoin& expr,
+			  const ibis::deprecatedJoin& expr,
 			  const ibis::bitvector& mask,
 			  ibis::bitvector64& lower,
 			  ibis::bitvector64& upper) const;
     virtual void estimate(const ibis::index& idx2,
-			  const ibis::rangeJoin& expr,
+			  const ibis::deprecatedJoin& expr,
 			  const ibis::bitvector& mask,
 			  const ibis::qRange* const range1,
 			  const ibis::qRange* const range2,
@@ -198,26 +198,26 @@ public:
 			  ibis::bitvector64& upper) const;
     /// Estimate an upper bound for the number of pairs.
     virtual int64_t estimate(const ibis::index& idx2,
-			     const ibis::rangeJoin& expr) const;
+			     const ibis::deprecatedJoin& expr) const;
     /// Estimate an upper bound for the number of pairs produced from
     /// marked records.
     virtual int64_t estimate(const ibis::index& idx2,
-			     const ibis::rangeJoin& expr,
+			     const ibis::deprecatedJoin& expr,
 			     const ibis::bitvector& mask) const;
     virtual int64_t estimate(const ibis::index& idx2,
-			     const ibis::rangeJoin& expr,
+			     const ibis::deprecatedJoin& expr,
 			     const ibis::bitvector& mask,
 			     const ibis::qRange* const range1,
 			     const ibis::qRange* const range2) const;
 
     /// Evaluating a join condition with one (likely composite) index.
-    virtual void estimate(const ibis::rangeJoin& expr,
+    virtual void estimate(const ibis::deprecatedJoin& expr,
 			  const ibis::bitvector& mask,
 			  const ibis::qRange* const range1,
 			  const ibis::qRange* const range2,
 			  ibis::bitvector64& lower,
 			  ibis::bitvector64& upper) const;
-    virtual int64_t estimate(const ibis::rangeJoin& expr,
+    virtual int64_t estimate(const ibis::deprecatedJoin& expr,
 			     const ibis::bitvector& mask,
 			     const ibis::qRange* const range1,
 			     const ibis::qRange* const range2) const;

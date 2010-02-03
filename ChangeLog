@@ -1,11 +1,15 @@
 2010-02-02 John Wu <John.Wu at ACM.org>
-	* src/*, examples/*: update copyright year
+	* src/*, examples/*: update copyright year, change existing range
+	join to deprecatedJoin and the corresponding term type from JOIN
+	to DEPRECATEDJOIN
 	* src/bord.h, src/bord.cpp: add functions bord::copyValue,
 	bord::createBuffer, bord::freeBuffer, and bord::freeBuffers
 	* src/join.h: add function ibis::join::fillEquiJoinTable
 	* src/jnatural.h, src/jnatural.cpp: remove function clearBuffer,
 	add definition of ibis::join::fillEquiJoinTable, replace
 	jNatual::select with new implementation
+	* src/whereClause.yy: remove the rules for producing old join
+	expression (deprecatedJoin)
 
 2010-02-01 John Wu <John.Wu at ACM.org>
 	* src/part.cpp:780 modify the tests to take into account the

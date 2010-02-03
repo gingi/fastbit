@@ -1,8 +1,8 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2008-2010 the Regents of the University of California
-#ifndef IBIS_JOININ_H
-#define IBIS_JOININ_H
+#ifndef IBIS_JNATURAL_H
+#define IBIS_JNATURAL_H
 /**@file
    @brief In-memory Natual Join.
 

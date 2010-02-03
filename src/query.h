@@ -350,18 +350,18 @@ protected:
 
     // A group of functions to count the number of pairs
     // satisfying the join conditions.
-    int64_t sortJoin(const std::vector<const ibis::rangeJoin*>& terms,
+    int64_t sortJoin(const std::vector<const ibis::deprecatedJoin*>& terms,
 		     const ibis::bitvector& mask) const;
-    int64_t sortJoin(const ibis::rangeJoin& cmp,
+    int64_t sortJoin(const ibis::deprecatedJoin& cmp,
 		     const ibis::bitvector& mask) const;
-    int64_t sortEquiJoin(const ibis::rangeJoin& cmp,
+    int64_t sortEquiJoin(const ibis::deprecatedJoin& cmp,
 			 const ibis::bitvector& mask) const;
-    int64_t sortRangeJoin(const ibis::rangeJoin& cmp,
+    int64_t sortRangeJoin(const ibis::deprecatedJoin& cmp,
 			  const ibis::bitvector& mask) const;
-    int64_t sortEquiJoin(const ibis::rangeJoin& cmp,
+    int64_t sortEquiJoin(const ibis::deprecatedJoin& cmp,
 			 const ibis::bitvector& mask,
 			 const char* pairfile) const;
-    int64_t sortRangeJoin(const ibis::rangeJoin& cmp,
+    int64_t sortRangeJoin(const ibis::deprecatedJoin& cmp,
 			  const ibis::bitvector& mask,
 			  const char* pairfile) const;
     void orderPairs(const char* pairfile) const;

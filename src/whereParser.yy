@@ -457,27 +457,6 @@ NOUNSTR INOP NUMSEQ {
     delete $5;
     delete $1;
 }
-| JOINOP '(' NOUNSTR ',' NOUNSTR ')' {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- JOIN(" << *$3 << ", "
-	<< *$5 << ")";
-#endif
-    $$ = new ibis::rangeJoin($3->c_str(), $5->c_str());
-    delete $5;
-    delete $3;
-}
-| JOINOP '(' NOUNSTR ',' NOUNSTR ',' mathExpr ')' {
-    ibis::math::term *me = static_cast<ibis::math::term*>($7);
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- JOIN(" << *$3 << ", "
-	<< *$5 << ", " << *me << ")";
-#endif
-    $$ = new ibis::rangeJoin($3->c_str(), $5->c_str(), me);
-    delete $5;
-    delete $3;
-}
 | ANYOP '(' NOUNSTR ')' EQOP NUMBER {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)

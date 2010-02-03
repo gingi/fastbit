@@ -19,7 +19,7 @@ namespace ibis { // additional names related to qExpr
     class qString;	///< An equality expression with a string literal.
     class qMultiString;	///< A range condition involving multiple strings.
     class compRange;	///< A comparisons involving arithmetic expression.
-    class rangeJoin;	///< A special expression for range join operations.
+    class deprecatedJoin;	///< A special expression for range join operations.
     class qAnyAny;	///< A special form of any-match-any query.
     class qLike;	///< A representation of the operator LIKE.
 }
@@ -35,7 +35,7 @@ public:
     enum TYPE {
 	LOGICAL_UNDEFINED, LOGICAL_NOT, LOGICAL_AND, LOGICAL_OR, LOGICAL_XOR,
 	LOGICAL_MINUS, RANGE, DRANGE, STRING, MSTRING, COMPRANGE, MATHTERM,
-	JOIN, TOPK, ANYANY, LIKE
+	DEPRECATEDJOIN, TOPK, ANYANY, LIKE
     };
     /// Comparison operator supported in RANGE.
     enum COMPARE {
@@ -134,7 +134,7 @@ public:
     int separateSimple(ibis::qExpr *&simple, ibis::qExpr *&tail) const;
 
     /// Extract conjunctive terms of the specified type.
-    void extractJoins(std::vector<const rangeJoin*>& terms) const;
+    void extractJoins(std::vector<const deprecatedJoin*>& terms) const;
     /// Find the first range condition involving the named variable.
     qRange* findRange(const char* vname);
 
@@ -779,18 +779,18 @@ private:
 /// numerical expression is not specified, it is a standard equal-join,
 /// 'name1 = name2'.  If the numerical expression is specified, it is a
 /// range-join, 'name1 between name2 - expr and name2 + expr'.
-class ibis::rangeJoin : public ibis::qExpr {
+class ibis::deprecatedJoin : public ibis::qExpr {
 public:
-    rangeJoin(const char* n1, const char *n2)
-	: ibis::qExpr(ibis::qExpr::JOIN), name1(n1), name2(n2), expr(0) {};
-    rangeJoin(const char* n1, const char *n2, ibis::math::term *x) : 
-	ibis::qExpr(ibis::qExpr::JOIN), name1(n1), name2(n2), expr(x) {};
-    virtual ~rangeJoin() {delete expr;};
+    deprecatedJoin(const char* n1, const char *n2)
+	: ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2), expr(0) {};
+    deprecatedJoin(const char* n1, const char *n2, ibis::math::term *x) : 
+	ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2), expr(x) {};
+    virtual ~deprecatedJoin() {delete expr;};
 
     virtual void print(std::ostream& out) const;
     virtual void printFull(std::ostream& out) const {print(out);}
-    virtual rangeJoin* dup() const
-    {return new rangeJoin(name1.c_str(), name2.c_str(), expr->dup());};
+    virtual deprecatedJoin* dup() const
+    {return new deprecatedJoin(name1.c_str(), name2.c_str(), expr->dup());};
 
     const char* getName1() const {return name1.c_str();}
     const char* getName2() const {return name2.c_str();}
@@ -807,9 +807,9 @@ private:
     std::string name2;
     ibis::math::term *expr;
 
-    rangeJoin(const rangeJoin&);
-    rangeJoin& operator=(const rangeJoin&);
-}; // class ibis::rangeJoin
+    deprecatedJoin(const deprecatedJoin&);
+    deprecatedJoin& operator=(const deprecatedJoin&);
+}; // class ibis::deprecatedJoin
 
 /// A user specifies this type of query expression with the following
 /// syntax,

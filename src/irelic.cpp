@@ -1927,7 +1927,7 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 /// expression and @c range2 is for column 2 in the join expression.  No
 /// name matching is performed.
 void ibis::relic::estimate(const ibis::relic& idx2,
-			   const ibis::rangeJoin& expr,
+			   const ibis::deprecatedJoin& expr,
 			   const ibis::bitvector& mask,
 			   const ibis::qRange* const range1,
 			   const ibis::qRange* const range2,
@@ -1957,7 +1957,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2, lower);
 	else
-	    cnt = rangeJoin(idx2, mask, range1, range2, delta, lower);
+	    cnt = deprecatedJoin(idx2, mask, range1, range2, delta, lower);
     }
     else {
 	cnt = compJoin(idx2, mask, range1, range2, *(expr.getRange()), lower);
@@ -1996,7 +1996,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 } // ibis::relic::estimate
 
 int64_t ibis::relic::estimate(const ibis::relic& idx2,
-			      const ibis::rangeJoin& expr,
+			      const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
@@ -2020,7 +2020,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, range1, range2);
 	else
-	    cnt = rangeJoin(idx2, mask, range1, range2, delta);
+	    cnt = deprecatedJoin(idx2, mask, range1, range2, delta);
     }
     else {
 	cnt = compJoin(idx2, mask, range1, range2, *(expr.getRange()));
@@ -2058,7 +2058,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
 } // ibis::relic::estimate
 
 void ibis::relic::estimate(const ibis::relic& idx2,
-			   const ibis::rangeJoin& expr,
+			   const ibis::deprecatedJoin& expr,
 			   const ibis::bitvector& mask,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
@@ -2082,7 +2082,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask, lower);
 	else
-	    cnt = rangeJoin(idx2, mask, delta, lower);
+	    cnt = deprecatedJoin(idx2, mask, delta, lower);
     }
     else {
 	cnt = compJoin(idx2, mask, *(expr.getRange()), lower);
@@ -2110,7 +2110,7 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 } // ibis::relic::estimate
 
 int64_t ibis::relic::estimate(const ibis::relic& idx2,
-			      const ibis::rangeJoin& expr,
+			      const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask) const {
     if (col == 0 || idx2.col == 0) // can not do anything useful
 	return -1;
@@ -2130,7 +2130,7 @@ int64_t ibis::relic::estimate(const ibis::relic& idx2,
 	if (delta == 0.0)
 	    cnt = equiJoin(idx2, mask);
 	else
-	    cnt = rangeJoin(idx2, mask, delta);
+	    cnt = deprecatedJoin(idx2, mask, delta);
     }
     else {
 	cnt = compJoin(idx2, mask, *(expr.getRange()));
@@ -2481,7 +2481,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
-int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
+int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const double& delta,
 			       ibis::bitvector64& hits) const {
@@ -2499,7 +2499,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << "ibis::relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2537,16 +2537,16 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << "ibis::relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
-} // ibis::relic::rangeJoin
+} // ibis::relic::deprecatedJoin
 
-int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
+int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const double& delta) const {
     int64_t cnt = 0;
@@ -2564,7 +2564,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << "ibis::relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2599,18 +2599,18 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << "ibis::relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
-} // ibis::relic::rangeJoin
+} // ibis::relic::deprecatedJoin
 
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
-int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
+int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const ibis::qRange* const range1,
 			       const ibis::qRange* const range2,
@@ -2622,7 +2622,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (delta <= 0)
 	return equiJoin(idx2, mask, range1, range2, hits);
     if (range2 != 0 && range2->getType() != ibis::qExpr::RANGE) {
-	col->logMessage("relic::rangeJoin", "current implementation does "
+	col->logMessage("relic::deprecatedJoin", "current implementation does "
 			"more work than necessary because if can not "
 			"handle discrete range restrictions on %s!",
 			idx2.col->name());
@@ -2632,7 +2632,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << "ibis::relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2707,16 +2707,16 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << "ibis::relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
     }
     return hits.cnt();
-} // ibis::relic::rangeJoin
+} // ibis::relic::deprecatedJoin
 
-int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
+int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const ibis::qRange* const range1,
 			       const ibis::qRange* const range2,
@@ -2727,7 +2727,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (delta <= 0)
 	return equiJoin(idx2, mask, range1, range2);
     if (range2 != 0 && range2->getType() != ibis::qExpr::RANGE) {
-	col->logMessage("relic::rangeJoin", "current implementation does "
+	col->logMessage("relic::deprecatedJoin", "current implementation does "
 			"more work than necessary because if can not "
 			"handle discrete range restrictions on %s!",
 			idx2.col->name());
@@ -2737,7 +2737,7 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin starting to evaluate join("
+	    << "ibis::relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2809,14 +2809,14 @@ int64_t ibis::relic::rangeJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::rangeJoin completed evaluating join("
+	    << "ibis::relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
     }
     return cnt;
-} // ibis::relic::rangeJoin
+} // ibis::relic::deprecatedJoin
 
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
@@ -2833,7 +2833,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	// continue
     }
     else if (bar.size() < 1) { // no variable involved
-	return rangeJoin(idx2, mask, delta.eval(), hits);
+	return deprecatedJoin(idx2, mask, delta.eval(), hits);
     }
     else { // can not evaluate the join effectively here
 	return -1;
@@ -2897,7 +2897,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	// continue
     }
     else if (bar.size() < 1) { // no variable involved
-	return rangeJoin(idx2, mask, delta.eval());
+	return deprecatedJoin(idx2, mask, delta.eval());
     }
     else { // can not evaluate the join effectively here
 	return -1;

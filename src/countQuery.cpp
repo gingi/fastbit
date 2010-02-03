@@ -724,7 +724,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	}
 	break;}
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = -2;
 	break;}
@@ -939,7 +939,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	ierr = ht.cnt();
 	break;}
     case ibis::qExpr::TOPK:
-    case ibis::qExpr::JOIN: { // pretend every row qualifies
+    case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.copy(mask);
 	ierr = mask.cnt();
 	break;}

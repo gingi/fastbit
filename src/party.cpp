@@ -13,7 +13,7 @@
 #include "bitvector64.h"
 #include <sstream> // std::ostringstream
 
-int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector64& trial,
 				  ibis::bitvector64& pairs) const {
     int64_t cnt;
@@ -27,7 +27,7 @@ int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
     else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	const double delta = fabs(cmp.getRange()->eval());
 	if (delta > 0)
-	    cnt = rangeJoin(cmp, trial, pairs);
+	    cnt = deprecatedJoin(cmp, trial, pairs);
 	else
 	    cnt = equiJoin(cmp, trial, pairs);
     }
@@ -36,7 +36,7 @@ int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
 	if (bar.size() == 0) { // a constant function
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0)
-		cnt = rangeJoin(cmp, trial, pairs);
+		cnt = deprecatedJoin(cmp, trial, pairs);
 	    else
 		cnt = equiJoin(cmp, trial, pairs);
 	}
@@ -49,7 +49,7 @@ int64_t ibis::part::evaluateJoin(const ibis::rangeJoin& cmp,
 
 /// Use the nested-loop join algorithm.  This is a front end that decide
 /// which of the lower level routines to call.
-int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::loopJoin(const ibis::deprecatedJoin& cmp,
 			      const ibis::bitvector& mask,
 			      ibis::bitvector64& pairs) const {
     unsigned nvar = 0; // number of variables involved in @c cmp.
@@ -80,7 +80,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0) {
-		cnt = rangeJoinLoop(cmp, mask, pairs);
+		cnt = deprecatedJoinLoop(cmp, mask, pairs);
 		equijoin = false;
 	    }
 	    else {
@@ -93,7 +93,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    if (bar.size() == 0) { // a constant function
 		const double delta = fabs(cmp.getRange()->eval());
 		if (delta > 0) {
-		    cnt = rangeJoinLoop(cmp, mask, pairs);
+		    cnt = deprecatedJoinLoop(cmp, mask, pairs);
 		    equijoin = false;
 		}
 		else {
@@ -120,7 +120,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
     return cnt;
 } // ibis::part::loopJoin
 
-int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::loopJoin(const ibis::deprecatedJoin& cmp,
 			     const ibis::bitvector& mask) const {
     unsigned nvar = 0; // number of variables involved in @c cmp.
     if (cmp.getRange()) { // use a ibis::math::barrel to count variables
@@ -149,7 +149,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	else if (cmp.getRange()->termType() == ibis::math::NUMBER) {
 	    const double delta = fabs(cmp.getRange()->eval());
 	    if (delta > 0) {
-		cnt = rangeJoinLoop(cmp, mask);
+		cnt = deprecatedJoinLoop(cmp, mask);
 		equijoin = false;
 	    }
 	    else {
@@ -162,7 +162,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 	    if (bar.size() == 0) {
 		const double delta = fabs(cmp.getRange()->eval());
 		if (delta > 0) {
-		    cnt = rangeJoinLoop(cmp, mask);
+		    cnt = deprecatedJoinLoop(cmp, mask);
 		    equijoin = false;
 		}
 		else {
@@ -190,7 +190,7 @@ int64_t ibis::part::loopJoin(const ibis::rangeJoin& cmp,
 } // ibis::part::loopJoin
 
 /// Check a set of pairs defined in @c trial.
-int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::equiJoin(const ibis::deprecatedJoin& cmp,
 			      const ibis::bitvector64& trial,
 			      ibis::bitvector64& result) const {
     const ibis::bitvector64::word_t nbits =
@@ -335,7 +335,7 @@ int64_t ibis::part::equiJoin(const ibis::rangeJoin& cmp,
 } // ibis::part::equiJoin
 
 /// Check a set of pairs defined in @c trial.
-int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::deprecatedJoin(const ibis::deprecatedJoin& cmp,
 			       const ibis::bitvector64& trial,
 			       ibis::bitvector64& result) const {
     const double delta = fabs(cmp.getRange()->eval());
@@ -349,7 +349,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << "expect it to have " << nbits << " bits, but it actually has "
 	     << trial.size();
-	logWarning("rangeJoin", "invalid trial vector, %s",
+	logWarning("deprecatedJoin", "invalid trial vector, %s",
 		   ostr.str().c_str());
 	return -3;
     }
@@ -360,13 +360,13 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 
     long ierr = bar1.open();
     if (ierr != 0) {
-	logWarning("rangeJoin", "failed to open variable %s",
+	logWarning("deprecatedJoin", "failed to open variable %s",
 		   cmp.getName1());
 	return -1;
     }
     ierr = bar2.open();
     if (ierr != 0) {
-	logWarning("rangeJoin", "failed to open variable %s",
+	logWarning("deprecatedJoin", "failed to open variable %s",
 		   cmp.getName2());
 	return -2;
     }
@@ -377,7 +377,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 	uint32_t ir = static_cast<uint32_t>(*ind / nEvents);
 	ierr = bar1.seek(ir);
 	if (ierr < 0) {
-	    logWarning("rangeJoin", "failed to seek to row %lu for the left "
+	    logWarning("deprecatedJoin", "failed to seek to row %lu for the left "
 		       "side of the range join (nEvents = %lu)",
 		       static_cast<long unsigned>(ir),
 		       static_cast<long unsigned>(nEvents));
@@ -390,7 +390,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 		static_cast<ibis::bitvector64::word_t>(ir) * nEvents;
 	    ierr = bar2.seek(is);
 	    if (ierr < 0) {
-		logWarning("rangeJoin", "failed to seek to row %lu for the "
+		logWarning("deprecatedJoin", "failed to seek to row %lu for the "
 			   "right side of the range join (nEvents = %lu)",
 			   static_cast<long unsigned>(is),
 			   static_cast<long unsigned>(nEvents));
@@ -410,7 +410,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 		    is -= nEvents;
 		    ierr = bar2.seek(is);
 		    if (ierr < 0) {
-			logWarning("rangeJoin", "failed to seek to row %lu "
+			logWarning("deprecatedJoin", "failed to seek to row %lu "
 				   "for the right side of the range join "
 				   "(nEvents = %lu)",
 				   static_cast<long unsigned>(is),
@@ -437,7 +437,7 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 		}
 		ierr = bar2.seek(is);
 		if (ierr < 0) {
-		    logWarning("rangeJoin", "failed to seek to row %lu for "
+		    logWarning("deprecatedJoin", "failed to seek to row %lu for "
 			       "the right side of the range join (nEvents "
 			       "= %lu)", static_cast<long unsigned>(is),
 			       static_cast<long unsigned>(nEvents));
@@ -459,16 +459,16 @@ int64_t ibis::part::rangeJoin(const ibis::rangeJoin& cmp,
 	std::ostringstream ostr;
 	ostr << trial.cnt() << " pair(s) and produced "
 	     << result.cnt() << " hit(s)";
-	logMessage("rangeJoin", "rangeJoin(%s, %s, %g) evaluated %s "
+	logMessage("deprecatedJoin", "deprecatedJoin(%s, %s, %g) evaluated %s "
 		   "using %g sec(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta,
 		   ostr.str().c_str(), timer.CPUTime(), timer.realTime());
     }
     return result.cnt();
-} // ibis::part::rangeJoin
+} // ibis::part::deprecatedJoin
 
 /// Check a set of pairs defined in @c trial.
-int64_t ibis::part::compJoin(const ibis::rangeJoin& cmp,
+int64_t ibis::part::compJoin(const ibis::deprecatedJoin& cmp,
 			      const ibis::bitvector64& trial,
 			      ibis::bitvector64& result) const {
     const ibis::bitvector64::word_t nbits =
@@ -609,7 +609,7 @@ int64_t ibis::part::compJoin(const ibis::rangeJoin& cmp,
 /// Check a set of pairs defined in @c trial.  This version works on
 /// multiple (conjunctive) join conditions.
 int64_t
-ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
+ibis::part::evaluateJoin(const std::vector<const ibis::deprecatedJoin*>& cmp,
 			  const ibis::bitvector64& trial,
 			  ibis::bitvector64& result) const {
     const ibis::bitvector64::word_t nbits =
@@ -801,7 +801,7 @@ ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
 } // ibis::part::evaluateJoin
 
 int64_t
-ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
+ibis::part::evaluateJoin(const std::vector<const ibis::deprecatedJoin*>& cmp,
 			  const ibis::bitvector& mask) const {
     if (cmp.empty() || mask.cnt() == 0) {
 	return 0;
@@ -839,7 +839,7 @@ ibis::part::evaluateJoin(const std::vector<const ibis::rangeJoin*>& cmp,
 /// For floating-point values, this approach could production incorrect
 /// answers for NaN, Inf and some abnormal numbers.  However, this approach
 /// simplifies the implementation and may speedup comparisons.
-int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
+int64_t ibis::part::equiJoinLoop1(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask,
 				   ibis::bitvector64& pairs) const {
     long ierr = -1;
@@ -1357,7 +1357,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
     return cnt;
 } // ibis::part::equiJoinLoop1
 
-int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
+int64_t ibis::part::equiJoinLoop1(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask) const {
     long ierr = -1;
     int64_t cnt = 0;
@@ -1783,7 +1783,7 @@ int64_t ibis::part::equiJoinLoop1(const ibis::rangeJoin& cmp,
 /// ibis::part::barrel to read the data files.  This uses less memory than
 /// ibis::part::equiJoinLoop1.  It casts every attributes into double,
 /// which will cause the comparisons to be slower on some machines.
-int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
+int64_t ibis::part::equiJoinLoop2(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask,
 				   ibis::bitvector64& pairs) const {
     ibis::horometer timer;
@@ -1964,7 +1964,7 @@ int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
     return pairs.cnt();
 } // ibis::part::equiJoinLoop2
 
-int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
+int64_t ibis::part::equiJoinLoop2(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector& mask) const {
     int64_t cnt = 0;
     ibis::horometer timer;
@@ -2140,7 +2140,7 @@ int64_t ibis::part::equiJoinLoop2(const ibis::rangeJoin& cmp,
 /// pairs.setBit is a lot slower in the blocked version.  This
 /// implementation uses a simple loop to iterate over both attributes.
 template <class type1, class type2>
-void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
+void ibis::part::deprecatedJoinLoop(const array_t<type1>& arr1,
 				const ibis::bitvector& msk1,
 				const array_t<type2>& arr2,
 				const ibis::bitvector& msk2,
@@ -2168,7 +2168,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			     j < ind2[1]; ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop val1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop val1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i, (double)arr1[i],
 				 (double)lower, (double)upper, j,
 				 (double) arr2[j]);
@@ -2183,7 +2183,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i, (double)arr1[i],
 				 (double)lower, (double)upper, ind2[j],
 				 (double) arr2[ind2[j]]);
@@ -2205,7 +2205,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			      << i << " of " << nEvents
 			      << ", got " << pairs.cnt()
 			      << " hit(s)";
-			logMessage("rangeJoinLoop", "%s",
+			logMessage("deprecatedJoinLoop", "%s",
 				   ostmp.str().c_str());
 			tlast = tcurr;
 		    }
@@ -2229,7 +2229,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
 				 (double)arr1[ind1[i]],
 				 (double)lower, (double)upper, j,
@@ -2243,7 +2243,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
 				 (double)arr1[ind1[i]],
 				 (double)lower, (double)upper, ind2[j],
@@ -2265,7 +2265,7 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			      << ind1[i] << " of " << nEvents
 			      << ", got " << pairs.cnt()
 			      << " hit(s)";
-			logMessage("rangeJoinLoop", "%s",
+			logMessage("deprecatedJoinLoop", "%s",
 				   ostmp.str().c_str());
 			tlast = tcurr;
 		    }
@@ -2277,11 +2277,11 @@ void ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
     // make sure the output bitvector has the correct number of bits.
     pairs.adjustSize(0, static_cast<ibis::bitvector64::word_t>(nEvents)*
 		     static_cast<ibis::bitvector64::word_t>(nEvents));
-} // ibis::part::rangeJoinLoop
+} // ibis::part::deprecatedJoinLoop
 
 // TODO: figure out how to do the block version ?
 template <class type1, class type2>
-int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
+int64_t ibis::part::deprecatedJoinLoop(const array_t<type1>& arr1,
 				   const ibis::bitvector& msk1,
 				   const array_t<type2>& arr2,
 				   const ibis::bitvector& msk2,
@@ -2306,7 +2306,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i,
 				 (double)arr1[i],
 				 (double)lower, (double)upper, j,
@@ -2319,7 +2319,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", i,
 				 (double)arr1[i],
 				 (double)lower, (double)upper, ind2[j],
@@ -2340,7 +2340,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			      << i << " of " << nEvents
 			      << ", got " << cnt
 			      << " hit(s)";
-			logMessage("rangeJoinLoop", "%s",
+			logMessage("deprecatedJoinLoop", "%s",
 				   ostmp.str().c_str());
 			tlast = tcurr;
 		    }
@@ -2362,7 +2362,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = *ind2; j < ind2[1]; ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
 				 (double)arr1[ind1[i]],
 				 (double)lower, (double)upper, j,
@@ -2375,7 +2375,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			for (unsigned j = 0; j < ix2.nIndices(); ++ j) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			    ibis::util::logMessage
-				("DEBUG", "rangeJoinLoop arr1[%u]=%g (lo=%g, "
+				("DEBUG", "deprecatedJoinLoop arr1[%u]=%g (lo=%g, "
 				 "hi=%g), arr2[%u]=%g", ind1[i],
 				 (double)arr1[ind1[i]],
 				 (double)lower, (double)upper, ind2[j],
@@ -2396,7 +2396,7 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 			      << ind1[i] << " of " << nEvents
 			      << ", got " << cnt
 			      << " hit(s)";
-			logMessage("rangeJoinLoop", "%s",
+			logMessage("deprecatedJoinLoop", "%s",
 				   ostmp.str().c_str());
 			tlast = tcurr;
 		    }
@@ -2405,9 +2405,9 @@ int64_t ibis::part::rangeJoinLoop(const array_t<type1>& arr1,
 	}
     } // for (ibis::bitvector::indexSet ix1
     return cnt;
-} // ibis::part::rangeJoinLoop
+} // ibis::part::deprecatedJoinLoop
 
-int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
+int64_t ibis::part::deprecatedJoinLoop(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask,
 				   ibis::bitvector64& pairs) const {
     ibis::horometer timer;
@@ -2429,7 +2429,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<double> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2438,10 +2438,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 	    }
 	    break;}
@@ -2449,10 +2449,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2462,10 +2462,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2474,16 +2474,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -2;}
 	} // switch (col1->type())
@@ -2492,7 +2492,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<float> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2501,10 +2501,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2513,10 +2513,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2526,10 +2526,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2538,16 +2538,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
@@ -2557,7 +2557,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<uint32_t> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2566,10 +2566,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2578,10 +2578,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2591,10 +2591,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2603,16 +2603,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
@@ -2621,7 +2621,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<int32_t> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2630,10 +2630,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2642,10 +2642,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2655,10 +2655,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2667,22 +2667,22 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		rangeJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
+		deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta, pairs);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
 	break;}
     default: {
-	logWarning("rangeJoinLoop", "can not process column %s:%s",
+	logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		   col1->name(), ibis::TYPESTRING[col1->type()]);
 	return -3;}
     } // switch (col1->type())
@@ -2691,15 +2691,15 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	timer.stop();
 	std::ostringstream ostr;
 	ostr << pairs.cnt() << " hit(s)";
-	logMessage("rangeJoinLoop", "rangeJoin(%s, %s, %g) produced %s "
+	logMessage("deprecatedJoinLoop", "deprecatedJoin(%s, %s, %g) produced %s "
 		   "in %g second(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta, ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
     return pairs.cnt();
-} // ibis::part::rangeJoinLoop
+} // ibis::part::deprecatedJoinLoop
 
-int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
+int64_t ibis::part::deprecatedJoinLoop(const ibis::deprecatedJoin& cmp,
 				   const ibis::bitvector& mask) const {
     ibis::horometer timer;
     timer.start();
@@ -2721,7 +2721,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<double> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2730,10 +2730,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2742,10 +2742,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2755,10 +2755,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2767,16 +2767,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
@@ -2785,7 +2785,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<float> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2794,10 +2794,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2806,10 +2806,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2819,10 +2819,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2831,16 +2831,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
@@ -2850,7 +2850,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<uint32_t> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2859,10 +2859,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2871,10 +2871,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2884,10 +2884,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2896,16 +2896,16 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
@@ -2914,7 +2914,7 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	array_t<int32_t> arr1;
 	int ierr = ibis::fileManager::instance().getFile(dfn1, arr1);
 	if (ierr != 0) {
-	    logWarning("rangeJoinLoop", "failed to retrieve the content "
+	    logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 		       "of %s", dfn1);
 	    return -1;
 	}
@@ -2923,10 +2923,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<double> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2935,10 +2935,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<float> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2948,10 +2948,10 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<uint32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
@@ -2960,22 +2960,22 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	    array_t<int32_t> arr2;
 	    ierr = ibis::fileManager::instance().getFile(dfn2, arr2);
 	    if (ierr == 0) {
-		cnt = rangeJoinLoop(arr1, bv1, arr2, bv2, delta);
+		cnt = deprecatedJoinLoop(arr1, bv1, arr2, bv2, delta);
 	    }
 	    else {
-		logWarning("rangeJoinLoop", "failed to retrieve the content "
+		logWarning("deprecatedJoinLoop", "failed to retrieve the content "
 			   "of %s", dfn2);
 		return -2;
 	    }
 	    break;}
 	default: {
-	    logWarning("rangeJoinLoop", "can not process column %s:%s",
+	    logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		       col2->name(), ibis::TYPESTRING[col2->type()]);
 	    return -3;}
 	} // switch (col1->type())
 	break;}
     default: {
-	logWarning("rangeJoinLoop", "can not process column %s:%s",
+	logWarning("deprecatedJoinLoop", "can not process column %s:%s",
 		   col1->name(), ibis::TYPESTRING[col1->type()]);
 	return -3;}
     } // switch (col1->type())
@@ -2984,20 +2984,20 @@ int64_t ibis::part::rangeJoinLoop(const ibis::rangeJoin& cmp,
 	timer.stop();
 	std::ostringstream ostr;
 	ostr << cnt << " hit(s)";
-	logMessage("rangeJoinLoop", "rangeJoin(%s, %s, %g) produced %s "
+	logMessage("deprecatedJoinLoop", "deprecatedJoin(%s, %s, %g) produced %s "
 		   "in %g second(CPU), %g sec(elapsed)",
 		   cmp.getName1(), cmp.getName2(), delta, ostr.str().c_str(),
 		   timer.CPUTime(), timer.realTime());
     }
     return cnt;
-} // ibis::part::rangeJoinLoop
+} // ibis::part::deprecatedJoinLoop
 
 /// Evaluate the range join that involves an arithematic expressions as the
 /// difference.  It associates all variables in the arithematic expression
 /// with the left relation, i.e., @c cmp.getName1().  It casts all values
 /// to double.  Not suitable for processing RIDs and other 8-byte integer
 /// values.
-int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
+int64_t ibis::part::compJoinLoop(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector& mask,
 				  ibis::bitvector64& pairs) const {
     ibis::horometer timer;
@@ -3193,7 +3193,7 @@ int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
     return pairs.cnt();
 } // ibis::part::compJoinLoop
 
-int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
+int64_t ibis::part::compJoinLoop(const ibis::deprecatedJoin& cmp,
 				  const ibis::bitvector& mask) const {
     ibis::horometer timer;
     timer.start();
@@ -3379,7 +3379,7 @@ int64_t ibis::part::compJoinLoop(const ibis::rangeJoin& cmp,
 
 /// Evaluate a number of range joins together.  It assumes all elements of
 /// @c cmp are valid pointers and does not perform any validity checks.
-int64_t ibis::part::loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
+int64_t ibis::part::loopJoin(const std::vector<const ibis::deprecatedJoin*>& cmp,
 			      const ibis::bitvector& mask,
 			      ibis::bitvector64& pairs) const {
     if (cmp.empty()) { // nothing to do
@@ -3632,7 +3632,7 @@ int64_t ibis::part::loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
     return pairs.cnt();
 } // ibis::part::loopJoin
 
-int64_t ibis::part::loopJoin(const std::vector<const ibis::rangeJoin*>& cmp,
+int64_t ibis::part::loopJoin(const std::vector<const ibis::deprecatedJoin*>& cmp,
 			      const ibis::bitvector& mask) const {
     if (cmp.empty()) { // nothing to do
 	return 0;

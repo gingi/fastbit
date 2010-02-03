@@ -736,13 +736,13 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	delete expr;
 	expr = tmp;
 	break;}
-    case ibis::qExpr::JOIN: {
+    case ibis::qExpr::DEPRECATEDJOIN: {
 	ibis::math::term *range =
-	    reinterpret_cast<ibis::rangeJoin*>(expr)->getRange();
+	    reinterpret_cast<ibis::deprecatedJoin*>(expr)->getRange();
 	if (range != 0 && ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = range->reduce();
 	    if (tmp != range)
-		reinterpret_cast<ibis::rangeJoin*>(expr)->setRange(tmp);
+		reinterpret_cast<ibis::deprecatedJoin*>(expr)->setRange(tmp);
 	}
 	break;}
     } // switch(...
@@ -1201,7 +1201,7 @@ ibis::qRange* ibis::qExpr::findRange(const char *vname) {
 } // ibis::qExpr::findRange
 
 bool ibis::qExpr::hasJoin() const {
-    if (type == JOIN) {
+    if (type == DEPRECATEDJOIN) {
 	return true;
     }
     else if (left) {
@@ -1218,7 +1218,7 @@ bool ibis::qExpr::hasJoin() const {
     }
 } // ibis::qExpr::hasJoin
 
-void ibis::qExpr::extractJoins(std::vector<const rangeJoin*>& terms)
+void ibis::qExpr::extractJoins(std::vector<const deprecatedJoin*>& terms)
     const {
     if (type == LOGICAL_AND) {
 	if (left != 0)
@@ -1226,8 +1226,8 @@ void ibis::qExpr::extractJoins(std::vector<const rangeJoin*>& terms)
 	if (right != 0)
 	    right->extractJoins(terms);
     }
-    else if (type == JOIN) {
-	terms.push_back(reinterpret_cast<const rangeJoin*>(this));
+    else if (type == DEPRECATEDJOIN) {
+	terms.push_back(reinterpret_cast<const deprecatedJoin*>(this));
     }
 } // ibis::qExpr::extractJoins
 
@@ -2962,12 +2962,12 @@ ibis::qExpr* ibis::qMultiString::convert() const {
     return ret;
 } // ibis::qMultiString::convert
 
-void ibis::rangeJoin::print(std::ostream& out) const {
+void ibis::deprecatedJoin::print(std::ostream& out) const {
     out << "join(" << name1 << ", " << name2;
     if (expr)
 	out << ", " << *expr;
     out << ')';
-} // ibis::rangeJoin::print
+} // ibis::deprecatedJoin::print
 
 /// Constructing a qAnyAny object from a string and a floating-point value.
 ibis::qAnyAny::qAnyAny(const char *pre, const double dbl)

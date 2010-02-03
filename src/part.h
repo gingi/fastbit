@@ -229,32 +229,32 @@ public:
     /// condition.  Only records marked with mask=1 are considered.  The
     /// result pairs are stored in the bitvector @a pairs.  A pair <i, j>
     /// would be marked at position i*nRows() + j in @a pairs.
-    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+    int64_t evaluateJoin(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector &mask,
 			 ibis::bitvector64 &pairs) const;
     /// Return the number of pairs satisfying the join condition.  In
     /// addition, write the pairs into the file named @c pairfile.
-    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+    int64_t evaluateJoin(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector &mask,
 			 const char* pairfile) const;
     /// Return only the number of pairs satisfying the join condition.
-    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+    int64_t evaluateJoin(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector &mask) const;
     /// Evaluate a join defined with multiple (conjunctive) range join
     /// conditions.
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+    int64_t evaluateJoin(const std::vector<const ibis::deprecatedJoin*> &cmp,
 			 const ibis::bitvector &mask,
 			 ibis::bitvector64 &pairs) const;
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+    int64_t evaluateJoin(const std::vector<const ibis::deprecatedJoin*> &cmp,
 			 const ibis::bitvector &mask) const;
     /// Evaluate all pairs in @c trial to determine whether they really
     /// satisfy the range join defined in @c cmp.  The result is stored in
     /// the argument @c result.  This function returns the number of hits
     /// found.
-    int64_t evaluateJoin(const ibis::rangeJoin &cmp,
+    int64_t evaluateJoin(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector64 &trial,
 			 ibis::bitvector64 &result) const;
-    int64_t evaluateJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+    int64_t evaluateJoin(const std::vector<const ibis::deprecatedJoin*> &cmp,
 			 const ibis::bitvector64 &trial,
 			 ibis::bitvector64 &result) const;
     /******************************************************************/
@@ -1216,58 +1216,58 @@ private:
     void   searchRIDs(const ibis::RIDSet&, ibis::bitvector&) const;
 
     // functions to perform join operations.
-    int64_t equiJoin(const ibis::rangeJoin &cmp,
+    int64_t equiJoin(const ibis::deprecatedJoin &cmp,
 		     const ibis::bitvector64 &trial,
 		     ibis::bitvector64 &result) const;
-    int64_t rangeJoin(const ibis::rangeJoin &cmp,
+    int64_t deprecatedJoin(const ibis::deprecatedJoin &cmp,
 		      const ibis::bitvector64 &trial,
 		      ibis::bitvector64 &result) const;
-    int64_t compJoin(const ibis::rangeJoin &cmp,
+    int64_t compJoin(const ibis::deprecatedJoin &cmp,
 		     const ibis::bitvector64 &trial,
 		     ibis::bitvector64 &result) const;
 
-    int64_t loopJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+    int64_t loopJoin(const std::vector<const ibis::deprecatedJoin*> &cmp,
 		     const ibis::bitvector &mask,
 		     ibis::bitvector64 &pairs) const;
-    int64_t loopJoin(const std::vector<const ibis::rangeJoin*> &cmp,
+    int64_t loopJoin(const std::vector<const ibis::deprecatedJoin*> &cmp,
 		     const ibis::bitvector &mask) const;
-    int64_t loopJoin(const ibis::rangeJoin &cmp,
+    int64_t loopJoin(const ibis::deprecatedJoin &cmp,
 		     const ibis::bitvector &mask,
 		     ibis::bitvector64 &pairs) const;
-    int64_t loopJoin(const ibis::rangeJoin &cmp,
+    int64_t loopJoin(const ibis::deprecatedJoin &cmp,
 		     const ibis::bitvector &mask) const;
-    int64_t equiJoinLoop1(const ibis::rangeJoin &cmp,
+    int64_t equiJoinLoop1(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask,
 			  ibis::bitvector64 &pairs) const;
-    int64_t equiJoinLoop1(const ibis::rangeJoin &cmp,
+    int64_t equiJoinLoop1(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask) const;
-    int64_t equiJoinLoop2(const ibis::rangeJoin &cmp,
+    int64_t equiJoinLoop2(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask,
 			  ibis::bitvector64 &pairs) const;
-    int64_t equiJoinLoop2(const ibis::rangeJoin &cmp,
+    int64_t equiJoinLoop2(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask) const;
     template <class type1, class type2>
-    void rangeJoinLoop(const array_t<type1> &arr1,
+    void deprecatedJoinLoop(const array_t<type1> &arr1,
 		       const ibis::bitvector &msk1,
 		       const array_t<type2> &arr2,
 		       const ibis::bitvector &msk2,
 		       const double delta,
 		       ibis::bitvector64 &pairs) const;
     template <class type1, class type2>
-    int64_t rangeJoinLoop(const array_t<type1> &arr1,
+    int64_t deprecatedJoinLoop(const array_t<type1> &arr1,
 			  const ibis::bitvector &msk1,
 			  const array_t<type2> &arr2,
 			  const ibis::bitvector &msk2,
 			  const double delta) const;
-    int64_t rangeJoinLoop(const ibis::rangeJoin &cmp,
+    int64_t deprecatedJoinLoop(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask,
 			  ibis::bitvector64 &pairs) const;
-    int64_t rangeJoinLoop(const ibis::rangeJoin &cmp,
+    int64_t deprecatedJoinLoop(const ibis::deprecatedJoin &cmp,
 			  const ibis::bitvector &mask) const;
-    int64_t compJoinLoop(const ibis::rangeJoin &cmp,
+    int64_t compJoinLoop(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector &mask,
 			 ibis::bitvector64 &pairs) const;
-    int64_t compJoinLoop(const ibis::rangeJoin &cmp,
+    int64_t compJoinLoop(const ibis::deprecatedJoin &cmp,
 			 const ibis::bitvector &mask) const;
 
     part(const part&);
@@ -1583,26 +1583,26 @@ inline const char* ibis::part::getMetaTag(const char* name) const {
 	return static_cast<const char*>(0);
 } // getMetaTag
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
 					const ibis::bitvector &mask,
 					ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
 					const ibis::bitvector &mask,
 					const char *pairfile) const {
     logWarning("evaluate", "not implemented yet");
     return -1;
 } // ibis::part::evaluateJoin
 
-inline int64_t ibis::part::evaluateJoin(const ibis::rangeJoin &cmp,
+inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
 					const ibis::bitvector &mask) const {
     return loopJoin(cmp, mask);
 } // ibis::part::evaluateJoin
 
 inline int64_t ibis::part::evaluateJoin
-(const std::vector<const ibis::rangeJoin*> &cmp,
+(const std::vector<const ibis::deprecatedJoin*> &cmp,
  const ibis::bitvector &mask, ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
