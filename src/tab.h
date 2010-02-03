@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 #ifndef IBIS_TAB_H
 #define IBIS_TAB_H
 /**@file
@@ -8,13 +8,13 @@
    This file stores two trivial concrete classes of ibis::table: tabula and
    tabele.
 
-   Here is an explanation of how these two words are related to "table".
-
-   @remarks The term "table" is derived from a merger of French table and
+   @remarks Here is an explanation of how these two words are related to
+   "table".  The term "table" is derived from a merger of French table and
    Old English tabele, ultimately from the Latin word tabula, "a board,
    plank, flat piece".  In Late Latin, tabula took over the meaning
    previously reserved to mensa (preserved in Spanish mesa "table").  In
    Old English, the word replaced bord for this meaning. -- Wikipedia.
+
 */
 
 #include "table.h"	// ibis::table

@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu@NERSC.gov> Lawrence Berkeley National Laboratory
-// Copyright 2002-2009 the Regents of the University of California
+// Copyright 2002-2010 the Regents of the University of California
 /**   Read Comma-Separated Values.
 
    Command line options:

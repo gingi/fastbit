@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 //
 // This file contains the implementation of the class ibis::zona, a
 // unbinned version of equality-equality encoded index.

@@ -23,7 +23,7 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  countQuery.o \
  fileManager.o \
  ibin.o \
- joinin.o \
+ jnatural.o \
  bord.o \
  tafel.o \
  mensa.o \
@@ -366,12 +366,12 @@ ixzone.o: ../src/ixzone.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
   ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixzone.o ../src/ixzone.cpp
-joinin.o: ../src/joinin.cpp ../src/joinin.h ../src/join.h ../src/table.h \
+jnatural.o: ../src/joinin.cpp ../src/joinin.h ../src/join.h ../src/table.h \
   ../src/const.h  ../src/part.h ../src/column.h \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/query.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o joinin.o ../src/joinin.cpp
+	$(CXX) $(CCFLAGS) -c -o jnatural.o ../src/joinin.cpp
 mensa.o: ../src/mensa.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/bord.h ../src/util.h ../src/part.h \
   ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \

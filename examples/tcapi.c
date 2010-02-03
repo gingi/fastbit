@@ -2,7 +2,7 @@
  File: $Id$
  Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
- Copyright 2006-2009 the Regents of the University of California
+ Copyright 2006-2010 the Regents of the University of California
 */
 /**
    @file tcapi.c

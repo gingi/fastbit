@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2008-2009 the Regents of the University of California
+// Copyright 2008-2010 the Regents of the University of California
 #ifndef IBIS_UTILIDOR_H
 #define IBIS_UTILIDOR_H
 /**@file
@@ -36,6 +36,7 @@ namespace ibis {
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T> &arr, const array_t<uint32_t> &ind);
+	void reorder(std::vector<std::string> &arr, const array_t<uint32_t> &ind);
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T*> &arr, const array_t<uint32_t> &ind);

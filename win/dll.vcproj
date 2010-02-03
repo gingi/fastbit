@@ -507,7 +507,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\joinin.cpp"
+				RelativePath="..\src\jnatural.cpp"
 				>
 			</File>
 			<File
@@ -689,7 +689,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\joinin.h"
+				RelativePath="..\src\jnatural.h"
 				>
 			</File>
 			<File

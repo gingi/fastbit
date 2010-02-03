@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2008-2009 the Regents of the University of California
+// Copyright 2008-2010 the Regents of the University of California
 #include "utilidor.h"
 #include <typeinfo>	// typeid
 #include <iostream>	// std::cout, etc
@@ -194,6 +194,7 @@ void ibis::util::sortRIDsi(ibis::RIDSet& rids, uint32_t i, uint32_t j) {
     }
 } // ibis::util::sortRIDsi
 
+/// This implementation uses copy-and-swap algorithm.
 template<class T>
 void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
     if (ind.size() <= arr.size()) {
@@ -201,6 +202,29 @@ void ibis::util::reorder(array_t<T> &arr, const array_t<uint32_t>& ind) {
 	for (uint32_t i = 0; i < ind.size(); ++ i)
 	    tmp[i] = arr[ind[i]];
 	arr.swap(tmp);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- util::reorder expects arr[" << arr.size()
+	    << "] and ind[" << ind.size() << "] to be the same size";
+    }
+} // ibis::util::reorder
+
+/// Reorder string values.  This function keeps the actual strings in their
+/// input positions by using the function swap.  This procedure should
+/// avoid most of the memory allocations.
+void ibis::util::reorder(std::vector<std::string> &arr,
+			 const array_t<uint32_t>& ind) {
+    if (ind.size() <= arr.size()) {
+	std::vector<std::string> tmp(ind.size());
+	for (uint32_t i = 0; i < ind.size(); ++ i)
+	    tmp[i].swap(arr[ind[i]]);
+	arr.swap(tmp);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- util::reorder expects arr[" << arr.size()
+	    << "] and ind[" << ind.size() << "] to be the same size";
     }
 } // ibis::util::reorder
 
@@ -224,6 +248,11 @@ void ibis::util::reorder(array_t<T*> &arr, const array_t<uint32_t>& ind) {
 	array_t<T*> tmp(arr.size());
 	for (uint32_t i = 0; i < ind.size(); ++ i)
 	    tmp[i] = arr[ind[i]];
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- util::reorder expects arr[" << arr.size()
+	    << "] and ind[" << ind.size() << "] to be the same size";
     }
 } // ibis::util::reorder
 

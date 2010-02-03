@@ -1,9 +1,21 @@
+2010-02-02 John Wu <John.Wu at ACM.org>
+	* src/*, examples/*: update copyright year
+	* src/bord.h, src/bord.cpp: add functions bord::copyValue,
+	bord::createBuffer, bord::freeBuffer, and bord::freeBuffers
+	* src/join.h: add function ibis::join::fillEquiJoinTable
+	* src/jnatural.h, src/jnatural.cpp: remove function clearBuffer,
+	add definition of ibis::join::fillEquiJoinTable, replace
+	jNatual::select with new implementation
+
 2010-02-01 John Wu <John.Wu at ACM.org>
 	* src/part.cpp:780 modify the tests to take into account the
 	trailing directory separator (which is removed internally) to
 	address an issue reported by Valeria Lorenzetti
 	* tests/Makefile.am: add trailing / to a few test cases to verify
 	the fix
+	* src/jnatural.h, src/jnatural.cpp: rename joinin to jNatural
+	* src/join.h: remove ibis::join::result, use ibis::table in its
+	place
 
 2010-01-29 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: add test data directory t2 to exercise the

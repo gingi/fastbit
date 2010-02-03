@@ -1,6 +1,6 @@
-// $Id: rara.cpp,v 1.2 2009/09/10 23:50:03 kewu Exp $
+// $Id: rara.cpp,v 1.3 2010/02/03 02:35:14 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2008-2009 the Regents of the University of California
+// Copyright 2008-2010 the Regents of the University of California
 /** @file rara.cpp
 
     This is a simple test program for the querying functions of ibis::query

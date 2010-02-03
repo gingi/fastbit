@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2000-2009 the Regents of the University of California
+// Copyright 2000-2010 the Regents of the University of California
 #ifndef IBIS_MESHQUERY_H
 #define IBIS_MESHQUERY_H
 ///@file

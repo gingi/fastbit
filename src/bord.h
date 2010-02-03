@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 #ifndef IBIS_BORD_H
 #define IBIS_BORD_H
 #include "table.h"	// ibis::table
@@ -28,10 +28,10 @@ namespace ibis {
 class ibis::bord : public ibis::table {
 public:
     typedef std::vector<void *> bufferList;
-    bord(const char *tn, const char *td, uint64_t nr,
-	 const ibis::table::stringList &cn,
+    bord(const char *tn, const char *td, uint64_t nr, const bufferList &buf,
 	 const ibis::table::typeList &ct,
-	 const bufferList &buf, const ibis::table::stringList *cdesc=0);
+	 const ibis::table::stringList &cn,
+	 const ibis::table::stringList *cdesc=0);
     virtual ~bord() {clear();}
 
     virtual uint64_t nRows() const {return mypart.nRows();}
@@ -104,7 +104,6 @@ public:
     int restoreCategoriesAsStrings(const ibis::part&, const char*);
     ibis::table* groupby(const ibis::selectClause&) const;
 
-protected:
     class column;
     /// An in-memory data partition.
     class part : public ibis::part {
@@ -156,6 +155,14 @@ protected:
 	part& operator=(const part&);
     }; // ibis::bord::part
 
+    static void copyValue(ibis::TYPE_T type,
+			  void* outbuf, size_t outpos,
+			  const void* inbuf, size_t inpos);
+    static void* allocateBuffer(ibis::TYPE_T, size_t);
+    static void freeBuffer(void* buffer, ibis::TYPE_T type);
+    static void freeBuffers(bufferList&, ibis::table::typeList&);
+
+protected:
     part mypart; ///< The data partition for an in-memory table.
 
     /// Clear the existing content.
@@ -288,6 +295,60 @@ private:
     cursor(const cursor&);
     cursor& operator=(const cursor&);
 }; // ibis::bord::cursor
+
+inline void ibis::bord::copyValue(ibis::TYPE_T type,
+				  void* outbuf, size_t outpos,
+				  const void* inbuf, size_t inpos) {
+    switch (type) {
+    default:
+	break;
+    case ibis::BYTE: {
+	(*static_cast<array_t<signed char>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<signed char>*>(inbuf))[inpos];
+	break;}
+    case ibis::UBYTE: {
+	(*static_cast<array_t<unsigned char>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<unsigned char>*>(inbuf))[inpos];
+	break;}
+    case ibis::SHORT: {
+	(*static_cast<array_t<int16_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<int16_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::USHORT: {
+	(*static_cast<array_t<uint16_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<uint16_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::INT: {
+	(*static_cast<array_t<int32_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<int32_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::UINT: {
+	(*static_cast<array_t<uint32_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<uint32_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::LONG: {
+	(*static_cast<array_t<int64_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<int64_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::ULONG: {
+	(*static_cast<array_t<uint64_t>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<uint64_t>*>(inbuf))[inpos];
+	break;}
+    case ibis::FLOAT: {
+	(*static_cast<array_t<float>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<float>*>(inbuf))[inpos];
+	break;}
+    case ibis::DOUBLE: {
+	(*static_cast<array_t<double>*>(outbuf))[outpos]
+	    = (*static_cast<const array_t<double>*>(inbuf))[inpos];
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	(*static_cast<std::vector<std::string>*>(outbuf))[outpos]
+	= (*static_cast<const std::vector<std::string>*>(inbuf))[inpos];
+	break;}
+    }
+} //ibis::bord::copyValue
 
 inline void ibis::bord::describe(std::ostream &out) const {
     mypart.describe(out);

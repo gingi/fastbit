@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at acm.org> Lawrence Berkeley National Laboratory
-// Copyright 2000-2009 the Regents of the University of California
+// Copyright 2000-2010 the Regents of the University of California
 #ifndef IBIS_UTIL_H
 #define IBIS_UTIL_H
 ///@file
@@ -1317,6 +1317,8 @@ inline double ibis::util::coarsen(const double in, unsigned prec) {
     return ret;
 } // ibis::util::coarsen
 
+/// Use the Fletcher's checksum to produce a short 6-character long string.
+/// The result is often used as name of temporary table objects.
 inline std::string ibis::util::shortName(const std::string& de) {
     std::string tn;
     uint32_t tmp = ibis::util::checksum(de.c_str(), de.size());

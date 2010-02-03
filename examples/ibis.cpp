@@ -1,7 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2001-2009 the Regents of the University of California
+// Copyright 2001-2010 the Regents of the University of California
 //
 /** @file ibis.cpp
 
@@ -3690,41 +3690,25 @@ static void doJoin(const char* uid, const ibis::partList& parts,
 	return;
     }
 
-    ibis::join::result *res = jn->select(js.selcol);
+    ibis::table *res = jn->select(js.selcol);
     if (res == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()
-	    << ": failed to create an ibis::join::result object";
+	    << ": failed to create a table representing the join result";
 	delete jn;
 	return;
     }
 
     // print the columns name
     res->describe(std::cout);
-    size_t nprint = ((nhits >> ibis::gVerbose) > 1 ? (2 << ibis::gVerbose) :
+    size_t nprint = ((nhits >> ibis::gVerbose) > 2 ? (2 << ibis::gVerbose) :
 		     nhits);
     // print the first few rows of the result
-    for (size_t j = 0; j < nprint; ++ j) {
-	int ierr = res->fetch();
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- " << oss.str() << ": failed to fetch row " << j
-		<< " from the joined table with " << nhits << " row"
-		<< (nhits > 1 ? "s" : "") << ", ierr = " << ierr;
-	    delete res;
-	    delete jn;
-	    return;
-	}
-	ierr = res->dump(std::cout);
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << oss.str() << ": failed to print row " << j
-		<< " from the joined table, ierr = " << ierr;
-	}
-    }
-    if (nhits > (int64_t)nprint) {
-	std::cout << " ... " << nhits - nprint << " skipped" << std::endl;
-    }
+    int ierr = res->dump(std::cout, nprint);
+    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	<< "Warning -- " << oss.str() << ": failed to print " << nprint
+	<< " row" << (nprint > 1 ? "s" : "")
+	<< "from the joined table, ierr = " << ierr;
     delete res;
     delete jn;
 } // doJoin

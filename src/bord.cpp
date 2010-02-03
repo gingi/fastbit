@@ -1,6 +1,6 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -17,10 +17,12 @@
 #include <typeinfo>	// std::typeid
 #include <algorithm>	// std::reverse, std::copy
 
+/// Constructor.  The responsibility of freeing the memory pointed by the
+/// elements of buf is transferred to this object.
 ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
-		 const ibis::table::stringList &cn,
-		 const ibis::table::typeList   &ct,
 		 const ibis::bord::bufferList  &buf,
+		 const ibis::table::typeList   &ct,
+		 const ibis::table::stringList &cn,
 		 const ibis::table::stringList *cdesc)
     : ibis::table(tn, td), mypart(tn, td, nr, cn, ct, buf, cdesc) {
 } // ibis::bord::bord
@@ -965,7 +967,7 @@ ibis::table* ibis::bord::select(const char *sel, const char *cond) const {
 	}
 	if (nm.size() > 0) {
 	    return new ibis::bord(tn.c_str(), de.c_str(), q.getNumHits(),
-				  nm, tp, buf);
+				  buf, tp, nm);
 	}
 	else {
 	    return new ibis::tabula(tn.c_str(), de.c_str(), q.getNumHits());
@@ -1000,6 +1002,153 @@ ibis::bord::groupby(const ibis::table::stringList& keys) const {
     ibis::selectClause sel(keys);
     return mypart.groupby(sel);
 } // ibis::bord::groupby
+
+/// Allocate a buffer of the specified type and size.
+void* ibis::bord::allocateBuffer(ibis::TYPE_T type, size_t sz) {
+    void* ret = 0;
+    switch (type) {
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::bord::allocateBuffer("
+	    << ibis::TYPESTRING[(int)type] << ", "
+	    << sz << ") unable to handle the data type";
+	break;
+    case ibis::BYTE:
+	ret = new array_t<char>(sz);
+	break;
+    case ibis::UBYTE:
+	ret = new array_t<unsigned char>(sz);
+	break;
+    case ibis::SHORT:
+	ret = new array_t<int16_t>(sz);
+	break;
+    case ibis::USHORT:
+	ret = new array_t<uint16_t>(sz);
+	break;
+    case ibis::INT:
+	ret = new array_t<int32_t>(sz);
+	break;
+    case ibis::UINT:
+	ret = new array_t<uint32_t>(sz);
+	break;
+    case ibis::LONG:
+	ret = new array_t<int64_t>(sz);
+	break;
+    case ibis::ULONG:
+	ret = new array_t<uint64_t>(sz);
+	break;
+    case ibis::FLOAT:
+	ret = new array_t<float>(sz);
+	break;
+    case ibis::DOUBLE:
+	ret = new array_t<double>(sz);
+	break;
+    case ibis::TEXT:
+    case ibis::CATEGORY:
+	ret = new std::vector<std::string>(sz);
+        break;
+    }
+    return ret;
+} // ibis::bord::allocateBuffer
+
+/// Freeing a buffer for storing in-memory values.
+void ibis::bord::freeBuffer(void *buffer, ibis::TYPE_T type) {
+    switch (type) {
+    default:
+	LOGGER(ibis::gVerbose > 1 && buffer != 0)
+	    << "Warning -- ibis::bord::freeBuffer(" << buffer << ", "
+	    << (int) type << ") unable to handle data type "
+	    << ibis::TYPESTRING[(int)type];
+	break;
+    case ibis::BYTE:
+	delete static_cast<array_t<char>*>(buffer);
+	break;
+    case ibis::UBYTE:
+	delete static_cast<array_t<unsigned char>*>(buffer);
+	break;
+    case ibis::SHORT:
+	delete static_cast<array_t<int16_t>*>(buffer);
+	break;
+    case ibis::USHORT:
+	delete static_cast<array_t<uint16_t>*>(buffer);
+	break;
+    case ibis::INT:
+	delete static_cast<array_t<int32_t>*>(buffer);
+	break;
+    case ibis::UINT:
+	delete static_cast<array_t<uint32_t>*>(buffer);
+	break;
+    case ibis::LONG:
+	delete static_cast<array_t<int64_t>*>(buffer);
+	break;
+    case ibis::ULONG:
+	delete static_cast<array_t<uint64_t>*>(buffer);
+	break;
+    case ibis::FLOAT:
+	delete static_cast<array_t<float>*>(buffer);
+	break;
+    case ibis::DOUBLE:
+	delete static_cast<array_t<double>*>(buffer);
+	break;
+    case ibis::TEXT:
+    case ibis::CATEGORY:
+	delete static_cast<std::vector<std::string>*>(buffer);
+        break;
+    }
+} // ibis::bord::freeBuffer
+
+/// Freeing a list of buffers.
+void ibis::bord::freeBuffers(ibis::bord::bufferList& buf, ibis::table::typeList& typ) {
+    const size_t nbt = (buf.size() <= typ.size() ? buf.size() : typ.size());
+    LOGGER((nbt < buf.size() || nbt < typ.size()) && ibis::gVerbose > 1)
+	<< "Warning -- bord::freeBuffers expects buf[" << buf.size()
+	<< "] and typ["	<< typ.size()
+	<< "] to be the same size, but they are not";
+
+    for (size_t j = 0; j < buf.size(); ++ j) {
+	switch (typ[j]) {
+	default:
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::bord::freeBuffers don't know how to free "
+		<< buf[j] << " of type " << ibis::TYPESTRING[(int)typ[j]];
+	    break;
+	case ibis::BYTE:
+	    delete static_cast<array_t<char>*>(buf[j]);
+	    break;
+	case ibis::UBYTE:
+	    delete static_cast<array_t<unsigned char>*>(buf[j]);
+	    break;
+	case ibis::SHORT:
+	    delete static_cast<array_t<int16_t>*>(buf[j]);
+	    break;
+	case ibis::USHORT:
+	    delete static_cast<array_t<uint16_t>*>(buf[j]);
+	    break;
+	case ibis::INT:
+	    delete static_cast<array_t<int32_t>*>(buf[j]);
+	    break;
+	case ibis::UINT:
+	    delete static_cast<array_t<uint32_t>*>(buf[j]);
+	    break;
+	case ibis::LONG:
+	    delete static_cast<array_t<int64_t>*>(buf[j]);
+	    break;
+	case ibis::ULONG:
+	    delete static_cast<array_t<uint64_t>*>(buf[j]);
+	    break;
+	case ibis::FLOAT:
+	    delete static_cast<array_t<float>*>(buf[j]);
+	    break;
+	case ibis::DOUBLE:
+	    delete static_cast<array_t<double>*>(buf[j]);
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    delete static_cast<std::vector<std::string>*>(buf[j]);
+	    break;
+	}
+    }
+} // ibis::bord::freeBuffers
 
 /// Constructor.  This object can only store upto 4 billion rows because it
 /// uses a 32-bit unsigned integer to store the number of rows.
@@ -1393,7 +1542,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	buf.push_back(cnts);
     }
     delete bdl;
-    return new ibis::bord(tn.c_str(), td.c_str(), nr, nmc, tps, buf);
+    return new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc);
 } // ibis::bord::part::groupby
 
 long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
