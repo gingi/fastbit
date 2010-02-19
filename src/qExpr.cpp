@@ -57,7 +57,6 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	simplify(expr->left);
 	break;
     case ibis::qExpr::LOGICAL_AND: {
-	// TODO: add code to combine simple experessions on the same variable.
 	simplify(expr->left);
 	simplify(expr->right);
 	bool emptyleft = (expr->left == 0 ||
@@ -68,23 +67,49 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			   ((expr->right->getType() == RANGE ||
 			     expr->right->getType() == DRANGE) &&
 			    reinterpret_cast<qRange*>(expr->right)->empty()));
-	if (emptyleft) {
-	    ibis::qExpr* tmp = expr->left;
-	    expr->left = 0;
+	if (emptyleft || emptyright) {
 	    delete expr;
-	    expr = tmp;
+	    expr = ibis::compRange::makeConstantFalse();
 	}
-	else if (emptyright) {
-	    ibis::qExpr *tmp = expr->right;
-	    expr->right = 0;
-	    delete expr;
-	    expr = tmp;
+	else if (expr->left != 0 && expr->left->isConstant() &&
+		 expr->left->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->left)->inRange()) {
+		// copy right
+		ibis::qExpr *tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	    else { // copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
 	}
-	if (expr->left != 0 && expr->right != 0 &&
-	    expr->left->type == ibis::qExpr::RANGE &&
-	    expr->right->type == ibis::qExpr::RANGE &&
-	    stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
-		    static_cast<ibis::qRange*>(expr->right)->colName()) == 0) {
+	else if (expr->right != 0 && expr->right->isConstant() &&
+		 expr->right->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->right)->inRange()) {
+		// copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	    else { // copy right
+		ibis::qExpr *tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (expr->left != 0 && expr->right != 0 &&
+		 expr->left->type == ibis::qExpr::RANGE &&
+		 expr->right->type == ibis::qExpr::RANGE &&
+		 stricmp(static_cast<ibis::qRange*>(expr->left)->colName(),
+			 static_cast<ibis::qRange*>(expr->right)->colName())
+		 == 0) {
+	    // two range conditions on the same variable
 	    ibis::qContinuousRange* tm1 =
 		static_cast<ibis::qContinuousRange*>(expr->left);
 	    ibis::qContinuousRange* tm2 =
@@ -377,8 +402,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    }
 	}
 	break;}
-    case ibis::qExpr::LOGICAL_OR:
-    case ibis::qExpr::LOGICAL_XOR: {
+    case ibis::qExpr::LOGICAL_OR: {
 	simplify(expr->left);
 	simplify(expr->right);
 	bool emptyleft = (expr->left == 0 ||
@@ -390,11 +414,9 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 			     expr->right->getType() == DRANGE) &&
 			    reinterpret_cast<qRange*>(expr->right)->empty()));
 	if (emptyleft) {
-	    if (emptyright) { // keep left
-		ibis::qExpr* tmp = expr->left;
-		expr->left = 0;
+	    if (emptyright) { // false
 		delete expr;
-		expr = tmp;
+		expr = ibis::compRange::makeConstantFalse();
 	    }
 	    else { // keep right
 		ibis::qExpr* tmp = expr->right;
@@ -408,6 +430,92 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    expr->left = 0;
 	    delete expr;
 	    expr = tmp;
+	}
+	else if (expr->left != 0 && expr->left->isConstant() &&
+		 expr->left->type == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->left)->inRange()) {
+		// copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	    else { // copy right
+		ibis::qExpr *tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (expr->right != 0 && expr->right->isConstant() &&
+		 expr->right->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->right)->inRange()) {
+		// copy right
+		ibis::qExpr *tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	    else { // copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	break;}
+    case ibis::qExpr::LOGICAL_XOR: {
+	simplify(expr->left);
+	simplify(expr->right);
+	bool emptyleft = (expr->left == 0 ||
+			  ((expr->left->getType() == RANGE ||
+			    expr->left->getType() == DRANGE) &&
+			   reinterpret_cast<qRange*>(expr->left)->empty()));
+	bool emptyright = (expr->right == 0 ||
+			   ((expr->right->getType() == RANGE ||
+			     expr->right->getType() == DRANGE) &&
+			    reinterpret_cast<qRange*>(expr->right)->empty()));
+	if (emptyleft) {
+	    if (emptyright) { // false
+		delete expr;
+		expr = ibis::compRange::makeConstantFalse();
+	    }
+	    else { // keep right
+		ibis::qExpr* tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (emptyright) { // keep left
+	    ibis::qExpr *tmp = expr->left;
+	    expr->left = 0;
+	    delete expr;
+	    expr = tmp;
+	}
+	else if (expr->left != 0 && expr->left->isConstant() &&
+		 expr->left->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->left)->inRange()) {
+		// do nothing
+	    }
+	    else { // copy right
+		ibis::qExpr *tmp = expr->right;
+		expr->right = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (expr->right != 0 && expr->right->isConstant() &&
+		 expr->right->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->right)->inRange()) {
+		// do nothing
+	    }
+	    else { // copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
 	}
 	break;}
     case ibis::qExpr::LOGICAL_MINUS: {
@@ -428,6 +536,32 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	    expr->left = 0;
 	    delete expr;
 	    expr = tmp;
+	}
+	else if (expr->left != 0 && expr->left->isConstant() &&
+		 expr->left->type == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->left)->inRange()) {
+		// leave it alone
+	    }
+	    else { // copy left, whole expression is false
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
+	}
+	else if (expr->right != 0 && expr->right->isConstant() &&
+		 expr->right->getType() == ibis::qExpr::COMPRANGE) {
+	    if (static_cast<ibis::compRange*>(expr->right)->inRange()) {
+		// whole expression is false
+		delete expr;
+		expr = ibis::compRange::makeConstantFalse();
+	    }
+	    else { // copy left
+		ibis::qExpr *tmp = expr->left;
+		expr->left = 0;
+		delete expr;
+		expr = tmp;
+	    }
 	}
 	break;}
     case ibis::qExpr::COMPRANGE: {
@@ -1042,6 +1176,8 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     return ret;
 } // ibis::qExpr::reorder
 
+/// The terms that are simply range conditions are placed in simple, and
+/// the remaining conditions are left in tail.
 /// It returns 0 if there is a mixture of simple and complex conditions.
 /// In this case, both simple and tail would be non-nil.  The return value
 /// is -1 if all conditions are complex and 1 if all conditions are simple.
@@ -1200,36 +1336,89 @@ ibis::qRange* ibis::qExpr::findRange(const char *vname) {
     }
 } // ibis::qExpr::findRange
 
-bool ibis::qExpr::hasJoin() const {
-    if (type == DEPRECATEDJOIN) {
-	return true;
-    }
-    else if (left) {
-	if (right)
-	    return left->hasJoin() || right->hasJoin();
-	else
-	    return left->hasJoin();
-    }
-    else if (right) {
-	return right->hasJoin();
+/// Extract the top-level conjunctive terms.  If the top-most operator is
+/// not the AND operator, the whole expression tree is considered one term.
+/// Because this function may be called recursively, the argument ttl is
+/// not cleared by this function.  The caller needs to make sure it is
+/// cleared on input.
+void ibis::qExpr::getConjunctiveTerms(ibis::qExpr::termTableList& ttl) const {
+    // extract all top-level terms
+    if (type == ibis::qExpr::LOGICAL_AND) {
+	if (left != 0)
+	    left->getConjunctiveTerms(ttl);
+	if (right != 0)
+	    right->getConjunctiveTerms(ttl);
     }
     else {
-	return false;
+	TTN tmp;
+	tmp.term = this;
+	getTableNames(tmp.tnames);
+	ttl.push_back(tmp);
     }
-} // ibis::qExpr::hasJoin
+} // ibis::qExpr::getConjunctiveTerms
 
-void ibis::qExpr::extractJoins(std::vector<const deprecatedJoin*>& terms)
-    const {
+/// Extract the data partition name from the column name cn.  It looks for
+/// the first period '.' in the column name.  If a period is found, the
+/// characters before the period is returned as a string, otherwise, an
+/// empty string is returned.  @note The data partition name will be
+/// outputed in lowercase characters.
+std::string ibis::qExpr::extractTableName(const char* cn) {
+    std::string ret;
+    if (cn != 0) {
+	const char *period = strchr(cn, '.');
+	for (const char *chr = cn; chr < period; ++ chr)
+	    ret += std::tolower(*chr);
+    }
+    return ret;
+} // ibis::qExpr::extractTableName
+
+/// Split the incoming name into data partition name and column name.  It
+/// looks for the first period '.' in the incoming name.  If a period is
+/// found, the characters before the period is returned as pn, and the
+/// characters after the period is returned as cn.  If no period is found,
+/// pn will be a blank string and cn will be a copy of inm.
+///
+/// @note Both output names will be in lower case only.
+void ibis::qExpr::splitColumnName(const char* inm, std::string& pn,
+				  std::string& cn) {
+    pn.clear();
+    cn.clear();
+    if (inm != 0) {
+	const char *period = strchr(inm, '.');
+	if (period > inm) { // found a period in the input name
+	    for (const char *ptr = inm; ptr < period; ++ ptr)
+		pn += std::tolower(*ptr);
+	    for (const char *ptr = period+1; *ptr != 0; ++ ptr)
+		cn += std::tolower(*ptr);
+	}
+	else {
+	    cn = inm;
+	}
+    }
+} // ibis::qExpr::splitColumnName
+
+/// Return the list of data partition names in a set.  It records a '*' for
+/// the variables without explicit partition names.
+void ibis::qExpr::getTableNames(std::set<std::string>& plist) const {
+    if (left != 0)
+	left->getTableNames(plist);
+    if (right != 0)
+	right->getTableNames(plist);
+} // ibis::qExpr::getTableNames
+
+/// Extract conjunctive terms of the deprecated joins.
+void ibis::qExpr::extractDeprecatedJoins
+(std::vector<const deprecatedJoin*>& terms) const {
     if (type == LOGICAL_AND) {
 	if (left != 0)
-	    left->extractJoins(terms);
+	    left->extractDeprecatedJoins(terms);
 	if (right != 0)
-	    right->extractJoins(terms);
+	    right->extractDeprecatedJoins(terms);
     }
     else if (type == DEPRECATEDJOIN) {
 	terms.push_back(reinterpret_cast<const deprecatedJoin*>(this));
     }
-} // ibis::qExpr::extractJoins
+} // ibis::qExpr::extractDeprecatedJoins
 
 // construct a qRange directly from a string representation of the constants
 ibis::qContinuousRange::qContinuousRange
@@ -1438,6 +1627,11 @@ void ibis::qString::print(std::ostream& out) const {
 	out << lstr << " == \"" << rstr << "\"";
 }
 
+void ibis::qString::getTableNames(std::set<std::string>& plist) const {
+    if (lstr != 0)
+	plist.insert(ibis::qExpr::extractTableName(lstr));
+} // ibis::qString::getTableNames
+
 /// Constructor.
 ibis::qLike::qLike(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)) {
@@ -1468,6 +1662,16 @@ void ibis::qLike::print(std::ostream& out) const {
     if (lstr && rpat)
 	out << lstr << " LIKE \"" << rpat << "\"";
 }
+
+void ibis::qLike::getTableNames(std::set<std::string>& plist) const {
+    if (lstr != 0)
+	plist.insert(ibis::qExpr::extractTableName(lstr));
+} // ibis::qLike::getTableNames
+
+void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
+    if (name != 0)
+	plist.insert(ibis::qExpr::extractTableName(name));
+} // ibis::math::variable::getTableNames
 
 /// Record all variables in @c term recursively.
 void
@@ -2323,6 +2527,12 @@ void ibis::compRange::print(std::ostream& out) const {
     }
 } // ibis::compRange::print
 
+void ibis::qRange::getTableNames(std::set<std::string>& plist) const {
+    const char *cn = colName();
+    if (cn != 0)
+	plist.insert(ibis::qExpr::extractTableName(cn));
+} // ibis::qRange::getTableNames
+
 // convert to a simple range stored as ibis::qContinuousRange
 // attempt to replace the operators > and >= with < and <=
 ibis::qContinuousRange* ibis::compRange::simpleRange() const {
@@ -2590,6 +2800,15 @@ ibis::compRange* ibis::compRange::makeConstantFalse() {
     ibis::math::number *two = new ibis::math::number(2.0);
     return new ibis::compRange(one, ibis::qExpr::OP_EQ, two);
 } // ibis::compRange::makeConstantFalse
+
+void ibis::compRange::getTableNames(std::set<std::string>& plist) const {
+    if (getLeft() != 0)
+	getLeft()->getTableNames(plist);
+    if (getRight() != 0)
+	getRight()->getTableNames(plist);
+    if (expr3 != 0)
+	expr3->getTableNames(plist);
+} // ibis::compRange::getTableNames
 
 /// Construct a discrete range from two strings.  Used by the parser.
 ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
@@ -2962,6 +3181,11 @@ ibis::qExpr* ibis::qMultiString::convert() const {
     return ret;
 } // ibis::qMultiString::convert
 
+void ibis::qMultiString::getTableNames(std::set<std::string>& plist) const {
+    if (! name.empty())
+	plist.insert(ibis::qExpr::extractTableName(name.c_str()));
+} // ibis::qMultiString::getTableNames
+
 void ibis::deprecatedJoin::print(std::ostream& out) const {
     out << "join(" << name1 << ", " << name2;
     if (expr)
@@ -3026,3 +3250,8 @@ void ibis::qAnyAny::print(std::ostream& out) const {
 	out << "ANY(" << prefix << ")==" << values.back();
     }
 } // ibis::qAnyAny::print
+
+void ibis::qAnyAny::getTableNames(std::set<std::string>& plist) const {
+    if (! prefix.empty())
+	plist.insert(ibis::qExpr::extractTableName(prefix.c_str()));
+} // ibis::qAnyAny::getTableNames

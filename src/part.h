@@ -76,10 +76,7 @@ public:
     /// Return the list of meta tags as a single string.  The meta tags
     /// appears as 'name=value' pairs separated by comma (,).
     std::string metaTags()	const;
-    /// Given a name, return the associated column.  Return nil pointer if
-    /// the name is not found.
     inline column* getColumn(const char* name) const;
-    /// Returns the pointer to the ith column.
     inline column* getColumn(uint32_t ind) const;
 
     /// Return the name of the active data directory.
@@ -1290,6 +1287,8 @@ namespace ibis {
 	unsigned int FASTBIT_CXX_DLLSPEC
 	gatherParts(ibis::partList &parts, const ibis::resource &res,
 		    bool ro=false);
+	/// Cleanup the data partitions.
+	void clearDatasets(void);
     } // namespace util
 } // namespace ibis
 
@@ -1555,15 +1554,31 @@ inline void ibis::part::gainWriteAccess(const char* mesg) const {
 		   "%s returned %d (%s)", mesg, ierr, strerror(ierr));
 } // ibis::part::gainWriteAccess
 
+/// Given a name, return the associated column.  Return nil pointer if
+/// the name is not found.  If the name contains a period, it skips the
+/// characters up to the first period.
 inline ibis::column* ibis::part::getColumn(const char* prop) const {
     ibis::column *ret = 0;
-    columnList::const_iterator it = columns.find(prop);
-    if (it != columns.end()) {
-	ret = (*it).second;
+    if (prop != 0 && *prop != 0) {
+	const char *str = strchr(prop, '.');
+	columnList::const_iterator it = columns.end();
+	if (str != 0) {
+	    ++ str; // skip '.'
+	    it = columns.find(str);
+	    if (it == columns.end()) // try the whole name
+		it = columns.find(prop);
+	}
+	else {
+	    it = columns.find(prop);
+	}
+	if (it != columns.end()) {
+	    ret = (*it).second;
+	}
     }
     return ret;
-}
+} // ibis::part::getColumn
 
+/// Returns the pointer to the ith column.
 inline ibis::column* ibis::part::getColumn(uint32_t ind) const {
     if (ind < columns.size()) {
 	ibis::part::columnList::const_iterator it = columns.begin();

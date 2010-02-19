@@ -24,6 +24,8 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  fileManager.o \
  ibin.o \
  jnatural.o \
+ jrange.o \
+ quaere.o \
  bord.o \
  tafel.o \
  mensa.o \
@@ -56,7 +58,11 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  ixpale.o \
  ixzona.o \
  ixzone.o \
+ filter.o \
  meshQuery.o \
+ fromClause.o \
+ fromLexer.o \
+ fromParser.o \
  selectClause.o \
  selectLexer.o \
  selectParser.o \
@@ -233,6 +239,12 @@ fileManager.o: ../src/fileManager.cpp ../src/fileManager.h ../src/util.h \
   ../src/const.h  ../src/resource.h \
   ../src/array_t.h ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o fileManager.o ../src/fileManager.cpp
+filter.o: ../src/filter.cpp ../src/filter.h ../src/query.h \
+  ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/resource.h ../src/utilidor.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o filter.o ../src/filter.cpp
 ibin.o: ../src/ibin.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
   ../src/util.h ../src/const.h  ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
@@ -366,12 +378,24 @@ ixzone.o: ../src/ixzone.cpp ../src/ibin.h ../src/index.h ../src/qExpr.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
   ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c -o ixzone.o ../src/ixzone.cpp
-jnatural.o: ../src/joinin.cpp ../src/joinin.h ../src/join.h ../src/table.h \
+jnatural.o: ../src/jnatural.cpp ../src/jnatural.h ../src/quaere.h ../src/table.h \
   ../src/const.h  ../src/part.h ../src/column.h \
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/query.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c -o jnatural.o ../src/joinin.cpp
+	$(CXX) $(CCFLAGS) -c -o jnatural.o ../src/jnatural.cpp
+jrange.o: ../src/jrange.cpp ../src/jrange.h ../src/quaere.h ../src/table.h \
+  ../src/const.h  ../src/part.h ../src/column.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o jrange.o ../src/jrange.cpp
+quaere.o: ../src/quaere.cpp ../src/jnatural.h ../src/jrange.h ../src/quaere.h \
+  ../src/const.h  ../src/part.h ../src/column.h ../src/table.h \
+  ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h
+	$(CXX) $(CCFLAGS) -c -o quaere.o ../src/quaere.cpp
 mensa.o: ../src/mensa.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/bord.h ../src/util.h ../src/part.h \
   ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
@@ -460,6 +484,24 @@ rids.o: ../src/rids.cpp ../src/rids.h ../src/utilidor.h ../src/array_t.h \
   ../src/fileManager.h ../src/util.h ../src/const.h \
    ../src/horometer.h
 	$(CXX) $(CCFLAGS) -c -o rids.o ../src/rids.cpp
+fromClause.o: ../src/fromClause.cpp ../src/part.h ../src/column.h \
+  ../src/table.h ../src/const.h  ../src/qExpr.h \
+  ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
+  ../src/horometer.h ../src/resource.h ../src/utilidor.h \
+  ../src/fromLexer.h ../src/fromParser.hh ../src/stack.hh \
+  ../src/fromClause.h ../src/location.hh ../src/position.hh \
+  ./FlexLexer.h
+	$(CXX) $(CCFLAGS) -c -o fromClause.o ../src/fromClause.cpp
+fromLexer.o: ../src/fromLexer.cc ./FlexLexer.h ../src/fromLexer.h \
+  ../src/fromParser.hh ../src/stack.hh ../src/fromClause.h \
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/location.hh ../src/position.hh
+	$(CXX) $(CCFLAGS) -c -o fromLexer.o ../src/fromLexer.cc
+fromParser.o: ../src/fromParser.cc ../src/fromParser.hh \
+  ../src/stack.hh ../src/fromClause.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h  ../src/location.hh \
+  ../src/position.hh ../src/fromLexer.h ./FlexLexer.h
+	$(CXX) $(CCFLAGS) -c -o fromParser.o ../src/fromParser.cc
 selectClause.o: ../src/selectClause.cpp ../src/part.h ../src/column.h \
   ../src/table.h ../src/const.h  ../src/qExpr.h \
   ../src/util.h ../src/bitvector.h ../src/array_t.h ../src/fileManager.h \
@@ -468,6 +510,16 @@ selectClause.o: ../src/selectClause.cpp ../src/part.h ../src/column.h \
   ../src/selectClause.h ../src/location.hh ../src/position.hh \
   ./FlexLexer.h
 	$(CXX) $(CCFLAGS) -c -o selectClause.o ../src/selectClause.cpp
+selectLexer.o: ../src/selectLexer.cc ./FlexLexer.h ../src/selectLexer.h \
+  ../src/selectParser.hh ../src/stack.hh ../src/selectClause.h \
+  ../src/qExpr.h ../src/util.h ../src/const.h  \
+  ../src/location.hh ../src/position.hh
+	$(CXX) $(CCFLAGS) -c -o selectLexer.o ../src/selectLexer.cc
+selectParser.o: ../src/selectParser.cc ../src/selectParser.hh \
+  ../src/stack.hh ../src/selectClause.h ../src/qExpr.h ../src/util.h \
+  ../src/const.h  ../src/location.hh \
+  ../src/position.hh ../src/selectLexer.h ./FlexLexer.h
+	$(CXX) $(CCFLAGS) -c -o selectParser.o ../src/selectParser.cc
 tafel.o: ../src/tafel.cpp ../src/tafel.h ../src/table.h ../src/const.h \
    ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/util.h ../src/horometer.h ../src/part.h \
@@ -488,16 +540,6 @@ whereClause.o: ../src/whereClause.cpp ../src/part.h ../src/column.h \
   ../src/whereClause.h ../src/location.hh ../src/position.hh \
   ./FlexLexer.h ../src/selectClause.h
 	$(CXX) $(CCFLAGS) -c -o whereClause.o ../src/whereClause.cpp
-selectLexer.o: ../src/selectLexer.cc ./FlexLexer.h ../src/selectLexer.h \
-  ../src/selectParser.hh ../src/stack.hh ../src/selectClause.h \
-  ../src/qExpr.h ../src/util.h ../src/const.h  \
-  ../src/location.hh ../src/position.hh
-	$(CXX) $(CCFLAGS) -c -o selectLexer.o ../src/selectLexer.cc
-selectParser.o: ../src/selectParser.cc ../src/selectParser.hh \
-  ../src/stack.hh ../src/selectClause.h ../src/qExpr.h ../src/util.h \
-  ../src/const.h  ../src/location.hh \
-  ../src/position.hh ../src/selectLexer.h ./FlexLexer.h
-	$(CXX) $(CCFLAGS) -c -o selectParser.o ../src/selectParser.cc
 whereLexer.o: ../src/whereLexer.cc ./FlexLexer.h ../src/whereLexer.h \
   ../src/whereParser.hh ../src/stack.hh ../src/whereClause.h \
   ../src/qExpr.h ../src/util.h ../src/const.h  \
@@ -517,7 +559,7 @@ ibis.o: ../examples/ibis.cpp ../src/ibis.h ../src/countQuery.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
   ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
   ../src/meshQuery.h ../src/query.h ../src/bundle.h ../src/colValues.h \
-  ../src/join.h ../src/rids.h ../src/mensa.h
+  ../src/quaere.h ../src/rids.h ../src/mensa.h
 	$(CXX) $(CCFLAGS) -c -o ibis.o ../examples/ibis.cpp
 rara.o: ../examples/rara.cpp ../src/ibis.h ../src/countQuery.h \
   ../src/part.h ../src/column.h ../src/table.h ../src/const.h \
@@ -525,7 +567,7 @@ rara.o: ../examples/rara.cpp ../src/ibis.h ../src/countQuery.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
   ../src/resource.h ../src/utilidor.h ../src/whereClause.h \
   ../src/meshQuery.h ../src/query.h ../src/bundle.h ../src/colValues.h \
-  ../src/join.h ../src/rids.h
+  ../src/quaere.h ../src/rids.h
 	$(CXX) $(CCFLAGS) -c  -o rara.o ../examples/rara.cpp
 thula.o: ../examples/thula.cpp ../src/table.h ../src/const.h \
   ../src/resource.h ../src/util.h ../src/mensa.h \

@@ -15,20 +15,22 @@
 /// entry for user to take advantage of bitmap indexing facilities.  A
 /// query is a very limited version of the SQL SELECT statement.  It is
 /// only defined on one data partition and it takes a where clause and a
-/// select clause.  The where clause is mandatory.  It contains a list of
-/// range conditions joined together with logical operators, such as
-/// "temperature > 700 and 100 <= presessure < 350".  Records whose
-/// attribute values satisfy the conditions defined in the where clause is
-/// considered hits.  A query may retrieve values of variables/columns
-/// specified in the select clause.  A select clause is optional.  If
-/// specified, it contains a list of column names.  These attributes must
-/// not be NULL in order for a record to be a hit.  The select clause may
-/// also contain column names appearing as the argument to one of the four
-/// aggregation functions: @c avg, @c var, @c max, @c min and @c sum.  For
-/// example, "temperature, pressure, average(ho2_concentration)" may be a
-/// select statement for a Chemistry application.  @note If one needs to
-/// include arithmetic expressions in the select clause, use the function
-/// ibis::table::select instead of using this class.
+/// select clause.  The where clause is mandatory!
+///
+/// It contains a list of range conditions joined together with logical
+/// operators, such as "temperature > 700 and 100 <= presessure < 350".
+/// Records whose attribute values satisfy the conditions defined in the
+/// where clause is considered hits.  A query may retrieve values of
+/// variables/columns specified in the select clause.  A select clause is
+/// optional.  If specified, it contains a list of column names.  These
+/// attributes must not be NULL in order for a record to be a hit.  The
+/// select clause may also contain column names appearing as the argument
+/// to one of the four aggregation functions: @c avg, @c var, @c max, @c
+/// min and @c sum.  For example, "temperature, pressure,
+/// average(ho2_concentration)" may be a select statement for a Chemistry
+/// application.  @note If one needs to include arithmetic expressions in
+/// the select clause, use the function ibis::table::select instead of
+/// using this class.
 ///
 /// The hits can be computed in two ways by using functions @c estimate or
 /// @c evaluate.  The function @c estimate can take advantage of the

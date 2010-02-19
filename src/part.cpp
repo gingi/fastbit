@@ -22,7 +22,7 @@
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::find, std::less, ...
 #include <typeinfo>	// typeid
-#include <stdexcept>	// std::invalid_exception
+#include <stdexcept>	// std::invalid_argument
 #include <cmath>	// std::floor, std::ceil
 #include <stdio.h>
 #include <stdlib.h>	// RAND_MAX, rand()
@@ -13151,6 +13151,41 @@ void ibis::util::clean(ibis::partList &pl) throw() {
 	delete pl[j];
     pl.clear();
 } // ibis::util::clean
+
+/// It conforms to the prototype of function can be registered with atexit
+/// and is registered with atexit in ibis::init.
+void ibis::util::clearDatasets(void) {
+    const uint32_t npt = ibis::datasets.size();
+    for (uint32_t j = 0; j < npt; ++ j)
+	delete ibis::datasets[j];
+    ibis::datasets.clear();
+} // ibis::util::clearDatasets
+
+/// Find a dataset with the given name.  If the named data partition is
+/// found, a point to the data partition is returned, otherwise, a nil
+/// pointer is returned.  If the name is nil, a nil pointer will be
+/// returned.
+ibis::part* ibis::findDataset(const char* pn) {
+    if (pn == 0 || *pn == 0) return 0;
+
+    static ibis::partAssoc ordered_;
+    { // a scope to limit the mutex lock
+	ibis::util::mutexLock lock(&ibis::util::envLock, "ibis::findDataset");
+	if (ordered_.size() != ibis::datasets.size()) {
+	    ordered_.clear();
+	    for (size_t j = 0; j < ibis::datasets.size(); ++ j)
+		ordered_[ibis::datasets[j]->name()] = ibis::datasets[j];
+	}
+    }
+
+    ibis::partAssoc::iterator it = ordered_.find(pn);
+    if (it != ordered_.end()) {
+	return it->second;
+    }
+    else {
+	return 0;
+    }
+} // ibis::findDataset
 
 // explicit instantiations of the templated functions
 template long

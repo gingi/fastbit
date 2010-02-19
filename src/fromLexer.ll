@@ -2,17 +2,17 @@
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory
-   Copyright 2007-2010 the Regents of the University of California
+   Copyright 2009-2010 the Regents of the University of California
  */
 
 %{ /* C++ declarations */
 /** \file Defines the tokenlizer using Flex C++ template. */
 
-#include "selectLexer.h"	// definition of YY_DECL
-#include "selectParser.hh"	// class ibis::selectParser
+#include "fromLexer.h"		// definition of YY_DECL
+#include "fromParser.hh"	// class ibis::fromParser
 
-typedef ibis::selectParser::token token;
-typedef ibis::selectParser::token_type token_type;
+typedef ibis::fromParser::token token;
+typedef ibis::fromParser::token_type token_type;
 
 #define yyterminate() return token::END
 #define YY_USER_ACTION  yylloc->columns(yyleng);
@@ -24,7 +24,7 @@ typedef ibis::selectParser::token_type token_type;
 %option nounistd
  /*%option noyywrap*/
 %option never-interactive
-%option prefix="_selectLexer_"
+%option prefix="_fromLexer_"
 
 /* regular expressions used to shorten the definitions 
 */
@@ -48,24 +48,11 @@ NUMBER	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 "%"   {return token::REMOP;}
 "**"  {return token::EXPOP;}
 [aA][sS] {return token::ASOP;}
-[aA][vV][gG] {return token::AVGOP;}
-[mM][aA][xX] {return token::MAXOP;}
-[mM][iI][nN] {return token::MINOP;}
-[sS][uU][mM] {return token::SUMOP;}
-[cC][oO][uU][nN][tT] {return token::CNTOP;}
-[mM][eE][dD][iI][aA][nN] {return token::MEDIANOP;}
-[vV][aA][rR][pP] {return token::VARPOPOP;}
-[vV][aA][rR][pP][oO][pP] {return token::VARPOPOP;}
-[vV][aA][rR] {return token::VARSAMPOP;}
-[vV][aA][rR][sS][aA][mM][pP] {return token::VARSAMPOP;}
-[vV][aA][rR][iI][aA][nN][cC][eE] {return token::VARSAMPOP;}
-[sS][tT][dD][eE][vV][pP] {return token::STDPOPOP;}
-[sS][tT][dD][pP][oO][pP] {return token::STDPOPOP;}
-[sS][tT][dD][eE][vV] {return token::STDSAMPOP;}
-[sS][tT][dD][dD][eE][vV] {return token::STDSAMPOP;}
-[sS][tT][dD][sS][aA][mM][pP] {return token::STDSAMPOP;}
-[dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
-[cC][oO][uU][nN][tT][dD][iI][sS][tT][iI][nN][cC][tT] {return token::DISTINCTOP;}
+[oO][nN] {return token::ONOP;}
+[jJ][oO][iI][nN] {return token::JOINOP;}
+[uU][sS][iI][nN][gG] {return token::USINGOP;}
+[bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}
+[aA][nN][dD] {return token::ANDOP;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -101,26 +88,26 @@ NUMBER	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 }
 
 %%
-/* additional c++ code to complete the definition of class selectLexer */
-ibis::selectLexer::selectLexer(std::istream* in, std::ostream* out)
-    : ::_sLexer(in, out) {
+/* additional c++ code to complete the definition of class fromLexer */
+ibis::fromLexer::fromLexer(std::istream* in, std::ostream* out)
+    : ::_fLexer(in, out) {
 #if defined(DEBUG) && DEBUG + 0 > 1
     yy_flex_debug = true;
 #endif
 }
 
-ibis::selectLexer::~selectLexer() {
+ibis::fromLexer::~fromLexer() {
 }
 
-/* function needed by the super-class of ibis::selectLexer */
+/* function needed by the super-class of ibis::fromLexer */
 #ifdef yylex
 #undef yylex
 #endif
 
-int ::_sLexer::yylex() {
+int ::_fLexer::yylex() {
     return 0;
-} // ::_sLexer::yylex
+} // ::_fLexer::yylex
 
-int ::_sLexer::yywrap() {
+int ::_fLexer::yywrap() {
     return 1;
-} // ::_sLexer::yywrap
+} // ::_fLexer::yywrap

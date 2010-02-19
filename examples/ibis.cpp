@@ -128,11 +128,10 @@ typedef std::vector<const char*> stringList;
 struct thArg {
     const char* uid;
     const stringList& qlist;
-    ibis::partList tlist;
     ibis::util::counter& task;
 
-    thArg(const char* id, const stringList& ql, ibis::partList& tl,
-	  ibis::util::counter& tc) : uid(id), qlist(ql), tlist(tl), task(tc) {}
+    thArg(const char* id, const stringList& ql, ibis::util::counter& tc)
+	: uid(id), qlist(ql), task(tc) {}
 };
 
 // global varialbes defined in this file
@@ -174,7 +173,7 @@ namespace ibis {
 	const char *jcol;  ///< Name of the join column (part1.jcol=part2.jcol).
 	const char *cond1; ///< Constraints on part1.
 	const char *cond2; ///< Constraints on part2.
-	std::vector<const char*> selcol; ///< Selected columns.
+	std::string selcol; ///< Selected columns.
 
 	joinspec() : part1(0), part2(0), jcol(0), cond1(0), cond2(0) {}
 	void print(std::ostream& out) const;
@@ -254,11 +253,8 @@ static void help(const char* name) {
 } // help
 
 void ibis::joinspec::print(std::ostream& out) const {
-    if (selcol.size() > 0) {
-	out << "Select " << selcol[0];
-	for (size_t i = 1; i < selcol.size(); ++ i)
-	    out << ", " << selcol[i];
-	out << " ";
+    if (!selcol.empty()) {
+	out << "Select " << selcol << " ";
     }
     out << "From " << part1 << " Join "	<< part2 << " Using(" << jcol << ")";
     if (cond1 != 0) {
@@ -280,11 +276,11 @@ void ibis::joinspec::print(std::ostream& out) const {
 // }
 
 // show column names
-static void printNames(const ibis::partList& tlist) {
+static void printNames() {
     ibis::part::info* tinfo;
     ibis::util::logger lg;
-    for (ibis::partList::const_iterator it = tlist.begin();
-	 it != tlist.end(); ++it) {
+    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+	 it != ibis::datasets.end(); ++it) {
 	tinfo = new ibis::part::info(**it);
 	lg.buffer() << "Partition " << tinfo->name << ":\n";
 	std::vector<ibis::column::info*>::const_iterator vit;
@@ -296,10 +292,10 @@ static void printNames(const ibis::partList& tlist) {
 } // printNames
 
 // print all partitions and columns
-static void printAll(const ibis::partList& tlist) {
+static void printAll() {
     ibis::util::logger lg;
     ibis::partList::const_iterator it;
-    for (it = tlist.begin(); it != tlist.end(); ++it)
+    for (it = ibis::datasets.begin(); it != ibis::datasets.end(); ++it)
 	(*it)->print(lg.buffer());
 } // printAll
 
@@ -495,9 +491,9 @@ static void printDistribution(const ibis::part& tbl) {
     }
 } // printDistribution
 
-static void printDistribution(const ibis::partList& tlist) {
+static void printDistribution() {
     ibis::partList::const_iterator it;
-    for (it = tlist.begin(); it != tlist.end(); ++it) {
+    for (it = ibis::datasets.begin(); it != ibis::datasets.end(); ++it) {
 	printDistribution(**it);
     }
 } // printDistribution
@@ -1689,7 +1685,7 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
 } // print3DDist
 
 // print some helpful information
-static void print(const char* cmd, const ibis::partList& tlist) {
+static void print(const char* cmd) {
     if (cmd == 0 || *cmd == 0) return;
     LOGGER(ibis::gVerbose > 3) << "\nprint(" << cmd << ") -- ...";
 
@@ -1723,8 +1719,8 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	}
 	ibis::util::getString(name3, names);
 	if (name3.empty()) { // got two names, 2D distributions
-	    for (ibis::partList::const_iterator tit = tlist.begin();
-		 tit != tlist.end(); ++ tit) {
+	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+		 tit != ibis::datasets.end(); ++ tit) {
 		print2DDistribution(**tit, name1.c_str(), name2.c_str(), cond);
 		if (ibis::gVerbose > 6)
 		    print2DDist(**tit, name1.c_str(), name2.c_str(), cond);
@@ -1734,8 +1730,8 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	    }
 	}
 	else {
-	    for (ibis::partList::const_iterator tit = tlist.begin();
-		 tit != tlist.end(); ++ tit) {
+	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+		 tit != ibis::datasets.end(); ++ tit) {
 		print3DDistribution(**tit, name1.c_str(),
 				    name2.c_str(), name3.c_str(), cond);
 		if (ibis::gVerbose > 6)
@@ -1763,23 +1759,23 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	}
 	ibis::util::getString(nm3, names);
 	if (nm3.empty()) {
-	    for (ibis::partList::const_iterator tit = tlist.begin();
-		 tit != tlist.end(); ++ tit) {
+	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+		 tit != ibis::datasets.end(); ++ tit) {
 		print1DDistribution(**tit, cond, nm1.c_str(), nm2.c_str());
 	    }
 	    return;
 	}
 	ibis::util::getString(nm4, names);
 	if (nm4.empty()) {
-	    for (ibis::partList::const_iterator tit = tlist.begin();
-		 tit != tlist.end(); ++ tit) {
+	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+		 tit != ibis::datasets.end(); ++ tit) {
 		print2DDistribution(**tit, cond, nm1.c_str(),
 				    nm2.c_str(), nm3.c_str());
 	    }
 	}
 	else {
-	    for (ibis::partList::const_iterator tit = tlist.begin();
-		 tit != tlist.end(); ++ tit) {
+	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+		 tit != ibis::datasets.end(); ++ tit) {
 		print3DDistribution(**tit, cond, nm1.c_str(),
 				    nm2.c_str(), nm3.c_str(), nm4.c_str());
 	    }
@@ -1789,34 +1785,36 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	ibis::nameList nlist(names); // split using the space as delimiter
 	for (ibis::nameList::const_iterator it = nlist.begin();
 	     it != nlist.end(); ++it) { // go through each name
-	    ibis::partList::const_iterator tit = tlist.begin();
-	    for (; tit != tlist.end() && 
+	    ibis::partList::const_iterator tit = ibis::datasets.begin();
+	    for (; tit != ibis::datasets.end() && 
 		     stricmp((*tit)->name(), *it) != 0 &&
 		     ibis::util::strMatch((*tit)->name(), *it) == false;
 		 ++ tit);
-	    if (tit != tlist.end()) { // it's a data partition
+	    if (tit != ibis::datasets.end()) { // it's a data partition
 		ibis::util::logger lg;
 		lg.buffer() << "Partition " << (*tit)->name() << ":\n";
 		(*tit)->print(lg.buffer());
 	    }
 	    else if ((*it)[0] == '*') {
-		printAll(tlist);
+		printAll();
 	    }
 	    else if (stricmp(*it, "parts") == 0) {
 		ibis::util::logger lg;
 		lg.buffer() << "Name(s) of all data partitioins\n";
-		for (tit = tlist.begin(); tit != tlist.end(); ++tit)
+		for (tit = ibis::datasets.begin();
+		     tit != ibis::datasets.end(); ++tit)
 		    lg.buffer() << (*tit)->name() << ' ';
 	    }
 	    else if (stricmp(*it, "names") == 0 ||
 		     stricmp(*it, "columns") == 0) {
-		printNames(tlist);
+		printNames();
 	    }
 	    else if (stricmp(*it, "distributions") == 0) {
-		printDistribution(tlist);
+		printDistribution();
 	    }
 	    else { // assume it to be a column name
-		for (tit = tlist.begin(); tit != tlist.end(); ++tit) {
+		for (tit = ibis::datasets.begin();
+		     tit != ibis::datasets.end(); ++tit) {
 		    printColumn(**tit, *it, cond);
 		    if (ibis::gVerbose > 9)
 			printColumn0(**tit, *it, cond);
@@ -1827,8 +1825,8 @@ static void print(const char* cmd, const ibis::partList& tlist) {
     else {
 	ibis::util::logger lg;
 	lg.buffer() << "Name(s) of all partitions\n";
-	for (ibis::partList::const_iterator tit = tlist.begin();
-	     tit != tlist.end(); ++tit)
+	for (ibis::partList::const_iterator tit = ibis::datasets.begin();
+	     tit != ibis::datasets.end(); ++tit)
 	    lg.buffer() << (*tit)->name() << ' ';
     }
 } // print
@@ -1886,8 +1884,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 } // readQueryFile
 
 // function to parse the command line arguments
-static void parse_args(int argc, char** argv,
-		       int& mode, ibis::partList& tlist,
+static void parse_args(int argc, char** argv, int& mode,
 		       stringList& qlist, stringList& alist, stringList& slist,
 		       std::vector<std::string> &queff, ibis::joinlist& joins) {
 #if defined(DEBUG) || defined(_DEBUG)
@@ -1905,7 +1902,6 @@ static void parse_args(int argc, char** argv,
     alist.clear(); // list of append operations
     qlist.clear(); // list of query strings
     slist.clear(); // list of sort request
-    tlist.clear(); // list of data partitions
 
     int accessIndexInWhole = 0;
     std::vector<const char*> confs; // name of the configuration files
@@ -2031,7 +2027,13 @@ static void parse_args(int argc, char** argv,
 		}
 		while (i+1 < argc && *argv[i+1] != '-') {
 		    ++ i;
-		    js.selcol.push_back(argv[i]);
+		    if (js.selcol.empty()) {
+			js.selcol = argv[i];
+		    }
+		    else {
+			js.selcol += ", ";
+			js.selcol += argv[i];
+		    }
 		}
 		if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
 		    joins.push_back(new ibis::joinspec(js));
@@ -2354,19 +2356,19 @@ static void parse_args(int argc, char** argv,
 
     // construct the paritions using both the command line arguments and
     // the resource files
-    ibis::util::gatherParts(tlist, ibis::gParameters());
+    ibis::init(); // process data directly specified in the rc files
     for (std::vector<const char*>::const_iterator it = dirs.begin();
 	 it != dirs.end(); ++ it) {
-	ibis::util::gatherParts(tlist, *it);
+	ibis::util::gatherParts(ibis::datasets, *it);
     }
 
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
-	if (tlist.size()) {
-	    lg.buffer() << "Partition" << (tlist.size()>1 ? "s" : "")
-			<< "[" << tlist.size() << "]:\n";
-	    for (ibis::partList::const_iterator it = tlist.begin();
-		 it != tlist.end(); ++it)
+	if (ibis::datasets.size()) {
+	    lg.buffer() << "Partition" << (ibis::datasets.size()>1 ? "s" : "")
+			<< "[" << ibis::datasets.size() << "]:\n";
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++it)
 		lg.buffer() << "  " << (*it)->name() << "\n";
 	}
 	if (qlist.size() > 0) {
@@ -2389,8 +2391,8 @@ static void parse_args(int argc, char** argv,
 
     if (ibis::gVerbose > 1 &&
 	(testing > 1 || build_index > 0 || ! printcmds.empty())) {
-	for (ibis::partList::const_iterator it = tlist.begin();
-	     it != tlist.end(); ++it) {
+	for (ibis::partList::const_iterator it = ibis::datasets.begin();
+	     it != ibis::datasets.end(); ++it) {
 	    bool recompute = (testing>5 && ibis::gVerbose>7);
 	     // check to see if the nominal min and max are different
 	    ibis::part::info *info = (*it)->getInfo();
@@ -2410,7 +2412,7 @@ static void parse_args(int argc, char** argv,
     }
     for (std::vector<const char*>::const_iterator it = printcmds.begin();
 	 it != printcmds.end(); ++ it) {
-	print(*it, tlist);
+	print(*it);
     }
 } // parse_args
 
@@ -2869,6 +2871,163 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	<< " took " << timer.CPUTime() << " CPU seconds, "
 	<< timer.realTime() << " elapsed seconds";
 } // tableSelect
+
+// New style query.
+static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
+		     const char *ordkeys, int direction, uint32_t limit) {
+    ibis::horometer timer;
+    timer.start();
+    std::string sqlstring; //
+    {
+	std::ostringstream ostr;
+	if (sstr != 0 && *sstr != 0)
+	    ostr << "SELECT " << sstr;
+	if (fstr != 0 && *fstr != 0)
+	    ostr << " FROM " << fstr;
+	if (wstr != 0 && *wstr != 0)
+	    ostr << " WHERE " << wstr;
+	if (ordkeys && *ordkeys) {
+	    ostr << " ORDER BY " << ordkeys;
+	    if (direction >= 0)
+		ostr << " ASC";
+	    else
+		ostr << " DESC";
+	}
+	if (limit > 0)
+	    ostr << " LIMIT " << limit;
+	sqlstring = ostr.str();
+    }
+
+    std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
+    if (qq.get() == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doQuaere(" << sqlstring
+	    << ") failed to create an ibis::quaere object";
+	return;
+    }
+
+    uint64_t nhits=1, hmax=0;
+    if (! skip_estimation) {
+	qq->roughCount(nhits, hmax);
+	if (nhits < hmax) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "doQuaere(" << sqlstring
+		<< ") is estimated to have between " << nhits << " and "
+		<< hmax << " hit" << (hmax>1?"s":"");
+	}
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "doQuaere(" << sqlstring
+		<< ") has " << nhits << " hit" << (hmax>1?"s":"");
+	}
+    }
+
+    const int64_t cnts = (nhits == hmax ? (int64_t)nhits : qq->count());
+    if (cnts < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doQuaere(" << sqlstring
+	    << ") failed to produce a count of the number of hits"
+	    << ", ierr = " << cnts;
+	return;
+    }
+    else {
+	if (skip_estimation) {
+	    nhits = cnts;
+	}
+	else if (nhits < hmax) {
+	    LOGGER(ibis::gVerbose >= 0 &&
+		   ((uint64_t)cnts < nhits || (uint64_t)cnts > hmax))
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects the return of count to be between "
+		<< nhits << " and " << hmax
+		<< ", but the actual return value is " << cnts;
+	    nhits = cnts;
+	}
+	else if ((uint64_t)cnts != nhits) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects the return of count to be " << nhits
+		<< ", but the actual return value is " << cnts;
+	    nhits = cnts;
+	}
+    }
+
+    if (sstr == 0 || *sstr == 0) {
+	if (ibis::gVerbose >= 0) {
+	    timer.stop();
+	    ibis::util::logger lg;
+	    lg.buffer() << "doQuaere:: count(" << sqlstring << ") produced "
+			<< nhits << " hit" << (nhits>1?"s":"") << ", took "
+			<< timer.CPUTime() << " CPU seconds, "
+			<< timer.realTime() << " elapsed seconds";
+	}
+	return;
+    }
+
+    std::auto_ptr<ibis::table> res(qq->select(sstr));
+    if (res.get() == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doQuaere(" << sqlstring
+	    << ") failed to produce a result table";
+	return;
+    }
+
+    if (res->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
+	// top-K query
+	res->orderby(ordkeys);
+	if (direction < 0)
+	    res->reverseRows();
+    }
+
+    timer.stop();
+    LOGGER(ibis::gVerbose >= 0)
+	<< "doQuaere(" << sqlstring << ") produced a table with "
+	<< res->nRows() << " row" << (res->nRows() > 1 ? "s" : "")
+	<< " and " << res->nColumns() << " column"
+	<< (res->nColumns() > 1 ? "s" : "") << ", took "
+	<< timer.CPUTime() << " CPU seconds, "
+	<< timer.realTime() << " elapsed seconds";
+
+    if (outputfile != 0 && *outputfile != 0) {
+	if (limit == 0)
+	    limit = static_cast<uint32_t>(res->nRows());
+	if (0 != strcmp(outputfile, "/dev/null")) {
+	    std::ofstream output(outputfile, std::ios::out |
+				 (appendToOutput ? std::ios::app :
+				  std::ios::trunc));
+	    if (outputnamestoo)
+		res->dumpNames(output, ", ");
+	    res->dump(output, limit, ", ");
+	}
+    }
+    else if (ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	if (limit == 0 && res->nColumns() > 0) {
+	    limit = ((res->nRows() >> ibis::gVerbose) > 0 ?
+		     1 << ibis::gVerbose : static_cast<uint32_t>(res->nRows()));
+	    if (limit > (res->nRows() >> 1))
+		limit = res->nRows();
+	}
+	if (limit < res->nRows()) {
+	    lg.buffer() << "doQuaere -- the first ";
+	    if (limit > 1)
+		lg.buffer() << limit << " rows ";
+	    else
+		lg.buffer() << "row ";
+	    lg.buffer() << "(of " << res->nRows()
+			<< ") from the result table for \""
+			<< sqlstring << "\"\n";
+	}
+	else {
+	    lg.buffer() << "doQuaere -- the result table (" << res->nRows()
+			<< " x " << res->nColumns() << ") for \""
+			<< sqlstring << "\"\n";
+	}
+	if (outputnamestoo)
+	    res->dumpNames(lg.buffer(), ", ");
+	res->dump(lg.buffer(), limit, ", ");
+    }
+} // doQuaere
 
 // evaluate a single query -- print selected columns through ibis::bundle
 static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
@@ -3480,7 +3639,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 } // doMeshQuery
 
 // append the content of the named directory to the existing partitions
-static void doAppend(const char* dir, ibis::partList& tlist) {
+static void doAppend(const char* dir) {
     long ierr = 0;
     ibis::part *tbl = 0;
     bool newtable = true;
@@ -3489,10 +3648,10 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	if (UnixStat(appendto, &tmp) == 0) {
 	    tbl = new ibis::part(appendto, static_cast<const char*>(0));
 	    if (tbl != 0) {
-		for (unsigned i = 0; i < tlist.size(); ++ i) {
-		    if (stricmp(tbl->name(), tlist[i]->name()) == 0) {
+		for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
+		    if (stricmp(tbl->name(), ibis::datasets[i]->name()) == 0) {
 			delete tbl;
-			tbl = tlist[i];
+			tbl = ibis::datasets[i];
 			newtable = false;
 			break;
 		    }
@@ -3500,10 +3659,10 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	    }
 	}
 	if (tbl == 0) {
-	    for (unsigned i = 0; i < tlist.size(); ++ i) {
-		if (stricmp(appendto, tlist[i]->name()) == 0) {
+	    for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
+		if (stricmp(appendto, ibis::datasets[i]->name()) == 0) {
 		    // found an existing partition
-		    tbl = tlist[i];
+		    tbl = ibis::datasets[i];
 		    newtable = false;
 		    break;
 		}
@@ -3515,16 +3674,16 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	char *tmp = ibis::part::readMetaTags(dir);
 	if (tmp != 0) {
 	    ibis::partList::iterator itt;
-	    itt = tlist.begin();
+	    itt = ibis::datasets.begin();
 	    ibis::resource::vList mtags;
 	    ibis::resource::parseNameValuePairs(tmp, mtags);
-	    while (itt != tlist.end()) {
+	    while (itt != ibis::datasets.end()) {
 		if ((*itt)->matchMetaTags(mtags))
 		    break;
 		++ itt;
 	    }
 
-	    if (itt != tlist.end()) { // matched the meta tags
+	    if (itt != ibis::datasets.end()) { // matched the meta tags
 		tbl = (*itt);
 		newtable = false;
 	    }
@@ -3645,36 +3804,37 @@ static void doAppend(const char* dir, ibis::partList& tlist) {
 	    << (ierr > 1 ? " errors\n" : " error\n");
     }
     if (newtable) // new partition, add it to the list of partitions
-	tlist.push_back(tbl);
+	ibis::datasets.push_back(tbl);
 } // doAppend
 
-static void doJoin(const char* uid, const ibis::partList& parts,
-		   ibis::joinspec& js) {
+static void doJoin(const char* uid, ibis::joinspec& js) {
     std::ostringstream oss;
     oss << "doJoin(";
     js.print(oss);
     oss << ')';
     ibis::util::timer tm(oss.str().c_str(), 1);
-    ibis::partList::const_iterator pt1 = parts.begin();
-    for (; pt1 != parts.end() && stricmp((*pt1)->name(), js.part1) != 0;
+    ibis::partList::const_iterator pt1 = ibis::datasets.begin();
+    for (; pt1 != ibis::datasets.end() &&
+	     stricmp((*pt1)->name(), js.part1) != 0;
 	 ++ pt1);
-    if (pt1 == parts.end()) {
+    if (pt1 == ibis::datasets.end()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str() << ": " << js.part1
 	    << " is not a know data partition";
 	return;
     }
-    ibis::partList::const_iterator pt2 = parts.begin();
-    for (; pt2 != parts.end() && stricmp((*pt2)->name(), js.part2) != 0;
+    ibis::partList::const_iterator pt2 = ibis::datasets.begin();
+    for (; pt2 != ibis::datasets.end() &&
+	     stricmp((*pt2)->name(), js.part2) != 0;
 	 ++ pt2);
-    if (pt2 == parts.end()) {
+    if (pt2 == ibis::datasets.end()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str() << ": " << js.part2
 	    << " is not a know data partition";
 	return;
     }
-    ibis::join *jn = ibis::join::create(*(*pt1), *(*pt2), js.jcol, js.cond1,
-					js.cond2);
+    ibis::quaere *jn = ibis::quaere::create(*(*pt1), *(*pt2), js.jcol,
+					    js.cond1, js.cond2);
     if (jn == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()
@@ -3682,15 +3842,15 @@ static void doJoin(const char* uid, const ibis::partList& parts,
 	return;
     }
 
-    int64_t nhits = jn->evaluate();
+    int64_t nhits = jn->count();
     LOGGER(ibis::gVerbose >= 0)
-	<< oss.str() << " -- function evaluate() returned " << nhits;
+	<< oss.str() << " -- counted " << nhits << " hit" << (nhits>1?"s":"");
     if (nhits <= 0 || js.selcol.empty()) {
 	delete jn;
 	return;
     }
 
-    ibis::table *res = jn->select(js.selcol);
+    ibis::table *res = jn->select(js.selcol.c_str());
     if (res == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()
@@ -3728,7 +3888,7 @@ static void readInts(const char* fname, std::vector<uint32_t> &ints) {
     }
 } // readInts
 
-static void doDeletion(ibis::partList& tlist) {
+static void doDeletion() {
     if (yankstring == 0 || *yankstring == 0) return;
 
     if (ibis::util::getFileSize(yankstring) > 0) {
@@ -3742,35 +3902,33 @@ static void doDeletion(ibis::partList& tlist) {
 	    return;
 	}
 	LOGGER(ibis::gVerbose > 0)
-	    << "doDeletion will invoke deactive on " << tlist.size()
-	    << " data partition" << (tlist.size() > 1 ? "s" : "")
+	    << "doDeletion will invoke deactive on " << ibis::datasets.size()
+	    << " data partition" << (ibis::datasets.size() > 1 ? "s" : "")
 	    << " with " << rows.size() << " row number"
 	    << (rows.size() > 1 ? "s" : "");
 
-	for (ibis::partList::iterator it = tlist.begin();
-	     it != tlist.end(); ++ it) {
+	for (ibis::partList::iterator it = ibis::datasets.begin();
+	     it != ibis::datasets.end(); ++ it) {
 	    long ierr = (*it)->deactivate(rows);
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "doDeletion -- deactivate(" << (*it)->name()
 		<< ") returned " << ierr;
 	    if (zapping) {
 		ierr = (*it)->purgeInactive();
-		if (ierr < 0) {
-		    LOGGER(ibis::gVerbose > 0)
-			<< "doDeletion purgeInactive(" << (*it)->name()
-			<< ") returned " << ierr;
-		}
+		LOGGER(ibis::gVerbose > 0 || ierr < 0)
+		    << "doDeletion purgeInactive(" << (*it)->name()
+		    << ") returned " << ierr;
 	    }
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "doDeletion will invoke deactive on " << tlist.size()
-	    << " data partition" << (tlist.size() > 1 ? "s" : "")
+	    << "doDeletion will invoke deactive on " << ibis::datasets.size()
+	    << " data partition" << (ibis::datasets.size() > 1 ? "s" : "")
 	    << " with \"" << yankstring << "\"";
 
-	for (ibis::partList::iterator it = tlist.begin();
-	     it != tlist.end(); ++ it) {
+	for (ibis::partList::iterator it = ibis::datasets.begin();
+	     it != ibis::datasets.end(); ++ it) {
 	    long ierr = (*it)->deactivate(yankstring);
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "doDeletion -- deactivate(" << (*it)->name()
@@ -3787,7 +3945,7 @@ static void doDeletion(ibis::partList& tlist) {
     zapping = false;
 } // doDeletion
 
-static void reverseDeletion(ibis::partList& tlist) {
+static void reverseDeletion() {
     if (keepstring == 0 || *keepstring == 0) return;
 
     if (ibis::util::getFileSize(keepstring) > 0) {
@@ -3801,13 +3959,14 @@ static void reverseDeletion(ibis::partList& tlist) {
 	    return;
 	}
 	LOGGER(ibis::gVerbose > 0)
-	    << "reverseDeletion will invoke deactive on " << tlist.size()
-	    << " data partition" << (tlist.size() > 1 ? "s" : "")
+	    << "reverseDeletion will invoke deactive on "
+	    << ibis::datasets.size()
+	    << " data partition" << (ibis::datasets.size() > 1 ? "s" : "")
 	    << " with " << rows.size() << " row number"
 	    << (rows.size() > 1 ? "s" : "");
 
-	for (ibis::partList::iterator it = tlist.begin();
-	     it != tlist.end(); ++ it) {
+	for (ibis::partList::iterator it = ibis::datasets.begin();
+	     it != ibis::datasets.end(); ++ it) {
 	    long ierr = (*it)->reactivate(rows);
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "reverseDeletion -- reactivate(" << (*it)->name()
@@ -3816,12 +3975,13 @@ static void reverseDeletion(ibis::partList& tlist) {
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "reverseDeletion will invoke deactive on " << tlist.size()
-	    << " data partition" << (tlist.size() > 1 ? "s" : "")
+	    << "reverseDeletion will invoke deactive on "
+	    << ibis::datasets.size()
+	    << " data partition" << (ibis::datasets.size() > 1 ? "s" : "")
 	    << " with \"" << keepstring << "\"";
 
-	for (ibis::partList::iterator it = tlist.begin();
-	     it != tlist.end(); ++ it) {
+	for (ibis::partList::iterator it = ibis::datasets.begin();
+	     it != ibis::datasets.end(); ++ it) {
 	    long ierr = (*it)->reactivate(keepstring);
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "reverseDeletion -- reactivate(" << (*it)->name()
@@ -3831,20 +3991,21 @@ static void reverseDeletion(ibis::partList& tlist) {
 } // reverseDeletion
 
 // parse the query string and evaluate the specified query
-static void parseString(ibis::partList& tlist, const char* uid,
-			const char* qstr) {
+static void parseString(const char* uid, const char* qstr) {
     if (qstr == 0) return;
     if (*qstr == 0) return;
 
     // got a valid string
     const char* str = qstr;
     const char* end;
+    std::string fstr; // from clause
     std::string sstr; // select clause
     std::string wstr; // where clause
     std::string ordkeys; // order by clause (the order keys)
     int direction = 0; // direction of the order by clause
     uint32_t limit = 0; // the limit on the number of output rows
     ibis::nameList qtables;
+    const bool hasdot = (strchr(qstr, '.') != 0);
 
     // skip leading space
     while (isspace(*str)) ++str;
@@ -3901,18 +4062,14 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "parseString(" << qstr << ") is unable to locate "
 		<< "key word WHERE following FROM clause";
-	    throw "unable to locate key word WHERE in query string";
+	    return;
 	}
 	else if (end != 0) {
-	    char* fstr = new char[sizeof(char) * (end - str + 1)];
-	    (void) strncpy(fstr, str, end-str);
-	    fstr[end-str] = 0;
-	    qtables.select(fstr);
-	    delete [] fstr;
+	    fstr.append(str, end);
 	    str = end + 1;
 	}
 	else {
-	    qtables.select(str);
+	    fstr = str;
 	    str = 0;
 	}
     }
@@ -3932,8 +4089,8 @@ static void parseString(ibis::partList& tlist, const char* uid,
     else if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
 	lg.buffer() << "parseString(" << qstr
-		  << ") is unable to locate key word WHERE.  "
-		  << "assume the string is the where clause.";
+		    << ") is unable to locate key word WHERE.  "
+		    << "assume the string is the where clause.";
     }
     // the end of the where clause is marked by the key words "order by" or
     // "limit" or the end of the string
@@ -4032,17 +4189,22 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    << ") expects the key word LIMIT, but got " << str;
     }
 
-    if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
-			   sstr.find(" as ") < sstr.size())) {
+    if (hasdot) {
+	doQuaere(sstr.c_str(), fstr.c_str(), wstr.c_str(),
+		 ordkeys.c_str(), direction, limit);
+    }
+    else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
+				sstr.find(" as ") < sstr.size())) {
 	//  || verify_rid || !ordkeys.empty() || limit > 0
 	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
 	    ibis::partList tl2;
-	    for (unsigned k = 0; k < tlist.size(); ++ k) {
+	    for (unsigned k = 0; k < ibis::datasets.size(); ++ k) {
 		for (unsigned j = 0; j < qtables.size(); ++ j) {
-		    if (stricmp(tlist[k]->name(), qtables[j]) == 0 ||
-			ibis::util::strMatch(tlist[k]->name(), qtables[j])) {
-			tl2.push_back(tlist[k]);
+		    if (stricmp(ibis::datasets[k]->name(), qtables[j]) == 0 ||
+			ibis::util::strMatch(ibis::datasets[k]->name(),
+					     qtables[j])) {
+			tl2.push_back(ibis::datasets[k]);
 			break;
 		    }
 		}
@@ -4068,7 +4230,7 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	}
 	else {
 	    try {
-		tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
+		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
 			    ordkeys.c_str(), direction, limit);
 	    }
 	    catch (...) {
@@ -4078,26 +4240,26 @@ static void parseString(ibis::partList& tlist, const char* uid,
 		    sleep(1);
 #endif
 		}
-		for (ibis::partList::iterator it = tlist.begin();
-		     it != tlist.end(); ++ it) {
+		for (ibis::partList::iterator it = ibis::datasets.begin();
+		     it != ibis::datasets.end(); ++ it) {
 		    (*it)->emptyCache();
 		}
-		tableSelect(tlist, uid, wstr.c_str(), sstr.c_str(),
+		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
 			    ordkeys.c_str(), direction, limit);
 	    }
 	}
     }
     else if (! qtables.empty()) {
 	// simple select clauses can be handled through doQuery
-	for (unsigned k = 0; k < tlist.size(); ++ k) {
+	for (unsigned k = 0; k < ibis::datasets.size(); ++ k) {
 	    // go through each partition the user has specified
 	    for (unsigned j = 0; j < qtables.size(); ++ j) {
-		if (stricmp(tlist[k]->name(), qtables[j]) == 0 ||
-		    ibis::util::strMatch(tlist[k]->name(), qtables[j])) {
+		if (stricmp(ibis::datasets[k]->name(), qtables[j]) == 0 ||
+		    ibis::util::strMatch(ibis::datasets[k]->name(), qtables[j])) {
 		    if (verify_rid || sequential_scan ||
-			tlist[k]->getMeshShape().empty()) {
+			ibis::datasets[k]->getMeshShape().empty()) {
 			try {
-			    doQuery(tlist[k], uid, wstr.c_str(), sstr.c_str(),
+			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
 				    ordkeys.c_str(), direction, limit);
 			}
 			catch (...) {
@@ -4108,14 +4270,14 @@ static void parseString(ibis::partList& tlist, const char* uid,
 				sleep(1);
 #endif
 			    }
-			    tlist[k]->emptyCache();
-			    doQuery(tlist[k], uid, wstr.c_str(), sstr.c_str(),
+			    ibis::datasets[k]->emptyCache();
+			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
 				    ordkeys.c_str(), direction, limit);
 			}
 		    }
 		    else {
 			try {
-			    doMeshQuery(tlist[k], uid, wstr.c_str(),
+			    doMeshQuery(ibis::datasets[k], uid, wstr.c_str(),
 					sstr.c_str());
 			}
 			catch (...) {
@@ -4126,15 +4288,15 @@ static void parseString(ibis::partList& tlist, const char* uid,
 				sleep(1);
 #endif
 			    }
-			    tlist[k]->emptyCache();
-			    doMeshQuery(tlist[k], uid, wstr.c_str(),
+			    ibis::datasets[k]->emptyCache();
+			    doMeshQuery(ibis::datasets[k], uid, wstr.c_str(),
 					sstr.c_str());
 			}
 		    }
 
 		    if (ibis::gVerbose > 7 || testing > 0) {
 			try {
-			    xdoQuery(tlist[k], uid, wstr.c_str(), sstr.c_str());
+			    xdoQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str());
 			}
 			catch (...) {
 			    if (ibis::util::serialNumber() % 3 == 0) {
@@ -4144,7 +4306,7 @@ static void parseString(ibis::partList& tlist, const char* uid,
 				sleep(1);
 #endif
 			    }
-			    tlist[k]->emptyCache();
+			    ibis::datasets[k]->emptyCache();
 			}
 		    }
 		    break;
@@ -4153,8 +4315,8 @@ static void parseString(ibis::partList& tlist, const char* uid,
 	}
     }
     else {
-	for (ibis::partList::iterator tit = tlist.begin();
-	     tit != tlist.end(); ++ tit) {
+	for (ibis::partList::iterator tit = ibis::datasets.begin();
+	     tit != ibis::datasets.end(); ++ tit) {
 	    // go through every partition and process the user query
 	    if (verify_rid || sequential_scan ||
 		(*tit)->getMeshShape().empty()) {
@@ -4212,7 +4374,7 @@ extern "C" void* thFun(void* arg) {
     thArg* myArg = (thArg*)arg; // recast the argument to the right type
     for (unsigned j = myArg->task(); j < myArg->qlist.size();
 	 j = myArg->task()) {
-	parseString(myArg->tlist, myArg->uid, myArg->qlist[j]);
+	parseString(myArg->uid, myArg->qlist[j]);
     }
     return 0;
 }
@@ -4252,17 +4414,16 @@ static void readInput(std::string& str) {
     } while (wait);
 } // readInput
 
-static void clean_up(ibis::partList& tlist, bool sane=true) {
+static void clean_up(bool sane=true) {
     { // use envLock to make sure only one thread is deleting the partitions
-	const size_t np = tlist.size();
 	ibis::util::quietLock lock(&ibis::util::envLock);
-	if (tlist.empty())
-	    return;
+	const size_t np = ibis::datasets.size();
+	if (np == 0) return;
 	for (unsigned i = 0; i < np; ++ i) {
-	    delete tlist[i];
-	    tlist[i] = 0;
+	    delete ibis::datasets[i];
+	    ibis::datasets[i] = 0;
 	}
-	tlist.clear();
+	ibis::datasets.clear();
     }
     LOGGER(ibis::gVerbose > 1)
 	<< "Cleaning up the file manager\n"
@@ -4303,7 +4464,6 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 } // clean_up
 
 int main(int argc, char** argv) {
-    ibis::partList tlist;
     if (argc <= 1) {
 	usage(*argv);
 	return 0;
@@ -4319,32 +4479,32 @@ int main(int argc, char** argv) {
 	timer.start();
 
 	// parse the command line arguments
-	parse_args(argc, argv, interactive, tlist, qlist, alist, slist,
+	parse_args(argc, argv, interactive, qlist, alist, slist,
 		   queff, joins);
 
 	// add new data if any
 	for (stringList::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else
-	    doAppend(*it, tlist);
+	    doAppend(*it);
 	}
 	alist.clear(); // no more use for it
 
 	if (yankstring != 0 && *yankstring != 0)
-	    doDeletion(tlist);
+	    doDeletion();
 	if (keepstring != 0 && *keepstring != 0)
-	    reverseDeletion(tlist);
+	    reverseDeletion();
 
 	// build new indexes
-	if (build_index > 0 && ! tlist.empty()) {
+	if (build_index > 0 && ! ibis::datasets.empty()) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< *argv << ": start building indexes (nthreads="
 		<< build_index << ", indexingOption="
 		<< (indexingOption ? indexingOption : "-") << ") ...";
 	    ibis::horometer timer1;
 	    timer1.start();
-	    for (ibis::partList::const_iterator it = tlist.begin();
-		 it != tlist.end(); ++ it) {
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
 		if (indexingOption != 0 &&
 		    ((*it)->indexSpec() == 0 ||
 		     stricmp(indexingOption, (*it)->indexSpec()) != 0)) {
@@ -4359,8 +4519,8 @@ int main(int argc, char** argv) {
 	    }
 	    timer1.stop();
 	    LOGGER(ibis::gVerbose >= 0)
-		<< *argv << ": building indexes for " << tlist.size()
-		<< " data partition" << (tlist.size()>1 ? "s" : "") << " took "
+		<< *argv << ": building indexes for " << ibis::datasets.size()
+		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "") << " took "
 		<< timer1.CPUTime() << " CPU seconds, "
 		<< timer1.realTime() << " elapsed seconds\n";
 	    zapping = false;
@@ -4369,28 +4529,28 @@ int main(int argc, char** argv) {
 	if (slist.size() > 0) {
 	    ibis::horometer timer2;
 	    timer2.start();
-	    for (ibis::partList::const_iterator it = tlist.begin();
-		 it != tlist.end(); ++ it) {
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
 		for (size_t j = 0; j < slist.size(); ++ j)
 		    (*it)->buildSorted(slist[j]);
 	    }
 	    timer2.stop();
 	    LOGGER(ibis::gVerbose >= 0)
 		<< *argv << ": building sorted versions of " << slist.size()
-		<< " column" << (slist.size()>1 ? "s" : "") << tlist.size()
-		<< " data partition" << (tlist.size()>1 ? "s" : "") << " took "
+		<< " column" << (slist.size()>1 ? "s" : "") << ibis::datasets.size()
+		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "") << " took "
 		<< timer2.CPUTime() << " CPU seconds, "
 		<< timer2.realTime() << " elapsed seconds\n";
 	    slist.clear(); // no longer needed
 	}
 
 	// performing self test
-	if (testing > 0 && ! tlist.empty()) {
+	if (testing > 0 && ! ibis::datasets.empty()) {
 	    LOGGER(ibis::gVerbose > 0) << *argv << ": start testing ...";
 	    ibis::horometer timer3;
 	    timer3.start();
-	    for (ibis::partList::const_iterator it = tlist.begin();
-		 it != tlist.end(); ++ it) {
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
 		// tell the partition to perform self tests
 		long nerr = (*it)->selfTest(testing);
 		(*it)->unloadIndexes();
@@ -4410,13 +4570,13 @@ int main(int argc, char** argv) {
 	    }
 	    timer3.stop();
 	    LOGGER(ibis::gVerbose >= 0)
-		<< *argv << ": testing " << tlist.size() << " data partition"
-		<< (tlist.size()>1 ? "s" : "") << " took "
+		<< *argv << ": testing " << ibis::datasets.size() << " data partition"
+		<< (ibis::datasets.size()>1 ? "s" : "") << " took "
 		<< timer3.CPUTime() << " CPU seconds, "
 		<< timer3.realTime() << " elapsed seconds\n";
 	}
 
-	if (tlist.empty() && !qlist.empty()) {
+	if (ibis::datasets.empty() && !qlist.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< *argv << " must have at least one data partition "
 		"to process any query.";
@@ -4425,14 +4585,14 @@ int main(int argc, char** argv) {
 #if defined(_DEBUG) || defined(DEBUG)
 	    for (stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
-		parseString(tlist, uid, *it);
+		parseString(uid, *it);
 	    }
 #else
 	    // process queries in a thread pool
 	    const int nth =
 		(threading <= qlist.size() ? threading : qlist.size()) - 1;
 	    ibis::util::counter taskpool;
-	    thArg args(uid, qlist, tlist, taskpool);
+	    thArg args(uid, qlist, taskpool);
 	    std::vector<pthread_t> tid(nth);
 	    for (int i = 0; i < nth; ++ i) { // 
 		int ierr = pthread_create(&(tid[i]), 0, thFun, (void*)&args);
@@ -4460,14 +4620,14 @@ int main(int argc, char** argv) {
 	else if (qlist.size() > 0) { // no new threads
 	    for (stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
-		parseString(tlist, uid, *it);
+		parseString(uid, *it);
 	    }
 	    queff.clear();
 	    qlist.clear();
 	}
 	else if (ridfile != 0) {
-	    for (ibis::partList::iterator itt = tlist.begin();
-		 itt != tlist.end();
+	    for (ibis::partList::iterator itt = ibis::datasets.begin();
+		 itt != ibis::datasets.end();
 		 ++ itt)
 		doQuery((*itt), uid, 0, 0, 0, 0, 0);
 	}
@@ -4475,7 +4635,7 @@ int main(int argc, char** argv) {
 
 	// process the joins one at a time
 	for (size_t j = 0; j < joins.size(); ++j) {
-	    doJoin(uid, tlist, *joins[j]);
+	    doJoin(uid, *joins[j]);
 	}
 
 	if (interactive) {	// iteractive operations
@@ -4499,31 +4659,31 @@ int main(int argc, char** argv) {
 		case 'E':
 		case 'q':
 		case 'Q':
-		    clean_up(tlist);
+		    clean_up(true);
 		    return(0);
 		case 'p': // print command
 		case 'P':
-		    print(str.c_str(), tlist); break;
+		    print(str.c_str()); break;
 		case 's': // a select statement
 		case 'f':
 		case 'w':
 		case 'S':
 		case 'F':
 		case 'W': {
-		    parseString(tlist, uid, str.c_str());
+		    parseString(uid, str.c_str());
 		    break;}
 		case 'a':
 		case 'A': {
 		    const char* dir = str.c_str();
 		    while(isalpha(*dir)) ++dir; // skip key word append
 		    while(isspace(*dir)) ++dir; // skip space
-		    doAppend(dir, tlist);
+		    doAppend(dir);
 		    break;}
 		}
 	    }
 	}
 
-	clean_up(tlist, true);
+	clean_up(true);
 	timer.stop();
 	LOGGER(timer.realTime() > 0.001 && ibis::gVerbose > 0)
 	    << *argv << " -- total CPU time " << timer.CPUTime()
@@ -4537,21 +4697,18 @@ int main(int argc, char** argv) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning ** " << *argv
 	    << " received a standard exception\n" << e.what();
-	//clean_up(tlist, false);
 	return -10;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning ** " << *argv
 	    << " received a string exception\n" << s;
-	//clean_up(tlist, false);
 	return -11;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning ** " << *argv
 	    << " received an unexpected exception";
-	//clean_up(tlist, false);
 	return -12;
     }
 } // main

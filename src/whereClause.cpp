@@ -15,8 +15,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
 	LOGGER(ibis::gVerbose > 5)
-	    << "whereClause::ctor creating a new where clause with \"" << cl
-	    << "\"";
+	    << "whereClause::ctor to parse \"" << cl << "\"";
 
 	clause_ = cl;
 	std::istringstream iss(clause_);
@@ -45,7 +44,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
 } // constructor
 
 ibis::whereClause::whereClause(const ibis::whereClause& rhs)
-    : clause_(rhs.clause_), expr_(0) {
+    : clause_(rhs.clause_), expr_(0), lexer(0) {
     if (rhs.expr_ != 0)
 	expr_ = rhs.expr_->dup();
 } // copy constructor
@@ -111,15 +110,15 @@ void ibis::whereClause::clear() throw () {
 /// needed for evaluations, but may introduces a different set of round-off
 /// erros in the evaluation process than the original expression.
 int ibis::whereClause::verify(const ibis::part& part0,
-			      const ibis::selectClause *sel) {
+			      const ibis::selectClause *sel) const {
     if (expr_ != 0) {
-	ibis::qExpr::simplify(expr_);
+	ibis::qExpr::simplify(const_cast<ibis::qExpr*&>(expr_));
 	if (expr_ == 0) {
 	    return -1;
 	}
 	else {
-	    amplify(part0);
-	    return _verify(part0, expr_, sel);
+	    //amplify(part0);
+	    return _verify(part0, const_cast<ibis::qExpr*&>(expr_), sel);
 	}
     }
     else {
@@ -456,11 +455,12 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
     return ierr;
 } // ibis::whereClause::_verify
 
+/// Add conditions implied by self-join conditions.
 /// @note This name is intentionally vague to discourage its use.  It might
 /// be completely removed in a later release.
 void ibis::whereClause::amplify(const ibis::part& part0) {
     std::vector<const ibis::deprecatedJoin*> terms;
-    expr_->extractJoins(terms);
+    expr_->extractDeprecatedJoins(terms);
     if (terms.empty()) // no join terms to use
 	return;
 

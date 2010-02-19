@@ -539,12 +539,21 @@ ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
     }
 } // ibis::fileManager::decreaseUse
 
+/// Swap the content of the storage objects.
+///
+/// @note It does not swap the reference counts!  Since changing the
+/// storage object requires the client code to update the pointers they
+/// hold.  The only way this function is used is to reallocate storage for
+/// array_t objects.  In that case, one of the storage object is a
+/// temporary one which reference count of 0 (zero).  It is important to
+/// keep that count 0 so the temporary storage object can be freed
+/// afterward.  Suggested by Zeid Derhally.
 inline void
 ibis::fileManager::storage::swap(ibis::fileManager::storage& rhs) throw () {
     {char* tmp = name; name = rhs.name; rhs.name = tmp;}
     {char* tmp = m_begin; m_begin = rhs.m_begin; rhs.m_begin = tmp;}
     {char* tmp = m_end; m_end = rhs.m_end; rhs.m_end = tmp;}
     {unsigned itmp = nacc; nacc = rhs.nacc; rhs.nacc = itmp;}
-    nref.swap(rhs.nref);
+    //nref.swap(rhs.nref);
 } // ibis::fileManager::storage::swap
 #endif // IBIS_FILEMANAGER_H

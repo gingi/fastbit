@@ -40,14 +40,14 @@
 /* "%code requires" blocks.  */
 
 /* Line 35 of lalr1.cc  */
-#line 12 "selectParser.yy"
+#line 12 "fromParser.yy"
 
-#include "selectClause.h"	// class selectClause
+#include "fromClause.h"	// class fromClause
 
 
 
 /* Line 35 of lalr1.cc  */
-#line 51 "selectParser.hh"
+#line 51 "fromParser.hh"
 
 
 #include <string>
@@ -61,7 +61,7 @@
 namespace ibis {
 
 /* Line 35 of lalr1.cc  */
-#line 65 "selectParser.hh"
+#line 65 "fromParser.hh"
   class position;
   class location;
 
@@ -71,7 +71,7 @@ namespace ibis {
 } // ibis
 
 /* Line 35 of lalr1.cc  */
-#line 75 "selectParser.hh"
+#line 75 "fromParser.hh"
 
 #include "location.hh"
 
@@ -119,10 +119,10 @@ do {							\
 namespace ibis {
 
 /* Line 35 of lalr1.cc  */
-#line 123 "selectParser.hh"
+#line 123 "fromParser.hh"
 
   /// A Bison parser.
-  class selectParser
+  class fromParser
   {
   public:
     /// Symbol semantic values.
@@ -131,17 +131,17 @@ namespace ibis {
     {
 
 /* Line 35 of lalr1.cc  */
-#line 34 "selectParser.yy"
+#line 34 "fromParser.yy"
 
-    int			integerVal;
-    double		doubleVal;
-    std::string 	*stringVal;
-    ibis::math::term	*selectNode;
+    int		integerVal;
+    double	doubleVal;
+    std::string	*stringVal;
+    ibis::qExpr	*fromNode;
 
 
 
 /* Line 35 of lalr1.cc  */
-#line 145 "selectParser.hh"
+#line 145 "fromParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -155,17 +155,17 @@ namespace ibis {
    enum yytokentype {
      END = 0,
      ASOP = 258,
-     AVGOP = 259,
-     CNTOP = 260,
-     MINOP = 261,
-     MAXOP = 262,
-     SUMOP = 263,
-     VARPOPOP = 264,
-     VARSAMPOP = 265,
-     STDPOPOP = 266,
-     STDSAMPOP = 267,
-     DISTINCTOP = 268,
-     MEDIANOP = 269,
+     ONOP = 259,
+     JOINOP = 260,
+     USINGOP = 261,
+     BETWEENOP = 262,
+     ANDOP = 263,
+     LEOP = 264,
+     GEOP = 265,
+     LTOP = 266,
+     GTOP = 267,
+     EQOP = 268,
+     NEQOP = 269,
      BITOROP = 270,
      BITANDOP = 271,
      ADDOP = 272,
@@ -183,8 +183,8 @@ namespace ibis {
     typedef token::yytokentype token_type;
 
     /// Build a parser object.
-    selectParser (class ibis::selectClause& driver_yyarg);
-    virtual ~selectParser ();
+    fromParser (class ibis::fromClause& driver_yyarg);
+    virtual ~fromParser ();
 
     /// Parse.
     /// \returns  0 iff parsing succeeded.
@@ -261,7 +261,7 @@ namespace ibis {
     /// Zero means the default is an error.
     static const unsigned char yydefact_[];
 
-    static const signed char yypgoto_[];
+    static const short int yypgoto_[];
     static const signed char yydefgoto_[];
 
     /// What to do in a state.
@@ -343,7 +343,7 @@ namespace ibis {
     static const token_number_type yyundef_token_;
 
     /* User arguments.  */
-    class ibis::selectClause& driver;
+    class ibis::fromClause& driver;
   };
 
 /* Line 35 of lalr1.cc  */
@@ -352,7 +352,7 @@ namespace ibis {
 } // ibis
 
 /* Line 35 of lalr1.cc  */
-#line 356 "selectParser.hh"
+#line 356 "fromParser.hh"
 
 
 

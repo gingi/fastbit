@@ -18,7 +18,7 @@
 #endif
 #include "const.h"
 
-#include <ctype.h>	// isspace
+#include <cctype>	// std::isspace
 #include <stdio.h>	// sprintf, remove
 //#if HAVE_SYS_STAT_H
 #include <sys/stat.h>	// stat, mkdir, chmod
@@ -304,7 +304,12 @@ namespace ibis {
     class colValues;	///< To store a column of in-memory data.
     class whereClause;	///< Where clause.
     class selectClause;	///< Select clause.
+    class fromClause;	///< From clause.
     /// @}
+
+    /// A global list of data partitions.
+    extern FASTBIT_CXX_DLLSPEC partList datasets;
+    ibis::part* findDataset(const char*);
 
     typedef std::vector<colValues*> colList; /// List of in-memory data.
 
@@ -415,6 +420,10 @@ namespace ibis {
 	/// number otherwise.
 	int copy(const char* to, const char* from);
 
+	/// Set the verboseness level.  Unless the code is compiled with
+	/// DEBUG macro set, the default verboseness level is 0, which will
+	/// only print out information about major errors.
+	inline void setVerboseLevel(int v) {ibis::gVerbose=v;}
 	/// Return the user name.
 	FASTBIT_CXX_DLLSPEC const char* userName();
 	/// Return an integer that is always increasing.
@@ -1265,12 +1274,12 @@ inline char* ibis::util::trim(char* str) {
     head = str;
     char* tail = str + strlen(str) - 1;
     while (*head) {
-	if (isspace(*head))
+	if (std::isspace(*head))
 	    ++head;
 	else
 	    break;
     }
-    while (tail>=head && isspace(*tail)) {
+    while (tail>=head && std::isspace(*tail)) {
 	*tail=static_cast<char>(0);
 	--tail;
     }

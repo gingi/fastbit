@@ -382,7 +382,7 @@ namespace ibis { // forward definition of all the classes in IBIS
     };
 
     /// A case-insensitive version of less for comparing names of tables,
-    /// columns, and resources.
+    /// columns, and other resources.
     struct lessi :
 	public std::binary_function< const char*, const char*, bool > {
 	bool operator()(const char* x, const char* y) const {

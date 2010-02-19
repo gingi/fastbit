@@ -19,7 +19,7 @@ namespace ibis { // additional names related to qExpr
     class qString;	///< An equality expression with a string literal.
     class qMultiString;	///< A range condition involving multiple strings.
     class compRange;	///< A comparisons involving arithmetic expression.
-    class deprecatedJoin;	///< A special expression for range join operations.
+    class deprecatedJoin;	///< A deprecated range join operations.
     class qAnyAny;	///< A special form of any-match-any query.
     class qLike;	///< A representation of the operator LIKE.
 }
@@ -50,7 +50,7 @@ public:
     /// Construct a full specified node.  All three arguments are present.
     qExpr(TYPE op, qExpr* qe1, qExpr* qe2) : type(op), left(qe1),
 					     right(qe2) {}
-    /// Deep copy.
+    /// Copy Constructor.  Deep copy.
     qExpr(const qExpr& qe) : type(qe.type),
 			     left(qe.left ? qe.left->dup() : 0),
 			     right(qe.right ? qe.right->dup() : 0) {}
@@ -73,8 +73,19 @@ public:
     /// Return a const pointer to the right child.
     const qExpr* getRight() const {return right;}
 
-    /// Return true is there is a term with join operation, false otherwise.
-    bool hasJoin() const;
+    /// Swap the content.  No exception expected.
+    void swap(qExpr& rhs) {
+	{TYPE t = type; type = rhs.type; rhs.type = t;}
+	{qExpr* p = left; left = rhs.left; rhs.left = p;}
+	{qExpr* q = right; right = rhs.right; rhs.right = q;}
+    }
+
+    /// Assignment operator.
+    qExpr& operator=(const qExpr& rhs) {
+	qExpr tmp(rhs); // copy
+	swap(tmp);
+	return *this;
+    }
 
     /// Count the number of items in the query expression.
     virtual uint32_t nItems() const {
@@ -114,7 +125,7 @@ public:
 	     (type==LOGICAL_NOT && left && left->directEval()));}
 
     /// Is the expression simple? A simple expression contains only range
-    /// conditions joined with logical operators.
+    /// conditions connected with logical operators.
     virtual bool isSimple() const {
 	if (left) {
 	    if (right) return left->isSimple() && right->isSimple();
@@ -128,28 +139,31 @@ public:
 	}
     }
 
-    /// Separate an expression tree into two joined with an AND operator.
-    /// The first one of the two new expressions contains only simple range
-    /// expressions, and the second contains what is left.
+    /// Separate an expression tree into two connected with an AND operator.
     int separateSimple(ibis::qExpr *&simple, ibis::qExpr *&tail) const;
+    void extractDeprecatedJoins(std::vector<const deprecatedJoin*>&) const;
+    /// Identify the data partitions involved in the query expression.
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
-    /// Extract conjunctive terms of the specified type.
-    void extractJoins(std::vector<const deprecatedJoin*>& terms) const;
     /// Find the first range condition involving the named variable.
     qRange* findRange(const char* vname);
 
     /// Attempt to convert simplify the query expressions.
     static void simplify(ibis::qExpr*&);
 
-    qExpr& operator=(const qExpr& rhs) {
-	delete left; delete right;
-	type = rhs.type;
-	left = (rhs.left != 0 ? rhs.left->dup() : 0);
-	right = (rhs.right != 0 ? rhs.right->dup() : 0);
-	return *this;
-    }
+    static std::string extractTableName(const char*);
+    static void splitColumnName(const char*, std::string&, std::string&);
 
-private:
+    /// A data structure including a query expression and the list of table
+    /// names mentioned in the expression.
+    struct TTN {
+	const qExpr* term;
+	std::set<std::string> tnames;
+    }; // TTN
+    typedef std::vector<TTN> termTableList;
+    void getConjunctiveTerms(termTableList&) const;
+
+protected:
     TYPE   type;	// the type of node, logical operator, type of leaf
     qExpr* left;	// the left child
     qExpr* right;	// the right child
@@ -178,6 +192,7 @@ public:
     virtual const double& rightBound() const = 0;
     /// Is the current range empty?
     virtual bool empty() const = 0;
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
     virtual ~qRange() {}; // nothing to do
 
@@ -357,6 +372,7 @@ public:
     virtual qString* dup() const {return new qString(*this);}
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
 private:
     char* lstr;
@@ -385,6 +401,7 @@ public:
     virtual qLike* dup() const {return new qLike(*this);}
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
 private:
     /// Column name.
@@ -419,6 +436,7 @@ public:
     const std::vector<std::string>& valueList() const {return values;}
     /// Convert into a sequence of qString objects.
     ibis::qExpr* convert() const;
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
 private:
     std::string name;
@@ -558,6 +576,7 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return VARIABLE;}
 	    virtual variable* dup() const {return new variable(*this);}
 	    virtual double eval() const {return myBar->getValue(varind);}
+	    virtual void getTableNames(std::set<std::string>& plist) const;
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << name;}
@@ -716,23 +735,26 @@ namespace ibis {
 class ibis::compRange : public ibis::qExpr {
 public:
 
-    // construct the range from strings
+    /// Default constructor.
     compRange() : qExpr(ibis::qExpr::COMPRANGE), expr3(0),
 		  op12(ibis::qExpr::OP_UNDEFINED),
 		  op23(ibis::qExpr::OP_UNDEFINED) {;}
+    /// Constructor with two arithmetic expressions.
     compRange(ibis::math::term* me1, COMPARE lop,
 	      ibis::math::term* me2)
 	: qExpr(ibis::qExpr::COMPRANGE, me1, me2), expr3(0),
 	  op12(lop), op23(ibis::qExpr::OP_UNDEFINED) {;}
+    /// Constructor with three arithmetic expressions.
     compRange(ibis::math::term* me1, ibis::qExpr::COMPARE lop,
 	      ibis::math::term* me2, ibis::qExpr::COMPARE rop,
 	      ibis::math::term* me3)
 	: qExpr(ibis::qExpr::COMPRANGE, me1, me2), expr3(me3),
 	  op12(lop), op23(rop) {;}
-    // copy constructor -- actually copy the math expressions
+    /// Copy constructor.  Deep copy -- actually copy the math expressions.
     compRange(const compRange& rhs) :
 	ibis::qExpr(rhs), expr3(rhs.expr3 ? rhs.expr3->dup() : 0),
 	op12(rhs.op12), op23(rhs.op23) {};
+    /// Destructor.
     virtual ~compRange() {delete expr3;}
 
     // provide read access to the operators
@@ -753,6 +775,7 @@ public:
     /// Print the query expression.
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
     virtual bool isConstant() const {
 	return ((getLeft() != 0 ? getLeft()->isConstant() : true) &&
@@ -837,6 +860,7 @@ public:
 
     virtual void print(std::ostream& out) const;
     virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void getTableNames(std::set<std::string>& plist) const;
 
 private:
     std::string prefix; ///< The prefix of the column names to search.

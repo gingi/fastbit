@@ -438,14 +438,14 @@ void ibis::selectClause::print(std::ostream& out) const {
 /// @note Simplifying the arithmetic expressions typically reduces the time
 /// needed for evaluations, but may introduces a different set of round-off
 /// erros in the evaluation process than the original expression.
-int ibis::selectClause::verify(const ibis::part& part0) {
+int ibis::selectClause::verify(const ibis::part& part0) const {
     int ierr = 0;
     for (uint32_t j = 0; j < terms_.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = terms_[j]->reduce();
 	    if (tmp != terms_[j]) {
-		delete terms_[j];
-		terms_[j] = tmp;
+		delete const_cast<ibis::math::term*>(terms_[j]);
+		const_cast<mathTerms&>(terms_)[j] = tmp;
 	    }
 	}
 	ierr += ibis::selectClause::_verify(part0, *(terms_[j]));
@@ -454,14 +454,14 @@ int ibis::selectClause::verify(const ibis::part& part0) {
 } // ibis::selectClause::verify
 
 int ibis::selectClause::verifySome(const ibis::part& part0,
-				   const std::vector<uint32_t>& touse) {
+				   const std::vector<uint32_t>& touse) const {
     int ierr = 0;
     for (uint32_t j = 0; j < touse.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
 	    ibis::math::term *tmp = terms_[touse[j]]->reduce();
 	    if (tmp != terms_[touse[j]]) {
-		delete terms_[touse[j]];
-		terms_[touse[j]] = tmp;
+		delete const_cast<ibis::math::term*>(terms_[touse[j]]);
+		const_cast<mathTerms&>(terms_)[touse[j]] = tmp;
 	    }
 	}
 	ierr += ibis::selectClause::_verify(part0, *(terms_[touse[j]]));

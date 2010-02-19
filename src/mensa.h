@@ -5,7 +5,6 @@
 #ifndef IBIS_MENSA_H
 #define IBIS_MENSA_H
 #include "table.h"	// ibis::table
-#include "util.h"	// ibis::partList
 #include "fileManager.h"// ibis::fileManager::storage
 
 /**@file
@@ -240,7 +239,7 @@ namespace ibis {
     namespace util {
 	/// Append new data (in @c from) to a larger array (pointed to by
 	/// @c to).
-	template <typename T> static void 
+	template <typename T> void 
 	addIncoreData(void*& to, const array_t<T>& from,
 		      uint32_t nold, const T special);
 	void

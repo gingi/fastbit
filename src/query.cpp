@@ -853,9 +853,7 @@ int ibis::query::estimate() {
     }
     else if (ibis::gVerbose > 0) {
 	if (conds.getExpr()) {
-	    if (conds->hasJoin())
-		/*logMessage("estimate", "")*/;
-	    else if (hits && sup && hits != sup) {
+	    if (hits && sup && hits != sup) {
 		logMessage("estimate", "# of hits for query \"%s\" is in "
 			   "[%lu, %lu]",
 			   (conds.getString() ? conds.getString() :
@@ -889,12 +887,11 @@ int ibis::query::estimate() {
 			   "%g pages during the execution of this function",
 			   pcnt);
 	}
-	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
+	if ((rids_in != 0 || conds.getExpr() != 0) &&
 	    (ibis::gVerbose > 30 ||
 	     (ibis::gVerbose > 8 &&
-	      (1U<<ibis::gVerbose) >= (hits?hits->bytes():0)+
-	      (sup?sup->bytes():0)))) {
-
+	      (1U<<ibis::gVerbose) >=
+	      (hits?hits->bytes():0)+(sup?sup->bytes():0)))) {
 	    if (hits == sup) {
 		LOGGER(ibis::gVerbose >= 0) << "The hit vector" << *hits;
 	    }
@@ -997,11 +994,6 @@ int ibis::query::evaluate(const bool evalSelect) {
 			       nc, (nc>1 ? "s" : ""), sz, (sz>1 ? "s" : ""),
 			       cf, rw, eb);
 		}
-		if (conds->hasJoin()) {// has join conditions
-		    if (myDir == 0)
-			setMyDir(mypart->name());
-		    processJoin();
-		}
 	    }
 	}
 	catch (...) {
@@ -1015,13 +1007,6 @@ int ibis::query::evaluate(const bool evalSelect) {
 		mypart->emptyCache();
 		ierr = computeHits(); // do actual computation here
 		if (ierr < 0) return ierr;
-		if (hits != 0 && hits->cnt() > 0 && ! conds.empty()) {
-		    if (conds->hasJoin()) {// has join conditions
-			if (myDir == 0)
-			    setMyDir(mypart->name());
-			processJoin();
-		    }
-		}
 	    }
 	    catch (const ibis::bad_alloc& e) {
 		if (dslock != 0) {
@@ -1133,9 +1118,7 @@ int ibis::query::evaluate(const bool evalSelect) {
     }
     else if (ibis::gVerbose > 0) {
 	if (conds.getExpr() != 0) {
-	    if (conds->hasJoin())
-		/*logMessage("evaluate", "")*/;
-	    else if (comps.size() > 0)
+	    if (comps.size() > 0)
 		logMessage("evaluate", "user %s SELECT %s FROM %s WHERE "
 			   "%s ==> %lu hit%s.", user, *comps, mypart->name(),
 			   (conds.getString() ? conds.getString() :
@@ -1164,7 +1147,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 			   "%g pages during the execution of this function",
 			   pcnt);
 	}
- 	if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
+ 	if ((rids_in != 0 || conds.getExpr() != 0) &&
 	    (ibis::gVerbose > 30 ||
 	     (ibis::gVerbose > 8 &&
 	      (1U<<ibis::gVerbose) >= hits->bytes()))) {
@@ -2917,9 +2900,9 @@ int ibis::query::computeHits() {
 	}
     }
 
-    if ((rids_in != 0 || (conds.getExpr() != 0 && ! conds->hasJoin())) &&
-	(ibis::gVerbose > 30 || (ibis::gVerbose > 4 &&
-				  (1U<<ibis::gVerbose) >= hits->bytes()))) {
+    if ((rids_in != 0 || conds.getExpr() != 0) &&
+	(ibis::gVerbose > 30 ||
+	 (ibis::gVerbose > 4 && (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::query::computeHits() hit vector" << *hits
 		    << "\n";
@@ -4581,9 +4564,9 @@ int64_t ibis::query::processJoin() {
     ibis::horometer timer;
     std::vector<const ibis::deprecatedJoin*> terms;
 
-    // extract all deprecatedJoin objects from the root of the expression tree
-    // to the first operator that is not AND
-    conds->extractJoins(terms);
+    // extract all deprecatedJoin objects from the root of the expression
+    // tree to the first operator that is not AND
+    conds->extractDeprecatedJoins(terms);
     if (terms.empty())
 	return ret;
 

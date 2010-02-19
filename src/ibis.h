@@ -17,9 +17,9 @@
 #include "meshQuery.h"		// ibis::meshQuery
 #include "resource.h"		// ibis::gParameters
 #include "bundle.h"		// ibis::bundle
+#include "quaere.h"		// ibis::quaere
 #include "query.h"		// ibis::query
 #include "part.h"		// ibis::part
-#include "join.h"		// ibis::join
 #include "rids.h"		// ibis::ridHandler
 
 /*! \mainpage Overview of FastBit IBIS Implementation
@@ -221,9 +221,6 @@ namespace ibis {
     /// Initializes internal resources required by FastBit code.  It
     /// should be called by user code before any other functions.
     ///
-    /// @param verbose An integer indicating the level of verboseness.  A
-    ///   negative number make ibis silent, otherwise the larger it is the
-    ///   more ibis will print out.
     /// @param rcfile A file containing name-value pairs that specifies
     ///   parameters for controlling the behavior of ibis.
     /// @param mesgfile Name of the file to contain messages printed by
@@ -263,19 +260,20 @@ namespace ibis {
     /// One may call ibis::util::closeLogFile to close the log file,
     /// however it is fine to leave the OS to close it upon the termination
     /// of this program.
-    inline void init(const int verbose=0, const char* rcfile=0,
+    inline void init(const char* rcfile=0,
 		     const char* mesgfile=0) {
-	gVerbose = verbose;
 #if defined(DEBUG) || defined(_DEBUG)
+	if (gVerbose == 0) {
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-	gVerbose = INT_MAX;
+	    gVerbose = INT_MAX;
 #elif DEBUG + 0 > 0
-	gVerbose += 7 * DEBUG;
+	    gVerbose += 7 * DEBUG;
 #elif _DEBUG + 0 > 0
-	gVerbose += 5 * _DEBUG;
+	    gVerbose += 5 * _DEBUG;
 #else
-	gVerbose += 3;
+	    gVerbose += 3;
 #endif
+	}
 #endif
 	if (mesgfile != 0 && *mesgfile != 0) {
 	    int ierr = ibis::util::setLogFileName(mesgfile);
@@ -286,8 +284,15 @@ namespace ibis {
 	}
 
 	if (rcfile != 0 && *rcfile != 0)
-	    gParameters().read(rcfile);
+	    ibis::gParameters().read(rcfile);
 	(void) ibis::fileManager::instance(); // initialize the file manager
+	if (! ibis::gParameters().empty())
+	    (void) ibis::util::gatherParts(ibis::datasets, ibis::gParameters());
+	if (0 != atexit(ibis::util::clearDatasets)) {
+	    if (ibis::gVerbose >= 0)
+		std::cerr << "ibis::init failed to register clean up function "
+		    "ibis::util::clearDatasets with atexit" << std::endl;
+	}
     }
 }
 #endif // IBIS_H

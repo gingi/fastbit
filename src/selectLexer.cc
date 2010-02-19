@@ -513,13 +513,13 @@ static yyconst flex_int16_t yy_chk[346] =
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory
-   Copyright 2007-2009 the Regents of the University of California
+   Copyright 2007-2010 the Regents of the University of California
  */
 #line 9 "selectLexer.ll"
 /** \file Defines the tokenlizer using Flex C++ template. */
 
-#include "selectLexer.h"		// definition of YY_DECL
-#include "selectParser.hh"	// class ibis::wherParser
+#include "selectLexer.h"	// definition of YY_DECL
+#include "selectParser.hh"	// class ibis::selectParser
 
 typedef ibis::selectParser::token token;
 typedef ibis::selectParser::token_type token_type;

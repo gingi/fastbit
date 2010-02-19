@@ -410,7 +410,7 @@ size_t ibis::array_t<T>::find(const T& val) const {
 	}
     }
     return j;
-} // find
+} // ibis::array_t<T>::find
 
 /// Find the first position where the value is greater than @c val.
 /// Assuming the array is already sorted in ascending order,
@@ -440,7 +440,7 @@ size_t ibis::array_t<T>::find_upper(const T& val) const {
 	}
     }
     return j;
-} // find_upper
+} // ibis::array_t<T>::find_upper
 
 /// Merge sort algorithm.  This array is sorted.  The argument @c tmp is
 /// only used as temporary storage.
@@ -503,7 +503,7 @@ void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
 	swap(tmp);
 	stride += stride; // double the stride every iteration
     }
-} // stableSort
+} // ibis::array_t<T>::stableSort
 
 /// Use merge sort algorithm to produce an index array so that
 /// array[ind[i]] would in ascending order.
@@ -593,7 +593,7 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind,
 	sorted.clear();
 	ind.clear();
     }
-} // stableSort
+} // ibis::array_t<T>::stableSort
 
 /// This function sorts the content of array @c val.  The values of @c
 /// ind[i] will be reordered in the same way as the array @c val.  The two
@@ -686,7 +686,7 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 	ind.swap(itmp);
 	stride += stride; // double the stride every iteration
     }
-} // stableSort
+} // ibis::array_t<T>::stableSort
 
 /// Sort the array to produce @c ind so that array_t[ind[i]] is in
 /// ascending order.  Uses the quicksort algorithm with introspection.  On
@@ -724,7 +724,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 	lg.buffer() << "\nind[" << i << "]=" << ind[i] << "\t"
 		    << m_begin[ind[i]];
 #endif
-} // sort
+} // ibis::array_t<T>::sort
 
 /// Sort the @c k largest elements of the array.  Return the indices of the
 /// in sorted values.
@@ -790,7 +790,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
 #endif
-} // topk
+} // ibis::array_t<T>::topk
 
 /// Sort the first @c k elemnent of the array.  Return the indices of the
 /// smallest values in array @c ind.
@@ -846,7 +846,7 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
     std::flush(lg.buffer());
 #endif
-} // bottomk
+} // ibis::array_t<T>::bottomk
 
 /// The quick sort procedure.  Sort @c [ind[front:back]] assuming the array
 /// @c ind has been properly initialized.  This is the main function that
@@ -1005,7 +1005,7 @@ void ibis::array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
     for (i = front; i < back; ++i)
 	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
-} // isort
+} // ibis::array_t<T>::isort
 
 /// A median-of-3 method partition algorithm to find a pivot for quick
 /// sort.  Upon returning from this function, val[ind[front, pivot-1]] <
@@ -1164,7 +1164,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 	lg.buffer() << m_begin[ind[i]] << " ";
 #endif
     return pivot;
-} // partition
+} // ibis::array_t<T>::partition
 
 /// Change the size of the array so it has no less than @n elements.
 template<class T>
@@ -1285,7 +1285,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	swap(copy);
     }
     return p;
-} // array<T>::insert
+} // ibis::array<T>::insert
 
 /// Insert n copies of a value (val) before p.   Nothing is done if n is
 /// zero, or p is not between m_begin and m_end.
@@ -1333,7 +1333,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 	    copy[n+j] = m_begin[j];
 	swap(copy); // swap this and copy
     }
-} // array<T>::insert
+} // ibis::array<T>::insert
 
 /// Insert all values in [front, back) before p.  Nothing is done if front
 /// and back does not define a valid range, or p is not between m_begin and
@@ -1481,7 +1481,7 @@ void ibis::array_t<T>::write(const char* file) const {
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << " to \"" << file << "\", but actually wrote " << i;
     }
-} // void ibis::array_t<T>::write
+} // ibis::array_t<T>::write
 
 /// Write the content of the array to a file already opened.
 template<class T>
@@ -1512,7 +1512,7 @@ void ibis::array_t<T>::printStatus(std::ostream& out) const {
     if (actual != 0 && ibis::gVerbose > 16)
 	actual->printStatus(out);
 #endif
-} // printStatus
+} // ibis::array_t<T>::printStatus
 
 // explicit instantiation required and have to appear after the definitions
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<char>;

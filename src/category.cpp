@@ -2750,6 +2750,7 @@ long ibis::text::saveSelected(const ibis::bitvector& sel, const char *dest,
     if (thePart == 0 || thePart->currentDataDir() == 0)
 	return -1;
 
+    startPositions(thePart->currentDataDir(), 0, 0);
     long ierr = 0;
     ibis::bitvector msk;
     getNullMask(msk);

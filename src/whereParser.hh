@@ -1,23 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
-
-   Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
+   Foundation, Inc.
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -28,7 +28,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -37,34 +37,47 @@
 #ifndef PARSER_HEADER_H
 # define PARSER_HEADER_H
 
-#include <string>
-#include <iostream>
-#include "stack.hh"
+/* "%code requires" blocks.  */
 
-namespace ibis
-{
-  class position;
-  class location;
-}
-
-/* First part of user declarations.  */
-#line 6 "whereParser.yy"
-
-/** \file Defines the parser for the where clause accepted by FastBit IBIS.
-    The definitions are processed through bison.
-*/
+/* Line 35 of lalr1.cc  */
+#line 13 "whereParser.yy"
 
 #include "whereClause.h"	// class whereClause
 
 
-/* Line 35 of lalr1.cc.  */
-#line 62 "whereParser.hh"
+
+/* Line 35 of lalr1.cc  */
+#line 51 "whereParser.hh"
+
+
+#include <string>
+#include <iostream>
+#include "stack.hh"
+
+
+/* Line 35 of lalr1.cc  */
+#line 1 "[Bison:b4_percent_define_default]"
+
+namespace ibis {
+
+/* Line 35 of lalr1.cc  */
+#line 65 "whereParser.hh"
+  class position;
+  class location;
+
+/* Line 35 of lalr1.cc  */
+#line 1 "[Bison:b4_percent_define_default]"
+
+} // ibis
+
+/* Line 35 of lalr1.cc  */
+#line 75 "whereParser.hh"
 
 #include "location.hh"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 
 /* Enabling verbose error messages.  */
@@ -72,7 +85,7 @@ namespace ibis
 # undef YYERROR_VERBOSE
 # define YYERROR_VERBOSE 1
 #else
-# define YYERROR_VERBOSE 0
+# define YYERROR_VERBOSE 1
 #endif
 
 /* Enabling the token table.  */
@@ -99,8 +112,14 @@ do {							\
 } while (false)
 #endif
 
-namespace ibis
-{
+
+/* Line 35 of lalr1.cc  */
+#line 1 "[Bison:b4_percent_define_default]"
+
+namespace ibis {
+
+/* Line 35 of lalr1.cc  */
+#line 123 "whereParser.hh"
 
   /// A Bison parser.
   class whereParser
@@ -109,16 +128,21 @@ namespace ibis
     /// Symbol semantic values.
 #ifndef YYSTYPE
     union semantic_type
-#line 32 "whereParser.yy"
-{
+    {
+
+/* Line 35 of lalr1.cc  */
+#line 35 "whereParser.yy"
+
     int		integerVal;
     double	doubleVal;
     std::string *stringVal;
     ibis::qExpr *whereNode;
-}
-/* Line 35 of lalr1.cc.  */
-#line 121 "whereParser.hh"
-	;
+
+
+
+/* Line 35 of lalr1.cc  */
+#line 145 "whereParser.hh"
+    };
 #else
     typedef YYSTYPE semantic_type;
 #endif
@@ -173,6 +197,7 @@ namespace ibis
     /// \returns  0 iff parsing succeeded.
     virtual int parse ();
 
+#if YYDEBUG
     /// The current debugging stream.
     std::ostream& debug_stream () const;
     /// Set the current debugging stream.
@@ -184,6 +209,7 @@ namespace ibis
     debug_level_type debug_level () const;
     /// Set the current debugging level.
     void set_debug_level (debug_level_type l);
+#endif
 
   private:
     /// Report a syntax error.
@@ -193,8 +219,8 @@ namespace ibis
 
     /// Generate an error message.
     /// \param state   the state where the error occurred.
-    /// \param tok     the look-ahead token.
-    virtual std::string yysyntax_error_ (int yystate);
+    /// \param tok     the lookahead token.
+    virtual std::string yysyntax_error_ (int yystate, int tok);
 
 #if YYDEBUG
     /// \brief Report a symbol value on the debug stream.
@@ -211,7 +237,7 @@ namespace ibis
     virtual void yy_symbol_print_ (int yytype,
 				   const semantic_type* yyvaluep,
 				   const location_type* yylocationp);
-#endif /* ! YYDEBUG */
+#endif
 
 
     /// State numbers.
@@ -288,6 +314,10 @@ namespace ibis
     virtual void yy_reduce_print_ (int r);
     /// Print the state stack on the debug stream.
     virtual void yystack_print_ ();
+
+    /* Debugging.  */
+    int yydebug_;
+    std::ostream* yycdebug_;
 #endif
 
     /// Convert a scanner token number \a t to a symbol number.
@@ -319,15 +349,18 @@ namespace ibis
     static const unsigned int yyuser_token_number_max_;
     static const token_number_type yyundef_token_;
 
-    /* Debugging.  */
-    int yydebug_;
-    std::ostream* yycdebug_;
-
-
     /* User arguments.  */
     class ibis::whereClause& driver;
   };
-}
+
+/* Line 35 of lalr1.cc  */
+#line 1 "[Bison:b4_percent_define_default]"
+
+} // ibis
+
+/* Line 35 of lalr1.cc  */
+#line 363 "whereParser.hh"
+
 
 
 #endif /* ! defined PARSER_HEADER_H */

@@ -132,8 +132,8 @@ public:
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
-    int verify(const ibis::part&);
-    int verifySome(const ibis::part&, const std::vector<uint32_t>&);
+    int verify(const ibis::part&) const;
+    int verifySome(const ibis::part&, const std::vector<uint32_t>&) const;
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Assignment operator.
@@ -186,12 +186,9 @@ inline uint32_t ibis::selectClause::nPlain() const {
 } // ibis::selectClause::nPlain
 
 namespace std {
-    inline ostream& operator<<(ostream&, const ibis::selectClause&);
+    inline ostream& operator<<(ostream& out, const ibis::selectClause& sel) {
+	sel.print(out);
+	return out;
+    } // std::operator<<
 }
-
-inline std::ostream& std::operator<<(std::ostream& out,
-				     const ibis::selectClause &sel) {
-    sel.print(out);
-    return out;
-} // std::operator<<
 #endif

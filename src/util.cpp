@@ -28,7 +28,7 @@ int ibis::gVerbose = 10;
 #else
 int ibis::gVerbose = 0;
 #endif
-// initialize the static member of ibis::util
+// initialize the global variables of ibis::util
 pthread_mutex_t ibis::util::envLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ibis::util::ioLock::mutex = PTHREAD_MUTEX_INITIALIZER;
 /// A list of 65 printable ASCII characters that are not special to most of
@@ -50,6 +50,8 @@ const short unsigned ibis::util::charIndex[] = {
     64, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
     53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 64, 64, 64, 64,
 };
+/// Initialize the global variable for holding all the datasets.
+ibis::partList ibis::datasets;
 
 // file scope variables
 static std::string ibis_util_logfilename("");

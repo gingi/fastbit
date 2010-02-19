@@ -1,15 +1,17 @@
 /* $Id$ -*- mode: c++ -*- */
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 
-%{
+%code top {
 /** \file Defines the parser for the select clause accepted by FastBit
     IBIS.  The definitions are processed through bison.
 */
-
+#include <iostream>
+}
+%code requires {
 #include "selectClause.h"	// class selectClause
-%}
+}
 
 /* bison declarations */
 %require "2.3"
@@ -60,7 +62,7 @@
 %token <doubleVal> NUMBER	"numerical value"
 %token <stringVal> NOUNSTR	"name"
 
-%left ASOP
+%nonassoc ASOP
 %left BITOROP
 %left BITANDOP
 %left ADDOP MINUSOP
@@ -436,5 +438,5 @@ mathExpr ADDOP mathExpr {
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::selectParser encountered " << m << " at location " << l;
+	<< "Warning -- ibis::selectParser encountered " << m << " at location " << l;
 }

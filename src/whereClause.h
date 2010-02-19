@@ -63,17 +63,17 @@ namespace ibis {
 /// @code
 /// B <= A <= C
 /// @endcode
-///   In this example, A, B, and C can be any arithematic expression, column
-///   name or number.
+///   In this example, A, B, and C can be arithematic expressions, column
+///   names, and numbers.
 ///
 /// An arithematic expression may contain operators +, -, *, /, %, ^, and
 /// **, as well as common one-argument and two-argument functions defined
 /// in the header file math.h.  Both operators ^ and ** denote the
 /// exponential operation.
 ///
-/// @note Operators & and | are reserved for bitwise logical operations.
-/// These two operators are currently recognized but their operations are
-/// not supported.
+/// @note Operators & and | are reserved for bitwise logical operations
+/// within an arithmetic expression, while && and || are for logical
+/// operations between query conditions.
 class ibis::whereClause {
 public:
     /// Construct a where clause from a string.
@@ -128,7 +128,7 @@ public:
     /// Simplify the query expression.
     void simplify() {ibis::qExpr::simplify(expr_);}
     /// Verify the names exist in the data partition p0.
-    int verify(const ibis::part& p0, const ibis::selectClause *sel=0);
+    int verify(const ibis::part& p0, const ibis::selectClause *sel=0) const;
 
     /// Member access operator redefined to point to ibis::qExpr.
     ibis::qExpr* operator->() {return expr_;}
@@ -149,7 +149,6 @@ protected:
     std::string clause_;	///< String version of the where clause.
     ibis::qExpr *expr_;		///< The expression tree.
 
-    /// Add conditions implied by self-join conditions.
     void amplify(const ibis::part&);
     int _verify(const ibis::part&, ibis::qExpr*&,
 		const ibis::selectClause *) const;
@@ -163,12 +162,9 @@ private:
 }; // class ibis::whereClause
 
 namespace std {
-    inline ostream& operator<<(ostream&, const ibis::whereClause&);
+    inline ostream& operator<<(ostream& out, const ibis::whereClause& wc) {
+	wc->print(out);
+	return out;
+    } // std::operator<<
 }
-
-inline std::ostream& std::operator<<(std::ostream &out,
-				     const ibis::whereClause& wc) {
-    wc->print(out);
-    return out;
-} // std::operator<<
 #endif

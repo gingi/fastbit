@@ -1,3 +1,72 @@
+2010-02-18 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: change doQuaere to match the print out of
+	doQuery
+	* src/category.cpp:2753 add call to startPositions to make sure
+	.sp file is up-to-date
+	* src/ibis.h, src/util.h: remove the verbose argument from
+	ibis::init, add ibis::util::setVerboseLevel to change the
+	verboseness level.  The example program ibis.cpp has changed to
+	invoke ibis::init some time ago, which causes it to reset the
+	verboseness level to default value and causing it to fail some
+	tests run by 'make check'
+	* tests/marksdb-3: change the content to match the output from
+	ibis.cpp with the new quaere class -- it matches with SQL standard
+	a little better
+
+2010-02-17 John Wu <John.Wu at ACM.org>
+	* src/Makefile.am: add jrange.h and jrange.cpp to the list of
+	files
+	* src/filter.h, src/filter.cpp: add ibis::filter class to handle
+	query conditions not involving any table names
+
+2010-02-15 John Wu <John.Wu at ACM.org>
+	* src/part.h: getColumn with name is changed to skip over the
+	portion before the first period if a period is present in the name
+
+2010-02-12 John Wu <John.Wu at ACM.org>
+	* src/fileManager.h: comment out the statement that swap the
+	variable nref in ibis::fileManager::storage::swap to address the
+	memory leak problem identified by Zeid Derhally
+	* src/fromClause.cpp, src/fromParser.yy: remove operations on
+	ordered_ from fromParser.yy, fill ordered_ in fromClause::parse
+	instead, otherwise the pointer inserted into ordered_ earlier can
+	become invalid when the names_ and aliases_ are resized
+
+2010-02-11 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp: add check to make sure nref is less than 2
+	in storage::read, add test for nref in storage::enlarge (in an
+	attempt to catch the problem reported by Zeid Derhally from
+	SolarWinds, don't know how to reproduce his problem yet)
+
+2010-02-10 John Wu <John.Wu at ACM.org>
+	* src/fromParser.yy, src/selectParser.yy, src/whereParser.yy:
+	split the %{%} section and use the newer directives supported by
+	bison
+	* examples/ibis.cpp: add function doQuaere to exercise the new
+	ibis::quaere class hierarchy
+
+2010-02-09 John Wu <John.Wu at ACM.org>
+	* src/util.h, src/part.cpp: add function ibis::findDataset
+
+2010-02-08 John Wu <John.Wu at ACM.org>
+	* src/quaere.h, src/quaere.cpp: move join.h to quaere.h, add
+	quaere.cpp
+	* src/util.h, src/util.cpp: add global variable ibis::datasets
+	* examples/ibis.cpp: replace tlist with ibis::datasets
+
+2010-02-05 John Wu <John.Wu at ACM.org>
+	* src/jrange.h, src/jrange.cpp: add skeleton of ibis::jRange
+
+2010-02-04 John Wu <John.Wu at ACM.org>
+	* src/fromLexer.ll, src/fromParser.yy: add parser for the from
+	clause
+
+2010-02-03 John Wu <John.Wu at ACM.org>
+	* src/qExpr.h, src/qExpr.cpp: remove hasJoin, add class function
+	extractTableName and splitColumnName, add member function
+	getTableNames, extend the function simplify to take advantage of
+	the constant expressions
+
 2010-02-02 John Wu <John.Wu at ACM.org>
 	* src/*, examples/*: update copyright year, change existing range
 	join to deprecatedJoin and the corresponding term type from JOIN

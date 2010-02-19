@@ -1,20 +1,23 @@
 /* $Id$ -*- mode: c++ -*- */
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2009 the Regents of the University of California
+// Copyright 2007-2010 the Regents of the University of California
 
-%{
+%code top {
 /** \file Defines the parser for the where clause accepted by FastBit IBIS.
     The definitions are processed through bison.
 */
 
+#include <iostream>
+}
+%code requires {
 #include "whereClause.h"	// class whereClause
-%}
+}
 
 /* bison declarations */
 %require "2.3"
- /*%debug*/
- /*%error-verbose*/
+%debug
+%error-verbose
 %start START
 %defines
 %skeleton "lalr1.cc"
@@ -67,6 +70,9 @@
 %token <stringVal> STRSEQ	"string sequence"
 %token <stringVal> STRLIT	"string literal"
 
+%nonassoc INOP
+%nonassoc ANYOP
+%nonassoc JOINOP
 %left OROP
 %left XOROP
 %left ANDOP ANDNOTOP
@@ -77,9 +83,6 @@
 %left MULTOP DIVOP REMOP
 %right EXPOP
 %right NOTOP
-%nonassoc INOP
-%nonassoc ANYOP
-%nonassoc JOINOP
 
 %type <whereNode> qexpr simpleRange compRange2 compRange3 mathExpr
 
@@ -893,5 +896,5 @@ START : qexpr END { /* pass qexpr to the driver */
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::whereParser encountered " << m << " at location " << l;
+	<< "Warning -- ibis::whereParser encountered " << m << " at location " << l;
 }

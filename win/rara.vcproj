@@ -461,6 +461,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\filter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromClause.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromLexer.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromParser.cc"
+				>
+			</File>
+			<File
 				RelativePath="..\src\ibin.cpp"
 				>
 			</File>
@@ -562,6 +578,14 @@
 			</File>
 			<File
 				RelativePath="..\src\jnatural.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\jrange.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.cpp"
 				>
 			</File>
 			<File
@@ -718,6 +742,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\filter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromClause.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromLexer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\fromParser.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\src\horometer.h"
 				>
 			</File>
@@ -742,11 +782,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\join.h"
+				RelativePath="..\src\quaere.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\jnatural.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\jrange.h"
 				>
 			</File>
 			<File

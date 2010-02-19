@@ -25,7 +25,7 @@
 #include <stdlib.h>	// malloc, realloc, free
 #include <sys/stat.h>	// stat, open
 #include <time.h>
-//#include <limits>	// std::numeric_limits
+#include <stdexcept>	// std::runtime_error
 
 #if defined(HAVE_SYS_SYSCTL) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/sysctl.h> // sysctl
@@ -1839,7 +1839,7 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 	    << static_cast<void*>(m_begin);
 	ibis::fileManager::increaseUse(nelm, evt.c_str());
     }
-    else { // resize the current storage object with copy-and-swap
+    else if (nref() <= 1) { // resize the current storage object with copy-and-swap
 	try {
 	    ibis::fileManager::storage cp(nelm);
 	    memcpy(cp.m_begin, m_begin, oldsize);
@@ -1850,6 +1850,13 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 		<< "Warning -- " << evt << " failed to allocate new storage, "
 		"current storage unchanged";
 	}
+    }
+    else { // attempt to resize a shared storage object
+	std::string mesg = evt;
+	std::ostringstream oss;
+	oss << " cann't proceed with nref=" << nref();
+	mesg += oss.str();
+	throw std::runtime_error(mesg);
     }
 } // ibis::fileManager::storage::enlarge
 
@@ -1909,7 +1916,7 @@ off_t ibis::fileManager::storage::read(const char* fname,
 				       const off_t begin,
 				       const off_t end) {
     off_t nread = 0;
-    if (fname == 0 || *fname == 0) return -1;
+    if (fname == 0 || *fname == 0 || nref() > 1) return -1;
     if (end <= begin) return nread;
 
     std::string evt = "fileManager::storage::read";
@@ -2018,6 +2025,7 @@ off_t ibis::fileManager::storage::read(const int fdes,
 				       const off_t begin,
 				       const off_t end) {
     off_t nread = 0;
+    if (nref() > 1) return -1;
     if (fdes < 0 || end <= begin) return nread;
 
     std::string evt = "fileManager::storage::read";

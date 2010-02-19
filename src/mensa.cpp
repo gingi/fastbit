@@ -310,22 +310,16 @@ void ibis::mensa::estimate(const char* cond,
 
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
+	ierr = qq.setPartition(*it);
 	if (ierr >= 0) {
-	    ierr = qq.setPartition(*it);
+	    ierr = qq.estimate();
 	    if (ierr >= 0) {
-		ierr = qq.estimate();
-		if (ierr >= 0) {
-		    nmin += qq.getMinNumHits();
-		    nmax += qq.getMaxNumHits();
-		}
-		else {
-		    nmax += (*it)->nRows();
-		}
+		nmin += qq.getMinNumHits();
+		nmax += qq.getMaxNumHits();
 	    }
 	    else {
 		nmax += (*it)->nRows();
 	    }
-	    ierr = 0;
 	}
 	else {
 	    nmax += (*it)->nRows();
@@ -346,22 +340,16 @@ void ibis::mensa::estimate(const ibis::qExpr* cond,
 
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
+	ierr = qq.setPartition(*it);
 	if (ierr >= 0) {
-	    ierr = qq.setPartition(*it);
+	    ierr = qq.estimate();
 	    if (ierr >= 0) {
-		ierr = qq.estimate();
-		if (ierr >= 0) {
-		    nmin += qq.getMinNumHits();
-		    nmax += qq.getMaxNumHits();
-		}
-		else {
-		    nmax += (*it)->nRows();
-		}
+		nmin += qq.getMinNumHits();
+		nmax += qq.getMaxNumHits();
 	    }
 	    else {
 		nmax += (*it)->nRows();
 	    }
-	    ierr = 0;
 	}
 	else {
 	    nmax += (*it)->nRows();
@@ -4106,3 +4094,35 @@ void ibis::util::addStrings(void*& to, const std::vector<std::string>& from,
     if (nqq > 0)
 	target.insert(target.end(), from.begin(), from.end());
 } // ibis::util::addStrings
+
+// explicit template function instantiations
+template void
+ibis::util::addIncoreData<char>(void*&, const array_t<char>&, uint32_t,
+				const char);
+template void
+ibis::util::addIncoreData<unsigned char>(void*&, const array_t<unsigned char>&,
+					 uint32_t, const unsigned char);
+template void
+ibis::util::addIncoreData<int16_t>(void*&, const array_t<int16_t>&, uint32_t,
+				   const int16_t);
+template void
+ibis::util::addIncoreData<uint16_t>(void*&, const array_t<uint16_t>&, uint32_t,
+				    const uint16_t);
+template void
+ibis::util::addIncoreData<int32_t>(void*&, const array_t<int32_t>&, uint32_t,
+				   const int32_t);
+template void
+ibis::util::addIncoreData<uint32_t>(void*&, const array_t<uint32_t>&, uint32_t,
+				    const uint32_t);
+template void
+ibis::util::addIncoreData<int64_t>(void*&, const array_t<int64_t>&, uint32_t,
+				   const int64_t);
+template void
+ibis::util::addIncoreData<uint64_t>(void*&, const array_t<uint64_t>&, uint32_t,
+				    const uint64_t);
+template void
+ibis::util::addIncoreData<float>(void*&, const array_t<float>&, uint32_t,
+				 const float);
+template void
+ibis::util::addIncoreData<double>(void*&, const array_t<double>&, uint32_t,
+				  const double);
