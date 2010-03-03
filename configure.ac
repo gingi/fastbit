@@ -542,23 +542,35 @@ AC_DEFUN([AC_PROG_JAVA],[
 # Set the optional Java SDK directory.
 AC_ARG_WITH(java,
 	    AS_HELP_STRING([--with-java=dir],[use dir as Java SDK root directory]),
-            [if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi])
+            [if test -d $with_java -a -f $with_java/bin/javac$EXEEXT; then JAVA_HOME=$with_java; fi])
 #AC_MSG_RESULT([with_java=$with_java])
-if test "x$with_java" = "xno" ; then
-  JAVA_HOME=""
-elif test "x$with_java" = "xyes" -a "x$JAVA_HOME" = "x" ; then
-  case "${host_os}" in
-  # On Darwin the JDK, if present, is installed in /Library/Java/Home .
-  darwin*)
-    JAVA_HOME="/Library/Java/Home"
+if test "x$with_java" != "xyes" ; then
+  if test "x$with_java" = "xno" ; then
+    JAVA_HOME="" # don't use JAVA
+  elif ! test -d "$JAVA_HOME" -a -f "$JAVA_HOME/bin/javac$EXEEXT" ; then
+    JAVA_HOME="" # don't use JAVA
+  fi
+elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
+  if test "x$JAVA_PATH" != "x" ; then
+     if test -x "$JAVA_PATH"/javac$EXEEXT ; then
+       JAVA_HOME=`basename "$JAVA_PATH"`
+     elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
+       JAVA_HOME="$JAVA_PATH"
+     fi
+  else
+    case "${host_os}" in
+    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+    darwin*)
+      JAVA_HOME="/Library/Java/Home"
+      ;;
+    # On Fedora Core systems the JDK is usually in /usr/java/default .
+    linux*)
+      JAVA_HOME="/usr/java/default"
+      ;;
+    *)
     ;;
-  # On Fedora Core systems the JDK is usually in /usr/java/default .
-  linux*)
-    JAVA_HOME="/usr/java/default"
-    ;;
-  *)
-  ;;
-  esac
+    esac
+  fi
 fi
 
 #AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])

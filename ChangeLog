@@ -1,3 +1,12 @@
+2010-02-28 John Wu <John.Wu at ACM.org>
+	* INSTALL: update item 7 to mention Cray XT explicitly, add
+	information about disabling attempts to build JNI library with the
+	option --without-java
+
+2010-02-25 John Wu <John.Wu at ACM.org>
+	* doc/dataLoading.html: comment out the note about the restriction
+	due to 32-bit offsets used in index files
+
 2010-02-18 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: change doQuaere to match the print out of
 	doQuery

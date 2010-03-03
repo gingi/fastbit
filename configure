@@ -17084,25 +17084,37 @@ rm -f whereLexer.o
 
 # Check whether --with-java was given.
 if test "${with_java+set}" = set; then :
-  withval=$with_java; if test -d $with_java -a -f $with_java/bin/java$EXEEXT; then JAVA_HOME=$with_java; fi
+  withval=$with_java; if test -d $with_java -a -f $with_java/bin/javac$EXEEXT; then JAVA_HOME=$with_java; fi
 fi
 
 #AC_MSG_RESULT([with_java=$with_java])
-if test "x$with_java" = "xno" ; then
-  JAVA_HOME=""
-elif test "x$with_java" = "xyes" -a "x$JAVA_HOME" = "x" ; then
-  case "${host_os}" in
-  # On Darwin the JDK, if present, is installed in /Library/Java/Home .
-  darwin*)
-    JAVA_HOME="/Library/Java/Home"
+if test "x$with_java" != "xyes" ; then
+  if test "x$with_java" = "xno" ; then
+    JAVA_HOME="" # don't use JAVA
+  elif ! test -d "$JAVA_HOME" -a -f "$JAVA_HOME/bin/javac$EXEEXT" ; then
+    JAVA_HOME="" # don't use JAVA
+  fi
+elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
+  if test "x$JAVA_PATH" != "x" ; then
+     if test -x "$JAVA_PATH"/javac$EXEEXT ; then
+       JAVA_HOME=`basename "$JAVA_PATH"`
+     elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
+       JAVA_HOME="$JAVA_PATH"
+     fi
+  else
+    case "${host_os}" in
+    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+    darwin*)
+      JAVA_HOME="/Library/Java/Home"
+      ;;
+    # On Fedora Core systems the JDK is usually in /usr/java/default .
+    linux*)
+      JAVA_HOME="/usr/java/default"
+      ;;
+    *)
     ;;
-  # On Fedora Core systems the JDK is usually in /usr/java/default .
-  linux*)
-    JAVA_HOME="/usr/java/default"
-    ;;
-  *)
-  ;;
-  esac
+    esac
+  fi
 fi
 
 #AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
@@ -17171,7 +17183,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17174 "configure" */
+/* #line 17186 "configure" */
 public class Test {
 }
 EOF
@@ -17302,7 +17314,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 17305: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17317: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17379,7 +17391,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17382 "configure" */
+/* #line 17394 "configure" */
 public class Test {
 }
 EOF
@@ -17414,7 +17426,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17417 "configure" */
+/* [#]line 17429 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

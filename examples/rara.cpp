@@ -1,4 +1,4 @@
-// $Id: rara.cpp,v 1.3 2010/02/03 02:35:14 kewu Exp $
+// $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2008-2010 the Regents of the University of California
 /** @file rara.cpp

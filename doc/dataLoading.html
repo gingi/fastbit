@@ -526,25 +526,25 @@ data partition.
 <ul>
   <li> Each column is loaded into memory when the raw data is needed.
   If your machine has 2GB of memory, then the maximum number of rows in
-  a data partition with some double-precision floating-point values is
-  250 million.
+  a data partition with 8-byte double-precision floating-point values is
+  250 million.</li>
   <li> In order to build an index, both the raw data and the index must
-  fit in the memory.  This impose an even lower upper bound on the
+  fit in the memory.  This imposes an even lower upper bound on the
   number of rows in a data partition.  To be safe, we assume the index
   size is going to take 5N words, where N is the number of rows in the
   partition.  Due to memory fragmentation, these 5N words might actually
   occupy an address space of size 10N words.  Therefore, we typically
   partition data so that each column takes no more than one-tenth of the
-  memory.
-  <li> Even if you have a machine is very large amount of memory, there
+  memory.</li>
+  <!--li> Even if you have a machine is very large amount of memory, there
   is another limitation due to the size of the word used to record the
   positions of the bitmaps in a data file.  The positions are recorded
   using 32-bit integers, therefore, the maximum size of an index is
   2<sup>32</sup> bytes (~ 4GB).  If the index file has more than 4GB, at
   least one of the bitmaps will not be reconstructed correctly.  One may
-  observe intermittent errors or incorrect answers in this situation.
+  observe intermittent errors or incorrect answers in this situation.</li-->
   <li> Currently the result table of a query is stored in memory.  This
-  places an upper bound on how many rows can be stored in such a table.
+  places an upper bound on how many rows can be stored in such a table.</li>
 </ul>
 </p>
 

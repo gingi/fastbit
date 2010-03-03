@@ -87,6 +87,11 @@ steps to take
     project, modify the "Additional Include Directories" field to
     include the JDK directory on your machine
 
+To make sure the Java Native Interface is not compiled, use the option
+
+  --without-java
+
+
 NOTE: FastBit requires pthread support, one such library is pthread
       win32 <http://sourceware.org/pthreads-win32/>.  One needs to
       specify the directory containing the header files and the library
@@ -281,8 +286,10 @@ Known Issues
     nodes, even though shared libraries are supported on the front end.
     In such a case, the configure script will detect shared libraries as
     supported.  Use option --disable-shared to prevent it from trying to
-    build the shared library.  (For NERSC users, franklin does not
-    support shared libraries on the compute nodes.)
+    build the shared library.  For example, Cray XT systems (e.g., XT4
+    franklin.nersc.gov and XT5 hopper.nersc.gov) do not support shared
+    libraries on the compute nodes.  In fact on a Cray XT5 system,
+    it is not able to produce a .so file.
 
 (8) FastBit makes extensive use of STL objects, this causes a problem
     when one wants to build a DLL on a windows machine.  There is at
