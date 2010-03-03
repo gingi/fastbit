@@ -1,3 +1,19 @@
+2010-03-03 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: modify test case 2 of check-ibis to exercise
+	the error caught by Andreas
+	* src/selectClause.cpp:479y add code to prevent the checking of
+	variable name "*"
+	* src/whereClause.cpp:250 add check for variable name starting
+	with *
+	* src/selectClause.cpp:514 add check for the number of variables
+	in bar, empty bar should be treated as no affecting the mask
+	* src/filter.cpp: update the class function filt to work with
+	select count(*) with an alias
+
+2010-03-03 Andreas Streichardt <andreas.streichardt at globalpark.com>
+	* src/tab.h: correct error in the value printed out by
+	ibis::tabele::cursor
+
 2010-02-28 John Wu <John.Wu at ACM.org>
 	* INSTALL: update item 7 to mention Cray XT explicitly, add
 	information about disabling attempts to build JNI library with the

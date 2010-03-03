@@ -476,19 +476,20 @@ int ibis::selectClause::_verify(const ibis::part& part0,
     if (xp0.termType() == ibis::math::VARIABLE) {
 	const ibis::math::variable& var =
 	    static_cast<const ibis::math::variable&>(xp0);
-	const ibis::column* col = part0.getColumn(var.variableName());
-	if (col == 0) {
-	    ++ ierr;
-	    LOGGER(ibis::gVerbose > 0)
-		<< "ibis::selectClause::verify -- data partition "
-		<< part0.name() << " does not contain a column named "
-		<< var.variableName();
+	if (*(var.variableName()) != '*') {
+	    if (part0.getColumn(var.variableName()) == 0) {
+		++ ierr;
+		LOGGER(ibis::gVerbose > 0)
+		    << "selectClause::verify -- data partition "
+		    << part0.name() << " does not contain a column named "
+		    << var.variableName();
+	    }
 	}
     }
     else if (xp0.termType() == ibis::math::UNDEFINED) {
 	++ ierr;
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::selectClause::verify -- ibis::math::term has a "
+	    << "selectClause::verify -- ibis::math::term has a "
 	    "undefined type";
     }
     else {
@@ -510,8 +511,10 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
 	ibis::part::barrel bar(&part0);
 	for (uint32_t j = 0; j < terms_.size(); ++ j)
 	    bar.recordVariable(terms_[j]);
-	ibis::bitvector tmp;
-	bar.getNullMask(tmp);
-	mask &= tmp;
+	if (bar.size() > 0) {
+	    ibis::bitvector tmp;
+	    bar.getNullMask(tmp);
+	    mask &= tmp;
+	}
     }
 } // ibis::selectClause::getNullMask

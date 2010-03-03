@@ -25,7 +25,7 @@ namespace ibis {
     class tabele;
 } // namespace ibis
 
-/// A trivial class for table with no columns.  This type of table is
+/// A trivial class for a table with no columns.  This type of table is
 /// generated when the select clause is blank or not specified.  It is also
 /// use to represent an empty table with zero rows.
 class ibis::tabula : public ibis::table {
@@ -118,11 +118,11 @@ private:
     tabula& operator=(const tabula&);
 }; // ibis::tabula
 
-/// A trivial class for table with one row and one column.  This type of
-/// table is generated when the select clause is "count(*)".  This class
-/// could be replaced with @ref ibis::tabula, however, treating the output
-/// of "count(*)" as a one-row-and-one-column table is closer to the
-/// ODBC/JDBC convention.
+/// A trivial class for a table with exactly one row, one column and one
+/// integer value.  This type of table is generated when the select clause
+/// is "count(*)".  This class could be replaced with @ref ibis::tabula,
+/// however, treating the output of "count(*)" as a one-row-and-one-column
+/// table is closer to the ODBC/JDBC convention.
 class ibis::tabele : public ibis::table {
 public:
     tabele(const char* na, const char* de, uint64_t nr, const char* nm=0) :
@@ -406,7 +406,7 @@ public:
     virtual uint64_t getCurrentRowNumber() const {return current;}
     virtual int dump(std::ostream& out, const char* del) const {
 	if (current == 0) {
-	    out << tab.nRows() << "\n";
+	    out << tab.nrows << "\n";
 	    return 0;
 	}
 	else {
@@ -424,7 +424,7 @@ public:
 	return -1;}
     virtual int getColumnAsLong(const char* cn, int64_t& val) const {
 	if (current == 0 && stricmp(tab.colName(), cn) == 0) {
-	    val = tab.nRows();
+	    val = tab.nrows;
 	    return 1;}
 	else {
 	    return -1;
@@ -432,7 +432,7 @@ public:
     }
     virtual int getColumnAsULong(const char* cn, uint64_t& val) const {
 	if (current == 0 && stricmp(tab.colName(), cn) == 0) {
-	    val = tab.nRows();
+	    val = tab.nrows;
 	    return 1;}
 	else {
 	    return -1;
@@ -451,14 +451,14 @@ public:
 	return -1;}
     virtual int getColumnAsLong(uint32_t cn, int64_t& val) const {
 	if (current == 0 && cn == 0) {
-	    val = tab.nRows();
+	    val = tab.nrows;
 	    return 1;}
 	else {
 	    return -1;
 	}}
     virtual int getColumnAsULong(uint32_t cn, uint64_t& val) const {
 	if (current == 0 && cn == 0) {
-	    val = tab.nRows();
+	    val = tab.nrows;
 	    return 1;}
 	else {
 	    return -1;

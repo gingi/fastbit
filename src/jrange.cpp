@@ -1,4 +1,4 @@
-// File: $Id: jrange.cpp,v 1.1 2010/03/03 18:48:11 kewu Exp $
+// File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2010 the Regents of the University of California
 #include "jrange.h"

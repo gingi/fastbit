@@ -207,7 +207,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -221,7 +221,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->leftString();
 	    }
@@ -235,7 +235,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->colName();
 	    }
@@ -247,6 +247,8 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	if (math->termType() == ibis::math::VARIABLE) {
 	    const ibis::math::variable* var =
 		static_cast<const ibis::math::variable*>(math);
+	    if (*(var->variableName()) == '*') break;
+
 	    const ibis::column* col =
 		part0.getColumn(var->variableName());
 	    if (col == 0 && sel != 0) {
@@ -295,7 +297,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << var->variableName();
 	    }
@@ -308,7 +310,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    ierr += _verify(part0, tmp, sel);
 	break;}
     case ibis::qExpr::COMPRANGE: {
-	// compRange have three terms rather than two
+	// a compRange has three terms instead of two
 	if (reinterpret_cast<ibis::compRange*>(xp0)
 	    ->maybeStringCompare()) {
 	    const ibis::math::variable *v1 =
@@ -326,7 +328,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		    if (c1->type() == ibis::TEXT ||
 			c1->type() == ibis::CATEGORY) {
 			LOGGER(ibis::gVerbose > 3)
-			    << "ibis::whereClause::verify -- replacing ("
+			    << "whereClause::verify -- replacing ("
 			    << v1->variableName() << " = "
 			    << v2->variableName() << ") with ("
 			    << v1->variableName() << " = \""
@@ -340,7 +342,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		    else {
 			++ ierr;
 			LOGGER(ibis::gVerbose > 0)
-			    << "ibis::whereClause::verify -- expected column \""
+			    << "whereClause::verify -- expected column \""
 			    << v1->variableName() << "\" to be of string type, "
 			    << "but it is %s" << ibis::TYPESTRING[c1->type()];
 		    }
@@ -350,7 +352,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		if (c2->type() == ibis::TEXT ||
 		    c2->type() == ibis::CATEGORY) {
 		    LOGGER(ibis::gVerbose > 3)
-			<< "ibis::whereClause::verify -- replacing ("
+			<< "whereClause::verify -- replacing ("
 			<< v2->variableName() << " = " << v1->variableName()
 			<< ") with (" << v2->variableName() << " = \""
 			<< v1->variableName() << "\")";
@@ -363,7 +365,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		else {
 		    ++ ierr;
 		    LOGGER(ibis::gVerbose > 0)
-			<< "ibis::whereClause::verify -- expected column \""
+			<< "whereClause::verify -- expected column \""
 			<<  v2->variableName() <<  "\" to be of string type, "
 			<< "but it is " << ibis::TYPESTRING[c2->type()];
 		}
@@ -371,7 +373,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    else {
 		ierr += 2;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- neither "
+		    << "whereClause::verify -- neither "
 		    << v1->variableName() << " or " << v2->variableName()
 		    << " are columns names of table " << part0.name();
 	    }
@@ -396,7 +398,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -417,7 +419,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::whereClause::verify -- data partition "
+		    << "whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -429,7 +431,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	if (c1 == 0) {
 	    ++ ierr;
 	    LOGGER(ibis::gVerbose > 0)
-		<< "ibis::whereClause::verify -- data partition "
+		<< "whereClause::verify -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName1();
 	}
@@ -437,7 +439,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	if (c2 == 0) {
 	    ++ ierr;
 	    LOGGER(ibis::gVerbose > 0)
-		<< "ibis::whereClause::verify -- data partition "
+		<< "whereClause::verify -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName2();
 	}
@@ -465,7 +467,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
 	return;
 
     LOGGER(ibis::gVerbose > 6)
-	<< "ibis::whereClause::amplify -- current query expression\n" << *expr_;
+	<< "whereClause::amplify -- current query expression\n" << *expr_;
 
     for (uint32_t i = 0; i < terms.size(); ++ i) {
 	const ibis::deprecatedJoin* jn = terms[i];
@@ -546,7 +548,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
     ibis::qExpr::simplify(expr_);
     if (expr_ != 0 && ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::whereClause::amplify -- "
+	lg.buffer() << "whereClause::amplify -- "
 	    "query expression with additional constraints\n";
 	expr_->printFull(lg.buffer());
     }

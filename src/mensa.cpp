@@ -9,11 +9,10 @@
 #include "tab.h"	// ibis::tabula and ibis::tabele
 #include "bord.h"	// ibis::bord
 #include "mensa.h"	// ibis::mensa
-#include "part.h"	// ibis::part
 #include "countQuery.h"	// ibis::countQuery
 #include "index.h"	// ibis::index
 #include "category.h"	// ibis::text
-#include "selectClause.h"//ibis::selectClause
+#include "selectClause.h"	// ibis::selectClause
 
 #include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
@@ -3768,7 +3767,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		tmstouse[i] = pos[i];
 	    }
 	}
-	else { // only one unique name
+	else if (*(tms.argName(0)) != '*') { // only one unique name
 	    nls.resize(1);
 	    tls.resize(1);
 	    buff.resize(1);
@@ -3978,6 +3977,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     }
     if (nh == 0) { // return an empty table of type tabula
 	return new ibis::tabula(nh);
+    }
+    else if (tmstouse.empty()) { // count(*)
+	return new ibis::tabele(nh, tms.termName(0));
     }
 
     // convert the selection into a in-memory data partition

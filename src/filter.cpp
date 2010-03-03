@@ -261,7 +261,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		tmstouse[i] = pos[i];
 	    }
 	}
-	else { // only one unique name
+	else if (*(tms.argName(0)) != '*') { // only one unique name
 	    nls.resize(1);
 	    tls.resize(1);
 	    buff.resize(1);
@@ -471,6 +471,9 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     }
     if (nh == 0) { // return an empty table of type tabula
 	return new ibis::tabula(nh);
+    }
+    else if (tmstouse.empty()) { // count(*)
+	return new ibis::tabele(nh, tms.termName(0));
     }
 
     // convert the selection into a in-memory data partition
