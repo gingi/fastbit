@@ -11,7 +11,7 @@
 	select count(*) with an alias
 
 2010-03-03 Andreas Streichardt <andreas.streichardt at globalpark.com>
-	* src/tab.h: correct error in the value printed out by
+	* src/tab.h: correct errors in the value returned by
 	ibis::tabele::cursor
 
 2010-02-28 John Wu <John.Wu at ACM.org>
