@@ -135,6 +135,7 @@ int ibis::whereClause::verify(const ibis::part& part0,
 int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 			       const ibis::selectClause *sel) const {
     int ierr = 0;
+    if (xp0 == 0) return ierr;
 
     switch (xp0->getType()) {
     case ibis::qExpr::RANGE: {
@@ -302,12 +303,8 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 		    << var->variableName();
 	    }
 	}
-	ibis::qExpr *tmp = math->getLeft();
-	if (tmp != 0)
-	    ierr += _verify(part0, tmp, sel);
-	tmp = math->getRight();
-	if (tmp != 0)
-	    ierr += _verify(part0, tmp, sel);
+	ierr += _verify(part0, math->getLeft(), sel);
+	ierr += _verify(part0, math->getRight(), sel);
 	break;}
     case ibis::qExpr::COMPRANGE: {
 	// a compRange has three terms instead of two

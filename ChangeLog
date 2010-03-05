@@ -1,3 +1,10 @@
+2010-03-04 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp, src/filter.cpp: assign names through the long
+	versions of the constructor for ibis::tabula and ibis::tabele as
+	suggested by Andreas Streichardt
+	* src/qExpr.h:52 Clarify the ownership of the nodes in a query
+	expression tree.
+
 2010-03-03 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: modify test case 2 of check-ibis to exercise
 	the error caught by Andreas

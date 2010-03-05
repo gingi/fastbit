@@ -47,23 +47,38 @@ public:
 
     /// Construct a node of specified type.  Not for implicit type conversion.
     explicit qExpr(TYPE op) : type(op), left(0), right(0) {}
-    /// Construct a full specified node.  All three arguments are present.
-    qExpr(TYPE op, qExpr* qe1, qExpr* qe2) : type(op), left(qe1),
-					     right(qe2) {}
+    /// Construct a full specified node.  The ownership of qe1 and qe2 is
+    /// transferred to the newly created object.  The destructor of this
+    /// object will delete qe1 and qe2, the user shall not delete them
+    /// directly or indirectly through the destruction of another object.
+    /// This constructor is primarily used by the parsers that compose
+    /// query expressions, where the final query expression tree is passed
+    /// to the user.  This design allows the user to take control of the
+    /// final query expression without directly managing any of the lower
+    /// level nodes in the expression tree.
+    qExpr(TYPE op, qExpr* qe1, qExpr* qe2) : type(op), left(qe1), right(qe2) {}
     /// Copy Constructor.  Deep copy.
     qExpr(const qExpr& qe) : type(qe.type),
 			     left(qe.left ? qe.left->dup() : 0),
 			     right(qe.right ? qe.right->dup() : 0) {}
-    /// Destruct the node recursively.
+    /// Destructor.  It recursively deletes the nodes of an expression
+    /// tree.  In other word, it owns the descendents it points to.
     virtual ~qExpr() {delete right; delete left;}
 
-    /// Change the left child.
+    /// Change the left child.  This object takes the ownership of expr.
+    /// The user can not delete expr either directly or indirectly through
+    /// the destruction of another object (other than this one, of course).
     void setLeft(qExpr *expr) {delete left; left=expr;}
-    /// Change the right child.
+    /// Change the right child.  This object takes the ownership of expr.
+    /// The user can not delete expr either directly or indirectly through
+    /// the destruction of another object (other than this one, of course).
     void setRight(qExpr *expr) {delete right; right=expr;}
-    /// Return a pointer to the left child.
+    /// Return a pointer to the left child.  The pointer can be modified.
+    /// The object assigned to be the new left child is owned by this object.
     qExpr*& getLeft() {return left;}
-    /// Return a pointer to the right child.
+    /// Return a pointer to the right child.  The pointer can be modified.
+    /// The object assigned to be the new right child of this expression is
+    /// owned by this object after the assignment.
     qExpr*& getRight() {return right;}
 
     /// Return the node type.
@@ -168,7 +183,7 @@ protected:
     qExpr* left;	// the left child
     qExpr* right;	// the right child
 
-    // adjust the tree to favor the sequential evaluation order
+    /// Adjust the tree to favor the sequential evaluation order.
     void adjust();
 }; // ibis::qExpr
 

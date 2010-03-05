@@ -385,7 +385,7 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 		des += " -- ";
 		des += desc_;
 	    }
-	    return new ibis::tabele(cond, des.c_str(), nhits);
+	    return new ibis::tabele(cond, des.c_str(), nhits, sel);
 	}
     }
     else {
@@ -455,7 +455,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	    return new ibis::tabula(cond, des.c_str(), nhits);
 	}
     }
-    else if (strnicmp(sel, "count(", 6) == 0) { // count(*)
+    else if (stricmp(sel, "count(*)") == 0) { // count(*)
 	int64_t nhits = ibis::table::computeHits(mylist, cond);
 	if (nhits < 0) {
 	    return 0;
@@ -466,7 +466,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 		des += " -- ";
 		des += desc_;
 	    }
-	    return new ibis::tabele(cond, des.c_str(), nhits);
+	    return new ibis::tabele(cond, des.c_str(), nhits, sel);
 	}
     }
     else {
@@ -3975,15 +3975,16 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	}
 	nh += nqq;
     }
+
+    std::string tn = ibis::util::shortName(mesg);
     if (nh == 0) { // return an empty table of type tabula
-	return new ibis::tabula(nh);
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), nh);
     }
     else if (tmstouse.empty()) { // count(*)
-	return new ibis::tabele(nh, tms.termName(0));
+	return new ibis::tabele(tn.c_str(), mesg.c_str(), nh, tms.termName(0));
     }
 
     // convert the selection into a in-memory data partition
-    std::string tn = ibis::util::shortName(mesg);
     ibis::table::stringList  nlsptr(nls.size());
     std::vector<std::string> desc(nls.size());
     ibis::table::stringList  cdesc(nls.size());

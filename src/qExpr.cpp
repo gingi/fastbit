@@ -981,7 +981,7 @@ void ibis::qExpr::printFull(std::ostream& out) const {
     }
 } // ibis::qExpr::printFull
 
-// make the expression tree lean left
+/// Make the expression tree lean left.
 void ibis::qExpr::adjust() {
     ibis::qExpr* lptr = left;
     ibis::qExpr* rptr = right;
@@ -1010,8 +1010,8 @@ void ibis::qExpr::adjust() {
 	right->adjust();
 } // ibis::qExpr::adjust
 
-// reorder the expression so that the lightest weight is one the left side of
-// a group of commutable operators
+/// After reordering, the lightest weight is one the left side of a group
+/// of commutable operators.
 double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     double ret = 0.0;
     if (directEval()) {

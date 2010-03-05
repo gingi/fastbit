@@ -469,15 +469,16 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	}
 	nh += nqq;
     }
+
+    std::string tn = ibis::util::shortName(mesg);
     if (nh == 0) { // return an empty table of type tabula
-	return new ibis::tabula(nh);
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), nh);
     }
     else if (tmstouse.empty()) { // count(*)
-	return new ibis::tabele(nh, tms.termName(0));
+	return new ibis::tabele(tn.c_str(), mesg.c_str(), nh, tms.termName(0));
     }
 
     // convert the selection into a in-memory data partition
-    std::string tn = ibis::util::shortName(mesg);
     ibis::table::stringList  nlsptr(nls.size());
     std::vector<std::string> desc(nls.size());
     ibis::table::stringList  cdesc(nls.size());
