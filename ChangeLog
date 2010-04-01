@@ -1,3 +1,7 @@
+2010-03-31 John Wu <John.Wu at ACM.org>
+	* src/fileManager.cpp:963,964 the variable it should have been mit
+	as Teryl Taylor pointed out
+
 2010-03-04 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp, src/filter.cpp: assign names through the long
 	versions of the constructor for ibis::tabula and ibis::tabele as

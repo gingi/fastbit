@@ -960,8 +960,8 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     if (mapped.size() > (maxOpenFiles >> 1)) {
 	fileList::const_iterator mit = mapped.begin();
 	for (int cnt = 0; cnt < 10 && mit != mapped.end(); ++ cnt, ++ mit)
-	    if (sz < (*it).second->size())
-		sz = (*it).second->size();
+	    if (sz < (*mit).second->size())
+		sz = (*mit).second->size();
 	if (sz < FASTBIT_MIN_MAP_SIZE)
 	    sz = FASTBIT_MIN_MAP_SIZE;
     }
