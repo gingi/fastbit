@@ -1,3 +1,8 @@
+2010-04-07 John Wu <John.Wu at ACM.org>
+	* src/query.cpp: modify function computeHits to take into account
+	the null mask due to the select clause (a problem reported by
+	Arian Baer)
+
 2010-04-06 John Wu <John.Wu at ACM.org>
 	* src/column.h, src/column.cpp: add an implementation of
 	selectStrings

@@ -2527,7 +2527,7 @@ void ibis::query::getBounds() {
 	    logMessage("getBounds", "no component selected");
     }
 
-    if (rids_in) { // RID list
+    if (rids_in != 0) { // RID list
 	ibis::bitvector tmp;
 	mypart->evaluateRIDSet(*rids_in, tmp);
 	mask &= tmp;
@@ -2824,10 +2824,21 @@ int ibis::query::computeHits() {
 
     int ierr = 0;
     if (hits == 0) { // have not performed an estimate
-	if (rids_in != 0) { // has a RID list
-	    getBounds();
+	ibis::bitvector mask;
+	if (comps.size() > 0) {
+	    comps.getNullMask(*mypart, mask);
 	}
-	else if (conds.getExpr() != 0) { // usual range query
+	else {
+	    mask.copy(mypart->getNullMask());
+	    if (ibis::gVerbose > 3)
+		logMessage("computeHits", "no component selected");
+	}
+	if (rids_in != 0) { // has a RID list
+	    ibis::bitvector tmp;
+	    mypart->evaluateRIDSet(*rids_in, tmp);
+	    mask &= tmp;
+	}
+	if (conds.getExpr() != 0) { // usual range query
 	    dstime = mypart->timestamp();
 	    hits = new ibis::bitvector;
 #ifndef DONOT_REORDER_EXPRESSION
@@ -2836,29 +2847,15 @@ int ibis::query::computeHits() {
 #endif
 	    delete sup;
 	    sup = 0;
-	    ierr = doEvaluate(conds.getExpr(), mypart->getNullMask(), *hits);
+	    ierr = doEvaluate(conds.getExpr(), mask, *hits);
 	    if (ierr < 0)
 		return ierr - 20;
 	    hits->compress();
 	    sup = hits;
 	}
-	else if (comps.size() > 0) {
-	    hits = new ibis::bitvector;
+	else {
+	    hits = new ibis::bitvector(mask);
 	    if (hits == 0) return -1;
-	    hits->set(1, mypart->nRows());
-	    for (uint32_t i = 0; i < comps.size(); ++ i) {
-		const ibis::column *col = mypart->getColumn(comps.argName(i));
-		if (col != 0) {
-		    ibis::bitvector tmp;
-		    col->getNullMask(tmp);
-		    *hits &= tmp;
-		}
-	    }
-	}
-	else { // should not enter here, caller has checked expr and rids_in
-	    logWarning("computeHits", "either a SELECT clause, a where clause "
-		       "or a RID set must be specified.");
-	    return -8;
 	}
     }
 
@@ -2873,30 +2870,18 @@ int ibis::query::computeHits() {
 	}
     }
     else { // need to actually examine the data files involved
-	const ibis::bitvector& msk = mypart->getNullMask();
 	ibis::bitvector delta;
 	(*sup) -= (*hits);
 
-	if (sup->cnt() < (msk.cnt() >> 2)) { // use doScan
-	    ierr = doScan(conds.getExpr(), *sup, delta);
-	    if (ierr >= 0) {
-		delete sup;  // no longer need it
-		*hits |= delta;
-		sup = hits;
-	    }
-	    else {
-		(*sup) |= (*hits);
-		return ierr - 20;
-	    }
-	}
-	else { // use doEvaluate
-	    delete sup;
-	    sup = 0;
-	    ierr = doEvaluate(conds.getExpr(), msk, *hits);
-	    if (ierr < 0)
-		return ierr - 20;
-	    hits->compress();
+	ierr = doScan(conds.getExpr(), *sup, delta);
+	if (ierr >= 0) {
+	    delete sup;  // no longer need it
+	    *hits |= delta;
 	    sup = hits;
+	}
+	else {
+	    (*sup) |= (*hits);
+	    return ierr - 20;
 	}
     }
 
@@ -2904,7 +2889,7 @@ int ibis::query::computeHits() {
 	(ibis::gVerbose > 30 ||
 	 (ibis::gVerbose > 4 && (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::query::computeHits() hit vector" << *hits
+	lg.buffer() << "ibis::query::computeHits: hit vector" << *hits
 		    << "\n";
 	if (ibis::gVerbose > 19) {
 	    ibis::bitvector::indexSet is = hits->firstIndexSet();

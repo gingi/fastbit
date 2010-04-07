@@ -36,7 +36,8 @@ namespace ibis {
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T> &arr, const array_t<uint32_t> &ind);
-	void reorder(std::vector<std::string> &arr, const array_t<uint32_t> &ind);
+	void reorder(std::vector<std::string> &arr,
+		     const array_t<uint32_t> &ind);
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
 	void reorder(array_t<T*> &arr, const array_t<uint32_t> &ind);
