@@ -325,6 +325,10 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
 	    val = tmp;
 	}
 	else if (val > 0) { // overflow
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- util::readInt encounters an overflow: adding "
+		<< *str << " to " << val << " causes it to become " << tmp
+		<< ", reset val to 0";
 	    val = 0;
 	    while (*str != 0 && isdigit(*str) != 0) ++ str;
 	    return -2;
@@ -334,6 +338,33 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     if (neg) val = -val;
     return 0;
 } // ibis::util::readInt
+
+int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
+    uint64_t tmp = 0;
+    val = 0;
+    if (str == 0 || *str == 0) return -1;
+    for (; isspace(*str); ++ str); // skip leading space
+    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+	return -1;
+
+    while (*str != 0 && isdigit(*str) != 0) {
+	tmp = 10 * val + (*str - '0');
+	if (tmp > val) {
+	    val = tmp;
+	}
+	else if (val > 0) { // overflow
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- util::readUInt encounters an overflow: adding "
+		<< *str << " to " << val << " causes it to become " << tmp
+		<< ", reset val to 0";
+	    val = 0;
+	    while (*str != 0 && isdigit(*str) != 0) ++ str;
+	    return -2;
+	}
+	++ str;
+    }
+    return 0;
+} // ibis::util::readUInt
 
 /// Attempt to convert the incoming string into a double.  The format
 /// recodnized is the following

@@ -406,6 +406,7 @@ namespace ibis {
 	getString(std::string& str, const char*& buf, const char *delim=0);
 	const char* getToken(char*& str, const char* tok_chrs);
 	int readInt(int64_t& val, const char *&str, const char* del);
+	int readUInt(uint64_t& val, const char *&str, const char* del);
 	int readDouble(double& val, const char *&str, const char* del);
 
 	/// Remove the content of named directory.  The directory itself is

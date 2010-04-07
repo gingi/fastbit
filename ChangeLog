@@ -3,10 +3,12 @@
 	selectStrings
 	* examples/tcapi.c: add call to fastbit_get_qualified_strings, add
 	column type s
+	* src/util.h, src/util.cpp: add util::readUInt
+	* src/tafel.cpp:3073 change util::readInt to util::readUInt
 
 2010-04-05 John Wu <John.Wu at ACM.org>
 	* src/capi.cpp, src/capi.h: add function
-	fastbit_get_qualified_strings
+	fastbit_get_qualified_strings (at request of Joze Nazario)
 
 2010-03-31 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:963,964 the variable it should have been mit

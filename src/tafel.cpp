@@ -2858,12 +2858,13 @@ void ibis::tafel::clear() {
 
 /// Digest a line of text and place the values identified into the
 /// corresponding columns.  The actual values are extracted by
-/// ibis::util::readInt, ibis::util::readDouble and ibis::util::getString.
-/// When readInt and readDouble return any error condition, this function
-/// assumes the value to be recorded is a NULL.  The presence of a NULL
-/// value is marked by a 0-bit in the mask associated with the column.  The
-/// actual value in the associated buffer is the largest integer value for
-/// an integer column and a quiet NaN for floating-point valued column.
+/// ibis::util::readInt, ibis::util::readUInt, ibis::util::readDouble and
+/// ibis::util::getString.  When any of these functions returns an error
+/// condition, this function assumes the value to be recorded is a NULL.
+/// The presence of a NULL value is marked by a 0-bit in the mask
+/// associated with the column.  The actual value in the associated buffer
+/// is the largest integer value for an integer column and a quiet NaN for
+/// floating-point valued column.
 int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     int cnt = 0;
     int ierr;
@@ -3055,8 +3056,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    ierr = ibis::util::readInt(itmp, str, del);
 	    ++ cnt;
 	    if (ierr == 0) {
-		static_cast<array_t<int64_t>*>(col.values)
-		    ->push_back(itmp);
+		static_cast<array_t<int64_t>*>(col.values)->push_back(itmp);
 		col.mask += 1;
 	    }
 	    else {
@@ -3069,11 +3069,11 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    }
 	    break;}
 	case ibis::ULONG: {
-	    ierr = ibis::util::readInt(itmp, str, del);
+	    uint64_t jtmp;
+	    ierr = ibis::util::readUInt(jtmp, str, del);
 	    ++ cnt;
 	    if (ierr == 0) {
-		static_cast<array_t<uint64_t>*>(col.values)
-		    ->push_back(static_cast<uint64_t>(itmp));
+		static_cast<array_t<uint64_t>*>(col.values)->push_back(jtmp);
 		col.mask += 1;
 	    }
 	    else {
