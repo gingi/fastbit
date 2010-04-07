@@ -4515,7 +4515,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
 	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals));
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column::selectValues["
+	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValues is not able to handle data type "
 	    << ibis::TYPESTRING[(int)m_type];
@@ -4569,13 +4569,182 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
 			     inds);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column::selectValues["
+	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValues is not able to handle data type "
 	    << ibis::TYPESTRING[(int)m_type];
 	return -2L;
     }
 } // ibis::column::selectValues
+
+/// Extract the values masked 1 and convert them to strings.
+template <typename T>
+long ibis::column::selectToStrings(const bitvector& mask,
+				   std::vector<std::string>& str) const {
+    ibis::array_t<T> tmp;
+    long ierr = selectValuesT<T>(mask, tmp);
+    if (ierr <= 0) {
+	str.clear();
+	return ierr;
+    }
+    LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
+	<< "Warning -- column[" << thePart->name() << '.' << m_name
+	<< "]::selectToStrings<" << typeid(T).name() << "> retrieved "
+	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
+	<< mask.cnt();
+
+    try {
+	str.resize(tmp.size());
+	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
+	    std::ostringstream oss;
+	    oss << tmp[ii];
+	    str[ii].swap(oss.str());
+	}
+    }
+    catch (...) {
+	ierr = -5;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "]::selectToStrings<" << typeid(T).name()
+	    << "> failed to convert " << tmp.size() << " value"
+	    << (tmp.size()>1?"s":"") << " into string" << (tmp.size()>1?"s":"");
+    }
+    return ierr;
+} // ibis::column::selectToStrings
+
+template <> long ibis::column::selectToStrings<char>
+(const bitvector& mask, std::vector<std::string>& str) const {
+    ibis::array_t<char> tmp;
+    long ierr = selectValuesT<char>(mask, tmp);
+    if (ierr <= 0) {
+	str.clear();
+	return ierr;
+    }
+    LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
+	<< "Warning -- column[" << thePart->name() << '.' << m_name
+	<< "]::selectToStrings<char> retrieved "
+	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
+	<< mask.cnt();
+
+    try {
+	str.resize(tmp.size());
+	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
+	    std::ostringstream oss;
+	    oss << (int)tmp[ii];
+	    str[ii].swap(oss.str());
+	}
+    }
+    catch (...) {
+	ierr = -5;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "]::selectToStrings<char> failed to convert "
+	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
+	    << " into string" << (tmp.size()>1?"s":"");
+    }
+    return ierr;
+} // ibis::column::selectToStrings
+
+template <> long ibis::column::selectToStrings<unsigned char>
+(const bitvector& mask, std::vector<std::string>& str) const {
+    ibis::array_t<unsigned char> tmp;
+    long ierr = selectValuesT<unsigned char>(mask, tmp);
+    if (ierr <= 0) {
+	str.clear();
+	return ierr;
+    }
+    LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
+	<< "Warning -- column[" << thePart->name() << '.' << m_name
+	<< "]::selectToStrings<unsigned char> retrieved "
+	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
+	<< mask.cnt();
+
+    try {
+	str.resize(tmp.size());
+	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
+	    std::ostringstream oss;
+	    oss << (unsigned)tmp[ii];
+	    str[ii].swap(oss.str());
+	}
+    }
+    catch (...) {
+	ierr = -5;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "]::selectToStrings<unsigned char> failed to convert "
+	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
+	    << " into string" << (tmp.size()>1?"s":"");
+    }
+    return ierr;
+} // ibis::column::selectToStrings
+
+/// Return the selected rows as strings.  This version returns a
+/// std::vector<std::string>, which provides wholly self-contained string
+/// values.  The drawback is that it may take too much memory and the
+/// memory usage of std::string is not tracked by FastBit.  The advantage
+/// is that it should work regardless of the actual data type of the
+/// column.
+std::vector<std::string>*
+ibis::column::selectStrings(const bitvector& mask) const {
+    std::vector<std::string> *res = 0;
+    if (mask.cnt() == 0) return res;
+    res = new std::vector<std::string>(mask.cnt());
+
+    long ierr = 0;
+    switch (m_type) {
+    case ibis::BYTE:
+	ierr = selectToStrings<char>(mask, *res);
+	break;
+    case ibis::UBYTE:
+	ierr = selectToStrings<unsigned char>(mask, *res);
+	break;
+    case ibis::SHORT:
+	ierr = selectToStrings<int16_t>(mask, *res);
+	break;
+    case ibis::USHORT:
+	ierr = selectToStrings<uint16_t>(mask, *res);
+	break;
+    case ibis::INT:
+	ierr = selectToStrings<int32_t>(mask, *res);
+	break;
+    case ibis::UINT:
+	ierr = selectToStrings<uint32_t>(mask, *res);
+	break;
+    case ibis::LONG:
+	ierr = selectToStrings<int64_t>(mask, *res);
+	break;
+    case ibis::ULONG:
+	ierr = selectToStrings<uint64_t>(mask, *res);
+	break;
+    case ibis::FLOAT:
+	ierr = selectToStrings<float>(mask, *res);
+	break;
+    case ibis::DOUBLE:
+	ierr = selectToStrings<double>(mask, *res);
+	break;
+    case ibis::OID:
+	ierr = selectToStrings<ibis::rid_t>(mask, *res);
+	break;
+    default:
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectStrings is not able to handle data type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -2L;
+    }
+
+    if (ierr <= 0) {
+	delete res;
+	res = 0;
+
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectStrings failed with error code " << ierr;
+    }
+    return res;
+} // ibis::column::selectStrings
 
 // only write some information about the column
 void ibis::column::print(std::ostream& out) const {

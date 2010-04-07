@@ -1,3 +1,13 @@
+2010-04-06 John Wu <John.Wu at ACM.org>
+	* src/column.h, src/column.cpp: add an implementation of
+	selectStrings
+	* examples/tcapi.c: add call to fastbit_get_qualified_strings, add
+	column type s
+
+2010-04-05 John Wu <John.Wu at ACM.org>
+	* src/capi.cpp, src/capi.h: add function
+	fastbit_get_qualified_strings
+
 2010-03-31 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:963,964 the variable it should have been mit
 	as Teryl Taylor pointed out

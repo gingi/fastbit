@@ -161,6 +161,9 @@ extern "C" {
     FASTBIT_DLLSPEC const uint64_t*
     fastbit_get_qualified_ulongs(FastBitQueryHandle query,
 				 const char* cname);
+    FASTBIT_DLLSPEC const char**
+    fastbit_get_qualified_strings(FastBitQueryHandle query,
+				  const char* cname);
     ///@}
 
     /// @defgroup FastBitResultSet Row-wise access functiones.

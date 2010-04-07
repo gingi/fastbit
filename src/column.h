@@ -368,6 +368,9 @@ protected:
     template <typename T>
 	long selectValuesT(const bitvector& mask,
 			   array_t<T>& vals, array_t<uint32_t>& inds) const;
+    template <typename T>
+	long selectToStrings(const bitvector& mask,
+			     std::vector<std::string>& str) const;
     /// Append the content of incoming array to the current data.
     template <typename T>
 	long appendValues(const array_t<T>&, const ibis::bitvector&);
@@ -645,20 +648,16 @@ inline bool ibis::column::isNumeric() const {
 	   m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
 } // ibis::column::isNumeric
 
-/// Return select rows of the column in string form.  It is intended to
-/// work with string-valued columns and returns a nil pointer in other
-/// cases.  This version returns a std::vector<std::string>, which
-/// provides wholly self-contained string values.  The drawback is that
-/// it may take too much memory and the memory usage of std::string is
-/// not tracked by FastBit.  It is more efficient to 
-inline std::vector<std::string>*
-ibis::column::selectStrings(const bitvector& mask) const {
-    return 0;
-} // ibis::column::selectStrings
-
 // the operator to print a column to an output stream
 inline std::ostream& operator<<(std::ostream& out, const ibis::column& prop) {
     prop.print(out);
     return out;
+}
+
+namespace ibis { // for template specialization
+    template <> long column::selectToStrings<char>
+    (const bitvector& mask, std::vector<std::string>& str) const;
+    template <> long column::selectToStrings<unsigned char>
+    (const bitvector& mask, std::vector<std::string>& str) const;
 }
 #endif // IBIS_COLUMN_H

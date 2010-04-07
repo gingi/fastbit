@@ -189,8 +189,9 @@ public:
 			const uint32_t nnew, uint32_t nbuf, char* buf);
     /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
-//     virtual
-//     std::vector<std::string>* selectStrings(const bitvector& mask) const;
+    virtual std::vector<std::string>*
+    selectStrings(const bitvector& mask) const {
+	return ibis::text::selectStrings(mask);}
     virtual void getString(uint32_t i, std::string &val) const;
 
     /// Return the number of key values.

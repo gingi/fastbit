@@ -39,8 +39,10 @@ void usage(const char *name) {
 	    "If conditions are provided without columns to print, "
 	    "%s will print the number of hits.\n"
 	    "If any variable is to be printed, it must be specified as "
-            "a <name type> pair, where only i, u, l, f, and d are recognized.\n"
+            "a <name type> pair, where the type must be one of i, u, l, f, d, or s.\n"
+#if defined(TCAPI_USE_LOGFILE)
 	    "NOTE: the option -l is only available if this program is compiled with TCAPI_USE_LOGFILE\n\n"
+#endif
 	    "Example:\n"
 	    "%s dir 'c1 = 15 and c2 > 23' c1 i c3 u\n\n",
             name, name, name, name);
@@ -121,6 +123,7 @@ int main(int argc, char **argv) {
     ierr += 3;
 #endif
 #endif
+    /* process arguments started with - */
     while (vselect < argc && argv[vselect][0] == '-') {
 	if (argv[vselect][1] == 'c' || argv[vselect][1] == 'C') {
 	    if (vselect+1 < argc) {
@@ -198,8 +201,9 @@ int main(int argc, char **argv) {
     if (nhits <= 0)
 	return 0;
 
-    /* print the selected valued specified in the query string (select
-       clause) */
+    /* print the selected values specified in the select clause.  Since the
+       select clause was nil in the call to fastbit_build_query, there
+       would be nothing to print here! */
     rh = fastbit_build_result_set(qh);
     if (rh != 0) {
 	int ncols = fastbit_get_result_columns(qh);
@@ -216,7 +220,7 @@ int main(int argc, char **argv) {
     fflush(output);
 
     vselect += 2;
-    /* print attributes explicitly specified on command line */
+    /* print attributes explicitly specified on the command line */
     if (argc > vselect) {
 	int i, j;
 	for (i = vselect; i < argc; i += 2) {
@@ -292,6 +296,23 @@ int main(int argc, char **argv) {
 		    fprintf(output, "%s[%d]=", argv[i], nhits);
 		    for (j = 0; j < nhits; ++ j)
 			fprintf(output, "%lG ", tmp[j]);
+		    fprintf(output, "\n");
+		}
+		else {
+		    fprintf(output, "%s: failed to retrieve value for "
+			    "column %s (requested type %c)\n",
+			    argv[0], argv[i], t);
+		}
+		break;}
+	    case 's':
+	    case 'S':
+	    case 't':
+	    case 'T': {
+		const char **tmp = fastbit_get_qualified_strings(qh, argv[i]);
+		if (tmp != 0) {
+		    fprintf(output, "%s[%d]=", argv[i], nhits);
+		    for (j = 0; j < nhits; ++ j)
+			fprintf(output, "\"%s\" ", tmp[j]);
 		    fprintf(output, "\n");
 		}
 		else {

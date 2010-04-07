@@ -11,12 +11,18 @@
 
 extern "C" {
     struct FastBitQuery {
-	const ibis::part *t; //< The ibis::part this query refers to.
-	ibis::query q; //< The ibis::query object
+	const ibis::part *t; ///< The ibis::part this query refers to.
+	ibis::query q; ///< The ibis::query object
 	typedef std::map< int, void* > typeValues;
 	typedef std::map< const char*, typeValues*, ibis::lessi > valList;
 	/// List of values that has been selected and sent to user.
 	valList vlist;
+
+	/// For storing null-terminated strings.
+	struct NullTerminatedStrings {
+	    const char * * pointers; ///< The pointer passed to the caller.
+	    std::vector<std::string> *values; ///< Actual string values.
+	}; // NullTerminatedStrings
     };
 
     /// A @c FastBitResultSet holds the results of a query in memory and
@@ -286,6 +292,14 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
 	for (FastBitQuery::typeValues::iterator tvit = tv.begin();
 	     tvit != tv.end(); ++ tvit) {
 	    switch ((ibis::TYPE_T) (*tvit).first) {
+	    case ibis::TEXT: {
+		FastBitQuery::NullTerminatedStrings *nts
+		    = static_cast<FastBitQuery::NullTerminatedStrings*>
+		    ((*tvit).second);
+		delete [] nts->pointers;
+		delete nts->values;
+		delete nts;
+		break;}
 	    case ibis::DOUBLE: {
 		ibis::array_t<double> *tmp =
 		    static_cast<ibis::array_t<double>*>((*tvit).second);
@@ -1001,7 +1015,7 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	    tv->find((int) ibis::FLOAT);
 	if (tvit != tv->end()) {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ulongs -- found column \""
+		<< "fastbit_get_qualified_floats -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<ibis::array_t<float>*>((*tvit).second)->begin();
 	}
@@ -1065,12 +1079,12 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	    tv->find((int) ibis::DOUBLE);
 	if (tvit != tv->end()) {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ulongs -- found column \""
+		<< "fastbit_get_qualified_doubles -- found column \""
 		<< att << "\" in the existing list";
 	    ret = static_cast<ibis::array_t<double>*>((*tvit).second)->begin();
 	}
     }
-    else {
+    if (ret == 0) { // need to read the data file
 	ibis::array_t<double> *tmp =
 	    c->selectDoubles(*(qhandle->q.getHitVector()));
 	if (tmp == 0 || tmp->empty()) {
@@ -1094,6 +1108,71 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
     }
     return ret;
 } // fastbit_get_qualified_doubles
+
+extern "C" const char **
+fastbit_get_qualified_strings(FastBitQueryHandle qhandle, const char *att) {
+    const char **ret = 0;
+    if (qhandle == 0 || att == 0 || *att == 0) return ret;
+    if (qhandle->t == 0 ||
+	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "fastbit_get_qualified_strings -- invalid query handle ("
+	    << qhandle << ")";
+	return ret;
+    }
+
+    const ibis::column *c = qhandle->t->getColumn(att);
+    if (c == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "fastbit_get_qualified_strings -- can not find a column "
+	    << "named \"" << att << "\"";
+	return ret;
+    }
+
+    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+    if (it != qhandle->vlist.end()) {
+	const FastBitQuery::typeValues *tv = (*it).second;
+	FastBitQuery::typeValues::const_iterator tvit =
+	    tv->find((int) ibis::TEXT);
+	if (tvit != tv->end()) {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "fastbit_get_qualified_strings -- found column \""
+		<< att << "\" in the existing list";
+	    ret = static_cast<const FastBitQuery::NullTerminatedStrings*>
+		((*tvit).second)->pointers;
+	}
+    }
+    if (ret == 0) { // read data file to extract the values
+	std::vector<std::string> *tmp =
+	    c->selectStrings(*(qhandle->q.getHitVector()));
+	if (tmp == 0 || tmp->empty()) {
+	    delete tmp;
+	}
+	else {
+	    FastBitQuery::NullTerminatedStrings *nts
+		= new FastBitQuery::NullTerminatedStrings;
+	    nts->values = tmp;
+	    nts->pointers = new const char*[tmp->size()];
+	    for (size_t ii = 0; ii < tmp->size(); ++ ii)
+		nts->pointers[ii] = (*tmp)[ii].c_str();
+
+	    ibis::query::writeLock
+		lock(&(qhandle->q), "fastbit_get_qualified_strings");
+	    it = qhandle->vlist.find(att);
+	    if (it == qhandle->vlist.end()) {
+		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		(*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
+		qhandle->vlist[c->name()] = tv;
+	    }
+	    else {
+		FastBitQuery::typeValues *tv = (*it).second;
+		(*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
+	    }
+	    ret = nts->pointers;
+	}
+    }
+    return ret;
+} // fastbit_get_qualified_strings
 
 /// This initialization function may optionally read a configuration file.
 /// May pass in a nil pointer as rcfile if one is expected to use use the
