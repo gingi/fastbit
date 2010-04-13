@@ -641,6 +641,24 @@ public:
     /// An associative array for columns of data.
     typedef std::map< const char*, column*, lessi > columnList;
 
+    template <typename T> static int
+	writeColumn(int fdes, ibis::bitvector::word_t nold,
+		    ibis::bitvector::word_t nnew,
+		    const array_t<T>& vals, const T& fill,
+		    ibis::bitvector& totmask,
+		    const ibis::bitvector& newmask);
+    static int writeString(int fdes, ibis::bitvector::word_t nold,
+			   ibis::bitvector::word_t nnew,
+			   const std::vector<std::string>& vals,
+			   ibis::bitvector& totmask,
+			   const ibis::bitvector& newmask);
+    static int writeRaw(int bdes, int sdes, ibis::bitvector::word_t nold,
+			ibis::bitvector::word_t nnew,
+			const ibis::array_t<unsigned char>& bytes,
+			const ibis::array_t<int64_t>& starts,
+			ibis::bitvector& totmask,
+			const ibis::bitvector& newmask);
+
 protected:
     class cleaner;	///< Cleaner for the file manager.
     class writeLock;	///< A write lock on the partition.

@@ -83,7 +83,9 @@ const char* ibis::util::getToken(char*& str, const char* tok_chrs) {
     return token;
 }
 
-/// Recursivly create directory "dir".
+/// Recursivly create directory "dir".  Returns zero (0) to indicate
+/// success, a negative number to indicate error.  If the directory already
+/// exists, it immediately returns 0.
 int ibis::util::makeDir(const char* dir) {
     Stat_T st;
     if (dir == 0 || *dir == 0) return -1;

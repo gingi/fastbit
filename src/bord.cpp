@@ -169,7 +169,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
 	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
-			   mypart.nRows() : arr->size());
+			     mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
     }
@@ -178,7 +178,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
-			   mypart.nRows() : arr->size());
+			     mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
     }
@@ -187,7 +187,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
-			   mypart.nRows() : arr->size());
+			     mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
     }
@@ -196,7 +196,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
 	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
-			   mypart.nRows() : arr->size());
+			     mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
     }
@@ -205,7 +205,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
 	const uint32_t sz = (mypart.nRows() <= arr->size() ? 
-			   mypart.nRows() : arr->size());
+			     mypart.nRows() : arr->size());
 	std::copy(arr->begin(), arr->begin()+sz, vals);
 	return sz;
     }
@@ -859,120 +859,9 @@ ibis::table* ibis::bord::select(const char *sel, const char *cond) const {
     if (sel != 0) // skip leading space
 	while (isspace(*sel)) ++ sel;
 
-    int ierr;
-    ibis::query q(ibis::util::userName(), &mypart);
-    if (sel != 0 && *sel != 0 && strnicmp(sel, "count(", 6) != 0) {
-	ierr = q.setSelectClause(sel);
-	if (ierr < 0)
-	    return 0;
-	sel = q.getSelectClause();
-    }
-    ierr = q.setWhereClause(cond);
-    if (ierr < 0)
-	return 0;
-
-    ierr = q.evaluate();
-    if (ierr < 0) {
-	return 0; // something went badly wrong
-    }
-    const ibis::bitvector *hits = q.getHitVector();
-    if (hits == 0 || hits->cnt() == 0)
-	return 0;
-
-    std::string tn;
-    std::string de = "SELECT ";
-    de += sel;
-    de += " FROM ";
-    de += mypart.name();
-    de += " WHERE ";
-    de += cond;
-    {
-	uint32_t tmp;
-	tmp = ibis::util::checksum(de.c_str(), de.size());
-	ibis::util::int2string(tn, tmp);
-	std::swap(tn[0], tn[5]);
-	if (! isalpha(tn[0]))
-	    tn[0] = 'A' + (tn[0] % 26);
-    }
-    if (sel == 0 || *sel == 0) {
-	uint64_t nhits = hits->cnt();
-	return new ibis::tabula(tn.c_str(), de.c_str(), nhits);
-    }
-    else if (strnicmp(sel, "count(", 6) == 0) { // count(*)
-	uint64_t nhits = hits->cnt();
-	return new ibis::tabele(tn.c_str(), de.c_str(), nhits);
-    }
-    else {
-	ibis::table::stringList nm;
-	ibis::table::typeList tp;
-	const ibis::nameList nms(sel);
-	ibis::bord::bufferList buf;
-	for (uint32_t i = 0; i < nms.size(); ++ i) {
-	    const ibis::column *col = mypart.getColumn(nms[i]);
-	    if (col != 0) {
-		switch (col->type()) {
-		case ibis::BYTE:
-		case ibis::SHORT:
-		case ibis::INT: {
-		    array_t<int32_t> *tmp = col->selectInts(*hits);
-		    if (tmp != 0) {
-			buf.push_back(tmp);
-			nm.push_back(nms[i]);
-			tp.push_back(ibis::INT);
-		    }
-		    break;}
-		case ibis::UBYTE:
-		case ibis::USHORT:
-		case ibis::UINT: {
-		    array_t<uint32_t> *tmp = col->selectUInts(*hits);
-		    if (tmp != 0) {
-			buf.push_back(tmp);
-			nm.push_back(nms[i]);
-			tp.push_back(ibis::UINT);
-		    }
-		    break;}
-		case ibis::LONG:
-		case ibis::ULONG: {
-		    array_t<int64_t> *tmp = col->selectLongs(*hits);
-		    if (tmp != 0) {
-			buf.push_back(tmp);
-			nm.push_back(nms[i]);
-			tp.push_back(ibis::LONG);
-		    }
-		    break;}
-		case ibis::FLOAT: {
-		    array_t<float> *tmp = col->selectFloats(*hits);
-		    if (tmp != 0) {
-			buf.push_back(tmp);
-			nm.push_back(nms[i]);
-			tp.push_back(ibis::FLOAT);
-		    }
-		    break;}
-		case ibis::DOUBLE: {
-		    array_t<double> *tmp = col->selectDoubles(*hits);
-		    if (tmp != 0) {
-			buf.push_back(tmp);
-			nm.push_back(nms[i]);
-			tp.push_back(ibis::DOUBLE);
-		    }
-		    break;}
-		default: {
-		    ibis::util::logMessage
-			("ibis::bord::select",
-			 "unable to handle column (%s) with type %s",
-			 col->name(), ibis::TYPESTRING[(int)col->type()]);
-		    break;}
-		}
-	    }
-	}
-	if (nm.size() > 0) {
-	    return new ibis::bord(tn.c_str(), de.c_str(), q.getNumHits(),
-				  buf, tp, nm);
-	}
-	else {
-	    return new ibis::tabula(tn.c_str(), de.c_str(), q.getNumHits());
-	}
-    }
+    std::vector<const ibis::part*> prts(1);
+    prts[0] = &mypart;
+    return ibis::table::select(prts, sel, cond);
 } // ibis::bord::select
 
 int64_t ibis::bord::computeHits(const char *cond) const {
@@ -1223,6 +1112,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 	}
     }
 
+    amask.set(1, nEvents);
     state = ibis::part::STABLE_STATE;
     LOGGER(ibis::gVerbose > 0)
 	<< "ibis::bord::part constructed in-memory data partition "
@@ -1390,6 +1280,270 @@ int ibis::bord::part::dump(std::ostream& out, uint32_t nr,
 	ierr = -4;
     return ierr;
 } // ibis::bord::part::dump
+
+/// Write the content of partition into the specified directory dir.  The
+/// directory dir must be writable.  If the second and third arguments are
+/// valid, the output data will use them as the name and the description of
+/// the data partition.
+int ibis::bord::part::backup(const char* dir, const char* tname,
+			     const char* tdesc) const {
+    if (dir == 0 || *dir == 0) return -1;
+    int ierr = ibis::util::makeDir(dir);
+    if (ierr < 0) return ierr;
+
+    if (tname == 0 || *tname == 0)
+	tname = m_name;
+    if (tdesc == 0 || *tdesc == 0)
+	tdesc = m_desc.c_str();
+    LOGGER(ibis::gVerbose > 1)
+	<< "bord::backup starting to write " << nEvents << " row"
+	<< (nEvents>1?"s":"") << " and " << columns.size() << " column"
+	<< (columns.size()>1?"s":"") << " to " << dir << " as data partition "
+	<< tname << " to " << dir;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0)
+	timer.start();
+
+    time_t currtime = time(0); // current time
+    char stamp[28];
+    ibis::util::secondsToString(currtime, stamp);
+    std::string mdfile = dir;
+    mdfile += FASTBIT_DIRSEP;
+    mdfile += "-part.txt";
+    std::ofstream md(mdfile.c_str());
+    if (! md) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "bord::backup(" << dir << ") failed to open metadata file "
+	    "\"-part.txt\"";
+	return -3; // metadata file not ready
+    }
+
+    ibis::bitvector msk0, msk1;
+    msk0.set(0, nEvents);
+    md << "# meta data for data partition " << tname
+       << " written by bord::backup on " << stamp << "\n\n"
+       << "BEGIN HEADER\nName = " << tname << "\nDescription = "
+       << tdesc << "\nNumber_of_rows = " << nEvents
+       << "\nNumber_of_columns = " << columns.size()
+       << "\nTimestamp = " << currtime;
+    if (idxstr != 0 && *idxstr != 0) {
+	md << "\nindex = " << idxstr;
+    }
+    else { // try to find the default index specification
+	std::string idxkey = "ibis.";
+	idxkey += tname;
+	idxkey += ".index";
+	const char* str = ibis::gParameters()[idxkey.c_str()];
+	if (str != 0 && *str != 0)
+	    md << "\nindex = " << str;
+    }
+    md << "\nEND HEADER\n";
+
+    for (columnList::const_iterator it = columns.begin();
+	 it != columns.end(); ++ it) {
+	const column& col = *(static_cast<column*>((*it).second));
+	std::string cnm = dir;
+	cnm += FASTBIT_DIRSEP;
+	cnm += (*it).first;
+	int fdes = UnixOpen(cnm.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "bord::backup(" << dir << ") failed to open file "
+		<< cnm << " for writing";
+	    return -4;
+	}
+	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
+	LOGGER(ibis::gVerbose > 2)
+	    << "bord::backup opened file " << cnm
+	    << " to write data for column " << (*it).first;
+	std::string mskfile = cnm; // mask file name
+	mskfile += ".msk";
+	msk1.clear();
+
+	switch (col.type()) {
+	case ibis::BYTE: {
+	    array_t<char> *values = col.selectBytes(msk0);
+	    if (values != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (char)0x7F, msk1, msk0);
+	    }
+	    else {
+		ierr = -4;
+	    }
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> *values = col.selectUBytes(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (unsigned char)0xFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> *values = col.selectShorts(msk0);
+	    if (values != 0) 
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (int16_t)0x7FFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> *values = col.selectUShorts(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (uint16_t)0xFFFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> *values = col.selectInts(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (int32_t)0x7FFFFFFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> *values = col.selectUInts(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     (uint32_t)0xFFFFFFFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *values = col.selectLongs(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn<int64_t>
+		    (fdes, 0, nEvents, *values,
+		     0x7FFFFFFFFFFFFFFFLL, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *values = col.selectULongs(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn<uint64_t>
+		    (fdes, 0, nEvents, *values, 0xFFFFFFFFFFFFFFFFULL,
+		     msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *values = col.selectFloats(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values,
+		     std::numeric_limits<float>::quiet_NaN(), msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *values = col.selectDoubles(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, 0, nEvents, *values, 
+		     std::numeric_limits<double>::quiet_NaN(), msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::TEXT:
+	case ibis::CATEGORY: {
+	    std::vector<std::string> *values = col.selectStrings(msk0);
+	    if (values != 0)
+		ierr = ibis::part::writeString
+		    (fdes, 0, nEvents, *values, msk1, msk0);
+	    else
+		ierr =-4;
+	    break;}
+// 	case ibis::BLOB: {
+// 	    std::string spname = cnm;
+// 	    spname += ".sp";
+// 	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
+// 	    if (sdes < 0) {
+// 		LOGGER(ibis::gVerbose >= 0)
+// 		    << "bord::backup(" << dir << ") failed to open file "
+// 		    << spname << " for writing the starting positions";
+// 		return -4;
+// 	    }
+// 	    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+// #if defined(_WIN32) && defined(_MSC_VER)
+// 	    (void)_setmode(sdes, _O_BINARY);
+// #endif
+
+// 	    ierr = ibis::part::writeRaw
+// 		(fdes, sdes, 0, nEvents,
+// 		 * static_cast<const array_t<unsigned char>*>(values),
+// 		 col.starts, msk1, msk0);
+// 	    break;}
+	default:
+	    break;
+	}
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
+	(void) UnixFlush(fdes); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+	(void) _commit(fdes);
+#endif
+#endif
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "bord::backup(" << dir << ") failed to write column "
+		<< (*it).first << " (type " << ibis::TYPESTRING[(int)col.type()]
+		<< ") to " << cnm;
+	    return ierr;
+	}
+
+	LOGGER(msk1.cnt() != msk1.size() && ibis::gVerbose > 1)
+	    << "Warning -- bord::backup(" << dir
+	    << ") expected msk1 to contain only 1s for column " << col.name()
+	    << ", but it has only " << msk1.cnt() << " out of " << msk1.size();
+	remove(mskfile.c_str());
+
+	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
+	   << ibis::TYPESTRING[(int) col.type()];
+	if (col.indexSpec() != 0 && *(col.indexSpec()) != 0) {
+	    md << "\nindex = " << col.indexSpec();
+	}
+	else if (col.type() == ibis::TEXT) {
+	    md << "\nindex=none";
+	}
+	else {
+	    std::string idxkey = "ibis.";
+	    idxkey += tname;
+	    idxkey += ".";
+	    idxkey += (*it).first;
+	    idxkey += ".index";
+	    const char* str = ibis::gParameters()[idxkey.c_str()];
+	    if (str != 0)
+		md << "\nindex = " << str;
+	}
+	md << "\nEnd Column\n";
+    }
+    md.close(); // close the file
+    ibis::fileManager::instance().flushDir(dir);
+    if (ibis::gVerbose > 0) {
+	timer.stop();
+	ibis::util::logger().buffer()
+	    << "bord::backup completed writing partition " 
+	    << tname << " (" << tdesc << ") with " << columns.size()
+	    << " column" << (columns.size()>1 ? "s" : "") << " and "
+	    << nEvents << " row" << (nEvents>1 ? "s" : "") << ") to " << dir
+	    << " using " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
+    }
+
+    return 0;
+} // ibis::bord::part::backup
 
 ibis::table*
 ibis::bord::part::groupby(const ibis::selectClause& sel) const {
@@ -2526,6 +2680,472 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
     return ierr;
 } // ibis::bord::column::evaluateRange
 
+ibis::array_t<char>*
+ibis::bord::column::selectBytes(const ibis::bitvector &mask) const {
+    ibis::array_t<char>* array = new array_t<char>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+    if (m_type == ibis::BYTE) {
+	const array_t<char> &prop =
+	    * static_cast<const array_t<char>*>(buffer);
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectBytes", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else {
+	logWarning("selectBytes", "incompatible data type");
+    }
+    if (ibis::gVerbose > 5) {
+	timer.stop();
+	long unsigned cnt = mask.cnt();
+	logMessage("selectBytes", "retrieving %lu integer%s "
+		   "took %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return array;
+} // ibis::bord::column::selectBytes
+
+ibis::array_t<unsigned char>*
+ibis::bord::column::selectUBytes(const ibis::bitvector& mask) const {
+    array_t<unsigned char>* array = new array_t<unsigned char>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+
+    if (m_type == UBYTE) {
+	const array_t<unsigned char> &prop =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectUBytes", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else {
+	logWarning("selectUBytes", "incompatible data type");
+    }
+    if (ibis::gVerbose > 5) {
+	timer.stop();
+	long unsigned cnt = mask.cnt();
+	logMessage("selectUBytes", "retrieving %lu unsigned integer%s "
+		   "took %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return array;
+} // ibis::bord::column::selectUBytes
+
+ibis::array_t<int16_t>*
+ibis::bord::column::selectShorts(const ibis::bitvector &mask) const {
+    ibis::array_t<int16_t>* array = new array_t<int16_t>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+    if (m_type == ibis::SHORT) {
+	const array_t<int16_t> &prop =
+	    * static_cast<const array_t<int16_t>*>(buffer);
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectShorts", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == ibis::BYTE) {
+	const array_t<char> &prop =
+	    * static_cast<const array_t<char>*>(buffer);
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectShorts", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == ibis::UBYTE) {
+	const array_t<unsigned char> &prop =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectShorts", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else {
+	logWarning("selectShorts", "incompatible data type");
+    }
+    if (ibis::gVerbose > 5) {
+	timer.stop();
+	long unsigned cnt = mask.cnt();
+	logMessage("selectShorts", "retrieving %lu integer%s "
+		   "took %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return array;
+} // ibis::bord::column::selectShorts
+
+ibis::array_t<uint16_t>*
+ibis::bord::column::selectUShorts(const ibis::bitvector& mask) const {
+    array_t<uint16_t>* array = new array_t<uint16_t>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+
+    if (m_type == USHORT) {
+	const array_t<uint16_t> &prop =
+	    * static_cast<const array_t<uint16_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectUShorts", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == UBYTE) {
+	const array_t<unsigned char> &prop =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectUShorts", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else {
+	logWarning("selectUShorts", "incompatible data type");
+    }
+    if (ibis::gVerbose > 5) {
+	timer.stop();
+	long unsigned cnt = mask.cnt();
+	logMessage("selectUShorts", "retrieving %lu unsigned integer%s "
+		   "took %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return array;
+} // ibis::bord::column::selectUShorts
+
 ibis::array_t<int32_t>*
 ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
     ibis::array_t<int32_t>* array = new array_t<int32_t>;
@@ -2536,8 +3156,7 @@ ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 5)
 	timer.start();
-    if (m_type == ibis::INT || m_type == ibis::UINT ||
-	m_type == ibis::CATEGORY || m_type == ibis::TEXT) {
+    if (m_type == ibis::INT) {
 	const array_t<int32_t> &prop =
 	    * static_cast<const array_t<int32_t>*>(buffer);
 	uint32_t i = 0;
@@ -3047,7 +3666,7 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 5)
 	timer.start();
-    if (m_type == ibis::LONG || m_type == ibis::ULONG) {
+    if (m_type == ibis::LONG) {
 	const array_t<int64_t> &prop =
 	    * static_cast<const array_t<int64_t>*>(buffer);
 
@@ -3531,6 +4150,501 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
     }
     return array;
 } // ibis::bord::column::selectLongs
+
+ibis::array_t<uint64_t>*
+ibis::bord::column::selectULongs(const ibis::bitvector& mask) const {
+    ibis::array_t<uint64_t>* array = new array_t<uint64_t>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+    if (m_type == ibis::ULONG) {
+	const array_t<uint64_t> &prop =
+	    * static_cast<const array_t<uint64_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const long unsigned nprop = prop.size();
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
+		   static_cast<long unsigned>(mask.size()), nprop);
+#endif
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering unchecked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>(idx0[1]),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering checked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>
+			       (idx0[1]<=nprop ? idx0[1] : nprop),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
+	     m_type == ibis::TEXT) {
+	const array_t<uint32_t> &prop =
+	    * static_cast<const array_t<uint32_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const long unsigned nprop = prop.size();
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
+		   static_cast<long unsigned>(mask.size()), nprop);
+#endif
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering unchecked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>(idx0[1]),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering checked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>
+			       (idx0[1]<=nprop ? idx0[1] : nprop),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == ibis::INT) {
+	const array_t<int32_t> &prop =
+	    * static_cast<const array_t<int32_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const long unsigned nprop = prop.size();
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
+		   static_cast<long unsigned>(mask.size()), nprop);
+#endif
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering unchecked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>(idx0[1]),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    logMessage("DEBUG", "entering checked loops");
+#endif
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    logMessage("DEBUG", "copying range [%lu, %lu), i=%lu",
+			       static_cast<long unsigned>(*idx0),
+			       static_cast<long unsigned>
+			       (idx0[1]<=nprop ? idx0[1] : nprop),
+			       static_cast<long unsigned>(i));
+#endif
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+			logMessage("DEBUG", "copying value %lu to i=%lu",
+				   static_cast<long unsigned>(idx0[j]),
+				   static_cast<long unsigned>(i));
+#endif
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == ibis::USHORT) {
+	const array_t<uint16_t> &prop =
+	    * static_cast<const array_t<uint16_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == SHORT) {
+	const array_t<int16_t> &prop =
+	    * static_cast<const array_t<int16_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == UBYTE) {
+	const array_t<unsigned char> &prop =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else if (m_type == BYTE) {
+	const array_t<char> &prop =
+	    * static_cast<const array_t<char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) { // no need to check loop bounds
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j < idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else { // need to check loop bounds against nprop
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j < (idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectULongs", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+    }
+    else {
+	logWarning("selectULongs", "incompatible data type");
+    }
+    if (ibis::gVerbose > 5) {
+	timer.stop();
+	long unsigned cnt = mask.cnt();
+	logMessage("selectULongs", "retrieving %lu integer%s "
+		   "took %g sec(CPU), %g sec(elapsed)",
+		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		   timer.CPUTime(), timer.realTime());
+    }
+    return array;
+} // ibis::bord::column::selectULongs
 
 /// Put selected values of a float column into an array.
 ibis::array_t<float>*
@@ -4352,6 +5466,67 @@ void ibis::bord::column::getString(uint32_t i, std::string &val) const {
     }
 } // ibis::bord::column::getString
 
+/// Makes a copy of the in-memory data.  Use shallow copy for ibis::array_t
+/// objects.
+int ibis::bord::column::getValuesArray(void* vals) const {
+    if (vals == 0 || buffer == 0) return -1;
+    switch (m_type) {
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord[" << (thePart?thePart->name():"")
+	    << "]::column[" << m_name << "]::getValuesArray does not yet "
+	    "support column type " << ibis::TYPESTRING[(int)m_type];
+	break;}
+    case ibis::BYTE: {
+	static_cast<array_t<char>*>(vals)->
+	    copy(* static_cast<const array_t<char>*>(buffer));
+	break;}
+    case ibis::UBYTE: {
+	static_cast<array_t<unsigned char>*>(vals)->
+	    copy(* static_cast<const array_t<unsigned char>*>(buffer));
+	break;}
+    case ibis::SHORT: {
+	static_cast<array_t<int16_t>*>(vals)->
+	    copy(* static_cast<const array_t<int16_t>*>(buffer));
+	break;}
+    case ibis::USHORT: {
+	static_cast<array_t<uint16_t>*>(vals)->
+	    copy(* static_cast<const array_t<uint16_t>*>(buffer));
+	break;}
+    case ibis::INT: {
+	static_cast<array_t<int32_t>*>(vals)->
+	    copy(* static_cast<const array_t<int32_t>*>(buffer));
+	break;}
+    case ibis::UINT: {
+	static_cast<array_t<uint32_t>*>(vals)->
+	    copy(* static_cast<const array_t<uint32_t>*>(buffer));
+	break;}
+    case ibis::LONG: {
+	static_cast<array_t<int64_t>*>(vals)->
+	    copy(* static_cast<const array_t<int64_t>*>(buffer));
+	break;}
+    case ibis::ULONG: {
+	static_cast<array_t<uint64_t>*>(vals)->
+	    copy(* static_cast<const array_t<uint64_t>*>(buffer));
+	break;}
+    case ibis::FLOAT: {
+	static_cast<array_t<float>*>(vals)->
+	    copy(* static_cast<const array_t<float>*>(buffer));
+	break;}
+    case ibis::DOUBLE: {
+	static_cast<array_t<double>*>(vals)->
+	    copy(* static_cast<const array_t<double>*>(buffer));
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	std::vector<std::string>
+	    tmp(* static_cast<const std::vector<std::string>*>(buffer));
+	static_cast<std::vector<std::string>*>(vals)->swap(tmp);
+	break;}
+}
+return 0;
+} // ibis::bord::column::getValuesArray
+
 void ibis::bord::column::reverseRows() {
     switch(m_type) {
     case ibis::ULONG: {
@@ -4509,7 +5684,7 @@ int ibis::bord::column::restoreCategoriesAsStrings(const ibis::part& prt) {
     ibis::array_t<uint32_t> *arrint =
 	static_cast<ibis::array_t<uint32_t>*>(buffer);
     const int nr = (thePart->nRows() <= arrint->size() ?
-			 thePart->nRows() : arrint->size());
+		    thePart->nRows() : arrint->size());
     std::vector<std::string> *arrstr = new std::vector<std::string>(nr);
     for (int j = 0; j < nr; ++ j)
 	ctmp->getString((*arrint)[j], (*arrstr)[j]);
@@ -5063,7 +6238,7 @@ int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     case ibis::UBYTE: {
 	oss << static_cast<unsigned>
 	    ((* static_cast<const array_t<unsigned char>*>
-	       (buffer[j].cval))[curRow]);
+	      (buffer[j].cval))[curRow]);
 	val = oss.str();
 	ierr = 0;
 	break;}

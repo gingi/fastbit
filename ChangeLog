@@ -1,3 +1,37 @@
+2010-04-13 John Wu <John.Wu at ACM.org>
+	* src/selectClause.cpp: update the external names to remove the
+	use of parentheses to make it easier to use the columns produced
+	from queries
+	* src/mensa.cpp, src/filter.cpp: remove the changes made on 04/08
+	to the static functions ibis::table::select and ibis::filter::filt
+	regarding the column names in the result table, use the output of
+	ibis::selectClause::termName
+
+2010-04-12 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp: split the code to handle each column type
+	separately
+
+2010-04-11 John Wu <John.Wu at ACM.org>
+	* src/bord.h, src/bord.cpp: add missing versions of selectTypes
+
+2010-04-09 John Wu <John.Wu at ACM.org>
+	* src/column.cpp:4601,4634,4667 can not swap oss.str() (a problem
+	spotted by both Arian Baer and Teryl Taylor)
+	* src/mensa.cpp: add an empty implementation of mensa::backup
+	* src/bord.cpp: add function bord::part::backup, set amask to all
+	1s in the constructor to address a problem reported by Andreas
+	Streichardt on querying in-memory data
+	* src/bord.cpp: change the implementation of ibis::bord::select to
+	use static function ibis::table::select
+
+2010-04-08 John Wu <John.Wu at ACM.org>
+	* src/mensa.cpp, src/filter.cpp: change the construction of names
+	for columns involving aggregation functions in preparation for
+	outputing the in-memory data partitions
+	* src/tafel.cpp, src/part.cpp: move functions writeColumn,
+	writeString and writeRaw from ibis::tafel to ibis::part to make
+	them available to more classes
+
 2010-04-07 John Wu <John.Wu at ACM.org>
 	* src/query.cpp: modify function computeHits to take into account
 	the null mask due to the select clause (a problem reported by
@@ -8,7 +42,8 @@
 	selectStrings
 	* examples/tcapi.c: add call to fastbit_get_qualified_strings, add
 	column type s
-	* src/util.h, src/util.cpp: add util::readUInt
+	* src/util.h, src/util.cpp: add util::readUInt (to address a
+	problem reported by Arian Baer)
 	* src/tafel.cpp:3073 change util::readInt to util::readUInt
 
 2010-04-05 John Wu <John.Wu at ACM.org>
@@ -29,7 +64,7 @@
 2010-03-03 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: modify test case 2 of check-ibis to exercise
 	the error caught by Andreas
-	* src/selectClause.cpp:479y add code to prevent the checking of
+	* src/selectClause.cpp:479 add code to prevent the checking of
 	variable name "*"
 	* src/whereClause.cpp:250 add check for variable name starting
 	with *

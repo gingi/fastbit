@@ -120,17 +120,15 @@
 #include <algorithm>	// std::sort
 #include <memory>	// std::auto_ptr
 
-// local data types
-typedef std::vector<const char*> stringList;
-
 /// The data structure for holding information about query jobs for
 /// multi-threaded testing.
 struct thArg {
     const char* uid;
-    const stringList& qlist;
+    const ibis::table::stringList& qlist;
     ibis::util::counter& task;
 
-    thArg(const char* id, const stringList& ql, ibis::util::counter& tc)
+    thArg(const char* id, const ibis::table::stringList& ql,
+	  ibis::util::counter& tc)
 	: uid(id), qlist(ql), task(tc) {}
 };
 
@@ -1885,7 +1883,9 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, int& mode,
-		       stringList& qlist, stringList& alist, stringList& slist,
+		       ibis::table::stringList& qlist,
+		       ibis::table::stringList& alist,
+		       ibis::table::stringList& slist,
 		       std::vector<std::string> &queff, ibis::joinlist& joins) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
@@ -2374,7 +2374,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	if (qlist.size() > 0) {
 	    lg.buffer() << "Quer" << (qlist.size()>1 ? "ies" : "y")
 			<< "[" << qlist.size() << "]:\n";
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (ibis::table::stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it)
 		lg.buffer() << "  " << *it << "\n";
 	}
@@ -3026,6 +3026,72 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	if (outputnamestoo)
 	    res->dumpNames(lg.buffer(), ", ");
 	res->dump(lg.buffer(), limit, ", ");
+    }
+
+    if (ibis::gVerbose > 3 && res->nRows() > 1 && res->nColumns() > 0) {
+	// try the silly query on res
+	ibis::table::stringList cn = res->columnNames();
+	std::string cnd3, sel1, sel3;
+	sel1 = "max(";
+	sel1 += cn.back();
+	sel1 += ") as mx, min(";
+	sel1 += cn.back();
+	sel1 += ") as mn";
+	if (cn.size() > 1) {
+	    sel3 = cn[0];
+	    sel3 += ", avg(";
+	    sel3 += cn[1];
+	    sel3 += ')';
+	}
+	else {
+	    sel3 = "floor(";
+	    sel3 += cn[0];
+	    sel3 += "/10, avg(";
+	    sel3 += cn[0];
+	    sel3 += ')';
+	}
+
+	std::auto_ptr<ibis::table> res1(res->select(sel1.c_str(), "1=1"));
+	if (res1.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to find the min and max of " << cn.back()
+		<< " in the result table " << res->name();
+	    return;
+	}
+	double minval, maxval;
+	int64_t ierr = res1->getColumnAsDoubles("mx", &maxval);
+	if (ierr != 1) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects to retrieve exactly one value from res1, "
+		"but getColumnAsDoubles returned " << ierr;
+	    return;
+	}
+	ierr = res1->getColumnAsDoubles("mn", &minval);
+	if (ierr != 1) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects to retrieve exactly one value from res1, "
+		"but getColumnAsDoubles returned " << ierr;
+	    return;
+	}
+
+	std::ostringstream oss;
+	oss << floor(0.5*(minval+maxval)) << " <= " << cn.back();
+	std::auto_ptr<ibis::table>
+	    res3(res->select(sel3.c_str(), oss.str().c_str()));
+	if (res3.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to evaluate query " << oss.str()
+		<< " on the table " << res->name();
+	    return;
+	}
+
+	ibis::util::logger lg;
+	res3->describe(lg.buffer());
+	res3->dump(lg.buffer(), ", ");
     }
 } // doQuaere
 
@@ -4471,7 +4537,7 @@ int main(int argc, char** argv) {
 
     try {
 	int interactive;
-	stringList alist, qlist, slist;
+	ibis::table::stringList alist, qlist, slist;
 	ibis::joinlist joins;
 	std::vector<std::string> queff; // queries read from files (-f)
 	const char* uid = ibis::util::userName();
@@ -4483,7 +4549,7 @@ int main(int argc, char** argv) {
 		   queff, joins);
 
 	// add new data if any
-	for (stringList::const_iterator it = alist.begin();
+	for (ibis::table::stringList::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else
 	    doAppend(*it);
@@ -4570,9 +4636,9 @@ int main(int argc, char** argv) {
 	    }
 	    timer3.stop();
 	    LOGGER(ibis::gVerbose >= 0)
-		<< *argv << ": testing " << ibis::datasets.size() << " data partition"
-		<< (ibis::datasets.size()>1 ? "s" : "") << " took "
-		<< timer3.CPUTime() << " CPU seconds, "
+		<< *argv << ": testing " << ibis::datasets.size()
+		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "")
+		<< " took " << timer3.CPUTime() << " CPU seconds, "
 		<< timer3.realTime() << " elapsed seconds\n";
 	}
 
@@ -4583,7 +4649,7 @@ int main(int argc, char** argv) {
 	}
 	else if (qlist.size() > 1 && threading > 1) {
 #if defined(_DEBUG) || defined(DEBUG)
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (ibis::table::stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(uid, *it);
 	    }
@@ -4618,7 +4684,7 @@ int main(int argc, char** argv) {
 	    qlist.clear();
 	}
 	else if (qlist.size() > 0) { // no new threads
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (ibis::table::stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(uid, *it);
 	    }

@@ -2041,6 +2041,13 @@ int ibis::mensa::dump(std::ostream& out, const char* del) const {
     return 0;
 } // ibis::mensa::dump
 
+int ibis::mensa::backup(const char* dir, const char* tname,
+			const char* tdesc) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- function mensa::backup has NOT been implemented yet";
+    return -1;
+} // ibis::mensa::backup
+
 ibis::table::cursor* ibis::mensa::createCursor() const {
     return new ibis::mensa::cursor(*this);
 } // ibis::mensa::createCursor
@@ -3856,8 +3863,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    if (tls[i] == ibis::UNKNOWN_TYPE)
 		tls[i] = col->type();
 	    switch (col->type()) {
-	    case ibis::BYTE:
-	    case ibis::UBYTE: {
+	    case ibis::BYTE: {
 		array_t<char>* tmp = col->selectBytes(*hits);
 		if (tmp != 0) {
 		    if (nh > 0) {
@@ -3870,13 +3876,13 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    }
 		}
 		break;}
-	    case ibis::SHORT:
-	    case ibis::USHORT: {
-		array_t<int16_t>* tmp = col->selectShorts(*hits);
+	    case ibis::UBYTE: {
+		array_t<unsigned char>* tmp = col->selectUBytes(*hits);
 		if (tmp != 0) {
 		    if (nh > 0) {
-			ibis::util::addIncoreData(buff[i], *tmp, nh,
-						  static_cast<int16_t>(0x7FFF));
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     static_cast<unsigned char>(0xFF));
 			delete tmp;
 		    }
 		    else {
@@ -3884,7 +3890,32 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    }
 		}
 		break;}
-	    case ibis::UINT:
+	    case ibis::SHORT: {
+		array_t<int16_t>* tmp = col->selectShorts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<int16_t>(0x7FFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::USHORT: {
+		array_t<uint16_t>* tmp = col->selectUShorts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<uint16_t>(0xFFFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
 	    case ibis::INT: {
 		array_t<int32_t>* tmp = col->selectInts(*hits);
 		if (tmp != 0) {
@@ -3899,14 +3930,41 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    }
 		}
 		break;}
-	    case ibis::LONG:
-	    case ibis::ULONG: {
+	    case ibis::UINT: {
+		array_t<uint32_t>* tmp = col->selectUInts(*hits);
+		if (tmp != 0) {
+		    if (nh > 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh,
+			     static_cast<uint32_t>(0xFFFFFFFF));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::LONG: {
 		array_t<int64_t>* tmp = col->selectLongs(*hits);
 		if (tmp != 0) {
 		    if (tmp != 0) {
 			ibis::util::addIncoreData
 			    (buff[i], *tmp, nh, static_cast<int64_t>
 			     (0x7FFFFFFFFFFFFFFFLL));
+			delete tmp;
+		    }
+		    else {
+			buff[i] = tmp;
+		    }
+		}
+		break;}
+	    case ibis::ULONG: {
+		array_t<uint64_t>* tmp = col->selectULongs(*hits);
+		if (tmp != 0) {
+		    if (tmp != 0) {
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<uint64_t>
+			     (0xFFFFFFFFFFFFFFFFLL));
 			delete tmp;
 		    }
 		    else {
@@ -3992,7 +4050,10 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	const uint32_t itm = tmstouse[i];
 	desc[i] = tms.termName(itm);
 	cdesc[i] = desc[i].c_str();
-	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
+	// if nplain >= tms.size(), use external names for columns,
+	// otherwise use internal names (so that the groupby operation can
+	// proceed based on the internal names)
+	nlsptr[i] =  (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
     }
 
     ibis::bord *brd1 =

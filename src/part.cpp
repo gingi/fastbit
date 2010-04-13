@@ -12079,6 +12079,275 @@ double ibis::part::getColumnSum(const char *name) const {
     return ret;
 } // ibis::part::getColumnSum
 
+/// Write the content of vals to an open file.  This template function
+/// works with fixed size elements stored in array_t.
+template <typename T>
+int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
+			    ibis::bitvector::word_t nnew,
+			    const array_t<T>& vals, const T& fill,
+			    ibis::bitvector& totmask,
+			    const ibis::bitvector& newmask) {
+    const uint32_t elem = sizeof(T);
+    off_t pos = UnixSeek(fdes, 0, SEEK_END);
+    if (pos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeColumn<" << typeid(T).name() << ">(" << fdes
+	    << ", " << nold << ", " << nnew << " ...) failed to seek to "
+	    "the end of the file";
+	return -3; // failed to find the EOF position
+    }
+    if ((uint32_t) pos < nold*elem) {
+	const uint32_t n1 = (uint32_t)pos / elem;
+	totmask.adjustSize(n1, nold);
+	for (uint32_t j = n1; j < nold; ++ j)
+	    UnixWrite(fdes, &fill, elem);
+    }
+    else if ((uint32_t) pos > nold*elem) {
+	pos = UnixSeek(fdes, nold*elem, SEEK_SET);
+	totmask.adjustSize(nold, nold);
+    }
+    else {
+	totmask.adjustSize(nold, nold);
+    }
+
+    if (vals.size() >= nnew) {
+	pos = UnixWrite(fdes, vals.begin(), nnew*elem);
+	totmask += newmask;
+    }
+    else {
+	pos = UnixWrite(fdes, vals.begin(), vals.size()*elem);
+	for (uint32_t j = vals.size(); j < nnew; ++ j)
+	    pos += UnixWrite(fdes, &fill, elem);
+	totmask += newmask;
+    }
+    totmask.adjustSize(totmask.size(), nnew+nold);
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg.buffer() << "part::writeColumn wrote " << pos << " bytes of "
+		    << typeid(T).name() << " for " << nnew << " elements\n";
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: "<< totmask;
+	}
+    }
+    return (-5 * ((uint32_t) pos != nnew*elem));
+} // ibis::part::writeColumn
+
+/// Write strings to an open file.  The strings are stored in a
+/// std::vector<std::string>.  The strings are null-terminated and
+/// therefore can not contain null characters in them.
+int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
+			     ibis::bitvector::word_t nnew,
+			     const std::vector<std::string>& vals,
+			     ibis::bitvector& totmask,
+			     const ibis::bitvector& newmask) {
+    off_t pos = UnixSeek(fdes, 0, SEEK_END);
+    if (pos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeString(" << fdes << ", " << nold << ", " << nnew
+	    << " ...) failed to seek to the end of the file";
+	return -3; // failed to find the EOF position
+    }
+
+    pos = 0;
+    totmask.adjustSize(nold, nold);
+    if (vals.size() >= nnew) {
+	for (uint32_t j = 0; j < nnew; ++ j)
+	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+    }
+    else {
+	for (uint32_t j = 0; j < vals.size(); ++ j)
+	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+	char buf[MAX_LINE];
+	memset(buf, 0, MAX_LINE);
+	for (uint32_t j = vals.size(); j < nnew; j += MAX_LINE)
+	    pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
+    }
+
+    totmask += newmask;
+    totmask.adjustSize(totmask.size(), nnew+nold);
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg.buffer() << "part::writeString wrote " << pos
+		    << " strings (" << nnew << " expected)\n";
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+	lg.buffer() << "vals[" << vals.size() << "]:\n";
+	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
+	     ++ j)
+	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
+#endif
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: " << totmask;
+	}
+    }
+    return (-5 * ((uint32_t) pos != nnew));
+} // ibis::part::writeString
+
+/// Write raw bytes to an open file.  It also requires a second file to
+/// store starting positions of the raw binary objects.
+int ibis::part::writeRaw(int bdes, int sdes,
+			  ibis::bitvector::word_t nold,
+			  ibis::bitvector::word_t nnew,
+			  const ibis::array_t<unsigned char>& bytes,
+			  const ibis::array_t<int64_t>& starts,
+			  ibis::bitvector& totmask,
+			  const ibis::bitvector& newmask) {
+    off_t ierr;
+    const uint32_t selem = sizeof(int64_t);
+    int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
+    if (bpos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeRaw(" << bdes << ", " << sdes << ", " << nold
+	    << ", " << nnew << " ...) failed to seek to the end of file "
+	    << bdes << ", seek returned " << bpos;
+	return -3; // failed to find the EOF position
+    }
+    off_t spos = UnixSeek(sdes, 0, SEEK_END);
+    if (spos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeRaw(" << bdes << ", " << sdes << ", " << nold
+	    << ", " << nnew << "...) failed to the end of file " << sdes
+	    << ", seek returned " << spos;
+	return -4;
+    }
+    if (spos % selem != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeRaw expects the file for starting posistion to "
+	    "have a multiple of " << selem << " bytes, but it is " << spos;
+	return -5;
+    }
+    if (spos == (int64_t)selem) {
+	spos = 0;
+	ierr = UnixSeek(sdes, 0, SEEK_SET);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to seek to the beginning of file "
+		<< sdes << " for starting positions, seek returned " << ierr;
+	    return -6;
+	}
+    }
+
+    int64_t stmp;
+    if (spos > 0) {
+	ierr = UnixSeek(sdes, spos-selem, SEEK_SET);
+	if (ierr != static_cast<off_t>(spos-selem)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to seek to " << spos-selem
+		<< " in file " << sdes << " for starting positions, "
+		"seek returned" << ierr;
+	    return -7;
+	}
+	ierr = UnixRead(sdes, &stmp, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to read the last " << selem
+		<< " bytes from file " << sdes << " for starting positions, "
+		"read returned " << ierr;
+	    return -8;
+	}
+	if (stmp != bpos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw expects the last value in file " << sdes
+		<< "(which is " << stmp << ") to match the size of file "
+		<< bdes << " (which is " << bpos << "), but they do NOT";
+	    return -9;
+	}
+    }
+
+    const ibis::bitvector::word_t nold1 =
+	(spos > static_cast<off_t>(selem) ? (spos / selem - 1) : 0);
+    if (nold1 == 0) { // need to write the 1st number which is always 0
+	bpos = 0;
+	ierr = UnixWrite(sdes, &bpos, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to write " << bpos
+		<< " to file " << sdes << ", write returned " << ierr;
+	    return -10;
+	}
+    }
+    if (nold1 < nold) {
+	// existing data file does not have enough elements, add empty ones
+	// to fill them
+	for (size_t j = spos/selem; j <= nold; ++ j) {
+	    ierr = UnixWrite(sdes, &bpos, selem);
+	    if (ierr < (off_t)selem) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "part::writeRaw failed to write " << bpos
+		    << " to the end of file " << sdes << ", write returned "
+		    << ierr;
+		return -11;
+	    }
+	}
+    }
+    else if (nold1 > nold) {
+	// existing files have too many elements
+	spos = nold*selem;
+	ierr = UnixSeek(sdes, spos, SEEK_SET);
+	if (ierr != spos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to seek to " << spos << " in file "
+		<< sdes << " for starting positions, seek returned " << ierr;
+	    return -12;
+	}
+	ierr = UnixRead(sdes, &bpos, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to read " << selem << " bytes from "
+		<< spos << " of file " << sdes << " for starting positions, "
+		" read returned " << ierr;
+	    return -13;
+	}
+	ierr = UnixSeek(bdes, bpos, SEEK_SET);
+	if (ierr != bpos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to seek to " << bpos << " in file "
+		<< bpos << " for binary objects, seek returned " << ierr;
+	    return -14;
+	}
+    }
+
+    ibis::bitvector::word_t nnew1 = (starts.size() <= nnew+1 ?
+				     (starts.size()>1 ? starts.size()-1 : 0)
+				     : nnew);
+    for (bitvector::word_t j = 0; j < nnew1; ++ j) {
+	bpos += starts[j+1] - starts[j];
+	ierr = UnixWrite(sdes, &bpos, selem);
+	if (ierr < (int64_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "part::writeRaw failed to write " << bpos << " to file "
+		<< sdes << " for starting positioins, write returned " << ierr;
+	    return -15;
+	}
+    }
+    stmp = starts[nnew1] - starts[0];
+    ierr = UnixWrite(bdes, bytes.begin(), stmp);
+    if (ierr != stmp) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeRaw expects to write " << stmp << " byte"
+	    << (stmp>1 ? "s" : "") << ", but wrote " << ierr << " instead";
+	return -16;
+    }
+
+    totmask.adjustSize(nold1, nold);
+    totmask += newmask;
+    totmask.adjustSize(totmask.size(), nnew1+nold);
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg.buffer() << "part::writeRaw wrote " << nnew1 << " binary object"
+		    << (nnew1>1?"s":"") << " (" << nnew << " expected)\n";
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg.buffer() << "mask for new records: " << newmask << "\n";
+	    lg.buffer() << "Overall bit mask: " << totmask;
+	}
+    }
+    return (-17 * (nnew1 != nnew));
+} // ibis::part::writeRaw
+
 // Construct an info object from a list of columns
 ibis::part::info::info(const char* na, const char* de, const uint64_t &nr,
 		       const ibis::part::columnList &co)
@@ -12108,9 +12377,13 @@ ibis::part::info::~info() {
 void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     if (_tbl == 0) return; // can not do anything
 
-    for (uint32_t i = 0; i < size(); ++ i) {
-	ibis::bitvector tmp(_tbl->getNullMask());
-	if (cols.size()<=i || cols[i]==0) {
+    mask.copy(_tbl->getNullMask());
+    for (uint32_t i = 0; i < namelist.size(); ++ i) {
+	ibis::bitvector tmp;
+	if (i < cols.size() && cols[i] == 0) {
+	    cols[i]->getNullMask(tmp);
+	}
+	else {
 	    const char *nm = name(i);
 	    const ibis::column* col = _tbl->getColumn(nm);
 	    if (col)
@@ -12118,9 +12391,6 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
 	    else if (nm != 0 && *nm != 0 && *nm != '*')
 		_tbl->logWarning("barrell::getNullMask",
 				 "can not find a column named \"%s\"", nm);
-	}
-	else {
-	    cols[i]->getNullMask(tmp);
 	}
 	if (tmp.size() == _tbl->nRows()) {
 	    if (mask.size() == _tbl->nRows())
@@ -13238,3 +13508,51 @@ ibis::part::doCompare(const array_t<char>&, const ibis::bitvector&,
 template long
 ibis::part::doCompare<char>(const char*, const ibis::bitvector&,
 			    ibis::bitvector&, const ibis::qRange&) const;
+
+template int ibis::part::writeColumn<ibis::rid_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<ibis::rid_t>&, const ibis::rid_t&, ibis::bitvector&,
+ const ibis::bitvector&);
+template int ibis::part::writeColumn<char>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<char>&, const char&, ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<signed char>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<signed char>&, const signed char&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<unsigned char>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<unsigned char>&, const unsigned char&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<int16_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<int16_t>&, const int16_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<uint16_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<uint16_t>&, const uint16_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<int32_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<int32_t>&, const int32_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<uint32_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<uint32_t>&, const uint32_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<int64_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<int64_t>&, const int64_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<uint64_t>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<uint64_t>&, const uint64_t&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<float>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<float>&, const float&,
+ ibis::bitvector&, const ibis::bitvector&);
+template int ibis::part::writeColumn<double>
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+ const array_t<double>&, const double&,
+ ibis::bitvector&, const ibis::bitvector&);

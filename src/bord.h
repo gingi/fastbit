@@ -44,6 +44,8 @@ public:
     virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
+    virtual int backup(const char* dir, const char* tname=0,
+		       const char* tdesc=0) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
@@ -125,7 +127,8 @@ public:
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
 
-	virtual int dump(std::ostream&, uint32_t, const char*) const;
+	int dump(std::ostream&, uint32_t, const char*) const;
+	int backup(const char*, const char*, const char*) const;
 
 	void describe(std::ostream&) const;
 	void dumpNames(std::ostream&, const char*) const;
@@ -201,9 +204,14 @@ public:
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
+    virtual array_t<char>* selectBytes(const ibis::bitvector&) const;
+    virtual array_t<unsigned char>* selectUBytes(const ibis::bitvector&) const;
+    virtual array_t<int16_t>* selectShorts(const ibis::bitvector& mask) const;
+    virtual array_t<uint16_t>* selectUShorts(const ibis::bitvector& mask) const;
     virtual array_t<int32_t>* selectInts(const ibis::bitvector& mask) const;
     virtual array_t<uint32_t>* selectUInts(const ibis::bitvector& mask) const;
     virtual array_t<int64_t>* selectLongs(const ibis::bitvector& mask) const;
+    virtual array_t<uint64_t>* selectULongs(const ibis::bitvector& mask) const;
     virtual array_t<float>* selectFloats(const ibis::bitvector& mask) const;
     virtual array_t<double>* selectDoubles(const ibis::bitvector& mask) const;
 
@@ -213,6 +221,7 @@ public:
 	computeMinMax(dir, lower, upper);}
     virtual void computeMinMax(const char *, double &min, double &max) const;
     virtual void getString(uint32_t i, std::string &val) const;
+    virtual int  getValuesArray(void* vals) const;
 
     void reverseRows();
     int  limit(uint32_t nr);
@@ -366,6 +375,11 @@ inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
 			    const char* del) const {
     return mypart.dump(out, static_cast<uint32_t>(nr), del);
 } // ibis::bord::dump
+
+inline int ibis::bord::backup(const char* dir, const char* tname,
+			      const char* tdesc) const {
+    return mypart.backup(dir, tname, tdesc);
+} // ibis::bord::backup
 
 inline ibis::table* ibis::bord::groupby(const ibis::selectClause &sc) const {
     return mypart.groupby(sc);

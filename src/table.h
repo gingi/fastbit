@@ -127,6 +127,12 @@ public:
     /// Print the first nr rows.
     virtual int dump(std::ostream& out, uint64_t nr,
 		     const char* del=", ") const =0;
+    /// Write the current content to the specified output directory in
+    /// the raw binary format.  May optionally overwrite the name and
+    /// description of the table.
+    virtual int backup(const char* dir, const char* tname=0,
+		       const char* tdesc=0) const =0;
+
     /// Estimate the number of rows satisfying the selection conditions.
     /// The number of rows is between [@c nmin, @c nmax] (inclusive).
     virtual void estimate(const char* cond,

@@ -1512,7 +1512,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     ibis::util::secondsToString(currtime, stamp);
     if (tdesc == 0 || *tdesc == 0) { // generate a description
 	std::ostringstream oss;
-	oss << "Metadata written with ibis::tablex::writeMetaData on "
+	oss << "Metadata written with ibis::tafel::writeMetaData on "
 	    << stamp << " with " << cols.size() << " column"
 	    << (cols.size() > 1 ? "s" : "");
 	olddesc = oss.str();
@@ -1863,14 +1863,14 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	switch (col.type) {
 	case ibis::BYTE:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<signed char>*>(col.values),
 		     * static_cast<const signed char*>(col.defval),
 		     msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<signed char>*>(col.values),
 		     (signed char)0x7F, msk, col.mask);
@@ -1878,14 +1878,14 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::UBYTE:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<unsigned char>*>(col.values),
 		     *static_cast<const unsigned char*>(col.defval),
 		     msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<unsigned char>*>(col.values),
 		     (unsigned char)0xFF, msk, col.mask);
@@ -1893,13 +1893,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::SHORT:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int16_t>*>(col.values),
 		     * static_cast<const int16_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int16_t>*>(col.values),
 		     (int16_t)0x7FFF, msk, col.mask);
@@ -1907,13 +1907,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::USHORT:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<uint16_t>*>(col.values),
 		     * static_cast<const uint16_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<uint16_t>*>(col.values),
 		     (uint16_t)0xFFFF, msk, col.mask);
@@ -1921,13 +1921,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::INT:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int32_t>*>(col.values),
 		     * static_cast<const int32_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int32_t>*>(col.values),
 		     (int32_t)0x7FFFFFFF, msk, col.mask);
@@ -1935,13 +1935,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::UINT:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<uint32_t>*>(col.values),
 		     * static_cast<const uint32_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<uint32_t>*>(col.values),
 		     (uint32_t)0xFFFFFFFF, msk, col.mask);
@@ -1951,13 +1951,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ibis::bitvector tmp;
 		tmp.set(1, mrows);
-		ierr = writeColumn<int64_t>
+		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int64_t>*>(col.values),
 		     * static_cast<const int64_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn<int64_t>
+		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<int64_t>*>(col.values),
 		     0x7FFFFFFFFFFFFFFFLL, msk, col.mask);
@@ -1965,26 +1965,26 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::ULONG:
 	    if (col.defval != 0) {
-		ierr = writeColumn<uint64_t>
+		ierr = ibis::part::writeColumn<uint64_t>
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<uint64_t>*>(col.values),
 		     * static_cast<const uint64_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn<uint64_t>
+		ierr = ibis::part::writeColumn<uint64_t>
 		    (fdes, nold, mrows, * static_cast<const array_t<uint64_t>*>
 		     (col.values), 0xFFFFFFFFFFFFFFFFULL, msk, col.mask);
 	    }
 	    break;
 	case ibis::FLOAT:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<float>*>(col.values),
 		     * static_cast<const float*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<float>*>(col.values),
 		     std::numeric_limits<float>::quiet_NaN(), msk, col.mask);
@@ -1992,13 +1992,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    break;
 	case ibis::DOUBLE:
 	    if (col.defval != 0) {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<double>*>(col.values), 
 		     * static_cast<const double*>(col.defval), msk, col.mask);
 	    }
 	    else {
-		ierr = writeColumn
+		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     * static_cast<const array_t<double>*>(col.values), 
 		     std::numeric_limits<double>::quiet_NaN(), msk, col.mask);
@@ -2007,13 +2007,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	case ibis::TEXT:
 	case ibis::CATEGORY:
 	    if (col.defval != 0) {
-		ierr = writeString
+		ierr = ibis::part::writeString
 		    (fdes, nold, mrows,
 		     * static_cast<const std::vector<std::string>*>
 		     (col.values), msk, col.mask);
 	    }
 	    else {
-		ierr = writeString
+		ierr = ibis::part::writeString
 		    (fdes, nold, mrows,
 		     * static_cast<const std::vector<std::string>*>
 		     (col.values), msk, col.mask);
@@ -2034,7 +2034,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    (void)_setmode(sdes, _O_BINARY);
 #endif
 
-	    ierr = writeRaw
+	    ierr = ibis::part::writeRaw
 		(fdes, sdes, nold, mrows,
 		 * static_cast<const array_t<unsigned char>*>(col.values),
 		 col.starts, msk, col.mask);
@@ -2110,275 +2110,6 @@ int ibis::tafel::write(const char* dir, const char* tname,
 
     return 0;
 } // ibis::tafel::write
-
-/// Write the content of vals to an open file.  This template function
-/// works with fixed size elements stored in array_t.
-template <typename T>
-int ibis::tafel::writeColumn(int fdes, ibis::bitvector::word_t nold,
-			     ibis::bitvector::word_t nnew,
-			     const array_t<T>& vals, const T& fill,
-			     ibis::bitvector& totmask,
-			     const ibis::bitvector& newmask) const {
-    const uint32_t elem = sizeof(T);
-    off_t pos = UnixSeek(fdes, 0, SEEK_END);
-    if (pos < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeColumn<" << typeid(T).name() << ">(" << fdes
-	    << ", " << nold << ", " << nnew << " ...) failed to seek to "
-	    "the end of the file";
-	return -3; // failed to find the EOF position
-    }
-    if ((uint32_t) pos < nold*elem) {
-	const uint32_t n1 = (uint32_t)pos / elem;
-	totmask.adjustSize(n1, nold);
-	for (uint32_t j = n1; j < nold; ++ j)
-	    UnixWrite(fdes, &fill, elem);
-    }
-    else if ((uint32_t) pos > nold*elem) {
-	pos = UnixSeek(fdes, nold*elem, SEEK_SET);
-	totmask.adjustSize(nold, nold);
-    }
-    else {
-	totmask.adjustSize(nold, nold);
-    }
-
-    if (vals.size() >= nnew) {
-	pos = UnixWrite(fdes, vals.begin(), nnew*elem);
-	totmask += newmask;
-    }
-    else {
-	pos = UnixWrite(fdes, vals.begin(), vals.size()*elem);
-	for (uint32_t j = vals.size(); j < nnew; ++ j)
-	    pos += UnixWrite(fdes, &fill, elem);
-	totmask += newmask;
-    }
-    totmask.adjustSize(totmask.size(), nnew+nold);
-    if (ibis::gVerbose > 3) {
-	ibis::util::logger lg;
-	lg.buffer() << "tafel::writeColumn wrote " << pos << " bytes of "
-		    << typeid(T).name() << " for " << nnew << " elements\n";
-	if (ibis::gVerbose > 6) {
-	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: "<< totmask;
-	}
-    }
-    return (-5 * ((uint32_t) pos != nnew*elem));
-} // ibis::tafel::writeColumn
-
-/// Write strings to an open file.  The strings are stored in a
-/// std::vector<std::string>.  The strings are null-terminated and
-/// therefore can not contain null characters in them.
-int ibis::tafel::writeString(int fdes, ibis::bitvector::word_t nold,
-			     ibis::bitvector::word_t nnew,
-			     const std::vector<std::string>& vals,
-			     ibis::bitvector& totmask,
-			     const ibis::bitvector& newmask) const {
-    off_t pos = UnixSeek(fdes, 0, SEEK_END);
-    if (pos < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeString(" << fdes << ", " << nold << ", " << nnew
-	    << " ...) failed to seek to the end of the file";
-	return -3; // failed to find the EOF position
-    }
-
-    pos = 0;
-    totmask.adjustSize(nold, nold);
-    if (vals.size() >= nnew) {
-	for (uint32_t j = 0; j < nnew; ++ j)
-	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
-    }
-    else {
-	for (uint32_t j = 0; j < vals.size(); ++ j)
-	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
-	char buf[MAX_LINE];
-	memset(buf, 0, MAX_LINE);
-	for (uint32_t j = vals.size(); j < nnew; j += MAX_LINE)
-	    pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
-    }
-
-    totmask += newmask;
-    totmask.adjustSize(totmask.size(), nnew+nold);
-    if (ibis::gVerbose > 3) {
-	ibis::util::logger lg;
-	lg.buffer() << "tafel::writeString wrote " << pos
-		    << " strings (" << nnew << " expected)\n";
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "vals[" << vals.size() << "]:\n";
-	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
-	     ++ j)
-	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
-#endif
-	if (ibis::gVerbose > 6) {
-	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: " << totmask;
-	}
-    }
-    return (-5 * ((uint32_t) pos != nnew));
-} // ibis::tafel::writeString
-
-/// Write raw bytes to an open file.  It also requires a second file to
-/// store starting positions of the raw binary objects.
-int ibis::tafel::writeRaw(int bdes, int sdes,
-			  ibis::bitvector::word_t nold,
-			  ibis::bitvector::word_t nnew,
-			  const ibis::array_t<unsigned char>& bytes,
-			  const ibis::array_t<int64_t>& starts,
-			  ibis::bitvector& totmask,
-			  const ibis::bitvector& newmask) const {
-    off_t ierr;
-    const uint32_t selem = sizeof(int64_t);
-    int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
-    if (bpos < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeRaw(" << bdes << ", " << sdes << ", " << nold
-	    << ", " << nnew << " ...) failed to seek to the end of file "
-	    << bdes << ", seek returned " << bpos;
-	return -3; // failed to find the EOF position
-    }
-    off_t spos = UnixSeek(sdes, 0, SEEK_END);
-    if (spos < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeRaw(" << bdes << ", " << sdes << ", " << nold
-	    << ", " << nnew << "...) failed to the end of file " << sdes
-	    << ", seek returned " << spos;
-	return -4;
-    }
-    if (spos % selem != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeRaw expects the file for starting posistion to "
-	    "have a multiple of " << selem << " bytes, but it is " << spos;
-	return -5;
-    }
-    if (spos == (int64_t)selem) {
-	spos = 0;
-	ierr = UnixSeek(sdes, 0, SEEK_SET);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to seek to the beginning of file "
-		<< sdes << " for starting positions, seek returned " << ierr;
-	    return -6;
-	}
-    }
-
-    int64_t stmp;
-    if (spos > 0) {
-	ierr = UnixSeek(sdes, spos-selem, SEEK_SET);
-	if (ierr != static_cast<off_t>(spos-selem)) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to seek to " << spos-selem
-		<< " in file " << sdes << " for starting positions, "
-		"seek returned" << ierr;
-	    return -7;
-	}
-	ierr = UnixRead(sdes, &stmp, selem);
-	if (ierr < (off_t)selem) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to read the last " << selem
-		<< " bytes from file " << sdes << " for starting positions, "
-		"read returned " << ierr;
-	    return -8;
-	}
-	if (stmp != bpos) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw expects the last value in file " << sdes
-		<< "(which is " << stmp << ") to match the size of file "
-		<< bdes << " (which is " << bpos << "), but they do NOT";
-	    return -9;
-	}
-    }
-
-    const ibis::bitvector::word_t nold1 =
-	(spos > static_cast<off_t>(selem) ? (spos / selem - 1) : 0);
-    if (nold1 == 0) { // need to write the 1st number which is always 0
-	bpos = 0;
-	ierr = UnixWrite(sdes, &bpos, selem);
-	if (ierr < (off_t)selem) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to write " << bpos
-		<< " to file " << sdes << ", write returned " << ierr;
-	    return -10;
-	}
-    }
-    if (nold1 < nold) {
-	// existing data file does not have enough elements, add empty ones
-	// to fill them
-	for (size_t j = spos/selem; j <= nold; ++ j) {
-	    ierr = UnixWrite(sdes, &bpos, selem);
-	    if (ierr < (off_t)selem) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "tafel::writeRaw failed to write " << bpos
-		    << " to the end of file " << sdes << ", write returned "
-		    << ierr;
-		return -11;
-	    }
-	}
-    }
-    else if (nold1 > nold) {
-	// existing files have too many elements
-	spos = nold*selem;
-	ierr = UnixSeek(sdes, spos, SEEK_SET);
-	if (ierr != spos) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to seek to " << spos << " in file "
-		<< sdes << " for starting positions, seek returned " << ierr;
-	    return -12;
-	}
-	ierr = UnixRead(sdes, &bpos, selem);
-	if (ierr < (off_t)selem) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to read " << selem << " bytes from "
-		<< spos << " of file " << sdes << " for starting positions, "
-		" read returned " << ierr;
-	    return -13;
-	}
-	ierr = UnixSeek(bdes, bpos, SEEK_SET);
-	if (ierr != bpos) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to seek to " << bpos << " in file "
-		<< bpos << " for binary objects, seek returned " << ierr;
-	    return -14;
-	}
-    }
-
-    ibis::bitvector::word_t nnew1 = (starts.size() <= nnew+1 ?
-				     (starts.size()>1 ? starts.size()-1 : 0)
-				     : nnew);
-    for (bitvector::word_t j = 0; j < nnew1; ++ j) {
-	bpos += starts[j+1] - starts[j];
-	ierr = UnixWrite(sdes, &bpos, selem);
-	if (ierr < (int64_t)selem) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::writeRaw failed to write " << bpos << " to file "
-		<< sdes << " for starting positioins, write returned " << ierr;
-	    return -15;
-	}
-    }
-    stmp = starts[nnew1] - starts[0];
-    ierr = UnixWrite(bdes, bytes.begin(), stmp);
-    if (ierr != stmp) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "tafel::writeRaw expects to write " << stmp << " byte"
-	    << (stmp>1 ? "s" : "") << ", but wrote " << ierr << " instead";
-	return -16;
-    }
-
-    totmask.adjustSize(nold1, nold);
-    totmask += newmask;
-    totmask.adjustSize(totmask.size(), nnew1+nold);
-    if (ibis::gVerbose > 3) {
-	ibis::util::logger lg;
-	lg.buffer() << "tafel::writeRaw wrote " << nnew1 << " binary object"
-		    << (nnew1>1?"s":"") << " (" << nnew << " expected)\n";
-	if (ibis::gVerbose > 6) {
-	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: " << totmask;
-	}
-    }
-    return (-17 * (nnew1 != nnew));
-} // ibis::tafel::writeRaw
 
 void ibis::tafel::clearData() {
     mrows = 0;

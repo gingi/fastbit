@@ -292,17 +292,55 @@ void ibis::selectClause::fillNames() {
 	if (terms_[j]->termType() == ibis::math::VARIABLE) {
 	    names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
 		->variableName();
-
-	    if (xnames_[j].empty())
-		describe(j, xnames_[j]);
 	}
 	else {
-	    if (xnames_[j].empty())
-		describe(j, xnames_[j]);
-
 	    std::ostringstream oss;
-	    oss << "s" << std::hex << std::setprecision(prec) << j << std::dec;
+	    oss << 's' << std::hex << std::setprecision(prec) << j;
 	    names_[j] = oss.str();
+	}
+
+	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL)
+	    xnames_[j] = names_[j];
+
+	if (xnames_[j].empty()) {
+	    std::ostringstream oss;
+	    switch (aggr_[j]) {
+	    default:
+		oss << 's';
+		break;
+	    case AVG:
+		oss << "avg";
+		break;
+	    case CNT:
+		oss << "count";
+		break;
+	    case MAX:
+		oss << "max";
+		break;
+	    case MIN:
+		oss << "min";
+		break;
+	    case SUM:
+		oss << "sum";
+		break;
+	    case VARPOP:
+		oss << "var";
+		break;
+	    case VARSAMP:
+		oss << "var";
+		break;
+	    case STDPOP:
+		oss << "std";
+		break;
+	    case STDSAMP:
+		oss << "std";
+		break;
+	    case DISTINCT:
+		oss << "count";
+		break;
+	    }
+	    oss << std::hex << std::setprecision(prec) << j;
+	    xnames_[j] = oss.str();
 	}
     }
 } // ibis::selectClause::fillNames
@@ -506,15 +544,18 @@ int ibis::selectClause::_verify(const ibis::part& part0,
 
 void ibis::selectClause::getNullMask(const ibis::part& part0,
 				     ibis::bitvector& mask) const {
-    mask.copy(part0.getNullMask());
     if (terms_.size() > 0) {
 	ibis::part::barrel bar(&part0);
 	for (uint32_t j = 0; j < terms_.size(); ++ j)
 	    bar.recordVariable(terms_[j]);
 	if (bar.size() > 0) {
-	    ibis::bitvector tmp;
-	    bar.getNullMask(tmp);
-	    mask &= tmp;
+	    bar.getNullMask(mask);
 	}
+	else {
+	    mask.copy(part0.getNullMask());
+	}
+    }
+    else {
+	mask.copy(part0.getNullMask());
     }
 } // ibis::selectClause::getNullMask

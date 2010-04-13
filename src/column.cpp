@@ -4598,7 +4598,7 @@ long ibis::column::selectToStrings(const bitvector& mask,
 	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
 	    std::ostringstream oss;
 	    oss << tmp[ii];
-	    str[ii].swap(oss.str());
+	    str[ii] = oss.str();
 	}
     }
     catch (...) {
@@ -4631,7 +4631,7 @@ template <> long ibis::column::selectToStrings<char>
 	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
 	    std::ostringstream oss;
 	    oss << (int)tmp[ii];
-	    str[ii].swap(oss.str());
+	    str[ii] = oss.str();
 	}
     }
     catch (...) {
@@ -4664,7 +4664,7 @@ template <> long ibis::column::selectToStrings<unsigned char>
 	for (size_t ii = 0; ii < tmp.size(); ++ ii) {
 	    std::ostringstream oss;
 	    oss << (unsigned)tmp[ii];
-	    str[ii].swap(oss.str());
+	    str[ii] = oss.str();
 	}
     }
     catch (...) {

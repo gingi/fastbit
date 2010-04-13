@@ -132,24 +132,6 @@ protected:
 		      std::vector<ibis::bitvector*>& msk);
     int parseLine(const char* str, const char* del, const char* id);
 
-    template <typename T>
-    int writeColumn(int fdes, ibis::bitvector::word_t nold,
-		    ibis::bitvector::word_t nnew,
-		    const array_t<T>& vals, const T& fill,
-		    ibis::bitvector& totmask,
-		    const ibis::bitvector& newmask) const;
-    int writeString(int fdes, ibis::bitvector::word_t nold,
-		    ibis::bitvector::word_t nnew,
-		    const std::vector<std::string>& vals,
-		    ibis::bitvector& totmask,
-		    const ibis::bitvector& newmask) const;
-    int writeRaw(int bdes, int sdes, ibis::bitvector::word_t nold,
-		 ibis::bitvector::word_t nnew,
-		 const ibis::array_t<unsigned char>& bytes,
-		 const ibis::array_t<int64_t>& starts,
-		 ibis::bitvector& totmask,
-		 const ibis::bitvector& newmask) const;
-
     int32_t doReserve(uint32_t);
     int assignDefaultValue(ibis::tafel::column &col, const char *val) const;
     int readSQLStatement(std::istream &, ibis::fileManager::buffer<char>&,

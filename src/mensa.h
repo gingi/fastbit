@@ -44,6 +44,8 @@ public:
     virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
+    virtual int backup(const char* dir, const char* tname=0,
+		       const char* tdesc=0) const;
 
     virtual int64_t getColumnAsBytes(const char*, char*) const;
     virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;

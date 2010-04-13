@@ -1345,7 +1345,7 @@ void ibis::bundles::sort() {
 	    cols[i]->reduce(*starts, comps.getAggregator(i));
 	}
     }
-    else { // more than one column to sort
+    else { // one or more columns to sort
 	for (uint32_t i = 0; i < ncol; ++ i)
 	    cols[i]->nosharing();
 
