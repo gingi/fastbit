@@ -1,3 +1,11 @@
+2010-04-14 John Wu <John.Wu at ACM.org>
+	* java/Makefile.am: add targets to generate build.properties to
+	work with the modified build.xml
+
+2010-04-14 Shiran Pasternak <shiranpasternak at gmail.com>
+	* java/build.xml: add reference to build.properties to control the
+	path for new library files
+
 2010-04-13 John Wu <John.Wu at ACM.org>
 	* src/selectClause.cpp: update the external names to remove the
 	use of parentheses to make it easier to use the columns produced

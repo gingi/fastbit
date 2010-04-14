@@ -16,12 +16,18 @@ if BUILD_JAVA_INTERFACE
 lib_LTLIBRARIES = libfastbitjni.la
 libfastbitjni_la_SOURCES = FastBit.c
 include_HEADERS = FastBit.h ../src/capi.h
-libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la
+libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la build.properties
 libfastbitjni_la_LIBADD = ../src/libfastbit.la
 endif
 #
 ../src/libfastbit.la::
 	cd ../src && $(MAKE) libfastbit.la
+#
+# build.properties is used to specify the locations of the JNI libraries
+build.properties::
+	echo "fastbit.library.path=$(PWD)/$(OBJDIR):$(PWD)/../src/$(OBJDIR)" >| build.properties
+install-data-local:
+	echo "fastbit.library.path=$(libdir)" >| build.properties
 #
 clean: clean-am
 	rm -f *~ *.class core core.[0-9]*

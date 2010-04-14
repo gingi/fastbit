@@ -2,6 +2,7 @@
 
 <project name="FastBitJava" basedir="." default="info">
 
+  <property file="build.properties" />
   <property name="src.dir" value="."/>
   <property name="build.dir" value="build"/>
   <property name="distr.dir" value="distr"/>
@@ -57,6 +58,7 @@
 
       <jvmarg value="-Xms128m"/>
       <jvmarg value="-Xmx512m"/>
+      <jvmarg value="-Djava.library.path=${fastbit.library.path}"/>
 
       <classpath refid="master-classpath"/>
       <formatter type="brief" usefile="false"/>

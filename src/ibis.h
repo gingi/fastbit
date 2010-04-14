@@ -24,7 +24,7 @@
 
 /*! \mainpage Overview of FastBit IBIS Implementation
 
-\date 2009
+\date 2010
 
 \author <A HREF="http://lbl.gov/~kwu/">John Wu</A>,
 <A HREF="http://sdm.lbl.gov/">Scientific Data Management</A>,
@@ -36,17 +36,27 @@ and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
 
 \section intro Introduction
+FastBit is a open-source data processing library following the spirit of
+<A HREF="http://en.wikipedia.org/wiki/NoSQL">NoSQL movement</A>.  It offers
+a set of searching functions supported by compressed bitmap indexes.  It
+recognizes user data in the column-oriented fashion similar to
+<A HREF="http://monetdb.cwi.nl/">MonetDB</A> and
+<A HREF="http://www.vertica.com/">Vertica</A>.  Because it is available as
+a library, the users are free to build their own data processing system on
+top of it.  In particular, the user data is NOT required to be under the
+control of FastBit software.
 
+\section bitmap Bitmap Index
 An <A HREF="http://en.wikipedia.org/wiki/Index_%28database%29">index in a
 database system</A> is a data structure that utilizes redundant information
 about the base data to speed up common searching and retrieval operations.
 The majority of commonly used indexes are variants of <A
 HREF="http://portal.acm.org/citation.cfm?id=356776">B-trees</A>, such as
-B+-tree and B*-tree.  FastBit implements a set of alternative indexes called
-compressed <A HREF="http://en.wikipedia.org/wiki/Bitmap_index">bitmap
-indexes</A>.  Compared with B-tree variants, these indexes provide very
-efficient searching and retrieval operations by sacrificing the efficiency
-of updating the indexes after the modification of an individual record.
+B+-tree and B*-tree.  FastBit implements a set of alternative indexes
+called compressed <A HREF="http://en.wikipedia.org/wiki/Bitmap_index">bitmap
+ indexes</A>.  Compared with B-tree variants, these indexes provide very
+efficient searching and retrieval operations but are somewhat slower to
+update after a modification of an individual record.
 
 In addition to the well-known strengths of bitmap indexes, FastBit has a
 special strength stemming from the bitmap compression scheme used.  The
@@ -86,13 +96,15 @@ vectors representing rows satisfying the user specified query conditions.
 
 \subsection table Operations on Tables
 
-The main class representing this interface is  ibis::table.  The main
-query function of this class is  ibis::table::select, whose functionality
+The main class representing this interface is ibis::table.  The main query
+function of this class is ibis::table::select, whose functionality
 resembles a simplified form of the SELECT statement from the SQL language.
 This function takes two string as arguments, one corresponds to the select
 clause in SQL and the other corresponds to the where clause.  In the
 following, we will call them the select clause and the where clause and
-discuss the requirements and restriction on these clauses.
+discuss the requirements and restriction on these clauses.  The function
+ibis::table::select returns a new ibis::table when it completes
+successfully.  This new table can be used in further query operations.
 
 The select clause passed to function  ibis::table::select can only
 contain column names separated by comma (,).  Aggregate operations such as
@@ -193,11 +205,11 @@ the function  ibis::init.
 The author gratefully acknowledges the support from Kurt Stockinger, Ekow
 Otoo and Arie Shoshani.  They are crucial in establishing the foundation of
 the FastBit system and applying the software to a number of applications.
-Many thanks to the early users.  Their generous feedbacks and suggestions
+Many thanks to the early users.  Their generous feedback and suggestions
 are invaluable to the development of the software.  A full list of
 contributors is in the file <A
 HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/AUTHORS?root=fastbit&view=markup">AUTHORS</A>.
-User feedbacks affecting the code or documentation are recorded in <A
+User feedback affecting the code or documentation are recorded in <A
 HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>
 along with user names.
 
@@ -213,13 +225,13 @@ comments, bug reports, and patches to <fastbit-users@hpcrdm.lbl.gov>.
 */
 
 
-/// The current implementation of FastBit is code named IBIS and most data
+/// The current implementation of FastBit is code named IBIS; most data
 /// structures and functions are in the name space ibis.  The name IBIS
-/// could be considered as a short-hand for an implementation of Bitmap
-/// Index Searching system or Ibis Bitmap Index System.
+/// could be considered as a short-hand for an Implementation of Bitmap
+/// Indexing System or Ibis Bitmap Indexing System.
 namespace ibis {
-    /// Initializes internal resources required by FastBit code.  It
-    /// should be called by user code before any other functions.
+    /// Initializes internal resources required by FastBit.  It should be
+    /// called by user code before any other FastBit functions.
     ///
     /// @param rcfile A file containing name-value pairs that specifies
     ///   parameters for controlling the behavior of ibis.
@@ -290,7 +302,7 @@ namespace ibis {
 	    (void) ibis::util::gatherParts(ibis::datasets, ibis::gParameters());
 	if (0 != atexit(ibis::util::clearDatasets)) {
 	    if (ibis::gVerbose >= 0)
-		std::cerr << "ibis::init failed to register clean up function "
+		std::cerr << "ibis::init failed to register the function "
 		    "ibis::util::clearDatasets with atexit" << std::endl;
 	}
     }

@@ -149,6 +149,7 @@ MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
+OBJDIR = @OBJDIR@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
@@ -240,7 +241,7 @@ tests/TestFastBitJava.java
 @BUILD_JAVA_INTERFACE_TRUE@lib_LTLIBRARIES = libfastbitjni.la
 @BUILD_JAVA_INTERFACE_TRUE@libfastbitjni_la_SOURCES = FastBit.c
 @BUILD_JAVA_INTERFACE_TRUE@include_HEADERS = FastBit.h ../src/capi.h
-@BUILD_JAVA_INTERFACE_TRUE@libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la
+@BUILD_JAVA_INTERFACE_TRUE@libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la build.properties
 @BUILD_JAVA_INTERFACE_TRUE@libfastbitjni_la_LIBADD = ../src/libfastbit.la
 all: all-am
 
@@ -500,7 +501,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-includeHEADERS
+install-data-am: install-data-local install-includeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -554,12 +555,13 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-includeHEADERS install-info \
-	install-info-am install-libLTLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	install install-am install-data install-data-am \
+	install-data-local install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am \
+	install-includeHEADERS install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-includeHEADERS \
@@ -568,6 +570,12 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 #
 ../src/libfastbit.la::
 	cd ../src && $(MAKE) libfastbit.la
+#
+# build.properties is used to specify the locations of the JNI libraries
+build.properties::
+	echo "fastbit.library.path=$(PWD)/$(OBJDIR):$(PWD)/../src/$(OBJDIR)" >| build.properties
+install-data-local:
+	echo "fastbit.library.path=$(libdir)" >| build.properties
 #
 clean: clean-am
 	rm -f *~ *.class core core.[0-9]*
