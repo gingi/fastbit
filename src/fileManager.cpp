@@ -361,8 +361,8 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
 /// force all files in a directory to be unloaded used
 /// ibis::fileManager::flushDir.
 void ibis::fileManager::clear() {
-    if (ibis::gVerbose > 12 ||
-	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 6)) {
+    if (ibis::gVerbose > 6 ||
+	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 2)) {
 	ibis::util::logger lg;
 	lg.buffer() << "ibis::fileManager::clear -- starting ...";
 	printStatus(lg.buffer());
@@ -390,7 +390,7 @@ void ibis::fileManager::clear() {
 	    delete tmp[j];
     }
     LOGGER((ibis::fileManager::totalBytes() != 0 && ibis::gVerbose > 0) ||
-	   ibis::gVerbose > 8)
+	   ibis::gVerbose > 5)
 	<< "fileManager::clear -- completed with "
 	<< ibis::fileManager::totalBytes()
 	<< " byte" << (ibis::fileManager::totalBytes()>1 ? "s" : "")

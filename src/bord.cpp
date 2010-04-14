@@ -1133,9 +1133,12 @@ void ibis::bord::part::describe(std::ostream& out) const {
 		<< ibis::TYPESTRING[(int)(*it).second->type()];
     }
     else if (colorder.size() == columns.size()) {
-	for (uint32_t i = 0; i < columns.size(); ++ i)
+	for (uint32_t i = 0; i < columns.size(); ++ i) {
 	    out << "\n" << colorder[i]->name() << "\t"
 		<< ibis::TYPESTRING[(int)colorder[i]->type()];
+	    if (colorder[i]->description() != 0)
+		out << "\t" << colorder[i]->description();
+	}
     }
     else {
 	std::set<const char*, ibis::lessi> names;
@@ -1152,6 +1155,8 @@ void ibis::bord::part::describe(std::ostream& out) const {
 	    ibis::part::columnList::const_iterator cit = columns.find(*it);
 	    out << "\n" << (*cit).first << "\t"
 		<< ibis::TYPESTRING[(int)(*cit).second->type()];
+	    if (cit->second->description() != 0)
+		out << "\t" << (*cit).second->description();
 	}
     }
     out << std::endl;
@@ -1618,8 +1623,8 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	return new ibis::tabula(tn.c_str(), td.c_str(), nr);
 
     // prepare the types and values for the new table
-    std::vector<std::string> nms(nc);
-    std::vector<const char*> nmc(nc);
+    std::vector<std::string> nms(nc), des(nc);
+    std::vector<const char*> nmc(nc), dec(nc);
     ibis::table::typeList tps(nc);
     buf.resize(nc);
     uint32_t jbdl = 0;
@@ -1628,6 +1633,8 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	void *bptr = 0;
 	nms[i] = sel.termName(i);
 	nmc[i] = nms[i].c_str();
+	sel.describe(i, des[i]);
+	dec[i] = des[i].c_str();
 	if (*(sel.argName(i)) == '*' &&
 	    sel.getAggregator(i) == ibis::selectClause::CNT) {
 	    countstar = true;
@@ -1691,12 +1698,13 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     if (! countstar) {// if count(*) is not already there, add it
 	array_t<uint32_t>* cnts = new array_t<uint32_t>;
 	bdl->rowCounts(*cnts);
-	nmc.push_back("COUNT(*)");
+	nmc.push_back("count0");
+	dec.push_back("COUNT(*)");
 	tps.push_back(ibis::UINT);
 	buf.push_back(cnts);
     }
     delete bdl;
-    return new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc);
+    return new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec);
 } // ibis::bord::part::groupby
 
 long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
@@ -1998,6 +2006,7 @@ long ibis::bord::part::sortValues(array_t<T>& vals,
     }
     if (idxin.empty() || starts.size() < 2 || starts[0] != 0
 	|| starts.back() != vals.size()) {
+	vals.nosharing(); // make a copy if necessary
 	starts.resize(2);
 	starts[0] = 0;
 	starts[1] = vals.size();

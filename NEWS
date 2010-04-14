@@ -1,3 +1,29 @@
+Version ibis1.1.7
+-- address the problem with trailing directory separator reported by
+   Valeria Lorenzetti
+-- rename old join expression to deprecatedJoin
+-- add special case to handle constant expressions in the where clauses
+-- add parser for the from clauses
+-- add a skeleton of query class named ibis::quaere
+-- add checks to address reference counting problems reported by Zeid
+   Derhally
+-- remove the verboseness level argument from ibis::init, add a new
+   function named ibis::util::setVerboseLevel to address the problem
+   with 'make check'
+-- correct the values returned by ibis::tabele::cursor (a patch by
+   Andreas Streichardt)
+-- fix the bug related to 'count(*)' reported by Andreas Streichardt
+-- fix incorrect variable names in fileManager::getFile reported by
+   Teryl Taylor
+-- add fastbit_get_qualified_strings in the C API at the request of Joze
+   Nazario
+-- add util::readUInt to handle the test case suggested by Arian Baer
+-- expand the implementation of ibis::bord::column to make it fully
+   compatible with ibis::column (to support queries on in-memory data
+   partitions produced from another query, a feature suggested by both
+   Arian Baer and Teryl Taylor)
+
+
 Fri Jan 29 12:10:21 PST 2010
 Version ibis1.1.6
 -- minor changes to avoid some problems with PGI compilers

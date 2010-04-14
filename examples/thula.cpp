@@ -626,7 +626,16 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    }
 	    else {
 		try {
-		    sel->dump(std::cout);
+		    size_t nprt = 10;
+		    if (ibis::gVerbose > 30) {
+			nprt = static_cast<size_t>(n0);
+		    }
+		    else if ((1U << ibis::gVerbose) > nprt) {
+			nprt = (1U << ibis::gVerbose);
+		    }
+		    if (nprt > n0)
+			nprt = static_cast<size_t>(n0);
+		    sel->dump(std::cout, nprt);
 		}
 		catch (...) {
 		    printValues(*sel);
@@ -670,6 +679,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		std::cout << mesg << " passed the test on class function "
 		    "ibis::table::select\n" << std::endl;
 	    }
+	    delete sel2;
 	}
     }
 

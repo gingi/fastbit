@@ -163,8 +163,45 @@ int ibis::selectClause::parse(const char *cl) {
 /// Write the string form of the ith term into str.
 void ibis::selectClause::describe(unsigned i, std::string &str) const {
     if (i >= terms_.size()) return;
-    if (! xnames_[i].empty()) {
-	str = xnames_[i];
+    if (terms_[i] != 0) {
+	std::ostringstream oss;
+	switch (aggr_[i]) {
+	default:
+	    oss << *(terms_[i]);
+	    break;
+	case AVG:
+	    oss << "AVG(" << *(terms_[i]) << ')';
+	    break;
+	case CNT:
+	    oss << "COUNT(" << *(terms_[i]) << ')';
+	    break;
+	case MAX:
+	    oss << "MAX(" << *(terms_[i]) << ')';
+	    break;
+	case MIN:
+	    oss << "MIN(" << *(terms_[i]) << ')';
+	    break;
+	case SUM:
+	    oss << "SUM(" << *(terms_[i]) << ')';
+	    break;
+	case VARPOP:
+	    oss << "VARPOP(" << *(terms_[i]) << ')';
+	    break;
+	case VARSAMP:
+	    oss << "VARSAMP(" << *(terms_[i]) << ')';
+	    break;
+	case STDPOP:
+	    oss << "STDPOP(" << *(terms_[i]) << ')';
+	    break;
+	case STDSAMP:
+	    oss << "STDSAMP(" << *(terms_[i]) << ')';
+	    break;
+	case DISTINCT:
+	    oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
+	    break;
+	}
+
+	str = oss.str();
     }
     else if (! names_[i].empty()) {
 	switch (aggr_[i]) {
@@ -223,45 +260,8 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
 	    break;
 	}
     }
-    else if (terms_[i] != 0) {
-	std::ostringstream oss;
-	switch (aggr_[i]) {
-	default:
-	    oss << *(terms_[i]);
-	    break;
-	case AVG:
-	    oss << "AVG(" << *(terms_[i]) << ')';
-	    break;
-	case CNT:
-	    oss << "COUNT(" << *(terms_[i]) << ')';
-	    break;
-	case MAX:
-	    oss << "MAX(" << *(terms_[i]) << ')';
-	    break;
-	case MIN:
-	    oss << "MIN(" << *(terms_[i]) << ')';
-	    break;
-	case SUM:
-	    oss << "SUM(" << *(terms_[i]) << ')';
-	    break;
-	case VARPOP:
-	    oss << "VARPOP(" << *(terms_[i]) << ')';
-	    break;
-	case VARSAMP:
-	    oss << "VARSAMP(" << *(terms_[i]) << ')';
-	    break;
-	case STDPOP:
-	    oss << "STDPOP(" << *(terms_[i]) << ')';
-	    break;
-	case STDSAMP:
-	    oss << "STDSAMP(" << *(terms_[i]) << ')';
-	    break;
-	case DISTINCT:
-	    oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
-	    break;
-	}
-
-	str = oss.str();
+    else if (! xnames_[i].empty()) {
+	str = xnames_[i];
     }
 } // ibis::selectClause::describe
 
@@ -295,7 +295,7 @@ void ibis::selectClause::fillNames() {
 	}
 	else {
 	    std::ostringstream oss;
-	    oss << 's' << std::hex << std::setprecision(prec) << j;
+	    oss << 's' << std::hex << std::setprecision(prec) << j+1;
 	    names_[j] = oss.str();
 	}
 
@@ -339,7 +339,7 @@ void ibis::selectClause::fillNames() {
 		oss << "count";
 		break;
 	    }
-	    oss << std::hex << std::setprecision(prec) << j;
+	    oss << std::hex << std::setprecision(prec) << j+1;
 	    xnames_[j] = oss.str();
 	}
     }

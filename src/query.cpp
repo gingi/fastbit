@@ -280,7 +280,7 @@ int ibis::query::setPartition(const part* tbl) {
     if (! conds.empty()) {
 	int ierr = conds.verify(*tbl);
 	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- query[" << myID << "]::setPartition failed to "
 		"find all names in \""
 		<< (conds.getString()?conds.getString():"<long expression>")
@@ -344,7 +344,7 @@ int ibis::query::setSelectClause(const char* str) {
     if (mypart != 0) {
 	int ierr = sc.verify(*mypart);
 	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- query[" << myID << "]::setSelectClause(" << str
 		<< ") failed to find all column names in data partition "
 		<< mypart->name();
@@ -405,7 +405,7 @@ int ibis::query::setWhereClause(const char* str) {
 	if (mypart != 0) {
 	    int ierr = tmp.verify(*mypart);
 	    if (ierr != 0) {
-		LOGGER(ibis::gVerbose >= 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- query[" << myID << "]::setWhereClause "
 		    "failed to verify the where clause \"" << str
 		    << "\" with partition " << mypart->name()

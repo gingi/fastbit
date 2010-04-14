@@ -6,6 +6,14 @@
 	to the static functions ibis::table::select and ibis::filter::filt
 	regarding the column names in the result table, use the output of
 	ibis::selectClause::termName
+	* src/bord.cpp:2001 add a copy to nosharing to address the seg
+	fault problem reported by Valeria Lorenzetti
+	* src/bord.cpp: modify the name of the column for count(*) to be
+	count0, change the integer following the rest of the column to
+	start with 1
+	* examples/thula.cpp:682 add statement to delete sel2, it causes
+	function fileManager::clear to deadlock when selecting everything
+	from a data partition (a test case used by Valeria Lorenzetti)
 
 2010-04-12 John Wu <John.Wu at ACM.org>
 	* src/mensa.cpp: split the code to handle each column type
@@ -63,7 +71,7 @@
 
 2010-03-03 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: modify test case 2 of check-ibis to exercise
-	the error caught by Andreas
+	the error caught by Andreas Streichardt
 	* src/selectClause.cpp:479 add code to prevent the checking of
 	variable name "*"
 	* src/whereClause.cpp:250 add check for variable name starting

@@ -135,9 +135,7 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* arr = static_cast<array_t<int32_t>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr); // shallow copy
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
@@ -189,9 +187,7 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
     switch (c->type()) {
     case ibis::UINT: {
 	const array_t<uint32_t>* arr = static_cast<array_t<uint32_t>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr);
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
@@ -306,9 +302,7 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
@@ -373,9 +367,7 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* arr = static_cast<array_t<uint64_t>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* arr = static_cast<array_t<int64_t>*>(vals);
@@ -458,9 +450,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* arr = static_cast<array_t<float>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
@@ -537,9 +527,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* arr = static_cast<array_t<double>*>(vals);
-	array->resize(arr->size());
-	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i] = (*arr)[i];
+	array->copy(*arr);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)

@@ -3141,17 +3141,19 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
     num2 = aQuery.setWhereClause(wstr);
     if (num2 < 0) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 3)
 	    << "Warning -- doQuery failed to assigned the where clause \""
-	    << wstr << "\" to a query object, return value = " << num2;
+	    << wstr << "\" on partition " << tbl->name()
+	    << ", setWhereClause returned " << num2;
 	return;
     }
     if (sstr != 0 && *sstr != 0) {
 	num2 = aQuery.setSelectClause(sstr);
 	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 3)
 		<< "Warning -- doQuery failed to assign the select clause \""
-		<< sstr << "\" to a query object, return value = " << num2;
+		<< sstr << "\" on partition " << tbl->name()
+		<< ", setSelectClause returned " << num2;
 	    return;
 	}
 
