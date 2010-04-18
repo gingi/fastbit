@@ -2412,6 +2412,55 @@ ibis::bord::column::~column() {
     }
 } // ibis::bord::column::~column
 
+/// Retrieve the raw data buffer as an ibis::fileManager::storage.  Since
+/// this function exposes the internal storage representation, it should
+/// not be relied upon for general uses.  This is mostly a convenience
+/// thing for FastBit internal development!
+///
+/// @note Only fix-sized columns are stored using
+/// ibis::fileManager::storage objects.  It will return a nil pointer for
+/// string-valued columns.
+inline ibis::fileManager::storage*
+ibis::bord::column::getRawData() const {
+    ibis::fileManager::storage *str = 0;
+    switch (m_type) {
+    case ibis::BYTE: {
+	str = static_cast<array_t<char>*>(buffer)->getStorage();
+	break;}
+    case ibis::UBYTE: {
+	str = static_cast<array_t<unsigned char>*>(buffer)->getStorage();
+	break;}
+    case ibis::SHORT: {
+	str = static_cast<array_t<int16_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::USHORT: {
+	str = static_cast<array_t<uint16_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::INT: {
+	str = static_cast<array_t<int32_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::UINT: {
+	str = static_cast<array_t<uint32_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::LONG: {
+	str = static_cast<array_t<int64_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::ULONG: {
+	str = static_cast<array_t<uint64_t>*>(buffer)->getStorage();
+	break;}
+    case ibis::FLOAT: {
+	str = static_cast<array_t<float>*>(buffer)->getStorage();
+	break;}
+    case ibis::DOUBLE: {
+	str = static_cast<array_t<double>*>(buffer)->getStorage();
+	break;}
+    default: {
+	break;}
+    }
+
+    return str;
+} // ibis::bord::column::getRawData
+
 void ibis::bord::column::computeMinMax(const char *,
 				       double &min, double &max) const {
     if (buffer == 0) return;

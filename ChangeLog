@@ -1,3 +1,9 @@
+2010-04-16 John Wu <John.Wu at ACM.org>
+	* src/part.cpp: change ibis::part::barrel::open to work with
+	in-memory data, change doScan to use ibis::part::barrel instead of
+	ibis::math::barrel (to address a problem reported by Andreas
+	Streichardt)
+
 2010-04-14 John Wu <John.Wu at ACM.org>
 	* java/Makefile.am: add targets to generate build.properties to
 	work with the modified build.xml

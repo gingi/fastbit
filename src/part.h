@@ -179,8 +179,7 @@ public:
     /// range conditions.
     virtual long doScan(const ibis::compRange &cmp,
 			const ibis::bitvector &mask,
-			ibis::bitvector &hits,
-			ibis::math::barrel* bar=0) const;
+			ibis::bitvector &hits) const;
 
     /// Locate the records that satisfy the range condition.
     template <typename E>

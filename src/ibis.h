@@ -36,7 +36,7 @@ and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
 
 \section intro Introduction
-FastBit is a open-source data processing library following the spirit of
+FastBit is an open-source data processing library following the spirit of
 <A HREF="http://en.wikipedia.org/wiki/NoSQL">NoSQL movement</A>.  It offers
 a set of searching functions supported by compressed bitmap indexes.  It
 recognizes user data in the column-oriented fashion similar to
@@ -50,7 +50,7 @@ control of FastBit software.
 An <A HREF="http://en.wikipedia.org/wiki/Index_%28database%29">index in a
 database system</A> is a data structure that utilizes redundant information
 about the base data to speed up common searching and retrieval operations.
-The majority of commonly used indexes are variants of <A
+Most of the commonly used indexes are variants of <A
 HREF="http://portal.acm.org/citation.cfm?id=356776">B-trees</A>, such as
 B+-tree and B*-tree.  FastBit implements a set of alternative indexes
 called compressed <A HREF="http://en.wikipedia.org/wiki/Bitmap_index">bitmap
@@ -202,20 +202,22 @@ the function  ibis::init.
 
 \section ack Acknowledgments
 
-The author gratefully acknowledges the support from Kurt Stockinger, Ekow
-Otoo and Arie Shoshani.  They are crucial in establishing the foundation of
-the FastBit system and applying the software to a number of applications.
-Many thanks to the early users.  Their generous feedback and suggestions
-are invaluable to the development of the software.  A full list of
-contributors is in the file <A
+The software programer gratefully acknowledges the support from the
+research colleagues Kurt Stockinger, Ekow Otoo and Arie Shoshani.  They are
+crucial in establishing the foundation of the FastBit system and applying
+the software to a number of applications.  Many thanks to the early users.
+Their generous feedback and suggestions are invaluable to the development
+of the software.  A full list of contributors is in the file <A
 HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/AUTHORS?root=fastbit&view=markup">AUTHORS</A>.
-User feedback affecting the code or documentation are recorded in <A
+User feedback affecting the code and documentation is recorded in <A
 HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>
 along with user names.
 
 This work was supported by the Director, Office of Science, Office of
 Advanced Scientific Computing Research, of the U.S. Department of Energy
-under Contract No. DE-AC02-05CH11231 and DE-AC03-76SF00098.
+under Contract No. DE-AC02-05CH11231 and DE-AC03-76SF00098.  It also uses
+resources of the <A HREF="http://nersc.gov/">National Energy Research
+Scientific Computing Center</A>.
 
 \section additional Additional Information
 

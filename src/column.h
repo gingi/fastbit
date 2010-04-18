@@ -132,7 +132,7 @@ public:
     /// Return all rows of the column as an array_t object.
     virtual int getValuesArray(void* vals) const;
     /// Return the content of base data file as storage object.
-    ibis::fileManager::storage* getRawData() const;
+    virtual ibis::fileManager::storage* getRawData() const;
 
     /// Return selected rows of the column in an array_t object.  Caller is
     /// responsible for deleting the returned object.

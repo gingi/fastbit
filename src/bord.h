@@ -227,7 +227,6 @@ public:
     int  limit(uint32_t nr);
 
     void* getArray() const {return buffer;}
-    template <typename T> int getRawData(array_t<T> &vals) const;
     int dump(std::ostream& out, uint32_t i) const;
 
     int restoreCategoriesAsStrings(const ibis::part&);
@@ -415,22 +414,6 @@ ibis::bord::part::restoreCategoriesAsStrings(const ibis::part& prt,
     else
 	return -2;
 } // ibis::bord::part::restoreCategoriesAsStrings
-
-/// Retrieve the raw data buffer as an ibis::array_t object.
-///@note NO type check, caller need to make sure the currect type is
-///specified.  In addition, string valued columns are stored as
-///std::vector<std::string> not ibis::array_t!
-template <typename T>
-inline int ibis::bord::column::getRawData(array_t<T> &vals) const {
-    array_t<T> tmp(*static_cast<const array_t<T>*>(buffer));
-    vals.swap(tmp);
-    return 0;
-} // ibis::bord::column::getRawData
-
-inline ibis::fileManager::storage*
-ibis::bord::column::getRawData() const {
-    return 0;
-} // ibis::bord::column::getRawData
 
 inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     int ierr = -1;

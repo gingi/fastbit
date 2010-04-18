@@ -3078,7 +3078,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	}
 
 	std::ostringstream oss;
-	oss << floor(0.5*(minval+maxval)) << " <= " << cn.back();
+	oss << "log(" << (0.5*(minval+maxval)) << ") <= log(" << cn.back() << ')';
 	std::auto_ptr<ibis::table>
 	    res3(res->select(sel3.c_str(), oss.str().c_str()));
 	if (res3.get() == 0) {

@@ -4294,55 +4294,26 @@ float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
     return ret;
 } // ibis::part::getUndecidable
 
-/// Sequential scan without a mask.  Use the NULL mask of all attributes as
-/// the default mask.
+/// Sequential scan without a mask.  It assumes that every row is to be
+/// examined.
 long ibis::part::doScan(const ibis::compRange &cmp,
 			ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0)
 	return 0;
 
     ibis::bitvector mask;
-    ibis::math::barrel bar;
-    if (cmp.getLeft())
-	bar.recordVariable(static_cast<const ibis::math::term*>
-			   (cmp.getLeft()));
-    if (cmp.getRight())
-	bar.recordVariable(static_cast<const ibis::math::term*>
-			   (cmp.getRight()));
-    if (cmp.getTerm3())
-	bar.recordVariable(static_cast<const ibis::math::term*>
-			   (cmp.getTerm3()));
-
     mask.set(1, nEvents); // initialize mask to have all set bit
-    for (uint32_t i = 0; i < bar.size(); ++i) {
-	// go through the list of variables to determine the real null mask
-	columnList::const_iterator it = columns.find(bar.name(i));
-	if (it != columns.end()) {
-	    ibis::bitvector tmp;
-	    (*it).second->getNullMask(tmp);
-	    mask &= tmp;
-	}
-	else {
-	    logWarning("doScan", "unable to find column %s "
-		       "in the partition", bar.name(i));
-	    hits.clear();
-	    return 0;
-	}
-    }
-
-    return doScan(cmp, mask, hits, &bar);
+    return doScan(cmp, mask, hits);
 } // ibis::part::doScan
 
-/// Perform a sequential scan with a mask -- perform comparison on the i'th
-/// element if mask[i] is set (mask[i] == 1).
-///
-/// Argument bar is used as workspace to store the values of the variables.
+/// This implementation uses ibis::part::barrel for handling actual values
+/// needed.
 long ibis::part::doScan(const ibis::compRange &cmp,
 			const ibis::bitvector &mask,
-			ibis::bitvector &hits,
-			ibis::math::barrel* bar) const {
+			ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0)
 	return 0;
+
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
 	LOGGER(ibis::gVerbose > 2)
@@ -4353,772 +4324,79 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	timer.start();
     }
 
-    ibis::math::barrel* vlist = bar;
-    ibis::math::barrel* barr = 0;
+    ibis::part::barrel vlist(this);
     long ierr = 0;
-    if (bar == 0) { // need to collect the names of all variables
-	barr = new ibis::math::barrel;
-	if (cmp.getLeft())
-	    barr->recordVariable(static_cast<const ibis::math::term*>
-				 (cmp.getLeft()));
-	if (cmp.getRight())
-	    barr->recordVariable(static_cast<const ibis::math::term*>
-				 (cmp.getRight()));
-	if (cmp.getTerm3())
-	    barr->recordVariable(static_cast<const ibis::math::term*>
-				 (cmp.getTerm3()));
-	vlist = barr;
+    if (cmp.getLeft())
+	vlist.recordVariable(static_cast<const ibis::math::term*>
+			     (cmp.getLeft()));
+    if (cmp.getRight())
+	vlist.recordVariable(static_cast<const ibis::math::term*>
+			     (cmp.getRight()));
+    if (cmp.getTerm3())
+	vlist.recordVariable(static_cast<const ibis::math::term*>
+			     (cmp.getTerm3()));
+
+    ibis::bitvector mymask;
+    vlist.getNullMask(mymask);
+    mymask &= mask;
+    if (vlist.size() == 0) { // a constant expression
+	if (cmp.inRange())
+	    hits.copy(mymask);
+	else
+	    hits.set(mymask.size(), 0);
+	ierr = hits.cnt();
+	return ierr;
     }
 
-    if (vlist->size() > 0) {
-	// use a list of ibis::fileManager::storage as the primary means for
-	// accessing the actual values, if we can not generate the storage
-	// object, try to open the named file directly
-	std::vector< ibis::fileManager::storage* > stores(vlist->size(), 0);
-	std::vector< ibis::column* > cols(vlist->size(), 0);
-	std::vector< int > fdes(vlist->size(), -1);
-	for (uint32_t i = 0; i < vlist->size(); ++i) {
-	    columnList::const_iterator it = columns.find(vlist->name(i));
-	    if (it != columns.end()) {
-		cols[i] = (*it).second;
-		std::string sname;
-		const char* file = (*it).second->dataFileName(sname);
-		if (0 != ibis::fileManager::instance().
-		    getFile(file, &(stores[i]))) {
-		    delete stores[i];
-		    stores[i] = 0;
-		    fdes[i] = UnixOpen(file, OPEN_READONLY);
-		    if (fdes[i] < 0) {
-			for (uint32_t j = 0; j < i; ++j) {
-			    delete stores[j];
-			    if (fdes[j] >= 0)
-				UnixClose(fdes[j]);
-			}
-			logWarning("doScan", "unable to open file "
-				   "\"%s\"", file);
-			delete [] file;
-			if (bar == 0)
-			    delete barr;
-			return 0;
-		    }
-#if defined(_WIN32) && defined(_MSC_VER)
-		    (void)_setmode(fdes[i], _O_BINARY);
-#endif
-		}
-	    }
-	    else {
-		for (uint32_t j = 0; j < i; ++j) {
-		    if (fdes[j] >= 0)
-			UnixClose(fdes[j]);
-		    logWarning("doScan", "no attribute with name "
-			       "\"%s\"", vlist->name(i));
-		    if (bar == 0)
-			delete barr;
-		    return 0;
-		}
-	    }
-	}
+    ierr = vlist.open();
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+	    << "]::doScan -- failed to prepare data for " << cmp;
+	return ierr;
+    }
 
-	for (uint32_t i = 0; i < vlist->size(); ++i) {
-	    if (stores[i] != 0)
-		stores[i]->beginUse();
-	}
+    const bool uncomp = ((mymask.size() >> 8) < mymask.cnt());
+    if (uncomp) { // use uncompressed hits internally
+	hits.set(0, mymask.size());
+	hits.decompress();
+    }
+    else {
+	hits.clear();
+	hits.reserve(mymask.size(), mymask.cnt());
+    }
 
-	const bool uncomp = ((mask.size() >> 8) < mask.cnt());
-	if (uncomp) { // use uncompressed hits internally
-	    hits.set(0, mask.size());
-	    hits.decompress();
+    // attempt to feed the values into vlist and evaluate the arithmetic
+    // expression through ibis::compRange::inRange
+    ibis::bitvector::indexSet idx = mymask.firstIndexSet();
+    const ibis::bitvector::word_t *iix = idx.indices();
+    while (idx.nIndices() > 0) {
+	if (idx.isRange()) {
+	    // move the file pointers of open files
+	    vlist.seek(*iix);
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.read(); // read the value into memory
+		if (cmp.inRange()) // actual comparison
+		    hits.setBit(j + *iix, 1);
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
 	}
 	else {
-	    hits.clear();
-	    hits.reserve(mask.size(), mask.cnt());
-	}
-
-	// attempt to feed the values into vlist and evaluate the arithmetic
-	// expression through ibis::compRange::inRange
-	ibis::bitvector::indexSet idx = mask.firstIndexSet();
-	const ibis::bitvector::word_t *iix = idx.indices();
-	while (idx.nIndices() > 0) {
-	    if (idx.isRange()) {
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
 		// move the file pointers of open files
-		for (uint32_t i = 0; i < vlist->size(); ++i) {
-		    if (fdes[i] >= 0) {
-			uint32_t tmp1, tmp2;
-			tmp1 = cols[i]->elementSize() * *iix;
-			tmp2 = cols[i]->elementSize() * iix[1];
-			ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
-			if (ierr < 0) {
-			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
-				<< (m_name ? m_name : "?")
-				<< "]::doScan(" << cmp
-				<< ") failed to seek to " << tmp1
-				<< " in file " << fdes[i];
-			    for (uint32_t k = 0; k < vlist->size(); ++k) {
-				if (fdes[k] >= 0)
-				    UnixClose(fdes[k]);
-			    }
-			    if (bar == 0) delete barr;
-			    return -2;
-			}
-			ibis::fileManager::instance().recordPages(tmp1, tmp2);
-		    }
-		}
-		for (uint32_t j = 0; j < idx.nIndices(); ++j) {
-		    for (uint32_t i = 0; i < vlist->size(); ++i) {
-			switch (cols[i]->type()) {
-			case ibis::ULONG: {
-			    // unsigned integer
-			    uint64_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint64_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::LONG: {
-			    // signed integer
-			    int64_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int64_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::CATEGORY:
-			case ibis::UINT:
-			case ibis::TEXT: {
-			    // unsigned integer
-			    uint32_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint32_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::INT: {
-			    // signed integer
-			    int32_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int32_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::USHORT: {
-			    // unsigned short integer
-			    uint16_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint16_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::SHORT: {
-			    // signed short integer
-			    int16_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int16_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::UBYTE: {
-			    // unsigned char
-			    unsigned char utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned char*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::BYTE: {
-			    // signed char
-			    signed char itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<signed char*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::FLOAT: {
-			    // 4-byte IEEE floating-point values
-			    float ftmp;
-			    if (stores[i]) {
-				ftmp = *(reinterpret_cast<float*>
-					 (stores[i]->begin() +
-					  sizeof(ftmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = ftmp;
-			    break;
-			}
-			case ibis::DOUBLE: {
-			    // 8-byte IEEE floating-point values
-			    double dtmp;
-			    if (stores[i]) {
-				dtmp = *(reinterpret_cast<double*>
-					 (stores[i]->begin() +
-					  sizeof(dtmp) * (j + *iix)));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = dtmp;
-			    break;
-			}
-			case ibis::OID:
-			default: {
-			    logWarning("doScan", "unable to evaluate "
-				       "attribute of type %d (name: %s)",
-				       cols[i]->type(), cols[i]->name());
-			    for (uint32_t k = 0; k < vlist->size(); ++k) {
-				if (fdes[k] >= 0)
-				    UnixClose(fdes[k]);
-			    }
-			    if (bar == 0)
-				delete barr;
-			    return 0;
-			}
-			}
-		    } // for (uint32_t i = 0; i < vlist->size(); ++i)
-
-		    if (cmp.inRange())
-			hits.setBit(j + *iix, 1);
-		} // for (uint32_t j = 0; j < idx.nIndices(); ++j)
-	    }
-	    else {
-		for (uint32_t j = 0; j < idx.nIndices(); ++j) {
-		    for (uint32_t i = 0; i < vlist->size(); ++i) {
-			if (fdes[i] >= 0) {
-			    // move the file pointers of open files
-			    unsigned tmp1 = cols[i]->elementSize() * iix[j];
-			    ierr = UnixSeek(fdes[i], tmp1, SEEK_SET);
-			    if (ierr < 0) {
-				LOGGER(ibis::gVerbose > 0)
-				    << "Warning -- ibis::part["
-				    << (m_name ? m_name : "?")
-				    << "]::doScan(" << cmp
-				    << ") failed to seek to " << tmp1
-				    << " in file " << fdes[i];
-				for (uint32_t k = 0; k < vlist->size(); ++k) {
-				    if (fdes[k] >= 0)
-					UnixClose(fdes[k]);
-				}
-				if (bar == 0) delete barr;
-				return -2;
-			    }
-			}
-
-			switch (cols[i]->type()) {
-			case ibis::ULONG: {
-			    // unsigned integer
-			    uint64_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint64_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::LONG: {
-			    // signed integer
-			    int64_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int64_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::CATEGORY:
-			case ibis::UINT:
-			case ibis::TEXT: {
-			    // unsigned integer
-			    uint32_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint32_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::INT: {
-			    // signed integer
-			    int32_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int32_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::USHORT: {
-			    // unsigned short integer
-			    uint16_t utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<uint16_t*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::SHORT: {
-			    // signed short integer
-			    int16_t itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<int16_t*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::UBYTE: {
-			    // unsigned char
-			    unsigned char utmp;
-			    if (stores[i]) {
-				utmp = *(reinterpret_cast<unsigned char*>
-					 (stores[i]->begin() +
-					  sizeof(utmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &utmp, sizeof(utmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = utmp;
-			    break;
-			}
-			case ibis::BYTE: {
-			    // signed char
-			    signed char itmp;
-			    if (stores[i]) {
-				itmp = *(reinterpret_cast<signed char*>
-					 (stores[i]->begin() +
-					  sizeof(itmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &itmp, sizeof(itmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = itmp;
-			    break;
-			}
-			case ibis::FLOAT: {
-			    // 4-byte IEEE floating-point values
-			    float ftmp;
-			    if (stores[i]) {
-				ftmp = *(reinterpret_cast<float*>
-					 (stores[i]->begin() +
-					  sizeof(ftmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &ftmp, sizeof(ftmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = ftmp;
-			    break;
-			}
-			case ibis::DOUBLE: {
-			    // 8-byte IEEE floating-point values
-			    double dtmp;
-			    if (stores[i]) {
-				dtmp = *(reinterpret_cast<double*>
-					 (stores[i]->begin() +
-					  sizeof(dtmp) * (iix[j])));
-			    }
-			    else {
-				ierr = UnixRead(fdes[i], &dtmp, sizeof(dtmp));
-				if (ierr < 0) {
-				    LOGGER(ibis::gVerbose > 0)
-					<< "Warning -- ibis::part["
-					<< (m_name ? m_name : "?")
-					<< "]::doScan(" << cmp
-					<< ") failed to read "
-					<< "from file " << fdes[i];
-				    for (uint32_t k = 0; k < vlist->size(); ++k) {
-					if (fdes[k] >= 0)
-					    UnixClose(fdes[k]);
-				    }
-				    if (bar == 0) delete barr;
-				    return -3;
-				}
-			    }
-			    vlist->value(i) = dtmp;
-			    break;
-			}
-			case ibis::OID:
-			default: {
-			    logWarning("doScan", "unable to evaluate "
-				       "attribute of type %d (name: %s)",
-				       cols[i]->type(), cols[i]->name());
-			    for (uint32_t k = 0; k < vlist->size(); ++k) {
-				if (fdes[k] >= 0)
-				    UnixClose(fdes[k]);
-			    }
-			    if (bar == 0)
-				delete barr;
-			    return 0;
-			}
-			}
-		    } // for (uint32_t i = 0; i < vlist->size(); ++i)
-
-		    if (cmp.inRange())
-			hits.setBit(iix[j], 1);
-		} // for (uint32_t j = 0; j < idx.nIndices(); ++j)
-	    }
-
-	    ++ idx;
-	} // while (idx.nIndices() > 0)
-
-	if (uncomp)
-	    hits.compress();
-	else if (hits.size() < nEvents)
-	    hits.setBit(nEvents-1, 0);
-	for (uint32_t i = 0; i < vlist->size(); ++i) {
-	    if (stores[i])
-		stores[i]->endUse();
-	    if (fdes[i] >= 0)
-		UnixClose(fdes[i]);
+		vlist.seek(iix[j]);
+		vlist.read(); // read values
+		if (cmp.inRange()) // actual comparison
+		    hits.setBit(iix[j], 1);
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
 	}
-    }
-    else { // a constant expression
-	if (cmp.inRange())
-	    hits.copy(mask);
-	else
-	    hits.set(mask.size(), 0);
-    }
 
-    if (bar == 0) // we have declared our own copy of ibis::math::barrel
-	delete barr;
+	++ idx;
+    } // while (idx.nIndices() > 0)
+
+    if (uncomp)
+	hits.compress();
+    else if (hits.size() < nEvents)
+	hits.setBit(nEvents-1, 0);
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
@@ -5186,7 +4464,14 @@ long ibis::part::calculate(const ibis::math::term &trm,
     }
 
     // open all necessary files
-    vlist.open();
+    ierr = vlist.open();
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+	    << "]::calculate -- failed to prepare data for " << trm;
+	return ierr;
+    }
+
     // feed the values into vlist and evaluate the arithmetic expression
     ibis::bitvector::indexSet idx = msk.firstIndexSet();
     const ibis::bitvector::word_t *iix = idx.indices();
@@ -12401,6 +11686,15 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     }
 } // ibis::part::barrel::getNullMask
 
+/// If the data files are on disk, then attempt to read the content through
+/// ibis::fileManager::getFile first.  If that fails, open the data file
+/// and so that each value can be read one at a time.  If the data files
+/// are not on disk, it invokes the function getRawData to get a pointer to
+/// the raw data in memory.  Upon successful completion, it returns 0,
+/// otherwise it returns a negative value to indicate error conditions.
+///
+/// The argument t may be left as nil if the barrel object was initialized
+/// with a valid pointer to the ibis::part object.
 long ibis::part::barrel::open(const ibis::part *t) {
     long ierr = 0;
     position = 0;
@@ -12424,55 +11718,80 @@ long ibis::part::barrel::open(const ibis::part *t) {
 	cols[i] = 0;
     }
 
-    std::string dfn = t->currentDataDir();
-    uint32_t dirlen = dfn.size();
-    if (dfn[dirlen-1] != FASTBIT_DIRSEP) {
-	dfn += FASTBIT_DIRSEP;
-	++ dirlen;
-    }
+    if (t->currentDataDir() != 0 && *(t->currentDataDir()) != 0) {
+	std::string dfn = t->currentDataDir();
+	uint32_t dirlen = dfn.size();
+	if (dfn[dirlen-1] != FASTBIT_DIRSEP) {
+	    dfn += FASTBIT_DIRSEP;
+	    ++ dirlen;
+	}
 
-    for (uint32_t i = 0; i < size(); ++ i) {
-	ibis::column *col = t->getColumn(name(i));
-	if (col == 0) {
-	    fdes.resize(i);
-	    close();
-	    ierr = -2;
-	    t->logWarning("barrel::open",
-			  "failed to find a column named \"%s\"",
-			  name(i));
-	    return ierr;
-	}
-	// use the name from col variable to ensure the case is correct
-	dfn += col->name();
-	// use getFile first
-	ierr = ibis::fileManager::instance().
-	    getFile(dfn.c_str(), &(stores[i]));
-	if (ierr == 0) {
-	    stores[i]->beginUse();
-	}
-	else { // getFile failed, open the name file
-	    fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
-	    if (fdes[i] < 0) {
-		t->logWarning("barrel::open",
-			      "failed to open file \"%s\"", dfn.c_str());
+	for (uint32_t i = 0; i < size(); ++ i) {
+	    ibis::column *col = t->getColumn(name(i));
+	    if (col == 0) {
 		fdes.resize(i);
 		close();
-		ierr = -3;
+		ierr = -2;
+		t->logWarning("barrel::open",
+			      "failed to find a column named \"%s\"",
+			      name(i));
 		return ierr;
 	    }
+	    // use the name from col variable to ensure the case is correct
+	    dfn += col->name();
+	    // use getFile first
+	    ierr = ibis::fileManager::instance().
+		getFile(dfn.c_str(), &(stores[i]));
+	    if (ierr == 0) {
+		stores[i]->beginUse();
+	    }
+	    else { // getFile failed, open the name file
+		fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
+		if (fdes[i] < 0) {
+		    t->logWarning("barrel::open",
+				  "failed to open file \"%s\"", dfn.c_str());
+		    fdes.resize(i);
+		    close();
+		    ierr = -3;
+		    return ierr;
+		}
 #if defined(_WIN32) && defined(_MSC_VER)
-	    (void)_setmode(fdes[i], _O_BINARY);
+		(void)_setmode(fdes[i], _O_BINARY);
 #endif
+	    }
+	    if (size() > 1)
+		dfn.erase(dirlen);
+	    cols[i] = col;
 	}
-	if (size() > 1)
-	    dfn.erase(dirlen);
-	cols[i] = col;
+    }
+    else { // in-memory data
+	for (uint32_t i = 0; ierr == 0 && i < size(); ++ i) {
+	    ibis::column *col = t->getColumn(name(i));
+	    if (col == 0) {
+		ierr = -2;
+	    }
+	    else {
+		stores[i] = col->getRawData();
+		if (stores[i] != 0) {
+		    cols[i] = col;
+		}
+		else {
+		    ierr = -4;
+		}
+	    }
+	}
+	if (ierr < 0) {
+	    close();
+	    return ierr;
+	}
     }
     if (ibis::gVerbose > 5) {
 	if (size() > 1) {
 	    t->logMessage("barrel::open",
 			  "successfully opened %lu files from %s",
-			  static_cast<long unsigned>(size()), dfn.c_str());
+			  static_cast<long unsigned>(size()),
+			  (t->currentDataDir() ? t->currentDataDir() :
+			   "memory"));
 	    if (ibis::gVerbose > 7) {
 		ibis::util::logger lg;
 		if (stores[0])
@@ -12490,14 +11809,15 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		}
 	    }
 	}
-	else if (stores[0]) {
+	else if (cols[0]) {
 	    t->logMessage("barrel::open", "successfully read %s into memory "
-			  "at 0x%.8x", dfn.c_str(),
+			  "at 0x%.8x", name(0),
 			  static_cast<void*>(stores[0]->begin()));
 	}
 	else {
-	    t->logMessage("barrel::open", "successfully opened %s with "
-			  "descriptor %d", dfn.c_str(), fdes[0]);
+	    t->logWarning("barrel::open", "failed to locate a column named %s",
+			  name(0));
+	    ierr = -5;
 	}
     }
     return ierr;
