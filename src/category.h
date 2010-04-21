@@ -29,21 +29,21 @@ public:
 
     virtual long keywordSearch(const char* str, ibis::bitvector& hits) const;
     virtual long keywordSearch(const char* str) const;
-//     long keywordSearch(const std::vector<std::string>& strs) const;
-//     long keywordSearch(const std::vector<std::string>& strs,
-// 		       ibis::bitvector& hits) const;
+    //     long keywordSearch(const std::vector<std::string>& strs) const;
+    //     long keywordSearch(const std::vector<std::string>& strs,
+    // 		       ibis::bitvector& hits) const;
 
-    virtual long search(const char* str, ibis::bitvector& hits) const;
-    virtual long search(const std::vector<std::string>& strs,
-			ibis::bitvector& hits) const;
-    virtual long search(const char* str) const {
+    virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
+    virtual long stringSearch(const std::vector<std::string>& strs,
+			      ibis::bitvector& hits) const;
+    virtual long stringSearch(const char* str) const {
 	ibis::bitvector tmp;
-	long ierr = search(str, tmp);
+	long ierr = stringSearch(str, tmp);
 	return (ierr < 0 ? ierr : tmp.cnt());
     }
-    virtual long search(const std::vector<std::string>& strs) const {
+    virtual long stringSearch(const std::vector<std::string>& strs) const {
 	ibis::bitvector tmp;
-	long ierr = search(strs, tmp);
+	long ierr = stringSearch(strs, tmp);
 	return (ierr < 0 ? ierr : tmp.cnt());
     }
 
@@ -165,17 +165,17 @@ public:
 	     const char* dir=0, uint32_t nevt=0);
 
     /// Match a particular string.
-    virtual long search(const char* str, ibis::bitvector& hits) const;
+    virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
     /// Match a list of strings
-    virtual long search(const std::vector<std::string>& vals,
-			ibis::bitvector& hits) const;
+    virtual long stringSearch(const std::vector<std::string>& vals,
+			      ibis::bitvector& hits) const;
     /// Estimate the number of matches.
-    virtual long search(const char* str) const;
+    virtual long stringSearch(const char* str) const;
     /// Estimate the total number of matches for a list of strings.
-    virtual long search(const std::vector<std::string>& vals) const;
+    virtual long stringSearch(const std::vector<std::string>& vals) const;
 
-    virtual long likeSearch(const char* pat) const;
-    virtual long likeSearch(const char* pat, ibis::bitvector &hits) const;
+    virtual long patternSearch(const char* pat) const;
+    virtual long patternSearch(const char* pat, ibis::bitvector &hits) const;
     virtual double estimateCost(const ibis::qLike& cmp) const;
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
@@ -233,7 +233,7 @@ public:
     blob(const part*, const char*);
     blob(const ibis::column&);
 
-    virtual long search(const char*, ibis::bitvector&) const {return -1;}
+    virtual long stringSearch(const char*, ibis::bitvector&) const {return -1;}
 
     virtual void computeMinMax() {}
     virtual void computeMinMax(const char*) {}

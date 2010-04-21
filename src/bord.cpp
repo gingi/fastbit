@@ -36,7 +36,8 @@ ibis::table::stringList ibis::bord::columnNames() const {
     ibis::table::stringList res(mypart.nColumns());
     for (uint32_t i = 0; i < mypart.nColumns(); ++ i) {
 	ibis::column* col = mypart.getColumn(i);
-	res[i] = (col != 0 ? col->name() : static_cast<const char*>(0));
+	if (col != 0)
+	    res[i] = col->name();
     }
     return res;
 } // ibis::bord::columnNames
@@ -2737,6 +2738,217 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
     } // switch(m_type)
     return ierr;
 } // ibis::bord::column::evaluateRange
+
+/// Locate the strings that match the given string.  The comaprison is case
+/// sensitive.  If the incoming strign is a nil pointer, it matches nothing.
+long ibis::bord::column::stringSearch(const char* str,
+				      ibis::bitvector& hits) const {
+    std::string evt = "column[";
+    evt += (thePart ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::stringSearch(";
+    evt += (str ? str : "");
+    evt += ')';
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not proceed with a nil buffer";
+	return -2;
+    }
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    if (str == 0) { // null string can not match any thing
+	hits.set(0, thePart ? thePart->nRows() : vals.size());
+	return 0;
+    }
+
+    ibis::util::timer mytimer(evt.c_str(), 3);
+    hits.clear();
+    for (size_t j = 0; j < vals.size(); ++ j) {
+	if (vals[j].compare(str) == 0)
+	    hits.setBit(j, 1);
+    }
+    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    return hits.cnt();
+} // ibis::bord::column::stringSearch
+
+long ibis::bord::column::stringSearch(const std::vector<std::string>& str,
+				      ibis::bitvector& hits) const {
+    std::string evt = "column[";
+    evt += (thePart ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::stringSearch(<...>)";
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not proceed with a nil buffer";
+	return -2;
+    }
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    if (str.empty()) { // null string can not match any thing
+	hits.set(0, thePart ? thePart->nRows() : vals.size());
+	return 0;
+    }
+
+    ibis::util::timer mytimer(evt.c_str(), 3);
+    hits.clear();
+    for (size_t j = 0; j < str.size(); ++ j) {
+	bool hit = false;
+	for (size_t i = 0; i < str.size() && hit == false; ++ i) {
+	    hit = (0 == vals[j].compare(str[i]));
+	}
+	if (hit) {
+	    hits.setBit(j, 1);
+	}
+    }
+    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    return hits.cnt();
+} // ibis::bord::column::stringSearch
+
+/// Compute an estimate of the maximum number of possible matches.  This is
+/// a trivial implementation that does not actually perform any meaningful
+/// checks.  It simply returns the number of strings in memory as the
+/// estimate.
+long ibis::bord::column::stringSearch(const char* str) const {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::stringSearch is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::stringSearch can not proceed with a nil buffer";
+	return -2;
+    }
+    if (str == 0) return 0;
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    return vals.size();
+} // ibis::bord::column::stringSearch
+
+/// Compute an estimate of the maximum number of possible matches.  This is
+/// a trivial implementation that does not actually perform any meaningful
+/// checks.  It simply returns the number of strings in memory as the
+/// estimate.
+long
+ibis::bord::column::stringSearch(const std::vector<std::string>& str) const {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::stringSearch is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::stringSearch can not proceed with a nil buffer";
+	return -2;
+    }
+    if (str.empty()) return 0;
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    return vals.size();
+} // ibis::bord::column::stringSearch
+
+long ibis::bord::column::keywordSearch(const char*, ibis::bitvector&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::keywordSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+} // ibis::bord::column::keywordSearch
+
+long ibis::bord::column::keywordSearch(const char*) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::keywordSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+} // ibis::bord::column::keywordSearch
+
+/// Compute an estimate of the maximum number of possible matches.  This is
+/// a trivial implementation that does not actually perform any meaningful
+/// checks.  It simply returns the number of strings in memory as the
+/// estimate.
+long ibis::bord::column::patternSearch(const char* pat) const {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::patternSearch is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::stringSearch can not proceed with a nil buffer";
+	return -2;
+    }
+    if (pat == 0) return 0;
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    return vals.size();
+} // ibis::bord::column::patternSearch
+
+long ibis::bord::column::patternSearch(const char* pat,
+				       ibis::bitvector &hits) const {
+    std::string evt = "column[";
+    evt += (thePart ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::patternSearch(";
+    evt += (pat ? pat : "");
+    evt += ')';
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not proceed with a nil buffer";
+	return -2;
+    }
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    if (pat == 0) { // null string can not match any thing
+	hits.set(0, thePart ? thePart->nRows() : vals.size());
+	return 0;
+    }
+
+    ibis::util::timer mytimer(evt.c_str(), 3);
+    hits.clear();
+    for (size_t j = 0; j < vals.size(); ++ j) {
+	if (ibis::util::strMatch(vals[j].c_str(), pat))
+	    hits.setBit(j, 1);
+    }
+
+    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    return hits.cnt();
+} // ibis::bord::column::patternSearch
 
 ibis::array_t<char>*
 ibis::bord::column::selectBytes(const ibis::bitvector &mask) const {
@@ -5514,6 +5726,729 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
     return array;
 } // ibis::bord::column::selectDoubles
 
+/// Output the selected values as strings.  Most data types can be
+/// converted and shown as strings.
+std::vector<std::string>*
+ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
+    std::vector<std::string>* array = new std::vector<std::string>;
+    const uint32_t tot = mask.cnt();
+    if (tot == 0)
+	return array;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 5)
+	timer.start();
+
+    switch(m_type) {
+    case ibis::UINT: {
+	const array_t<uint32_t> &prop =
+	    * static_cast<const array_t<uint32_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << prop[j];
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu unsigned integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::INT: {
+	const array_t<int32_t> &prop =
+	    * static_cast<const array_t<int32_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::USHORT: {
+	const array_t<uint16_t> &prop =
+	    * static_cast<const array_t<uint16_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu unsigned short "
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::SHORT: {
+	const array_t<int16_t> &prop =
+	    * static_cast<const array_t<int16_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu short integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::UBYTE: {
+	const array_t<unsigned char> &prop =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (unsigned) (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (unsigned)(prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (unsigned) (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (unsigned)(prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu unsigned 1-byte "
+		       "integer%s took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::BYTE: {
+	const array_t<char> &prop =
+	    * static_cast<const array_t<char>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (int) (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (int) (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (int) (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (int) (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu 1-byte integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::FLOAT: {
+	const array_t<float> &prop =
+	    * static_cast<const array_t<float>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu float value%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::DOUBLE: {
+	const array_t<double> &prop =
+	    * static_cast<const array_t<double>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu double value%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::OID: {
+	const array_t<ibis::rid_t> &prop =
+	    * static_cast<const array_t<ibis::rid_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[idx0[j]]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			std::ostringstream oss;
+			oss << (prop[j]);
+			(*array)[i] = oss.str();
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    std::ostringstream oss;
+			    oss << (prop[idx0[j]]);
+			    (*array)[i] = oss.str();
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu ibis::rid_t value%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	const std::vector<std::string> &prop =
+	    * static_cast<const std::vector<std::string>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop) {
+			    (*array)[i] = (prop[idx0[j]]);
+			}
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectStrings", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectStrings", "retrieving %lu string value%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    default: {
+	logWarning("selectStrings", "incompatible data type");
+	break;}
+    }
+    return array;
+} // ibis::bord::column::selectStrings
+
 void ibis::bord::column::getString(uint32_t i, std::string &val) const {
     val.erase();
     if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
@@ -5758,10 +6693,12 @@ ibis::bord::cursor::cursor(const ibis::bord &t)
     for (uint32_t j = 0; j < t.nColumns(); ++ j) {
 	const ibis::bord::column *col =
 	    dynamic_cast<const ibis::bord::column*>(t.mypart.getColumn(j));
-	buffer[j].cname = col->name();
-	buffer[j].ctype = col->type();
-	buffer[j].cval = col->getArray();
-	bufmap[col->name()] = j;
+	if (col != 0) {
+	    buffer[j].cname = col->name();
+	    buffer[j].ctype = col->type();
+	    buffer[j].cval = col->getArray();
+	    bufmap[col->name()] = j;
+	}
     }
 } // ibis::bord::cursor::cursor
 

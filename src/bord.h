@@ -107,6 +107,7 @@ public:
     ibis::table* groupby(const ibis::selectClause&) const;
 
     class column;
+    class text;
     /// An in-memory data partition.
     class part : public ibis::part {
     public:
@@ -204,6 +205,16 @@ public:
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
+    virtual long stringSearch(const char*, ibis::bitvector&) const;
+    virtual long stringSearch(const std::vector<std::string>&,
+			      ibis::bitvector&) const;
+    virtual long stringSearch(const char*) const;
+    virtual long stringSearch(const std::vector<std::string>&) const;
+    virtual long keywordSearch(const char*, ibis::bitvector&) const;
+    virtual long keywordSearch(const char*) const;
+    virtual long patternSearch(const char*) const;
+    virtual long patternSearch(const char*, ibis::bitvector &) const;
+
     virtual array_t<char>* selectBytes(const ibis::bitvector&) const;
     virtual array_t<unsigned char>* selectUBytes(const ibis::bitvector&) const;
     virtual array_t<int16_t>* selectShorts(const ibis::bitvector& mask) const;
@@ -214,6 +225,8 @@ public:
     virtual array_t<uint64_t>* selectULongs(const ibis::bitvector& mask) const;
     virtual array_t<float>* selectFloats(const ibis::bitvector& mask) const;
     virtual array_t<double>* selectDoubles(const ibis::bitvector& mask) const;
+    virtual std::vector<std::string>*
+	selectStrings(const bitvector& mask) const;
 
     virtual void computeMinMax() {
 	computeMinMax(thePart->currentDataDir(), lower, upper);}
@@ -236,7 +249,7 @@ protected:
     /// std::vector<std::string> depending on data type.
     void *buffer;
 
-    column& operator=(const column&);
+    column& operator=(const column&); // no assignment
 }; // ibis::bord::column
 
 class ibis::bord::cursor : public ibis::table::cursor {

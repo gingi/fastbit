@@ -1865,7 +1865,7 @@ void ibis::fileManager::storage::clear() {
     std::string evt = "fileManager::storage::clear";
     if (nref() > 0) {
 	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- " << evt << " -- storage object at 0x "
+	    << "Warning -- " << evt << " -- storage object at 0x"
 	    << static_cast<void*>(m_begin) << " busy (nref=" << nref() << ")";
 	return;
     }

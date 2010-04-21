@@ -2988,6 +2988,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	<< timer.CPUTime() << " CPU seconds, "
 	<< timer.realTime() << " elapsed seconds";
 
+    int64_t ierr;
     if (outputfile != 0 && *outputfile != 0) {
 	if (limit == 0)
 	    limit = static_cast<uint32_t>(res->nRows());
@@ -3028,9 +3029,25 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	res->dump(lg.buffer(), limit, ", ");
     }
 
-    if (ibis::gVerbose > 3 && res->nRows() > 1 && res->nColumns() > 0) {
-	// try the silly query on res
-	ibis::table::stringList cn = res->columnNames();
+    ibis::table::stringList cn = res->columnNames();
+    ibis::table::typeList ct = res->columnTypes();
+    if (cn.size() > 1 && ct.size() == cn.size() &&
+	(ct[0] == ibis::TEXT || ct[0] == ibis::CATEGORY) &&
+	(ct.back() != ibis::TEXT && ct.back() != ibis::CATEGORY)) {
+	const char* s = cn[0];
+	cn[0] = cn.back();
+	cn.back() = s;
+	ibis::TYPE_T t = ct[0];
+	ct[0] = ct.back();
+	ct.back() = t;
+    }
+    if (ibis::gVerbose > 3 && res->nRows() > 1 && !cn.empty() && !ct.empty() &&
+	(ct.back() == ibis::BYTE || ct.back() == ibis::UBYTE ||
+	 ct.back() == ibis::SHORT || ct.back() == ibis::USHORT ||
+	 ct.back() == ibis::INT || ct.back() == ibis::UINT ||
+	 ct.back() == ibis::LONG || ct.back() == ibis::ULONG ||
+	 ct.back() == ibis::FLOAT || ct.back() == ibis::DOUBLE)) {
+	// try a silly query on res
 	std::string cnd3, sel1, sel3;
 	sel1 = "max(";
 	sel1 += cn.back();
@@ -3060,7 +3077,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	    return;
 	}
 	double minval, maxval;
-	int64_t ierr = res1->getColumnAsDoubles("mx", &maxval);
+	ierr = res1->getColumnAsDoubles("mx", &maxval);
 	if (ierr != 1) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- doQuaere(" << sqlstring
@@ -3078,7 +3095,8 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	}
 
 	std::ostringstream oss;
-	oss << "log(" << (0.5*(minval+maxval)) << ") <= log(" << cn.back() << ')';
+	oss << "log(" << (0.5*(minval+maxval)) << ") <= log("
+	    << cn.back() << ')';
 	std::auto_ptr<ibis::table>
 	    res3(res->select(sel3.c_str(), oss.str().c_str()));
 	if (res3.get() == 0) {
@@ -3092,6 +3110,83 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	ibis::util::logger lg;
 	res3->describe(lg.buffer());
 	res3->dump(lg.buffer(), ", ");
+    }
+    else if (ibis::gVerbose > 3 && res->nRows() > 1 &&
+	     cn.size() > 1 && ct.size() > 1 &&
+	     (ct.back() == ibis::CATEGORY ||
+	      ct.back() == ibis::TEXT)) {
+	// try a silly query on res
+	std::string cnd2, sel2;
+	if (cn.size() > 1) {
+	    sel2 = "floor(";
+	    sel2 += cn[0];
+	    sel2 += ")/3, min(";
+	    sel2 += cn[0];
+	    sel2 += "), avg(";
+	    sel2 += cn[1];
+	    sel2 += ')';
+	}
+	else {
+	    sel2 = "floor(";
+	    sel2 += cn[0];
+	    sel2 += "/10, avg(";
+	    sel2 += cn[0];
+	    sel2 += ')';
+	}
+	{
+	    std::auto_ptr<ibis::table::cursor> cur(res->createCursor());
+	    if (cur.get() == 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- doQuaere(" << sqlstring
+		    << ") failed to create a cursor from the result table";
+		return;
+	    }
+	    std::string tmp;
+	    for (size_t j = 0; tmp.empty() && j < cur->nRows(); ++ j) {
+		ierr = cur->fetch();
+		if (ierr != 0) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- doQuaere(" << sqlstring
+			<< ") failed to fetch row " << j
+			<< " for the cursor from table " << res->name();
+		    return;
+		}
+		ierr = cur->getColumnAsString(cn.back(), tmp);
+		if (ierr != 0) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- doQuaere(" << sqlstring
+			<< ") failed to retrieve row " << j << " of column "
+			<< cn.back() << " from the cursor for table "
+			<< res->name();
+		    return;
+		}
+	    }
+	    if (tmp.empty()) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "doQuaere(" << sqlstring
+		    << ") can not find a non-empty string for column "
+		    << cn.back() << " from the table " << res->name();
+		return;
+	    }
+	    cnd2 = cn.back();
+	    cnd2 += " = \"";
+	    cnd2 += tmp;
+	    cnd2 += '"';
+	}
+
+	std::auto_ptr<ibis::table>
+	    res2(res->select(sel2.c_str(), cnd2.c_str()));
+	if (res2.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to evaluate query " << cnd2
+		<< " on the table " << res->name();
+	    return;
+	}
+
+	ibis::util::logger lg;
+	res2->describe(lg.buffer());
+	res2->dump(lg.buffer(), ", ");
     }
 } // doQuaere
 

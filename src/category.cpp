@@ -508,7 +508,7 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
     return rlc;
 } // ibis::category::fillIndex
 
-long ibis::category::search(const char* str, ibis::bitvector& hits) const {
+long ibis::category::stringSearch(const char* str, ibis::bitvector& hits) const {
     prepareMembers();
     uint32_t ind = dic[str];
     if (ind == 0) { // null value
@@ -519,14 +519,14 @@ long ibis::category::search(const char* str, ibis::bitvector& hits) const {
 	hits.set(1, thePart->nRows()); // every record has this value
     }
     else if (ind <= dic.size()) { // found it in the dictionary
-	indexLock lock(this, "category::search");
+	indexLock lock(this, "category::stringSearch");
 	if (idx != 0) {
 	    ibis::qContinuousRange expr(m_name.c_str(),
 					ibis::qExpr::OP_EQ, ind);
 	    long ierr = idx->evaluate(expr, hits);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- category::search(" << str
+		    << "Warning -- category::stringSearch(" << str
 		    << ") failed because idx->evaluate(" << expr
 		    << ") returned " << ierr;
 		return ierr;
@@ -540,9 +540,9 @@ long ibis::category::search(const char* str, ibis::bitvector& hits) const {
 	hits.set(0, thePart->nRows());
     }
     return hits.cnt();
-} // ibis::category::search
+} // ibis::category::stringSearch
 
-long ibis::category::search(const char* str) const {
+long ibis::category::stringSearch(const char* str) const {
     long ret;
     prepareMembers();
     uint32_t ind = dic[str];
@@ -553,7 +553,7 @@ long ibis::category::search(const char* str) const {
 	ret = thePart->nRows();
     }
     else if (ind <= dic.size()) { // found it
-	indexLock lock(this, "category::search");
+	indexLock lock(this, "category::stringSearch");
 	if (idx != 0) {
 	    ibis::qContinuousRange expr(m_name.c_str(),
 					ibis::qExpr::OP_EQ, ind);
@@ -567,7 +567,7 @@ long ibis::category::search(const char* str) const {
 	ret = 0;
     }
     return ret;
-} // ibis::category::search
+} // ibis::category::stringSearch
 
 double ibis::category::estimateCost(const ibis::qString& qstr) const {
     double ret;
@@ -616,10 +616,10 @@ double ibis::category::estimateCost(const ibis::qMultiString& qstr) const {
 
 /// Estimate the cost of evaluating a Like expression.
 double ibis::category::estimateCost(const ibis::qLike &cmp) const {
-    return likeSearch(cmp.pattern());
+    return patternSearch(cmp.pattern());
 } // ibis::category::estimateCost
 
-long ibis::category::search(const std::vector<std::string>& strs,
+long ibis::category::stringSearch(const std::vector<std::string>& strs,
 			    ibis::bitvector& hits) const {
     if (strs.empty()) {
 	hits.clear();
@@ -627,7 +627,7 @@ long ibis::category::search(const std::vector<std::string>& strs,
     }
 
     if (strs.size() == 1) // the list contains only one value
-	return search(strs.back().c_str(), hits);
+	return stringSearch(strs.back().c_str(), hits);
 
     prepareMembers();
     // there are more than one value in the list
@@ -645,13 +645,13 @@ long ibis::category::search(const std::vector<std::string>& strs,
 	hits.flip();
     }
     else { // found some values in the dictionary
-	indexLock lock(this, "category::search");
+	indexLock lock(this, "category::stringSearch");
 	if (idx != 0) {
 	    ibis::qDiscreteRange expr(m_name.c_str(), inds);
 	    long ierr = idx->evaluate(expr, hits);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- category::search on " << strs.size()
+		    << "Warning -- category::stringSearch on " << strs.size()
 		    << " strings failed because idx->evaluate(" << expr
 		    << ") failed with error code " << ierr;
 		return ierr;
@@ -660,20 +660,20 @@ long ibis::category::search(const std::vector<std::string>& strs,
 	else { // index must exist! can not proceed
 	    hits.set(0, thePart->nRows());
 	    if (ibis::gVerbose >= 0)
-		logWarning("category::search", "can not obtain a lock on the "
+		logWarning("category::stringSearch", "can not obtain a lock on the "
 			   "index or there is no index");
 	}
     }
     return hits.cnt();
-} // ibis::category::search
+} // ibis::category::stringSearch
 
-long ibis::category::search(const std::vector<std::string>& strs) const {
+long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
     long ret = thePart->nRows();
     if (strs.empty()) {
 	ret = 0;
     }
     else if (strs.size() == 1) {// the list contains only one value
-	ret = search(strs.back().c_str());
+	ret = stringSearch(strs.back().c_str());
     }
     else {
 	// there are more than one value in the list
@@ -693,7 +693,7 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
 	    ret = hits.size() - hits.cnt();
 	}
 	else { // found some values in the dictionary
-	    indexLock lock(this, "category::search");
+	    indexLock lock(this, "category::stringSearch");
 	    if (idx != 0) {
 		ibis::qDiscreteRange expr(m_name.c_str(), inds);
 		ret = idx->estimate(expr);
@@ -701,23 +701,23 @@ long ibis::category::search(const std::vector<std::string>& strs) const {
 	    else { // index must exist
 		ret = 0;
 		if (ibis::gVerbose >= 0)
-		    logWarning("category::search", "can not obtain a lock on "
+		    logWarning("category::stringSearch", "can not obtain a lock on "
 			       "the index or there is no index");
 	    }
 	}
     }
     return ret;
-} // ibis::category::search
+} // ibis::category::stringSearch
 
 /// Estimate the number of hits for a string pattern.
-long ibis::category::likeSearch(const char *pat) const {
+long ibis::category::patternSearch(const char *pat) const {
     if (pat == 0 || *pat == 0) return -1;
     prepareMembers();
 
     if (idx == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
-	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	    << '.' << m_name << "]::patternSearch can not proceed with an index ";
 	return -2;
     }
 
@@ -725,13 +725,13 @@ long ibis::category::likeSearch(const char *pat) const {
     if (rlc == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
-	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	    << '.' << m_name << "]::patternSearch can not proceed with an index ";
 	return -3;
     }
 
     LOGGER(ibis::gVerbose > 5)
 	<< "category[" << (thePart != 0 ? thePart->name() : "??")
-	<< '.' << m_name << "]::likeSearch starting to match pattern " << pat;
+	<< '.' << m_name << "]::patternSearch starting to match pattern " << pat;
     long est = 0;
     const uint32_t nd = dic.size();
     for (uint32_t j = 1; j <= nd; ++ j) {
@@ -742,10 +742,10 @@ long ibis::category::likeSearch(const char *pat) const {
 	}
     }
     return est;
-} // ibis::category::likeSearch
+} // ibis::category::patternSearch
 
 /// Find the records with string values that match the given pattern.
-long ibis::category::likeSearch(const char *pat, ibis::bitvector &hits) const {
+long ibis::category::patternSearch(const char *pat, ibis::bitvector &hits) const {
     hits.clear();
     if (pat == 0 || *pat == 0) return -1;
     prepareMembers();
@@ -753,7 +753,7 @@ long ibis::category::likeSearch(const char *pat, ibis::bitvector &hits) const {
     if (idx == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
-	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	    << '.' << m_name << "]::patternSearch can not proceed with an index ";
 	return -2;
     }
 
@@ -761,13 +761,13 @@ long ibis::category::likeSearch(const char *pat, ibis::bitvector &hits) const {
     if (rlc == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
-	    << '.' << m_name << "]::likeSearch can not proceed with an index ";
+	    << '.' << m_name << "]::patternSearch can not proceed with an index ";
 	return -3;
     }
 
     LOGGER(ibis::gVerbose > 5)
 	<< "category[" << (thePart != 0 ? thePart->name() : "??")
-	<< '.' << m_name << "]::likeSearch starting to match pattern " << pat;
+	<< '.' << m_name << "]::patternSearch starting to match pattern " << pat;
     long est = 0;
     uint32_t cnt = 0;
     const uint32_t nd = dic.size();
@@ -791,7 +791,7 @@ long ibis::category::likeSearch(const char *pat, ibis::bitvector &hits) const {
     if (est > static_cast<long>(hits.size() >> 7))
 	hits.compress();
     return est;
-} // ibis::category::likeSearch
+} // ibis::category::patternSearch
 
 /// Retrieve the string value represented by the integer i.
 void ibis::category::getString(uint32_t i, std::string &str) const {
@@ -1548,7 +1548,7 @@ long ibis::text::append(const char* dt, const char* df,
 
 /// Given a string literal, return a bitvector that marks the strings that
 /// matches it.
-long ibis::text::search(const char* str, ibis::bitvector& hits) const {
+long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
 
     std::string data = thePart->currentDataDir();
@@ -1609,7 +1609,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- text[" << thePart->name() << '.'
-		<< m_name << "]::search -- failed to read file " << sp;
+		<< m_name << "]::stringSearch -- failed to read file " << sp;
 	    fclose(fsp);
 	    fclose(fdata);
 	    return -5L;
@@ -1622,7 +1622,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
-		    << "]::search -- string # " << irow << " in file \""
+		    << "]::stringSearch -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
 		    << "-byte long, but "
 		    << (jbuf<(long)nbuf ? "can only read " :
@@ -1638,7 +1638,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		curr = next;
 		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
 		    << "text[" << thePart->name() << "." << m_name
-		    << "]::search -- processed " << irow
+		    << "]::stringSearch -- processed " << irow
 		    << " strings from file " << data;
 
 		if (moresp) {
@@ -1648,7 +1648,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 			if (ierr <= 0) {
 			    LOGGER(ibis::gVerbose >= 0)
 				<< "Warning -- text[" << thePart->name() << '.'
-				<< m_name << "]::search -- failed to read file "
+				<< m_name << "]::stringSearch -- failed to read file "
 				<< sp;
 			    moresp = false;
 			    nsp = 0;
@@ -1682,7 +1682,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- text[" << thePart->name() << '.'
-		<< m_name << "]::search -- failed to read file " << sp;
+		<< m_name << "]::stringSearch -- failed to read file " << sp;
 	    fclose(fsp);
 	    fclose(fdata);
 	    return -6L;
@@ -1698,7 +1698,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
-		    << "]::search -- string # " << irow << " in file \""
+		    << "]::stringSearch -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
 		    << "-byte long, but "
 		    << (jbuf<(long)nbuf ? "can only read " :
@@ -1737,7 +1737,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		if (ibis::gVerbose > 5) {
 		    ibis::util::logger lg(4);
 		    lg.buffer() << "DEBUG -- text[" << thePart->name() << "."
-				<< m_name << "]::search processing string "
+				<< m_name << "]::stringSearch processing string "
 				<< irow << " \'";
 		    for (long i = curr; i < next-1; ++ i)
 			lg.buffer() << buf[i-begin];
@@ -1752,7 +1752,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		++ irow;
 		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
 		    << "text[" << thePart->name() << "." << m_name
-		    << "]::search -- processed " << irow
+		    << "]::stringSearch -- processed " << irow
 		    << " strings from file " << data;
 
 		curr = next;
@@ -1765,7 +1765,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 				LOGGER(ibis::gVerbose >= 0)
 				    << "Warning -- text[" << thePart->name()
 				    << '.' << m_name
-				    << "]::search -- failed to read file "
+				    << "]::stringSearch -- failed to read file "
 				    << sp;
 				moresp = false;
 				break;
@@ -1800,7 +1800,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
-		    << "]::search -- string # " << irow << " in file \""
+		    << "]::stringSearch -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
 		    << "-byte long, but "
 		    << (jbuf<(long)nbuf ? "can only read " :
@@ -1816,7 +1816,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		curr = next;
 		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
 		    << "text[" << thePart->name() << "." << m_name
-		    << "]::search -- processed " << irow
+		    << "]::stringSearch -- processed " << irow
 		    << " strings from file " << data;
 
 		moresp = (feof(fsp) == 0);
@@ -1848,7 +1848,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- text[" << thePart->name() << '.' << m_name
-		    << "]::search -- string # " << irow << " in file \""
+		    << "]::stringSearch -- string # " << irow << " in file \""
 		    << data << "\" is expected to be " << (next-begin)
 		    << "-byte long, but "
 		    << (jbuf<(long)nbuf ? "can only read " :
@@ -1886,7 +1886,7 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 		++ irow;
 		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
 		    << "text[" << thePart->name() << "." << m_name
-		    << "]::search -- processed " << irow
+		    << "]::stringSearch -- processed " << irow
 		    << " strings from file " << data;
 
 		curr = next;
@@ -1922,11 +1922,11 @@ long ibis::text::search(const char* str, ibis::bitvector& hits) const {
 	hits.adjustSize(0, thePart->nRows());
     }
     return hits.cnt();
-} // ibis::text::search
+} // ibis::text::stringSearch
 
 /// Given a group of string literals, return a bitvector that matches
 /// anyone of the input strings.
-long ibis::text::search(const std::vector<std::string>& strs,
+long ibis::text::stringSearch(const std::vector<std::string>& strs,
 			ibis::bitvector& hits) const {
     if (strs.empty()) {
 	hits.set(0, thePart->nRows());
@@ -1934,7 +1934,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
     }
 
     if (strs.size() == 1) // the list contains only one value
-	return search(strs[0].c_str(), hits);
+	return stringSearch(strs[0].c_str(), hits);
 
     hits.clear();
     std::string data = thePart->currentDataDir();
@@ -1994,7 +1994,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	if (ierr <= 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- text[" << thePart->name() << '.'
-		<< m_name << "]::search -- failed to read file " << sp;
+		<< m_name << "]::stringSearch -- failed to read file " << sp;
 	    fclose(fsp);
 	    fclose(fdata);
 	    return -5L;
@@ -2030,7 +2030,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 				LOGGER(ibis::gVerbose >= 0)
 				    << "Warning -- text[" << thePart->name()
 				    << '.' << m_name
-				    << "]::search -- failed to read file "
+				    << "]::stringSearch -- failed to read file "
 				    << sp;
 				moresp = false;
 				break;
@@ -2109,7 +2109,7 @@ long ibis::text::search(const std::vector<std::string>& strs,
 	hits.adjustSize(0, thePart->nRows());
     }
     return hits.cnt();
-} // ibis::text::search
+} // ibis::text::stringSearch
 
 /// Write the current metadata to -part.txt of the data partition.
 void ibis::text::write(FILE* file) const {

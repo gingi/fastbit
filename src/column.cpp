@@ -5651,6 +5651,71 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
     return ret;
 } // ibis::column::getUndecidable
 
+long ibis::column::stringSearch(const char*, ibis::bitvector&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::stringSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::stringSearch(const std::vector<std::string>&,
+				ibis::bitvector&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::stringSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::stringSearch(const char*) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::stringSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::stringSearch(const std::vector<std::string>&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::stringSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::keywordSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::keywordSearch(const char*) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::keywordSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::patternSearch(const char*) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::patternSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::patternSearch(const char*, ibis::bitvector &) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::patternSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
 /// Append the content of file in @c df to end of file in @c dt.  It
 /// returns the number of rows appended or a negative number to indicate
 /// error.

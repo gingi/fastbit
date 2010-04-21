@@ -1,3 +1,20 @@
+2010-04-21 John Wu <John.Wu at ACM.org>
+	* src/column.h, src/column.cpp, src/category.h, src/category.cpp:
+	change string search functions from search to stringSearch,
+	declare them in ibis::column to make them more consistently
+	accessible
+	* src/part.h, src/part.cpp: rename likeSearch to patternSearch
+	* src/query.cpp, src/countQuery.cpp: check the return code of
+	ibis::part::lookforString
+	* src/board.h, src/bord.cpp: add the newly defined functions for
+	string searches in column.h
+
+2010-04-20 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: modify doQuaere to exercise query on string
+	values (to address a problem reported by Andreas Streichardt)
+	* src/bord.h, src/bord.cpp: add function selectStrings to
+	ibis::bord::column
+
 2010-04-16 John Wu <John.Wu at ACM.org>
 	* src/part.cpp: change ibis::part::barrel::open to work with
 	in-memory data, change doScan to use ibis::part::barrel instead of

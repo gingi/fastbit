@@ -546,19 +546,34 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	     low, high);
 	break;
     case ibis::qExpr::STRING:
-	mypart->lookforString
-	    (*(reinterpret_cast<const ibis::qString*>(term)), low);
-	high.clear();
+	if (0 <= mypart->lookforString
+	    (*(reinterpret_cast<const ibis::qString*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
 	break;
     case ibis::qExpr::LIKE:
-	mypart->likeSearch
-	    (*(reinterpret_cast<const ibis::qLike*>(term)), low);
-	high.clear();
+	if (0 <= mypart->patternSearch
+	    (*(reinterpret_cast<const ibis::qLike*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
 	break;
     case ibis::qExpr::MSTRING:
-	mypart->lookforString
-	    (*(reinterpret_cast<const ibis::qMultiString*>(term)), low);
-	high.clear();
+	if (0 <= mypart->lookforString
+	    (*(reinterpret_cast<const ibis::qMultiString*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
 	break;
     case ibis::qExpr::ANYANY:
 	mypart->estimateMatchAny
@@ -693,18 +708,18 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
-	ht &= mask;
-	ierr = ht.cnt();
-	LOGGER(ibis::gVerbose > 1)
-	    << "countQuery::doScan -- scanning the index for a string";
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
 	break;}
     case ibis::qExpr::LIKE: {
-	ierr = mypart->likeSearch
+	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
-	ht &= mask;
-	ierr = ht.cnt();
-	LOGGER(ibis::gVerbose > 1)
-	    << "countQuery::doScan -- scanning the index for a pattern";
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
 	break;}
     case ibis::qExpr::COMPRANGE: {
 	const ibis::compRange &cr =
@@ -895,14 +910,18 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
-	ht &= mask;
-	ierr = ht.cnt();
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
 	break;}
     case ibis::qExpr::LIKE: {
-	ierr = mypart->likeSearch
+	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
-	ht &= mask;
-	ierr = ht.cnt();
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
 	break;}
     case ibis::qExpr::COMPRANGE: {
 	const ibis::compRange &cr =

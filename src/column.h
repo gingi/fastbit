@@ -205,6 +205,16 @@ public:
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
 
+    virtual long stringSearch(const char*, ibis::bitvector&) const;
+    virtual long stringSearch(const std::vector<std::string>&,
+			      ibis::bitvector&) const;
+    virtual long stringSearch(const char*) const;
+    virtual long stringSearch(const std::vector<std::string>&) const;
+    virtual long keywordSearch(const char*, ibis::bitvector&) const;
+    virtual long keywordSearch(const char*) const;
+    virtual long patternSearch(const char*) const;
+    virtual long patternSearch(const char*, ibis::bitvector &) const;
+
     /// Use an index to compute an upper bound on the number of hits.  If
     /// no index can be computed, it will return the number of rows as the
     /// upper bound.

@@ -211,13 +211,13 @@ public:
 			  const ibis::bitvector &mask,
 			  ibis::bitvector &hits) const;
 
-    long likeSearch(const ibis::qLike &cmp,
+    long patternSearch(const ibis::qLike &cmp,
 		    ibis::bitvector &low) const;
     long lookforString(const ibis::qString &cmp,
 		       ibis::bitvector &low) const;
     long lookforString(const ibis::qMultiString &cmp,
 		       ibis::bitvector &low) const;
-    long likeSearch(const ibis::qLike &cmp) const;
+    long patternSearch(const ibis::qLike &cmp) const;
     long lookforString(const ibis::qString &cmp) const;
     long lookforString(const ibis::qMultiString &cmp) const;
 
@@ -1605,7 +1605,7 @@ inline ibis::column* ibis::part::getColumn(uint32_t ind) const {
     else {
 	return 0;
     }
-} // getColumn
+} // ibis::part::getColumn
 
 inline const char* ibis::part::getMetaTag(const char* name) const {
     ibis::resource::vList::const_iterator it = metaList.find(name);
@@ -1613,7 +1613,7 @@ inline const char* ibis::part::getMetaTag(const char* name) const {
 	return (*it).second;
     else
 	return static_cast<const char*>(0);
-} // getMetaTag
+} // ibis::part::getMetaTag
 
 inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
 					const ibis::bitvector &mask,

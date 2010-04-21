@@ -2894,17 +2894,13 @@ long ibis::part::lookforString(const ibis::qString &cmp,
     columnList::const_iterator it = columns.find(cmp.leftString());
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::TEXT) {
-	    const ibis::text* col =
-		reinterpret_cast<const ibis::text*>((*it).second);
-	    ierr = col->keywordSearch(cmp.rightString(), low);
+	    ierr = (*it).second->keywordSearch(cmp.rightString(), low);
 	    if (ierr < 0)
-		ierr = col->search(cmp.rightString(), low);
+		ierr = (*it).second->stringSearch(cmp.rightString(), low);
 	    return ierr;
 	}
 	else if ((*it).second->type() == ibis::CATEGORY) {
-	    const ibis::category* col =
-		reinterpret_cast<const ibis::category*>((*it).second);
-	    ierr = col->search(cmp.rightString(), low);
+	    ierr = (*it).second->stringSearch(cmp.rightString(), low);
 	    return ierr;
 	}
     }
@@ -2913,15 +2909,13 @@ long ibis::part::lookforString(const ibis::qString &cmp,
     it = columns.find(cmp.rightString());
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::TEXT) {
-	    ibis::text* col = (ibis::text*)(*it).second;
-	    ierr = col->keywordSearch(cmp.leftString(), low);
+	    ierr = (*it).second->keywordSearch(cmp.leftString(), low);
 	    if (ierr < 0)
-		ierr = col->search(cmp.rightString(), low);
+		ierr = (*it).second->stringSearch(cmp.rightString(), low);
 	    return ierr;
 	}
 	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ibis::category* col = (ibis::category*)(*it).second;
-	    ierr = col->search(cmp.leftString(), low);
+	    ierr = (*it).second->stringSearch(cmp.leftString(), low);
 	    return ierr;
 	}
     }
@@ -2944,15 +2938,13 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
     columnList::const_iterator it = columns.find(cmp.leftString());
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::TEXT) {
-	    ibis::text* col = (ibis::text*)(*it).second;
-	    ret = col->keywordSearch(cmp.rightString());
+	    ret = (*it).second->keywordSearch(cmp.rightString());
 	    if (ret < 0)
-		ret = col->search(cmp.rightString());
+		ret = (*it).second->stringSearch(cmp.rightString());
 	    return ret;
 	}
 	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ibis::category* col = (ibis::category*)(*it).second;
-	    ret = col->search(cmp.rightString());
+	    ret = (*it).second->stringSearch(cmp.rightString());
 	    return ret;
 	}
     }
@@ -2961,15 +2953,13 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
     it = columns.find(cmp.rightString());
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::TEXT) {
-	    ibis::text* col = (ibis::text*)(*it).second;
-	    ret = col->keywordSearch(cmp.leftString());
+	    ret = (*it).second->keywordSearch(cmp.leftString());
 	    if (ret < 0)
-		ret = col->search(cmp.rightString());
+		ret = (*it).second->stringSearch(cmp.rightString());
 	    return ret;
 	}
 	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ibis::category* col = (ibis::category*)(*it).second;
-	    ret = col->search(cmp.leftString());
+	    ret = (*it).second->stringSearch(cmp.leftString());
 	    return ret;
 	}
     }
@@ -2988,14 +2978,9 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp,
 
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ibis::text* col = (ibis::text*)(*it).second;
-	    ierr = col->search(cmp.valueList(), low);
-	    return ierr;
-	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ibis::category* col = (ibis::category*)(*it).second;
-	    ierr = col->search(cmp.valueList(), low);
+	if ((*it).second->type() == ibis::TEXT ||
+	    (*it).second->type() == ibis::CATEGORY) {
+	    ierr = (*it).second->stringSearch(cmp.valueList(), low);
 	    return ierr;
 	}
     }
@@ -3014,12 +2999,12 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::TEXT) {
 	    ibis::text* col = (ibis::text*)(*it).second;
-	    ret = col->search(cmp.valueList());
+	    ret = col->stringSearch(cmp.valueList());
 	    return ret;
 	}
 	else if ((*it).second->type() == ibis::CATEGORY) {
 	    ibis::category* col = (ibis::category*)(*it).second;
-	    ret = col->search(cmp.valueList());
+	    ret = col->stringSearch(cmp.valueList());
 	    return ret;
 	}
     }
@@ -3029,33 +3014,33 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
 } // ibis::part::lookforString
 
 /// Look for string like the given pattern.
-long ibis::part::likeSearch(const ibis::qLike &cmp) const {
+long ibis::part::patternSearch(const ibis::qLike &cmp) const {
     if (columns.empty() || nEvents == 0) return 0;
 
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::CATEGORY) {
 	    return static_cast<const ibis::category*>((*it).second)->
-		likeSearch(cmp.pattern());
+		patternSearch(cmp.pattern());
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+		<< "Warning -- part[" << m_name << "]::patternSearch(" << cmp
 		<< ") failed because " << (*it).first
 		<< " is not a categorical column";
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+	    << "Warning -- part[" << m_name << "]::patternSearch(" << cmp
 	    << ") failed because " << cmp.colName()
 	    << " is not a known column name";
     }
     return -1L;
-} // ibis::part::likeSearch
+} // ibis::part::patternSearch
 
 /// Look for string like the given pattern.
-long ibis::part::likeSearch(const ibis::qLike &cmp,
+long ibis::part::patternSearch(const ibis::qLike &cmp,
 			    ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0) return 0;
 
@@ -3063,23 +3048,23 @@ long ibis::part::likeSearch(const ibis::qLike &cmp,
     if (it != columns.end()) {
 	if ((*it).second->type() == ibis::CATEGORY) {
 	    return static_cast<const ibis::category*>((*it).second)->
-		likeSearch(cmp.pattern(), hits);
+		patternSearch(cmp.pattern(), hits);
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+		<< "Warning -- part[" << m_name << "]::patternSearch(" << cmp
 		<< ") failed because " << (*it).first
 		<< " is not a categorical column";
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::likeSearch(" << cmp
+	    << "Warning -- part[" << m_name << "]::patternSearch(" << cmp
 	    << ") failed because " << cmp.colName()
 	    << " is not a known column name";
     }
     return -1L;
-} // ibis::part::likeSearch
+} // ibis::part::patternSearch
 
 // simply pass the job to the named column
 long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
