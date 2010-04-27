@@ -159,9 +159,9 @@ public:
     uint32_t bytes() const throw() {
 	return (m_vec.size()*sizeof(word_t) + sizeof(bitvector));
     };
-    /// Compute the number of word in serialized version of the bitvector
-    /// object.  This would be the size of this bitvector object on disk or
-    /// in a single array_t<word_t>.
+    /// Compute the number of bytes in the serialized version of this
+    /// bitvector object.  This would be the size of this bitvector object
+    /// on disk or in an array_t<word_t>.
     uint32_t getSerialSize() const throw() {
 	return (m_vec.size() + 1 + (active.nbits>0)) * sizeof(word_t);
     };

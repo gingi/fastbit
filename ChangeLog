@@ -1,3 +1,8 @@
+2010-04-26 John Wu <John.Wu at ACM.org>
+	* src/part.h: add class ibis::part::mutexLock to provide an access
+	to the mutex lock on the part object (issue raised by Prabhat in
+	debugging HDF5_FastQuery)
+
 2010-04-21 John Wu <John.Wu at ACM.org>
 	* src/column.h, src/column.cpp, src/category.h, src/category.cpp:
 	change string search functions from search to stringSearch,

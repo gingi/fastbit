@@ -662,12 +662,14 @@ protected:
     class cleaner;	///< Cleaner for the file manager.
     class writeLock;	///< A write lock on the partition.
     class advisoryLock; ///< A non-block version of writeLock.
+    class mutexLock;    ///< A mutual exclusion lock.
 
     friend struct info;
     friend class cleaner;
     friend class readLock;
     friend class writeLock;
     friend class advisoryLock;
+    friend class mutexLock;
 
     /******************************************************************/
     // protected member variables
@@ -1407,6 +1409,39 @@ private:
 	: thePart(rhs.thePart), mesg(rhs.mesg), locked(0) {};
     const advisoryLock &operator=(const advisoryLock&);
 }; // ibis::part::advisoryLock
+
+/// Provide a mutual exclusion lock on an ibis::part object.  Used
+/// externally by derived class of ibis::part.
+class ibis::part::mutexLock {
+public:
+    mutexLock(const part* tbl, const char* m) : thePart(tbl), mesg(m) {
+	if (ibis::gVerbose > 9)
+	    tbl->logMessage("gainExclusiveAccess",
+			    "pthread_mutex_lock for %s", m);
+	int ierr = pthread_mutex_lock(&(tbl->mutex));
+	if (0 != ierr)
+	    tbl->logWarning("gainExclusiveAccess", "pthread_mutex_lock for %s "
+			    "returned %d (%s)", m, ierr, strerror(ierr));
+    }
+    ~mutexLock() {
+	if (ibis::gVerbose > 9)
+	    thePart->logMessage("releaseExclusiveAccess",
+				"pthread_mutex_unlock for %s", mesg);
+	int ierr = pthread_mutex_unlock(&(thePart->mutex));
+	if (0 != ierr)
+	    thePart->logWarning("releaseExclusiveAccess",
+				"pthread_mutex_unlock for %s returned %d (%s)",
+				mesg, ierr, strerror(ierr));
+    }
+
+private:
+    const part* thePart;
+    const char* mesg;
+
+    mutexLock() {}; // no default constructor 	 
+    mutexLock(const mutexLock&) {}; // can not copy 	 
+    const mutexLock &operator=(const mutexLock&); 	 
+}; // ibis::part::mutexLock
 
 /// To read a list of variables at the same time.
 /// This implementation opens each data file and read the values from the
