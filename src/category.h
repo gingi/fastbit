@@ -36,16 +36,10 @@ public:
     virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
     virtual long stringSearch(const std::vector<std::string>& strs,
 			      ibis::bitvector& hits) const;
-    virtual long stringSearch(const char* str) const {
-	ibis::bitvector tmp;
-	long ierr = stringSearch(str, tmp);
-	return (ierr < 0 ? ierr : tmp.cnt());
-    }
-    virtual long stringSearch(const std::vector<std::string>& strs) const {
-	ibis::bitvector tmp;
-	long ierr = stringSearch(strs, tmp);
-	return (ierr < 0 ? ierr : tmp.cnt());
-    }
+    virtual long stringSearch(const char* str) const;
+    virtual long stringSearch(const std::vector<std::string>& strs) const;
+    virtual long patternSearch(const char*, ibis::bitvector&) const;
+    virtual long patternSearch(const char*) const;
 
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;

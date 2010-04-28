@@ -49,8 +49,12 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 	throw "ibis::column::ctor unable to initialize the mutex";
     }
     if (m_desc.empty()) m_desc = name;
-    LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
-	<< "initialized column " << tbl->name() << '.' << name;
+    if (ibis::gVerbose > 5 && !m_name.empty()) {
+	ibis::util::logger lg;
+	lg.buffer() << "initialized column " << m_name;
+	if (tbl != 0 && tbl->name() != 0)
+	    lg.buffer() << " for partition " << tbl->name();
+    }
 } // ibis::column::column
 
 /// Read the basic information about a column from file.
@@ -268,15 +272,17 @@ ibis::column::column(const part* tbl, FILE* file)
 			       "valid name or type");
 	m_name.erase(); // make sure the name is empty
     }
-    LOGGER(ibis::gVerbose > 5 && thePart != 0)
-	<< "read info about column "
-	<< (m_name.empty() ? "???" : m_name.c_str()) << " for partition "
-	<< thePart->name();
+    if (ibis::gVerbose > 5 && !m_name.empty()) {
+	ibis::util::logger lg;
+	lg.buffer() << "read info about column " << m_name;
+	if (tbl != 0 && tbl->name() != 0)
+	    lg.buffer() << " for partition " << tbl->name();
+    }
 } // ibis::column::column
 
 /// The copy constructor.
 /// @note The rwlock can not be copied.
-/// @note The index is not copied either because reference counting
+/// @note The index is not copied because of reference counting
 /// difficulties.
 ibis::column::column(const ibis::column& rhs) :
     thePart(rhs.thePart), m_type(rhs.m_type), m_name(rhs.m_name),
@@ -288,9 +294,12 @@ ibis::column::column(const ibis::column& rhs) :
     if (pthread_mutex_init(&mutex, 0)) {
 	throw "ibis::column::ctor unable to initialize the mutex";
     }
-    LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
-	<< "made a new copy of column "
-	<< (m_name.empty() ? "???" : m_name.c_str());
+    if (ibis::gVerbose > 5 && !m_name.empty()) {
+	ibis::util::logger lg;
+	lg.buffer() << "made a new copy of column " << m_name;
+	if (thePart != 0 && thePart->name() != 0)
+	    lg.buffer() << " for partition " << thePart->name();
+    }
 } // copy constructor
 
 ibis::column::~column() {
@@ -5669,19 +5678,11 @@ long ibis::column::stringSearch(const std::vector<std::string>&,
 }
 
 long ibis::column::stringSearch(const char*) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::stringSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+    return (thePart ? thePart->nRows() : -1);
 }
 
 long ibis::column::stringSearch(const std::vector<std::string>&) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::stringSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+    return (thePart ? thePart->nRows() : -1);
 }
 
 long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
@@ -5693,19 +5694,11 @@ long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
 }
 
 long ibis::column::keywordSearch(const char*) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::keywordSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+    return (thePart ? thePart->nRows() : -1);
 }
 
 long ibis::column::patternSearch(const char*) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::patternSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+    return (thePart ? thePart->nRows() : -1);
 }
 
 long ibis::column::patternSearch(const char*, ibis::bitvector &) const {

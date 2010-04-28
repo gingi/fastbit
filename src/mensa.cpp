@@ -2723,7 +2723,7 @@ int ibis::mensa::cursor::dumpSome(std::ostream &out, uint64_t nr,
     }
     if (static_cast<uint64_t>(curRow) < tab.nRows())
 	out << "\t... " << tab.nRows() - curRow << " remaining in table "
-	    << tab.name();
+	    << tab.name() << "\n";
     return ierr;
 } // ibis::mensa::cursor::dumpSome
 

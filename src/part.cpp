@@ -3019,16 +3019,7 @@ long ibis::part::patternSearch(const ibis::qLike &cmp) const {
 
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
-	if ((*it).second->type() == ibis::CATEGORY) {
-	    return static_cast<const ibis::category*>((*it).second)->
-		patternSearch(cmp.pattern());
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- part[" << m_name << "]::patternSearch(" << cmp
-		<< ") failed because " << (*it).first
-		<< " is not a categorical column";
-	}
+	return (*it).second->patternSearch(cmp.pattern());
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -3041,21 +3032,12 @@ long ibis::part::patternSearch(const ibis::qLike &cmp) const {
 
 /// Look for string like the given pattern.
 long ibis::part::patternSearch(const ibis::qLike &cmp,
-			    ibis::bitvector &hits) const {
+			       ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0) return 0;
 
     columnList::const_iterator it = columns.find(cmp.colName());
     if (it != columns.end()) {
-	if ((*it).second->type() == ibis::CATEGORY) {
-	    return static_cast<const ibis::category*>((*it).second)->
-		patternSearch(cmp.pattern(), hits);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- part[" << m_name << "]::patternSearch(" << cmp
-		<< ") failed because " << (*it).first
-		<< " is not a categorical column";
-	}
+	return (*it).second->patternSearch(cmp.pattern(), hits);
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
