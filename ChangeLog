@@ -1,4 +1,9 @@
 2010-04-27 John Wu <John.Wu at ACM.org>
+	* src/category.cpp: in text::stringSearch, fix the error the
+	unrolled loops for string comparisons (a problem identified by
+	Bernd Jaenichen)
+
+2010-04-27 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: adjusting the print out in the constructors of
 	column object to accomodate the empty partition names
 	* src/category.cpp: add ibis::text::patternSearch to allow pattern

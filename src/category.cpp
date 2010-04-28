@@ -1747,16 +1747,16 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 		    j += 4;
 		}
 		if (match) {
-		    if (j+3 == next) {
+		    if (j+4 == next) {
 			match = (buf[j-begin] == pat[j-curr]) &&
 			    (buf[j-begin+1] == pat[j-curr+1]) &&
 			    (buf[j-begin+2] == pat[j-curr+2]);
 		    }
-		    else if (j+2 == next) {
+		    else if (j+3 == next) {
 			match = (buf[j-begin] == pat[j-curr]) &&
 			    (buf[j-begin+1] == pat[j-curr+1]);
 		    }
-		    else if (j+1 == next) {
+		    else if (j+2 == next) {
 			match = (buf[j-begin] == pat[j-curr]);
 		    }
 		}
@@ -1891,16 +1891,16 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 		    j += 4;
 		}
 		if (match) {
-		    if (j+3 == next) {
+		    if (j+4 == next) {
 			match = (buf[j-begin] == pat[j-curr]) &&
 			    (buf[j-begin+1] == pat[j-curr+1]) &&
 			    (buf[j-begin+2] == pat[j-curr+2]);
 		    }
-		    else if (j+2 == next) {
+		    else if (j+3 == next) {
 			match = (buf[j-begin] == pat[j-curr]) &&
 			    (buf[j-begin+1] == pat[j-curr+1]);
 		    }
-		    else if (j+1 == next) {
+		    else if (j+2 == next) {
 			match = (buf[j-begin] == pat[j-curr]);
 		    }
 		}
