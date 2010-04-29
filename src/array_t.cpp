@@ -1166,6 +1166,30 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
     return pivot;
 } // ibis::array_t<T>::partition
 
+/// Replace the current array with nnew rows.  The first row kept has the
+/// row number start in the current content.  Note the the rows are
+/// numbered from 0.
+template<class T>
+void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
+    if (nnew == 0 || start >= (m_end-m_begin)) {
+	m_end = m_begin;
+    }
+    else if (start == 0) {
+	if (m_begin+nnew < m_end) {
+	    nosharing();
+	    m_end = m_begin + nnew;
+	}
+    }
+    else {
+	nosharing();
+	if (nnew+start > m_end-m_begin)
+	    nnew = (m_end-m_begin) - start;
+	for (size_t j = 0; j < nnew; ++ j)
+	    m_begin[j] = m_begin[j+start];
+	m_end = m_begin + nnew;
+    }
+} // ibis::array_t<T>::truncate
+
 /// Change the size of the array so it has no less than @n elements.
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {

@@ -44,6 +44,7 @@ public:
     virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
+    virtual int dump(std::ostream&, uint64_t, uint64_t, const char*) const;
     virtual int backup(const char* dir, const char* tname=0,
 		       const char* tdesc=0) const;
 
@@ -374,9 +375,21 @@ ibis::mensa::cursor::getColumnAsString(const char* cn,
 
 inline int
 ibis::mensa::dump(std::ostream& out, uint64_t nr, const char* del) const {
-    if (parts.empty()) return 0;
+    if (parts.empty() || nr == 0) return 0;
     ibis::mensa::cursor cur(*this);
     int ierr = cur.dumpSome(out, nr, del);
+    return ierr;
+} // ibis::mensa::dump
+
+inline int
+ibis::mensa::dump(std::ostream& out, uint64_t off, uint64_t nr,
+		  const char* del) const {
+    if (parts.empty() || nr == 0 || off > nrows) return 0;
+    ibis::mensa::cursor cur(*this);
+    int ierr = cur.fetch(off);
+    if (ierr < 0) return ierr;
+
+    ierr = cur.dumpSome(out, nr, del);
     return ierr;
 } // ibis::mensa::dump
 #endif // IBIS_MENSA_H

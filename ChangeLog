@@ -1,7 +1,23 @@
-2010-04-27 John Wu <John.Wu at ACM.org>
+2010-04-29 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add code to check for two-argument version of
+	the limit clause to excercise the functionality suggested by
+	Valeria Lorenzetti
+	* tests/smatch.cpp: add file the detected a bug in
+	ibis::text::stringSearch originally from Bernd Jaenichen
+	* tests/Makefile.am: modify a test case in check-marksdb to
+	exercise the new extension of limit clause
+
+2010-04-28 John Wu <John.Wu at ACM.org>
 	* src/category.cpp: in text::stringSearch, fix the error the
 	unrolled loops for string comparisons (a problem identified by
 	Bernd Jaenichen)
+	* src/table.h: add a new variation of ibis::table::dump as
+	suggested by Valeria Lorenzetti
+	* src/bundle.h: add a two-argument version of the function
+	truncate to match the functionality suggested by Valeria
+	Lorenzetti
+	* src/colValues.h: add the second argument (start) to the function
+	truncate to implement the changes in ibis::bundle::truncate
 
 2010-04-27 John Wu <John.Wu at ACM.org>
 	* src/column.cpp: adjusting the print out in the constructors of

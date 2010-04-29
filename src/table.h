@@ -85,8 +85,8 @@ public:
     /// to find locations of data patitions.
     static ibis::table* create(const char* dir);
     /// Create a table object from a pair of data directories.  The
-    /// intention of maintaining two sets of data files is to continue
-    /// processing queries using one set while accepting new data records
+    /// intention of maintaining two sets of data files is to
+    /// process queries using one set while accept new data records
     /// with the other.  However, such functionality is not currently
     /// implemented!
     static ibis::table* create(const char* dir1, const char* dir2);
@@ -126,6 +126,10 @@ public:
     virtual int dump(std::ostream& out, const char* del=", ") const =0;
     /// Print the first nr rows.
     virtual int dump(std::ostream& out, uint64_t nr,
+		     const char* del=", ") const =0;
+    /// Print nr rows starting with row offset.  Note that the row number
+    /// starts with 0, i.e., the first row is row 0.
+    virtual int dump(std::ostream& out, uint64_t offset, uint64_t nr,
 		     const char* del=", ") const =0;
     /// Write the current content to the specified output directory in
     /// the raw binary format.  May optionally overwrite the name and

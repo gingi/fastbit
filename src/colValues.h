@@ -75,6 +75,8 @@ public:
     segment(const array_t<uint32_t>* old=0) const = 0;
     /// Truncate the number element to no more than @c keep.
     virtual long truncate(uint32_t keep) = 0;
+    /// Truncate the number element to no more than @c keep.
+    virtual long truncate(uint32_t keep, uint32_t start) = 0;
     /// Return the positions of the @c k largest elements.
     virtual void topk(uint32_t k, array_t<uint32_t> &ind) const = 0;
     /// Return the positions of the @c k smallest elements.
@@ -159,14 +161,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -257,14 +253,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -342,14 +332,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -440,14 +424,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -525,14 +503,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -610,14 +582,8 @@ public:
     {array->topk(k, ind);}
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
     {array->bottomk(k, ind);}
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->nosharing();
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     virtual double getMin() const;
     virtual double getMax() const;
@@ -678,13 +644,8 @@ public:
     virtual void reorder(const array_t<uint32_t>& ind);
     virtual void topk(uint32_t k, array_t<uint32_t> &ind) const;
     virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
-    virtual long truncate(uint32_t keep) {
-	if (array == 0) return 0;
-	if (array->size() > keep) {
-	    array->resize(keep);
-	}
-	return array->size();
-    }
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
 
     /// Compute the minimum.  NOT implemented.
     virtual double getMin() const {

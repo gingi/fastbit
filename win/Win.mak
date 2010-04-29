@@ -349,7 +349,7 @@ quaere.obj: ../src/quaere.cpp ../src/jnatural.h ../src/jrange.h ../src/quaere.h 
   ../src/qExpr.h ../src/util.h ../src/bitvector.h ../src/array_t.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/query.h ../src/whereClause.h
-	$(CXX) $(CCFLAGS) -c ../src/jnatural.cpp
+	$(CXX) $(CCFLAGS) -c ../src/quaere.cpp
 mensa.obj: ../src/mensa.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/bord.h ../src/util.h ../src/part.h \
   ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \

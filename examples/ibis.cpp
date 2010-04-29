@@ -2659,7 +2659,7 @@ static void findMissingValues(const ibis::part &pt, const char *cnm,
 static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* wstr, const char* sstr,
 			const char* ordkeys, int direction,
-			uint32_t limit) {
+			uint32_t limit, uint32_t start) {
     std::auto_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
     {
@@ -2701,8 +2701,11 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    else
 		ostr << " DESC";
 	}
-	if (limit > 0)
-	    ostr << " LIMIT " << limit;
+	if (limit > 0) {
+	    ostr << " LIMIT ";
+	    if (start > 0) ostr << start << ", ";
+	    ostr << limit;
+	}
 	sqlstring = ostr.str();
     }
     LOGGER(ibis::gVerbose > 1)
@@ -2763,7 +2766,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 				  std::ios::trunc));
 	    if (outputnamestoo)
 		sel1->dumpNames(output, ", ");
-	    sel1->dump(output, limit, ", ");
+	    sel1->dump(output, start, limit, ", ");
 	}
     }
     else if (ibis::gVerbose >= 0) {
@@ -2791,7 +2794,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
 	if (outputnamestoo)
 	    sel1->dumpNames(lg.buffer(), ", ");
-	sel1->dump(lg.buffer(), limit, ", ");
+	sel1->dump(lg.buffer(), start, limit, ", ");
     }
 
     if (verify_rid && sel1->nRows() > 1 && sel1->nColumns() > 0) {
@@ -2874,7 +2877,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
 // New style query.
 static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
-		     const char *ordkeys, int direction, uint32_t limit) {
+		     const char *ordkeys, int direction, uint32_t limit,
+		     uint32_t start) {
     ibis::horometer timer;
     timer.start();
     std::string sqlstring; //
@@ -2893,8 +2897,11 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	    else
 		ostr << " DESC";
 	}
-	if (limit > 0)
-	    ostr << " LIMIT " << limit;
+	if (limit > 0) {
+	    ostr << " LIMIT ";
+	    if (start > 0) ostr << start << ", ";
+	    ostr << limit;
+	}
 	sqlstring = ostr.str();
     }
 
@@ -2998,7 +3005,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 				  std::ios::trunc));
 	    if (outputnamestoo)
 		res->dumpNames(output, ", ");
-	    res->dump(output, limit, ", ");
+	    res->dump(output, start, limit, ", ");
 	}
     }
     else if (ibis::gVerbose >= 0) {
@@ -3026,7 +3033,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	}
 	if (outputnamestoo)
 	    res->dumpNames(lg.buffer(), ", ");
-	res->dump(lg.buffer(), limit, ", ");
+	res->dump(lg.buffer(), start, limit, ", ");
     }
 
     ibis::table::stringList cn = res->columnNames();
@@ -3193,7 +3200,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 // evaluate a single query -- print selected columns through ibis::bundle
 static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    const char* sstr, const char* ordkeys, int direction,
-		    uint32_t limit) {
+		    uint32_t limit, uint32_t start) {
     std::string sqlstring; //
     {
 	std::ostringstream ostr;
@@ -3209,8 +3216,12 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    else
 		ostr << " DESC";
 	}
-	if (limit > 0)
-	    ostr << " LIMIT " << limit;
+	if (limit > 0) {
+	    ostr << " LIMIT ";
+	    if (start > 0)
+		ostr << start << ", ";
+	    ostr << limit;
+	}
 	sqlstring = ostr.str();
     }
     LOGGER(ibis::gVerbose > 1)
@@ -3234,13 +3245,15 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	handle.read(rset, ridfile);
 	aQuery.setRIDs(rset);
     }
-    num2 = aQuery.setWhereClause(wstr);
-    if (num2 < 0) {
-	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- doQuery failed to assigned the where clause \""
-	    << wstr << "\" on partition " << tbl->name()
-	    << ", setWhereClause returned " << num2;
-	return;
+    if (wstr != 0 && *wstr != 0) {
+	num2 = aQuery.setWhereClause(wstr);
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "Warning -- doQuery failed to assigned the where clause \""
+		<< wstr << "\" on partition " << tbl->name()
+		<< ", setWhereClause returned " << num2;
+	    return;
+	}
     }
     if (sstr != 0 && *sstr != 0) {
 	num2 = aQuery.setSelectClause(sstr);
@@ -3353,11 +3366,11 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    return;
 	}
 
-	if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
+	if ((ordkeys && *ordkeys) || direction < 0) { // top-K query
 	    bdl->reorder(ordkeys, direction);
 	}
-	if (limit > 0 && limit < static_cast<unsigned long>(num1)) {
-	    num2 = bdl->truncate(limit);
+	if (limit > 0 || start > 0) {
+	    num2 = bdl->truncate(limit, start);
 	    if (num2 < 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "doQuery -- failed to truncate the bundle object";
@@ -4166,6 +4179,7 @@ static void parseString(const char* uid, const char* qstr) {
     std::string wstr; // where clause
     std::string ordkeys; // order by clause (the order keys)
     int direction = 0; // direction of the order by clause
+    uint32_t start = 0; // the 1st row to print
     uint32_t limit = 0; // the limit on the number of output rows
     ibis::nameList qtables;
     const bool hasdot = (strchr(qstr, '.') != 0);
@@ -4342,19 +4356,34 @@ static void parseString(const char* uid, const char* qstr) {
 	++ str;
     if (str != 0 && 0 == strnicmp(str, "limit ", 6)) {
 	str += 6;
-	double tmp = atof(str);
-	if (tmp > 0.0)
-	    limit = (uint32_t)tmp;
+	uint64_t tmp;
+	int ierr = ibis::util::readUInt(tmp, str, ", ");
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- parseString(" << qstr
+		<< ") expects a unsigned interger following "
+		"the keyword LIMIT, but got '" << *str
+		<< "', skip the limit clause";
+	}
+	else if (isspace(*str) || *str == ',') {
+	    for (++ str; *str != 0 && (isspace(*str) || *str == ','); ++ str);
+	    limit = static_cast<uint32_t>(tmp);
+	    ierr = ibis::util::readUInt(tmp, str, 0);
+	    if (ierr >= 0) {
+		start = limit;
+		limit = static_cast<uint32_t>(tmp);
+	    }
+	}
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
-	lg.buffer() << "Warning parseString(" << qstr
+	lg.buffer() << "Warning -- parseString(" << qstr
 		    << ") expects the key word LIMIT, but got " << str;
     }
 
     if (hasdot) {
 	doQuaere(sstr.c_str(), fstr.c_str(), wstr.c_str(),
-		 ordkeys.c_str(), direction, limit);
+		 ordkeys.c_str(), direction, limit, start);
     }
     else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
 				sstr.find(" as ") < sstr.size())) {
@@ -4374,7 +4403,7 @@ static void parseString(const char* uid, const char* qstr) {
 	    }
 	    try {
 		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 	    }
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
@@ -4388,13 +4417,13 @@ static void parseString(const char* uid, const char* qstr) {
 		    (*it)->emptyCache();
 		}
 		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 	    }
 	}
 	else {
 	    try {
 		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 	    }
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
@@ -4408,7 +4437,7 @@ static void parseString(const char* uid, const char* qstr) {
 		    (*it)->emptyCache();
 		}
 		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 	    }
 	}
     }
@@ -4423,7 +4452,7 @@ static void parseString(const char* uid, const char* qstr) {
 			ibis::datasets[k]->getMeshShape().empty()) {
 			try {
 			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
-				    ordkeys.c_str(), direction, limit);
+				    ordkeys.c_str(), direction, limit, start);
 			}
 			catch (...) {
 			    if (ibis::util::serialNumber() % 3 == 0) {
@@ -4435,7 +4464,7 @@ static void parseString(const char* uid, const char* qstr) {
 			    }
 			    ibis::datasets[k]->emptyCache();
 			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
-				    ordkeys.c_str(), direction, limit);
+				    ordkeys.c_str(), direction, limit, start);
 			}
 		    }
 		    else {
@@ -4485,7 +4514,7 @@ static void parseString(const char* uid, const char* qstr) {
 		(*tit)->getMeshShape().empty()) {
 		try {
 		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 		}
 		catch (...) {
 		    if (ibis::util::serialNumber() % 3 == 0) {
@@ -4496,7 +4525,7 @@ static void parseString(const char* uid, const char* qstr) {
 		    }
 		    (*tit)->emptyCache();
 		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit);
+			    ordkeys.c_str(), direction, limit, start);
 		}
 	    }
 	    else {
@@ -4792,7 +4821,7 @@ int main(int argc, char** argv) {
 	    for (ibis::partList::iterator itt = ibis::datasets.begin();
 		 itt != ibis::datasets.end();
 		 ++ itt)
-		doQuery((*itt), uid, 0, 0, 0, 0, 0);
+		doQuery((*itt), uid, 0, 0, 0, 0, 0, 0);
 	}
 	ridfile = 0;
 

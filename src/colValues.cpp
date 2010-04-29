@@ -3890,3 +3890,141 @@ void ibis::colStrings::bottomk(uint32_t k, array_t<uint32_t> &ind) const {
 #endif
 } // ibis::colStrings::bottomk
 
+long ibis::colInts::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colInts::truncate
+
+long ibis::colUInts::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colUInts::truncate
+
+long ibis::colLongs::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colLongs::truncate
+
+long ibis::colULongs::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colULongs::truncate
+
+long ibis::colFloats::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colFloats::truncate
+
+long ibis::colDoubles::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->nosharing();
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colDoubles::truncate
+
+long ibis::colStrings::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colStrings::truncate
+
+long ibis::colInts::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colInts::truncate
+
+long ibis::colUInts::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colUInts::truncate
+
+long ibis::colLongs::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colLongs::truncate
+
+long ibis::colULongs::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colULongs::truncate
+
+long ibis::colFloats::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colFloats::truncate
+
+long ibis::colDoubles::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    array->truncate(keep, start);
+    return array->size();
+} // ibis::colDoubles::truncate
+
+long ibis::colStrings::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    if (start == 0) {
+	if (array->size() > keep) {
+	    array->resize(keep);
+	}
+    }
+    else if (start < array->size()) {
+	if (keep+start > array->size())
+	    keep = array->size() - start;
+	for (uint32_t j = 0; j < keep; ++ j)
+	    (*array)[j].swap((*array)[j+start]);
+	array->resize(keep);
+    }
+    else {
+	array->clear();
+    }
+    return array->size();
+} // ibis::colStrings::truncate

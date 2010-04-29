@@ -44,6 +44,7 @@ public:
     virtual void dumpNames(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream&, uint64_t, const char*) const;
+    virtual int dump(std::ostream&, uint64_t, uint64_t, const char*) const;
     virtual int backup(const char* dir, const char* tname=0,
 		       const char* tdesc=0) const;
 
@@ -129,6 +130,7 @@ public:
 	virtual long reorder() {return ibis::part::reorder();}
 
 	int dump(std::ostream&, uint32_t, const char*) const;
+	int dump(std::ostream&, uint32_t, uint32_t, const char*) const;
 	int backup(const char*, const char*, const char*) const;
 
 	void describe(std::ostream&) const;
@@ -385,7 +387,20 @@ inline int ibis::bord::dump(std::ostream &out, const char* del) const {
 
 inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
 			    const char* del) const {
-    return mypart.dump(out, static_cast<uint32_t>(nr), del);
+    if (nr == static_cast<uint32_t>(nr))
+	return mypart.dump(out, static_cast<uint32_t>(nr), del);
+    else
+	return -5;
+} // ibis::bord::dump
+
+inline int ibis::bord::dump(std::ostream &out, uint64_t off, uint64_t nr,
+			    const char* del) const {
+    if (off == static_cast<uint32_t>(off) &&
+	nr == static_cast<uint32_t>(nr))
+	return mypart.dump(out, static_cast<uint32_t>(off),
+			   static_cast<uint32_t>(nr), del);
+    else
+	return -5;
 } // ibis::bord::dump
 
 inline int ibis::bord::backup(const char* dir, const char* tname,

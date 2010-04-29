@@ -1,8 +1,11 @@
 UTOMAKE_OPTIONS=gnu
 EXTRA_PROGRAMS = readcsv smatch
+check_SCRIPTS = scripts/matchCounts.pl
 readcsv_SOURCES = readcsv.cpp
 smatch_SOURCES = smatch.cpp
-check_SCRIPTS = scripts/matchCounts.pl
+smatch_CPPFLAGS = -I../src
+smatch_DEPENDENCIES = ../src/libfastbit.la
+smatch_LDADD = ../src/libfastbit.la
 #
 EXDIR=../examples
 TESTDIR=$(PWD)/tmp
@@ -13,7 +16,7 @@ THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 hist4 text-0 \
-    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
+    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 smatch-1 \
     maurel.csv scripts/fastbit-config.in scripts/hcompare.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
@@ -82,6 +85,7 @@ check-text: $(IBISEXE) smatch${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@if [ `diff -w text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@if [ `smatch${EXEEXT} $(TESTDIR)/smatch | fgrep -v std::exception | diff - smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
@@ -318,6 +322,10 @@ $(THULAEXE):
 	@cd $(EXDIR) && $(MAKE) thula$(EXEEXT)
 $(TCAPIEXE):
 	@cd $(EXDIR) && $(MAKE) tcapi$(EXEEXT)
+#
+../src/libfastbit.la::
+	cd ../src && $(MAKE) libfastbit.la
+#
 # these targets do not refer to files
 .PHONY: clean multilevel match-counts large-sanity-check large-tests small-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check

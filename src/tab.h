@@ -42,15 +42,9 @@ public:
 
     virtual void describe(std::ostream&) const;
     virtual void dumpNames(std::ostream&, const char*) const {}
-    virtual int dump(std::ostream& out, const char*) const {
-	if (ibis::gVerbose > 0)
-	    out << "(empty table, " << nrows << " row" << (nrows>1?"s":"")
-		<< ", 0 column)\n";
-	return 0;}
-    virtual int dump(std::ostream& out, uint64_t, const char*) const {
-	if (ibis::gVerbose > 0)
-	    out << "(empty table, " << nrows << " row" << (nrows>1?"s":"")
-		<< ", 0 column)\n";
+    virtual int dump(std::ostream&, const char*) const {return 0;}
+    virtual int dump(std::ostream&, uint64_t, const char*) const {return 0;}
+    virtual int dump(std::ostream&, uint64_t, uint64_t, const char*) const {
 	return 0;}
     /// The backup operation.  It does nothing.
     virtual int backup(const char*, const char* =0,
@@ -144,6 +138,9 @@ public:
     virtual int dump(std::ostream&, const char*) const;
     virtual int dump(std::ostream& out, uint64_t nr, const char* sep) const {
 	if (nr > 0) return dump(out, sep); else return 0;}
+    virtual int dump(std::ostream& out, uint64_t off, uint64_t nr,
+		     const char* sep) const {
+	if (off==0 && nr > 0) return dump(out, sep); else return 0;}
     /// The backup operation.  It does nothing.
     virtual int backup(const char*, const char* =0,
 		       const char* =0) const {return 0;}

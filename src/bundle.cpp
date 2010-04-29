@@ -773,19 +773,56 @@ void ibis::bundle1::reverse() {
     }
 } // ibis::bundle1::reverse
 
-// Reduce the number of bundle to the maximum of @c keep.
+/// This single-argument version keep the first few records.
 long ibis::bundle1::truncate(uint32_t keep) {
-    if (keep == 0) return -4L;
     if (col == 0 || starts == 0) return -2L;
     if (starts->size() <= 2) return -3L;
     const uint32_t ngroups = starts->size()-1;
     if (keep >= ngroups) return ngroups;
+    if (keep == 0) {
+	starts->clear();
+	col->truncate(0);
+	return 0;
+    }
+
     if (rids != 0) {
-	rids->resize((*starts)[keep]);
+        rids->resize((*starts)[keep]);
     }
     infile = false;
     starts->resize(keep+1);
     return col->truncate(keep);
+} // ibis::bundle1::truncate
+
+/// This two-argument version keeps a few records starting at a
+/// user-specified row number.  Note that the row number starts with 0,
+/// i.e., the first row has the row number 0.
+long ibis::bundle1::truncate(uint32_t keep, uint32_t start) {
+    if (col == 0 || starts == 0) return -2L;
+    if (starts->size() <= 2) return -3L;
+    const uint32_t ngroups = starts->size()-1;
+    if (start >= ngroups || keep == 0) {
+	starts->clear();
+	col->truncate(0);
+	return 0;
+    }
+    else if (keep >= ngroups && start == 0) {
+	return ngroups;
+    }
+
+    const uint32_t end = (keep+start < ngroups ? keep+start : ngroups);
+    keep = end - start;
+    if (rids != 0) {
+	rids->truncate((*starts)[end]-(*starts)[start], (*starts)[start]);
+    }
+    infile = false;
+    starts->truncate(keep+1, start);
+    if (start != 0) {
+	const uint32_t offset = starts->front();
+	for (array_t<uint32_t>::iterator it = starts->begin();
+	     it != starts->end(); ++ it)
+	    *it -= offset;
+    }
+    return col->truncate(keep, start);
 } // ibis::bundle1::truncate
 
 void ibis::bundle1::write(const ibis::query& theQ) const {
@@ -1703,8 +1740,9 @@ void ibis::bundles::reverse() {
     }
 } // ibis::bundles::reverse
 
+/// This single-arugment version of the function truncate keeps the first
+/// few rows.
 long ibis::bundles::truncate(uint32_t keep) {
-    if (keep == 0) return -4L;
     if (starts == 0) return -2L;
     if (starts->size() <= 2) return -3L;
     const uint32_t ngroups = starts->size() - 1;
@@ -1717,6 +1755,40 @@ long ibis::bundles::truncate(uint32_t keep) {
     for (uint32_t i = 0; i < cols.size(); ++ i)
 	cols[i]->truncate(keep);
     infile = false;
+    return keep;
+} // ibis::bundles::truncate
+
+/// This two-argument version of the function keeps a few rows after a
+/// specified starting point.
+long ibis::bundles::truncate(uint32_t keep, uint32_t start) {
+    if (cols.empty() || starts == 0) return -2L;
+    if (starts->size() <= 2) return -3L;
+    const uint32_t ngroups = starts->size()-1;
+    if (start >= ngroups || keep == 0) {
+	starts->clear();
+	for (uint32_t i = 0; i < cols.size(); ++ i)
+	    cols[i]->truncate(0);
+	return 0;
+    }
+    else if (keep >= ngroups && start == 0) {
+	return ngroups;
+    }
+
+    const uint32_t end = (keep+start < ngroups ? keep+start : ngroups);
+    keep = end - start;
+    if (rids != 0) {
+	rids->truncate((*starts)[end]-(*starts)[start], (*starts)[start]);
+    }
+    infile = false;
+    starts->truncate(keep+1, start);
+    if (start != 0) {
+	const uint32_t offset = starts->front();
+	for (array_t<uint32_t>::iterator it = starts->begin();
+	     it != starts->end(); ++ it)
+	    *it -= offset;
+    }
+    for (uint32_t i = 0; i < cols.size(); ++ i)
+	cols[i]->truncate(keep, start);
     return keep;
 } // ibis::bundles::truncate
 

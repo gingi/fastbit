@@ -1200,7 +1200,7 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
 } // ibis::bord::part::dumpNames
 
 /**
-   Print the content of the data to the given output stream.
+   Print the first nr rows of the data to the given output stream.
 
    The return values:
 @code
@@ -1275,6 +1275,85 @@ int ibis::bord::part::dump(std::ostream& out, uint32_t nr,
     // functions called
     if (nr > nEvents) nr = nEvents;
     for (uint32_t i = 1; i < nr; ++ i) {
+	(void) clist[0]->dump(out, i);
+	for (uint32_t j = 1; j < ncol; ++ j) {
+	    out << del;
+	    (void) clist[j]->dump(out, i);
+	}
+	out << "\n";
+    }
+    if (! out)
+	ierr = -4;
+    return ierr;
+} // ibis::bord::part::dump
+
+/// Print nr rows starting with row offset.  Note that the row number
+/// starts with 0, i.e., the first row is row 0.
+int ibis::bord::part::dump(std::ostream& out, uint32_t offset, uint32_t nr,
+			   const char* del) const {
+    const uint32_t ncol = columns.size();
+    if (ncol == 0 || nr == 0 || offset >= nEvents) return 0;
+    if (del == 0) del = ",";
+
+    std::vector<const ibis::bord::column*> clist;
+    if (colorder.empty()) { // alphabetic ordering
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it) {
+	    const ibis::bord::column* col =
+		dynamic_cast<const ibis::bord::column*>((*it).second);
+	    if (col != 0)
+		clist.push_back(col);
+	}
+    }
+    else if (colorder.size() == ncol) { // use external order
+	for (uint32_t i = 0; i < ncol; ++ i) {
+	    const ibis::bord::column* col =
+		dynamic_cast<const ibis::bord::column*>(colorder[i]);
+	    if (col != 0)
+		clist.push_back(col);
+	}
+    }
+    else { // externally specified ones are ordered first
+	std::set<const char*, ibis::lessi> names;
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    names.insert((*it).first);
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
+	    const ibis::bord::column* col =
+		dynamic_cast<const ibis::bord::column*>(colorder[i]);
+	    if (col != 0) {
+		clist.push_back(col);
+		names.erase(col->name());
+	    }
+	}
+	for (std::set<const char*, ibis::lessi>::const_iterator it =
+		 names.begin();
+	     it != names.end(); ++ it) {
+	    ibis::part::columnList::const_iterator cit = columns.find(*it);
+	    const ibis::bord::column* col =
+		dynamic_cast<const ibis::bord::column*>((*cit).second);
+	    if (col != 0)
+		clist.push_back(col);
+	}
+    }
+    if (clist.size() < ncol) return -3;
+
+    int ierr = 0;
+    // print row offset with error checking
+    ierr = clist[0]->dump(out, offset);
+    if (ierr < 0) return ierr;
+    for (uint32_t j = 1; j < ncol; ++ j) {
+	out << del;
+	ierr = clist[j]->dump(out, offset);
+	if (ierr < 0) return ierr;
+    }
+    out << "\n";
+    if (! out) return -4;
+    // print the remaining rows without checking the return values from
+    // functions called
+    nr += offset;
+    if (nr > nEvents) nr = nEvents;
+    for (uint32_t i = offset+1; i < nr; ++ i) {
 	(void) clist[0]->dump(out, i);
 	for (uint32_t j = 1; j < ncol; ++ j) {
 	    out << del;

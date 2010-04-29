@@ -113,6 +113,8 @@ public:
     virtual void reorder(const char *names, int direction) = 0;
     /// Truncate the list of bundles.
     virtual long truncate(uint32_t keep) = 0;
+    /// Truncate the list of bundles.
+    virtual long truncate(uint32_t keep, uint32_t start) = 0;
     /// Truncate the list of bundle based on specified keys.
     virtual long truncate(const char *names, int direction, uint32_t keep) = 0;
 
@@ -209,7 +211,8 @@ public:
     // can not do anything
     virtual void reorder(const char *names, int direction) {};
     // only one bundle.
-    virtual long truncate(uint32_t keep) {return 1;}
+    virtual long truncate(uint32_t) {return 1;}
+    virtual long truncate(uint32_t, uint32_t) {return 1;}
     virtual long truncate(const char *names, int direction, uint32_t keep)
     {return 1;}
 
@@ -261,7 +264,8 @@ public:
 	    infile = false;
 	}
     }
-    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t);
+    virtual long truncate(uint32_t, uint32_t);
     virtual long truncate(const char *names, int direction, uint32_t keep) {
 	if (direction < 0) {
 	    reverse();
@@ -315,6 +319,7 @@ public:
 
     virtual void reorder(const char *names, int direction);
     virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
     virtual long truncate(const char *names, int direction, uint32_t keep);
 
 private:

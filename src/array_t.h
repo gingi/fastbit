@@ -74,6 +74,7 @@ public:
     void pop_back() {--m_end;};		///< Remove the last element.
     void resize(size_t n);	///< Resize array.
     void reserve(size_t n);	///< Reserve space.
+    void truncate(size_t keep, size_t start);
     size_t capacity() const;
     inline void swap(array_t<T>& rhs);	///< Exchange the content.
     inline void push_back(const T& elm);///< Add one element.
