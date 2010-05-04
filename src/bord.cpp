@@ -1630,6 +1630,10 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
     return 0;
 } // ibis::bord::part::backup
 
+/// The actual function to perform the group by operation.
+/// @note The input argument can only contain column names and support
+/// aggregation functions with column names arguments.  Not futher
+/// arithmetic operations are allowed!
 ibis::table*
 ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     if (sel.empty() || nEvents == 0)

@@ -215,61 +215,37 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     std::vector<uint32_t>    tmstouse;
     uint32_t                 nplain = 0;
     if (tms.size() > 0) { // sort the names of variables to compute
-	std::map<const char*, uint32_t> uniquenames;
+	std::set<const char*, ibis::lessi> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
-	    nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
-
-	    const char* tname = tms.argName(i);
-	    if (tms.getAggregator(i) == ibis::selectClause::CNT &&
-		*tname == '*') // skip count(*)
-		continue;
-
-	    if (uniquenames.find(tname) == uniquenames.end())
-		uniquenames[tname] = i;
-	}
-	if (uniquenames.size() >= tms.size()) {
-	    nls.resize(tms.size());
-	    tls.resize(tms.size());
-	    buff.resize(tms.size());
-	    tmstouse.resize(tms.size());
-	    for (uint32_t i = 0; i < tms.size(); ++ i) {
-		tls[i] = ibis::UNKNOWN_TYPE;
-		nls[i] = tms.argName(i);
-		buff[i] = 0;
-		tmstouse[i] = i;
+	    if (tms.getAggregator(i) != ibis::selectClause::CNT ||
+		strcmp(tms.argName(i), "*") != 0) {// not count(*)
+		const char* tname = tms.argName(i);
+		if (uniquenames.find(tname) == uniquenames.end()) {
+		    uniquenames.insert(tname);
+		    tmstouse.push_back(i);
+		    nls.push_back(tname);
+		}
 	    }
 	}
-	else if (uniquenames.size() > 1) {
-	    const uint32_t nnames = uniquenames.size();
-	    ibis::array_t<uint32_t> pos;
-	    pos.reserve(nnames);
-	    for (std::map<const char*, uint32_t>::const_iterator it =
-		     uniquenames.begin(); it != uniquenames.end(); ++ it)
-		pos.push_back(it->second);
-	    std::sort(pos.begin(), pos.end());
-	    for (std::map<const char*, uint32_t>::iterator it =
-		     uniquenames.begin(); it != uniquenames.end(); ++ it)
-		it->second = pos.find(it->second);
-	    nls.resize(nnames);
-	    tls.resize(nnames);
-	    buff.resize(nnames);
-	    tmstouse.resize(nnames);
-	    for (uint32_t i = 0; i < nnames; ++i) {
-		nls[i] = tms.argName(pos[i]);
+	if (! uniquenames.empty()) {
+	    tls.resize(nls.size());
+	    buff.resize(nls.size());
+	    for (uint32_t i = 0; i < nls.size(); ++ i) {
 		tls[i] = ibis::UNKNOWN_TYPE;
 		buff[i] = 0;
-		tmstouse[i] = pos[i];
 	    }
-	}
-	else if (*(tms.argName(0)) != '*') { // only one unique name
-	    nls.resize(1);
-	    tls.resize(1);
-	    buff.resize(1);
-	    tmstouse.resize(1);
-	    nls[0] = tms.argName(0);
-	    tls[0] = ibis::UNKNOWN_TYPE;
-	    buff[0] = 0;
-	    tmstouse[0] = 0;
+#if defined(_DEBUG) || defined(DEBUG)
+	    if (ibis::gVerbose > 5) {
+		ibis::util::logger lg;
+		lg.buffer() << "DEBUG: " << mesg << " uniquenames["
+			    << uniquenames.size() << "]=";
+		for (std::set<const char*, ibis::lessi>::const_iterator it =
+			 uniquenames.begin(); it != uniquenames.end(); ++ it) {
+		    lg.buffer() << (it != uniquenames.begin() ? ", " : "")
+				<< *it;
+		}
+	    }
+#endif
 	}
     }
 
@@ -486,6 +462,8 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	const uint32_t itm = tmstouse[i];
 	desc[i] = tms.termName(itm);
 	cdesc[i] = desc[i].c_str();
+	// if nplain >= tms.size(), then use the external names, otherwise
+	// use the internal names
 	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
     }
 

@@ -1,3 +1,11 @@
+2010-05-03 John Wu <John.Wu at ACM.org>
+	* examples/ibis.cpp: add cases to handle limit clauses with a
+	single arugment (an error reported by Valeria Lorenzetti)
+	* tests/Makefile.am: update test cases in check-marksdb to
+	exercise the new limit clauses
+	* src/selectClause.cpp:297 reverse the change made on 2010-04-29
+	to correct the problem with group-by operations
+
 2010-04-29 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add code to check for two-argument version of
 	the limit clause to excercise the functionality suggested by
@@ -6,6 +14,8 @@
 	ibis::text::stringSearch originally from Bernd Jaenichen
 	* tests/Makefile.am: modify a test case in check-marksdb to
 	exercise the new extension of limit clause
+	* src/selectClause.cpp:297 add code to extract the variable from
+	simple arithmetic express
 
 2010-04-28 John Wu <John.Wu at ACM.org>
 	* src/category.cpp: in text::stringSearch, fix the error the

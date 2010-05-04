@@ -31,6 +31,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #include "mensa.h"	// ibis::mensa::select2
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
+#include <memory>	// std::auto_ptr
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -649,8 +650,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
     // exercise the class function ibis::table::select
     if (ibis::gVerbose > 2 && sstr != 0 && *sstr != 0 && n0 > 0 &&
 	sel->nColumns() > 0 && (fstr == 0 || *fstr == 0)) {
-	std::cout << "\n-- *** extra test for class function "
-	    "ibis::table::select *** --\n";
+	std::cout << "\n-- +++ extra test for class function "
+	    "ibis::table::select +++ --\n";
 	std::vector<const ibis::part*> parts;
 	int ierr = tbl.getPartitions(parts);
 	if (ierr <= 0) {
@@ -659,8 +660,9 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		"test on class function ibis::table::select\n" << std::endl;
 	}
 	else {
-	    ibis::table* sel2 = ibis::table::select(parts, sstr, wstr);
-	    if (sel2 == 0) {
+	    std::auto_ptr<ibis::table>
+		sel2(ibis::table::select(parts, sstr, wstr));
+	    if (sel2.get() == 0) {
 		std::cout << "Warning -- " << mesg
 			  << "class function ibis::table::select failed\n"
 			  << std::endl;
@@ -679,7 +681,6 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		std::cout << mesg << " passed the test on class function "
 		    "ibis::table::select\n" << std::endl;
 	    }
-	    delete sel2;
 	}
     }
 
@@ -693,16 +694,22 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    std::vector<std::string> strs;
 	    ibis::table::stringList strc;
 	    if (nl.size() == 1) {
-		strs.resize(9);
-		strs[0] = "min(";     strs[0] += sstr; strs[0] += ')';
-		strs[1] = "max(";     strs[1] += sstr; strs[1] += ')';
-		strs[2] = "sum(";     strs[2] += sstr; strs[2] += ')';
-		strs[3] = "avg(";     strs[3] += sstr; strs[3] += ')';
-		strs[4] = "varpop(";  strs[4] += sstr; strs[4] += ')';
-		strs[5] = "varsamp("; strs[5] += sstr; strs[5] += ')';
-		strs[6] = "stdpop(";  strs[6] += sstr; strs[6] += ')';
-		strs[7] = "stdsamp("; strs[7] += sstr; strs[7] += ')';
-		strs[8] = "distinct(";strs[8] += sstr; strs[8] += ')';
+#if defined(_DEBUG) || defined(DEBUG)
+		strs.resize(1);
+		strs[0] = sstr;
+#else
+		strs.resize(10);
+		strs[0] = sstr;
+		strs[1] = "min(";     strs[1] += sstr; strs[1] += ')';
+		strs[2] = "max(";     strs[2] += sstr; strs[2] += ')';
+		strs[3] = "sum(";     strs[3] += sstr; strs[3] += ')';
+		strs[4] = "avg(";     strs[4] += sstr; strs[4] += ')';
+		strs[5] = "varpop(";  strs[5] += sstr; strs[5] += ')';
+		strs[6] = "varsamp("; strs[6] += sstr; strs[6] += ')';
+		strs[7] = "stdpop(";  strs[7] += sstr; strs[7] += ')';
+		strs[8] = "stdsamp("; strs[8] += sstr; strs[8] += ')';
+		strs[9] = "distinct(";strs[9] += sstr; strs[9] += ')';
+#endif
 	    }
 	    else if (nl.size() == 2) {
 		strs.resize(10);

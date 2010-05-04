@@ -4374,6 +4374,14 @@ static void parseString(const char* uid, const char* qstr) {
 		limit = static_cast<uint32_t>(tmp);
 	    }
 	}
+	else if (*str == 0) {
+	    limit = static_cast<uint32_t>(tmp);
+	}
+	else {
+	    ibis::util::logger().buffer()
+		<< "Warning -- parseString(" << qstr
+		<< ") reached a unexpected end of string \"" << str << "\"";
+	}
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
 	ibis::util::logger lg;

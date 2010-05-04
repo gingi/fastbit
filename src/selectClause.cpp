@@ -295,11 +295,13 @@ void ibis::selectClause::fillNames() {
 	}
 	else {
 	    std::ostringstream oss;
-	    oss << 's' << std::hex << std::setprecision(prec) << j+1;
+	    oss << 's' << std::hex << std::setprecision(prec)
+		<< std::setfill('0') << j+1;
 	    names_[j] = oss.str();
 	}
 
-	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL)
+	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL &&
+	    terms_[j]->termType() == ibis::math::VARIABLE)
 	    xnames_[j] = names_[j];
 
 	if (xnames_[j].empty()) {
@@ -339,7 +341,8 @@ void ibis::selectClause::fillNames() {
 		oss << "count";
 		break;
 	    }
-	    oss << std::hex << std::setprecision(prec) << j+1;
+	    oss << std::hex << std::setprecision(prec) << std::setfill('0')
+		<< j+1;
 	    xnames_[j] = oss.str();
 	}
     }

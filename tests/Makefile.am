@@ -90,9 +90,9 @@ check-text: $(IBISEXE) smatch${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -b -v -v > $(TESTDIR)/check-marksdb.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d, lon limit 0, 180" -o $(TESTDIR)/marksdb-1 >> $(TESTDIR)/check-marksdb.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d, lon limit 0, 150" -o $(TESTDIR)/marksdb-1 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `scripts/hcompare.pl marksdb-1 $(TESTDIR)/marksdb-1 | fgrep 'acceptable' | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where (time < 0 || time = 77328) and d <= 15 order by d,lon" -o $(TESTDIR)/marksdb-2 >> $(TESTDIR)/check-marksdb.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where (time < 0 || time = 77328) and d <= 15 order by d, lon limit 150" -o $(TESTDIR)/marksdb-2 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `scripts/hcompare.pl $(TESTDIR)/marksdb-1 $(TESTDIR)/marksdb-2 | fgrep acceptable | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon where time = 77328 and 3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) <= 15 order by lat,lon DESC" -o $(TESTDIR)/marksdb-3 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `diff -w marksdb-3 $(TESTDIR)/marksdb-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
