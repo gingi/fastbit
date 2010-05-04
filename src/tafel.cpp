@@ -1757,7 +1757,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     ibis::util::secondsToString(currtime, stamp);
     if (tdesc == 0 || *tdesc == 0) { // generate a description
 	std::ostringstream oss;
-	oss << "Data initialy wrote with ibis::tablex interface on "
+	oss << "Data initially wrote with ibis::tablex interface on "
 	    << stamp << " with " << cols.size() << " column"
 	    << (cols.size() > 1 ? "s" : "") << " and " << nold + mrows
 	    << " row" << (nold+mrows>1 ? "s" : "");

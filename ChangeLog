@@ -8,6 +8,8 @@
 	nplain (which were removed last night by mistake), restores the
 	correctness of check-text case 8
 	* tests/Makefile.am: add test case 9 to exercise tests/inRange.cpp
+	* tests/inRange.cpp: modify the test and query to exercise more
+	functions of FastBit
 
 2010-05-04 Bernd Jaenichen <bernd.jaenichen at globalpark.com>
 	* tests/inRange.cpp: add code for testing discrete range queries

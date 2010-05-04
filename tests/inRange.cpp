@@ -38,37 +38,21 @@ tester::~tester() {
 }
 
 /// Generate some records.  Use ibis::tablex interface and
-/// ibis::table::row.
+/// ibis::table::row.  The integer records go from 1 to 16, with the value
+/// J repeated J times.
 void tester::builtindata(const char *datadir) {
     ibis::table::row irow;
     std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
 
-    ta->addColumn("l",ibis::LONG);
+    ta->addColumn("l", ibis::LONG);
 
-    irow.clear();
     irow.longsnames.push_back("l");
-    irow.longsvalues.push_back(1);
-    ta->appendRow(irow);
-
-    irow.clear();
-    irow.longsnames.push_back("l");
-    irow.longsvalues.push_back(2);
-    ta->appendRow(irow);
-
-    irow.clear();
-    irow.longsnames.push_back("l");
-    irow.longsvalues.push_back(3);
-    ta->appendRow(irow);
-
-    irow.clear();
-    irow.longsnames.push_back("l");
-    irow.longsvalues.push_back(4);
-    ta->appendRow(irow);
-
-    irow.clear();
-    irow.longsnames.push_back("l");
-    irow.longsvalues.push_back(5);
-    ta->appendRow(irow);
+    irow.longsvalues.resize(1);
+    for (int j = 1; j < 16; ++ j) {
+	irow.longsvalues.back() = j;
+	for (int i = 0; i < j; ++ i)
+	    ta->appendRow(irow);
+    }
 
     ta->write(datadir);
     LOGGER(ibis::gVerbose > 0)
@@ -143,38 +127,45 @@ void tester::query(const char *datadir, const char *where) {
 	return;
     }
 
-    // create in memory table to process where
-    std::auto_ptr<ibis::table> inmemory(table->select(cnames.front(), "1=1"));
+    std::string selall = cnames.front();
+    for (unsigned j = 1; j < cnames.size(); ++ j) {
+	selall += ", ";
+	selall += cnames[j];
+    }
+    // create in-memory table to process where
+    std::auto_ptr<ibis::table> inmemory(table->select(selall.c_str(), "1=1"));
     if (inmemory.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "failed to select all rows from table " << table->name();
 	return;
     }
+    if (ibis::gVerbose > 0) { // an extra test with group-by
+	std::auto_ptr<ibis::table> groupby(inmemory->groupby(cnames.front()));
+	if (groupby.get() == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "failed to evaluate groupby(" << cnames.front()
+		<< " on table " << inmemory->name();
+	}
+	else {
+	    std::cout << "\nThe result of groupby(" << cnames.front() << ")\n";
+	    groupby->dump(std::cout);
+	    std::cout << std::endl;
+	}
+    }
 
-    std::auto_ptr<ibis::table> select(inmemory->select(cnames.front(), where));
+    std::string sel1 = cnames.front();
+    sel1 += ", count(*)";
+    std::auto_ptr<ibis::table> select(inmemory->select(sel1.c_str(), where));
     if (select.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "failed to select \"" << where << "\" on memory table";
 	return;
     }
 
-    std::cout << "Number of rows satisfying \"" << where << "\": "
+    std::cout << "Number of rows produced by \"SELECT " << sel1 << " WHERE "
+	      << where << "\": "
 	      << select->nRows() << std::endl;
-    std::auto_ptr<ibis::table::cursor> cur(select->createCursor());
-    if (cur.get() == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "failed to create a cursor from the result table named "
-	    << select->name();
-	return;
-    }
-    unsigned irow = 0;
-    while(0 == cur->fetch()) {
-	std::string ivalue;
-	cur->getColumnAsString(cnames.front(), ivalue);
-	std::cout << cnames.front() << "[" << irow << "] = " << ivalue
-		  << std::endl;
-	++ irow;
-    }
+    select->dump(std::cout);
 } // tester::query
 
 int main(int argc, char** argv) {
