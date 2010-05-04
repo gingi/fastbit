@@ -187,8 +187,7 @@ public:
 			   const ibis::qRange &cmp,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits);
-    /// Locate the records that satisfy the range condition.  E is an
-    /// elementary type.
+    /// Locate the records that satisfy the range condition.
     template <typename E>
 	static long doScan(const array_t<E> &varr,
 			   const ibis::qContinuousRange &cmp,

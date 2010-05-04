@@ -118,13 +118,6 @@ public:
 	     const ibis::bord::bufferList  &buf,
 	     const ibis::table::stringList *cdesc=0);
 
-	template <typename E>
-	long doScan(const array_t<E>& varr,
-		    const ibis::qContinuousRange& cmp,
-		    const ibis::bitvector& mask,
-		    ibis::bitvector& hits) const {
-	    return ibis::part::doScan(varr, cmp, mask, hits);}
-
 	ibis::table* groupby(const ibis::selectClause&) const;
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
@@ -205,6 +198,9 @@ public:
     virtual ibis::fileManager::storage* getRawData() const;
 
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
+			       const ibis::bitvector& mask,
+			       ibis::bitvector& res) const;
+    virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
     virtual long stringSearch(const char*, ibis::bitvector&) const;

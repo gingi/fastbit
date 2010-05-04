@@ -1,11 +1,15 @@
 UTOMAKE_OPTIONS=gnu
-EXTRA_PROGRAMS = readcsv smatch
+EXTRA_PROGRAMS = readcsv smatch inRange
 check_SCRIPTS = scripts/matchCounts.pl
 readcsv_SOURCES = readcsv.cpp
 smatch_SOURCES = smatch.cpp
 smatch_CPPFLAGS = -I../src
 smatch_DEPENDENCIES = ../src/libfastbit.la
 smatch_LDADD = ../src/libfastbit.la
+inRange_SOURCES = inRange.cpp
+inRange_CPPFLAGS = -I../src
+inRange_DEPENDENCIES = ../src/libfastbit.la
+inRange_LDADD = ../src/libfastbit.la
 #
 EXDIR=../examples
 TESTDIR=$(PWD)/tmp
@@ -16,7 +20,7 @@ THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 hist4 text-0 \
-    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 smatch-1 \
+    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 smatch-1 inRange-1 \
     maurel.csv scripts/fastbit-config.in scripts/hcompare.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
@@ -69,7 +73,7 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/
 	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select floor(b/10) as sb, avg(c), countdistinct(c) where a < 25" -o $(TESTDIR)/hist4 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@if [ ` diff -w hist4 $(TESTDIR)/hist4 | wc -l ` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@echo
-check-text: $(IBISEXE) smatch${EXEEXT} $(TESTDIR)/t0/-part.txt
+check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0/ -b -v -v > $(TESTDIR)/check-text.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where -5 < c < 10" -o $(TESTDIR)/t0-0 >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-0 | wc -l` -le 2 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
@@ -85,7 +89,8 @@ check-text: $(IBISEXE) smatch${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@if [ `diff -w text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep '15, 11' | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@if [ `smatch${EXEEXT} $(TESTDIR)/smatch | fgrep -v std::exception | diff - smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch | fgrep -v std::exception | diff - smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange | fgrep -v std::exception | diff - inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)

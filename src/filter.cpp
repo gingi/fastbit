@@ -220,6 +220,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	    if (tms.getAggregator(i) != ibis::selectClause::CNT ||
 		strcmp(tms.argName(i), "*") != 0) {// not count(*)
 		const char* tname = tms.argName(i);
+		nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
 		if (uniquenames.find(tname) == uniquenames.end()) {
 		    uniquenames.insert(tname);
 		    tmstouse.push_back(i);

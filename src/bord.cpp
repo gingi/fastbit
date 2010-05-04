@@ -1,4 +1,4 @@
-// File $Id$
+// File: $id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2007-2010 the Regents of the University of California
 //
@@ -2757,66 +2757,131 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 				       const ibis::bitvector& mask,
 				       ibis::bitvector& res) const {
     long ierr = -1;
-    const ibis::bord::part* mytable =
-	dynamic_cast<const ibis::bord::part*>(thePart);
-    if (mytable == 0) return ierr;
 
     switch (m_type) {
     case ibis::UBYTE: {
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::BYTE: {
 	const array_t<char> &val =
 	    * static_cast<const array_t<char>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
-	ierr = mytable->doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     default:
-	if (ibis::gVerbose > 2)
-	    logMessage("evaluateRange", "column type %s is not one of the "
-		       "supported types (int, uint, float, double)",
-		       TYPESTRING[static_cast<int>(m_type)]);
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?")
+	    << '.' << m_name << "]::evaluateRange deos not support column type "
+	    << TYPESTRING[static_cast<int>(m_type)]
+	    << ", only supports integers and floats";
+	ierr = -2;
+    } // switch(m_type)
+    return ierr;
+} // ibis::bord::column::evaluateRange
+
+long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
+				       const ibis::bitvector& mask,
+				       ibis::bitvector& res) const {
+    long ierr = -1;
+
+    switch (m_type) {
+    case ibis::UBYTE: {
+	const array_t<unsigned char> &val =
+	    * static_cast<const array_t<unsigned char>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::BYTE: {
+	const array_t<char> &val =
+	    * static_cast<const array_t<char>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::USHORT: {
+	const array_t<uint16_t> &val =
+	    * static_cast<const array_t<uint16_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::SHORT: {
+	const array_t<int16_t> &val =
+	    * static_cast<const array_t<int16_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::UINT: {
+	const array_t<uint32_t> &val =
+	    * static_cast<const array_t<uint32_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::INT: {
+	const array_t<int32_t> &val =
+	    * static_cast<const array_t<int32_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::ULONG: {
+	const array_t<uint64_t> &val =
+	    * static_cast<const array_t<uint64_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::LONG: {
+	const array_t<int64_t> &val =
+	    * static_cast<const array_t<int64_t>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::FLOAT: {
+	const array_t<float> &val =
+	    * static_cast<const array_t<float>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    case ibis::DOUBLE: {
+	const array_t<double> &val =
+	    * static_cast<const array_t<double>*>(buffer);
+	ierr = ibis::part::doScan(val, cmp, mask, res);
+	break;}
+    default:
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?")
+	    << '.' << m_name << "]::evaluateRange deos not support column type "
+	    << TYPESTRING[static_cast<int>(m_type)]
+	    << ", only supports integers and floats";
 	ierr = -2;
     } // switch(m_type)
     return ierr;

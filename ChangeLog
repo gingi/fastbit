@@ -1,3 +1,18 @@
+2010-05-04 John Wu <John.Wu at ACM.org>
+	* src/bord.h, src/bord.cpp: add bord::column::evaluateRange to
+	support qDiscreteRange, remove the template function bord::doScan,
+	change code to use ibis::part::doScan instead
+	* src/part.cpp:4012 hits.setBit(i, 1) should be
+	hits.setBit(iix[i], 1)
+	* src/mensa.cpp, src/filter.cpp: add back the statement to compute
+	nplain (which were removed last night by mistake), restores the
+	correctness of check-text case 8
+	* tests/Makefile.am: add test case 9 to exercise tests/inRange.cpp
+
+2010-05-04 Bernd Jaenichen <bernd.jaenichen at globalpark.com>
+	* tests/inRange.cpp: add code for testing discrete range queries
+	on in-memory data partitions
+
 2010-05-03 John Wu <John.Wu at ACM.org>
 	* examples/ibis.cpp: add cases to handle limit clauses with a
 	single arugment (an error reported by Valeria Lorenzetti)

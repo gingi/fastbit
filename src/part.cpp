@@ -3982,6 +3982,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 /// This static member function works on an array provided by the
 /// caller.  Since the values are provided, this function does not check
 /// the name of the variable involved in the range condition.
+/// @note The incoming values in varr is an ibis::array_t type.  This
+/// limits the type of data supported by this function.
 template <typename E>
 long ibis::part::doScan(const array_t<E> &varr,
 			const ibis::qRange &cmp,
@@ -4007,7 +4009,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 	else {
 	    for (uint32_t i = 0; i < is.nIndices(); ++ i) {
 		if (iix[i] < varr.size() && cmp.inRange(varr[iix[i]])) {
-		    hits.setBit(i, 1);
+		    hits.setBit(iix[i], 1);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
 			<< varr[iix[i]] << " is in " << cmp;
