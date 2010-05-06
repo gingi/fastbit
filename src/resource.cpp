@@ -472,8 +472,15 @@ void ibis::resource::write(const char* fn) const {
     }
 } // ibis::resource::write
 
-/// This implementation uses a local static variable to hold the globally
-/// unique resource object.
+/// The function returns a reference to a set of global parameters that
+/// affects the execution of the FastBit, such as the maximum number of
+/// byte the memory manager may use.  Some of the parameters are consulted
+/// once.  For example, the maximum bytes used by the memory manager is
+/// only used once at the construction of the memory manager; modifying
+/// this parameter after the initialization of the memory manager will not
+/// affect the memory manager any more.  Therefore, we recommend the caller
+/// to perform all necessary operations with ibis::gParameters before
+/// performing other operations.
 ibis::resource& ibis::gParameters() {
     static ibis::resource theResource;
     return theResource;

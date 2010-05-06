@@ -232,8 +232,14 @@ comments, bug reports, and patches to <fastbit-users@hpcrdm.lbl.gov>.
 /// could be considered as a short-hand for an Implementation of Bitmap
 /// Indexing System or Ibis Bitmap Indexing System.
 namespace ibis {
-    /// Initializes internal resources required by FastBit.  It should be
-    /// called by user code before any other FastBit functions.
+    /// Initializes the memory manager of FastBit.  It reads the RC file
+    /// (rcfile) first before initializes the memory manager.  If the
+    /// caller wishes to read multiple RC files or add parameters to
+    /// ibis::gParameters, these operations need to take place before
+    /// calling this function or any function that creates or uses
+    /// ibis::part or ibis::table.  If the user neglects to call
+    /// ibis::init, the memory manager will be initialized when the first
+    /// ibis::part object is created.
     ///
     /// @param rcfile A file containing name-value pairs that specifies
     ///   parameters for controlling the behavior of ibis.
