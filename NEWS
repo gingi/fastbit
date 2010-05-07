@@ -1,3 +1,20 @@
+Fri May  7 14:02:15 PDT 2010
+Version ibis1.1.8
+-- modify ibis::part::barrel to work with in-memory data partitions (to
+   address a problem reported by Andreas Streichardt)
+-- update ibis::bord::column to work with string values
+-- refactor string search functions to accomodate queries on in-memory
+   data
+-- add back ibis::part::mutexLock to provide support for HDF5_FastQuery
+   (an issue raised by Prabhat)
+-- implement support for the limit clause with two arguments (suggested
+   by Valeria Lorenzetti)
+-- fix problem with unrolled loops in string comparison functions
+   spotted by Bernd Jaenichen
+-- added code from Bernd Jaenichen to test discrete range queries on
+   in-memory data partitions
+-- consolidate the functions for evaluating discrete range queries
+
 Wed Apr 14 13:14:28 PDT 2010
 Version ibis1.1.7
 -- address the problem with trailing directory separator reported by
