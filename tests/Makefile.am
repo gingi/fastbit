@@ -20,7 +20,8 @@ THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 hist4 text-0 \
-    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 smatch-1 inRange-1 \
+    thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
+    smatch-1 inRange-1 small-1 small-2 small-3 small-4 small-5 small-6 small-7 \
     maurel.csv scripts/fastbit-config.in scripts/hcompare.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
@@ -119,6 +120,18 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
+really-small: $(TESTDIR)/wee1/-part.txt $(TESTDIR)/wee2/-part.txt $(TESTDIR)/wee3/-part.txt $(IBISEXE)
+	@date >| $(TESTDIR)/really-small.log
+	@$(IBISEXE) -d $(TESTDIR)/wee1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
+	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/reall-small.log; fi
+	@echo
+#
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	rm -rf $(TESTDIR)/t0
 	$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv
@@ -138,6 +151,13 @@ $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv
+# really small data partitions (wee == very small)
+$(TESTDIR)/wee1/-part.txt: $(ARDEAEXE)
+	$(ARDEAEXE) -d $(TESTDIR)/wee1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1,"
+$(TESTDIR)/wee2/-part.txt: $(ARDEAEXE)
+	$(ARDEAEXE) -d $(TESTDIR)/wee2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010"
+$(TESTDIR)/wee3/-part.txt: $(ARDEAEXE)
+	$(ARDEAEXE) -d $(TESTDIR)/wee3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012"
 # a simple internal sanity check
 sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	@echo
