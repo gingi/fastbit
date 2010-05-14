@@ -1701,22 +1701,22 @@ static void print(const char* cmd) {
     if (strnicmp(names, "joint ", 6) == 0) {
 	names += 6;
 	std::string name1, name2, name3;
-	ibis::util::getString(name1, names);
-	if (name1.empty()) {
+	int ierr = ibis::util::readString(name1, names);
+	if (ierr < 0 || name1.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "the command 'print joint' needs two "
 		"column names as arguments";
 	    return;
 	}
-	ibis::util::getString(name2, names);
-	if (name2.empty()) {
+	ierr = ibis::util::readString(name2, names);
+	if (ierr < 0 || name2.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "the command 'print joint' needs two "
 		"column names as arguments";
 	    return;
 	}
-	ibis::util::getString(name3, names);
-	if (name3.empty()) { // got two names, 2D distributions
+	ierr = ibis::util::readString(name3, names);
+	if (ierr < 0 || name3.empty()) { // got two names, 2D distributions
 	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
 		 tit != ibis::datasets.end(); ++ tit) {
 		print2DDistribution(**tit, name1.c_str(), name2.c_str(), cond);
@@ -1741,30 +1741,30 @@ static void print(const char* cmd) {
     else if (strnicmp(names, "weighted", 8) == 0) {
 	names += 8;
 	std::string nm1, nm2, nm3, nm4;
-	ibis::util::getString(nm1, names);
-	if (nm1.empty()) {
+	int ierr = ibis::util::readString(nm1, names);
+	if (ierr < 0 || nm1.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "the command 'print weighted' needs at least two names "
 		"as arguments";
 	    return;
 	}
-	ibis::util::getString(nm2, names);
-	if (nm2.empty()) {
+	ierr = ibis::util::readString(nm2, names);
+	if (ierr < 0 || nm2.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "the command 'print weighted' needs at least two names "
 		"as arguments";
 	    return;
 	}
-	ibis::util::getString(nm3, names);
-	if (nm3.empty()) {
+	ierr = ibis::util::readString(nm3, names);
+	if (ierr < 0 || nm3.empty()) {
 	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
 		 tit != ibis::datasets.end(); ++ tit) {
 		print1DDistribution(**tit, cond, nm1.c_str(), nm2.c_str());
 	    }
 	    return;
 	}
-	ibis::util::getString(nm4, names);
-	if (nm4.empty()) {
+	ierr = ibis::util::readString(nm4, names);
+	if (ierr < 0 || nm4.empty()) {
 	    for (ibis::partList::const_iterator tit = ibis::datasets.begin();
 		 tit != ibis::datasets.end(); ++ tit) {
 		print2DDistribution(**tit, cond, nm1.c_str(),

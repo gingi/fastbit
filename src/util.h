@@ -401,13 +401,11 @@ namespace ibis {
 	inline void removeTail(char* str, char tail);
 	/// Treat all bytes in buf as the string.
 	FASTBIT_CXX_DLLSPEC char* getString(const char* buf);
-	/// Extract the next quoted string or the blank delimited string.
-	FASTBIT_CXX_DLLSPEC void
-	getString(std::string& str, const char*& buf, const char *delim=0);
 	const char* getToken(char*& str, const char* tok_chrs);
 	int readInt(int64_t& val, const char *&str, const char* del);
 	int readUInt(uint64_t& val, const char *&str, const char* del);
 	int readDouble(double& val, const char *&str, const char* del);
+	int readString(std::string& str, const char*& buf, const char *delim=0);
 
 	/// Remove the content of named directory.  The directory itself is
 	/// removed unless the second argument is true.

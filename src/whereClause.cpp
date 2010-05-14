@@ -208,7 +208,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -222,7 +222,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->leftString();
 	    }
@@ -236,7 +236,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->colName();
 	    }
@@ -298,7 +298,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << var->variableName();
 	    }
@@ -395,7 +395,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -416,7 +416,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	    if (col == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "whereClause::verify -- data partition "
+		    << "Warning -- whereClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
 	    }
@@ -428,7 +428,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	if (c1 == 0) {
 	    ++ ierr;
 	    LOGGER(ibis::gVerbose > 0)
-		<< "whereClause::verify -- data partition "
+		<< "Warning -- whereClause::verify -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName1();
 	}
@@ -436,7 +436,7 @@ int ibis::whereClause::_verify(const ibis::part& part0, ibis::qExpr *&xp0,
 	if (c2 == 0) {
 	    ++ ierr;
 	    LOGGER(ibis::gVerbose > 0)
-		<< "whereClause::verify -- data partition "
+		<< "Warning -- whereClause::verify -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName2();
 	}

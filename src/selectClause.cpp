@@ -521,7 +521,7 @@ int ibis::selectClause::_verify(const ibis::part& part0,
 	    if (part0.getColumn(var.variableName()) == 0) {
 		++ ierr;
 		LOGGER(ibis::gVerbose > 0)
-		    << "selectClause::verify -- data partition "
+		    << "Warning -- selectClause::verify -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << var.variableName();
 	    }

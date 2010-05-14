@@ -1,3 +1,18 @@
+2010-05-13 John Wu <John.Wu at ACM.org>
+	* src/bundle.cpp: in bundles::sort and bundle1::sort add calls to
+	perform aggregation operations when there is only one row in the
+	bundles (a problem reported by Bernd Jaenichen); need to invoke
+	the function reduce even in the case of nGroups == nHits
+	* src/util.h, src/util.cpp: change the function getString that
+	takes three arguments to readString, to make it possible to detect
+	missing string values in the incoming text files
+	* tests/Makefile.am: add test case really-small to target check
+
+2010-05-12 Zhengbing Li <li dot zhengbin at huawei dot com> and
+	Xun Hu <Xun dot Hu at huawei dot com>
+	* java/FastBit.c: add code to properly release memory allocated for
+	java objects.  This fixes memory leaks in JNI library.
+
 2010-05-04 John Wu <John.Wu at ACM.org>
 	* src/bord.h, src/bord.cpp: add bord::column::evaluateRange to
 	support qDiscreteRange, remove the template function bord::doScan,

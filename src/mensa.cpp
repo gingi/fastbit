@@ -3773,7 +3773,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    ierr = tms.verifySome(**it, tmstouse);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- select clause (" << sel
+		<< "Waring -- " << mesg << " -- select clause (" << sel
 		<< ") contains variables that are not in data partition "
 		<< (*it)->name();
 	    continue;
@@ -3813,8 +3813,8 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    if (aterm->termType() != ibis::math::VARIABLE) {
 		if (aterm->termType() == ibis::math::UNDEFINED) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< mesg << " -- can not handle a math::term "
-			"of undefined type";
+			<< "Warning -- " << mesg << " -- can not handle a "
+			"math::term of undefined type";
 		}
 		else {
 		    if (tls[i] == ibis::UNKNOWN_TYPE)
@@ -3831,7 +3831,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		const ibis::column* col = (*it)->getColumn(tms.argName(itm));
 		if (col == 0) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< mesg << " -- \"" << tms.argName(itm)
+			<< "Warning -- " << mesg << " -- \"" << tms.argName(itm)
 			<< "\" is not a column of partition " << (*it)->name();
 		    continue;
 		}

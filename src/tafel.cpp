@@ -117,7 +117,10 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 	return -1;
 
     const char *buf = stmt + 13;
-    ibis::util::getString(tname, buf, 0); // extract table name
+    int ierr = ibis::util::readString(tname, buf, 0); // extract table name
+    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	<< "Warning -- tafel::SQLCreateTable cannot extract a name from \""
+	<< stmt << "\"";
 
     while (*buf != 0 && *buf != '(') ++ buf;
     buf += (*buf == '('); // skip opening (
@@ -131,7 +134,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
     ibis::tafel::column *col;
     const char *delim = " ,\t\n\v";
     while (*buf != 0 && *buf != ')') { // loop till closing )
-	ibis::util::getString(colname, buf, 0);
+	ierr = ibis::util::readString(colname, buf, 0);
 	if (colname.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "tafel::SQLCreateTable failed to extract a column";
@@ -139,7 +142,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 	}
 	else if (stricmp(colname.c_str(), "key") == 0) { // reserved word
 	    // KEY name (name, name)
-	    ibis::util::getString(colname, buf, 0);
+	    ierr = ibis::util::readString(colname, buf, 0);
 	    while (*buf != 0 && *buf != '(' && *buf != ',') ++ buf;
 	    if (*buf == '(') { // skip till ')'
 		while (*buf != 0 && *buf != ')') ++ buf;
@@ -154,7 +157,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 	switch (*buf) { // for data types
 	default: { // unknown type
 		col = 0;
-		ibis::util::getString(tmp, buf, delim);
+		ierr = ibis::util::readString(tmp, buf, delim);
 		LOGGER(ibis::gVerbose > 0)
 		    << "tafel::SQLCreateTable column " << colname
 		    << " has a unexpected type (" << tmp
@@ -327,7 +330,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 	    colorder.push_back(col);
 
 	    while (*buf != 0 && *buf != ',') {
-		ibis::util::getString(tmp, buf, delim);
+		ierr = ibis::util::readString(tmp, buf, delim);
 		if ((!tmp.empty()) && stricmp(tmp.c_str(), "default") == 0) {
 		    int ierr = assignDefaultValue(*col, buf);
 		    LOGGER(ierr < 0 && ibis::gVerbose > 1)
@@ -591,7 +594,7 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	std::string &str = *(static_cast<std::string*>(col.defval));
 	str.clear();
 	if (val != 0 && *val != 0)
-	    ibis::util::getString(str, val, 0);
+	    (void) ibis::util::readString(str, val, 0);
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
@@ -2590,7 +2593,7 @@ void ibis::tafel::clear() {
 /// Digest a line of text and place the values identified into the
 /// corresponding columns.  The actual values are extracted by
 /// ibis::util::readInt, ibis::util::readUInt, ibis::util::readDouble and
-/// ibis::util::getString.  When any of these functions returns an error
+/// ibis::util::readString.  When any of these functions returns an error
 /// condition, this function assumes the value to be recorded is a NULL.
 /// The presence of a NULL value is marked by a 0-bit in the mask
 /// associated with the column.  The actual value in the associated buffer
@@ -2851,13 +2854,13 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    break;}
 	case ibis::CATEGORY:
 	case ibis::TEXT: {
-	    ibis::util::getString(stmp, str, del);
+	    ierr = ibis::util::readString(stmp, str, del);
 	    static_cast<std::vector<std::string>*>(col.values)->push_back(stmp);
-	    col.mask += 1;
+	    col.mask += (ierr >= 0);
 	    ++ cnt;
 	    break;}
 	case ibis::BLOB: {
-	    ibis::util::getString(stmp, str, del);
+	    ierr = ibis::util::readString(stmp, str, del);
 	    ibis::array_t<char> *raw =
 		static_cast<ibis::array_t<char>*>(col.values);
 	    if (raw->empty()) {
@@ -2866,7 +2869,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    }
 	    raw->insert(raw->end(), stmp.data(), stmp.data()+stmp.size());
 	    col.starts.push_back(col.starts.back()+stmp.size());
-	    col.mask += 1;
+	    col.mask += (ierr >= 0);
 	    ++ cnt;
 	    break;}
 	default: {
@@ -3139,13 +3142,20 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	}
 	else if (strnicmp(stmtbuf.address(), "insert into ", 12) == 0) {
 	    str = stmtbuf.address() + 12;
-	    ibis::util::getString(tmp, const_cast<const char*&>(str),
-				  static_cast<const char*>(0));
-	    if (!tname.empty() && tmp.compare(tname) != 0) {
+	    ierr = ibis::util::readString(tmp, const_cast<const char*&>(str),
+					  static_cast<const char*>(0));
+	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
-		    << "tafel::readSQLDump(" << filename << ") SQL statment # "
-		    << iline << " refers to table " << tmp
-		    << ", but the current active table is " << tname
+		    << "Warning -- tafel::readSQLDump(" << filename
+		    << ") failed to extract table name from SQL statment # "
+		    << iline;
+		continue;
+	    }
+	    else if (!tname.empty() && tmp.compare(tname) != 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tafel::readSQLDump(" << filename
+		    << ") SQL statment # " << iline << " refers to table "
+		    << tmp << ", but the current active table is " << tname
 		    << ", skipping this statement";
 		continue;
 	    }
@@ -3529,12 +3539,12 @@ int ibis::tablex::readNamesAndTypes(const char* filename) {
 	}
 	else if ((s1 = strstr(str, "name = ")) != 0) {
 	    s1 += 7;
-	    ibis::util::getString(buf2, s1);
+	    ret = ibis::util::readString(buf2, s1);
 	}
 	else if ((s1 = strstr(str, "type = ")) != 0) {
 	    s1 += 7;
-	    ibis::util::getString(b2, s1);
-	    if (! b2.empty()) {
+	    ret = ibis::util::readString(b2, s1);
+	    if (ret >= 0 && ! b2.empty()) {
 		buf2 += ':';
 		buf2 += b2;
 	    }

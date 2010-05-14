@@ -672,12 +672,19 @@ void ibis::bundle1::sort() {
     }
 #endif
 
-    if (nrow < 2) { // not much to do
+    if (nrow < 2) { // no need to sort the rows, but may do aggregation
 	starts = new array_t<uint32_t>((uint32_t)2);
 	(*starts)[1] = nrow;
 	(*starts)[0] = 0;
+
+	const ibis::selectClause::AGREGADO agr = comps.getAggregator(0);
+	if (agr != ibis::selectClause::NIL) {
+	    col->nosharing();
+	    col->reduce(*starts, agr);
+	}
     }
     else if (comps.getAggregator(0) == ibis::selectClause::NIL) {// no function
+	col->nosharing();
 	// sort according to the values
 	col->sort(0, nrow, this);
 	// determine the starting positions of the identical segments
@@ -696,6 +703,7 @@ void ibis::bundle1::sort() {
 	starts = new array_t<uint32_t>((uint32_t)2);
 	(*starts)[1] = nrow;
 	(*starts)[0] = 0;
+	col->nosharing();
 	col->reduce(*starts, comps.getAggregator(0));
     }
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
@@ -1339,10 +1347,19 @@ void ibis::bundles::sort() {
 	}
     }
 #endif
-    if (nHits < 2) { // not much to do
+    if (nHits < 2) { // no need to sort, but may do (silly) aggregations
 	starts = new ibis::array_t<uint32_t>(2);
 	(*starts)[1] = nHits;
 	(*starts)[0] = 0;
+	if (nplain < ncol && nHits > 0) {
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		const ibis::selectClause::AGREGADO agr = comps.getAggregator(i);
+		if (agr != ibis::selectClause::NIL) {
+		    cols[i]->nosharing();
+		    cols[i]->reduce(*starts, agr);
+		}
+	    }
+	}
     }
     else if (nplain == ncol) { // no functions
 	for (uint32_t i = 0; i < ncol; ++ i)
@@ -1425,13 +1442,11 @@ void ibis::bundles::sort() {
 	}
 
 	if (nGroups < nHits) {// erase the dupliate elements
-	    for (uint32_t i2 = 0; i2 < nplain; ++ i2) {
+	    for (uint32_t i2 = 0; i2 < nplain; ++ i2)
 		cols[i2]->reduce(*starts);
-	    }
-	    for (uint32_t i2 = nplain; i2 < ncol; ++ i2) {
-		cols[i2]->reduce(*starts, ops[i2]);
-	    }
 	}
+	for (uint32_t i2 = nplain; i2 < ncol; ++ i2)
+	    cols[i2]->reduce(*starts, ops[i2]);
 
 	// restore the input order of the columns
 	cols2.swap(cols);

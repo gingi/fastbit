@@ -2594,8 +2594,9 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		else if (strnicmp(str, "binFile=", 8) == 0 ||
 			 strnicmp(str, "file=", 5) == 0) {
 		    str += (*str=='b'?8:5);
-		    ibis::util::getString(binfile, str, ",; \t()/>");
-		    if (! binfile.empty())
+		    int ierr =
+			ibis::util::readString(binfile, str, ",; \t()/>");
+		    if (ierr >= 0 && ! binfile.empty())
 			progress |= 11;
 		}
 		str = strpbrk(str, ",; \t()/>");
@@ -4167,8 +4168,9 @@ void ibis::bin::setBoundaries(const char* f) {
 		else if (strnicmp(str, "binFile=", 8) == 0 ||
 			 strnicmp(str, "file=", 5) == 0) {
 		    str += (*str=='b'?8:5);
-		    ibis::util::getString(binfile, str, ",; \t()/>");
-		    if (! binfile.empty())
+		    int ierr =
+			ibis::util::readString(binfile, str, ",; \t()/>");
+		    if (ierr >= 0 && ! binfile.empty())
 			progress |= 11;
 		}
 		str = strpbrk(str, ",; \t()/>");

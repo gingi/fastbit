@@ -204,13 +204,15 @@ char* ibis::util::getString(const char* buf) {
 /// first quote to the last character before the matching quote or end of
 /// buffer.  If delim is not provided (i.e., is 0), and the 1st nonblank
 /// character is not a quote, then string will terminate at the 1st space
-/// character following the nonblank character.
-void ibis::util::getString(std::string& str, const char *&buf,
+/// character following the nonblank character.  A unquoted empty string
+/// is considered a null value which is indicated by return a negative
+/// error code.  A quoted empty string is a valid string.
+int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
-    if (buf == 0 || *buf == 0) return;
-
     while (*buf && isspace(*buf)) ++ buf; // skip leading space
+    if (buf == 0 || *buf == 0) return -1;
+
     if (*buf == '\'') { // single quoted string
 	++ buf; // skip the openning quote
 	while (*buf) {
@@ -220,7 +222,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		str[str.size()-1] = '\'';
 	    else {
 		++ buf;
-		return;
+		return 0;
 	    }
 	    ++ buf;
 	} // while (*buf)
@@ -234,7 +236,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		str[str.size()-1] = '"';
 	    else {
 		++ buf;
-		return;
+		return 0;
 	    }
 	    ++ buf;
 	} // while (*buf)
@@ -248,7 +250,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		str[str.size()-1] = '`';
 	    else {
 		++ buf;
-		return;
+		return 0;
 	    }
 	    ++ buf;
 	} // while (*buf)
@@ -261,7 +263,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
-		    return;
+		    break;
 		++ buf;
 	    } // while (*buf)
 	}
@@ -272,7 +274,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
-		    return;
+		    break;
 		++ buf;
 	    } // while (*buf)
 	}
@@ -283,7 +285,7 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
-		    return;
+		    break;
 		++ buf;
 	    } // while (*buf)
 	}
@@ -294,12 +296,14 @@ void ibis::util::getString(std::string& str, const char *&buf,
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else
-		    return;
+		    break;
 		++ buf;
 	    } // while (*buf)
 	}
+	if (str.empty()) return -2; // unquoted empty string
     }
-} // ibis::util::getString
+    return 0;
+} // ibis::util::readString
 
 /// Attempt to convert the incoming string into an integer.  It skips
 /// leading space and converts an optional +/- sign followed by a list of
