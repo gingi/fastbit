@@ -1,3 +1,10 @@
+2010-05-14 John Wu <John.Wu at ACM.org>
+	* tests/Makefile.am: change test case 1 and 2 of check-marksdb to
+	exclude the output of d ~ 12 because there are two sets of points
+	with d that are almost the same so their orders (and therefore
+	which ones will show up in the output) depend on tiny numerical
+	errors.
+
 2010-05-13 John Wu <John.Wu at ACM.org>
 	* src/bundle.cpp: in bundles::sort and bundle1::sort add calls to
 	perform aggregation operations when there is only one row in the
@@ -8,8 +15,8 @@
 	missing string values in the incoming text files
 	* tests/Makefile.am: add test case really-small to target check
 
-2010-05-12 Zhengbing Li <li dot zhengbin at huawei dot com> and
-	Xun Hu <Xun dot Hu at huawei dot com>
+2010-05-12 Zhengbing Li <li dot zhengbing at huawei dot com> and
+	Xun Hu <XunHu at huawei dot com>
 	* java/FastBit.c: add code to properly release memory allocated for
 	java objects.  This fixes memory leaks in JNI library.
 

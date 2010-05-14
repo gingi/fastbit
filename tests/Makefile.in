@@ -544,8 +544,9 @@ uninstall-am:
 
 #
 # tests with different levels of thoroughness
-check: clean check-am
-	$(MAKE) check-thula && $(MAKE) check-tcapi && \
+check: clean-tmp check-am
+	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} > /dev/null
+	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis
@@ -614,9 +615,9 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -b -v -v > $(TESTDIR)/check-marksdb.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d, lon limit 0, 150" -o $(TESTDIR)/marksdb-1 >> $(TESTDIR)/check-marksdb.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where time = 77328 order by d, lon limit 0, 120" -o $(TESTDIR)/marksdb-1 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `scripts/hcompare.pl marksdb-1 $(TESTDIR)/marksdb-1 | fgrep 'acceptable' | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where (time < 0 || time = 77328) and d <= 15 order by d, lon limit 150" -o $(TESTDIR)/marksdb-2 >> $(TESTDIR)/check-marksdb.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon,3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) as d where (time < 0 || time = 77328) and d <= 12 order by d, lon limit 150" -o $(TESTDIR)/marksdb-2 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `scripts/hcompare.pl $(TESTDIR)/marksdb-1 $(TESTDIR)/marksdb-2 | fgrep acceptable | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon where time = 77328 and 3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) <= 15 order by lat,lon DESC" -o $(TESTDIR)/marksdb-3 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `diff -w marksdb-3 $(TESTDIR)/marksdb-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
@@ -790,15 +791,15 @@ $(TESTDIR)/1: $(TESTDIR)
 $(TESTDIR)/2: $(TESTDIR)
 	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv
-	rm -rf $(TESTDIR)/marksdb
-	./readcsv marksdb.csv $(TESTDIR)/marksdb
+	-rm -rf $(TESTDIR)/marksdb
+	-./readcsv marksdb.csv $(TESTDIR)/marksdb > /dev/null
 $(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv
-	rm -rf $(TESTDIR)/maurel
-	./readcsv maurel.csv $(TESTDIR)/maurel
+	-rm -rf $(TESTDIR)/maurel
+	-./readcsv maurel.csv $(TESTDIR)/maurel > /dev/null
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
-	./readcsv test0.csv $(TESTDIR)/0/test0
+	-./readcsv test0.csv $(TESTDIR)/0/test0 > /dev/null
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)
-	./readcsv test1.csv $(TESTDIR)/0/test1
+	-./readcsv test1.csv $(TESTDIR)/0/test1 > /dev/null
 $(TESTDIR)/test.rc: $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc
@@ -818,10 +819,12 @@ $(TESTDIR)/smallmem.rc: $(TESTDIR)
 #
 #
 clean: clean-am
-	rm -f *\\~ core core.[0-9]*
-	rm -rf $(TESTDIR) star2002*
+	-rm -f *\\~ core core.[0-9]*
+	-rm -rf $(TESTDIR) star2002*
+clean-tmp:
+	-rm -rf $(TESTDIR) .ibis
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) $(TESTDIR) .ibis readcsv$(EXEEXT)
+	-rm -rf ./$(DEPDIR) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT}
 	-rm -f Makefile
 #
 # append the data in test0.csv and test1.csv 10 times
@@ -865,10 +868,10 @@ $(TCAPIEXE):
 	cd ../src && $(MAKE) libfastbit.la
 #
 # these targets do not refer to files
-.PHONY: clean multilevel match-counts large-sanity-check large-tests small-tests
+.PHONY: clean clean-tmp multilevel match-counts large-sanity-check large-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
-.PHONY: check-marksdb check-maurel
+.PHONY: check-marksdb check-maurel small-tests really-small
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
