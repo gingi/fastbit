@@ -96,6 +96,8 @@ public:
     /// Directly performing group-by on the base data (without selection)
     /// is not currently supported.
     virtual table* groupby(const stringList&) const {return 0;}
+    /// Directly performing group-by on the base data (without selection)
+    /// is not currently supported.
     virtual table* groupby(const char *) const {return 0;}
 
     virtual int buildIndex(const char*, const char*);

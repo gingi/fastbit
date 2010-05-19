@@ -616,6 +616,93 @@ void ibis::part::genName(const ibis::resource::vList &mtags,
 	name = ibis::util::userName();
 } // ibis::part::genName
 
+/// If the incoming name is empty, this function assigns the data partition
+/// a random name.  If it already has a name, it will append a random
+/// number at the end.  It will try as many random numbers as necessary to
+/// produce a name that is not already in the list of known data
+/// partitions.
+void ibis::part::rename(const ibis::partAssoc& known) {
+    std::string tmp1, tmp2;
+    std::vector<unsigned> rands;
+    mutexLock ml(this, "rename");
+    if (switchTime == 0) // presume to be not yet set
+	switchTime = time(0);
+    // try 0: use the description
+    if (m_name == 0 || *m_name == 0) {
+	if (activeDir != 0 && *activeDir != 0) {
+	    tmp1 = activeDir;
+	}
+	else if (!m_desc.empty()) {
+	    tmp1 = ibis::util::shortName(m_desc);
+	}
+	else {
+	    ibis::util::int2string(tmp2, ibis::fileManager::iBeat());
+	    tmp1 = "_";
+	    tmp1 += tmp2;
+	}
+	if (known.find(tmp1.c_str()) == known.end()) { // got a unique name
+	    delete [] m_name;
+	    m_name = ibis::util::strnewdup(tmp1.c_str());
+	    return;
+	}
+    }
+    // try 1: use the time stamp
+    rands.push_back(switchTime);
+    ibis::util::int2string(tmp2, rands[0]);
+    if (m_name != 0 && *m_name != 0)
+	tmp1 = m_name;
+    tmp1 += '_';
+    const size_t stem = tmp1.size();
+    tmp1 += tmp2;
+    if (known.find(tmp1.c_str()) == known.end()) { // got a unique name
+	delete [] m_name;
+	m_name = ibis::util::strnewdup(tmp1.c_str());
+	return;
+    }
+    // try 2: add ibeat
+    rands.push_back(ibis::fileManager::iBeat());
+    ibis::util::int2string(tmp2, rands[0], rands[1]);
+    tmp1.erase(stem);
+    tmp1 += tmp2;
+    if (known.find(tmp1.c_str()) == known.end()) { // got a unique name
+	delete [] m_name;
+	m_name = ibis::util::strnewdup(tmp1.c_str());
+	return;
+    }
+    // try 3: add random numbers
+    ibis::MersenneTwister urand;
+    while (true) {
+	// add a new random number
+	rands.push_back(urand.nextInt());
+	ibis::util::int2string(tmp2, rands);
+	tmp1.erase(stem);
+	tmp1 += tmp2;
+	if (known.find(tmp1.c_str()) == known.end()) { // got a unique name
+	    delete [] m_name;
+	    m_name = ibis::util::strnewdup(tmp1.c_str());
+	    return;
+	}
+
+	for (long j = ibis::fileManager::iBeat(); j > 0; -- j) {
+	    ++ rands.back(); // next number
+	    ibis::util::int2string(tmp2, rands);
+	    tmp1.erase(stem);
+	    tmp1 += tmp2;
+	    if (known.find(tmp1.c_str()) == known.end()) {
+		delete [] m_name;
+		m_name = ibis::util::strnewdup(tmp1.c_str());
+		return;
+	    }
+	}
+    } // while (true)
+
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- part[" << (m_name ? m_name : "?")
+	<< "]::rename failed to produce a name that is different from "
+	"those in a list of " << known.size() << " known partition"
+	<< (known.size()>1 ? "s" : "");
+} // ibis::part::rename
+
 /// Determines where to store the data.
 void ibis::part::init(const char* iname) {
     // make sure the file manager is initialized
@@ -12463,7 +12550,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
     try {
 	ibis::part* tmp = new ibis::part(dir1, ro);
 	if (tmp != 0) {
-	    if (tmp->name() != 0 && tmp->nRows() > 0) {
+	    if (tmp->name() != 0 && tmp->nColumns() > 0) {
 		++ cnt;
 		ibis::util::mutexLock
 		    lock(&ibis::util::envLock, "gatherParts");
@@ -12472,19 +12559,43 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 		     it != tlist.end(); ++ it) {
 		    sorted[(*it)->name()] = *it;
 		}
-		ibis::partAssoc::iterator it = sorted.find(tmp->name());
+		ibis::partAssoc::const_iterator it = sorted.find(tmp->name());
 		if (it != sorted.end()) { // deallocate the old table
-		    logMessage("gatherParts", "replacing the old partition "
-			       "named %s with new data partition from %s",
-			       (*it).first, dir1);
-		    delete (*it).second;
-		    sorted.erase(it);
+		    if (it->second->timestamp() == tmp->timestamp() &&
+			it->second->nColumns()  == tmp->nColumns() &&
+			it->second->nRows()     == tmp->nRows()) {
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- util::gatherParts finds the data "
+			    "partition in " << dir1 << " to have exactly the "
+			    "same name, number of rows, number of columns, "
+			    "and time stamp as the one in "
+			    << it->second->currentDataDir()
+			    << " already in memory, discards the new one and "
+			    "keeps the old one";
+			delete tmp;
+			tmp = 0;
+		    }
+		    else {
+			tmp->rename(sorted);
+			it = sorted.find(tmp->name());
+			if (it != sorted.end()) {
+			    LOGGER(ibis::gVerbose > 0)
+				<< "Warning -- util::gatherParts failed to "
+				"rename the data partition from " << dir1
+				<< " to a unique name, have to drop it";
+			    delete tmp;
+			    tmp = 0;
+			}
+		    }
 		}
-		sorted[tmp->name()] = tmp;
 
-		tlist.clear();
-		for (it = sorted.begin(); it != sorted.end(); ++ it)
-		    tlist.push_back(it->second);
+		if (tmp != 0) {
+		    sorted[tmp->name()] = tmp;
+
+		    tlist.clear();
+		    for (it = sorted.begin(); it != sorted.end(); ++ it)
+			tlist.push_back(it->second);
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 4)
@@ -12566,23 +12677,41 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
 		 it != tlist.end(); ++ it) {
 		sorted[(*it)->name()] = *it;
 	    }
-	    ibis::partAssoc::iterator it = sorted.find(tbl->name());
+	    ibis::partAssoc::const_iterator it = sorted.find(tbl->name());
 	    if (it == sorted.end()) { // a new name
 		sorted[tbl->name()] = tbl;
 		LOGGER(ibis::gVerbose > 1)
 		    << "util::gatherParts -- add new partition \""
 		    << tbl->name() << "\"";
 	    }
+	    else if (it->second->timestamp() == tbl->timestamp() &&
+		     it->second->nColumns()  == tbl->nColumns() &&
+		     it->second->nRows()     == tbl->nRows()) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- util::gatherParts finds the data "
+		    "partition in " << adir << " (and " << bdir
+		    << ") to have exactly the same name, number of rows, "
+		    "number of columns, and time stamp as the one in "
+		    << it->second->currentDataDir()
+		    << " already in memory, discards the new one and "
+		    "keeps the old one";
+		delete tbl;
+		tbl = 0;
+	    }
 	    else {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- util::gatherParts found a new partition "
-		    "named \"" << tbl->name() << "\" from "
-		    << tbl->currentDataDir()
-		    << ", discarding the old one from "
-		    << (*it).second->currentDataDir();
-		delete (*it).second;
-		sorted.erase(it);
-		sorted[tbl->name()] = tbl;
+		tbl->rename(sorted);
+		it = sorted.find(tbl->name());
+		if (it != sorted.end()) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- util::gatherParts failed to rename "
+			"the data partition from " << adir  << " (and " << bdir
+			<< ") to a unique name, have to drop it";
+		    delete tbl;
+		    tbl = 0;
+		}
+		else {
+		    sorted[tbl->name()] = tbl;
+		}
 	    }
 
 	    tlist.clear();
@@ -12712,7 +12841,8 @@ void ibis::util::clean(ibis::partList &pl) throw() {
 } // ibis::util::clean
 
 /// It conforms to the prototype of function can be registered with atexit
-/// and is registered with atexit in ibis::init.
+/// and is registered with atexit in ibis::init.  The caller is responsible
+/// to ensure only one thread is invoking this function.
 void ibis::util::clearDatasets(void) {
     const uint32_t npt = ibis::datasets.size();
     for (uint32_t j = 0; j < npt; ++ j)

@@ -593,6 +593,9 @@ public:
     /// Generate name for a partition based on the meta tags.
     static void  genName(const ibis::resource::vList &mtags,
 			 std::string &name);
+    /// Rename the partition to avoid conflicts with an existing list of
+    /// data partitions.
+    void rename(const ibis::partAssoc& known);
     /// Given a @c bitvector, compute the number of pages would be accessed.
     static uint32_t countPages(const ibis::bitvector &mask,
 			       unsigned elemsize=4);

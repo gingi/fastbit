@@ -354,12 +354,14 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
 
 /// The function cleans the memory cache used by FastBit.  It destroys the
 /// two lists of files it holds and therefore make the file not accessible
-/// any object new objects.  However, the actual underlying memory may
-/// still be present if they are being actively used.  This function is
-/// effective on if all other operations have ceased.  To force an
-/// individual file to be unloaded use ibis::fileManager::flushFile.  To
-/// force all files in a directory to be unloaded used
-/// ibis::fileManager::flushDir.
+/// any new objects.  However, the actual underlying memory may still be
+/// present if they are being actively used.  This function is effective on
+/// if all other operations have ceased!  To force an individual file to be
+/// unloaded use ibis::fileManager::flushFile.  To force all files in a
+/// directory to be unloaded used ibis::fileManager::flushDir.
+///
+/// @note This function will not do anything if it is not able to acquire a
+/// write lock in the file manager object.
 void ibis::fileManager::clear() {
     if (ibis::gVerbose > 6 ||
 	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 2)) {
@@ -369,9 +371,27 @@ void ibis::fileManager::clear() {
     }
 
     ibis::util::mutexLock mlck(&mutex, "fileManager::clear");
+    invokeCleaners();
     if (! mapped.empty() || ! incore.empty()) {
 	std::vector<roFile*> tmp; // temporarily holds the read-only files
-	writeLock wlck(this, "clear");
+	softWriteLock wlck(this, "clear");
+	if (! wlck.isLocked()) {
+	    if (ibis::gVerbose > 3) {
+		ibis::util::logger lg;
+		lg.buffer() << "Warning -- fileManager::clear failed to "
+		    "acquire a write lock for deleting the in-memory objects\n";
+		if (ibis::gVerbose > 6)
+		    printStatus(lg.buffer());
+		else
+		    lg.buffer() << "There are " << mapped.size()
+				<< " memory map" << (mapped.size()>1?"s":"")
+				<< " and " << incore.empty()
+				<< " in-memory file"
+				<< (incore.size()>1?"s":"");
+	    }
+	    return;
+	}
+
 	tmp.reserve(mapped.size()+incore.size());
 	for (fileList::const_iterator it=mapped.begin();
 	     it != mapped.end(); ++it) {
@@ -1369,6 +1389,7 @@ int ibis::fileManager::unload(size_t size) {
     return -109;
 } // ibis::fileManager::unload
 
+/// Invoke the external cleanup function registered with the file manager.
 void ibis::fileManager::invokeCleaners() const {
     LOGGER(ibis::gVerbose > 5)
 	<< "fileManager invoking registered external cleaners ...";

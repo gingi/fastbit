@@ -1,3 +1,19 @@
+2010-05-18 John Wu <John.Wu at ACM.org>
+	* src/util.cpp:1104 comment the delete statement, the pointer was
+	returned by a old-style getpwuid which can not be deleted (to
+	address crash reported by Jason Chambers)
+
+2010-05-17 John Wu <John.Wu at ACM.org>
+	* src/part.h: add function ibis::part::rename
+	* src/part.cpp: change function gatherParts to keep the new
+	partitions that has the same name but different in other regards
+	as suggested by Valeria Lorezetti
+	* src/fileManager.h, src/fileManager.cpp: add
+	fileManager::softWriteLock to avoid indefinite wait in
+	ibis::fileManager::clear (suggested by Luca Deri)
+	* src/bord.cpp: change bord::part::groupby to return an empty
+	table when the current table is empty as suggested by Luca Deri
+
 2010-05-14 John Wu <John.Wu at ACM.org>
 	* tests/Makefile.am: change test case 1 and 2 of check-marksdb to
 	exclude the output of d ~ 12 because there are two sets of points

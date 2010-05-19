@@ -1636,8 +1636,19 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
 /// arithmetic operations are allowed!
 ibis::table*
 ibis::bord::part::groupby(const ibis::selectClause& sel) const {
-    if (sel.empty() || nEvents == 0)
+    if (sel.empty())
 	return 0;
+
+    std::string td = "GROUP BY ";
+    td += *sel;
+    td += " on table ";
+    td += m_name;
+    td += " (";
+    td += m_desc;
+    td += ')';
+    std::string tn = ibis::util::shortName(td);
+    if (nEvents == 0)
+	return new ibis::tabula(tn.c_str(), td.c_str(), nEvents);
 
     std::vector<uint32_t> bad;
     ibis::bord::bufferList buf;
@@ -1695,14 +1706,6 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
     // convert bundle back into a partition, first generate the name and
     // description for the new table
-    std::string td = "GROUP BY ";
-    td += *sel;
-    td += " on table ";
-    td += m_name;
-    td += " (";
-    td += m_desc;
-    td += ')';
-    std::string tn = ibis::util::shortName(td);
     if (nc == 0)
 	return new ibis::tabula(tn.c_str(), td.c_str(), nr);
 

@@ -202,55 +202,11 @@ private:
     int unload(size_t size);	// try to unload size bytes
     void invokeCleaners() const;// invoke external cleaners
     inline void gainWriteAccess(const char* m) const;
-    /// A write lock for controlling access to the two internal lists.
-    class writeLock {
-    public:
-	writeLock(const fileManager* fm, const char* m) :
-	    manager(fm), mesg(m) {manager->gainWriteAccess(mesg);}
-	~writeLock() {manager->releaseAccess(mesg);}
-    private:
-	const fileManager* manager;
-	const char* mesg;
 
-	writeLock(const writeLock&);
-	writeLock& operator=(const writeLock&);
-    };
-    // /// A mutual exclusion lock to prevent simultaneous modification of the
-    // /// two internal lists.
-    // class mutexLock {
-    // public:
-    // 	mutexLock(const fileManager& fm, const char* m)
-    // 	    : manager(fm), mesg(m) {
-    // 	    if (0 == pthread_mutex_lock(&(manager.mutex))) {
-    // 		if (ibis::gVerbose > 10)
-    // 		    ibis::util::logMessage("fileManager::mutexLock",
-    // 					   "obtain lock for %s", mesg);
-    // 	    }
-    // 	    else
-    // 		ibis::util::logMessage("Warning", "fileManager::mutexLock for "
-    // 				       "%s failed to initialize -- %s ",
-    // 				       mesg, strerror(errno));
-    // 	}
-    // 	~mutexLock() {
-    // 	    if (0 == pthread_mutex_unlock(&(manager.mutex))) {
-    // 		if (ibis::gVerbose > 10)
-    // 		    ibis::util::logMessage("fileManager::mutexLock",
-    // 					   "release lock for %s", mesg);
-    // 	    }
-    // 	    else
-    // 		ibis::util::logMessage("Warning", "failed to release lock for "
-    // 				       "%s -- %s", mesg,
-    // 				       strerror(errno));
-    // 	}
-    // private:
-    // 	const fileManager& manager;
-    // 	const char* mesg;
-
-    // 	mutexLock(const mutexLock&);
-    // 	mutexLock& operator=(const mutexLock&);
-    // };
-    // friend class mutexLock;
+    class writeLock;
+    class softWriteLock;
     friend class writeLock;
+    friend class softWriteLock;
 }; // class fileManager
 
 /// The storage class treats all memory as @a char*.
@@ -463,6 +419,67 @@ private:
 }; // ibis::fileManager::rofSegment
 #endif
 
+/// A write lock for controlling access to the two internal lists.
+class ibis::fileManager::writeLock {
+public:
+    writeLock(const fileManager* fm, const char* m) :
+	manager(fm), mesg(m) {manager->gainWriteAccess(mesg);}
+    ~writeLock() {manager->releaseAccess(mesg);}
+private:
+    const fileManager* manager;
+    const char* mesg;
+
+    writeLock(const writeLock&);
+    writeLock& operator=(const writeLock&);
+}; // ibis::fileManager::writeLock
+
+/// A soft write lock for controlling access to the two internal lists.
+class ibis::fileManager::softWriteLock {
+public:
+    /// Constructor.  It attempts to acquire the lock.  It records whether
+    /// a write lock was acquired as a boolean variable and that
+    /// information can be retrieved by calling the function isLocked.
+    softWriteLock(const fileManager* fm, const char* m)
+	: manager(fm), mesg(m),
+	  locked_(0 == pthread_rwlock_trywrlock(&fm->lock)) {
+	LOGGER(ibis::gVerbose > 9 && locked_)
+	    << "fileManager::softWriteAccess acquired a write lock for "
+	    << mesg;
+#if defined(DEBUG) && DEBUG > 0
+	LOGGER(ibis::gVerbose > 5 && ibis::gVerbose <= 9)
+	    << "DEBUG -- fileManager::softWriteLock "
+	    << (locked_ ? " acquired " : " failed to acquire ")
+	    << "a write lock for " << m;
+#endif
+    }
+    /// Destructor.
+    ~softWriteLock() {
+	int ierr = pthread_rwlock_unlock(&(manager->lock));
+	if (0 == ierr) {
+	    LOGGER(ibis::gVerbose > 9)
+		<< "fileManager::softWriteLock released the write lock for "
+		<< mesg;
+	}
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::softWriteLock failed to release "
+		"the write lock for " << mesg << " with the error code "
+		<< ierr << " -- " << strerror(ierr);
+	}
+    }
+    /// Has a write block be acquired?  Returns true or false to indicate
+    /// yes or no.
+    bool isLocked() const {return locked_;}
+
+private:
+    const fileManager* manager;
+    const char* mesg;
+    const bool locked_;
+
+    softWriteLock(const softWriteLock&);
+    softWriteLock& operator=(const softWriteLock&);
+}; // ibis::fileManager::softWriteLock
+
 inline uint64_t ibis::fileManager::bytesFree() {
     if (maxBytes == 0)
 	ibis::fileManager::instance();
@@ -479,7 +496,8 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- fileManager::releaseAccess for " << mesg
-	    << " failed with error code " << ierr << " -- " << strerror(ierr);
+	    << " failed with the error code " << ierr << " -- "
+	    << strerror(ierr);
     }
 } // ibis::fileManager::releaseAccess
 
@@ -492,7 +510,8 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- fileManager::gainReadAccess for " << mesg
-	    << " failed with error code " << ierr << " -- " << strerror(ierr);
+	    << " failed with the error code " << ierr << " -- "
+	    << strerror(ierr);
     }
 } // ibis::fileManager::gainReadAccess
 
@@ -505,7 +524,8 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- fileManager::gainWriteAccess for " << mesg
-	    << " failed with error code " << ierr << " -- " << strerror(ierr);
+	    << " failed with the error code " << ierr << " -- "
+	    << strerror(ierr);
     }
 } // ibis::fileManager::gainWriteAccess
 

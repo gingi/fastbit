@@ -1075,7 +1075,9 @@ const char* ibis::util::userName() {
 	// MinGW does not have support for user names?!
 #elif defined(_POSIX_VERSION)
 #if (defined(_REENTRANT) || defined(_THREAD_SAFE) || \
-     defined(_POSIX_THREAD_SAFE_FUNCTIONS)) && defined(_SC_GETPW_R_SIZE_MAX)
+     defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(sun) \
+     || defined(__APPLE__) || defined(__FreeBSD__)) && \
+    defined(_SC_GETPW_R_SIZE_MAX)
 	// use the thread-safe version of getpwuid_r
 	struct passwd  pass;
 	struct passwd *ptr1 = &pass;
@@ -1096,17 +1098,17 @@ const char* ibis::util::userName() {
 	}
 	if (ierr != 0) {
 	    // the trusted getpwuid(getuid()) combination
-	    struct passwd *pass = getpwuid(getuid());
-	    if (pass != 0)
-		uid = pass->pw_name;
-	    delete pass;
+	    struct passwd *ptr3 = getpwuid(getuid());
+	    if (ptr3 != 0)
+		uid = ptr3->pw_name;
+	    // delete ptr3;
 	}
 #else
 	// the trusted getpwuid(getuid()) combination
 	struct passwd *pass = getpwuid(getuid());
 	if (pass != 0)
 	    uid = pass->pw_name;
-	delete pass;
+	// delete pass;
 #endif
 #elif defined(L_cuserid) && defined(__USE_XOPEN)
 	// in the unlikely case that we are not on a POSIX-compliant system
@@ -1565,8 +1567,8 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 } // ibis::util::strMatch
 
 /// Converts the given time in seconds (as returned by function time) into
-/// the string (as from asctime_r).  The argument @c str must contain at 26
-/// bytes.  The new line character is turned into null.
+/// the string (as from asctime_r).  The argument @c str must contain at
+/// least 26 bytes.  The new line character is turned into null.
 void ibis::util::secondsToString(const time_t sec, char *str) {
 #if defined(_MSC_VER) && defined(_WIN32)
     ibis::util::quietLock lock(&ibis_util_timeLock);
