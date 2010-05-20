@@ -1,3 +1,17 @@
+2010-05-19 John Wu <John.Wu at ACM.org>
+	* configure.ac, src/fastbit-config.h.in: check for the presense of
+	function getpwuid_r
+	* src/util.cpp: add the use of macro HAVE_GETPWUID_R
+	* src/utilidor.h, src/utilidor.cpp: add a version of quick sort
+	for strings stored in array_t<const char*>, all existing string
+	sortign functions perform whole string comparisons using standard
+	system calls.
+	* src/category.h, src/category.cpp: move ibis::dictionary into its
+	own file
+	* src/dictionary.h, src/dictionary.cpp: remove the use of std::map
+	to reduce the time needed to read a dictionary file, add a
+	header to the dictionary file (new code passed make check)
+
 2010-05-18 John Wu <John.Wu at ACM.org>
 	* src/util.cpp:1104 comment the delete statement, the pointer was
 	returned by a old-style getpwuid which can not be deleted (to

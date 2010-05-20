@@ -300,6 +300,7 @@ namespace ibis {
     class roster;	///< A projection of a column in ascending order.
     class bitvector64;	///< The 64-bit version of bitvector class.
 
+    class dictionary;	///< Map strings to integers and back.
     class bundle;	///< To organize in-memory data for group-by.
     class colValues;	///< To store a column of in-memory data.
     class whereClause;	///< Where clause.

@@ -22,6 +22,9 @@
 /* Define to 1 if support __sync_add_and_fetch() on 64-bit integers */
 #undef HAVE_GCC_ATOMIC64
 
+/* Define to 1 if you have the `getpwuid_r' function. */
+#undef HAVE_GETPWUID_R
+
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 

@@ -4,7 +4,7 @@
 #ifndef IBIS_CATEGORY_H
 #define IBIS_CATEGORY_H
 ///@file
-/// Define two specialization of the column class.
+/// Define three specialization of the column class.
 ///
 /// IBIS represents incoming data table with vertical partitioning.  Each
 /// column object represents one column of the relational table.  The terms
@@ -14,6 +14,7 @@
 ///
 #include "irelic.h"
 #include "column.h"
+#include "dictionary.h"
 
 /// A data structure for storing null-terminated text.  The only type of
 /// search supported on this type of data is keyword search.
@@ -83,64 +84,6 @@ protected:
 private:
     text& operator=(const text&);
 }; // ibis::text
-
-/// Provide a dual-directional mapping between strings and integers.  A
-/// utility class used by ibis::category.  The NULL string is always the
-/// 0th string.
-class ibis::dictionary {
-public:
-    typedef std::map< const char*, uint32_t, ibis::lessi > wordList;
-
-    ~dictionary() {clear();}
-    dictionary(const dictionary& dic);
-    /// Default constructor.  Generates one (NULL) entry.
-    dictionary() : svec(), s2i(), ncontig(1) {
-	svec.push_back(const_cast<char*>(nullstring.c_str()));
-    }
-
-    /// Return the number of valid (not null) strings in the dictionary.
-    uint32_t size() const {return s2i.size();}
-    inline const char* operator[](uint32_t i) const;
-    inline uint32_t operator[](const char* str) const;
-    inline const char* find(const char* str) const;
-    inline uint32_t insert(const char* str);
-    inline uint32_t insertRaw(char* str);
-
-    void clear();
-    void read(const char* name);
-    void write(const char* name) const;
-
-protected:
-
-    /// Member variable svec contains pointers to the location of the
-    /// strings and is considered the owner of the memory allocated.
-    ///
-    /// @note The string svec[0] is always saved for the null string.
-    /// Strings svec[1:ncontig-1] are allocated in a single contiguous
-    /// piece of memory.  Strings svec[ncontig:..] are allocated one at a
-    /// time.
-    std::vector<char*> svec;
-    /// Member variable s2i maps each string to its index in svec.
-    wordList s2i;
-    /// The number of contiguous entries.  These entries are contiguous in
-    /// memory and therefore should be freed by a single call to delete [].
-    uint32_t ncontig;
-
-    /// The common null string use in the dictionaries.  A char* of 0 and a
-    /// blank string are interpreted as null strings.
-    ///
-    /// @note The null string is printed out as "<NULL>".  However, it is
-    /// possible for the user to have a string with the same value
-    /// "<NULL>".  If the user insert "<NULL>" to a dictionary, it will
-    /// receive an assignment of number back that is guaranteed to be not
-    /// 0.  Therefore, the user string "<NULL>" is NOT treated as a null
-    /// string.
-    static std::string nullstring;
-    void copy(const dictionary& rhs);
-
-private:
-    dictionary& operator=(const dictionary&);
-}; // ibis::dictionary
 
 /// A specialized low-cardinality text field.  It is also known as control
 /// values or categorical values.  This implementation directly converts
@@ -314,75 +257,4 @@ protected:
     int readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 		 const char *spfile, const char *datafile) const;
 }; // ibis::blob
-
-/// Return a string corresponding to the integer.  If the index is beyond
-/// the valid range, i.e., i > size(), then a null pointer will be
-/// returned.
-inline const char* ibis::dictionary::operator[](uint32_t i) const {
-    if (i < svec.size()) {
-	return svec[i];
-    }
-    else {
-	return static_cast<const char*>(0);
-    }
-} // int to string
-
-/// Convert a string to integer.  Returns 0 for empty (null) strings,
-/// 1:size() for strings in the dictionary, and dictionary::size()+1 for
-/// unknown values.
-inline uint32_t ibis::dictionary::operator[](const char* str) const {
-    if (str == 0) return 0;
-    if (*str == 0) return 0;
-    wordList::const_iterator it = s2i.find(str);
-    if (it != s2i.end()) return (*it).second;
-    else return svec.size();
-} // string to int
-
-/// If the input string is found in the dictionary, it returns the string.
-/// Otherwise it returns null pointer.  This function makes a little easier
-/// to determine whether a string is in a dictionary.
-inline const char* ibis::dictionary::find(const char* str) const {
-    const char* ret = 0;
-    if (s2i.find(str) != s2i.end())
-	ret = str;
-    return ret;
-} // ibis::dictionary::find
-
-/// Insert a string to the dictionary.  Returns the integer value assigned
-/// to the string.  A copy of the string is stored internally.
-inline uint32_t ibis::dictionary::insert(const char* str) {
-    if (str == 0) return 0;
-    if (*str == 0) return 0;
-    wordList::const_iterator it = s2i.find(str);
-    if (it != s2i.end()) {
-	return (*it).second;
-    }
-    else {
-	uint32_t ret = svec.size();
-	char* tmp = ibis::util::strnewdup(str); // make a copy
-	svec.push_back(tmp);
-	s2i[tmp] = ret;
-	return ret;
-    }
-} // ibis::dictionary::insert
-
-/// Non-copying insert.  Do not make a copy of the input string.  Transfers
-/// the ownership of @c str to the dictionary.  Caller needs to check
-/// whether it is a new word in the dictionary.  If it is not a new word in
-/// the dictionary, the dictionary does not take ownership of the string
-/// argument.
-inline uint32_t ibis::dictionary::insertRaw(char* str) {
-    if (str == 0) return 0;
-    if (*str == 0) return 0;
-    wordList::const_iterator it = s2i.find(str);
-    if (it != s2i.end()) {
-	return (*it).second;
-    }
-    else {
-	uint32_t ret = svec.size();
-	svec.push_back(str);
-	s2i[str] = ret;
-	return ret;
-    }
-} // ibis::dictionary::insertRaw
 #endif // IBIS_CATEGORY_H

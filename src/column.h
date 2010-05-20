@@ -20,7 +20,6 @@ namespace ibis { // additional names to the namespace ibis
     class category;   // for categorical values (low-cardinality text fields)
     class text;       // arbitrary cardinality text fields
     class blob;       // text may contain null characters
-    class dictionary; // maps string to integer, use by text and category
 
     // the following are used for storing selected values of different types
     // of columns (implemented in colValues.cpp)

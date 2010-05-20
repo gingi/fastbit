@@ -1074,9 +1074,9 @@ const char* ibis::util::userName() {
 #elif defined(__MINGW32__)
 	// MinGW does not have support for user names?!
 #elif defined(_POSIX_VERSION)
-#if (defined(_REENTRANT) || defined(_THREAD_SAFE) || \
-     defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(sun) \
-     || defined(__APPLE__) || defined(__FreeBSD__)) && \
+#if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
+     defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(sun) || \
+     defined(_THREAD_SAFE) || defined(__APPLE__) || defined(__FreeBSD__)) && \
     defined(_SC_GETPW_R_SIZE_MAX)
 	// use the thread-safe version of getpwuid_r
 	struct passwd  pass;

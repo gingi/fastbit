@@ -62,8 +62,11 @@ namespace ibis {
 	/// move the vals accordingly.
 	template <typename T1, typename T2>
 	void sortKeys(array_t<T1>& keys, array_t<T2>& vals);
-	/// Sorting function with string keys and uint32_t as payload.
+	/// Sorting function with string as keys and uint32_t as payload.
 	void sortStrings(std::vector<std::string>& keys,
+			 array_t<uint32_t>& vals);
+	/// Sorting function with string as keys and uint32_t as payload.
+	void sortStrings(array_t<const char*>& keys,
 			 array_t<uint32_t>& vals);
 
 	/// Quicksort for strings.
@@ -76,8 +79,23 @@ namespace ibis {
 			       array_t<uint32_t>& vals,
 			       uint32_t begin, uint32_t end);
 	/// The partitioning procedure for quick sort.  It implements the
-	/// standard two-way partitioning with median-of-three pivot.
+	/// standard two-way partitioning with the median-of-three pivot.
 	uint32_t sortStrings_partition(std::vector<std::string>& keys,
+				       array_t<uint32_t>& vals,
+				       uint32_t begin, uint32_t end);
+
+	/// Quicksort for strings.
+	void sortStrings_quick(array_t<const char*>& keys,
+			       array_t<uint32_t>& vals, uint32_t begin,
+			       uint32_t end);
+	/// Shell sorting procedure.  To clean up after the quick sort
+	/// procedure.
+	void sortStrings_shell(array_t<const char*>& keys,
+			       array_t<uint32_t>& vals,
+			       uint32_t begin, uint32_t end);
+	/// The partitioning procedure for quick sort.  It implements the
+	/// standard two-way partitioning with the median-of-three pivot.
+	uint32_t sortStrings_partition(array_t<const char*>& keys,
 				       array_t<uint32_t>& vals,
 				       uint32_t begin, uint32_t end);
     } // namespace util

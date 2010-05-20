@@ -1221,8 +1221,8 @@ void ibis::util::sortStrings(std::vector<std::string>& keys,
 
 /// Quick-sort for strings with shell sort as clean-up procedure.
 void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
-				   array_t<uint32_t>& vals, uint32_t begin,
-				   uint32_t end) {
+				   array_t<uint32_t>& vals,
+				   uint32_t begin, uint32_t end) {
     while (end >= begin+FASTBIT_QSORT_MIN) {
 	uint32_t split = sortStrings_partition(keys, vals, begin, end);
 	if (split < end) {
@@ -1273,8 +1273,8 @@ void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 } // ibis::util::sortStrings_quick
 
 void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
-				   array_t<uint32_t>& vals, uint32_t begin,
-				   uint32_t end) {
+				   array_t<uint32_t>& vals,
+				   uint32_t begin, uint32_t end) {
     const uint32_t nelm = end - begin;
     uint32_t gap = nelm / 2;
     while (gap >= shellgaps[15]) {
@@ -1342,8 +1342,8 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 #endif
 uint32_t
 ibis::util::sortStrings_partition(std::vector<std::string>& keys,
-				  array_t<uint32_t>& vals, uint32_t begin,
-				  uint32_t end) {
+				  array_t<uint32_t>& vals,
+				  uint32_t begin, uint32_t end) {
     if (end < begin+7) {
 	ibis::util::sortStrings_shell(keys, vals, begin, end);
 	return end;
@@ -1406,6 +1406,255 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 		-- i1;
 		keys[i0].swap(keys[i1]);
 		uint32_t vtmp = vals[i0];
+		vals[i0] = vals[i1];
+		vals[i1] = vtmp;
+		++ i0;
+	    }
+	}
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    const uint32_t nelm = end - begin;
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings_partition(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", "
+		<< end << ") completed with i0 = " << i0 << " and i1 = " << i1
+		<< ", pivot = \"" << pivot << "\"";
+    lg.buffer() << "\npartition 1, # elements = " << i0 << ": ";
+    uint32_t j1 = (begin+iprt <= i0 ? begin+iprt : i0);
+    for (uint32_t j0 = begin; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (j1 < i0)
+	lg.buffer() << " ... (" << i0 - j1 << " ommitted)";
+    lg.buffer() << "\npartition 2, # elements = " << end - i0 << ": ";
+    j1 = (i0+iprt < end ? i0+iprt : end);
+    for (uint32_t j0 = i0; j0 < j1; ++ j0)
+	lg.buffer() << keys[j0] << " ";
+    if (end > j1)
+	lg.buffer() << " ... (" << end - j1 << " ommitted)";
+#endif
+    return i0;
+} // ibis::util::sortStrings_partition
+
+/// It uses quick sort if there are more than FASTBIT_QSORT_MIN elements to
+/// sort, otherwise, it uses shell sort.
+///
+/// @note This function operates completely in-memory; all arrays and
+/// whatever auxiliary data must fit in memory.
+void ibis::util::sortStrings(ibis::array_t<const char*>& keys,
+			     array_t<uint32_t>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    if (nelm >= FASTBIT_QSORT_MIN) {
+	sortStrings_quick(keys, vals, 0, nelm);
+    }
+    else if (nelm > 1) {
+	sortStrings_shell(keys, vals, 0, nelm);
+    }
+} // ibis::util::sortStrings
+
+/// Quick-sort for strings with shell sort as clean-up procedure.
+void ibis::util::sortStrings_quick(ibis::array_t<const char*>& keys,
+				   array_t<uint32_t>& vals,
+				   uint32_t begin, uint32_t end) {
+    while (end >= begin+FASTBIT_QSORT_MIN) {
+	uint32_t split = sortStrings_partition(keys, vals, begin, end);
+	if (split < end) {
+	    if (split - begin <= end - split) {
+		sortStrings_quick(keys, vals, begin, split);
+		begin = split;
+	    }
+	    else {
+		sortStrings_quick(keys, vals, split, end);
+		end = split;
+	    }
+	}
+	else {
+	    begin = split;
+	}
+    }
+
+    if (end > begin) { // clean up with shell sort
+	sortStrings_shell(keys, vals, begin, end);
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    bool sorted = true;
+    for (uint32_t j = begin+1; j < end; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = begin+(((end-begin) >> ibis::gVerbose) > 0 ?
+			   (1 << ibis::gVerbose) : (end-begin));
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings_quick(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", " << end
+		<< ") completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = begin; j < iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < end)
+	    lg.buffer() << "\n... " << end-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortStrings_quick
+
+void ibis::util::sortStrings_shell(ibis::array_t<const char*>& keys,
+				   array_t<uint32_t>& vals,
+				   uint32_t begin, uint32_t end) {
+    const uint32_t nelm = end - begin;
+    uint32_t gap = nelm / 2;
+    while (gap >= shellgaps[15]) {
+	for (uint32_t j = begin+gap; j < end; ++ j) {
+	    const char *ktmp = keys[j];
+	    const uint32_t vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= begin+gap && strcmp(keys[i], keys[i-gap]) < 0) {
+		keys[i] = keys[i-gap];
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    keys[i] = ktmp;
+	    vals[i] = vtmp;
+	}
+	gap = (uint32_t) (gap / 2.2);
+    }
+
+    int ig = 15;
+    while (ig > 0 && gap < shellgaps[ig]) -- ig;
+    while (ig >= 0) {
+	gap = shellgaps[ig];
+	for (uint32_t j = begin+gap; j < end; ++ j) {
+	    const char *ktmp = keys[j];
+	    const uint32_t vtmp = vals[j];
+	    uint32_t i = j;
+	    while (i >= begin+gap && strcmp(keys[i], keys[i-gap]) < 0) {
+		keys[i] = keys[i-gap];
+		vals[i] = vals[i-gap];
+		i -= gap;
+	    }
+	    keys[i] = ktmp;
+	    vals[i] = vtmp;
+	}
+	-- ig;
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    bool sorted = true;
+    for (uint32_t j = begin+1; j < end; ++ j) {
+	if (strcmp(keys[j-1], keys[j]) > 0) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg.buffer() << "ibis::util::sortStrings_shell(keys[" << keys.size()
+		<< "], vals[" << vals.size() << "], " << begin << ", "
+		<< end << ") completed ";
+    if (sorted) {
+	lg.buffer() << "successfully";
+    }
+    else {
+	lg.buffer() << "with errors";
+	for (unsigned j = begin; j < begin+iprt; ++ j)
+	    lg.buffer() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
+			<< "]=" << vals[j];
+	if (iprt < nelm)
+	    lg.buffer() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sortStrings_shell
+
+/// Median-of-3 partitioning algorithm.
+#if defined(_MSC_VER) && defined(_WIN32) && _MSC_VER < 1400
+#pragma optimize("g", off)
+#endif
+uint32_t
+ibis::util::sortStrings_partition(ibis::array_t<const char*>& keys,
+				  array_t<uint32_t>& vals, uint32_t begin,
+				  uint32_t end) {
+    if (end < begin+7) {
+	ibis::util::sortStrings_shell(keys, vals, begin, end);
+	return end;
+    }
+
+    // sort three values at position 0, nelm/2, and nelm-1
+    if (strcmp(keys[begin], keys[(begin+end)/2]) > 0) {
+	const char *ktmp = keys[begin];
+	keys[begin] = keys[(begin+end)/2];
+	keys[(begin+end)/2] = ktmp;
+	const uint32_t vtmp = vals[begin];
+	vals[begin] = vals[(begin+end)/2];
+	vals[(begin+end)/2] = vtmp;
+    }
+    if (strcmp(keys[(begin+end)/2], keys[end-1]) > 0) {
+	const char *ktmp = keys[(begin+end)/2];
+	keys[(begin+end)/2] = keys[end-1];
+	keys[end-1] = ktmp;
+	uint32_t vtmp = vals[(begin+end)/2];
+	vals[(begin+end)/2] = vals[end-1];
+	vals[end-1] = vtmp;
+	if (strcmp(keys[begin], keys[(begin+end)/2]) > 0) {
+	    ktmp = keys[begin];
+	    keys[begin] = keys[(begin+end)/2];
+	    keys[(begin+end)/2] = ktmp;
+	    vtmp = vals[begin];
+	    vals[begin] = vals[(begin+end)/2];
+	    vals[(begin+end)/2] = vtmp;
+	}
+    }
+    // pick the median of three values
+    const char* pivot(keys[(begin+end)/2]);
+
+    uint32_t i0 = begin;
+    uint32_t i1 = end;
+    while (i0 < i1) {
+	if (strcmp(pivot, keys[i1-1]) <= 0) {
+	    -- i1;
+	}
+	else if (strcmp(pivot, keys[i0]) > 0) {
+	    ++ i0;
+	}
+	else {
+	    // exchange i0, i1
+	    -- i1;
+	    const char *ktmp = keys[i0];
+	    keys[i0] = keys[i1];
+	    keys[i1] = ktmp;
+	    const uint32_t vtmp = vals[i0];
+	    vals[i0] = vals[i1];
+	    vals[i1] = vtmp;
+	    ++ i0;
+	}
+    }
+    if (i0 == begin) {
+	// The median of three was the smallest value, switch to have the
+	// left side <= pivot.
+	i1 = end;
+	while (i0 < i1) {
+	    if (strcmp(pivot, keys[i1-1]) < 0) {
+		-- i1;
+	    }
+	    else if (strcmp(pivot, keys[i0]) >= 0) {
+		++ i0;
+	    }
+	    else {
+		// exchange i0, i1
+		-- i1;
+		const char* ktmp = keys[i0];
+		keys[i0] = keys[i1];
+		keys[i1] = ktmp;
+		const uint32_t vtmp = vals[i0];
 		vals[i0] = vals[i1];
 		vals[i1] = vtmp;
 		++ i0;

@@ -379,6 +379,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\dictionary.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\column.cpp"
 				>
 			</File>
@@ -654,6 +658,10 @@
 			</File>
 			<File
 				RelativePath="..\src\category.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.h"
 				>
 			</File>
 			<File
