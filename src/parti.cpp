@@ -15,12 +15,12 @@
 #include <typeinfo>	// typeid
 #include <limits>	// std::numeric_limits
 
-/// Reorder all columns of a partition.  The lowest cardinality column is
-/// ordered first.  Only integer-valued columns are used in sorting.
-/// Returns the number of rows reordered when successful, otherwise return
-/// a negative number and the base data is corrupt!
+/// Sort rows with the lowest cardinality column first.  The lowest
+/// cardinality column is ordered first.  Only integer-valued columns are
+/// used in sorting.  Returns the number of rows reordered when successful,
+/// otherwise return a negative number and the base data is corrupt!
 ///
-///  @note Danger: This function does not update null masks!
+/// @warning <b>Danger</b>: This function does not update null masks!
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
 	amask.cnt() != amask.size()) return 0;
@@ -227,7 +227,7 @@ long ibis::part::reorder() {
 	    ierr = writeValues<char>(fname, ind1);
 	    break;
 	default:
-	    logWarning("reorder", "column %s type %d can not moved safely "
+	    logWarning("reorder", "column %s type %d can not be moved safely "
 		       "in this implementation",
 		       keys[i]->name(), static_cast<int>(keys[i]->type()));
 	    continue;
@@ -271,6 +271,7 @@ long ibis::part::reorder() {
     return ierr;
 } // ibis::part::reorder
 
+/// Sort rows according the values of the columns specified in @c names.
 long ibis::part::reorder(const ibis::table::stringList& names) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
     std::string evt = "part[";
@@ -1397,6 +1398,7 @@ long ibis::part::reactivate(const ibis::bitvector& rows) {
     return amask.cnt();
 } // ibis::part::reactivate
 
+/// Mark the specified rows as inactive.
 /// The integers in array rows are simply the row numbers.  Note rows are
 /// numbered starting from 0.  Return the number of
 /// rows inactive or error code.
@@ -1417,6 +1419,7 @@ long ibis::part::deactivate(const std::vector<uint32_t>& rows) {
 	return 0;
 } // ibis::part::deactivate
 
+/// Mark all rows satisfying the specified conditions as inactive.
 /// All rows satisfying the specified conditions will be made inactive.
 /// Return the number of rows inactive or error code.
 ///
@@ -1439,6 +1442,8 @@ long ibis::part::deactivate(const char* conds) {
 	return 0;
 } // ibis::part::deactivate
 
+/// Make sure the specified rows are active.  Return the total number
+/// of active rows or error code.
 long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
     if (readonly)
 	return -1;
@@ -1453,6 +1458,7 @@ long ibis::part::reactivate(const std::vector<uint32_t>& rows) {
 	return amask.cnt();
 } // ibis::part::reactivate
 
+/// Make sure the rows satisfying the specified conditionis are active.
 long ibis::part::reactivate(const char* conds) {
     if (readonly)
 	return -1;
@@ -1470,6 +1476,7 @@ long ibis::part::reactivate(const char* conds) {
 	return amask.cnt();
 } // ibis::part::reactivate
 
+/// Purge all inactive rows from the partition.
 /// Return the number of rows left or error code.
 /// @note This operations is permanent and irreversible!
 long ibis::part::purgeInactive() {
@@ -1598,6 +1605,7 @@ long ibis::part::purgeInactive() {
     return ierr;
 } // ibis::part::purgeInactive
 
+/// Empty all unused resources in cache.
 /// This function attempts to unload all the indexes and then remove all
 /// unused files from the file manager.
 void ibis::part::emptyCache() const {
@@ -1609,6 +1617,7 @@ void ibis::part::emptyCache() const {
 	ibis::fileManager::instance().flushDir(activeDir);
 } // ibis::part::emptyCache
 
+/// Add a column computed with the given arithmetic expression.
 /// The arithmetic expression is evaluated in double and casted to the
 /// specified type.
 long ibis::part::addColumn(const char* aexpr, const char* cname,
@@ -1631,6 +1640,7 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
     return addColumn(xpr[0], mask, cname, ctype);
 } // ibis::part::addColumn
 
+/// Add a column computed with the given arithmetic expression.
 long ibis::part::addColumn(const ibis::math::term* xpr,
 			   ibis::bitvector& mask, const char* cname,
 			   ibis::TYPE_T ctype) {

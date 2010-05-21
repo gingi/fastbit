@@ -119,8 +119,7 @@ void ibis::category::prepareMembers() const {
 } // ibis::category::prepareMembers
 
 /// Read the dictionary from the specified directory.  If the incoming
-/// argument is nil, the current data directory of the data partition is
-/// used.
+/// argument is nil, the current directory of the data partition is used.
 void ibis::category::readDictionary(const char *dir) const {
     std::string fnm;
     if (dir != 0 && *dir != 0) {

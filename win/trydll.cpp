@@ -371,15 +371,15 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 	bool warn = true;
 	while (*names) {
 	    std::string name1, name2;
-	    ibis::util::getString(name1, names);
-	    if (name1.empty()) {
+	    int ierr = ibis::util::readString(name1, names);
+	    if (ierr < 0 || name1.empty()) {
 		if (warn)
 		    LOGGER(0) << "the command print joint needs two "
 			"column names as arguments";
 		return;
 	    }
-	    ibis::util::getString(name2, names);
-	    if (name2.empty()) {
+	    ierr = ibis::util::readString(name2, names);
+	    if (ierr < 0 || name2.empty()) {
 		if (warn)
 		    LOGGER(0) << "the command print joint needs two "
 			"column names as arguments";

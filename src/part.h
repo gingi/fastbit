@@ -556,31 +556,20 @@ public:
     /// Rollback the append operation.  This function can only be called
     /// before calling @c commit.
     long rollback();
-    /// Add a column computed with the given arithmetic expression.
     long addColumn(const char* aexpr, const char* cname,
 		   ibis::TYPE_T ctype=ibis::DOUBLE);
-    /// Add a column computed with the given arithmetic expression.
     long addColumn(const ibis::math::term* xpr, ibis::bitvector& mask,
 		   const char* cname, ibis::TYPE_T ctype=ibis::DOUBLE);
 
     /******************************************************************/
-    /// Sort rows with the lowest cardinality attribute first.
     long reorder();
-    /// Sort rows according the values of the columns specified in @c names.
     long reorder(const ibis::table::stringList &names);
 
-    /// Mark the specified rows as inactive.
     long deactivate(const std::vector<uint32_t> &rows);
-    /// Mark all rows satisfying the specified conditions as inactive.
     long deactivate(const char* conds);
-    /// Make sure the specified rows are active.  Return the total number
-    /// of active rows or error code.
     long reactivate(const std::vector<uint32_t> &rows);
-    /// Make sure the rows satisfying the specified conditionis are active.
     long reactivate(const char* conds);
-    /// Purge all inactive rows from the partition.
     long purgeInactive();
-    /// Empty all unused resources in cache.
     void emptyCache() const;
     /// Return a reference to the mask of active rows.
     const ibis::bitvector &getNullMask() const {return amask;}

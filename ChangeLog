@@ -1,4 +1,11 @@
-2010-05-19 John Wu <John.Wu at ACM.org>
+2010-05-21 John Wu <John dot Wu at ACM dot org>
+	* src/capi.h, src/capi.cpp: minor clean up of the doxygen
+	documentation
+
+2010-05-21 Georgiy Zhytar <Georgiy dot Zhytar at solarwinds dot com>
+	* src/capi.h, src/capi.cpp: add function fastbit_reorder_partition
+
+2010-05-19 John Wu <John dot Wu at ACM dot org>
 	* configure.ac, src/fastbit-config.h.in: check for the presense of
 	function getpwuid_r
 	* src/util.cpp: add the use of macro HAVE_GETPWUID_R

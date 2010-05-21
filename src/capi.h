@@ -86,6 +86,7 @@ extern "C" {
     ///@brief Purge the index of the named attribute.
     FASTBIT_DLLSPEC int
     fastbit_purge_index(const char *indexLocation, const char* cname);
+    FASTBIT_DLLSPEC int fastbit_reorder_partition(const char *dir);
 
     ///@brief The opaque object used hold a FastBit query.
     struct FastBitQuery;
@@ -109,16 +110,16 @@ extern "C" {
     /// rows in the result set.  The arrays returned by
     /// fastbit_get_qualified_floats shall have this many elements.
     FASTBIT_DLLSPEC int fastbit_get_result_rows(FastBitQueryHandle query);
-    /// Count the number of columns selected in the select clause of the
+    ///@brief Count the number of columns selected in the select clause of the
     /// query.
     FASTBIT_DLLSPEC int fastbit_get_result_columns(FastBitQueryHandle query);
-    /// Return the string form of the select clause.
+    ///@brief Return the string form of the select clause.
     FASTBIT_DLLSPEC const char*
     fastbit_get_select_clause(FastBitQueryHandle query);
-    /// Return the table name.
+    ///@brief Return the table name.
     FASTBIT_DLLSPEC const char*
     fastbit_get_from_clause(FastBitQueryHandle query);
-    /// Return the where clause of the query.
+    ///@brief Return the where clause of the query.
     FASTBIT_DLLSPEC const char*
     fastbit_get_where_clause(FastBitQueryHandle query);
 
@@ -181,26 +182,26 @@ extern "C" {
     FASTBIT_DLLSPEC int
     fastbit_destroy_result_set(FastBitResultSetHandle rset);
 
-    /// Returns 0 if there are more results, otherwise returns -1.
+    ///@brief Returns 0 if there are more results, otherwise returns -1.
     FASTBIT_DLLSPEC int fastbit_result_set_next(FastBitResultSetHandle rset);
-    /// Get the value of the named column as an integer.
+    ///@brief Get the value of the named column as an integer.
     FASTBIT_DLLSPEC int
     fastbit_result_set_get_int(FastBitResultSetHandle rset, const char *cname);
-    /// Get the value of the named column as an unsigned integer.
+    ///@brief Get the value of the named column as an unsigned integer.
     FASTBIT_DLLSPEC unsigned
     fastbit_result_set_get_unsigned(FastBitResultSetHandle rset,
 				    const char *cname);
-    /// Get the value of the named column as a single-precision
+    ///@brief Get the value of the named column as a single-precision
     /// floating-point number.
     FASTBIT_DLLSPEC float
     fastbit_result_set_get_float(FastBitResultSetHandle rset,
 				 const char *cname);
-    /// Get the value of the named column as a double-precision
+    ///@brief Get the value of the named column as a double-precision
     /// floating-point number.
     FASTBIT_DLLSPEC double
     fastbit_result_set_get_double(FastBitResultSetHandle rset,
 				  const char *cname);
-    /// Get the value of the named column as a string.
+    ///@brief Get the value of the named column as a string.
     FASTBIT_DLLSPEC const char*
     fastbit_result_set_get_string(FastBitResultSetHandle rset,
 				  const char *cname);
@@ -211,36 +212,36 @@ extern "C" {
     FASTBIT_DLLSPEC int32_t
     fastbit_result_set_getInt(FastBitResultSetHandle rset,
 			      unsigned position);
-    /// Get the value of the named column as an unsigned integer.
+    ///@brief Get the value of the named column as an unsigned integer.
     FASTBIT_DLLSPEC uint32_t
     fastbit_result_set_getUnsigned(FastBitResultSetHandle rset,
 				   unsigned position);
-    /// Get the value of the named column as a single-precision
+    ///@brief Get the value of the named column as a single-precision
     /// floating-point number.
     FASTBIT_DLLSPEC float
     fastbit_result_set_getFloat(FastBitResultSetHandle rset,
 				unsigned position);
-    /// Get the value of the named column as a double-precision
+    ///@brief Get the value of the named column as a double-precision
     /// floating-point number.
     FASTBIT_DLLSPEC double
     fastbit_result_set_getDouble(FastBitResultSetHandle rset,
 				 unsigned position);
-    /// Get the value of the named column as a string.
+    ///@brief Get the value of the named column as a string.
     FASTBIT_DLLSPEC const char*
     fastbit_result_set_getString(FastBitResultSetHandle rset,
 				 unsigned position);
     /// @}
 
-    /// Flush the in-memory data to the named directory.
+    ///@brief Flush the in-memory data to the named directory.
     FASTBIT_DLLSPEC int fastbit_flush_buffer(const char *dir);
-    /// Add @c nelem values of the specified column (@c colname) to the
-    /// in-memory buffer.
+    ///@brief Add @c nelem values of the specified column (@c colname) to
+    /// the in-memory buffer.
     FASTBIT_DLLSPEC int
     fastbit_add_values(const char *colname, const char *coltype,
 		       void *vals, uint32_t nelem, uint32_t start);
-    /// Return the number of rows in the data partition.
+    ///@brief Return the number of rows in the data partition.
     FASTBIT_DLLSPEC int fastbit_rows_in_partition(const char *dir);
-    /// Return the number of columns in the data partition.
+    ///@brief Return the number of columns in the data partition.
     FASTBIT_DLLSPEC int fastbit_columns_in_partition(const char *dir);
 
     ///@brief Initialization function.

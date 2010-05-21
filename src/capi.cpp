@@ -37,6 +37,7 @@ extern "C" {
     };
 }
 
+// A class that is only used in this file for implementing the C API.
 class fastbit_part_list {
 public:
     fastbit_part_list();
@@ -221,6 +222,36 @@ fastbit_purge_index(const char *dir, const char *att) {
     c->purgeIndexFile();
     return ierr;
 } // fastbit_purge_index
+
+/// Reorder all the columns in the partition.  Reordering the rows can lead
+/// to better index compression and query performance.
+///
+/// @return It returns zero (0) on success and a negative on failure.
+///
+/// @warning When this function fails for whatever reason, the data is left
+/// in an undetermined state.  Make sure you have a copy of the original
+/// data before attempting to reorder the rows.
+extern "C" int fastbit_reorder_partition(const char *dir) {
+    ibis::part *t;
+    if (_capi_tlist == 0) {
+	fastbit_init(0);
+	if (_capi_tlist == 0) {
+	    return -1;
+	}
+    }
+
+    t = _capi_tlist->find(dir);
+    if (t != 0) {
+	long ierr = t->reorder();
+	if (ierr < 0)
+	    return ierr;
+	else
+	    return 0;
+    }
+    else {
+	return -2;
+    }
+} // fastbit_reorder_partition
 
 extern "C" FastBitQueryHandle
 fastbit_build_query(const char *select, const char *from, const char *where) {
@@ -1181,6 +1212,19 @@ fastbit_get_qualified_strings(FastBitQueryHandle qhandle, const char *att) {
 /// read multiple configuration files to modify the parameters.
 extern "C" void fastbit_init(const char *rcfile) {
     ibis::util::mutexLock lock(&ibis::util::envLock, "fastbit_init");
+#if defined(DEBUG) || defined(_DEBUG)
+    if (ibis::gVerbose == 0) {
+#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
+	ibis::gVerbose = INT_MAX;
+#elif DEBUG + 0 > 0
+	ibis::gVerbose += 7 * DEBUG;
+#elif _DEBUG + 0 > 0
+	ibis::gVerbose += 5 * _DEBUG;
+#else
+	ibis::gVerbose += 3;
+#endif
+    }
+#endif
     if (rcfile && *rcfile)
 	ibis::gParameters().read(rcfile);
     if (_capi_tlist == 0)
@@ -1208,7 +1252,12 @@ extern "C" void fastbit_cleanup(void) {
     }
 } // fastbit_cleanup
 
-/// Returns the old verboseness level.
+/// @return Returns the old verboseness level.
+///
+/// @note This function is not thread-safe.  It is possible for multiple
+/// threads to assign different values at the same time, however, we
+/// anticipate that getting the log message wrong by a few notches will not
+/// be of great harm.
 extern "C" int fastbit_set_verbose_level(int v) {
     int ret = ibis::gVerbose;
     ibis::gVerbose = v;
@@ -1219,13 +1268,14 @@ extern "C" int fastbit_get_verbose_level(void) {
     return ibis::gVerbose;
 } // fastbit_get_verbose_level
 
-/// Return 0 to indicate success, a negative value to indicate error.
+/// @return Return 0 to indicate success, a negative value to indicate
+/// error.
 extern "C" int fastbit_set_logfile(const char* filename) {
     return ibis::util::setLogFileName(filename);
 } // fastbit_set_logfile
 
-/// Return the current log file name.  A blank string or a null pointer
-/// indicates the standard output.
+/// @return Return the current log file name.  A blank string or a null
+/// pointer indicates the standard output.
 extern "C" const char* fastbit_get_logfile() {
     return ibis::util::getLogFileName();
 } // fastbit_get_logfile

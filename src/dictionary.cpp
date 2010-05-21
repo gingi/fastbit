@@ -407,6 +407,7 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 	    return raw_.size();
 	}
     }
+    return raw_.size();
 } // string to int
 
 /// Insert a string to the dictionary.  Returns the integer value assigned
