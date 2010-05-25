@@ -1141,9 +1141,11 @@ const char* ibis::util::userName() {
     return uid.c_str();
 } // ibis::util::userName
 
-/// A function to output printf style message to stdout.  The message is
-/// preceeded with the current local time (as from function ctime) if the
-/// macro FASTBIT_TIMED_LOG is defined at the compile time.
+/// Print a message to standard output.  The format string is same as
+/// printf.  A global mutex lock is used to ensure printed messages are
+/// ordered.  The message is preceeded with the current local time (as from
+/// function ctime) if the macro FASTBIT_TIMED_LOG is defined at the
+/// compile time.
 void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     if (ibis::gVerbose < 0) return;
 
@@ -1171,6 +1173,60 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
 #endif
 } // ibis::util::logMessage
 
+/// Write a header to the log file.  The caller has opened the file named
+/// fname, this function attempts to write a simple message to verify that
+/// the file is writable.  It returns zero (0) upon successful completion
+/// of the write operations, it returns a non-zero number to indicate
+/// error.  It additionally sets the global variables
+/// ibis_util_logfilepointer and ibis_util_logfilename on success.
+int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
+    if (ibis_util_logfilename.empty()) return 0;
+
+    char tstr[28];
+    ibis::util::getLocalTime(tstr);
+    const char *str = FASTBIT_STRING;
+    std::string tmp;
+    if (str == 0 || *str == 0) {
+	tmp = "FastBit ibis";
+#ifdef FASTBIT_IBIS_INT_VERSION
+	std::ostringstream oss;
+	oss << FASTBIT_IBIS_INT_VERSION;
+	tmp += oss.str();
+#else
+	tmp += "1.1";
+#endif
+	str = tmp.c_str();
+    }
+    int ierr = fprintf(fptr, "\nLog file %s for %s opened on %s\n",
+		       fname, str, tstr);
+    if (ierr > 2) {
+#ifdef FASTBIT_BUGREPORT
+	str = FASTBIT_BUGREPORT;
+	if (str != 0 && *str != 0)
+	    (void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
+			   str);
+#endif
+#ifdef FASTBIT_URL
+	str = FASTBIT_URL;
+	if (str != 0 && *str != 0)
+	    (void) fprintf(fptr, "\tread more about the package at %s\n",
+			   str);
+#endif
+	ibis_util_logfilepointer = fptr;
+	ibis_util_logfilename = fname;
+	return 0;
+    }
+    else {
+	return -1;
+    }
+} // ibis::util::writeLogFileHeader
+
+/// Retrieve the pointer to the log file.  The value of stdout will
+/// be returned if no log file was specified.  A log file name be
+/// specified through the following means (in the specified order),
+/// -- setLogFile
+/// -- environment variable FASTBITLOGFILE
+/// -- configuration parameter logfile
 FILE* ibis::util::getLogFile() {
     if (ibis_util_logfilepointer != 0)
 	return ibis_util_logfilepointer;
@@ -1179,29 +1235,13 @@ FILE* ibis::util::getLogFile() {
     if (ibis_util_logfilepointer != 0)
 	return ibis_util_logfilepointer;
 
-    char tstr[28];
-    ibis::util::getLocalTime(tstr);
     const char* fname = (ibis_util_logfilename.empty() ? 0 :
 			 ibis_util_logfilename.c_str());
-    int ierr = 0;
     if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
-			   FASTBIT_STRING, fname, tstr);
-	    if (ierr > 1) {
-#ifdef FASTBIT_BUGREPORT
-		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
-			       FASTBIT_BUGREPORT);
-#endif
-#ifdef FASTBIT_URL
-		(void) fprintf(fptr, "\tread more about the package at %s\n",
-			       FASTBIT_URL);
-#endif
-		ibis_util_logfilepointer = fptr;
-		ibis_util_logfilename = fname;
+	    if (0 == writeLogFileHeader(fptr, fname))
 		return fptr;
-	    }
 	}
     }
 
@@ -1209,21 +1249,8 @@ FILE* ibis::util::getLogFile() {
     if (fname != 0 && *fname != 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
-			   FASTBIT_STRING, fname, tstr);
-	    if (ierr > 1) {
-#ifdef FASTBIT_BUGREPORT
-		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
-			       FASTBIT_BUGREPORT);
-#endif
-#ifdef FASTBIT_URL
-		(void) fprintf(fptr, "\tread more about the package at %s\n",
-			       FASTBIT_URL);
-#endif
-		ibis_util_logfilepointer = fptr;
-		ibis_util_logfilename = fname;
+	    if (0 == writeLogFileHeader(fptr, fname))
 		return fptr;
-	    }
 	}
     }
 
@@ -1233,30 +1260,23 @@ FILE* ibis::util::getLogFile() {
     if (fname != 0 && *fname == 0) {
 	FILE* fptr = fopen(fname, "a");
 	if (fptr != 0) {
-	    ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
-			   FASTBIT_STRING, fname, tstr);
-	    if (ierr > 1) {
-#ifdef FASTBIT_BUGREPORT
-		(void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
-			       FASTBIT_BUGREPORT);
-#endif
-#ifdef FASTBIT_URL
-		(void) fprintf(fptr, "\tread more about the package at %s\n",
-			       FASTBIT_URL);
-#endif
-		ibis_util_logfilepointer = fptr;
-		ibis_util_logfilename = fname;
+	    if (0 == writeLogFileHeader(fptr, fname))
 		return fptr;
-	    }
 	}
     }
 
+    // fall back to use the standard output
     ibis_util_logfilepointer = stdout;
     ibis_util_logfilename.erase();
     return stdout;
 } // ibis::util::getLogFile
 
-/// @note A blank file name or a null pointer reset the log file to
+/// Change the current log file to the named file.  Log files are
+/// opened in append mode, so the existing content will be
+/// preserved.  The log file will be changed only if the named file
+/// can be opened correctly.
+///
+/// @note A blank file name or a null pointer resets the log file to
 /// standard output.
 ///
 /// Error code
@@ -1275,29 +1295,17 @@ int ibis::util::setLogFileName(const char* filename) {
 	ibis_util_logfilename.erase();
 	return 0;
     }
-
-    char tstr[28];
-    ibis::util::getLocalTime(tstr);
+    if (ibis_util_logfilename.compare(filename) == 0)
+	return 0;
 
     ibis::util::ioLock lock;
     FILE* fptr = fopen(filename, "a");
     if (fptr != 0) {
-	int ierr = fprintf(fptr, "\n%s log file %s opened on %s\n",
-			   FASTBIT_STRING, filename, tstr);
-	if (ierr > 1) {
-	    if (ibis_util_logfilepointer != 0 &&
-		! ibis_util_logfilename.empty()) // close existing file
-		fclose(ibis_util_logfilepointer);
-	    ibis_util_logfilename = filename;
-	    ibis_util_logfilepointer = fptr;
-#ifdef FASTBIT_BUGREPORT
-	    (void) fprintf(fptr, "\tsend comments and bug reports to %s\n",
-			   FASTBIT_BUGREPORT);
-#endif
-#ifdef FASTBIT_URL
-	    (void) fprintf(fptr, "\tread more about the package at %s\n",
-			   FASTBIT_URL);
-#endif
+	if (ibis_util_logfilepointer != 0 &&
+	    ! ibis_util_logfilename.empty()) // close existing file
+	    fclose(ibis_util_logfilepointer);
+
+	if (0 == writeLogFileHeader(fptr, filename)) {
 	    return 0;
 	}
 	else {
@@ -1309,10 +1317,13 @@ int ibis::util::setLogFileName(const char* filename) {
     }
 } // ibis::util::setLogFileName
 
+/// Return name the of the current log file.  Blank string or null
+/// string indicate standard output.
 const char* ibis::util::getLogFileName() {
     return ibis_util_logfilename.c_str();
 } // ibis::util::getLogFileName
 
+/// Close the log file.
 /// Return the return value of function fclose.  This function should be
 /// called.  If not, typical OS system will close the file after the
 /// termination of the process invoked FastBit, however, it is possible

@@ -8,8 +8,8 @@ AC_INIT([FastBit],[ibis1.1.8.3],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
+AC_DEFINE(PACKAGE_URL, "http://sdm.lbl.gov/fastbit/", [FastBit web site])
 AM_INIT_AUTOMAKE([no-define])
-AC_PACKAGE_URL([http://sdm.lbl.gov/fastbit/])
 
 LIB_VERSION_INFO=0:9:0
 # Checks for programs.
@@ -613,6 +613,9 @@ dnl AC_MSG_RESULT(${contrib})
 dnl AM_CONDITIONAL(CONFIG_CONTRIB, test "$contrib" = "yes")
 dnl AC_SUBST(CONFIG_CONTRIB)
 
+AC_DEFINE_UNQUOTED(FASTBIT_IBIS_INT_VERSION,
+ `echo $PACKAGE_VERSION | awk 'BEGIN { FS="." } { printf("%d%.2d%.2d%.2d\n", substr($1, 5), $2, $3, $4); }'`,
+[Define an integer version of FastBit IBIS version number])
 OBJDIR=$objdir
 AC_SUBST(BUILD_JAVA_INTERFACE)
 AC_SUBST(LIB_VERSION_INFO)
@@ -625,8 +628,8 @@ AC_SUBST(OBJDIR)
 AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile tests/Makefile
 	         java/Makefile contrib/fbmerge/Makefile
 		 tests/scripts/fastbit-config])
-AC_OUTPUT_COMMANDS([
-sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
-echo timestamp for src/config.h > src/stamp-h1
+AC_CONFIG_COMMANDS([FastBit_prefix], [
+mv src/fastbit-config.h src/stamp-h1
+sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/stamp-h1 > src/fastbit-config.h
 ])
 AC_OUTPUT

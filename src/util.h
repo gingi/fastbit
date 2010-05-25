@@ -506,27 +506,12 @@ namespace ibis {
 	}
 	///@}
 
-	/// Print a message to standard output.  The format string is same
-	/// as printf.  A global mutex lock is used to ensure printed
-	/// messages are ordered.
 	FASTBIT_CXX_DLLSPEC void
 	logMessage(const char* event, const char* fmt, ...);
-	/// Retrieve the pointer to the log file.  The value of stdout will
-	/// be returned if no log file was specified.  A log file name be
-	/// specified through the following means (in the specified order),
-	/// -- setLogFile
-	/// -- environment variable FASTBITLOGFILE
-	/// -- configuration parameter logfile
 	FASTBIT_CXX_DLLSPEC FILE* getLogFile();
-	/// Close the log file.
+	int writeLogFileHeader(FILE *fptr, const char* fname);
 	FASTBIT_CXX_DLLSPEC int closeLogFile();
-	/// Change the current log file to the named file.  Log files are
-	/// opened in append mode, so the existing content will be
-	/// preserved.  The log file will be changed only if the named file
-	/// can be opened correctly.
 	FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
-	/// Return name the of the current log file.  Blank string or null
-	/// string indicate standard output.
 	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 
 	/// Match the string @c str against a simple pattern @c pat.  The

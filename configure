@@ -2575,6 +2575,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_config_headers="$ac_config_headers src/fastbit-config.h"
 
+
+$as_echo "#define PACKAGE_URL \"http://sdm.lbl.gov/fastbit/\"" >>confdefs.h
+
 am__api_version='1.11'
 
 ac_aux_dir=
@@ -3062,7 +3065,6 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 AMTAR=${AMTAR-"${am_missing_run}tar"}
 
 am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
-
 
 
 
@@ -5149,13 +5151,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5152: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5154: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5155: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5157: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5158: output\"" >&5)
+  (eval echo "\"\$as_me:5160: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6361,7 +6363,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6364 "configure"' > conftest.$ac_ext
+  echo '#line 6366 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8418,11 +8420,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8421: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8423: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8425: \$? = $ac_status" >&5
+   echo "$as_me:8427: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8757,11 +8759,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8760: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8762: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8764: \$? = $ac_status" >&5
+   echo "$as_me:8766: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8862,11 +8864,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8865: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8867: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8869: \$? = $ac_status" >&5
+   echo "$as_me:8871: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8917,11 +8919,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8920: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8922: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8924: \$? = $ac_status" >&5
+   echo "$as_me:8926: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11285,7 +11287,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11288 "configure"
+#line 11290 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11381,7 +11383,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11384 "configure"
+#line 11386 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13337,11 +13339,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13340: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13342: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13344: \$? = $ac_status" >&5
+   echo "$as_me:13346: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13436,11 +13438,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13439: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13441: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13443: \$? = $ac_status" >&5
+   echo "$as_me:13445: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13488,11 +13490,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13491: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13493: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13495: \$? = $ac_status" >&5
+   echo "$as_me:13497: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17184,7 +17186,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17187 "configure" */
+/* #line 17189 "configure" */
 public class Test {
 }
 EOF
@@ -17315,7 +17317,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 17318: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17320: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17392,7 +17394,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17395 "configure" */
+/* #line 17397 "configure" */
 public class Test {
 }
 EOF
@@ -17427,7 +17429,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17430 "configure" */
+/* [#]line 17432 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -17554,6 +17556,11 @@ $as_echo "no" >&6; }
 fi
 
 
+
+cat >>confdefs.h <<_ACEOF
+#define FASTBIT_IBIS_INT_VERSION `echo $PACKAGE_VERSION | awk 'BEGIN { FS="." } { printf("%d%.2d%.2d%.2d\n", substr($1, 5), $2, $3, $4); }'`
+_ACEOF
+
 OBJDIR=$objdir
 
 
@@ -17565,7 +17572,7 @@ OBJDIR=$objdir
 
 ac_config_files="$ac_config_files Makefile src/Makefile examples/Makefile tests/Makefile java/Makefile contrib/fbmerge/Makefile tests/scripts/fastbit-config"
 
-ac_config_commands="$ac_config_commands default-1"
+ac_config_commands="$ac_config_commands FastBit_prefix"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18637,7 +18644,6 @@ ac_aux_dir='$ac_aux_dir'
 
 
 
-
 _ACEOF
 
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -18656,7 +18662,7 @@ do
     "java/Makefile") CONFIG_FILES="$CONFIG_FILES java/Makefile" ;;
     "contrib/fbmerge/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/fbmerge/Makefile" ;;
     "tests/scripts/fastbit-config") CONFIG_FILES="$CONFIG_FILES tests/scripts/fastbit-config" ;;
-    "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
+    "FastBit_prefix") CONFIG_COMMANDS="$CONFIG_COMMANDS FastBit_prefix" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -20138,9 +20144,9 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
 _LT_EOF
 
  ;;
-    "default-1":C)
-sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/fastbit-config.h
-echo timestamp for src/config.h > src/stamp-h1
+    "FastBit_prefix":C)
+mv src/fastbit-config.h src/stamp-h1
+sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/stamp-h1 > src/fastbit-config.h
  ;;
 
   esac
