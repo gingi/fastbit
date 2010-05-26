@@ -1184,17 +1184,13 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
 
     char tstr[28];
     ibis::util::getLocalTime(tstr);
-    const char *str = FASTBIT_STRING;
+    const char *str = ibis::util::getVersionString();
     std::string tmp;
     if (str == 0 || *str == 0) {
 	tmp = "FastBit ibis";
-#ifdef FASTBIT_IBIS_INT_VERSION
 	std::ostringstream oss;
-	oss << FASTBIT_IBIS_INT_VERSION;
+	oss << ibis::util::getVersionNumber();
 	tmp += oss.str();
-#else
-	tmp += "1.1";
-#endif
 	str = tmp.c_str();
     }
     int ierr = fprintf(fptr, "\nLog file %s for %s opened on %s\n",

@@ -1,3 +1,7 @@
+2010-05-26 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: add ibis::util::getVersionString and
+	ibis::util::getVersionNumber
+
 2010-05-25 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: replace the obsolete command AC_OUTPUT_COMMANDS
 	with AC_CONFIG_COMMANDS, add integer version version number as

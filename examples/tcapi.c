@@ -26,7 +26,7 @@
 #include <stdlib.h>
 
 void usage(const char *name) {
-    fprintf(stdout, "A simple tester for the C API of FastBit\n\nusage\n"
+    fprintf(stdout, "A simple tester for the C API of %s\n\nusage\n"
 	    "%s [-c conffile] [-v [verboseness-level]] "
 #ifdef TCAPI_USE_LOGFILE
 	    " [-l logfile]"
@@ -45,7 +45,7 @@ void usage(const char *name) {
 #endif
 	    "Example:\n"
 	    "%s dir 'c1 = 15 and c2 > 23' c1 i c3 u\n\n",
-            name, name, name, name);
+            fastbit_get_version_string(), name, name, name, name);
 } /* usage */
 
 /** Create a set of sample data and run some canned queries.

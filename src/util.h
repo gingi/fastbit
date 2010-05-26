@@ -542,11 +542,27 @@ namespace ibis {
 	void clean(std::vector<ibis::bitvector*> &bv) throw();
 	/// Deallocate the list of data partitions.
 	void clean(ibis::partList &pl) throw();
+
+	/// Return a pointer to the string designating the version of this
+	/// software.
+	inline const char* getVersionString() {
+	    return FASTBIT_STRING;
+	}
+	/// Return an integer designating the version of this software.
+	inline int getVersionNumber() {
+#ifdef FASTBIT_IBIS_INT_VERSION
+	    return FASTBIT_IBIS_INT_VERSION;
+#else
+	    return 01010000;
+#endif
+	}
+
 	/// Return the current time in string format as @c asctime_r.
 	void getLocalTime(char *str);
 	/// Return the current GMT time in string format.
 	void getGMTime(char *str);
 	void secondsToString(const time_t, char *str);
+
 
 #if defined(WIN32) && ! defined(__CYGWIN__)
 	char* getpass_r(const char *prompt, char *buffer, uint32_t buflen);

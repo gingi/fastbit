@@ -116,6 +116,14 @@ ibis::part* fastbit_part_list::find(const char* dir) {
     }
 } // fastbit_part_list::find
 
+extern "C" int fastbit_get_version_number() {
+    return ibis::util::getVersionNumber();
+} // fastbit_get_version_number
+
+extern "C" const char* fastbit_get_version_string() {
+    return ibis::util::getVersionString();
+} // fastbit_get_version_string
+
 extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
     int ierr = 0;
     ibis::part *t;
