@@ -1,3 +1,14 @@
+2010-06-03 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp, src/ixbylt.cpp, src/ixfuge.cpp, src/ixfuzz.cpp,
+	src/ixzona.cpp: update all versions of activate and activateCoarse
+	to use the new constructor (slightly simplifies the code, but
+	mostly to be more consistent in the constructor argument list)
+
+2010-06-02 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.h, src/array_t.cpp: change the constructor of
+	array_t that takes a segment of a storage to use the start and end
+	address as constructors that take similar arguments
+
 2010-05-26 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: add ibis::util::getVersionString and
 	ibis::util::getVersionNumber
@@ -31,8 +42,8 @@
 	header to the dictionary file (new code passed make check)
 
 2010-05-18 John Wu <John.Wu at ACM.org>
-	* src/util.cpp:1104 comment the delete statement, the pointer was
-	returned by a old-style getpwuid which can not be deleted (to
+	* src/util.cpp:1104 comment out the delete statement, the pointer
+	was returned by a old-style getpwuid which can not be deleted (to
 	address crash reported by Jason Chambers)
 
 2010-05-17 John Wu <John.Wu at ACM.org>

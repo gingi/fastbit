@@ -217,8 +217,7 @@ void ibis::zona::activateCoarse() const {
 	    for (uint32_t i = 0; i < nobs; ++i) {
 		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset64[i], coffset64[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -228,8 +227,7 @@ void ibis::zona::activateCoarse() const {
 	    for (uint32_t i = 0; i < nobs; ++i) {
 		if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset32[i], coffset32[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -264,8 +262,7 @@ void ibis::zona::activateCoarse() const {
 			if (coffset64[i+1] > coffset64[i]) {
 			    array_t<ibis::bitvector::word_t>
 				a1(a0, coffset64[i]-start,
-				   (coffset64[i+1]-coffset64[i])/
-				   sizeof(ibis::bitvector::word_t));
+				   coffset64[i+1]-start);
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -291,8 +288,7 @@ void ibis::zona::activateCoarse() const {
 			if (coffset32[i+1] > coffset32[i]) {
 			    array_t<ibis::bitvector::word_t>
 				a1(a0, coffset32[i]-start,
-				   (coffset32[i+1]-coffset32[i])/
-				   sizeof(ibis::bitvector::word_t));
+				   coffset32[i+1]-start);
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -361,15 +357,13 @@ void ibis::zona::activateCoarse(uint32_t i) const {
 
 	if (coffset64.size() > cbits.size()) {
 	    array_t<ibis::bitvector::word_t>
-		a(str, coffset32[i], (coffset64[i+1]-coffset64[i]) /
-		  sizeof(ibis::bitvector::word_t));
+		a(str, coffset64[i], coffset64[i+1]);
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
 	}
 	else {
 	    array_t<ibis::bitvector::word_t>
-		a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-		  sizeof(ibis::bitvector::word_t));
+		a(str, coffset32[i], coffset32[i+1]);
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
 	}
@@ -458,8 +452,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 	    while (i < j) {
 		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset64[i], coffset64[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -470,8 +463,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 	    while (i < j) {
 		if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset32[i], coffset32[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -515,8 +507,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 			if (coffset64[i+1] > coffset64[i]) {
 			    array_t<ibis::bitvector::word_t>
 				a1(a0, coffset64[i]-start,
-				   (coffset64[i+1]-coffset64[i])/
-				   sizeof(ibis::bitvector::word_t));
+				   coffset64[i+1]-start);
 			    cbits[i] = new ibis::bitvector(a1);
 			    cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -552,8 +543,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
 			if (coffset32[i+1] > coffset32[i]) {
 			    array_t<ibis::bitvector::word_t>
 				a1(a0, coffset32[i]-start,
-				   (coffset32[i+1]-coffset32[i])/
-				   sizeof(ibis::bitvector::word_t));
+				   coffset32[i+1]-start);
 			    cbits[i] = new ibis::bitvector(a1);
 			    cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0

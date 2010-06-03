@@ -6,11 +6,10 @@
 #define IBIS_ARRAY_T_H
 #include "fileManager.h"
 #include "horometer.h"
-#include <iomanip>	// std::setw
 #include <cstddef>	// ptrdiff_t
 
 /// Template array_t is a replacement of std::vector.  The main difference
-/// is that the underlying memory of this object is reference counted and
+/// is that the underlying memory of this object is reference-counted and
 /// managed by ibis::fileManager.  It is intended to store arrays in
 /// memory, and it's possible to have shallow copies of read-only arrays.
 /// The memory is guaranteed to be contiguous.  It also implements read and
@@ -32,7 +31,7 @@ public:
     typedef const T& const_reference; ///< Reference to a constant value.
     typedef       T  value_type; ///< Type of values.
     typedef  size_t  size_type; ///< For array size.
-    typedef std::ptrdiff_t difference_type; ///< For difference between pointers.
+    typedef std::ptrdiff_t difference_type;///< For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
@@ -44,8 +43,8 @@ public:
     array_t<T>(const array_t<T>& rhs, const size_t offset,
 	       const size_t nelm=0);
     array_t<T>(ibis::fileManager::storage* rhs);
-    array_t<T>(ibis::fileManager::storage* rhs, const size_t start,
-	       const size_t nelm);
+    array_t<T>(ibis::fileManager::storage* rhs,
+	       const size_t start, const size_t end);
     array_t<T>(const int fdes, const off_t begin, const off_t end);
     array_t<T>(const char *fn, const off_t begin, const off_t end);
     array_t<T>(const char *fn, const int fdes,

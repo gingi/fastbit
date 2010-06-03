@@ -129,14 +129,12 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 #if defined(FASTBIT_READ_BITVECTOR0)
 	if (offsetsize == 8) {
 	    array_t<ibis::bitvector::word_t>
-		a0(st, coffset64[0], (coffset64[1] - coffset64[0])
-		   / sizeof(ibis::bitvector::word_t));
+		a0(st, coffset64[0], coffset64[1]);
 	    cbits[0] = new ibis::bitvector(a0);
 	}
 	else {
 	    array_t<ibis::bitvector::word_t>
-		a0(st, coffset32[0], (coffset32[1] - coffset32[0])
-		   / sizeof(ibis::bitvector::word_t));
+		a0(st, coffset32[0], coffset32[1]);
 	    cbits[0] = new ibis::bitvector(a0);
 	}
 	cbits[0]->sloppySize(nrows);
@@ -147,8 +145,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	    for (unsigned i = 0; i < ncb; ++ i) {
 		if (coffset64[i+1] > coffset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(st, coffset64[i], (coffset64[i+1]-coffset64[i])
-			  / sizeof(ibis::bitvector::word_t));
+			a(st, coffset64[i], coffset64[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -158,8 +155,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	    for (unsigned i = 0; i < ncb; ++ i) {
 		if (coffset32[i+1] > coffset32[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(st, coffset32[i], (coffset32[i+1]-coffset32[i])
-			  / sizeof(ibis::bitvector::word_t));
+			a(st, coffset32[i], coffset32[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -485,8 +481,7 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
 		for (unsigned i = 0; i < ncb; ++ i) {
 		    if (coffset64[i+1] > coffset64[i]) {
 			array_t<ibis::bitvector::word_t>
-			    a(st, coffset64[i], (coffset64[i+1]-coffset64[i])
-			      / sizeof(ibis::bitvector::word_t));
+			    a(st, coffset64[i], coffset64[i+1]);
 			cbits[i] = new ibis::bitvector(a);
 			cbits[i]->sloppySize(nrows);
 		    }
@@ -517,8 +512,7 @@ int ibis::fuge::read(ibis::fileManager::storage* st) {
 		for (unsigned i = 0; i < ncb; ++ i) {
 		    if (coffset32[i+1] > coffset32[i]) {
 			array_t<ibis::bitvector::word_t>
-			    a(st, coffset32[i], (coffset32[i+1]-coffset32[i])
-			      / sizeof(ibis::bitvector::word_t));
+			    a(st, coffset32[i], coffset32[i+1]);
 			cbits[i] = new ibis::bitvector(a);
 			cbits[i]->sloppySize(nrows);
 		    }
@@ -1253,8 +1247,7 @@ void ibis::fuge::activateCoarse() const {
 // 			<< ", coffset64[" << i+1 << "]= " << coffset64[i+1];
 // #endif
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset64[i], coffset64[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 		}
@@ -1288,8 +1281,7 @@ void ibis::fuge::activateCoarse() const {
 			    if (coffset64[i+1] > coffset64[i]) {
 				array_t<ibis::bitvector::word_t>
 				    a1(a0, coffset64[i]-start,
-				       (coffset64[i+1]-coffset64[i])/
-				       sizeof(ibis::bitvector::word_t));
+				       coffset64[i+1]-start);
 				bits[i] = new ibis::bitvector(a1);
 				bits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1338,8 +1330,7 @@ void ibis::fuge::activateCoarse() const {
 // 		    << ", coffset32[" << i+1 << "]= " << coffset32[i+1];
 // #endif
 		array_t<ibis::bitvector::word_t>
-		    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
+		    a(str, coffset32[i], coffset32[i+1]);
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
 	    }
@@ -1373,8 +1364,7 @@ void ibis::fuge::activateCoarse() const {
 			if (coffset32[i+1] > coffset32[i]) {
 			    array_t<ibis::bitvector::word_t>
 				a1(a0, coffset32[i]-start,
-				   (coffset32[i+1]-coffset32[i])/
-				   sizeof(ibis::bitvector::word_t));
+				   coffset32[i+1]-start);
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1438,8 +1428,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 		"ibis::fileManager::storage(0x" << str << ")";
 
 	    array_t<ibis::bitvector::word_t>
-		a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
-		  sizeof(ibis::bitvector::word_t));
+		a(str, coffset64[i], coffset64[i+1]);
 	    cbits[i] = new ibis::bitvector(a);
 	    cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1494,9 +1483,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	    << mesg << "(" << i << ") retrieving data from "
 	    "ibis::fileManager::storage(0x" << str << ")";
 
-	array_t<ibis::bitvector::word_t>
-	    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-	      sizeof(ibis::bitvector::word_t));
+	array_t<ibis::bitvector::word_t> a(str, coffset32[i], coffset32[i+1]);
 	cbits[i] = new ibis::bitvector(a);
 	cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1578,8 +1565,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	    while (i < j) {
 		if (cbits[i] == 0 && coffset64[i+1] > coffset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, coffset64[i], (coffset64[i+1]-coffset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, coffset64[i], coffset64[i+1]);
 		    cbits[i] = new ibis::bitvector(a);
 		    cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1621,8 +1607,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 				if (coffset64[i+1] > coffset64[i]) {
 				    array_t<ibis::bitvector::word_t>
 					a1(a0, coffset64[i]-start,
-					   (coffset64[i+1]-coffset64[i])/
-					   sizeof(ibis::bitvector::word_t));
+					   coffset64[i+1]-start);
 				    cbits[i] = new ibis::bitvector(a1);
 				    cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1662,8 +1647,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 	while (i < j) {
 	    if (cbits[i] == 0 && coffset32[i+1] > coffset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(str, coffset32[i], (coffset32[i+1]-coffset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
+		    a(str, coffset32[i], coffset32[i+1]);
 		cbits[i] = new ibis::bitvector(a);
 		cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1705,8 +1689,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
 			    if (coffset32[i+1] > coffset32[i]) {
 				array_t<ibis::bitvector::word_t>
 				    a1(a0, coffset32[i]-start,
-				       (coffset32[i+1]-coffset32[i])/
-				       sizeof(ibis::bitvector::word_t));
+				       coffset32[i+1]-start);
 				cbits[i] = new ibis::bitvector(a1);
 				cbits[i]->sloppySize(nrows);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0

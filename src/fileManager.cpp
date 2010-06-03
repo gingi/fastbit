@@ -26,6 +26,7 @@
 #include <sys/stat.h>	// stat, open
 #include <time.h>
 #include <stdexcept>	// std::runtime_error
+#include <iomanip>	// std::setprecision
 
 #if defined(HAVE_SYS_SYSCTL) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/sysctl.h> // sysctl

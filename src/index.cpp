@@ -4361,8 +4361,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 #if defined(FASTBIT_READ_BITVECTOR0)
 	    if (offset64[1] > offset64[0]) {
 		array_t<ibis::bitvector::word_t>
-		    a0(st, offset64[0], (offset64[1]-offset64[0]) /
-		       sizeof(ibis::bitvector::word_t));
+		    a0(st, offset64[0], offset64[1]);
 		bits[0] = new ibis::bitvector(a0);
 		bits[0]->sloppySize(nrows);
 	    }
@@ -4376,8 +4375,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 	    for (uint32_t i = 0; i < nobs; ++i) {
 		if (offset64[i+1] > offset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(st, offset64[i], (offset64[i+1]-offset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(st, offset64[i], offset64[i+1]);
 		    ibis::bitvector* btmp = new ibis::bitvector(a);
 		    bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
@@ -4400,8 +4398,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 #if defined(FASTBIT_READ_BITVECTOR0)
 	if (offset32[1] > offset32[0]) {
 	    array_t<ibis::bitvector::word_t>
-		a0(st, offset32[0], (offset32[1]-offset32[0]) /
-		   sizeof(ibis::bitvector::word_t));
+		a0(st, offset32[0], offset32[1]);
 	    bits[0] = new ibis::bitvector(a0);
 	    bits[0]->sloppySize(nrows);
 	}
@@ -4415,8 +4412,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 	for (uint32_t i = 0; i < nobs; ++i) {
 	    if (offset32[i+1] > offset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(st, offset32[i], (offset32[i+1]-offset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
+		    a(st, offset32[i], offset32[i+1]);
 		ibis::bitvector* btmp = new ibis::bitvector(a);
 		bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
@@ -4481,8 +4477,7 @@ void ibis::index::activate() const {
 			<< ", offsets[" << i+1 << "]= " << offset64[i+1];
 #endif
 		    array_t<ibis::bitvector::word_t>
-			a(str, offset64[i], (offset64[i+1]-offset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, offset64[i], offset64[i+1]);
 		    bits[i] = new ibis::bitvector(a);
 		    bits[i]->sloppySize(nrows);
 		}
@@ -4528,9 +4523,7 @@ void ibis::index::activate() const {
 #endif
 			if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
 			    array_t<ibis::bitvector::word_t>
-				a1(a0, offset64[i]-start,
-				   (offset64[i+1]-offset64[i])/
-				   sizeof(ibis::bitvector::word_t));
+				a1(a0, offset64[i]-start, offset64[i+1]-start);
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 			}
@@ -4557,8 +4550,7 @@ void ibis::index::activate() const {
 		    << ", offsets[" << i+1 << "]= " << offset32[i+1];
 #endif
 		array_t<ibis::bitvector::word_t>
-		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
+		    a(str, offset32[i], offset32[i+1]);
 		bits[i] = new ibis::bitvector(a);
 		bits[i]->sloppySize(nrows);
 	    }
@@ -4592,8 +4584,7 @@ void ibis::index::activate() const {
 	    if (offset32[aj] > offset32[i]) {
 		const uint32_t start = offset32[i];
 		ibis::fileManager::storage *a0 = new
-		    ibis::fileManager::storage(fdes, start,
-					       offset32[aj]);
+		    ibis::fileManager::storage(fdes, start, offset32[aj]);
 		while (i < aj) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose > 5)
@@ -4604,9 +4595,7 @@ void ibis::index::activate() const {
 #endif
 		    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
 			array_t<ibis::bitvector::word_t>
-			    a1(a0, offset32[i]-start,
-			       (offset32[i+1]-offset32[i])/
-			       sizeof(ibis::bitvector::word_t));
+			    a1(a0, offset32[i]-start, offset32[i+1]-start);
 			bits[i] = new ibis::bitvector(a1);
 			bits[i]->sloppySize(nrows);
 		    }
@@ -4663,8 +4652,7 @@ void ibis::index::activate(uint32_t i) const {
 #endif
 
 	    array_t<ibis::bitvector::word_t>
-		a(str, offset64[i], (offset64[i+1]-offset64[i]) /
-		  sizeof(ibis::bitvector::word_t));
+		a(str, offset64[i], offset64[i+1]);
 	    bits[i] = new ibis::bitvector(a);
 	    bits[i]->sloppySize(nrows);
 	}
@@ -4712,8 +4700,7 @@ void ibis::index::activate(uint32_t i) const {
 #endif
 
 	array_t<ibis::bitvector::word_t>
-	    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
-	      sizeof(ibis::bitvector::word_t));
+	    a(str, offset32[i], offset32[i+1]);
 	bits[i] = new ibis::bitvector(a);
 	bits[i]->sloppySize(nrows);
     }
@@ -4801,8 +4788,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 #endif
 		if (bits[i] == 0 && offset64[i+1] > offset64[i]) {
 		    array_t<ibis::bitvector::word_t>
-			a(str, offset64[i], (offset64[i+1]-offset64[i]) /
-			  sizeof(ibis::bitvector::word_t));
+			a(str, offset64[i], offset64[i+1]);
 		    bits[i] = new ibis::bitvector(a);
 		    bits[i]->sloppySize(nrows);
 		}
@@ -4852,8 +4838,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 				offset64[i+1] > offset64[i]) {
 				array_t<ibis::bitvector::word_t>
 				    a1(a0, offset64[i]-start,
-				       (offset64[i+1]-offset64[i])/
-				       sizeof(ibis::bitvector::word_t));
+				       offset64[i+1]-start);
 				bits[i] = new ibis::bitvector(a1);
 				bits[i]->sloppySize(nrows);
 			    }
@@ -4881,8 +4866,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 #endif
 	    if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
 		array_t<ibis::bitvector::word_t>
-		    a(str, offset32[i], (offset32[i+1]-offset32[i]) /
-		      sizeof(ibis::bitvector::word_t));
+		    a(str, offset32[i], offset32[i+1]);
 		bits[i] = new ibis::bitvector(a);
 		bits[i]->sloppySize(nrows);
 	    }
@@ -4928,9 +4912,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 #endif
 			if (bits[i] == 0 && offset32[i+1] > offset32[i]) {
 			    array_t<ibis::bitvector::word_t>
-				a1(a0, offset32[i]-start,
-				   (offset32[i+1]-offset32[i])/
-				   sizeof(ibis::bitvector::word_t));
+				a1(a0, offset32[i]-start, offset32[i+1]-start);
 			    bits[i] = new ibis::bitvector(a1);
 			    bits[i]->sloppySize(nrows);
 			}

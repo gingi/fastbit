@@ -12,6 +12,7 @@
 #endif
 #include "array_t.h"
 #include "util.h"
+#include <iomanip>	// std::setw
 #include <typeinfo>	// typeid
 
 // When the number of elements in an array to be sorted by qsort is less
@@ -180,18 +181,25 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 	<< actual->size();
 }
 
-/// Construct an array from a section of the raw storage.
-/// The argument @c start is measured in number of bytes, the second
-/// argument @c nelm is the number of element of type T.
+/// Construct an array from a section of the raw storage.  No new storage
+/// is allocated.
+///
+/// The arguments @c start and @c end are offsets into the raw storage
+/// measured in number of bytes, NOT the number of element of type T.
 template<class T>
 ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
-			  const size_t start, const size_t nelm)
-    : actual(rhs), m_begin((T*)(rhs != 0 ? rhs->begin()+start : 0)),
-      m_end(m_begin != 0 ? m_begin+nelm : 0) {
+			  const size_t start, const size_t end)
+    : actual(rhs),
+      m_begin((T*)(rhs != 0 ? rhs->begin()+start : 0)),
+      m_end((T*)(rhs != 0 ? rhs->begin()+end : 0)) {
     if (actual != 0 && m_begin != 0 && m_end != 0) {
 	if ((const char*)(m_begin) >= rhs->end()) {
-	    m_begin = (T*)(rhs->begin());
-	    m_end = (T*)(rhs->begin());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- the constructor of array_t<" << typeid(T).name()
+		<< "> has received an empty range of bytes (begin=" << start
+		<< ", end=" << end << "), please check the calling sequence";
+
+	    m_end = m_begin;
 	}
 	else if ((const char*)(m_end) > rhs->end()) {
 	    m_end = (T*)rhs->end();
@@ -200,10 +208,10 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
     }
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
-	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << " and m_begin="
-	<< static_cast<void*>(m_begin) << ", representing " << nelm
-	<< " element" << (nelm>1?"s":"") << " from "
+	<< static_cast<const void*>(this) << " with actual="
+	<< static_cast<const void*>(actual) << ", m_begin="
+	<< static_cast<const void*>(m_begin) << " and m_end="
+	<< static_cast<const void*>(m_end) << " from "
 	<< static_cast<const void*>(rhs) << " starting with offset " << start;
 }
 
