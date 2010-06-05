@@ -86,7 +86,6 @@ public:
     /// Replace a single bit at position @c i.
     ///@note @c val must be either 0 or 1.
     void setBit(const word_t i, int val);
-    /// Turn on a single bit in a uncompressed bitvector.
     inline void turnOnRawBit(const word_t i);
     /// Remove the bits in the range of [i, j).
     void erase(word_t i, word_t j);
@@ -100,7 +99,6 @@ public:
     bitvector& operator+=(const bitvector& bv); ///< Append a bitvector.
     inline bitvector& operator+=(int b);	///< Append a single bit.
     void appendWord(word_t w);		///< Append a WAH word.
-    /// Append @c n bits of @c val.
     inline void appendFill(int val, word_t n);
 
     /// Return 1 if two bit sequences have the same content, 0 otherwise
@@ -148,12 +146,9 @@ public:
     /// Return the number of word saved if the function compress is called.
     word_t compressible() const;
 
-    /// Return the total number of bits in the bit sequence.
     inline word_t size() const throw();
     inline void sloppySize(word_t n) const;
-    /// Return the number of bits that are one.
     inline word_t cnt() const;
-    /// Return the number of fill words.
     inline word_t numFillWords() const;
     /// Return the number of bytes used by the bitvector object in memory.
     uint32_t bytes() const throw() {
@@ -167,22 +162,11 @@ public:
     };
     /// Return the number of bits in a literal word.
     static word_t bitsPerLiteral() {return MAXBITS;}
-    /// Compute the expected number of bytes required to store a random
-    /// sequence.   The random bit sequence is to have @c nb total bits
-    /// and @c nc bits of one.
     inline static double randomSize(word_t nb, word_t nc);
-    /// Compute the expected size (number of bytes) of a random sequence
-    /// generated from a Markov process.  The bit sequence is to have @c nb
-    /// total bits, @c nc bits of one, and @c f consecutive ones on the
-    /// average.  The argument @c f is known as the clustering factor.
     inline static double markovSize(word_t nb, word_t nc, double f);
-    /// Estimate clustering factor based on the size.  The size is measured
-    /// as the number of bytes.
-    ///@sa markovSize.
     static double clusteringFactor(word_t nb, word_t nc, word_t sz);
 
     void adjustSize(word_t nv, word_t nt);
-    /// Reserve enough space for a bit vector with nb bits with nc set bits.
     void reserve(unsigned nb, unsigned nc, double cf=0.0);
 
     /// Is the bitvector empty?  For efficiency concerns, this funciton
@@ -556,16 +540,19 @@ ibis::bitvector::cnt_ones(ibis::bitvector::word_t val) const {
     return cnt;
 } // ibis::bitvector::cnt_ones
 
+/// Return the total number of bits in the bit sequence.
 inline ibis::bitvector::word_t ibis::bitvector::size() const throw() {
     return ((nbits?nbits:(nbits=do_cnt()))+active.nbits);
 } // ibis::bitvector::size
 
+/// Return the number of bits that are one.
 inline ibis::bitvector::word_t ibis::bitvector::cnt() const {
     if (nset==0 && !m_vec.empty())
 	nbits = do_cnt();
     return (nset+cnt_ones(active.val));
 } // ibis::bitvector::cnt
 
+/// Return the number of fill words.
 inline ibis::bitvector::word_t ibis::bitvector::numFillWords() const {
     word_t cnt=0;
     array_t<ibis::bitvector::word_t>::const_iterator it = m_vec.begin();
@@ -678,8 +665,10 @@ inline ibis::bitvector& ibis::bitvector::operator+=(int b) {
     return *this;
 } // ibis::bitvector::operator+=
 
-/// Append @c n bits of @c val, where @c n may be arbitrary integer and @c
-/// val must be either 0 or 1.
+/// Append @c n bits of @c val.  The value @c n may be arbitrary integer as
+/// long as the resulting size is still representable by a
+/// ibis::bitvector::word_t, however, the value @c val must be either 0 or
+/// 1.
 inline void ibis::bitvector::appendFill(int val, word_t n) {
     if (n == 0) return;
     if (active.nbits > 0) {
@@ -1094,6 +1083,9 @@ inline ibis::bitvector::indexSet ibis::bitvector::firstIndexSet() const {
     return is;
 } // end ibis::bitvector::firstIndexSet;
 
+/// Compute the expected number of bytes required to store a random
+/// sequence.   The random bit sequence is to have @c nb total bits
+/// and @c nc bits of one.
 inline double ibis::bitvector::randomSize(word_t nb, word_t nc) {
     double sz = 0.0;
     if (nb > 0 && nb >= nc && nb > MAXBITS) {
@@ -1106,6 +1098,10 @@ inline double ibis::bitvector::randomSize(word_t nb, word_t nc) {
     return sz*sizeof(word_t);
 } // end ibis::bitvector::randomSize
 
+/// Compute the expected size (number of bytes) of a random sequence
+/// generated from a Markov process.  The bit sequence is to have @c nb
+/// total bits, @c nc bits of one, and @c f consecutive ones on the
+/// average.  The argument @c f is known as the clustering factor.
 inline double ibis::bitvector::markovSize(word_t nb, word_t nc, double f) {
     double sz = 0.0;
     if (nb > 0 && nb >= nc && nb > MAXBITS) {
@@ -1124,6 +1120,7 @@ inline double ibis::bitvector::markovSize(word_t nb, word_t nc, double f) {
     return sz*sizeof(word_t);
 } // end ibis::bitvector::markovSize
 
+/// Turn on a single bit in a uncompressed bitvector.
 inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
     if (ind < nbits) { // in regular words
 	m_vec[ind / MAXBITS] |= (1 << (SECONDBIT - (ind % MAXBITS)));

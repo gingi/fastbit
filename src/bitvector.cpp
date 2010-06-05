@@ -3861,6 +3861,10 @@ void ibis::bitvector::adjustSize(word_t nv, word_t nt) {
 	appendFill(0, nt - sz);
 } // ibis::bitvector::adjustSize
 
+/// Reserve enough space for a bit vector.  The caller needs to specify the
+/// number of total bits, nb, and the number of set bits, nc.  The caller
+/// may additional specify the clustering factor, cf, if there is a
+/// reasonable estimate for it.
 void ibis::bitvector::reserve(unsigned nb, unsigned nc, double cf) {
     if (nb >= nc && nc > 0 && nb > MAXBITS) {
 	double sz = 0.0;
@@ -3881,7 +3885,9 @@ void ibis::bitvector::reserve(unsigned nb, unsigned nc, double cf) {
     }
 } // ibis::bitvector::reserve
 
-// estimate the clustering factor based on the size information of a bitmap
+/// Estimate clustering factor based on the size.  The size is measured
+/// as the number of bytes.
+///@sa markovSize.
 double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 					 word_t sz) {
     double f = 1.0;

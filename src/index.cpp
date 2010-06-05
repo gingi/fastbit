@@ -1457,8 +1457,10 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
 // generates data file name from "f"
 void ibis::index::dataFileName(const char* f, std::string& iname) const {
     if (f == 0) {
-	iname = col->partition()->currentDataDir();
-	iname += FASTBIT_DIRSEP;
+	if (col->partition() != 0) {
+	    iname = col->partition()->currentDataDir();
+	    iname += FASTBIT_DIRSEP;
+	}
 	iname += col->name();
     }
     else {
@@ -1503,8 +1505,10 @@ void ibis::index::dataFileName(const char* f, std::string& iname) const {
 // generates index file name from "f"
 void ibis::index::indexFileName(const char* f, std::string& iname) const {
     if (f == 0 || *f == 0) {
-	iname = col->partition()->currentDataDir();
-	iname += FASTBIT_DIRSEP;
+	if (col->partition() != 0) {
+	    iname = col->partition()->currentDataDir();
+	    iname += FASTBIT_DIRSEP;
+	}
 	iname += col->name();
 	iname += ".idx";
     }
@@ -1791,7 +1795,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
-    uint32_t i, j, k, nev = col->partition()->nRows();
+    uint32_t i, j, k, nev;
     std::string fnm; // name of the data file
 
     bmap.clear();
@@ -1803,12 +1807,12 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 			    "of every value in \"%s\"", fnm.c_str());
     }
     else {
-	if (nev > 0) {
+	if (col->partition() != 0 && col->partition()->nRows() > 0) {
 	    if (col->type() == ibis::CATEGORY) {
 		if (col->partition()->getState() ==
 		    ibis::part::PRETRANSITION_STATE) {
 		    ibis::bitvector *tmp = new ibis::bitvector;
-		    tmp->set(1, nev);
+		    tmp->set(1, col->partition()->nRows());
 		    bmap[1] = tmp;
 		}
 	    }
@@ -2657,7 +2661,7 @@ long ibis::index::getCumulativeDistribution
 /// double with no rounding, no approximation and no overflow.
 void ibis::index::mapValues(const char* f, histogram& hist,
 			    uint32_t count) const {
-    uint32_t i, k, nev = col->partition()->nRows();
+    uint32_t i, k, nev;
     // TODO: implement a different algorith, like sort the values first, to
     // make memory usage more predictable.  The numerous dynamically allocated
     // elements used by histogram really could slow down this function!
@@ -4200,7 +4204,8 @@ int ibis::index::initOffsets(ibis::fileManager::storage* st, size_t start,
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << "Warning -- index["
+	    << (col->partition() ? col->partition()->name() : "??") << '.'
 	    << col->name() << "]::initOffsets(" << static_cast<const void*>(st)
 	    << ", " << start << ", " << nobs << ") the current offset size "
 	    << static_cast<int>(st->begin()[6]) << " is neither 4 or 8";
@@ -4221,7 +4226,8 @@ void ibis::index::initBitmaps(int fdes) {
 	delete bits[i]; // free existing bitmaps
     if (nobs == 0) {
 	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- index[" << col->partition()->name() << '.'
+	    << "Warning -- index["
+	    << (col->partition() ? col->partition()->name() : "??") << '.'
 	    << col->name() << "]::initBitmaps(" << fdes
 	    << ") can not continue without a valid offset64 or offset32";
 	return;
@@ -4437,8 +4443,10 @@ void ibis::index::activate() const {
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
 	evt += '[';
-	evt += col->partition()->name();
-	evt += '.';
+	if (col->partition() != 0) {
+	    evt += col->partition()->name();
+	    evt += '.';
+	}
 	evt += col->name();
 	evt += ']';
     }
@@ -4614,8 +4622,10 @@ void ibis::index::activate(uint32_t i) const {
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
 	evt += '[';
-	evt += col->partition()->name();
-	evt += '.';
+	if (col->partition() != 0) {
+	    evt += col->partition()->name();
+	    evt += '.';
+	}
 	evt += col->name();
 	evt += ']';
     }
@@ -4747,8 +4757,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
 	evt += '[';
-	evt += col->partition()->name();
-	evt += '.';
+	if (col->partition() != 0) {
+	    evt += col->partition()->name();
+	    evt += '.';
+	}
 	evt += col->name();
 	evt += ']';
     }
@@ -7927,8 +7939,11 @@ void ibis::index::optionalUnpack(std::vector<ibis::bitvector*>& bts,
 	}
     }
     else { // check ibis::gParameters
-	std::string uA = col->partition()->name();
-	uA += ".";
+	std::string uA;
+	if (col->partition() != 0) {
+	    uA = col->partition()->name();
+	    uA += ".";
+	}
 	uA += col->name();
 	uA += ".uncompress";
 	std::string uL = uA;
@@ -8005,6 +8020,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
+    if (col->partition() == 0) return;
 
     LOGGER(ibis::gVerbose > 2)
 	<< "Note -- index::estimate is using a dummy estimate "
@@ -8023,6 +8039,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
+    if (col->partition() == 0) return;
 
     LOGGER(ibis::gVerbose > 2)
 	<< "Note -- index::estimate is using a dummy estimate "
@@ -8044,6 +8061,7 @@ void ibis::index::estimate(const ibis::index& idx2,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
+    if (col->partition() == 0) return;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process " << expr;
@@ -8063,6 +8081,7 @@ void ibis::index::estimate(const ibis::deprecatedJoin& expr,
 			   ibis::bitvector64& lower,
 			   ibis::bitvector64& upper) const {
     if (col == 0) return;
+    if (col->partition() == 0) return;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
@@ -8078,6 +8097,7 @@ void ibis::index::estimate(const ibis::deprecatedJoin& expr,
 int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::deprecatedJoin& expr) const {
     if (col == 0) return -1;
+    if (col->partition() == 0) return -2;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
@@ -8092,6 +8112,7 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::deprecatedJoin& expr,
 			      const ibis::bitvector& mask) const {
     if (col == 0) return -1;
+    if (col->partition() == 0) return -2;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
@@ -8110,6 +8131,7 @@ int64_t ibis::index::estimate(const ibis::index& idx2,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
     if (col == 0) return -1;
+    if (col->partition() == 0) return -2;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
@@ -8127,6 +8149,7 @@ int64_t ibis::index::estimate(const ibis::deprecatedJoin& expr,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
     if (col == 0) return -1;
+    if (col->partition() == 0) return -2;
     LOGGER(ibis::gVerbose > 1)
 	<< "Note -- index::estimate is using a dummy estimate "
 	"function to process %s" << expr;
