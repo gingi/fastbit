@@ -125,109 +125,209 @@ extern "C" const char* fastbit_get_version_string() {
 } // fastbit_get_version_string
 
 extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
-    int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+    int ierr = -1;
+    if (dir == 0 || *dir == 0)
+	return ierr;
+
+    try {
+	ibis::part *t;
 	if (_capi_tlist == 0) {
-	    ierr = -1;
-	    return ierr;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		ierr = -1;
+		return ierr;
+	    }
+	}
+
+	t = _capi_tlist->find(dir);
+	if (t->nRows() > 0 && t->nColumns() > 0) {
+	    t->buildIndexes(opt);
+	    ierr = 0;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_build_indexes -- data directory \"" << dir
+		<< "\" contains no data";
+	    ierr = 1;
 	}
     }
-
-    t = _capi_tlist->find(dir);
-    if (t->nRows() > 0 && t->nColumns() > 0) {
-	t->buildIndexes(opt);
-    }
-    else {
+    catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_build_indexes -- data directory \"" << dir
-	    << "\" contains no data";
-	ierr = 1;
+	    << "Warnign -- fastbit_build_indexes failed to build indexes in \""
+	    << dir << "\" due to exception: " << e.what();
+	ierr = -2;
     }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_indexes failed to build indexes in \""
+	    << dir << "\" due to a string exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warnign -- fastbit_build_indexes failed to build indexes in \""
+	    << dir << "\" due to a unknown exception";
+	ierr = -4;
+    }
+
     return ierr;
 } // fastbit_build_indexes
 
 extern "C" int fastbit_purge_indexes(const char *dir) {
-    int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+    int ierr = -1;
+    if (dir == 0 || *dir == 0)
+	return ierr;
+
+    try {
+	ibis::part *t;
 	if (_capi_tlist == 0) {
-	    ierr = -1;
-	    return ierr;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		ierr = -1;
+		return ierr;
+	    }
 	}
+
+	t = _capi_tlist->find(dir);
+	t->purgeIndexFiles();
+	ierr = 0;
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_purge_indexes failed to purge indexes in \""
+	    << dir << "\" due to exception: " << e.what();
+	ierr = -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_purge_indexes failed to purge indexes in \""
+	    << dir << "\" due to a string exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_purge_indexes failed to purge indexes in \""
+	    << dir << "\" due to a unknown exception";
+	ierr = -4;
     }
 
-    t = _capi_tlist->find(dir);
-    t->purgeIndexFiles();
     return ierr;
 } // fastbit_purge_indexes
 
 extern "C" int fastbit_build_index(const char *dir, const char *att,
 				   const char *opt) {
-    int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+    int ierr = -1;
+    if (dir == 0 || att == 0 || *dir == 0 || *att == 0)
+	return ierr;
+
+    try {
+	ibis::part *t;
 	if (_capi_tlist == 0) {
-	    ierr = -1;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		ierr = -1;
+		return ierr;
+	    }
+	}
+
+	t = _capi_tlist->find(dir);
+	if (t->nRows() == 0 || t->nColumns() == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_build_index -- data directory \"" << dir
+		<< "\" contains no data";
+	    ierr = 1;
 	    return ierr;
 	}
-    }
 
-    t = _capi_tlist->find(dir);
-    if (t->nRows() == 0 || t->nColumns() == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_build_index -- data directory \"" << dir
-	    << "\" contains no data";
-	ierr = 1;
-	return ierr;
-    }
+	ibis::column *c = t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_build_index -- can not find column \"" << att
+		<< "\"in data directory \"" << dir << "\"";
+	    ierr = -2;
+	    return ierr;
+	}
 
-    ibis::column *c = t->getColumn(att);
-    if (c == 0) {
+	if (opt != 0 && *opt != 0)
+	    c->indexSpec(opt);
+	c->loadIndex();
+	ierr = 0;
+    }
+    catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_build_index -- can not find column \"" << att
-	    << "\"in data directory \"" << dir << "\"";
+	    << "Warning -- fastbit_build_index failed to build index for "
+	    << att << " in \"" << dir << "\" due to exception: " << e.what();
 	ierr = -2;
-	return ierr;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_index failed to build index for "
+	    << att << " in \"" << dir << "\" due to a string exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_index failed to build index for "
+	    << att << " in \"" << dir << "\" due to a unknown exception";
+	ierr = -4;
     }
 
-    if (opt != 0 && *opt != 0)
-	c->indexSpec(opt);
-    c->loadIndex();
     return ierr;
 } // fastbit_build_index
 
 extern "C" int
 fastbit_purge_index(const char *dir, const char *att) {
-    int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+    int ierr = -1;
+    if (dir == 0 || att == 0 || *dir == 0 || *att == 0)
+	return ierr;
+
+    try {
+	ibis::part *t;
 	if (_capi_tlist == 0) {
-	    ierr = -1;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		ierr = -1;
+		return ierr;
+	    }
+	}
+
+	t = _capi_tlist->find(dir);
+	if (t->nRows() == 0 || t->nColumns() == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_purge_index -- data directory \"" << dir
+		<< "\" contains no data";
+	    ierr = 1;
 	    return ierr;
 	}
-    }
 
-    t = _capi_tlist->find(dir);
-    if (t->nRows() == 0 || t->nColumns() == 0) {
+	ibis::column *c = t->getColumn(att);
+	if (c == 0) {
+	    ierr = -2;
+	    return ierr;
+	}
+
+	c->purgeIndexFile();
+	ierr = 0;
+    }
+    catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_purge_index -- data directory \"" << dir
-	    << "\" contains no data";
-	ierr = 1;
-	return ierr;
-    }
-
-    ibis::column *c = t->getColumn(att);
-    if (c == 0) {
+	    << "Warning -- fastbit_purge_index failed to purge index for "
+	    << att << " in \"" << dir << "\" due to exception: " << e.what();
 	ierr = -2;
-	return ierr;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_purge_index failed to purge index for "
+	    << att << " in \"" << dir << "\" due to a string exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_purge_index failed to purge index for "
+	    << att << " in \"" << dir << "\" due to a unknown exception";
+	ierr = -4;
     }
 
-    c->purgeIndexFile();
     return ierr;
 } // fastbit_purge_index
 
@@ -241,23 +341,46 @@ fastbit_purge_index(const char *dir, const char *att) {
 /// data before attempting to reorder the rows.
 extern "C" int fastbit_reorder_partition(const char *dir) {
     ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+    if (dir == 0 || *dir == 0)
+	return -1;
+
+    try {
 	if (_capi_tlist == 0) {
-	    return -1;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		return -1;
+	    }
+	}
+
+	t = _capi_tlist->find(dir);
+	if (t != 0) {
+	    long ierr = t->reorder();
+	    if (ierr < 0)
+		return ierr;
+	    else
+		return 0;
+	}
+	else {
+	    return -2;
 	}
     }
-
-    t = _capi_tlist->find(dir);
-    if (t != 0) {
-	long ierr = t->reorder();
-	if (ierr < 0)
-	    return ierr;
-	else
-	    return 0;
-    }
-    else {
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_reorder_partition failed for \""
+	    << dir << "\" due to exception: " << e.what();
 	return -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_reorder_partition failed for \""
+	    << dir << "\" due to a string exception: " << s;
+	return -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_reorder_partition failed for \""
+	    << dir << "\" due to a unknown exception";
+	return -4;
     }
 } // fastbit_reorder_partition
 
@@ -265,148 +388,201 @@ extern "C" FastBitQueryHandle
 fastbit_build_query(const char *select, const char *from, const char *where) {
     if (from == 0 || where == 0 || *from == 0 || *where == 0)
 	return 0;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
+
+    try {
 	if (_capi_tlist == 0) {
-	    return 0;
+	    fastbit_init(0);
+	    if (_capi_tlist == 0) {
+		return 0;
+	    }
 	}
-    }
 
-    FastBitQueryHandle h = new FastBitQuery;
-    h->t = _capi_tlist->find(from);
-    if (h->t == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fastbit_build_query failed to generate table "
-	    "object from data directory \"" << from << "\"";
-	delete h;
-	h = 0;
-	return h;
-    }
+	FastBitQueryHandle h = new FastBitQuery;
+	h->t = _capi_tlist->find(from);
+	if (h->t == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fastbit_build_query failed to generate table "
+		"object from data directory \"" << from << "\"";
+	    delete h;
+	    h = 0;
+	    return h;
+	}
 
-    int ierr = h->q.setPartition(h->t);
-    if (ierr < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fastbit_build_query failed to assign an "
-	    << "ibis::part (" << h->t->name() << ") object to a query";
-	fastbit_destroy_query(h);
-	h = 0;
-	return h;
-    }
-
-    ierr = h->q.setWhereClause(where);
-    if (ierr < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fastbit_build_query failed to assign "
-	    << "conditions (" << where << ") to a query";
-	fastbit_destroy_query(h);
-	h = 0;
-	return h;
-    }
-
-    if (select != 0 && *select != 0) {
-	ierr = h->q.setSelectClause(select);
+	int ierr = h->q.setPartition(h->t);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "fastbit_build_query -- failed to assign a select "
-		<< "clause (" << select << ") to a query";
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fastbit_build_query failed to assign an "
+		<< "ibis::part (" << h->t->name() << ") object to a query";
+	    fastbit_destroy_query(h);
+	    h = 0;
+	    return h;
 	}
-    }
 
-    // evaluate the query here
-    ierr = h->q.evaluate();
-    if (ierr < 0) {
-	fastbit_destroy_query(h);
-	h = 0;
+	ierr = h->q.setWhereClause(where);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fastbit_build_query failed to assign "
+		<< "conditions (" << where << ") to a query";
+	    fastbit_destroy_query(h);
+	    h = 0;
+	    return h;
+	}
+
+	if (select != 0 && *select != 0) {
+	    ierr = h->q.setSelectClause(select);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "fastbit_build_query -- failed to assign a select "
+		    << "clause (" << select << ") to a query";
+	    }
+	}
+
+	// evaluate the query here
+	ierr = h->q.evaluate();
+	if (ierr < 0) {
+	    fastbit_destroy_query(h);
+	    h = 0;
+	    return h;
+	}
 	return h;
     }
-    return h;
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_query failed for \"SELECT "
+	    << (select && *select ? select : "count(*)")
+	    << " FROM " << from << " WHERE " << where
+	    << "\" due to exception: " << e.what();
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_query failed for \"SELECT "
+	    << (select && *select ? select : "count(*)")
+	    << " FROM " << from << " WHERE " << where
+	    << "\" due to a string exception: " << s;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_query failed for \"SELECT "
+	    << (select && *select ? select : "count(*)")
+	    << " FROM " << from << " WHERE " << where
+	    << "\" due to a unknown exception";
+    }
+    return 0;
 } // fastbit_build_query
 
 extern "C" int
 fastbit_destroy_query(FastBitQueryHandle qhandle) {
-    // first delete the list of values
-    for (FastBitQuery::valList::iterator it = qhandle->vlist.begin();
-	 it != qhandle->vlist.end(); ++ it) {
-	FastBitQuery::typeValues& tv = *((*it).second);
-	for (FastBitQuery::typeValues::iterator tvit = tv.begin();
-	     tvit != tv.end(); ++ tvit) {
-	    switch ((ibis::TYPE_T) (*tvit).first) {
-	    case ibis::TEXT: {
-		FastBitQuery::NullTerminatedStrings *nts
-		    = static_cast<FastBitQuery::NullTerminatedStrings*>
-		    ((*tvit).second);
-		delete [] nts->pointers;
-		delete nts->values;
-		delete nts;
-		break;}
-	    case ibis::DOUBLE: {
-		ibis::array_t<double> *tmp =
-		    static_cast<ibis::array_t<double>*>((*tvit).second);
-		delete tmp;
-		break;}
-	    case ibis::FLOAT: {
-		ibis::array_t<float> *tmp = 
-		    static_cast<ibis::array_t<float>*>((*tvit).second);
-		delete tmp;
-		break;}
-	    case ibis::OID: {
-		ibis::array_t<ibis::rid_t> *tmp =
-		    static_cast<ibis::array_t<ibis::rid_t>*>((*tvit).second);
-		delete tmp;
-		break;}
-	    case ibis::BYTE: {
-		ibis::array_t<char> *btmp =
-		    static_cast<ibis::array_t<char>*>((*tvit).second);
-		delete btmp;
-		break;}
-	    case ibis::SHORT: {
-		ibis::array_t<int16_t> *stmp =
-		    static_cast<ibis::array_t<int16_t>*>((*tvit).second);
-		delete stmp;
-		break;}
-	    case ibis::INT: {
-		ibis::array_t<int32_t> *tmp =
-		    static_cast<ibis::array_t<int32_t>*>((*tvit).second);
-		delete tmp;
-		break;}
-	    case ibis::LONG: {
-		ibis::array_t<int64_t> *ltmp =
-		    static_cast<ibis::array_t<int64_t>*>((*tvit).second);
-		delete ltmp;
-		break;}
-	    case ibis::UBYTE:  {
-		ibis::array_t<unsigned char> *btmp =
-		    static_cast<ibis::array_t<unsigned char>*>((*tvit).second);
-		delete btmp;
-		break;}
-	    case ibis::USHORT: {
-		ibis::array_t<uint16_t> *stmp =
-		    static_cast<ibis::array_t<uint16_t>*>((*tvit).second);
-		delete stmp;
-		break;}
-	    case ibis::UINT: {
-		ibis::array_t<uint32_t> *tmp =
-		    static_cast<ibis::array_t<uint32_t>*>((*tvit).second);
-		delete tmp;
-		break;}
-	    case ibis::ULONG: {
-		ibis::array_t<uint64_t> *ltmp =
-		    static_cast<ibis::array_t<uint64_t>*>((*tvit).second);
-		delete ltmp;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- column type " << (*tvit).first
-		    << " not supported";
-		break;}
-	    }
-	} // tvit
-	delete (*it).second;
-    } // it
+    if (qhandle == 0)
+	return 0;
 
-    // finally remove the FastBitQuery object itself
-    delete qhandle;
-    return 0;
+    try {
+	// first delete the list of values
+	for (FastBitQuery::valList::iterator it = qhandle->vlist.begin();
+	     it != qhandle->vlist.end(); ++ it) {
+	    FastBitQuery::typeValues& tv = *((*it).second);
+	    for (FastBitQuery::typeValues::iterator tvit = tv.begin();
+		 tvit != tv.end(); ++ tvit) {
+		switch ((ibis::TYPE_T) (*tvit).first) {
+		case ibis::TEXT: {
+		    FastBitQuery::NullTerminatedStrings *nts
+			= static_cast<FastBitQuery::NullTerminatedStrings*>
+			((*tvit).second);
+		    delete [] nts->pointers;
+		    delete nts->values;
+		    delete nts;
+		    break;}
+		case ibis::DOUBLE: {
+		    ibis::array_t<double> *tmp =
+			static_cast<ibis::array_t<double>*>((*tvit).second);
+		    delete tmp;
+		    break;}
+		case ibis::FLOAT: {
+		    ibis::array_t<float> *tmp = 
+			static_cast<ibis::array_t<float>*>((*tvit).second);
+		    delete tmp;
+		    break;}
+		case ibis::OID: {
+		    ibis::array_t<ibis::rid_t> *tmp =
+			static_cast<ibis::array_t<ibis::rid_t>*>
+			((*tvit).second);
+		    delete tmp;
+		    break;}
+		case ibis::BYTE: {
+		    ibis::array_t<char> *btmp =
+			static_cast<ibis::array_t<char>*>((*tvit).second);
+		    delete btmp;
+		    break;}
+		case ibis::SHORT: {
+		    ibis::array_t<int16_t> *stmp =
+			static_cast<ibis::array_t<int16_t>*>((*tvit).second);
+		    delete stmp;
+		    break;}
+		case ibis::INT: {
+		    ibis::array_t<int32_t> *tmp =
+			static_cast<ibis::array_t<int32_t>*>((*tvit).second);
+		    delete tmp;
+		    break;}
+		case ibis::LONG: {
+		    ibis::array_t<int64_t> *ltmp =
+			static_cast<ibis::array_t<int64_t>*>((*tvit).second);
+		    delete ltmp;
+		    break;}
+		case ibis::UBYTE:  {
+		    ibis::array_t<unsigned char> *btmp =
+			static_cast<ibis::array_t<unsigned char>*>
+			((*tvit).second);
+		    delete btmp;
+		    break;}
+		case ibis::USHORT: {
+		    ibis::array_t<uint16_t> *stmp =
+			static_cast<ibis::array_t<uint16_t>*>((*tvit).second);
+		    delete stmp;
+		    break;}
+		case ibis::UINT: {
+		    ibis::array_t<uint32_t> *tmp =
+			static_cast<ibis::array_t<uint32_t>*>((*tvit).second);
+		    delete tmp;
+		    break;}
+		case ibis::ULONG: {
+		    ibis::array_t<uint64_t> *ltmp =
+			static_cast<ibis::array_t<uint64_t>*>((*tvit).second);
+		    delete ltmp;
+		    break;}
+		default: {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- column type " << (*tvit).first
+			<< " not supported";
+		    break;}
+		}
+	    } // tvit
+	    delete (*it).second;
+	} // it
+
+	// finally remove the FastBitQuery object itself
+	delete qhandle;
+	return 0;
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_destroy_query failed for query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	return -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_destroy_query failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	return -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_destroy_query failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	return -4;
+    }
 } // fastbit_destroy_query
 
 extern "C" int fastbit_get_result_rows(FastBitQueryHandle qhandle) {
@@ -414,10 +590,33 @@ extern "C" int fastbit_get_result_rows(FastBitQueryHandle qhandle) {
     if (qhandle == 0) return ret;
     if (qhandle->t == 0)
 	return ret;
-    if (qhandle->q.getState() != ibis::query::FULL_EVALUATE)
-	qhandle->q.evaluate();
+    try {
+	if (qhandle->q.getState() != ibis::query::FULL_EVALUATE)
+	    qhandle->q.evaluate();
 
-    ret = qhandle->q.getNumHits();
+	ret = qhandle->q.getNumHits();
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_rows failed for query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_rows failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_rows failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = -4;
+    }
     return ret;
 } // fastbit_get_result_rows
 
@@ -469,58 +668,86 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_bytes -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_bytes -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type BYTE";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_bytes -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::BYTE) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_bytes -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type BYTE";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::BYTE);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::UBYTE);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_bytes -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<char>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::BYTE);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::UBYTE);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_bytes -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<char>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<char> *tmp = c->selectBytes(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_bytes");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::BYTE] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
-		ret = tmp->begin();
+	if (ret == 0) {
+	    ibis::array_t<char> *tmp =
+		c->selectBytes(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::BYTE] = static_cast<void*>(tmp);
-		ret = tmp->begin();
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_bytes");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::BYTE] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		    ret = tmp->begin();
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::BYTE] = static_cast<void*>(tmp);
+		    ret = tmp->begin();
+		}
 	    }
 	}
     }
-    return ret;
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_bytes failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+    ret = 0;
+}
+catch (const char* s) {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- fastbit_get_qualified_bytes failed to retrieve "
+	"values of " << att << " satisfying query "
+	<< static_cast<const void*>(qhandle)
+	<< " due to a string exception: " << s;
+    ret = 0;
+ }
+ catch (...) {
+     LOGGER(ibis::gVerbose > 0)
+	 << "Warning -- fastbit_get_qualified_bytes failed to retrieve "
+	 "values of " << att << " satisfying query "
+	 << static_cast<const void*>(qhandle)
+	 << " due to a unknown exception";
+     ret = 0;
+ }
+return ret;
 } // fastbit_get_qualified_bytes
 
 extern "C" const int16_t *
@@ -535,58 +762,85 @@ fastbit_get_qualified_shorts(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_shorts -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::BYTE &&
-	c->type() != ibis::UBYTE &&
-	c->type() != ibis::SHORT) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_shorts -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type SHORT or BYTE";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_shorts -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::BYTE &&
+	    c->type() != ibis::UBYTE &&
+	    c->type() != ibis::SHORT) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_shorts -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type SHORT or BYTE";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::SHORT);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::USHORT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_shorts -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<int16_t>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::SHORT);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::USHORT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_shorts -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<int16_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<int16_t> *tmp =
-	    c->selectShorts(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_shorts");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::SHORT] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<int16_t> *tmp =
+		c->selectShorts(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::SHORT] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_shorts");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::SHORT] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::SHORT] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_shorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_shorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_shorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_shorts
@@ -603,65 +857,92 @@ fastbit_get_qualified_ints(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ints -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::INT &&
-	c->type() != ibis::BYTE &&
-	c->type() != ibis::UBYTE &&
-	c->type() != ibis::SHORT &&
-	c->type() != ibis::USHORT) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ints -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type INT or shorter integer types";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ints -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::INT &&
+	    c->type() != ibis::BYTE &&
+	    c->type() != ibis::UBYTE &&
+	    c->type() != ibis::SHORT &&
+	    c->type() != ibis::USHORT) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ints -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type INT or shorter integer types";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::INT);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::UINT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ints -- found column \"" << att
-		<< "\" in the existing list";
-	    ret = static_cast<ibis::array_t<int32_t>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::INT);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::UINT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_ints -- found column \"" << att
+		    << "\" in the existing list";
+		ret = static_cast<ibis::array_t<int32_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<int32_t> *tmp =
-	    c->selectInts(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ints -- retrieved "
-		<< tmp->size() << " value" << (tmp->size()>1 ? "s" : "")
-		<< " of " << att << " from "
-		<< c->partition()->currentDataDir();
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_ints");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::INT] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<int32_t> *tmp =
+		c->selectInts(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::INT] = static_cast<void*>(tmp);
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_ints -- retrieved "
+		    << tmp->size() << " value" << (tmp->size()>1 ? "s" : "")
+		    << " of " << att << " from "
+		    << c->partition()->currentDataDir();
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_ints");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::INT] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::INT] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_ints
@@ -678,64 +959,91 @@ fastbit_get_qualified_longs(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_longs -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::LONG &&
-	c->type() != ibis::INT &&
-	c->type() != ibis::UINT &&
-	c->type() != ibis::BYTE &&
-	c->type() != ibis::UBYTE &&
-	c->type() != ibis::SHORT &&
-	c->type() != ibis::USHORT &&
-	c->type() != ibis::TEXT &&
-	c->type() != ibis::CATEGORY) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_longs -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type LONG or a compatible type";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_longs -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::LONG &&
+	    c->type() != ibis::INT &&
+	    c->type() != ibis::UINT &&
+	    c->type() != ibis::BYTE &&
+	    c->type() != ibis::UBYTE &&
+	    c->type() != ibis::SHORT &&
+	    c->type() != ibis::USHORT &&
+	    c->type() != ibis::TEXT &&
+	    c->type() != ibis::CATEGORY) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_longs -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type LONG or a compatible type";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::LONG);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::ULONG);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_longs -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<int64_t>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::LONG);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::ULONG);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_longs -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<int64_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<int64_t> *tmp =
-	    c->selectLongs(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_longs");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::LONG] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<int64_t> *tmp =
+		c->selectLongs(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::LONG] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_longs");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::LONG] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::LONG] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_longs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_longs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_longs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_longs
@@ -752,57 +1060,83 @@ fastbit_get_qualified_ubytes(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ubytes -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::UBYTE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ubytes -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type UBYTE";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ubytes -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::UBYTE) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ubytes -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type UBYTE";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::UBYTE);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::BYTE);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ubytes -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<unsigned char>*>
-		((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::UBYTE);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::BYTE);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_ubytes -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<unsigned char>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<unsigned char> *tmp =
-	    c->selectUBytes(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_ubytes");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::UBYTE] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<unsigned char> *tmp =
+		c->selectUBytes(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::UBYTE] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_ubytes");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::UBYTE] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::UBYTE] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ubytes failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ubytes failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ubytes failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_ubytes
@@ -819,59 +1153,85 @@ fastbit_get_qualified_ushorts(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ushorts -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::USHORT &&
-	c->type() != ibis::BYTE &&
-	c->type() != ibis::UBYTE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ushorts -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type USHORT or BYTE";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ushorts -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::USHORT &&
+	    c->type() != ibis::BYTE &&
+	    c->type() != ibis::UBYTE) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ushorts -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type USHORT or BYTE";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::USHORT);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::SHORT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ushorts -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<uint16_t>*>
-		((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::USHORT);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::SHORT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_ushorts -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<uint16_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<uint16_t> *tmp =
-	    c->selectUShorts(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_ushorts");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::USHORT] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<uint16_t> *tmp =
+		c->selectUShorts(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::USHORT] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_ushorts");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::USHORT] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::USHORT] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ushorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ushorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ushorts failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_ushorts
@@ -888,61 +1248,87 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_uints -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::UINT &&
-	c->type() != ibis::USHORT &&
-	c->type() != ibis::UBYTE &&
-	c->type() != ibis::SHORT &&
-	c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_uints -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type UINT or shoter integer types";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_uints -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::UINT &&
+	    c->type() != ibis::USHORT &&
+	    c->type() != ibis::UBYTE &&
+	    c->type() != ibis::SHORT &&
+	    c->type() != ibis::BYTE) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_uints -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type UINT or shoter integer types";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::UINT);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::INT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_uints -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<uint32_t>*>
-		((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::UINT);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::INT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_uints -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<uint32_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<uint32_t> *tmp =
-	    c->selectUInts(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_uints");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::UINT] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<uint32_t> *tmp =
+		c->selectUInts(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::UINT] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_uints");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::UINT] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::UINT] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_uints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_uints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_uints failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_uints
@@ -959,63 +1345,89 @@ fastbit_get_qualified_ulongs(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ulongs -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::ULONG &&
-	c->type() != ibis::UINT &&
-	c->type() != ibis::USHORT &&
-	c->type() != ibis::UBYTE &&
-	c->type() != ibis::INT &&
-	c->type() != ibis::SHORT &&
-	c->type() != ibis::BYTE) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_ulongs -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type ULONG or shorter integer types";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ulongs -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::ULONG &&
+	    c->type() != ibis::UINT &&
+	    c->type() != ibis::USHORT &&
+	    c->type() != ibis::UBYTE &&
+	    c->type() != ibis::INT &&
+	    c->type() != ibis::SHORT &&
+	    c->type() != ibis::BYTE) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_ulongs -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type ULONG or shorter integer types";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::ULONG);
-	if (tvit == tv->end())
-	    tvit = tv->find((int) ibis::LONG);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_ulongs -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<uint64_t>*>
-		((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::ULONG);
+	    if (tvit == tv->end())
+		tvit = tv->find((int) ibis::LONG);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_ulongs -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<uint64_t>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {
-	ibis::array_t<uint64_t> *tmp =
-	    c->selectULongs(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_ulongs");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::ULONG] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {
+	    ibis::array_t<uint64_t> *tmp =
+		c->selectULongs(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::ULONG] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_ulongs");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::ULONG] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::ULONG] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ulongs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ulongs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_ulongs failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_ulongs
@@ -1032,54 +1444,81 @@ fastbit_get_qualified_floats(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_floats -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() != ibis::FLOAT) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_floats -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type FLOAT or short integer types";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_floats -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() != ibis::FLOAT) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_floats -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type FLOAT or short integer types";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::FLOAT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_floats -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<float>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::FLOAT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_floats -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<float>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) {// need to read the files
-	ibis::array_t<float> *tmp =
-	    c->selectFloats(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_floats");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::FLOAT] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) {// need to read the files
+	    ibis::array_t<float> *tmp =
+		c->selectFloats(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::FLOAT] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_floats");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::FLOAT] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::FLOAT] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_floats failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_floats failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_floats failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_floats
@@ -1096,54 +1535,81 @@ fastbit_get_qualified_doubles(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_doubles -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-    if (c->type() == ibis::CATEGORY || c->type() == ibis::TEXT) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_doubles -- column \"" << att
-	    << "\" has type " << ibis::TYPESTRING[(int)c->type()]
-	    << ", expect type DOUBLE or shorter numerical values";
-	return ret;
-    }
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_doubles -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
+	}
+	if (c->type() == ibis::CATEGORY || c->type() == ibis::TEXT) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_doubles -- column \"" << att
+		<< "\" has type " << ibis::TYPESTRING[(int)c->type()]
+		<< ", expect type DOUBLE or shorter numerical values";
+	    return ret;
+	}
 
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::DOUBLE);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_doubles -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<ibis::array_t<double>*>((*tvit).second)->begin();
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::DOUBLE);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_doubles -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<ibis::array_t<double>*>
+		    ((*tvit).second)->begin();
+	    }
 	}
-    }
-    if (ret == 0) { // need to read the data file
-	ibis::array_t<double> *tmp =
-	    c->selectDoubles(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_doubles");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::DOUBLE] = static_cast<void*>(tmp);
-		qhandle->vlist[c->name()] = tv;
+	if (ret == 0) { // need to read the data file
+	    ibis::array_t<double> *tmp =
+		c->selectDoubles(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::DOUBLE] = static_cast<void*>(tmp);
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_doubles");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::DOUBLE] = static_cast<void*>(tmp);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::DOUBLE] = static_cast<void*>(tmp);
+		}
+		ret = tmp->begin();
 	    }
-	    ret = tmp->begin();
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_doubles failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_doubles failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_doubles failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_doubles
@@ -1160,55 +1626,81 @@ fastbit_get_qualified_strings(FastBitQueryHandle qhandle, const char *att) {
 	return ret;
     }
 
-    const ibis::column *c = qhandle->t->getColumn(att);
-    if (c == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "fastbit_get_qualified_strings -- can not find a column "
-	    << "named \"" << att << "\"";
-	return ret;
-    }
-
-    FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
-    if (it != qhandle->vlist.end()) {
-	const FastBitQuery::typeValues *tv = (*it).second;
-	FastBitQuery::typeValues::const_iterator tvit =
-	    tv->find((int) ibis::TEXT);
-	if (tvit != tv->end()) {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "fastbit_get_qualified_strings -- found column \""
-		<< att << "\" in the existing list";
-	    ret = static_cast<const FastBitQuery::NullTerminatedStrings*>
-		((*tvit).second)->pointers;
+    try {
+	const ibis::column *c = qhandle->t->getColumn(att);
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "fastbit_get_qualified_strings -- can not find a column "
+		<< "named \"" << att << "\"";
+	    return ret;
 	}
-    }
-    if (ret == 0) { // read data file to extract the values
-	std::vector<std::string> *tmp =
-	    c->selectStrings(*(qhandle->q.getHitVector()));
-	if (tmp == 0 || tmp->empty()) {
-	    delete tmp;
-	}
-	else {
-	    FastBitQuery::NullTerminatedStrings *nts
-		= new FastBitQuery::NullTerminatedStrings;
-	    nts->values = tmp;
-	    nts->pointers = new const char*[tmp->size()];
-	    for (size_t ii = 0; ii < tmp->size(); ++ ii)
-		nts->pointers[ii] = (*tmp)[ii].c_str();
 
-	    ibis::query::writeLock
-		lock(&(qhandle->q), "fastbit_get_qualified_strings");
-	    it = qhandle->vlist.find(att);
-	    if (it == qhandle->vlist.end()) {
-		FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
-		(*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
-		qhandle->vlist[c->name()] = tv;
+	FastBitQuery::valList::const_iterator it = qhandle->vlist.find(att);
+	if (it != qhandle->vlist.end()) {
+	    const FastBitQuery::typeValues *tv = (*it).second;
+	    FastBitQuery::typeValues::const_iterator tvit =
+		tv->find((int) ibis::TEXT);
+	    if (tvit != tv->end()) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "fastbit_get_qualified_strings -- found column \""
+		    << att << "\" in the existing list";
+		ret = static_cast<const FastBitQuery::NullTerminatedStrings*>
+		    ((*tvit).second)->pointers;
+	    }
+	}
+	if (ret == 0) { // read data file to extract the values
+	    std::vector<std::string> *tmp =
+		c->selectStrings(*(qhandle->q.getHitVector()));
+	    if (tmp == 0 || tmp->empty()) {
+		delete tmp;
 	    }
 	    else {
-		FastBitQuery::typeValues *tv = (*it).second;
-		(*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
+		FastBitQuery::NullTerminatedStrings *nts
+		    = new FastBitQuery::NullTerminatedStrings;
+		nts->values = tmp;
+		nts->pointers = new const char*[tmp->size()];
+		for (size_t ii = 0; ii < tmp->size(); ++ ii)
+		    nts->pointers[ii] = (*tmp)[ii].c_str();
+
+		ibis::query::writeLock
+		    lock(&(qhandle->q), "fastbit_get_qualified_strings");
+		it = qhandle->vlist.find(att);
+		if (it == qhandle->vlist.end()) {
+		    FastBitQuery::typeValues *tv = new FastBitQuery::typeValues;
+		    (*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
+		    qhandle->vlist[c->name()] = tv;
+		}
+		else {
+		    FastBitQuery::typeValues *tv = (*it).second;
+		    (*tv)[(int) ibis::TEXT] = static_cast<void*>(nts);
+		}
+		ret = nts->pointers;
 	    }
-	    ret = nts->pointers;
 	}
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_strings failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_strings failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_qualified_strings failed to retrieve "
+	    "values of " << att << " satisfying query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = 0;
     }
     return ret;
 } // fastbit_get_qualified_strings
@@ -1279,7 +1771,27 @@ extern "C" int fastbit_get_verbose_level(void) {
 /// @return Return 0 to indicate success, a negative value to indicate
 /// error.
 extern "C" int fastbit_set_logfile(const char* filename) {
-    return ibis::util::setLogFileName(filename);
+    try {
+	return ibis::util::setLogFileName(filename);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_set_logfile failed to redirect logs to \""
+	    << filename << "\" due to exception: " << e.what();
+	return -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_set_logfile failed to redirect logs to \""
+	    << filename << "\" due to a string exception: " << s;
+	return -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_set_logfile failed to redirect logs to \""
+	    << filename << "\" due to a unknown exception";
+	return -4;
+    }
 } // fastbit_set_logfile
 
 /// @return Return the current log file name.  A blank string or a null
@@ -1310,10 +1822,33 @@ fastbit_build_result_set(FastBitQueryHandle qhandle) {
 	return ret;
     }
 
-    ret = new FastBitResultSet;
-    ret->results = new ibis::query::result(qhandle->q);
-    ret->strbuf.resize(qhandle->q.components().size());
-    return ret;
+    try {
+	ret = new FastBitResultSet;
+	ret->results = new ibis::query::result(qhandle->q);
+	ret->strbuf.resize(qhandle->q.components().size());
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_build_result_set failed to retrieve "
+	    "values for query " << static_cast<const void*>(qhandle)
+	    << " due to exception: " << e.what();
+    ret = 0;
+}
+catch (const char* s) {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- fastbit_build_result_set failed to retrieve values "
+	"for query " << static_cast<const void*>(qhandle)
+	<< " due to a string exception: " << s;
+    ret = 0;
+ }
+ catch (...) {
+     LOGGER(ibis::gVerbose > 0)
+	 << "Warning -- fastbit_build_result_set failed to retrieve values "
+	 "for query " << static_cast<const void*>(qhandle)
+	 << " due to a unknown exception";
+     ret = 0;
+ }
+return ret;
 } // fastbit_build_result_set
 
 extern "C" int
@@ -1325,13 +1860,32 @@ fastbit_destroy_result_set(FastBitResultSetHandle rset) {
 
 extern "C" int
 fastbit_result_set_next(FastBitResultSetHandle rset) {
-    int ierr;
-    if (rset == 0)
-	ierr = -2;
-    else if (rset->results->next())
-	ierr = 0;
-    else
-	ierr = -1;
+    int ierr = -1;
+    try {
+	if (rset == 0)
+	    ierr = -2;
+	else if (rset->results->next())
+	    ierr = 0;
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_next failed to prepare the "
+	    "next row due to exception: " << e.what();
+	ierr = -3;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_next failed to prepare the "
+	    "next row due to a string exception: " << s;
+	ierr = -4;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_next failed to prepare the "
+	    "next row due to a unknown exception";
+	ierr = -5;
+    }
+
     return ierr;
 } // fastbit_result_set_next
 
@@ -1339,8 +1893,28 @@ extern "C" int
 fastbit_result_set_get_int(FastBitResultSetHandle rset,
 			   const char *cname) {
     int ret = INT_MAX;
-    if (rset != 0)
-	ret = rset->results->getInt(cname);
+    try {
+	if (rset != 0 && cname != 0 && *cname != 0)
+	    ret = rset->results->getInt(cname);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_int failed to retrieve "
+	    << "value of " << cname << " due to exception: " << e.what();
+	ret = INT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_int failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	ret = INT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_int failed toretrieve "
+	    "value of " << cname << " due to a unknown exception";
+	ret = INT_MAX;
+    }
     return ret;
 } // fastbit_result_set_get_int
 
@@ -1348,8 +1922,28 @@ extern "C" unsigned
 fastbit_result_set_get_unsigned(FastBitResultSetHandle rset,
 				const char *cname) {
     unsigned ret = UINT_MAX;
-    if (rset != 0)
-	ret = rset->results->getUInt(cname);
+    try {
+	if (rset != 0 && cname != 0 && *cname != 0)
+	    ret = rset->results->getUInt(cname);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_unsigned failed to retrieve "
+	    "value of " << cname << " due to exception: " << e.what();
+	ret = UINT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_unsigned failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	ret = UINT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_unsigned failed to retrieve "
+	    "value of " << cname << " due to a unknown exception";
+	ret = UINT_MAX;
+    }
     return ret;
 } // fastbit_result_set_get_unsigned
 
@@ -1357,8 +1951,28 @@ extern "C" float
 fastbit_result_set_get_float(FastBitResultSetHandle rset,
 			     const char *cname) {
     float ret = FLT_MAX;
-    if (rset != 0)
-	ret = rset->results->getFloat(cname);
+    try {
+	if (rset != 0 && cname != 0 && *cname != 0)
+	    ret = rset->results->getFloat(cname);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_float failed to retrieve "
+	    "value of " << cname << " due to exception: " << e.what();
+	ret = FLT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_float failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	ret = FLT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_float failed to retrieve "
+	    "value of " << cname << " due to a unknown exception";
+	ret = FLT_MAX;
+    }
     return ret;
 } // fastbit_result_set_get_float
 
@@ -1366,24 +1980,64 @@ extern "C" double
 fastbit_result_set_get_double(FastBitResultSetHandle rset,
 			      const char *cname) {
     double ret = DBL_MAX;
-    if (rset != 0)
-	ret = rset->results->getDouble(cname);
+    try {
+	if (rset != 0 && cname != 0 && *cname != 0)
+	    ret = rset->results->getDouble(cname);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_double failed to retrieve "
+	    "value of " << cname << " due to exception: " << e.what();
+	ret = DBL_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_double failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	ret = DBL_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_double failed to retrieve "
+	    "value of " << cname << " due to a unknown exception";
+	ret = DBL_MAX;
+    }
     return ret;
 } // fastbit_result_set_get_double
 
 extern "C" const char*
 fastbit_result_set_get_string(FastBitResultSetHandle rset,
 			      const char *cname) {
-    if (rset == 0)
+    if (rset == 0 || cname != 0 || *cname != 0)
 	return static_cast<const char*>(0);
 
-    unsigned pos = rset->results->colPosition(cname);
-    if (pos >= rset->strbuf.size())
-	return static_cast<const char*>(0);
+    try {
+	unsigned pos = rset->results->colPosition(cname);
+	if (pos >= rset->strbuf.size())
+	    return static_cast<const char*>(0);
 
-    std::string tmp = rset->results->getString(pos);
-    rset->strbuf[pos].swap(tmp);
-    return rset->strbuf[pos].c_str();
+	std::string tmp = rset->results->getString(pos);
+	rset->strbuf[pos].swap(tmp);
+	return rset->strbuf[pos].c_str();
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_string failed to retrieve "
+	    "value of " << cname << " due to exception: " << e.what();
+	return 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_string failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	return 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_string failed to retrieve "
+	    "value of " << cname << " due to a unknown exception";
+	return 0;
+    }
 } // fastbit_result_set_get_string
 
 extern "C" int32_t
@@ -1392,7 +2046,27 @@ fastbit_result_set_getInt(FastBitResultSetHandle rset,
     int32_t ret = INT_MAX;
     if (rset == 0)
 	return ret;
-    ret = rset->results->getInt(pos);
+    try {
+	ret = rset->results->getInt(pos);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getInt failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	ret = INT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getInt failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	ret = INT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getInt failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	ret = INT_MAX;
+    }
     return ret;
 } // fastbit_result_set_getInt
 
@@ -1402,7 +2076,27 @@ fastbit_result_set_getUnsigned(FastBitResultSetHandle rset,
     uint32_t ret = UINT_MAX;
     if (rset == 0)
 	return ret;
-    ret = rset->results->getUInt(pos);
+    try {
+	ret = rset->results->getUInt(pos);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getUnsigned failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	ret = UINT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getUnsigned failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	ret = UINT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getUnsigned failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	ret = UINT_MAX;
+    }
     return ret;
 } // fastbit_result_set_getUnsigned
 
@@ -1412,7 +2106,27 @@ fastbit_result_set_getFloat(FastBitResultSetHandle rset,
     float ret = FLT_MAX;
     if (rset == 0)
 	return ret;
-    ret = rset->results->getFloat(pos);
+    try {
+	ret = rset->results->getFloat(pos);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getFloat failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	ret = FLT_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getFloat failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	ret = FLT_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getFloat failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	ret = FLT_MAX;
+    }
     return ret;
 } // fastbit_result_set_getFloat
 
@@ -1422,7 +2136,27 @@ fastbit_result_set_getDouble(FastBitResultSetHandle rset,
     double ret = DBL_MAX;
     if (rset == 0)
 	return ret;
-    ret = rset->results->getDouble(pos);
+    try {
+	ret = rset->results->getDouble(pos);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getDouble failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	ret = DBL_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getDouble failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	ret = DBL_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getDouble failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	ret = DBL_MAX;
+    }
     return ret;
 } // fastbit_result_set_getDouble
 
@@ -1433,10 +2167,29 @@ fastbit_result_set_getString(FastBitResultSetHandle rset,
 	return static_cast<const char*>(0);
     if (pos >= rset->strbuf.size())
 	return static_cast<const char*>(0);
-
-    std::string tmp = rset->results->getString(pos);
-    rset->strbuf[pos].swap(tmp);
-    return rset->strbuf[pos].c_str();
+    try {
+	std::string tmp = rset->results->getString(pos);
+	rset->strbuf[pos].swap(tmp);
+	return rset->strbuf[pos].c_str();
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getString failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	return 0;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getString failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	return 0;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getString failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	return 0;
+    }
 } // fastbit_result_set_getString
 
 /// The new data records are appended to the records already in the
@@ -1451,18 +2204,36 @@ fastbit_result_set_getString(FastBitResultSetHandle rset,
 extern "C" int
 fastbit_flush_buffer(const char *dir) {
     int ierr = 0;
-    ibis::util::mutexLock
-	lock(&ibis::util::envLock, "fastbit_flush_buffer");
-    if (dir == 0 || *dir == 0) {
-	ierr = -1;
+    if (dir == 0 || *dir == 0)
+	return -1;
+    try {
+	ibis::util::mutexLock
+	    lock(&ibis::util::envLock, "fastbit_flush_buffer");
+	
+	if (_capi_tablex != 0) {
+	    ierr = _capi_tablex->write(dir, 0, 0);
+	    delete _capi_tablex;
+	    _capi_tablex = 0;
+	}
     }
-    else if (_capi_tablex != 0) {
-	ierr = _capi_tablex->write(dir, 0, 0);
-	delete _capi_tablex;
-	_capi_tablex = 0;
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_flush_buffer failed to write in-memory "
+	    "data to " << dir << " due to exception: "
+	    << e.what();
+	ierr = -2;
     }
-    else {
-	ierr = 0;
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_flush_buffer failed to write in-memory "
+	    "data to " << dir << " due to a string exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_flush_buffer failed to write in-memory "
+	    "data to " << dir << " due to a unknown exception";
+	ierr = -4;
     }
     return ierr;
 } // fastbit_flush_buffer
@@ -1529,14 +2300,37 @@ fastbit_add_values(const char *colname, const char *coltype,
     }
     if (ierr < 0) return ierr;
 
-    ibis::util::mutexLock
-	lock(&ibis::util::envLock, "fastbit_add_values");
-    if (_capi_tablex == 0)
-	_capi_tablex = new ibis::tafel();
-    if (_capi_tablex == 0) return -3;
+    try {
+	ibis::util::mutexLock
+	    lock(&ibis::util::envLock, "fastbit_add_values");
+	if (_capi_tablex == 0)
+	    _capi_tablex = new ibis::tafel();
+	if (_capi_tablex == 0) return -3;
 
-    ierr = _capi_tablex->addColumn(colname, type);
-    ierr = _capi_tablex->append(colname, start, start+nelem, vals);
+	ierr = _capi_tablex->addColumn(colname, type);
+	ierr = _capi_tablex->append(colname, start, start+nelem, vals);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_add_values failed to add values to "
+	    << colname << " to an in-memory data partition due to exception: "
+	    << e.what();
+	ierr = -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_add_values failed to add values to "
+	    << colname << " to an in-memory data partition due to a string "
+	    "exception: " << s;
+	ierr = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_add_values failed to add values to "
+	    << colname << " to an in-memory data partition due to a unknown "
+	    "exception";
+	ierr = -4;
+    }
     return ierr;
 } // fastbit_add_values
 
