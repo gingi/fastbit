@@ -16,7 +16,7 @@ namespace ibis {
 }
 
 /// A class to represent the from clause.  It parses a string into a list
-/// of names, a list of aliases and a join expression.
+/// of names, a list of aliases and a join expression if present.
 ///
 class ibis::fromClause {
 public:
@@ -35,16 +35,23 @@ public:
     /// Dereferences to the string form of the from clause.
     const char* operator*(void) const {return clause_.c_str();}
 
+    /// Is it empty?  Returns true or false.
     bool empty() const {return names_.empty();}
-    uint32_t size() const {return names_.size()+aliases_.size();}
+    /// Returns the number of valid names.
+    uint32_t size() const {return names_.size();}
     void getNames(ibis::table::stringList&) const;
+
+    /// Report the join condition.
+    const ibis::compRange* getJoinCondition() const {return jcond_;}
 
     /// Print the content.
     void print(std::ostream&) const;
     /// Remove the current content.
     void clear();
 
-    const char* find(const char*) const;
+    const char* realName(const char*) const;
+    const char* alias(const char*) const;
+    size_t position(const char*) const;
 
     /// Assignment operator.
     fromClause& operator=(const fromClause& rhs) {
@@ -70,11 +77,13 @@ protected:
     std::vector<std::string> aliases_;
     /// The ordered version of the names.
     std::map<const char*, size_t, ibis::lessi> ordered_;
-    /// The join condition.  An empty join condition indicates a natural
-    /// join that will use the first shared column.  A natural join may
-    /// also specify a join column, which will be stored as term 3 of
-    /// jcond_.  If this variable is a nil pointer, no join has been
-    /// specified.
+    /// The join condition.  A join condition may be specified in the from
+    /// clause with the key words ON and USING, where On is followed by an
+    /// arithmetic expression and USING is followed by a column name.  The
+    /// parser will translate the column name following USING into an
+    /// eqaulity condition for generate a proper ibis::compRange object.
+    /// If this variable is a nil pointer, no join condition has been
+    /// specified in the from clause.
     ibis::compRange* jcond_;
 
     std::string clause_;	///< String version of the from clause.

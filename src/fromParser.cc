@@ -1,10 +1,8 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
 /* Skeleton implementation for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
-   Foundation, Inc.
+      Copyright (C) 2002-2010 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +31,7 @@
    version 2.2 of Bison.  */
 /* "%code top" blocks.  */
 
-/* Line 304 of lalr1.cc  */
+/* Line 303 of lalr1.cc  */
 #line 6 "fromParser.yy"
 
 /** \file Defines the parser for the from clause accepted by FastBit
@@ -43,8 +41,8 @@
 
 
 
-/* Line 304 of lalr1.cc  */
-#line 48 "fromParser.cc"
+/* Line 303 of lalr1.cc  */
+#line 46 "fromParser.cc"
 
 // Take the name prefix into account.
 #define yylex   ibislex
@@ -52,15 +50,15 @@
 /* First part of user declarations.  */
 
 
-/* Line 311 of lalr1.cc  */
-#line 57 "fromParser.cc"
+/* Line 310 of lalr1.cc  */
+#line 55 "fromParser.cc"
 
 
 #include "fromParser.hh"
 
 /* User implementation prologue.  */
 
-/* Line 317 of lalr1.cc  */
+/* Line 316 of lalr1.cc  */
 #line 80 "fromParser.yy"
 
 #include "fromLexer.h"
@@ -69,11 +67,11 @@
 #define yylex driver.lexer->lex
 
 
-/* Line 317 of lalr1.cc  */
-#line 74 "fromParser.cc"
+/* Line 316 of lalr1.cc  */
+#line 72 "fromParser.cc"
 
 #ifndef YY_
-# if YYENABLE_NLS
+# if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* FIXME: INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -133,13 +131,10 @@ do {					\
 #define YYRECOVERING()  (!!yyerrstatus_)
 
 
-/* Line 380 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 380 of lalr1.cc  */
-#line 143 "fromParser.cc"
+/* Line 379 of lalr1.cc  */
+#line 138 "fromParser.cc"
 #if YYERROR_VERBOSE
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -241,39 +236,39 @@ namespace ibis {
       {
         case 24: /* "\"name\"" */
 
-/* Line 480 of lalr1.cc  */
+/* Line 479 of lalr1.cc  */
 #line 77 "fromParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 480 of lalr1.cc  */
-#line 250 "fromParser.cc"
+/* Line 479 of lalr1.cc  */
+#line 245 "fromParser.cc"
 	break;
       case 32: /* "compRange2" */
 
-/* Line 480 of lalr1.cc  */
+/* Line 479 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 480 of lalr1.cc  */
-#line 259 "fromParser.cc"
+/* Line 479 of lalr1.cc  */
+#line 254 "fromParser.cc"
 	break;
       case 33: /* "compRange3" */
 
-/* Line 480 of lalr1.cc  */
+/* Line 479 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 480 of lalr1.cc  */
-#line 268 "fromParser.cc"
+/* Line 479 of lalr1.cc  */
+#line 263 "fromParser.cc"
 	break;
       case 34: /* "mathExpr" */
 
-/* Line 480 of lalr1.cc  */
+/* Line 479 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 480 of lalr1.cc  */
-#line 277 "fromParser.cc"
+/* Line 479 of lalr1.cc  */
+#line 272 "fromParser.cc"
 	break;
 
 	default:
@@ -351,14 +346,14 @@ namespace ibis {
 
     /* User initialization code.  */
     
-/* Line 553 of lalr1.cc  */
+/* Line 552 of lalr1.cc  */
 #line 28 "fromParser.yy"
 { // initialize location object
     yylloc.begin.filename = yylloc.end.filename = &(driver.clause_);
 }
 
-/* Line 553 of lalr1.cc  */
-#line 362 "fromParser.cc"
+/* Line 552 of lalr1.cc  */
+#line 357 "fromParser.cc"
 
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -476,7 +471,7 @@ namespace ibis {
       {
 	  case 4:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 89 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -487,7 +482,7 @@ namespace ibis {
 
   case 5:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 94 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -498,7 +493,7 @@ namespace ibis {
 
   case 6:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 99 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -509,7 +504,7 @@ namespace ibis {
 
   case 7:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 104 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -520,7 +515,7 @@ namespace ibis {
 
   case 8:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 108 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -531,7 +526,7 @@ namespace ibis {
 
   case 9:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 113 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -542,7 +537,7 @@ namespace ibis {
 
   case 10:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 118 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(4) - (1)].stringVal));
@@ -554,7 +549,7 @@ namespace ibis {
 
   case 11:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 124 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -566,7 +561,7 @@ namespace ibis {
 
   case 12:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 130 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -578,7 +573,7 @@ namespace ibis {
 
   case 13:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 136 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -590,120 +585,176 @@ namespace ibis {
 
   case 14:
 
-/* Line 678 of lalr1.cc  */
+/* Line 677 of lalr1.cc  */
 #line 142 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
     driver.aliases_.push_back("");
     driver.names_.push_back(*(yysemantic_stack_[(6) - (3)].stringVal));
     driver.aliases_.push_back("");
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(6) - (5)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(6) - (1)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(6) - (3)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(6) - (5)].stringVal);
+    nm2 += *(yysemantic_stack_[(6) - (5)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 15:
 
-/* Line 678 of lalr1.cc  */
-#line 150 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 157 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(8) - (3)].stringVal));
     driver.names_.push_back(*(yysemantic_stack_[(8) - (5)].stringVal));
     driver.aliases_.push_back("");
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(8) - (7)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(8) - (3)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(8) - (5)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(8) - (7)].stringVal);
+    nm2 += *(yysemantic_stack_[(8) - (7)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 16:
 
-/* Line 678 of lalr1.cc  */
-#line 158 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 172 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(10) - (3)].stringVal));
     driver.names_.push_back(*(yysemantic_stack_[(10) - (5)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(10) - (7)].stringVal));
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(10) - (9)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(10) - (3)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(10) - (7)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(10) - (9)].stringVal);
+    nm2 += *(yysemantic_stack_[(10) - (9)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 17:
 
-/* Line 678 of lalr1.cc  */
-#line 166 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 187 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
     driver.aliases_.push_back("");
     driver.names_.push_back(*(yysemantic_stack_[(8) - (3)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(8) - (5)].stringVal));
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(8) - (7)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(8) - (1)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(8) - (5)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(8) - (7)].stringVal);
+    nm2 += *(yysemantic_stack_[(8) - (7)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 18:
 
-/* Line 678 of lalr1.cc  */
-#line 174 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 202 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
     driver.aliases_.push_back("");
     driver.names_.push_back(*(yysemantic_stack_[(8) - (3)].stringVal));
     driver.aliases_.push_back("");
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(8) - (6)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(8) - (1)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(8) - (3)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(8) - (6)].stringVal);
+    nm2 += *(yysemantic_stack_[(8) - (6)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 19:
 
-/* Line 678 of lalr1.cc  */
-#line 182 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 217 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(10) - (3)].stringVal));
     driver.names_.push_back(*(yysemantic_stack_[(10) - (5)].stringVal));
     driver.aliases_.push_back("");
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(10) - (8)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(10) - (3)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(10) - (5)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(10) - (8)].stringVal);
+    nm2 += *(yysemantic_stack_[(10) - (8)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 20:
 
-/* Line 678 of lalr1.cc  */
-#line 190 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 232 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(12) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(12) - (3)].stringVal));
     driver.names_.push_back(*(yysemantic_stack_[(12) - (5)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(12) - (7)].stringVal));
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(12) - (10)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(12) - (3)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(12) - (7)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(12) - (10)].stringVal);
+    nm2 += *(yysemantic_stack_[(12) - (10)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 21:
 
-/* Line 678 of lalr1.cc  */
-#line 198 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 247 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
     driver.aliases_.push_back("");
     driver.names_.push_back(*(yysemantic_stack_[(10) - (3)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(10) - (5)].stringVal));
-    driver.jcond_ = new ibis::compRange();
-    driver.jcond_->setTerm3(new ibis::math::variable((yysemantic_stack_[(10) - (8)].stringVal)->c_str()));
+    std::string nm1 = *(yysemantic_stack_[(10) - (1)].stringVal);
+    std::string nm2 = *(yysemantic_stack_[(10) - (5)].stringVal);
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *(yysemantic_stack_[(10) - (8)].stringVal);
+    nm2 += *(yysemantic_stack_[(10) - (8)].stringVal);
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
     break;
 
   case 22:
 
-/* Line 678 of lalr1.cc  */
-#line 206 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 262 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
     driver.aliases_.push_back("");
@@ -715,8 +766,8 @@ namespace ibis {
 
   case 23:
 
-/* Line 678 of lalr1.cc  */
-#line 213 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 269 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(8) - (3)].stringVal));
@@ -728,8 +779,8 @@ namespace ibis {
 
   case 24:
 
-/* Line 678 of lalr1.cc  */
-#line 220 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 276 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
     driver.aliases_.push_back(*(yysemantic_stack_[(10) - (3)].stringVal));
@@ -741,8 +792,8 @@ namespace ibis {
 
   case 25:
 
-/* Line 678 of lalr1.cc  */
-#line 227 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 283 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
     driver.aliases_.push_back("");
@@ -754,8 +805,8 @@ namespace ibis {
 
   case 28:
 
-/* Line 678 of lalr1.cc  */
-#line 238 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 294 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -770,8 +821,8 @@ namespace ibis {
 
   case 29:
 
-/* Line 678 of lalr1.cc  */
-#line 248 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 304 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -787,8 +838,8 @@ namespace ibis {
 
   case 30:
 
-/* Line 678 of lalr1.cc  */
-#line 259 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 315 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -803,8 +854,8 @@ namespace ibis {
 
   case 31:
 
-/* Line 678 of lalr1.cc  */
-#line 269 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 325 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -819,8 +870,8 @@ namespace ibis {
 
   case 32:
 
-/* Line 678 of lalr1.cc  */
-#line 279 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 335 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -835,8 +886,8 @@ namespace ibis {
 
   case 33:
 
-/* Line 678 of lalr1.cc  */
-#line 289 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 345 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].fromNode));
@@ -851,8 +902,8 @@ namespace ibis {
 
   case 34:
 
-/* Line 678 of lalr1.cc  */
-#line 302 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 358 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -869,8 +920,8 @@ namespace ibis {
 
   case 35:
 
-/* Line 678 of lalr1.cc  */
-#line 314 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 370 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -887,8 +938,8 @@ namespace ibis {
 
   case 36:
 
-/* Line 678 of lalr1.cc  */
-#line 326 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 382 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -905,8 +956,8 @@ namespace ibis {
 
   case 37:
 
-/* Line 678 of lalr1.cc  */
-#line 338 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 394 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -923,8 +974,8 @@ namespace ibis {
 
   case 38:
 
-/* Line 678 of lalr1.cc  */
-#line 350 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 406 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -941,8 +992,8 @@ namespace ibis {
 
   case 39:
 
-/* Line 678 of lalr1.cc  */
-#line 362 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 418 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -959,8 +1010,8 @@ namespace ibis {
 
   case 40:
 
-/* Line 678 of lalr1.cc  */
-#line 374 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 430 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -977,8 +1028,8 @@ namespace ibis {
 
   case 41:
 
-/* Line 678 of lalr1.cc  */
-#line 386 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 442 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -995,8 +1046,8 @@ namespace ibis {
 
   case 42:
 
-/* Line 678 of lalr1.cc  */
-#line 398 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 454 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].fromNode));
@@ -1013,8 +1064,8 @@ namespace ibis {
 
   case 43:
 
-/* Line 678 of lalr1.cc  */
-#line 413 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 469 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1031,8 +1082,8 @@ namespace ibis {
 
   case 44:
 
-/* Line 678 of lalr1.cc  */
-#line 425 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 481 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1049,8 +1100,8 @@ namespace ibis {
 
   case 45:
 
-/* Line 678 of lalr1.cc  */
-#line 437 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 493 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1067,8 +1118,8 @@ namespace ibis {
 
   case 46:
 
-/* Line 678 of lalr1.cc  */
-#line 449 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 505 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1085,8 +1136,8 @@ namespace ibis {
 
   case 47:
 
-/* Line 678 of lalr1.cc  */
-#line 461 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 517 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1103,8 +1154,8 @@ namespace ibis {
 
   case 48:
 
-/* Line 678 of lalr1.cc  */
-#line 473 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 529 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1121,8 +1172,8 @@ namespace ibis {
 
   case 49:
 
-/* Line 678 of lalr1.cc  */
-#line 485 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 541 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1139,8 +1190,8 @@ namespace ibis {
 
   case 50:
 
-/* Line 678 of lalr1.cc  */
-#line 497 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 553 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1157,8 +1208,8 @@ namespace ibis {
 
   case 51:
 
-/* Line 678 of lalr1.cc  */
-#line 509 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 565 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1175,8 +1226,8 @@ namespace ibis {
 
   case 52:
 
-/* Line 678 of lalr1.cc  */
-#line 521 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 577 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1194,8 +1245,8 @@ namespace ibis {
 
   case 53:
 
-/* Line 678 of lalr1.cc  */
-#line 534 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 590 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1210,8 +1261,8 @@ namespace ibis {
 
   case 54:
 
-/* Line 678 of lalr1.cc  */
-#line 544 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 600 "fromParser.yy"
     {
     (yyval.fromNode) = (yysemantic_stack_[(2) - (2)].fromNode);
 }
@@ -1219,8 +1270,8 @@ namespace ibis {
 
   case 55:
 
-/* Line 678 of lalr1.cc  */
-#line 547 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 603 "fromParser.yy"
     {
     (yyval.fromNode) = (yysemantic_stack_[(3) - (2)].fromNode);
 }
@@ -1228,8 +1279,8 @@ namespace ibis {
 
   case 56:
 
-/* Line 678 of lalr1.cc  */
-#line 550 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 606 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1242,8 +1293,8 @@ namespace ibis {
 
   case 57:
 
-/* Line 678 of lalr1.cc  */
-#line 558 "fromParser.yy"
+/* Line 677 of lalr1.cc  */
+#line 614 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1255,8 +1306,8 @@ namespace ibis {
 
 
 
-/* Line 678 of lalr1.cc  */
-#line 1260 "fromParser.cc"
+/* Line 677 of lalr1.cc  */
+#line 1311 "fromParser.cc"
 	default:
           break;
       }
@@ -1705,11 +1756,11 @@ namespace ibis {
   fromParser::yyrline_[] =
   {
          0,    88,    88,    88,    89,    94,    99,   104,   108,   113,
-     118,   124,   130,   136,   142,   150,   158,   166,   174,   182,
-     190,   198,   206,   213,   220,   227,   236,   236,   238,   248,
-     259,   269,   279,   289,   302,   314,   326,   338,   350,   362,
-     374,   386,   398,   413,   425,   437,   449,   461,   473,   485,
-     497,   509,   521,   534,   544,   547,   550,   558
+     118,   124,   130,   136,   142,   157,   172,   187,   202,   217,
+     232,   247,   262,   269,   276,   283,   292,   292,   294,   304,
+     315,   325,   335,   345,   358,   370,   382,   394,   406,   418,
+     430,   442,   454,   469,   481,   493,   505,   517,   529,   541,
+     553,   565,   577,   590,   600,   603,   606,   614
   };
 
   // Print the state stack on the debug stream.
@@ -1797,17 +1848,14 @@ namespace ibis {
   const fromParser::token_number_type fromParser::yyundef_token_ = 2;
 
 
-/* Line 1054 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 1054 of lalr1.cc  */
-#line 1807 "fromParser.cc"
+/* Line 1053 of lalr1.cc  */
+#line 1855 "fromParser.cc"
 
 
-/* Line 1056 of lalr1.cc  */
-#line 567 "fromParser.yy"
+/* Line 1055 of lalr1.cc  */
+#line 623 "fromParser.yy"
 
 void ibis::fromParser::error(const ibis::fromParser::location_type& l,
 			     const std::string& m) {

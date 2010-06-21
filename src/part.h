@@ -293,7 +293,7 @@ public:
 
     /******************************************************************/
     // A group of functions added August, 2005 to provide summary
-    // information about the data.  Logically, they are a extension of
+    // information about the data.  Logically, they are an extension of
     // getInfo.
 
     /// The actual minimum value in the named column.

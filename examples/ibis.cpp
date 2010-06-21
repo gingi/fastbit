@@ -2777,7 +2777,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    if (limit > (sel1->nRows() >> 1))
 		limit = sel1->nRows();
 	}
-	if (limit < sel1->nRows()) {
+	if (limit > 0 && limit < sel1->nRows()) {
 	    lg.buffer() << "tableSelect -- the first ";
 	    if (limit > 1)
 		lg.buffer() << limit << " rows ";
@@ -2971,7 +2971,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	return;
     }
 
-    std::auto_ptr<ibis::table> res(qq->select(sstr));
+    std::auto_ptr<ibis::table> res(qq->select());
     if (res.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- doQuaere(" << sqlstring
@@ -3016,7 +3016,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	    if (limit > (res->nRows() >> 1))
 		limit = res->nRows();
 	}
-	if (limit < res->nRows()) {
+	if (limit > 0 && limit < res->nRows()) {
 	    lg.buffer() << "doQuaere -- the first ";
 	    if (limit > 1)
 		lg.buffer() << limit << " rows ";
@@ -3070,7 +3070,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	else {
 	    sel3 = "floor(";
 	    sel3 += cn[0];
-	    sel3 += "/10, avg(";
+	    sel3 += "/10), avg(";
 	    sel3 += cn[0];
 	    sel3 += ')';
 	}
@@ -4009,8 +4009,8 @@ static void doJoin(const char* uid, ibis::joinspec& js) {
 	    << " is not a know data partition";
 	return;
     }
-    ibis::quaere *jn = ibis::quaere::create(*(*pt1), *(*pt2), js.jcol,
-					    js.cond1, js.cond2);
+    ibis::quaere *jn = ibis::quaere::create
+	(*pt1, *pt2, js.jcol, js.cond1, js.cond2, js.selcol.c_str());
     if (jn == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()
@@ -4026,7 +4026,7 @@ static void doJoin(const char* uid, ibis::joinspec& js) {
 	return;
     }
 
-    ibis::table *res = jn->select(js.selcol.c_str());
+    ibis::table *res = jn->select();
     if (res == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()

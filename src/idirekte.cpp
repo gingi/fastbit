@@ -493,7 +493,7 @@ int ibis::direkte::read(const char* f) {
     if (ierr < 0)
 	return ierr;
     ibis::fileManager::instance().recordPages(0, end);
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
 	if (nprt > dim[1])

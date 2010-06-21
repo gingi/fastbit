@@ -133,7 +133,10 @@ public:
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
     int verify(const ibis::part&) const;
-    int verifySome(const ibis::part&, const std::vector<uint32_t>&) const;
+    int verifySome(const std::vector<uint32_t>&, const ibis::part&) const;
+    static int verifyTerm(const ibis::math::term&, const ibis::part&,
+			  const ibis::selectClause* =0);
+
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Assignment operator.
@@ -173,8 +176,6 @@ protected:
 
     /// Sort out the names for the terms.
     void fillNames();
-    /// The actual work-horse to do the verification.
-    int _verify(const ibis::part&, const ibis::math::term&) const;
 }; // class ibis::selectClause
 
 /// Number of terms without aggregation functions.

@@ -3727,6 +3727,8 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     ibis::bord::bufferList   buff;
     std::vector<uint32_t>    tmstouse;
     uint32_t                 nplain = 0;
+    ibis::util::guard        gbuff
+	= ibis::util::makeGuard(ibis::bord::freeBuffers, buff, tls);
     if (tms.size() > 0) { // sort the names of variables to compute
 	std::set<const char*, ibis::lessi> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
@@ -3770,7 +3772,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	if (tmstouse.size() >= tms.size())
 	    ierr = tms.verify(**it);
 	else
-	    ierr = tms.verifySome(**it, tmstouse);
+	    ierr = tms.verifySome(tmstouse, **it);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Waring -- " << mesg << " -- select clause (" << sel

@@ -91,6 +91,7 @@ namespace ibis {
 }
 
 void ibis::util::sortRIDs(ibis::RIDSet& rids) {
+    rids.nosharing();
     if (rids.size() > 20)
 	ibis::util::sortRIDsq(rids, 0, rids.size());
     else if (rids.size() > 1)
@@ -260,6 +261,8 @@ template <typename T1, typename T2>
 void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
     const uint32_t nvals = (arr1.size() <= arr2.size() ?
 			    arr1.size() : arr2.size());
+    arr2.nosharing();
+    arr1.nosharing();
     if (nvals >= 1024) {
 	// split the arrays
 	uint32_t split = sortAll_split(arr1, arr2);
@@ -519,6 +522,8 @@ template <typename T1, typename T2>
 void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    vals.nosharing();
+    keys.nosharing();
     if (nelm > 8192) {
 	try { // use radix sort only for large arrays
 	    sort_radix(keys, vals);
@@ -2996,56 +3001,6 @@ void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
 #endif
 } // ibis::util::sort_radix
 
-template <typename T> int64_t
-ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
-		      array_t<T>& valS, array_t<uint32_t>& indS) {
-    if (valR.empty() || valS.empty()) return 0;
-
-    try {
-	if (valR.size() != indR.size()) {
-	    indR.resize(valR.size());
-	    for (uint32_t j = 0; j < valR.size(); ++ j)
-		indR[j] = j;
-	}
-	ibis::util::sortKeys(valR, indR);
-	if (valS.size() != indS.size()) {
-	    indS.resize(valS.size());
-	    for (uint32_t j = 0; j < valS.size(); ++ j)
-		indS[j] = j;
-	}
-	ibis::util::sortKeys(valS, indS);
-    }
-    catch (...) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
-	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
-	    << "]) failed to sort the two values or to create index arrays";
-	return -1;
-    }
-
-    int64_t cnt = 0;
-    uint32_t ir = 0;
-    uint32_t is = 0;
-    const uint32_t nr = valR.size();
-    const uint32_t ns = valS.size();
-    while (ir < nr && is < ns) {
-	if (valR[ir] == valS[is]) {
-	    const uint32_t ir0 = ir;
-	    const uint32_t is0 = is;
-	    for (++ ir; ir < nr && valR[ir] == valR[ir0]; ++ ir);
-	    for (++ is; is < ns && valS[is] == valS[is0]; ++ is);
-	    cnt += (ir-ir0) * (is-is0);
-	}
-	else if (valR[ir] < valS[is]) {
-	    ++ ir;
-	}
-	else {
-	    ++ is;
-	}
-    }
-    return cnt;
-} // ibis::util::sortMerge
-
 int64_t
 ibis::util::sortMerge(std::vector<std::string>& valR, array_t<uint32_t>& indR,
 		      std::vector<std::string>& valS, array_t<uint32_t>& indS) {
@@ -3097,6 +3052,119 @@ ibis::util::sortMerge(std::vector<std::string>& valR, array_t<uint32_t>& indR,
     return cnt;
 } // ibis::util::sortMerge
 
+/// @note This implementation is for elementary numberical data types only.
+///
+/// @note On input, if the size of indR is the same as that of valR, its
+/// content is preserved, otherwise it is reset to 0..valR.size()-1.  The
+/// array indS is similarly set to 0..valS.size()-1 if its size is
+/// different from that of valS.
+template <typename T> int64_t
+ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
+		      array_t<T>& valS, array_t<uint32_t>& indS) {
+    if (valR.empty() || valS.empty()) return 0;
+
+    try {
+	if (valR.size() != indR.size()) {
+	    indR.resize(valR.size());
+	    for (uint32_t j = 0; j < valR.size(); ++ j)
+		indR[j] = j;
+	}
+	ibis::util::sortKeys(valR, indR);
+	if (valS.size() != indS.size()) {
+	    indS.resize(valS.size());
+	    for (uint32_t j = 0; j < valS.size(); ++ j)
+		indS[j] = j;
+	}
+	ibis::util::sortKeys(valS, indS);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
+	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
+	    << "]) failed to sort the values or to create index arrays";
+	return -1;
+    }
+
+    int64_t cnt = 0;
+    uint32_t ir = 0;
+    uint32_t is = 0;
+    const uint32_t nr = valR.size();
+    const uint32_t ns = valS.size();
+    while (ir < nr && is < ns) {
+	if (valR[ir] == valS[is]) {
+	    const uint32_t ir0 = ir;
+	    const uint32_t is0 = is;
+	    for (++ ir; ir < nr && valR[ir] == valR[ir0]; ++ ir);
+	    for (++ is; is < ns && valS[is] == valS[is0]; ++ is);
+	    cnt += (ir-ir0) * (is-is0);
+	}
+	else if (valR[ir] < valS[is]) {
+	    do {++ ir;} while (ir < nr && valR[ir] < valS[is]);
+	}
+	else {
+	    do {++ is;} while (is < ns && valS[is] < valR[ir]);
+	}
+    }
+    return cnt;
+} // ibis::util::sortMerge
+
+/// @note This implementation is for elementary numberical data types only.
+///
+/// @note On input, if the size of indR is the same as that of valR, its
+/// content is preserved, otherwise it is reset to 0..valR.size()-1.  The
+/// array indS is similarly set to 0..valS.size()-1 if its size is
+/// different from that of valS.
+template <typename T> int64_t
+ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
+		      array_t<T>& valS, array_t<uint32_t>& indS,
+		      double delta1, double delta2) {
+    if (valR.empty() || valS.empty()) return 0;
+
+    try {
+	if (valR.size() != indR.size()) {
+	    indR.resize(valR.size());
+	    for (uint32_t j = 0; j < valR.size(); ++ j)
+		indR[j] = j;
+	}
+	ibis::util::sortKeys(valR, indR);
+	if (valS.size() != indS.size()) {
+	    indS.resize(valS.size());
+	    for (uint32_t j = 0; j < valS.size(); ++ j)
+		indS[j] = j;
+	}
+	ibis::util::sortKeys(valS, indS);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
+	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
+	    << "]) failed to sort the values or to create index arrays";
+	return -1;
+    }
+
+    int64_t cnt = 0;
+    uint32_t ir0 = 0, ir1 = 0;
+    uint32_t is = 0;
+    const uint32_t nr = valR.size();
+    const uint32_t ns = valS.size();
+    while (ir0 < nr && is < ns) {
+	while (ir0 < nr && valR[ir0] < valS[is]+delta1)
+	    ++ ir0;
+	for (ir1=(ir1>=ir0?ir1:ir0);
+	     ir1 < nr && valR[ir1] <= valS[is]+delta2;
+	     ++ ir1);
+	if (ir1 > ir0) {
+	    const uint32_t is0 = is;
+	    for (++ is; is < ns && valS[is] == valS[is0]; ++ is);
+	    cnt += (ir1-ir0) * (is-is0);
+	}
+	else {
+	    ++ is;
+	}
+    }
+    return cnt;
+} // ibis::util::sortMerge
+
 // explicit template instantiations
 template int64_t
 ibis::util::sortMerge<char>(array_t<char>&, array_t<uint32_t>&,
@@ -3129,6 +3197,47 @@ ibis::util::sortMerge<float>(array_t<float>&, array_t<uint32_t>&,
 template int64_t
 ibis::util::sortMerge<double>(array_t<double>&, array_t<uint32_t>&,
 			      array_t<double>&, array_t<uint32_t>&);
+template int64_t
+ibis::util::sortMerge<char>(array_t<char>&, array_t<uint32_t>&,
+			    array_t<char>&, array_t<uint32_t>&,
+			    double, double);
+template int64_t
+ibis::util::sortMerge<unsigned char>
+(array_t<unsigned char>&, array_t<uint32_t>&,
+ array_t<unsigned char>&, array_t<uint32_t>&,
+ double, double);
+template int64_t
+ibis::util::sortMerge<int16_t>(array_t<int16_t>&, array_t<uint32_t>&,
+			       array_t<int16_t>&, array_t<uint32_t>&,
+			       double, double);
+template int64_t
+ibis::util::sortMerge<uint16_t>(array_t<uint16_t>&, array_t<uint32_t>&,
+				array_t<uint16_t>&, array_t<uint32_t>&,
+				double, double);
+template int64_t
+ibis::util::sortMerge<int32_t>(array_t<int32_t>&, array_t<uint32_t>&,
+			       array_t<int32_t>&, array_t<uint32_t>&,
+			       double, double);
+template int64_t
+ibis::util::sortMerge<uint32_t>(array_t<uint32_t>&, array_t<uint32_t>&,
+				array_t<uint32_t>&, array_t<uint32_t>&,
+				double, double);
+template int64_t
+ibis::util::sortMerge<int64_t>(array_t<int64_t>&, array_t<uint32_t>&,
+			       array_t<int64_t>&, array_t<uint32_t>&,
+			       double, double);
+template int64_t
+ibis::util::sortMerge<uint64_t>(array_t<uint64_t>&, array_t<uint32_t>&,
+				array_t<uint64_t>&, array_t<uint32_t>&,
+				double, double);
+template int64_t
+ibis::util::sortMerge<float>(array_t<float>&, array_t<uint32_t>&,
+			     array_t<float>&, array_t<uint32_t>&,
+			     double, double);
+template int64_t
+ibis::util::sortMerge<double>(array_t<double>&, array_t<uint32_t>&,
+			      array_t<double>&, array_t<uint32_t>&,
+			      double, double);
 
 template void
 ibis::util::reorder<signed char>(array_t<signed char>&,

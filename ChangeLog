@@ -1,3 +1,67 @@
+2010-06-21 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.h, src/selectClause.cpp: rename _verify to
+	verifyTerm and change it to be a class function to make it
+	accessible to other functions
+	* src/whereClause.h, src/whereClause.cpp: rename _verify to
+	verifyExpr and change it to be a class function
+	* src/qExpr.cpp: change implementations of getTableNames to not
+	record the empty table names
+	* src/quaere.cpp: add statements to ensure the two tables are used
+	in the right order in function ibis::quaere::create
+	* src/jrange.cpp:1029 add else block to handle the case of "no
+	match"
+
+2010-06-18 John Wu <John dot Wu at ACM dot org>
+	* src/fromParser.yy: change the join condition specified with the
+	keyword USING into a propoer arithmetic expression
+
+2010-06-18 Mario D. Santana <mds at mariosantana dot net>
+	* src/capi.cpp: a patch to work with text values in C API
+
+2010-06-17 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.cpp: add calls to nosharing to make sure the arrays
+	to be sorted are not shared
+	* src/bord.cpp, src/filter.cpp, src/mensa.cpp: add scope guard for
+	ibis::bord::bufferList to ensure the buffers are released
+	* src/selectClause.cpp: the copy constructor neglected to copy
+	names
+	* src/part.cpp:4455 add statement to clear the existing content of
+	res
+	* src/part.cpp:11799 add statement to call storage::beginUse,
+	otherwis some arrays are left in memory after completion of
+	queries
+
+2010-06-16 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: add ibis::util::guardImpl2 to work with two-argument
+	functions
+	* src/jnatural.h, src.jrange.h: add select clause to
+	ibis::jNatural and ibis::jRange, modify the constructors and the
+	function select
+	* src/fromClause.cpp:40 add loop to fill member variable ordered_,
+	can not copy its content from rhs which points to wrong strings
+
+2010-06-15 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src.bord.cpp: change the constructor of bord and
+	bord::part to explicit reset the pointers to 0, add function
+	evaluateTerms
+
+2010-06-13 John Wu <John dot Wu at ACM dot org>
+	* src/filter.h, src/filter.cpp: rename aliases_ to sel_ to reflect
+	that he intent of the variable has changed to be the select clause
+
+2010-06-11 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.h, src/utilidor.cpp: add another version of
+	template sortMerge for range joins
+
+2010-06-10 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: replace columns.find with getColumn to make the
+	column name look up more uniform and to accomodate fully qualified
+	column names
+
+2010-06-07 John Wu <John dot Wu at ACM dot org>
+	* src/capi.cpp: add try-catch blocks to all functions in C API as
+	suggested by Luca Deri
+
 2010-06-04 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: add statements to check for col->partition()
 	before using it

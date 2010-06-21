@@ -16,18 +16,31 @@
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 
+/// The incoming where clause is applied to all known data partitions in
+/// ibis::datasets.
+ibis::filter::filter(const ibis::whereClause* w)
+    : wc_(w != 0 && w->empty() == false ? new whereClause(*w) : 0),
+      parts_(0), sel_(0) {
+} // constructor
+
 /// The user supplies all three clauses of a SQL select statement.  The
 /// objects are copied if they are not empty.
 ///
 /// @note This constructor makes a copy of the container for the data
 /// partitions, but not the data partitioins themselves.  In the
 /// destructor, only the container is freed, not the data partitions.
-ibis::filter::filter(const ibis::whereClause &w, const ibis::partList &p,
-		     const ibis::selectClause &s)
-    : wc_(w.empty() ? 0 : new whereClause(w)),
-      parts_(p.empty() ? 0 : new partList(p)),
-      aliases_(s.empty() ? 0 : new selectClause(s)) {
+ibis::filter::filter(const ibis::selectClause* s, const ibis::partList* p,
+		     const ibis::whereClause* w)
+    : wc_(w == 0 || w->empty() ? 0 : new whereClause(*w)),
+      parts_(p == 0 || p->empty() ? 0 : new partList(*p)),
+      sel_(s == 0 || s->empty() ? 0 : new selectClause(*s)) {
 } // constructor
+
+ibis::filter::~filter() {
+    delete sel_;
+    delete parts_;
+    delete wc_;
+} // ibis::filter::~filter
 
 void ibis::filter::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     const ibis::partList &myparts = (parts_ != 0 ? *parts_ : ibis::datasets);
@@ -35,7 +48,7 @@ void ibis::filter::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     nmax = 0;
     if (wc_ == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::filter::roughCount assumes all rows are hits because no "
+	    << "filter::roughCount assumes all rows are hits because no "
 	    "query condition is specified";
 	for (ibis::partList::const_iterator it = myparts.begin();
 	     it != myparts.end(); ++ it)
@@ -48,18 +61,18 @@ void ibis::filter::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     int ierr = qq.setWhereClause(wc_->getExpr());
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::filter::roughCount failed to assign the "
+	    << "Warning -- filter::roughCount failed to assign the "
 	    "where clause, assume all rows may be hits";
 	for (ibis::partList::const_iterator it = myparts.begin();
 	     it != myparts.end(); ++ it)
 	    nmax += (*it)->nRows();
 	return;
     }
-    if (aliases_ != 0) {
-	ierr = qq.setSelectClause(aliases_);
+    if (sel_ != 0) {
+	ierr = qq.setSelectClause(sel_);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::filter::roughCount failed to assign the "
+		<< "Warning -- filter::roughCount failed to assign the "
 		"select clause, assume all rows may be hits";
 	    for (ibis::partList::const_iterator it = myparts.begin();
 		 it != myparts.end(); ++ it)
@@ -93,7 +106,7 @@ int64_t ibis::filter::count() const {
     nhits = 0;
     if (wc_ == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::filter::count assumes all rows are hits because no "
+	    << "filter::count assumes all rows are hits because no "
 	    "query condition is specified";
 	for (ibis::partList::const_iterator it = myparts.begin();
 	     it != myparts.end(); ++ it)
@@ -105,16 +118,16 @@ int64_t ibis::filter::count() const {
     int ierr = qq.setWhereClause(wc_->getExpr());
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::filter::count failed to assign the "
+	    << "Warning -- filter::count failed to assign the "
 	    "where clause";
 	nhits = ierr;
 	return nhits;
     }
-    if (aliases_ != 0) {
-	ierr = qq.setSelectClause(aliases_);
+    if (sel_ != 0) {
+	ierr = qq.setSelectClause(sel_);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::filter::count failed to assign the "
+		<< "Warning -- filter::count failed to assign the "
 		"select clause";
 	    nhits = ierr;
 	    return nhits;
@@ -131,14 +144,14 @@ int64_t ibis::filter::count() const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- ibis::filter::count failed to evaluate "
+		    << "Warning -- filter::count failed to evaluate "
 		    << qq.getWhereClause() << " on " << (*it)->name()
 		    << ", ierr = " << ierr;
 	    }
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::filter::count failed to assign "
+		<< "Warning -- filter::count failed to assign "
 		<< qq.getWhereClause() << " on " << (*it)->name()
 		<< ", ierr = " << ierr;
 	}
@@ -146,32 +159,33 @@ int64_t ibis::filter::count() const {
     return nhits;
 } // ibis::filter::count
 
-ibis::table* ibis::filter::select(const char* sel) const {
+ibis::table* ibis::filter::select() const {
     const ibis::partList &myparts = (parts_ != 0 ? *parts_ : ibis::datasets);
     if (wc_ == 0) {
 	// empty where clause, SQL standard dictates it to select everyont
 	return new ibis::liga(myparts);
     }
-    if (sel == 0 || *sel == 0) {
-	if (aliases_ != 0) {
-	    return ibis::filter::filt(*aliases_, myparts, *wc_);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::filter::select can not proceed without "
-		"a select clause";
-	    return 0;
-	}
+    if (sel_ != 0) {
+	return ibis::filter::filt(*sel_, myparts, *wc_);
     }
-
-    ibis::selectClause sc(sel);
-    if (sc.empty()) {
+    else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::filter::select parsed \"" << sel
-	    << "\" into an empty select clause";
+	    << "Warning -- filter::select can not proceed without "
+	    "a select clause";
 	return 0;
     }
-    return ibis::filter::filt(sc, myparts, *wc_);
+} // ibis::filter::select
+
+ibis::table*
+ibis::filter::select(const ibis::table::stringList& colnames) const {
+    ibis::selectClause sc(colnames);
+    if (sc.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- filter::select can not proceed with an empty "
+	    "select clause";
+	return 0;
+    }
+    return ibis::filter::filt(sc, *parts_, *wc_);
 } // ibis::filter::select
 
 /// Select the rows satisfying the where clause and store the results
@@ -214,6 +228,8 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     ibis::bord::bufferList   buff;
     std::vector<uint32_t>    tmstouse;
     uint32_t                 nplain = 0;
+    ibis::util::guard        gbuff
+	= ibis::util::makeGuard(ibis::bord::freeBuffers, buff, tls);
     if (tms.size() > 0) { // sort the names of variables to compute
 	std::set<const char*, ibis::lessi> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
@@ -257,7 +273,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	if (tmstouse.size() >= tms.size())
 	    ierr = tms.verify(**it);
 	else
-	    ierr = tms.verifySome(**it, tmstouse);
+	    ierr = tms.verifySome(tmstouse, **it);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- select clause (" << tms

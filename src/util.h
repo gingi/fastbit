@@ -303,9 +303,10 @@ namespace ibis {
     class dictionary;	///< Map strings to integers and back.
     class bundle;	///< To organize in-memory data for group-by.
     class colValues;	///< To store a column of in-memory data.
+
+    class fromClause;	///< From clause.
     class whereClause;	///< Where clause.
     class selectClause;	///< Select clause.
-    class fromClause;	///< From clause.
     /// @}
 
     /// A global list of data partitions.
@@ -1032,11 +1033,9 @@ namespace ibis {
 	    /// A template function to absorb all exceptions.
 	    template <typename T>
 	    static void cleanup(T& task) throw () {
-		if (task.done_)
-		    return;
-
 		try {
-		    task.execute();
+		    if (!task.done_)
+			task.execute();
 		}
 		catch (const std::exception& e) {
 		    LOGGER(ibis::gVerbose > 1)
@@ -1130,6 +1129,44 @@ namespace ibis {
 	template <typename F, typename A>
 	inline guardImpl1<F, A> makeGuard(F f, A a) {
 	    return guardImpl1<F, A>::makeGuard(f, a);
+	}
+
+	/// A concrete class for cleanup jobs that take a function with two
+	/// arguments.
+	template <typename F, typename A1, typename A2>
+	class guardImpl2 : public guardBase {
+	public:
+	    static guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
+		return guardImpl2<F, A1, A2>(f, a1, a2);
+	    }
+
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl2() {cleanup(*this);}
+
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_(arg1_, arg2_);}
+
+	    /// Construct a guard object from a function.
+	    explicit guardImpl2(F f, A1 a1, A2 a2)
+		: fun_(f), arg1_(a1), arg2_(a2) {}
+
+	private:
+	    /// The function pinter.
+	    F fun_;
+	    /// The argument 1 to the function.
+	    A1 arg1_;
+	    /// The argument 2 to the function.
+	    A2 arg2_;
+
+	    guardImpl2();
+	    //guardImpl2(const guardImpl2&);
+	    guardImpl2& operator=(const guardImpl2&);
+	}; // guardImpl2
+
+	template <typename F, typename A1, typename A2>
+	inline guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
+	    return guardImpl2<F, A1, A2>::makeGuard(f, a1, a2);
 	}
     } // namespace util
 } // namespace ibis

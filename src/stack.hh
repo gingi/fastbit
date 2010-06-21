@@ -1,10 +1,8 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
 /* Stack handling for Bison parsers in C++
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
-   Foundation, Inc.
+      Copyright (C) 2002-2010 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,13 +36,10 @@
 #include <deque>
 
 
-/* Line 1067 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 1067 of lalr1.cc  */
-#line 48 "stack.hh"
+/* Line 1066 of lalr1.cc  */
+#line 43 "stack.hh"
   template <class T, class S = std::deque<T> >
   class stack
   {
@@ -131,13 +126,10 @@ namespace ibis {
     unsigned int range_;
   };
 
-/* Line 1153 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 1153 of lalr1.cc  */
-#line 141 "stack.hh"
+/* Line 1152 of lalr1.cc  */
+#line 133 "stack.hh"
 
 #endif // not BISON_STACK_HH[]dnl
 

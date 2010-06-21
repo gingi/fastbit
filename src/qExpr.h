@@ -524,13 +524,18 @@ namespace ibis {
 	    term() : qExpr(MATHTERM) {}; // used by concrete derived classes
 	}; // abstract term
 
-	/// A barrel to hold a list of variables.
+	/// A barrel to hold a list of variables.  It defines an interface
+	/// for evaluating arbitrary arithmetic expressions.  It is also a
+	/// dummy implementation that assigns all variables to have value
+	/// 0.
 	class barrel {
 	public:
-	    // public member functions
+	    /// Constructor.
 	    barrel() {};
+	    /// Constructor.
 	    barrel(const term* const t) {recordVariable(t);}
-	    virtual ~barrel() {}; // member variables clean themselves
+	    /// Destructor.  Member variables clean themselves.
+	    virtual ~barrel() {};
 
 	    // access functions to the names and values
 	    uint32_t size() const {return varmap.size();}
@@ -540,9 +545,6 @@ namespace ibis {
 
 	    /// Record the variable names appear in the @c term.
 	    void recordVariable(const term* const t);
-	    /// Record the specified name.  Return the variable number that is
-	    /// to be used later in functions @c name and @c value for
-	    /// retrieving the variable name and its value.
 	    inline uint32_t recordVariable(const char* name);
 	    /// Is the given @c barrel of variables equivalent to this one?
 	    bool equivalent(const barrel& rhs) const;
@@ -685,6 +687,7 @@ namespace ibis {
 	    virtual double eval() const;
 	    virtual void print(std::ostream& out) const;
 	    virtual term* reduce();
+	    OPERADOR getOperator() const {return operador;}
 
 	private:
 	    ibis::math::OPERADOR operador; // Spanish for operator
@@ -1113,8 +1116,9 @@ inline bool ibis::qDiscreteRange::inRange(double val) const {
     }
 } // ibis::qDiscreteRange::inRange
 
-/// Record a variable name and return its position in the list of variables
-/// in the @c barrel.
+/// Record the specified name.  Return the number that is to be used later
+/// in functions @c name and @c value for retrieving the variable name and
+/// its value.
 inline uint32_t ibis::math::barrel::recordVariable(const char* name) {
     uint32_t ind = varmap.size();
     termMap::const_iterator it = varmap.find(name);

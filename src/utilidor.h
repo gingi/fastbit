@@ -47,16 +47,23 @@ namespace ibis {
 	template <typename T1, typename T2>
 	void sortAll(array_t<T1>& arr1, array_t<T2>& arr2);
 
-	/// An in-memory sort merge join function.  Sort the input arrays,
-	/// valR and valS.  Count the number of results from join.
-	template <typename T>
-	int64_t sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
-			  array_t<T>& valS, array_t<uint32_t>& indS);
 	/// An in-memory sort merge join function with string values.
 	int64_t sortMerge(std::vector<std::string>& valR,
 			  array_t<uint32_t>& indR,
 			  std::vector<std::string>& valS,
 			  array_t<uint32_t>& indS);
+	/// An in-memory sort merge join function.  Sort the input arrays,
+	/// valR and valS.  Count the number of results from join.
+	template <typename T>
+	int64_t sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
+			  array_t<T>& valS, array_t<uint32_t>& indS);
+	/// An in-memory sort merge join function.  Sort the input arrays,
+	/// valR and valS.  Count the number of results satisfying
+	/// ValR-Vals between delta1 and delta2.
+	template <typename T>
+	int64_t sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
+			  array_t<T>& valS, array_t<uint32_t>& indS,
+			  double delta1, double delta2);
 
 	/// Sorting function with payload.  Sort keys in ascending order,
 	/// move the vals accordingly.

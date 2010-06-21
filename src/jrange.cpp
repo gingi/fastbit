@@ -6,23 +6,29 @@
 #include "bord.h"	// ibis::bord, ibis::bord::bufferList
 #include "countQuery.h"	// ibis::countQuery
 #include "utilidor.h"	// ibis::util::sortMerge
+#include "fromClause.h"
+#include "selectClause.h"
+
 #include <stdexcept>	// std::exception
+#include <cmath>	// std::ceil, std::floor
 
 /// Constructor.
 ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 		     const ibis::column& colr, const ibis::column& cols,
 		     double delta1, double delta2,
 		     const ibis::qExpr* condr, const ibis::qExpr* conds,
+		     const ibis::selectClause* sel, const ibis::fromClause* frm,
 		     const char* desc)
-    : partr_(partr), parts_(parts), colr_(colr), cols_(cols),
+    : sel_(sel ? new ibis::selectClause(*sel) : 0),
+      frm_(frm ? new ibis::fromClause(*frm) : 0),
+      partr_(partr), parts_(parts), colr_(colr), cols_(cols),
       delta1_(delta1), delta2_(delta2), valr_(0), vals_(0), nrows(-1) {
-    if (desc == 0 || *desc == 0) {
+    if (desc == 0 || *desc == 0) { // build a description string
 	std::ostringstream oss;
 	oss << "From " << partr.name() << " Join " << parts.name()
-	    << " On " << partr.name() << '.' << colr.name() << " Between "
-	    << parts.name() << '.' << cols.name() << " - " << delta1
-	    << " And " << parts.name() << '.' << cols.name() << " + "
-	    << delta2 << " Where ...";
+	    << " On " << delta1 << " <= " << partr.name() << '.'
+	    << colr.name() << " - " << parts.name() << '.' << cols.name()
+	    << " <= " << delta2 << " Where ...";
 	desc_ = oss.str();
     }
     else {
@@ -81,9 +87,17 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 
 /// Destructor.
 ibis::jRange::~jRange() {
+    delete orderr_;
+    delete orders_;
+    ibis::bord::freeBuffer(valr_, colr_.type());
+    ibis::bord::freeBuffer(vals_, cols_.type());
+    delete frm_;
+    delete sel_;
+    LOGGER(ibis::gVerbose > 4)
+	<< "ibis::jRange(" << desc_ << ") cleared";
 }
 
-/// Estimate the number of hits.  Do nothing useful at this time.
+/// Estimate the number of hits.  Nothing useful at this time.
 void ibis::jRange::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
     nmax = maskr_.cnt();
@@ -91,21 +105,939 @@ void ibis::jRange::roughCount(uint64_t& nmin, uint64_t& nmax) const {
 } // ibis::jRange::roughCount
 
 int64_t ibis::jRange::count() const {
-    LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::jRange(" << desc_ << ")::count not yet implemented";
+    if (nrows >= 0) return nrows; // already have done this
+    if (maskr_.cnt() == 0 || masks_.cnt() == 0) {
+	return 0;
+    }
+
+    std::string mesg;
+    mesg = "ibis::jRange::count(";
+    mesg += desc_;
+    mesg += ")";
+    ibis::util::timer tm(mesg.c_str(), 1);
+    // allocate space for ordering arrays
+    orderr_ = new array_t<uint32_t>;
+    orders_ = new array_t<uint32_t>;
+
+    // Retrieve and sort the values
+    switch (colr_.type()) {
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::jRange[" << desc_
+	    << "] cann't handle join column of type " << colr_.type();
+	return -2;
+    case ibis::BYTE: {
+	valr_ = colr_.selectBytes(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectBytes("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectBytes(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectBytes("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<char>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<char>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::UBYTE: {
+	valr_ = colr_.selectUBytes(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectUBytes("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectUBytes(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectUBytes("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<unsigned char>*>(valr_),
+	     *orderr_,
+	     *static_cast<array_t<unsigned char>*>(vals_),
+	     *orders_, delta1_, delta2_);
+	break;}
+    case ibis::SHORT: {
+	valr_ = colr_.selectShorts(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectShorts("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectShorts(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectShorts("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<int16_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<int16_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::USHORT: {
+	valr_ = colr_.selectUShorts(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectUShorts("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectUShorts(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectUShorts("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<uint16_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<uint16_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::INT: {
+	valr_ = colr_.selectInts(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectInts("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectInts(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectInts("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<int32_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<int32_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::UINT: {
+	valr_ = colr_.selectUInts(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectUInts("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectUInts(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectUInts("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<uint32_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<uint32_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::LONG: {
+	valr_ = colr_.selectLongs(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectLongs("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectLongs(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectLongs("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<int64_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<int64_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::ULONG: {
+	valr_ = colr_.selectULongs(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectULongs("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectULongs(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectULongs("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<uint64_t>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<uint64_t>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::FLOAT: {
+	valr_ = colr_.selectFloats(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectFloats("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectFloats(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectFloats("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<float>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<float>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    case ibis::DOUBLE: {
+	valr_ = colr_.selectDoubles(maskr_);
+	if (valr_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << colr_.name() << "->selectDoubles("
+		<< maskr_.cnt() << ") failed";
+	    return -3;
+	}
+	vals_ = cols_.selectDoubles(masks_);
+	if (vals_ == 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- ibis::jRange::count(" << desc_
+		<< ") call to " << cols_.name() << "->selectDoubles("
+		<< masks_.cnt() << ") failed";
+	    return -4;
+	}
+	nrows = ibis::util::sortMerge(*static_cast<array_t<double>*>(valr_),
+				      *orderr_,
+				      *static_cast<array_t<double>*>(vals_),
+				      *orders_, delta1_, delta2_);
+	break;}
+    }
+    LOGGER(ibis::gVerbose > 2)
+	<< "ibis::jRange::count(" << desc_ << ") found " << nrows
+	<< " hit" << (nrows>1?"s":"");
     return nrows;
 } // ibis::jRange::count
 
-ibis::table*
-ibis::jRange::select(const char *sel) const {
-    LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::jRange(" << desc_ << ")::select not yet implemented";
-    return 0;
+ibis::table* ibis::jRange::select() const {
+    if (sel_ == 0 || sel_->empty()) { // default
+	std::string tn = ibis::util::shortName(desc_.c_str());
+	return new ibis::tabula(tn.c_str(), desc_.c_str(), nrows);
+    }
+
+    uint32_t features=0; // 1: arithmetic operation, 2: aggregation
+    // use a barrel to collect all unique names
+    ibis::math::barrel brl;
+    for (uint32_t j = 0; j < sel_->size(); ++ j) {
+	const ibis::math::term* t = (*sel_)[j];
+	brl.recordVariable(t);
+	if (t->termType() != ibis::math::VARIABLE &&
+	    t->termType() != ibis::math::NUMBER &&
+	    t->termType() != ibis::math::STRING) {
+	    features |= 1; // arithmetic operation
+	}
+	if (sel_->getAggregator(j) != ibis::selectClause::NIL) {
+	    features |= 2; // aggregation
+	}
+    }
+    // convert the barrel into a stringList for processing
+    ibis::table::stringList sl(brl.size());
+    for (unsigned j = 0; j < brl.size(); ++ j)
+	sl[j] = brl.name(j);
+    ibis::table* res1 = select(sl);
+    if (res1 != 0 && ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+		    << ") produced the first intermediate table:\n";
+	res1->describe(lg.buffer());
+    }
+    if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
+	features == 0)
+	return res1;
+
+    if ((features & 1) != 0) { // arithmetic computations
+	ibis::table* res2 =
+	    static_cast<const ibis::bord*>(res1)->evaluateTerms
+	    (*sel_, desc_.c_str());
+	if (res2 != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+			    << ") produced the second intermediate table:\n";
+		res2->describe(lg.buffer());
+	    }
+	    delete res1;
+	    res1 = res2;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::select(" << *sel_
+		<< ") failed to evaluate the arithmetic expressions";
+	    return res1;
+	}
+    }
+
+    if ((features & 2) != 0) { // aggregation operations
+	ibis::table *res3 =
+	    static_cast<const ibis::bord*>(res1)->groupby(*sel_);
+	if (res3 != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+			    << ") produced the third intermediate table:\n";
+		res3->describe(lg.buffer());
+	    }
+	    delete res1;
+	    res1 = res3;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::select(" << *sel_
+		<< ") failed to evaluate the aggregations";
+	}
+    }
+    return res1;
 } // ibis::jRange::select
 
 ibis::table*
-ibis::jRange::select(const std::vector<const char*>& colnames) const {
-    LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::jRange(" << desc_ << ")::select not yet implemented";
-    return 0;
+ibis::jRange::select(const ibis::table::stringList& colnames) const {
+    ibis::table *res = 0;
+    if (nrows < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- must call jRange::count before calling select";
+	return res;
+    }
+    if (valr_ == 0 || orderr_ == 0 || vals_ == 0 || orders_ == 0 ||
+	orderr_->size() != maskr_.cnt() || orders_->size() != masks_.cnt()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- jRange::select failed to evaluate the join";
+	return res;
+    }
+    if (colnames.empty() || nrows == 0) {
+	std::string nm = ibis::util::shortName(desc_);
+	res = new ibis::tabula(nm.c_str(), desc_.c_str(), nrows);
+	return res;
+    }
+
+    const uint32_t ncols = colnames.size();
+    std::string evt;
+    evt = "select ";
+    evt += colnames[0];
+    for (uint32_t j = 1; j < ncols; ++ j) {
+	evt += ", ";
+	evt += colnames[j];
+    }
+    if ((desc_[0] != 'F' && desc_[0] != 'f') ||
+	(desc_[1] != 'R' && desc_[1] != 'r') ||
+	(desc_[2] != 'O' && desc_[2] != 'o') ||
+	(desc_[3] != 'M' && desc_[3] != 'm'))
+	evt += " for ";
+    else
+	evt += ' ';
+    evt += desc_;
+    ibis::util::timer mytimer(evt.c_str());
+    const uint32_t rnamelen = strlen(partr_.name());
+    const uint32_t snamelen = strlen(parts_.name());
+    std::map<const char*, uint32_t, ibis::lessi> namesToPos;
+    std::vector<uint32_t> ipToPos(colnames.size());
+    std::vector<const ibis::column*> ircol, iscol;
+    // identify the names from the two data partitions
+    for (uint32_t j = 0; j < ncols; ++ j) {
+	ipToPos[j] = ncols+1;
+	const char* cn = colnames[j];
+	std::string tname;
+	while (*cn != 0 && *cn != '.') {
+	    tname += *cn;
+	    ++ cn;
+	}
+	if (*cn == '.') {
+	    ++ cn;
+	}
+	else { // did not find '.'
+	    tname.erase();
+	    cn = colnames[j];
+	}
+	int match = -1; // 0 ==> partr_, 1 ==> parts_
+	if (! tname.empty()) {
+	    if (rnamelen == tname.size() &&
+		stricmp(tname.c_str(), partr_.name()) == 0) {
+		match = 0;
+	    }
+	    else if (snamelen == tname.size() &&
+		     stricmp(tname.c_str(), parts_.name()) == 0) {
+		match = 1;
+	    }
+	    if (match < 0) {
+		if (frm_->size() == 1) {
+		    match = 1;
+		}
+		else {
+		    const char* tnm = frm_->realName(tname.c_str());
+		    if (stricmp(tnm, partr_.name()) == 0) {
+			match = 0;
+		    }
+		    else if (stricmp(tnm, parts_.name()) == 0) {
+			match = 1;
+		    }
+		}
+	    }
+	}
+
+	if (match == 0) {
+	    const ibis::column *col = partr_.getColumn(cn);
+	    if (col != 0) {
+		namesToPos[colnames[j]] = j;
+		ipToPos[j] = ircol.size();
+		ircol.push_back(col);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " can not find column named \""
+		    << colnames[j] << "\" in data partition \"" << partr_.name()
+		    << "\"";
+		return res;
+	    }
+	}
+	else if (match == 1) {
+	    const ibis::column *col = parts_.getColumn(cn);
+	    if (col != 0) {
+		namesToPos[colnames[j]] = j;
+		ipToPos[j] = ncols - iscol.size();
+		iscol.push_back(col);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " can not find column named \""
+		    << colnames[j] << "\" in data partition \""
+		    << parts_.name() << "\"";
+		return res;
+	    }
+	}
+	else { // not prefixed with a data partition name
+	    cn = colnames[j];
+	    const ibis::column* col = partr_.getColumn(cn);
+	    if (col != 0) {
+		ipToPos[j] = ircol.size();
+		ircol.push_back(col);
+		LOGGER(ibis::gVerbose > 3)
+		    << evt << " encountered a column name ("
+		    << colnames[j] << ") that does not start with a data "
+		    "partition name, assume it is for \"" << partr_.name()
+		    << "\"";
+	    }
+	    else {
+		col = parts_.getColumn(cn);
+		if (col != 0) {
+		    ipToPos[j] = ncols - iscol.size();
+		    iscol.push_back(col);
+		    LOGGER(ibis::gVerbose > 1)
+			<< evt << " encountered a column name (" << colnames[j]
+			<< ") that does not start with a data partition name, "
+			"assume it is for \"" << parts_.name() << "\"";
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " encountered a name ("
+			<< colnames[j] << ") that does not start with a data "
+			"partition name";
+		    return res;
+		}
+	    }
+	}
+    } // for (uint32_t j = 0; j < ncols;
+
+    LOGGER(ibis::gVerbose > 3)
+	<< evt << " -- found " << ircol.size()
+	<< " column" << (ircol.size() > 1 ? "s" : "") << " from "
+	<< partr_.name() << " and " << iscol.size() << " column"
+	<< (iscol.size() > 1 ? "s" : "") << " from " << parts_.name();
+
+    // change Pos values for columns in S to have offset ircol.size()
+    for (uint32_t j = 0; j < ncols; ++j) {
+	if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
+	    ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
+    }
+    ibis::table::typeList rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::bord::bufferList rbuff(ircol.size(), 0);
+    ibis::util::guard grbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, rbuff, rtypes);
+    ibis::table::typeList stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::bord::bufferList sbuff(iscol.size(), 0);
+    ibis::util::guard gsbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, sbuff, stypes);
+    bool sane = true;
+
+    // retrieve values from r_
+    for (uint32_t j = 0; sane && j < ircol.size(); ++ j) {
+	rtypes[j] = ircol[j]->type();
+	switch (ircol[j]->type()) {
+	case ibis::BYTE:
+	    rbuff[j] = ircol[j]->selectBytes(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<signed char>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::UBYTE:
+	    rbuff[j] = ircol[j]->selectUBytes(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<unsigned char>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::SHORT:
+	    rbuff[j] = ircol[j]->selectShorts(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int16_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::USHORT:
+	    rbuff[j] = ircol[j]->selectUShorts(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint16_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::INT:
+	    rbuff[j] = ircol[j]->selectInts(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int32_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::UINT:
+	    rbuff[j] = ircol[j]->selectUInts(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint32_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::LONG:
+	    rbuff[j] = ircol[j]->selectLongs(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int64_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::ULONG:
+	    rbuff[j] = ircol[j]->selectULongs(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint64_t>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::FLOAT:
+	    rbuff[j] = ircol[j]->selectFloats(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<float>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::DOUBLE:
+	    rbuff[j] = ircol[j]->selectDoubles(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<double>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    rbuff[j] = ircol[j]->selectStrings(maskr_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<std::vector<std::string>*>(rbuff[j]),
+		     *orderr_);
+	    else
+		sane = false;
+	    break;
+	default:
+	    sane = false;
+	    rbuff[j] = 0;
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- jRange::select does not support column "
+		"type " << ibis::TYPESTRING[(int)ircol[j]->type()]
+		<< " (name = " << partr_.name() << "." << ircol[j]->name()
+		<< ")";
+	    break;
+	}
+    }
+    if (! sane) {
+	return res;
+    }
+
+    // retrieve values from parts_
+    for (uint32_t j = 0; sane && j < iscol.size(); ++ j) {
+	stypes[j] = iscol[j]->type();
+	switch (iscol[j]->type()) {
+	case ibis::BYTE:
+	    sbuff[j] = iscol[j]->selectBytes(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<signed char>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::UBYTE:
+	    sbuff[j] = iscol[j]->selectUBytes(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<unsigned char>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::SHORT:
+	    sbuff[j] = iscol[j]->selectShorts(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int16_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::USHORT:
+	    sbuff[j] = iscol[j]->selectUShorts(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint16_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::INT:
+	    sbuff[j] = iscol[j]->selectInts(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int32_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::UINT:
+	    sbuff[j] = iscol[j]->selectUInts(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint32_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::LONG:
+	    sbuff[j] = iscol[j]->selectLongs(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<int64_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::ULONG:
+	    sbuff[j] = iscol[j]->selectULongs(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint64_t>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::FLOAT:
+	    sbuff[j] = iscol[j]->selectFloats(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<float>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::DOUBLE:
+	    sbuff[j] = iscol[j]->selectDoubles(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<double>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    sbuff[j] = iscol[j]->selectStrings(masks_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<std::vector<std::string>*>(sbuff[j]),
+		     *orders_);
+	    else
+		sane = false;
+	    break;
+	default:
+	    sane = false;
+	    sbuff[j] = 0;
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- jRange::select does not support column "
+		"type " << ibis::TYPESTRING[(int)iscol[j]->type()]
+		<< " (name = " << parts_.name() << "." << iscol[j]->name()
+		<< ")";
+	    break;
+	}
+    }
+    if (! sane) {
+	return res;
+    }
+
+    /// fill the in-memory buffer
+    switch (colr_.type()) {
+    case ibis::BYTE:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<signed char>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<signed char>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::UBYTE:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<unsigned char>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<unsigned char>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::SHORT:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<int16_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<int16_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::USHORT:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<uint16_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<uint16_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::INT:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<int32_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<int32_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::UINT:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<uint32_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<uint32_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::LONG:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<int64_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<int64_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::ULONG:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<uint64_t>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<uint64_t>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::FLOAT:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<float>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<float>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    case ibis::DOUBLE:
+	res = fillResult
+	    (nrows, delta1_, delta2_, evt,
+	     *static_cast<array_t<double>*>(valr_), rtypes, rbuff,
+	     *static_cast<array_t<double>*>(vals_), stypes, sbuff,
+	     colnames, ipToPos);
+	break;
+    default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not handle join column of type "
+	    << ibis::TYPESTRING[(int)colr_.type()];
+    }
+    return res;
 } // ibis::jRange::select
+
+/// Generate a table representing a range-join in memory.  The input to
+/// this function are values to go into the resulting table; it only needs
+/// to match the rows and fill the output table.
+///
+/// @note This implementation is for elementary numberical data types only.
+template <typename T>
+ibis::table*
+ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
+			 const std::string &desc,
+			 const ibis::array_t<T>& rjcol,
+			 const ibis::table::typeList& rtypes,
+			 const std::vector<void*>& rbuff,
+			 const ibis::array_t<T>& sjcol,
+			 const ibis::table::typeList& stypes,
+			 const ibis::bord::bufferList& sbuff,
+			 const ibis::table::stringList& tcname,
+			 const std::vector<uint32_t>& tcnpos) {
+    if (nrows < 0 || nrows > (rjcol.size() * sjcol.size()) ||
+	rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
+	tcname.size() != rtypes.size() + stypes.size() ||
+	tcnpos.size() != tcname.size()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- jRange::fillResult can not proceed due "
+	    "to invalid arguments";
+	return 0;
+    }
+    std::string tn = ibis::util::shortName(desc.c_str());
+    if (nrows == 0 || rjcol.empty() || sjcol.empty() ||
+	(stypes.empty() && rtypes.empty()))
+	return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
+
+    ibis::bord::bufferList tbuff(tcname.size());
+    ibis::table::typeList ttypes(tcname.size());
+    ibis::util::guard gtbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
+    try {
+	bool badpos = false;
+	// allocate enough space for the output table
+	for (size_t j = 0; j < tcname.size(); ++ j) {
+	    if (tcnpos[j] < rtypes.size()) {
+		ttypes[j] = rtypes[tcnpos[j]];
+		tbuff[j] = ibis::bord::allocateBuffer(rtypes[tcnpos[j]], nrows);
+	    }
+	    else if (tcnpos[j] < rtypes.size()+stypes.size()) {
+		ttypes[j] = stypes[tcnpos[j]-rtypes.size()];
+		tbuff[j] = ibis::bord::allocateBuffer
+		    (stypes[tcnpos[j]-rtypes.size()], nrows);
+	    }
+	    else { // tcnpos is out of valid range
+		ttypes[j] = ibis::UNKNOWN_TYPE;
+		tbuff[j] = 0;
+		badpos = true;
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- jRange::fillResult detects an "
+		    "invalid tcnpos[" << j << "] = " << tcnpos[j]
+		    << ", should be less than " << rtypes.size()+stypes.size();
+	    }
+	}
+	if (badpos) {
+	    return 0;
+	}
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- jRange::fillResult failed to allocate "
+	    "sufficient memory for " << nrows << " row" << (nrows>1?"s":"")
+	    << " and " << rtypes.size()+stypes.size()
+	    << " column" << (rtypes.size()+stypes.size()>1?"s":"");
+	return 0;
+    }
+
+    size_t tind = 0; // row index into the resulting table
+    uint32_t ir0 = 0;
+    uint32_t ir1 = 0;
+    uint32_t is = 0;
+    const uint32_t nr = rjcol.size();
+    const uint32_t ns = sjcol.size();
+    while (ir0 < nr && is < ns) {
+	while (ir0 < nr && rjcol[ir0] < sjcol[is]+delta1)
+	    ++ ir0;
+	ir1=(ir1>=ir0?ir1:ir0);
+	while (ir1 < nr && rjcol[ir1] <= sjcol[is]+delta2)
+	    ++ ir1;
+	if (ir1 > ir0) { // found matches
+	    size_t is0 = is;
+	    while (is < ns && sjcol[is] == sjcol[is0])
+		++ is;
+	    for (size_t jr = ir0; jr < ir1; ++ jr) {
+		for (size_t js = is0; js < is; ++ js) {
+		    for (size_t jt = 0; jt < tcnpos.size(); ++ jt) {
+			if (tcnpos[jt] < rbuff.size()) {
+			    ibis::bord::copyValue(rtypes[tcnpos[jt]],
+						  tbuff[jt], tind,
+						  rbuff[tcnpos[jt]], jr);
+			}
+			else {
+			    ibis::bord::copyValue
+				(stypes[tcnpos[jt]-rtypes.size()],
+				 tbuff[jt], tind,
+				 sbuff[tcnpos[jt]-rtypes.size()], js);
+			}
+		    } // j
+		    ++ tind;
+		} // js
+	    } // jr
+	}
+	else {
+	    ++ is;
+	}
+    } // while ...
+    if (tind != nrows) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- jRange::fillResult expected to produce "
+	    << nrows << " row" << (nrows>1?"s":"") << ", but produced "
+	    << tind << " instead";
+	return 0;
+    }
+
+    return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+			  tbuff, ttypes, tcname);
+} // ibis::jRange::fillResult

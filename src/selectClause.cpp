@@ -96,8 +96,8 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
 } // ibis::selectClause::selectClause
 
 ibis::selectClause::selectClause(const ibis::selectClause& rhs)
-    : terms_(rhs.terms_.size()), aggr_(rhs.aggr_.size()),
-      clause_(rhs.clause_), lexer(0) {
+    : terms_(rhs.terms_.size()), aggr_(rhs.aggr_), alias_(rhs.alias_),
+      names_(rhs.names_), xnames_(rhs.xnames_), clause_(rhs.clause_), lexer(0) {
     for (uint32_t i = 0; i < rhs.terms_.size(); ++ i) {
 	terms_[i] = rhs.terms_[i]->dup();
 	aggr_[i] = rhs.aggr_[i];
@@ -301,8 +301,12 @@ void ibis::selectClause::fillNames() {
 	}
 
 	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL &&
-	    terms_[j]->termType() == ibis::math::VARIABLE)
+	    terms_[j]->termType() == ibis::math::VARIABLE) {
 	    xnames_[j] = names_[j];
+	    for (unsigned i = 0; i < names_[j].size(); ++ i)
+		if (! isalnum(xnames_[j][i]))
+		    xnames_[j][i] = '_';
+	}
 
 	if (xnames_[j].empty()) {
 	    std::ostringstream oss;
@@ -353,8 +357,8 @@ void ibis::selectClause::fillNames() {
 /// returns -1.  The incoming argument may be an alias, a column name, or
 /// the exact form of the arithmetic expression.  In case, it is the whole
 /// arithmetic expression, it must be exactly the same as the original term
-/// passed to the constructor of this class.  The comparison is done with
-/// case-insensitive string comparison.
+/// passed to the constructor of this class including spaces.  The
+/// comparison is done with case-insensitive string comparison.
 int ibis::selectClause::find(const char* key) const {
     int ret = -1;
     if (key != 0 && *key != 0) {
@@ -471,6 +475,24 @@ void ibis::selectClause::print(std::ostream& out) const {
     }
 } // ibis::selectClause::print
 
+void ibis::selectClause::getNullMask(const ibis::part& part0,
+				     ibis::bitvector& mask) const {
+    if (terms_.size() > 0) {
+	ibis::part::barrel bar(&part0);
+	for (uint32_t j = 0; j < terms_.size(); ++ j)
+	    bar.recordVariable(terms_[j]);
+	if (bar.size() > 0) {
+	    bar.getNullMask(mask);
+	}
+	else {
+	    mask.copy(part0.getNullMask());
+	}
+    }
+    else {
+	mask.copy(part0.getNullMask());
+    }
+} // ibis::selectClause::getNullMask
+
 /// Are all the variables are present in the specified data partition?
 /// Returns the number of variables that are not.  This function also
 /// simplifies the arithmetic expression if
@@ -489,13 +511,15 @@ int ibis::selectClause::verify(const ibis::part& part0) const {
 		const_cast<mathTerms&>(terms_)[j] = tmp;
 	    }
 	}
-	ierr += ibis::selectClause::_verify(part0, *(terms_[j]));
+	ierr += verifyTerm(*(terms_[j]), part0, this);
     }
     return ierr;
 } // ibis::selectClause::verify
 
-int ibis::selectClause::verifySome(const ibis::part& part0,
-				   const std::vector<uint32_t>& touse) const {
+/// Verify the selected terms.  Return the number of terms containing
+/// unknown names.
+int ibis::selectClause::verifySome(const std::vector<uint32_t>& touse,
+				   const ibis::part& part0) const {
     int ierr = 0;
     for (uint32_t j = 0; j < touse.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
@@ -505,13 +529,16 @@ int ibis::selectClause::verifySome(const ibis::part& part0,
 		const_cast<mathTerms&>(terms_)[touse[j]] = tmp;
 	    }
 	}
-	ierr += ibis::selectClause::_verify(part0, *(terms_[touse[j]]));
+	ierr += verifyTerm(*(terms_[touse[j]]), part0, this);
     }
     return ierr;
 } // ibis::selectClause::verifySome
 
-int ibis::selectClause::_verify(const ibis::part& part0,
-				const ibis::math::term& xp0) const {
+/// Verify the specified term has valid column names.  It returns the
+/// number of terms not in the given data partition.
+int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
+				   const ibis::part& part0,
+				   const ibis::selectClause* sel0) {
     int ierr = 0;
 
     if (xp0.termType() == ibis::math::VARIABLE) {
@@ -519,46 +546,36 @@ int ibis::selectClause::_verify(const ibis::part& part0,
 	    static_cast<const ibis::math::variable&>(xp0);
 	if (*(var.variableName()) != '*') {
 	    if (part0.getColumn(var.variableName()) == 0) {
-		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- selectClause::verify -- data partition "
-		    << part0.name() << " does not contain a column named "
-		    << var.variableName();
+		bool alias = false;
+		if (sel0 != 0) {
+		    int as = sel0->find(var.variableName());
+		    if (as >= 0 && (unsigned)as < sel0->size())
+			alias = (part0.getColumn(sel0->argName(as)) != 0);
+		}
+		if (! alias) {
+		    ++ ierr;
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- selectClause::verifyTerm can NOT find a column named "
+			<< var.variableName() << "data partition "
+			<< part0.name();
+		}
 	    }
 	}
     }
     else if (xp0.termType() == ibis::math::UNDEFINED) {
 	++ ierr;
 	LOGGER(ibis::gVerbose > 0)
-	    << "selectClause::verify -- ibis::math::term has a "
-	    "undefined type";
+	    << "Warning -- selectClause::verifyTerm can not work with an "
+	    "ibis::math::term of undefined type";
     }
     else {
 	if (xp0.getLeft() != 0)
-	    ierr += _verify(part0, *static_cast<const ibis::math::term*>
-			   (xp0.getLeft()));
+	    ierr += verifyTerm(*static_cast<const ibis::math::term*>
+			       (xp0.getLeft()), part0, sel0);
 	if (xp0.getRight() != 0)
-	    ierr += _verify(part0, *static_cast<const ibis::math::term*>
-			    (xp0.getRight()));
+	    ierr += verifyTerm(*static_cast<const ibis::math::term*>
+			       (xp0.getRight()), part0, sel0);
     }
 
     return ierr;
-} // ibis::selectClause::_verify
-
-void ibis::selectClause::getNullMask(const ibis::part& part0,
-				     ibis::bitvector& mask) const {
-    if (terms_.size() > 0) {
-	ibis::part::barrel bar(&part0);
-	for (uint32_t j = 0; j < terms_.size(); ++ j)
-	    bar.recordVariable(terms_[j]);
-	if (bar.size() > 0) {
-	    bar.getNullMask(mask);
-	}
-	else {
-	    mask.copy(part0.getNullMask());
-	}
-    }
-    else {
-	mask.copy(part0.getNullMask());
-    }
-} // ibis::selectClause::getNullMask
+} // ibis::selectClause::verifyTerm

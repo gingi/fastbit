@@ -426,7 +426,6 @@ uint32_t ibis::dictionary::insert(const char* str) {
     }
 
     uint32_t ind = 0;
-    bool present = false;
     if (key_.size() < 16) { // use linear search
 	for (ind = 0; ind < key_.size(); ++ ind) {
 	    const int cmp = strcmp(str, key_[ind]);
@@ -519,7 +518,6 @@ uint32_t ibis::dictionary::insertRaw(char* str) {
     }
 
     uint32_t ind = 0;
-    bool present = false;
     if (key_.size() < 16) { // use linear search
 	for (ind = 0; ind < key_.size(); ++ ind) {
 	    const int cmp = strcmp(str, key_[ind]);

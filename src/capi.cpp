@@ -2244,9 +2244,9 @@ fastbit_flush_buffer(const char *dir) {
 /// followed by a combination of alphanumerical characters.  Following the
 /// SQL standard, the column name is not case sensitive.
 /// @arg coltype The type of the values for the column.  The support types
-/// are: "double", "float", "long", "int", "short", "byte", "ulong",
+/// are: "text", "double", "float", "long", "int", "short", "byte", "ulong",
 /// "uint", "ushort", and "ubyte".  Only the first non-space character is
-/// checked for the first six types and only the first two characters are
+/// checked for the first seven types and only the first two characters are
 /// checked for the remaining types.  This string is not case sensitive.
 /// @arg vals The array containing the values.  It is expected to contain
 /// no less than @c nelem values, though only the first @c nelem values are
@@ -2283,6 +2283,8 @@ fastbit_add_values(const char *colname, const char *coltype,
     case 's': type = ibis::SHORT; break;
     case 'B':
     case 'b': type = ibis::BYTE; break;
+    case 'T':
+    case 't': type = ibis::TEXT; break;
     case 'U':
     case 'u': {
 	switch (coltype[1]) {
@@ -2308,7 +2310,17 @@ fastbit_add_values(const char *colname, const char *coltype,
 	if (_capi_tablex == 0) return -3;
 
 	ierr = _capi_tablex->addColumn(colname, type);
-	ierr = _capi_tablex->append(colname, start, start+nelem, vals);
+	if (coltype[0] == 't' || coltype[0] == 'T') {
+	    std::vector<std::string> tvals(nelem);
+	    char **tmp = (char **)vals;
+	    for(int i=0; i<nelem; i++) {
+		std::cout.flush();
+		tvals[i] = tmp[i];
+	    }
+	    ierr = _capi_tablex->append(colname, start, start+nelem, (void *)&tvals);
+	} else {
+	    ierr = _capi_tablex->append(colname, start, start+nelem, vals);
+	}
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)

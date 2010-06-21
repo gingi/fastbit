@@ -342,6 +342,8 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	<< "Warning -- ibis::bundle1 will only use the 1st terms of "
 	<< cmps.size();
     ibis::column* c = tbl->getColumn(cmps.argName(0));
+    if (c == 0)
+	c = tbl->getColumn(cmps.termName(0));
     if (c == 0) {
 	ibis::util::logMessage("Warning", "ibis::bundle1::ctor name %s "
 			       "is not a column in table ", cmps.argName(0));
@@ -482,6 +484,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     }
     const ibis::selectClause& cmps = q.components();
     ibis::column* c = tbl->getColumn(cmps.argName(0));
+    if (c == 0)
+	c = tbl->getColumn(cmps.termName(0));
     if (c != 0) {
 	if (cmps.getAggregator(0) == ibis::selectClause::NIL) {
 	    // use column type
@@ -559,6 +563,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	throw "bundle1::ctor can not find a column name";
     }
     ibis::column* c = tbl.getColumn(cmps.argName(icol));
+    if (c == 0)
+	c = tbl.getColumn(cmps.termName(icol));
     if (c != 0 && vals[0] != 0) {
 	if (cmps.getAggregator(icol) == ibis::selectClause::NIL) {
 	    // use column type
@@ -1006,6 +1012,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    uint32_t start = sizeof(uint32_t)*(ncol+2);
 	    for (uint32_t i=0; i < ncol; ++i) {
 		const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
+		if (cptr == 0)
+		    cptr = tbl->getColumn(cmps.termName(i));
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
 		    switch (cmps.getAggregator(i)) {
@@ -1067,6 +1075,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	}
 	for (uint32_t i=0; i < ncol; ++i) {
 	    const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
+	    if (cptr == 0)
+		cptr = tbl->getColumn(cmps.termName(i));
 	    if (cptr != 0) {
 		ibis::colValues* tmp;
 		switch (cmps.getAggregator(i)) {
@@ -1128,6 +1138,8 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     const uint32_t ncol = cmps.size();
     for (uint32_t i=0; i < ncol; ++i) {
 	const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
+	if (cptr == 0)
+	    cptr = tbl->getColumn(cmps.termName(i));
 	if (cptr != 0) {
 	    ibis::colValues* tmp;
 	    switch (cmps.getAggregator(i)) {
@@ -1190,6 +1202,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	 ++ ic) {
 	const char* cn = cmps.argName(ic);
 	ibis::column* c = tbl.getColumn(cn);
+	if (c == 0)
+	    c = tbl.getColumn(cmps.termName(ic));
 	if (c != 0) {
 	    if (vals[iv] != 0) {
 		ibis::colValues* cv = 0;

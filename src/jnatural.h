@@ -16,28 +16,37 @@ namespace ibis {
 } // namespace ibis
 
 /// In-memory Natual Join.
+///
+/// @warning This is an experimental feature of FastBit.  The current
+/// design is very limited and is likely to go through major revisions
+/// frequently.  Feel free to express your opinions on the FastBit mailing
+/// list fastbit-users@hpcrdm.lbl.gov.
 class ibis::jNatural : public ibis::quaere {
 public:
-    jNatural(const ibis::part& partr, const ibis::part& parts,
-	     const char* colname, const char* condr, const char* conds);
-    jNatural(const ibis::part& partr, const ibis::part& parts,
-	     const ibis::column& colr, const ibis::column& cols,
+    jNatural(const ibis::part* partr, const ibis::part* parts,
+	     const char* colname, const char* condr, const char* conds,
+	     const char* sel);
+    jNatural(const ibis::part* partr, const ibis::part* parts,
+	     const ibis::column* colr, const ibis::column* cols,
 	     const ibis::qExpr* condr, const ibis::qExpr* conds,
+	     const ibis::selectClause* sel, const ibis::fromClause* frm,
 	     const char* desc);
     virtual ~jNatural();
 
     virtual void roughCount(uint64_t& nmin, uint64_t& nmax) const;
     virtual int64_t count() const;
 
-    virtual ibis::table* select(const char *sel) const;
-    virtual ibis::table* select(const std::vector<const char*>& colnames) const;
+    virtual ibis::table* select() const;
+    virtual ibis::table* select(const ibis::table::stringList& colnames) const;
 
 protected:
     std::string desc_;
+    const ibis::selectClause *sel_;
+    const ibis::fromClause *frm_;
     const ibis::part& R_;
     const ibis::part& S_;
-    const ibis::column *colR_;
-    const ibis::column *colS_;
+    const ibis::column& colR_;
+    const ibis::column& colS_;
     ibis::bitvector maskR_;
     ibis::bitvector maskS_;
 
@@ -49,27 +58,27 @@ protected:
 
     template <typename T>
     static table*
-    fillEquiJoinTable(size_t nrows,
-		      const std::string &desc,
-		      const ibis::array_t<T>& rjcol,
-		      const ibis::table::typeList& rtypes,
-		      const std::vector<void*>& rbuff,
-		      const ibis::array_t<T>& sjcol,
-		      const ibis::table::typeList& stypes,
-		      const std::vector<void*>& sbuff,
-		      const ibis::table::stringList& cnamet,
-		      const std::vector<uint32_t>& cnpos);
+    fillResult(size_t nrows,
+	       const std::string &desc,
+	       const ibis::array_t<T>& rjcol,
+	       const ibis::table::typeList& rtypes,
+	       const std::vector<void*>& rbuff,
+	       const ibis::array_t<T>& sjcol,
+	       const ibis::table::typeList& stypes,
+	       const std::vector<void*>& sbuff,
+	       const ibis::table::stringList& cnamet,
+	       const std::vector<uint32_t>& cnpos);
     static table*
-    fillEquiJoinTable(size_t nrows,
-		      const std::string &desc,
-		      const std::vector<std::string>& rjcol,
-		      const ibis::table::typeList& rtypes,
-		      const std::vector<void*>& rbuff,
-		      const std::vector<std::string>& sjcol,
-		      const ibis::table::typeList& stypes,
-		      const std::vector<void*>& sbuff,
-		      const ibis::table::stringList& cnamet,
-		      const std::vector<uint32_t>& cnpos);
+    fillResult(size_t nrows,
+	       const std::string &desc,
+	       const std::vector<std::string>& rjcol,
+	       const ibis::table::typeList& rtypes,
+	       const std::vector<void*>& rbuff,
+	       const std::vector<std::string>& sjcol,
+	       const ibis::table::typeList& stypes,
+	       const std::vector<void*>& sbuff,
+	       const ibis::table::stringList& cnamet,
+	       const std::vector<uint32_t>& cnpos);
 
 private:
     jNatural(const jNatural&); // no copying

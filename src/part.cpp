@@ -2462,9 +2462,9 @@ ibis::array_t<char>* ibis::part::selectBytes
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<char>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectBytes(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectBytes(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2505,9 +2505,9 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<unsigned char>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectUBytes(mask);
+	const ibis::column *col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectUBytes(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2548,9 +2548,9 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<int16_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectShorts(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectShorts(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2591,9 +2591,9 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<uint16_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectUShorts(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectUShorts(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2634,9 +2634,9 @@ ibis::array_t<int32_t>* ibis::part::selectInts
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<int32_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res = (*it).second->selectInts(mask);
+	const ibis::column *col = getColumn(pname);
+	if (col != 0) { // got it
+	    res = col->selectInts(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2677,9 +2677,9 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<uint32_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res = (*it).second->selectUInts(mask);
+	const ibis::column *col = getColumn(pname);
+	if (col != 0) { // got it
+	    res = col->selectUInts(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2720,9 +2720,9 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<int64_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectLongs(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectLongs(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2763,9 +2763,9 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<uint64_t>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res =  (*it).second->selectULongs(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res =  col->selectULongs(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2806,9 +2806,9 @@ ibis::array_t<float>* ibis::part::selectFloats
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<float>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res = (*it).second->selectFloats(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res = col->selectFloats(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2849,9 +2849,9 @@ ibis::array_t<double>* ibis::part::selectDoubles
 (const char* pname, const ibis::bitvector &mask) const {
     ibis::array_t<double>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res = (*it).second->selectDoubles(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res = col->selectDoubles(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2892,9 +2892,9 @@ std::vector<std::string>* ibis::part::selectStrings
 (const char* pname, const ibis::bitvector &mask) const {
     std::vector<std::string>* res = 0;
     try {
-	columnList::const_iterator it = columns.find(pname);
-	if (it != columns.end()) { // got it
-	    res = (*it).second->selectStrings(mask);
+	const ibis::column* col = getColumn(pname);
+	if (col != 0) { // got it
+	    res = col->selectStrings(mask);
 	}
     }
     catch (const std::exception &e) {
@@ -2978,37 +2978,25 @@ long ibis::part::lookforString(const ibis::qString &cmp,
     }
 
     // try leftString()
-    columnList::const_iterator it = columns.find(cmp.leftString());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ierr = (*it).second->keywordSearch(cmp.rightString(), low);
-	    if (ierr < 0)
-		ierr = (*it).second->stringSearch(cmp.rightString(), low);
-	    return ierr;
-	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ierr = (*it).second->stringSearch(cmp.rightString(), low);
-	    return ierr;
-	}
-    }
-
+    const ibis::column* col = getColumn(cmp.leftString());
     // try rightString
-    it = columns.find(cmp.rightString());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ierr = (*it).second->keywordSearch(cmp.leftString(), low);
+    if (col == 0)
+	col = getColumn(cmp.rightString());
+
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ierr = col->keywordSearch(cmp.rightString(), low);
 	    if (ierr < 0)
-		ierr = (*it).second->stringSearch(cmp.rightString(), low);
-	    return ierr;
+		ierr = col->stringSearch(cmp.rightString(), low);
 	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ierr = (*it).second->stringSearch(cmp.leftString(), low);
-	    return ierr;
+	else if (col->type() == ibis::CATEGORY) {
+	    ierr = col->stringSearch(cmp.rightString(), low);
 	}
     }
-
-    // no match -- no hit
-    low.set(0, nEvents);
+    else {
+	// no match -- no hit
+	low.set(0, nEvents);
+    }
     return ierr;
 } // ibis::part::lookforString
 
@@ -3022,36 +3010,19 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 	return ret;
 
     // try leftString()
-    columnList::const_iterator it = columns.find(cmp.leftString());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ret = (*it).second->keywordSearch(cmp.rightString());
+    const ibis::column* col = getColumn(cmp.leftString());
+    if (col == 0)    // try rightString
+	col = getColumn(cmp.rightString());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ret = col->keywordSearch(cmp.rightString());
 	    if (ret < 0)
-		ret = (*it).second->stringSearch(cmp.rightString());
-	    return ret;
+		ret = col->stringSearch(cmp.rightString());
 	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ret = (*it).second->stringSearch(cmp.rightString());
-	    return ret;
+	else if (col->type() == ibis::CATEGORY) {
+	    ret = col->stringSearch(cmp.rightString());
 	}
     }
-
-    // try rightString
-    it = columns.find(cmp.rightString());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ret = (*it).second->keywordSearch(cmp.leftString());
-	    if (ret < 0)
-		ret = (*it).second->stringSearch(cmp.rightString());
-	    return ret;
-	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ret = (*it).second->stringSearch(cmp.leftString());
-	    return ret;
-	}
-    }
-
-    // no match -- no hit
     return ret;
 } // ibis::part::lookforString
 
@@ -3063,11 +3034,11 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp,
     int ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT ||
-	    (*it).second->type() == ibis::CATEGORY) {
-	    ierr = (*it).second->stringSearch(cmp.valueList(), low);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT ||
+	    col->type() == ibis::CATEGORY) {
+	    ierr = col->stringSearch(cmp.valueList(), low);
 	    return ierr;
 	}
     }
@@ -3082,15 +3053,10 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
     if (columns.empty() || nEvents == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	if ((*it).second->type() == ibis::TEXT) {
-	    ibis::text* col = (ibis::text*)(*it).second;
-	    ret = col->stringSearch(cmp.valueList());
-	    return ret;
-	}
-	else if ((*it).second->type() == ibis::CATEGORY) {
-	    ibis::category* col = (ibis::category*)(*it).second;
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT ||
+	    col->type() == ibis::CATEGORY) {
 	    ret = col->stringSearch(cmp.valueList());
 	    return ret;
 	}
@@ -3104,9 +3070,9 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
 long ibis::part::patternSearch(const ibis::qLike &cmp) const {
     if (columns.empty() || nEvents == 0) return 0;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	return (*it).second->patternSearch(cmp.pattern());
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	return col->patternSearch(cmp.pattern());
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -3122,9 +3088,9 @@ long ibis::part::patternSearch(const ibis::qLike &cmp,
 			       ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0) return 0;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	return (*it).second->patternSearch(cmp.pattern(), hits);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	return col->patternSearch(cmp.pattern(), hits);
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -3143,13 +3109,13 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
     if (cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateRange(cmp);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateRange(cmp);
 	if (ret < 0) {
 	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
 	    unloadIndexes();
-	    ret = (*it).second->estimateRange(cmp);
+	    ret = col->estimateRange(cmp);
 	}
     }
     else {
@@ -3170,13 +3136,13 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
     if (cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateRange(cmp);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateRange(cmp);
 	if (ret < 0) {
 	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
 	    unloadIndexes();
-	    ret = (*it).second->estimateRange(cmp);
+	    ret = col->estimateRange(cmp);
 	}
     }
     else {
@@ -3276,13 +3242,13 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 // 	}
 //     }
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ierr = (*it).second->evaluateRange(cmp, mask, hits);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ierr = col->evaluateRange(cmp, mask, hits);
 	if (ierr < 0) {
 	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 	    unloadIndexes();
-	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	}
     }
     else {
@@ -3308,13 +3274,13 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	ierr = -7;
     }
     else {
-	columnList::const_iterator it = columns.find(cmp.colName());
-	if (it != columns.end()) {
-	    ierr = (*it).second->evaluateRange(cmp, mask, hits);
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = (*it).second->evaluateRange(cmp, mask, hits);
+		ierr = col->evaluateRange(cmp, mask, hits);
 	    }
 	}
 	else {
@@ -3429,9 +3395,9 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
 // 	}
 //     }
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ierr = (*it).second->estimateRange(cmp, low, high);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ierr = col->estimateRange(cmp, low, high);
 	if (amask.size() == low.size()) {
 	    low &= amask;
 	    if (amask.size() == high.size())
@@ -3470,9 +3436,9 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
 	ierr = -7;
     }
     else {
-	columnList::const_iterator it = columns.find(cmp.colName());
-	if (it != columns.end()) {
-	    ierr = (*it).second->estimateRange(cmp, low, high);
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->estimateRange(cmp, low, high);
 	    if (amask.size() == low.size()) {
 		low &= amask;
 		if (amask.size() == high.size())
@@ -3510,9 +3476,9 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
 	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateCost(cmp);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateCost(cmp);
     }
     else {
 	logWarning("estimateCost", "unable to find a column named %s ",
@@ -3528,9 +3494,9 @@ double ibis::part::estimateCost(const ibis::qDiscreteRange &cmp) const {
     if (cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateCost(cmp);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateCost(cmp);
     }
     else {
 	logWarning("estimateCost", "unable to find a column named %s",
@@ -3546,11 +3512,11 @@ double ibis::part::estimateCost(const ibis::qString &cmp) const {
     if (cmp.leftString() == 0 || cmp.rightString() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.leftString());
-    if (it == columns.end())
-	it = columns.find(cmp.rightString());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateCost(cmp);
+    const ibis::column* col = getColumn(cmp.leftString());
+    if (col == 0)
+	col = getColumn(cmp.rightString());
+    if (col != 0) {
+	ret = col->estimateCost(cmp);
     }
     else {
 	logWarning("estimateCost", "unable to find a column named %s or %s",
@@ -3566,9 +3532,9 @@ double ibis::part::estimateCost(const ibis::qMultiString &cmp) const {
     if (cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->estimateCost(cmp);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateCost(cmp);
     }
     else {
 	logWarning("estimateCost", "unable to find a column named %s",
@@ -3689,8 +3655,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     if (cmp.colName() == 0)
 	return 0;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	logWarning("doScan", "unable to find column %s "
 		   "in the data partition", cmp.colName());
 	hits.clear();
@@ -3698,7 +3664,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     }
 
     ibis::bitvector mask;
-    (*it).second->getNullMask(mask);
+    col->getNullMask(mask);
     if (amask.size() == mask.size())
 	mask &= amask;
     return doScan(cmp, mask, hits);
@@ -3713,24 +3679,24 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	logWarning("doScan", "unable to find named column %s "
 		   "in the data partition", cmp.colName());
 	return -1;
     }
 
     std::string sname;
-    const char* file = (*it).second->dataFileName(sname);
+    const char* file = col->dataFileName(sname);
     if (file == 0) {
 	logWarning("doScan", "unable to locate the vertically "
 		   "partitioned data file");
 	return -2;
     }
-    if ((*it).second->elementSize() > 0) {
+    if (col->elementSize() > 0) {
 	off_t fsize = ibis::util::getFileSize(file);
 	if (fsize <= 0 || (unsigned long)fsize !=
-	    (*it).second->elementSize() * nEvents) {
+	    col->elementSize() * nEvents) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- part[" << (m_name?m_name:"?")
 		<< "]::doScan(" << cmp
@@ -3744,16 +3710,16 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    << "Warning -- part[" << (m_name?m_name:"?")
 	    << "]::doScan(" << cmp
 	    << ") can not process the condition on column type "
-	    << ibis::TYPESTRING[(int)(*it).second->type()];
+	    << ibis::TYPESTRING[(int)col->type()];
 	return -4;
     }
 
     long ierr = 0;
-    switch ((*it).second->type()) {
+    switch (col->type()) {
     default:
 	logWarning("doScan", "unable to process data type %d (%s)",
-		   (*it).second->type(),
-		   ibis::TYPESTRING[(int)(*it).second->type()]);
+		   col->type(),
+		   ibis::TYPESTRING[(int)col->type()]);
 	hits.set(0, nEvents);
 	ierr = -5;
 	break;
@@ -3764,11 +3730,11 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	// the rest of the code a little simpler!
 	ibis::bitvector tmp;
 	if (cmp.getType() == ibis::qExpr::RANGE)
-	    (*it).second->estimateRange
+	    col->estimateRange
 		(reinterpret_cast<const ibis::qContinuousRange&>(cmp),
 		 hits, tmp);
 	else
-	    (*it).second->estimateRange
+	    col->estimateRange
 		(reinterpret_cast<const ibis::qDiscreteRange&>(cmp),
 		 hits, tmp);
 	hits &= mask;
@@ -4133,24 +4099,24 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	logWarning("negativeScan", "unable to find named column %s "
 		   "in the data partition", cmp.colName());
 	return -1;
     }
 
     std::string sname;
-    const char* file = (*it).second->dataFileName(sname);
+    const char* file = col->dataFileName(sname);
     if (file == 0) {
 	logWarning("negativeScan", "unable to locate the vertically "
 		   "partitioned data file");
 	return -2;
     }
-    if ((*it).second->elementSize() > 0) {
+    if (col->elementSize() > 0) {
 	off_t fsize = ibis::util::getFileSize(file);
 	if (fsize <= 0 || (unsigned long)fsize !=
-	    (*it).second->elementSize() * nEvents) {
+	    col->elementSize() * nEvents) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- part[" << (m_name?m_name:"?")
 		<< "]::negativeScan(" << cmp << "can not proceed"
@@ -4160,23 +4126,23 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
     }
 
     long ierr = -4;
-    switch ((*it).second->type()) {
+    switch (col->type()) {
     default:
 	logWarning("negativeScan",
 		   "unable to process data type %d (%s)",
-		   (*it).second->type(),
-		   ibis::TYPESTRING[(int)(*it).second->type()]);
+		   col->type(),
+		   ibis::TYPESTRING[(int)col->type()]);
 	hits.set(0, nEvents);
 	break;
 
     case CATEGORY: {
 	ibis::bitvector tmp;
 	if (cmp.getType() == ibis::qExpr::RANGE)
-	    (*it).second->estimateRange
+	    col->estimateRange
 		(reinterpret_cast<const ibis::qContinuousRange&>(cmp),
 		 hits, tmp);
 	else
-	    (*it).second->estimateRange
+	    col->estimateRange
 		(reinterpret_cast<const ibis::qDiscreteRange&>(cmp),
 		 hits, tmp);
 	hits &= mask;
@@ -4310,9 +4276,9 @@ float ibis::part::getUndecidable(const ibis::qContinuousRange &cmp,
     if (cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->getUndecidable(cmp, iffy);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->getUndecidable(cmp, iffy);
     }
     else {
 	logWarning("getUndecidable", "unable to find a column named %s",
@@ -4333,9 +4299,9 @@ float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
     if (columns.empty() || nEvents == 0 || cmp.colName() == 0)
 	return ret;
 
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it != columns.end()) {
-	ret = (*it).second->getUndecidable(cmp, iffy);
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->getUndecidable(cmp, iffy);
     }
     else {
 	logWarning("getUndecidable", "unable to find a column named %s",
@@ -4487,6 +4453,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
     ibis::part::barrel vlist(this);
     vlist.recordVariable(&trm);
     res.reserve(msk.cnt());
+    res.clear(); // clear the existing content
     if (vlist.size() == 0) { // a constant expression
 	res.resize(msk.cnt());
 	const double val = trm.eval();
@@ -9709,8 +9676,8 @@ long ibis::part::doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 } // ibis::part::doCompare0
 
 long ibis::part::countHits(const ibis::qRange &cmp) const {
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	logWarning("countHits", "unknown column name %s in query expression",
 		   cmp.colName());
 	return -1;
@@ -9720,7 +9687,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start();
-    switch ((*it).second->type()) {
+    switch (col->type()) {
     case ibis::UBYTE:
 	ierr = doCount<unsigned char>(cmp);
 	break;
@@ -9754,7 +9721,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
     default:
 	if (ibis::gVerbose >= 0)
 	    logWarning("countHits", "does not support type %d (%s)",
-		       static_cast<int>((*it).second->type()),
+		       static_cast<int>(col->type()),
 		       cmp.colName());
 	ierr = -4;
 	break;
@@ -9775,13 +9742,13 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 
 template <typename T>
 long ibis::part::doCount(const ibis::qRange &cmp) const {
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	return -1;
     }
 
     std::string sname;
-    const char* filename = (*it).second->dataFileName(sname);
+    const char* filename = col->dataFileName(sname);
     if (filename == 0)
 	return -2;
 
@@ -9791,7 +9758,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 	return -3;
     }
     ibis::bitvector mask;
-    (*it).second->getNullMask(mask);
+    col->getNullMask(mask);
     mask.adjustSize(0, vals.size());
     if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
 	return doCount(vals, cmp, mask);
@@ -10274,13 +10241,13 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 /// the comparison are performed as doubles.
 template <>
 long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	return -1;
     }
 
     std::string sname;
-    const char* filename = (*it).second->dataFileName(sname);
+    const char* filename = col->dataFileName(sname);
     if (filename == 0)
 	return -2;
 
@@ -10290,7 +10257,7 @@ long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
 	return -3;
     }
     ibis::bitvector mask;
-    (*it).second->getNullMask(mask);
+    col->getNullMask(mask);
     mask.adjustSize(0, vals.size());
     if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
 	return doCount(vals, cmp, mask);
@@ -10646,13 +10613,13 @@ long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
 /// A specialization of template part::doCount for double values.
 template <>
 long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
-    columnList::const_iterator it = columns.find(cmp.colName());
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
 	return -1;
     }
 
     std::string sname;
-    const char* filename = (*it).second->dataFileName(sname);
+    const char* filename = col->dataFileName(sname);
     if (filename == 0)
 	return -2;
 
@@ -10662,7 +10629,7 @@ long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
 	return -3;
     }
     ibis::bitvector mask;
-    (*it).second->getNullMask(mask);
+    col->getNullMask(mask);
     mask.adjustSize(0, vals.size());
     if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
 	return doCount(vals, cmp, mask);
@@ -11395,26 +11362,26 @@ void ibis::part::makeBackupCopy() {
 } // ibis::part::makeBackupCopy
 
 double ibis::part::getActualMin(const char *name) const {
-    columnList::const_iterator it = columns.find(name);
-    if (it != columns.end())
-	return (*it).second->getActualMin();
+    const ibis::column* col = getColumn(name);
+    if (col != 0)
+	return col->getActualMin();
     else
 	return DBL_MAX;
 } // ibis::part::getActualMin
 
 double ibis::part::getActualMax(const char *name) const {
-    columnList::const_iterator it = columns.find(name);
-    if (it != columns.end())
-	return (*it).second->getActualMax();
+    const ibis::column* col = getColumn(name);
+    if (col != 0)
+	return col->getActualMax();
     else
 	return -DBL_MAX;
 } // ibis::part::getActualMax
 
 double ibis::part::getColumnSum(const char *name) const {
     double ret;
-    columnList::const_iterator it = columns.find(name);
-    if (it != columns.end())
-	ret = (*it).second->getSum();
+    const ibis::column* col = getColumn(name);
+    if (col != 0)
+	ret = col->getSum();
     else
 	ibis::util::setNaN(ret);
     return ret;
@@ -11793,7 +11760,7 @@ long ibis::part::barrel::open(const ibis::part *t) {
 			      name(i));
 		return ierr;
 	    }
-	    // use the name from col variable to ensure the case is correct
+	    // use the name from col to ensure the case is correct
 	    dfn += col->name();
 	    // use getFile first
 	    ierr = ibis::fileManager::instance().
@@ -11829,6 +11796,7 @@ long ibis::part::barrel::open(const ibis::part *t) {
 	    else {
 		stores[i] = col->getRawData();
 		if (stores[i] != 0) {
+		    stores[i]->beginUse();
 		    cols[i] = col;
 		}
 		else {
@@ -11843,23 +11811,23 @@ long ibis::part::barrel::open(const ibis::part *t) {
     }
     if (ibis::gVerbose > 5) {
 	if (size() > 1) {
-	    t->logMessage("barrel::open",
-			  "successfully opened %lu files from %s",
-			  static_cast<long unsigned>(size()),
-			  (t->currentDataDir() ? t->currentDataDir() :
-			   "memory"));
+	    ibis::util::logger lg;
+	    lg.buffer() << "part[" << t->name() << "::barrel::open -- ";
+	    if (t->currentDataDir() != 0)
+		lg.buffer() << "opened " << size() << " files from "
+			    << t->currentDataDir();
+	    else
+		lg.buffer() << "prepared " << size() << " arrays in memory";
 	    if (ibis::gVerbose > 7) {
-		ibis::util::logger lg;
 		if (stores[0])
-		    lg.buffer() << "stores[0]: "
+		    lg.buffer() << "\n\t0: " << name(0) << ", "
 				<< static_cast<void*>(stores[0]->begin());
 		else
-		    lg.buffer() << "file " << fdes[0];
+		    lg.buffer() << "\n\t0: " << name(0) << ", " << fdes[0];
 		for (uint32_t i = 1 ; i < size(); ++ i) {
-		    lg.buffer() << ", ";
+		    lg.buffer() << "; " << i << ": " << name(i) << ", ";
 		    if (stores[i])
-			lg.buffer() << "stores[" << i << "]: "
-				    << static_cast<void*>(stores[i]->begin());
+			lg.buffer() << static_cast<void*>(stores[i]->begin());
 		    else
 			lg.buffer() << "file " << fdes[i];
 		}

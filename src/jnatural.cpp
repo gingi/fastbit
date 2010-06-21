@@ -6,39 +6,53 @@
 #include "bord.h"	// ibis::bord, ibis::bord::bufferList
 #include "countQuery.h"	// ibis::countQuery
 #include "utilidor.h"	// ibis::util::sortMerge
+#include "fromClause.h"
+#include "selectClause.h"
+
 #include <stdexcept>	// std::exception
 
-/// Constructor.  This constructor handles a join equivalent to one of the
-/// following SQL statements
+/// Constructor.  This constructor handles a join expression equivalent to
+/// one of the following SQL statements
+///
 ///@code
 /// From partr Join parts On colr = cols where condr and conds;
 /// From partr, parts where partr.colr = parts.cols and condr and conds;
 ///@endcode
-/// Note that to make it easier to apply 
-ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
-			 const ibis::column& colr, const ibis::column& cols,
+///
+/// Note that this function processes the selection conditions on partr and
+/// parts immediately and therefore does not actually remember the
+/// conditions condr and conds.  To preserve those conditions, it is
+/// recommended to keep the original query string as the description desc.
+ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
+			 const ibis::column* colr, const ibis::column* cols,
 			 const ibis::qExpr* condr, const ibis::qExpr* conds,
+			 const ibis::selectClause* sel,
+			 const ibis::fromClause* frm,
 			 const char* desc)
-    : R_(partr), S_(parts), colR_(&colr), colS_(&cols),
-      valR_(0), valS_(0), nrows(-1) {
+    : sel_(sel ? new ibis::selectClause(*sel) : 0),
+      frm_(frm ? new ibis::fromClause(*frm) : 0), R_(*partr), S_(*parts),
+      colR_(*colr), colS_(*cols), valR_(0), valS_(0), nrows(-1) {
     int ierr;
-    if (desc == 0) {
+    if (desc == 0 || *desc == 0) { // build a description string
 	desc_ = "From ";
-	desc_ += partr.name();
+	desc_ += partr->name();
 	desc_ += " Join ";
-	desc_ += parts.name();
+	desc_ += parts->name();
 	desc_ += " On ";
-	desc_ += partr.name();
+	desc_ += partr->name();
 	desc_ += '.';
-	desc_ += colr.name();
+	desc_ += colr->name();
 	desc_ += " = ";
-	desc_ += parts.name();
+	desc_ += parts->name();
 	desc_ += '.';
-	desc_ += cols.name();
+	desc_ += cols->name();
 	desc_ += " Where ...";
     }
+    else {
+	desc_ = desc;
+    }
     if (condr != 0) {
-	ibis::countQuery que(&partr);
+	ibis::countQuery que(partr);
 	ierr = que.setWhereClause(condr);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
@@ -60,10 +74,10 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 	maskR_.copy(*que.getHitVector());
     }
     else {
-	colR_->getNullMask(maskR_);
+	colR_.getNullMask(maskR_);
     }
     if (conds != 0) {
-	ibis::countQuery que(&parts);
+	ibis::countQuery que(parts);
 	ierr = que.setWhereClause(conds);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
@@ -85,7 +99,7 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 	maskS_.copy(*que.getHitVector());
     }
     else {
-	colR_->getNullMask(maskS_);
+	colR_.getNullMask(maskS_);
     }
 } // constructor
 
@@ -97,33 +111,26 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 /// Note that conditions specified in condr is for partr only, and
 /// conds is for parts only.  If no conditions are specified, all valid
 /// records in the partition will participate in the natural join.
-ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
+ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 			 const char* colname, const char* condr,
-			 const char* conds)
-    : R_(partr), S_(parts), colR_(0), colS_(0), orderR_(0), orderS_(0),
-      valR_(0), valS_(0), nrows(-1) {
+			 const char* conds, const char* sel)
+    : sel_(new ibis::selectClause(sel)), R_(*partr), S_(*parts),
+      colR_(*(partr->getColumn(colname))), colS_(*(parts->getColumn(colname))),
+      orderR_(0), orderS_(0), valR_(0), valS_(0), nrows(-1) {
     if (colname == 0 || *colname == 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::jNatural must have a valid string for colname";
 	throw "ibis::jNatural must have a valid colname as join columns";
     }
 
-    colR_ = R_.getColumn(colname);
-    colS_ = S_.getColumn(colname);
-    if (colR_ == 0 || colS_ == 0 || colR_->type() != colS_->type()) {
-	if (ibis::gVerbose > 1) {
-	    ibis::util::logger lg(1);
-	    lg.buffer() << "Warning -- ibis::jNatural ";
-	    if (colR_ == 0 || colS_ == 0)
-		lg.buffer() << "cannot find column " << colname << " in "
-			    << R_.name() << " and " << S_.name();
-	    else
-		lg.buffer() << "type of " << R_.name() << "." << colname
-			    << "(" << ibis::TYPESTRING[colR_->type()]
-			    << ") does not match type of " << S_.name()
-			    << "." << colname << "("
-			    << ibis::TYPESTRING[colS_->type()] << ")";
-	}
+    if (colR_.type() != colS_.type()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- ibis::jNatural detects the join columns with "
+	    << "mismatching types: " << R_.name() << "." << colname
+	    << " (" << ibis::TYPESTRING[colR_.type()] << "), "
+	    << S_.name()   << "." << colname << " ("
+	    << ibis::TYPESTRING[colS_.type()] << ")";
+
 	throw std::invalid_argument("ibis::jNatural join columns missing "
 				    "or having different types");
     }
@@ -140,7 +147,7 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 
     int ierr;
     if (condr != 0 && *condr != 0) {
-	ibis::countQuery que(&partr);
+	ibis::countQuery que(partr);
 	ierr = que.setWhereClause(condr);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
@@ -160,10 +167,10 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 	maskR_.copy(*que.getHitVector());
     }
     else {
-	colR_->getNullMask(maskR_);
+	colR_.getNullMask(maskR_);
     }
     if (conds != 0 && *conds != 0) {
-	ibis::countQuery que(&parts);
+	ibis::countQuery que(parts);
 	ierr = que.setWhereClause(conds);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
@@ -183,7 +190,7 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 	maskS_.copy(*que.getHitVector());
     }
     else {
-	colR_->getNullMask(maskS_);
+	colR_.getNullMask(maskS_);
     }
 
     LOGGER(ibis::gVerbose > 2)
@@ -193,13 +200,15 @@ ibis::jNatural::jNatural(const ibis::part& partr, const ibis::part& parts,
 ibis::jNatural::~jNatural() {
     delete orderR_;
     delete orderS_;
-    ibis::bord::freeBuffer(valR_, colR_->type());
-    ibis::bord::freeBuffer(valS_, colS_->type());
+    ibis::bord::freeBuffer(valR_, colR_.type());
+    ibis::bord::freeBuffer(valS_, colS_.type());
+    delete frm_;
+    delete sel_;
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::jNatural(" << desc_ << ") freeing...";
+	<< "ibis::jNatural(" << desc_ << ") cleared";
 } // ibis::jNatural::~jNatural
 
-/// Estimate the number of hits. Don't do much right now.  May change later.
+/// Estimate the number of hits.  Don't do much right now, may change later.
 void ibis::jNatural::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
     nmax = (uint64_t)maskR_.cnt() * maskR_.cnt();
@@ -223,26 +232,26 @@ int64_t ibis::jNatural::count() const {
     orderS_ = new array_t<uint32_t>;
 
     // Retrieve and sort the values
-    switch (colR_->type()) {
+    switch (colR_.type()) {
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::jNatural[" << desc_
-	    << "] cann't handle join column of type " << colR_->type();
+	    << "] cann't handle join column of type " << colR_.type();
 	return -2;
     case ibis::BYTE: {
-	valR_ = colR_->selectBytes(maskR_);
+	valR_ = colR_.selectBytes(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectBytes("
+		<< ") call to " << colR_.name() << "->selectBytes("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectBytes(maskS_);
+	valS_ = colS_.selectBytes(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectBytes("
+		<< ") call to " << colS_.name() << "->selectBytes("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -252,19 +261,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::UBYTE: {
-	valR_ = colR_->selectUBytes(maskR_);
+	valR_ = colR_.selectUBytes(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectUBytes("
+		<< ") call to " << colR_.name() << "->selectUBytes("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectUBytes(maskS_);
+	valS_ = colS_.selectUBytes(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectUBytes("
+		<< ") call to " << colS_.name() << "->selectUBytes("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -275,19 +284,19 @@ int64_t ibis::jNatural::count() const {
 	     *orderS_);
 	break;}
     case ibis::SHORT: {
-	valR_ = colR_->selectShorts(maskR_);
+	valR_ = colR_.selectShorts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectShorts("
+		<< ") call to " << colR_.name() << "->selectShorts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectShorts(maskS_);
+	valS_ = colS_.selectShorts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectShorts("
+		<< ") call to " << colS_.name() << "->selectShorts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -297,19 +306,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::USHORT: {
-	valR_ = colR_->selectUShorts(maskR_);
+	valR_ = colR_.selectUShorts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectUShorts("
+		<< ") call to " << colR_.name() << "->selectUShorts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectUShorts(maskS_);
+	valS_ = colS_.selectUShorts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectUShorts("
+		<< ") call to " << colS_.name() << "->selectUShorts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -319,19 +328,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::INT: {
-	valR_ = colR_->selectInts(maskR_);
+	valR_ = colR_.selectInts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectInts("
+		<< ") call to " << colR_.name() << "->selectInts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectInts(maskS_);
+	valS_ = colS_.selectInts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectInts("
+		<< ") call to " << colS_.name() << "->selectInts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -341,19 +350,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::UINT: {
-	valR_ = colR_->selectUInts(maskR_);
+	valR_ = colR_.selectUInts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectUInts("
+		<< ") call to " << colR_.name() << "->selectUInts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectUInts(maskS_);
+	valS_ = colS_.selectUInts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectUInts("
+		<< ") call to " << colS_.name() << "->selectUInts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -363,41 +372,41 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::LONG: {
-	valR_ = colR_->selectLongs(maskR_);
+	valR_ = colR_.selectLongs(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectLongs("
+		<< ") call to " << colR_.name() << "->selectLongs("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectLongs(maskS_);
+	valS_ = colS_.selectLongs(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectLongs("
+		<< ") call to " << colS_.name() << "->selectLongs("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<uint64_t>*>(valR_),
+	nrows = ibis::util::sortMerge(*static_cast<array_t<int64_t>*>(valR_),
 				      *orderR_,
-				      *static_cast<array_t<uint64_t>*>(valS_),
+				      *static_cast<array_t<int64_t>*>(valS_),
 				      *orderS_);
 	break;}
     case ibis::ULONG: {
-	valR_ = colR_->selectULongs(maskR_);
+	valR_ = colR_.selectULongs(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectULongs("
+		<< ") call to " << colR_.name() << "->selectULongs("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectULongs(maskS_);
+	valS_ = colS_.selectULongs(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectULongs("
+		<< ") call to " << colS_.name() << "->selectULongs("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -407,19 +416,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::FLOAT: {
-	valR_ = colR_->selectFloats(maskR_);
+	valR_ = colR_.selectFloats(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectFloats("
+		<< ") call to " << colR_.name() << "->selectFloats("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectFloats(maskS_);
+	valS_ = colS_.selectFloats(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectFloats("
+		<< ") call to " << colS_.name() << "->selectFloats("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -429,19 +438,19 @@ int64_t ibis::jNatural::count() const {
 				      *orderS_);
 	break;}
     case ibis::DOUBLE: {
-	valR_ = colR_->selectDoubles(maskR_);
+	valR_ = colR_.selectDoubles(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectDoubles("
+		<< ") call to " << colR_.name() << "->selectDoubles("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectDoubles(maskS_);
+	valS_ = colS_.selectDoubles(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectDoubles("
+		<< ") call to " << colS_.name() << "->selectDoubles("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -452,19 +461,19 @@ int64_t ibis::jNatural::count() const {
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {
-	valR_ = colR_->selectStrings(maskR_);
+	valR_ = colR_.selectStrings(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colR_->name() << "->selectStrings("
+		<< ") call to " << colR_.name() << "->selectStrings("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
 	}
-	valS_ = colS_->selectStrings(maskS_);
+	valS_ = colS_.selectStrings(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::jNatural::count(" << desc_
-		<< ") call to " << colS_->name() << "->selectStrings("
+		<< ") call to " << colS_.name() << "->selectStrings("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
 	}
@@ -486,34 +495,37 @@ int64_t ibis::jNatural::count() const {
 /// to match the rows and fill the output table.
 template <typename T>
 ibis::table*
-ibis::jNatural::fillEquiJoinTable(size_t nrows,
-				  const std::string &desc,
-				  const ibis::array_t<T>& rjcol,
-				  const ibis::table::typeList& rtypes,
-				  const std::vector<void*>& rbuff,
-				  const ibis::array_t<T>& sjcol,
-				  const ibis::table::typeList& stypes,
-				  const ibis::bord::bufferList& sbuff,
-				  const ibis::table::stringList& tcname,
-				  const std::vector<uint32_t>& tcnpos) {
-    if (rjcol.empty() || sjcol.empty() ||
-	(nrows > rjcol.size() * sjcol.size()) ||
-	(nrows < rjcol.size() && nrows < sjcol.size()) ||
-	((rtypes.empty() || rbuff.empty() || rtypes.size() != rbuff.size()) &&
-	 (stypes.empty() || sbuff.empty() || stypes.size() != sbuff.size())) ||
+ibis::jNatural::fillResult(size_t nrows,
+			   const std::string &desc,
+			   const ibis::array_t<T>& rjcol,
+			   const ibis::table::typeList& rtypes,
+			   const std::vector<void*>& rbuff,
+			   const ibis::array_t<T>& sjcol,
+			   const ibis::table::typeList& stypes,
+			   const ibis::bord::bufferList& sbuff,
+			   const ibis::table::stringList& tcname,
+			   const std::vector<uint32_t>& tcnpos) {
+    if (nrows < 0 || nrows > (rjcol.size() * sjcol.size()) ||
+	rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
 	tcname.size() != rtypes.size() + stypes.size() ||
 	tcnpos.size() != tcname.size()) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- join::fillEquiJoinTable can not proceed due "
+	    << "Warning -- jNatural::fillResult can not proceed due "
 	    "to invalid arguments";
 	return 0;
     }
+    std::string tn = ibis::util::shortName(desc.c_str());
+    if (nrows == 0 || rjcol.empty() || sjcol.empty() ||
+	(stypes.empty() && rtypes.empty()))
+	return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
     ibis::bord::bufferList tbuff(tcname.size());
     ibis::table::typeList ttypes(tcname.size());
+    ibis::util::guard gtbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
     try {
 	bool badpos = false;
-	// allocate enough space for the 
+	// allocate enough space for the output table
 	for (size_t j = 0; j < tcname.size(); ++ j) {
 	    if (tcnpos[j] < rtypes.size()) {
 		ttypes[j] = rtypes[tcnpos[j]];
@@ -529,23 +541,21 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
 		tbuff[j] = 0;
 		badpos = true;
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- join::fillEquiJoinTable detects an "
+		    << "Warning -- jNatural::fillResult detects an "
 		    "invalid tcnpos[" << j << "] = " << tcnpos[j]
 		    << ", should be less than " << rtypes.size()+stypes.size();
 	    }
 	}
 	if (badpos) {
-	    ibis::bord::freeBuffers(tbuff, ttypes);
 	    return 0;
 	}
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- join::fillEquiJoinTable failed to allocate "
+	    << "Warning -- jNatural::fillResult failed to allocate "
 	    "sufficient memory for " << nrows << " row" << (nrows>1?"s":"")
 	    << " and " << rtypes.size()+stypes.size()
 	    << " column" << (rtypes.size()+stypes.size()>1?"s":"");
-	ibis::bord::freeBuffers(tbuff, ttypes);
 	return 0;
     }
 
@@ -574,9 +584,9 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
 			}
 			else {
 			    ibis::bord::copyValue
-				(stypes[tcnpos[j-rtypes.size()]],
+				(stypes[tcnpos[j]-rtypes.size()],
 				 tbuff[j], tind,
-				 sbuff[tcnpos[j-rtypes.size()]], sind);
+				 sbuff[tcnpos[j]-rtypes.size()], sind);
 			}
 		    } // j
 		    ++ tind;
@@ -586,29 +596,30 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
     } // for (size_t rind = 0, sind = 0; ...
     if (tind != nrows) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- join::fillEquiJoinTable expected to produce "
+	    << "Warning -- jNatural::fillResult expected to produce "
 	    << nrows << " row" << (nrows>1?"s":"") << ", but produced "
 	    << tind << " instead";
-	ibis::bord::freeBuffers(tbuff, ttypes);
 	return 0;
     }
 
-    std::string tn = ibis::util::shortName(desc.c_str());
     return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
 			  tbuff, ttypes, tcname);
-} // ibis::jNatural::fillEquiJoinTable
+} // ibis::jNatural::fillResult
 
+/// Form the joined table for string valued join columns.  The caller
+/// provides all relevant values, this function only need to join them to
+/// produce the output data table.
 ibis::table*
-ibis::jNatural::fillEquiJoinTable(size_t nrows,
-			      const std::string &desc,
-			      const std::vector<std::string>& rjcol,
-			      const ibis::table::typeList& rtypes,
-			      const std::vector<void*>& rbuff,
-			      const std::vector<std::string>& sjcol,
-			      const ibis::table::typeList& stypes,
-			      const ibis::bord::bufferList& sbuff,
-			      const ibis::table::stringList& tcname,
-			      const std::vector<uint32_t>& tcnpos) {
+ibis::jNatural::fillResult(size_t nrows,
+			   const std::string &desc,
+			   const std::vector<std::string>& rjcol,
+			   const ibis::table::typeList& rtypes,
+			   const ibis::bord::bufferList& rbuff,
+			   const std::vector<std::string>& sjcol,
+			   const ibis::table::typeList& stypes,
+			   const ibis::bord::bufferList& sbuff,
+			   const ibis::table::stringList& tcname,
+			   const std::vector<uint32_t>& tcnpos) {
     if (rjcol.empty() || sjcol.empty() ||
 	(nrows > rjcol.size() * sjcol.size()) ||
 	(nrows < rjcol.size() && nrows < sjcol.size()) ||
@@ -617,7 +628,7 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
 	tcname.size() != rtypes.size() + stypes.size() ||
 	tcnpos.size() != tcname.size()) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- join::fillEquiJoinTable can not proceed due "
+	    << "Warning -- jNatural::fillResult can not proceed due "
 	    "to invalid arguments";
 	return 0;
     }
@@ -642,7 +653,7 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
 		tbuff[j] = 0;
 		badpos = true;
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- join::fillEquiJoinTable detects an "
+		    << "Warning -- jNatural::fillResult detects an "
 		    "invalid tcnpos[" << j << "] = " << tcnpos[j]
 		    << ", should be less than " << rtypes.size()+stypes.size();
 	    }
@@ -654,7 +665,7 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- join::fillEquiJoinTable failed to allocate "
+	    << "Warning -- jNatural::fillResult failed to allocate "
 	    "sufficient memory for " << nrows << " row" << (nrows>1?"s":"")
 	    << " and " << rtypes.size()+stypes.size()
 	    << " column" << (rtypes.size()+stypes.size()>1?"s":"");
@@ -699,7 +710,7 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
     } // for (size_t rind = 0, sind = 0; ...
     if (tind != nrows) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- join::fillEquiJoinTable expected to produce "
+	    << "Warning -- jNatural::fillResult expected to produce "
 	    << nrows << " row" << (nrows>1?"s":"") << ", but produced "
 	    << tind << " instead";
 	ibis::bord::freeBuffers(tbuff, ttypes);
@@ -709,10 +720,10 @@ ibis::jNatural::fillEquiJoinTable(size_t nrows,
     std::string tn = ibis::util::shortName(desc.c_str());
     return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
 			  tbuff, ttypes, tcname);
-} // ibis::jNatural::fillEquiJoinTable
+} // ibis::jNatural::fillResult
 
 ibis::table*
-ibis::jNatural::select(const std::vector<const char*>& colnames) const {
+ibis::jNatural::select(const ibis::table::stringList& colnames) const {
     ibis::table *res = 0;
     if (nrows < 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -722,10 +733,11 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
     if (valR_ == 0 || orderR_ == 0 || valS_ == 0 || orderS_ == 0 ||
 	orderR_->size() != maskR_.cnt() || orderS_->size() != maskS_.cnt()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- jNatural::select failed to evaluate the join";
+	    << "Warning -- jNatural::select can not proceed without properly "
+	    "initialized internal data strucutres";
 	return res;
     }
-    if (colnames.empty() && nrows == 0) {
+    if (colnames.empty() || nrows == 0) {
 	std::string nm = ibis::util::shortName(desc_);
 	res = new ibis::tabula(nm.c_str(), desc_.c_str(), nrows);
 	return res;
@@ -739,7 +751,13 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	evt += ", ";
 	evt += colnames[j];
     }
-    evt += " FROM ";
+    if ((desc_[0] != 'F' && desc_[0] != 'f') ||
+	(desc_[1] != 'R' && desc_[1] != 'r') ||
+	(desc_[2] != 'O' && desc_[2] != 'o') ||
+	(desc_[3] != 'M' && desc_[3] != 'm'))
+	evt += " for ";
+    else
+	evt += ' ';
     evt += desc_;
     ibis::util::timer mytimer(evt.c_str());
     const uint32_t rnamelen = strlen(R_.name());
@@ -751,10 +769,45 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
     for (uint32_t j = 0; j < ncols; ++ j) {
 	ipToPos[j] = ncols+1;
 	const char* cn = colnames[j];
-	if (strnicmp(cn, R_.name(), rnamelen) == 0 &&
-	    ispunct(cn[rnamelen]) != 0) {
-	    cn += rnamelen;
-	    while (*cn != 0 && (ispunct(*cn) != 0 || isspace(*cn) != 0)) ++cn;
+	std::string tname;
+	while (*cn != 0 && *cn != '.') {
+	    tname += *cn;
+	    ++ cn;
+	}
+	if (*cn == '.') {
+	    ++ cn;
+	}
+	else { // did not find '.'
+	    tname.erase();
+	    cn = colnames[j];
+	}
+	int match = -1; // 0 ==> R_, 1 ==> S_
+	if (! tname.empty()) {
+	    if (rnamelen == tname.size() &&
+		stricmp(tname.c_str(), R_.name()) == 0) {
+		match = 0;
+	    }
+	    else if (snamelen == tname.size() &&
+		     stricmp(tname.c_str(), S_.name()) == 0) {
+		match = 1;
+	    }
+	    if (match < 0) {
+		if (frm_->size() == 1) {
+		    match = 1;
+		}
+		else {
+		    const char* tnm = frm_->realName(tname.c_str());
+		    if (stricmp(tnm, R_.name()) == 0) {
+			match = 0;
+		    }
+		    else if (stricmp(tnm, S_.name()) == 0) {
+			match = 1;
+		    }
+		}
+	    }
+	}
+
+	if (match == 0) {
 	    const ibis::column *col = R_.getColumn(cn);
 	    if (col != 0) {
 		namesToPos[colnames[j]] = j;
@@ -769,10 +822,7 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 		return res;
 	    }
 	}
-	else if (strnicmp(cn, S_.name(), snamelen) == 0 &&
-		 ispunct(cn[snamelen]) != 0) {
-	    cn += snamelen;
-	    while (*cn != 0 && (ispunct(*cn) != 0 || isspace(*cn) != 0)) ++cn;
+	else if (match == 1) {
 	    const ibis::column *col = S_.getColumn(cn);
 	    if (col != 0) {
 		namesToPos[colnames[j]] = j;
@@ -788,6 +838,7 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	    }
 	}
 	else { // not prefixed with a data partition name
+	    cn = colnames[j];
 	    const ibis::column* col = R_.getColumn(cn);
 	    if (col != 0) {
 		ipToPos[j] = ircol.size();
@@ -829,18 +880,14 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
 	    ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList rtypes(ircol.size());
-    ibis::bord::bufferList rbuff(ircol.size());
-    for (uint32_t j = 0; j < ircol.size(); ++ j) { // initialization
-	rtypes[j] = ibis::UNKNOWN_TYPE;
-	rbuff[j] = 0;
-    }
-    ibis::table::typeList stypes(iscol.size());
-    ibis::bord::bufferList sbuff(iscol.size());
-    for (uint32_t j = 0; j < iscol.size(); ++ j) { // initialization
-	stypes[j] = ibis::UNKNOWN_TYPE;
-	sbuff[j] = 0;
-    }
+    ibis::table::typeList rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::bord::bufferList rbuff(ircol.size(), 0);
+    ibis::util::guard grbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, rbuff, rtypes);
+    ibis::table::typeList stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::bord::bufferList sbuff(iscol.size(), 0);
+    ibis::util::guard gsbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, sbuff, stypes);
     bool sane = true;
 
     // retrieve values from R_
@@ -958,7 +1005,6 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	}
     }
     if (! sane) {
-	ibis::bord::freeBuffers(rbuff, rtypes);
 	return res;
     }
 
@@ -1077,78 +1123,76 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	}
     }
     if (! sane) {
-	ibis::bord::freeBuffers(rbuff, rtypes);
-	ibis::bord::freeBuffers(sbuff, stypes);
 	return res;
     }
 
     /// fill the in-memory buffer
-    switch (colR_->type()) {
+    switch (colR_.type()) {
     case ibis::BYTE:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<signed char>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<signed char>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::UBYTE:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<unsigned char>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<unsigned char>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::SHORT:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<int16_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<int16_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::USHORT:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<uint16_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<uint16_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::INT:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<int32_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<int32_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::UINT:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<uint32_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<uint32_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::LONG:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<int64_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<int64_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::ULONG:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<uint64_t>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<uint64_t>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::FLOAT:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<float>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<float>*>(valS_), stypes, sbuff,
 	     colnames, ipToPos);
 	break;
     case ibis::DOUBLE:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<array_t<double>*>(valR_), rtypes, rbuff,
 	     *static_cast<array_t<double>*>(valS_), stypes, sbuff,
@@ -1156,7 +1200,7 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
 	break;
     case ibis::TEXT:
     case ibis::CATEGORY:
-	res = fillEquiJoinTable
+	res = fillResult
 	    (nrows, evt,
 	     *static_cast<std::vector<std::string>*>(valR_), rtypes, rbuff,
 	     *static_cast<std::vector<std::string>*>(valS_), stypes, sbuff,
@@ -1165,13 +1209,87 @@ ibis::jNatural::select(const std::vector<const char*>& colnames) const {
     default:
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " can not handle join column of type "
-	    << ibis::TYPESTRING[(int)colR_->type()];
+	    << ibis::TYPESTRING[(int)colR_.type()];
     }
     return res;
 } // ibis::jNatural::select
 
-ibis::table* ibis::jNatural::select(const char *sel) const {
-    LOGGER(ibis::gVerbose >= 0)
-	<< "jNatural::select(" << (sel?sel:"") << ") not yet implemented!";
-    return 0;
+/// Evaluate the select clause specified in the constructor.
+ibis::table* ibis::jNatural::select() const {
+    if (sel_ == 0 || sel_->empty()) { // default
+	std::string tn = ibis::util::shortName(desc_.c_str());
+	return new ibis::tabula(tn.c_str(), desc_.c_str(), nrows);
+    }
+
+    uint32_t features=0; // 1: arithmetic operation, 2: aggregation
+    // use a barrel to collect all unique names
+    ibis::math::barrel brl;
+    for (uint32_t j = 0; j < sel_->size(); ++ j) {
+	const ibis::math::term* t = (*sel_)[j];
+	brl.recordVariable(t);
+	if (t->termType() != ibis::math::VARIABLE &&
+	    t->termType() != ibis::math::NUMBER &&
+	    t->termType() != ibis::math::STRING) {
+	    features |= 1; // arithmetic operation
+	}
+	if (sel_->getAggregator(j) != ibis::selectClause::NIL) {
+	    features |= 2; // aggregation
+	}
+    }
+    // convert the barrel into a stringList for processing
+    ibis::table::stringList sl(brl.size());
+    for (unsigned j = 0; j < brl.size(); ++ j)
+	sl[j] = brl.name(j);
+    ibis::table* res1 = select(sl);
+    if (res1 != 0 && ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+		    << ") produced the first intermediate table:\n";
+	res1->describe(lg.buffer());
+    }
+    if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 || features == 0)
+	return res1;
+
+    if ((features & 1) != 0) { // arithmetic computations
+	ibis::table* res2 =
+	    static_cast<const ibis::bord*>(res1)->evaluateTerms
+	    (*sel_, desc_.c_str());
+	if (res2 != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+			    << ") produced the second intermediate table:\n";
+		res2->describe(lg.buffer());
+	    }
+	    delete res1;
+	    res1 = res2;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jNatural::select(" << *sel_
+		<< ") failed to evaluate the arithmetic expressions";
+	    return res1;
+	}
+    }
+
+    if ((features & 2) != 0) { // aggregation operations
+	ibis::table *res3 =
+	    static_cast<const ibis::bord*>(res1)->groupby(*sel_);
+	if (res3 != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+			    << ") produced the third intermediate table:\n";
+		res3->describe(lg.buffer());
+	    }
+	    delete res1;
+	    res1 = res3;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jNatural::select(" << *sel_
+		<< ") failed to evaluate the aggregations";
+	}
+    }
+    return res1;
 } // ibis::jNatural::select

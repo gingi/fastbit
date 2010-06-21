@@ -132,15 +132,36 @@ really-small: $(TESTDIR)/wee1/-part.txt $(TESTDIR)/wee2/-part.txt $(TESTDIR)/wee
 	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
-	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/reall-small.log; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@if [ -f $(TESTDIR)/small-1 -a -f small-1 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@if [ -f $(TESTDIR)/small-2 -a -f small-2 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@if [ -f $(TESTDIR)/small-3 -a -f small-3 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@if [ -f $(TESTDIR)/small-4 -a -f small-4 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@if [ -f $(TESTDIR)/small-5 -a -f small-5 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@if [ -f $(TESTDIR)/small-6 -a -f small-6 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@if [ -f $(TESTDIR)/small-7 -a -f small-7 -a `diff -w $(TESTDIR)/small-1 small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@if [ -f $(TESTDIR)/small-2 -a -f small-2 -a `diff -w $(TESTDIR)/small-2 small-2 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@if [ -f $(TESTDIR)/small-3 -a -f small-3 -a `diff -w $(TESTDIR)/small-3 small-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@if [ -f $(TESTDIR)/small-4 -a -f small-4 -a `diff -w $(TESTDIR)/small-4 small-4 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@if [ -f $(TESTDIR)/small-5 -a -f small-5 -a `diff -w $(TESTDIR)/small-5 small-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@if [ -f $(TESTDIR)/small-6 -a -f small-6 -a `diff -w $(TESTDIR)/small-6 small-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@if [ -f $(TESTDIR)/small-7 -a -f small-7 -a `diff -w $(TESTDIR)/small-7 small-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@echo
+check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
+	@date >| $(TESTDIR)/check-join.log
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" | if [ `fgrep ' produced 0 hit' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" | if [ `fgrep ' produced 4 hits' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else Did NOT pass $@ case 3; fi
+	@if [ -f $(TESTDIR)/join-1 -a -f join-1 -a `diff -w $(TESTDIR)/join-1 join-1 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else Did NOT pass $@ case 5; fi
+	@if [ -f $(TESTDIR)/join-2 -a -f join-2 -a `diff -w $(TESTDIR)/join-2 join-2 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 24 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else Did NOT pass $@ case 7; fi
+	@if [ -f $(TESTDIR)/join-3 -a -f join-3 -a `diff -w $(TESTDIR)/join-3 join-3 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 5 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else Did NOT pass $@ case 9; fi
+	@if [ -f $(TESTDIR)/join-4 -a -f join-4 -a `diff -w $(TESTDIR)/join-4 join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else Did NOT pass $@ case 11; fi
+	@if [ -f $(TESTDIR)/join-5 -a -f join-5 -a `diff -w $(TESTDIR)/join-5 join-5 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else Did NOT pass $@ case 5; fi
+	@if [ -f $(TESTDIR)/join-2 -a -f join-2 -a `diff -w $(TESTDIR)/join-2 join-2 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 24 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else Did NOT pass $@ case 7; fi
+	@if [ -f $(TESTDIR)/join-3 -a -f join-3 -a `diff -w $(TESTDIR)/join-3 join-3 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 5 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else Did NOT pass $@ case 9; fi
+	@if [ -f $(TESTDIR)/join-4 -a -f join-4 -a `diff -w $(TESTDIR)/join-4 join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	@rm -rf $(TESTDIR)/t0

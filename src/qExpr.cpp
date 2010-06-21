@@ -828,7 +828,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		    }
 		}
 	    }
-	}
+	} // two terms
 
 	if (cr != 0 && cr != expr) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -1628,8 +1628,11 @@ void ibis::qString::print(std::ostream& out) const {
 }
 
 void ibis::qString::getTableNames(std::set<std::string>& plist) const {
-    if (lstr != 0)
-	plist.insert(ibis::qExpr::extractTableName(lstr));
+    if (lstr != 0) {
+	const std::string tn = ibis::qExpr::extractTableName(lstr);
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::qString::getTableNames
 
 /// Constructor.
@@ -1664,13 +1667,19 @@ void ibis::qLike::print(std::ostream& out) const {
 }
 
 void ibis::qLike::getTableNames(std::set<std::string>& plist) const {
-    if (lstr != 0)
-	plist.insert(ibis::qExpr::extractTableName(lstr));
+    if (lstr != 0) {
+	const std::string& tn = ibis::qExpr::extractTableName(lstr);
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::qLike::getTableNames
 
 void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
-    if (name != 0)
-	plist.insert(ibis::qExpr::extractTableName(name));
+    if (name != 0) {
+	const std::string& tn = ibis::qExpr::extractTableName(name);
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::math::variable::getTableNames
 
 /// Record all variables in @c term recursively.
@@ -2529,8 +2538,11 @@ void ibis::compRange::print(std::ostream& out) const {
 
 void ibis::qRange::getTableNames(std::set<std::string>& plist) const {
     const char *cn = colName();
-    if (cn != 0)
-	plist.insert(ibis::qExpr::extractTableName(cn));
+    if (cn != 0) {
+	const std::string& tn = ibis::qExpr::extractTableName(cn);
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::qRange::getTableNames
 
 // convert to a simple range stored as ibis::qContinuousRange
@@ -3182,8 +3194,11 @@ ibis::qExpr* ibis::qMultiString::convert() const {
 } // ibis::qMultiString::convert
 
 void ibis::qMultiString::getTableNames(std::set<std::string>& plist) const {
-    if (! name.empty())
-	plist.insert(ibis::qExpr::extractTableName(name.c_str()));
+    if (! name.empty()) {
+	const std::string& tn = ibis::qExpr::extractTableName(name.c_str());
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::qMultiString::getTableNames
 
 void ibis::deprecatedJoin::print(std::ostream& out) const {
@@ -3252,6 +3267,9 @@ void ibis::qAnyAny::print(std::ostream& out) const {
 } // ibis::qAnyAny::print
 
 void ibis::qAnyAny::getTableNames(std::set<std::string>& plist) const {
-    if (! prefix.empty())
-	plist.insert(ibis::qExpr::extractTableName(prefix.c_str()));
+    if (! prefix.empty()) {
+	const std::string& tn = ibis::qExpr::extractTableName(prefix.c_str());
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
 } // ibis::qAnyAny::getTableNames

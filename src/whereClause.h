@@ -127,7 +127,7 @@ public:
     ibis::qExpr* getExpr(void) {return expr_;}
     /// Simplify the query expression.
     void simplify() {ibis::qExpr::simplify(expr_);}
-    /// Verify the names exist in the data partition p0.
+    /// Verify that the names exist in the data partition p0.
     int verify(const ibis::part& p0, const ibis::selectClause *sel=0) const;
 
     /// Member access operator redefined to point to ibis::qExpr.
@@ -145,15 +145,17 @@ public:
 	expr_ = tmp;
     }
 
+    static int verifyExpr(const ibis::qExpr*, const ibis::part&,
+			  const ibis::selectClause *);
+    static int verifyExpr(ibis::qExpr*&, const ibis::part&,
+			  const ibis::selectClause *);
+    static int removeAlias(ibis::qContinuousRange*&, const ibis::column*);
+
 protected:
     std::string clause_;	///< String version of the where clause.
     ibis::qExpr *expr_;		///< The expression tree.
 
     void amplify(const ibis::part&);
-    int _verify(const ibis::part&, ibis::qExpr*&,
-		const ibis::selectClause *) const;
-    ibis::qContinuousRange*
-    standardizeRange(const ibis::column*, ibis::qContinuousRange*) const;
 
 private:
     ibis::whereLexer *lexer;	// hold a pointer for the parser

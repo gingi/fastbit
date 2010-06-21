@@ -1,10 +1,8 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
-   Foundation, Inc.
+      Copyright (C) 2002-2010 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,15 +37,15 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 35 of lalr1.cc  */
+/* Line 34 of lalr1.cc  */
 #line 12 "fromParser.yy"
 
 #include "fromClause.h"	// class fromClause
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 51 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 49 "fromParser.hh"
 
 
 #include <string>
@@ -55,23 +53,17 @@
 #include "stack.hh"
 
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 35 of lalr1.cc  */
-#line 65 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 60 "fromParser.hh"
   class position;
   class location;
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 35 of lalr1.cc  */
-#line 75 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 67 "fromParser.hh"
 
 #include "location.hh"
 
@@ -113,13 +105,10 @@ do {							\
 #endif
 
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 35 of lalr1.cc  */
-#line 123 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 112 "fromParser.hh"
 
   /// A Bison parser.
   class fromParser
@@ -130,7 +119,7 @@ namespace ibis {
     union semantic_type
     {
 
-/* Line 35 of lalr1.cc  */
+/* Line 34 of lalr1.cc  */
 #line 34 "fromParser.yy"
 
     int		integerVal;
@@ -140,8 +129,8 @@ namespace ibis {
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 145 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 134 "fromParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -346,13 +335,10 @@ namespace ibis {
     class ibis::fromClause& driver;
   };
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 35 of lalr1.cc  */
-#line 356 "fromParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 342 "fromParser.hh"
 
 
 

@@ -28,7 +28,7 @@ namespace ibis {
 class ibis::bord : public ibis::table {
 public:
     typedef std::vector<void *> bufferList;
-    bord(const char *tn, const char *td, uint64_t nr, const bufferList &buf,
+    bord(const char *tn, const char *td, uint64_t nr, bufferList &buf,
 	 const ibis::table::typeList &ct,
 	 const ibis::table::stringList &cn,
 	 const ibis::table::stringList *cdesc=0);
@@ -106,6 +106,8 @@ public:
 
     int restoreCategoriesAsStrings(const ibis::part&, const char*);
     ibis::table* groupby(const ibis::selectClause&) const;
+    ibis::table* evaluateTerms(const ibis::selectClause&,
+			       const char*) const;
 
     class column;
     class text;
@@ -115,10 +117,12 @@ public:
 	part(const char *tn, const char *td, uint64_t nr,
 	     const ibis::table::stringList &cn,
 	     const ibis::table::typeList   &ct,
-	     const ibis::bord::bufferList  &buf,
+	     ibis::bord::bufferList        &buf,
 	     const ibis::table::stringList *cdesc=0);
 
 	ibis::table* groupby(const ibis::selectClause&) const;
+	ibis::table* evaluateTerms(const ibis::selectClause&,
+				   const char*) const;
 	virtual long reorder(const ibis::table::stringList&);
 	virtual long reorder() {return ibis::part::reorder();}
 
@@ -419,6 +423,13 @@ inline void ibis::bord::reverseRows() {
 inline ibis::table::cursor* ibis::bord::createCursor() const {
     return new ibis::bord::cursor(*this);
 } // ibis::bord::createCursor
+
+/// Evaluate the arithmetic expressions in the select clause to produce a
+/// new table object.
+inline ibis::table*
+ibis::bord::evaluateTerms(const ibis::selectClause& sel, const char* desc) const {
+    return mypart.evaluateTerms(sel, desc);
+} // ibis::bord::evaluateTerms
 
 /// Convert the integer representation to string representation.
 inline int 

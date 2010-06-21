@@ -24,19 +24,18 @@ namespace ibis {
 /// class, the same where clause is applied to all known data partitions.
 class ibis::filter : public ibis::quaere {
 public:
-    /// Constructor.  The incoming where clause is applied to all known
-    /// data partitions in ibis::datasets.
-    explicit filter(const ibis::whereClause& w)
-	: wc_(w.empty() ? 0 : new whereClause(w)), parts_(0), aliases_(0) {};
     /// Constructor.
-    filter(const ibis::whereClause &w, const ibis::partList &p,
-	   const ibis::selectClause &s);
+    explicit filter(const ibis::whereClause* w);
+    /// Constructor.
+    filter(const ibis::selectClause* s, const ibis::partList* p,
+	   const ibis::whereClause* w);
     /// Destructor.
-    ~filter() {delete wc_; delete parts_; delete aliases_;}
+    virtual ~filter();
 
     virtual void    roughCount(uint64_t& nmin, uint64_t& nmax) const;
     virtual int64_t count() const;
-    virtual table*  select(const char *sel) const;
+    virtual table*  select() const;
+    virtual table*  select(const ibis::table::stringList& colnames) const;
 
     static table*   filt(const ibis::selectClause &sel,
 			 const ibis::partList &pl,
@@ -47,14 +46,14 @@ protected:
     const ibis::whereClause *wc_;
     /// A list of data partitions to query.
     const ibis::partList *parts_;
-    /// The select clause.  Primarily used to spply aliases.  If the
+    /// The select clause.  Also used to spply aliases.  If the
     /// function select is called with an empty select clause, then this
     /// variable will be used as the substitute.
-    const ibis::selectClause *aliases_;
+    const ibis::selectClause *sel_;
 
     /// Default constructor.  Nothing can be done without explicitly
     /// accessing the member variables.
-    filter() : wc_(0), parts_(0), aliases_(0) {}
+    filter() : wc_(0), parts_(0), sel_(0) {}
 
 private:
     filter(const filter&); // no copying

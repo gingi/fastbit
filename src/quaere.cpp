@@ -25,7 +25,10 @@ ibis::quaere* ibis::quaere::create(const char* sel,
     sql += " Where ";
     sql += wh;
 
+    int ierr;
     try {
+	ibis::selectClause sc(sel);
+	ibis::fromClause fc(fr);
 	ibis::whereClause wc(wh);
 	if (wc.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -37,15 +40,14 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 	std::set<std::string> plist;
 	wc.getExpr()->getTableNames(plist);
 	if (plist.empty() || (plist.size() == 1 && plist.begin()->empty())) {
-	    ibis::selectClause sc(sel);
 	    if (sc.empty()) {
-		return new ibis::filter(wc);
+		return new ibis::filter(&wc);
 	    }
 	    else {
-		return new ibis::filter(wc, ibis::datasets, sc);
+		return new ibis::filter(&sc, &ibis::datasets, &wc);
 	    }
 	}
-	else if (plist.size() == 1) {
+	else if (plist.size() == 1) { // one table name
 	    std::set<std::string>::const_iterator pit = plist.begin();
 	    ibis::part *pt = ibis::findDataset(pit->c_str());
 	    if (pt == 0) {
@@ -55,27 +57,29 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		return 0;
 	    }
 	    else {
-		ibis::selectClause sc(sel);
 		ibis::partList pl(1);
 		pl[0] = pt;
-		return new ibis::filter(wc, pl, sc);
+		return new ibis::filter(&sc, &pl, &wc);
 	    }
 	}
-	else if (plist.size() == 2) { // two tables
+	else if (plist.size() == 2) { // two table names
+	    // note that the names are in alphabetical order, and all names
+	    // including the aliases are treated as different according to
+	    // their literal values.  Even though a may be an aliases for
+	    // table aLongName, they are treated as different names.
 	    std::set<std::string>::const_iterator pit = plist.begin();
 	    const char *pr = pit->c_str();
 	    ++ pit;
 	    const char *ps = pit->c_str();
-	    ibis::fromClause fc(fr);
 
-	    const char *rpr = fc.find(pr);
+	    const char *rpr = fc.realName(pr);
 	    if (rpr == 0 || *rpr == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
 		    << ") can't find a data partition known as " << pr;
 		return 0;
 	    }
-	    const ibis::part *partr = ibis::findDataset(rpr);
+	    ibis::part *partr = ibis::findDataset(rpr);
 	    if (partr == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
@@ -84,20 +88,32 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		return 0;
 	    }
 
-	    const char *rps = fc.find(ps);
+	    const char *rps = fc.realName(ps);
 	    if (rps == 0 || *rps == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
 		    << ") can't find a data partition known as " << ps;
 		return 0;
 	    }
-	    const ibis::part *parts = ibis::findDataset(rps);
+	    ibis::part *parts = ibis::findDataset(rps);
 	    if (parts == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
 		    << ") can't find a data partition named " << rps << " ("
 		    << ps << ")";
 		return 0;
+	    }
+	    if (partr == parts && stricmp(ps, rps) == 0) {
+		ps = pr;
+		rps = rpr;
+		pr = partr->name();
+		rpr = partr->name();
+	    }
+	    else {
+		if (stricmp(pr, rpr) == 0) // retrieve the alias
+		    pr = fc.alias(rpr);
+		if (stricmp(ps, rps) == 0)
+		    ps = fc.alias(rps);
 	    }
 
 	    ibis::qExpr *condr = 0;
@@ -106,27 +122,51 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 	    ibis::qExpr::termTableList ttl;
 	    wc.getExpr()->getConjunctiveTerms(ttl);
 	    for (size_t j = 0; j < ttl.size() ; ++ j) {
-		if (ttl[j].tnames.size() == 0) {
-		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- quaere::create assign unqualified "
-			"condition " << *(ttl[j].term) << " to " << pr;
-		    if (condr != 0) {
-			ibis::qExpr *tmp =
-			    new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
-			tmp->setLeft(condr);
-			tmp->setRight(ttl[j].term->dup());
-			condr = tmp;
+		if (ttl[j].tnames.size() == 0 ||
+		    (ttl[j].tnames.size() == 1 &&
+		     ttl[j].tnames.begin()->empty())) { // no table name
+		    ierr = ibis::whereClause::verifyExpr
+			(ttl[j].term, *partr, &sc);
+		    if (ierr == 0) { // definitely for partr
+			if (condr != 0) {
+			    ibis::qExpr *tmp =
+				new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
+			    tmp->setLeft(condr);
+			    tmp->setRight(ttl[j].term->dup());
+			    condr = tmp;
+			}
+			else {
+			    condr = ttl[j].term->dup();
+			}
 		    }
 		    else {
-			condr = ttl[j].term->dup();
+			ierr = ibis::whereClause::verifyExpr
+			    (ttl[j].term, *parts, &sc);
+			if (ierr == 0) {
+			    if (conds != 0) {
+				ibis::qExpr *tmp =
+				    new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
+				tmp->setLeft(conds);
+				tmp->setRight(ttl[j].term->dup());
+				conds = tmp;
+			    }
+			    else {
+				conds = ttl[j].term->dup();
+			    }
+			}
+			else {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- quaere::create failed to "
+				"associate " << *(ttl[j].term)
+				<< " with either " << pr << " or " << ps
+				<< ", discard the term";
+			}
 		    }
 		}
-		else if (ttl[j].tnames.size() == 1) {
+		else if (ttl[j].tnames.size() == 1) { // one table name
 		    pit = ttl[j].tnames.begin();
-		    if (pit->empty()) {
-			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- quaere::create assign unqualified "
-			    "condition " << *(ttl[j].term) << " to " << pr;
+		    if (stricmp(pit->c_str(), pr) == 0 ||
+			     stricmp(pit->c_str(), rpr) == 0) {
 			if (condr != 0) {
 			    ibis::qExpr *tmp =
 				new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
@@ -138,19 +178,8 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			    condr = ttl[j].term->dup();
 			}
 		    }
-		    else if (stricmp(pit->c_str(), pr) == 0) {
-			if (condr != 0) {
-			    ibis::qExpr *tmp =
-				new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
-			    tmp->setLeft(condr);
-			    tmp->setRight(ttl[j].term->dup());
-			    condr = tmp;
-			}
-			else {
-			    condr = ttl[j].term->dup();
-			}
-		    }
-		    else if (stricmp(pit->c_str(), ps) == 0) {
+		    else if (stricmp(pit->c_str(), ps) == 0 ||
+			     stricmp(pit->c_str(), rps) == 0) {
 			if (conds != 0) {
 			    ibis::qExpr *tmp =
 				new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
@@ -164,12 +193,12 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		    }
 		    else {
 			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- quaere::create discard condition "
+			    << "Warning -- quaere::create discards condition "
 			    << *(ttl[j].term) << " due to unknown name "
 			    << *pit;
 		    }
 		}
-		else if (ttl[j].tnames.size() == 2) {
+		else if (ttl[j].tnames.size() == 2) { // two names in this term
 		    pit = ttl[j].tnames.begin();
 		    const char *tpr = pit->c_str();
 		    ++ pit;
@@ -179,8 +208,13 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			tpr = tps;
 			tps = tmp;
 		    }
-		    if (*tps == 0) {
-			if (stricmp(tpr, pr) == 0) {
+		    else if (fc.size() >= 2 && partr != parts) {
+			tpr = fc.realName(tpr);
+			tps = fc.realName(tps);
+		    }
+
+		    if (tps == 0 || *tps == 0) {
+			if (stricmp(tpr, pr) == 0 || stricmp(tpr, rpr) == 0) {
 			    if (condr != 0) {
 				ibis::qExpr *tmp =
 				    new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
@@ -192,7 +226,8 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 				condr = ttl[j].term->dup();
 			    }
 			}
-			else if (stricmp(tpr, ps) == 0) {
+			else if (pr == ps || stricmp(tpr, ps) == 0 ||
+				 stricmp(tpr, rps) == 0) {
 			    if (conds != 0) {
 				ibis::qExpr *tmp =
 				    new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
@@ -206,17 +241,21 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			}
 			else {
 			    LOGGER(ibis::gVerbose >= 0)
-				<< "Warning -- quaere::create encountered an "
+				<< "Warning -- quaere::create encounters an "
 				"internal error, the where clause \"" << wh
 				<< "\" is supposed to involve " << pr
 				<< " and " << ps << ", but "
 				<< *(ttl[j].term) << " involves table " << tpr;
 			}
 		    }
-		    else if ((stricmp(tpr, pr) == 0 ||
-			      stricmp(tpr, rpr) == 0) &&
-			     (stricmp(tps, ps) == 0 ||
-			      stricmp(tps, rps) == 0)) {
+		    else if (((stricmp(tpr, pr) == 0 ||
+			       stricmp(tpr, rpr) == 0) &&
+			      (stricmp(tps, ps) == 0 ||
+			       stricmp(tps, rps) == 0)) ||
+			     ((stricmp(tpr, ps) == 0 ||
+			       stricmp(tpr, rps) == 0) &&
+			      (stricmp(tps, pr) == 0 ||
+			       stricmp(tps, rpr) == 0))) {
 			if (condj != 0) {
 			    ibis::qExpr *tmp =
 				new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
@@ -230,7 +269,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- quaere::create encountered an "
+			    << "Warning -- quaere::create encounters an "
 			    "internal error, the where clause \"" << wh
 			    << "\" is supposed to involve " << pr
 			    << " and " << ps << ", but "
@@ -240,7 +279,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		}
 		else {
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- quaere::create encountered an internal "
+			<< "Warning -- quaere::create encounters an internal "
 			"error, the where clause \"" << wh
 			<< "\" to said to involve 2 tables overall, but "
 			"the condition " << *(ttl[j].term)
@@ -248,25 +287,35 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		}
 	    } // for (j ...
 
+	    if (fc.getJoinCondition() != 0) {
+		if (condj != 0) {
+		    ibis::qExpr *tmp =
+			new ibis::qExpr(ibis::qExpr::LOGICAL_AND);
+		    tmp->setLeft(condj);
+		    tmp->setRight(fc.getJoinCondition()->dup());
+		    condj = tmp;
+		}
+		else {
+		    condj = fc.getJoinCondition()->dup();
+		}
+	    }
 	    if (condr == 0 && conds == 0 && condj == 0) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- quaere::create(" << sql
-		    << ") failed to extract any condition";
-		return 0;
-	    }
-	    else if (condj == 0 && (condr != 0 || conds != 0)) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- quaere::create(" << sql
-		    << ") will continue with " << *(condr != 0 ? condr : conds)
-		    << " on " << (condr != 0 ? pr : ps);
-		///*** ADD FILTER HERE!
-		return 0;
+		    << ") fails to extract any condition";
 	    }
 	    else if (condj == 0) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- quaere::create(" << sql
-		    << ") expects a join condition, but found none";
-		return 0;
+		if (partr == parts) {
+		    // actually the same table
+		    ibis::partList pl(1);
+		    pl[0] = partr;
+		    return new ibis::filter(&sc, &pl, &wc);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- quaere::create(" << sql
+			<< ") expects a join condition, but found none";
+		}
 	    }
 	    else if (condj->getType() == ibis::qExpr::COMPRANGE) {
 		const ibis::compRange &cr =
@@ -284,7 +333,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		    ibis::column *colr = partr->getColumn(varr.variableName());
 		    if (colr == 0) {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warnign -- quaere::create(" << sql
+			    << "Warning -- quaere::create(" << sql
 			    << ") can't find a column named "
 			    << varr.variableName() << " in data partition "
 			    << partr->name() << " (" << pr << ")";
@@ -296,20 +345,273 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		    ibis::column *cols = parts->getColumn(vars.variableName());
 		    if (cols == 0) {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warnign -- quaere::create(" << sql
+			    << "Warning -- quaere::create(" << sql
 			    << ") can't find a column named "
 			    << vars.variableName() << " in data partition "
 			    << parts->name() << " (" << ps << ")";
 			return 0;
 		    }
-		    return new ibis::jNatural(*partr, *parts, *colr, *cols,
-					      condr, conds, sql.c_str());
+		    return new ibis::jNatural(partr, parts, colr, cols,
+					      condr, conds, &sc, &fc,
+					      sql.c_str());
+		}
+		else if (cr.getLeft() != 0 && cr.getRight() != 0 &&
+			 cr.getTerm3() != 0 &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getLeft())->termType()
+			 == ibis::math::OPERATOR &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getRight())->termType()
+			 == ibis::math::VARIABLE &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getTerm3())->termType()
+			 == ibis::math::OPERATOR &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getLeft()->getLeft())->termType()
+			 == ibis::math::VARIABLE &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getLeft()->getRight())->termType()
+			 == ibis::math::NUMBER &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getTerm3()->getLeft())->termType()
+			 == ibis::math::VARIABLE &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getTerm3()->getRight())->termType()
+			 == ibis::math::NUMBER) {
+		    // a.c between b.d-delta1 and b.d+delta2
+		    const ibis::math::variable &varr1 =
+			*static_cast<const ibis::math::variable*>
+			(cr.getLeft()->getLeft());
+		    const ibis::math::variable &varr2 =
+			*static_cast<const ibis::math::variable*>
+			(cr.getTerm3()->getLeft());
+		    if (varr1.variableName() != varr2.variableName() ||
+			stricmp(varr1.variableName(), varr2.variableName())
+			!= 0) {
+			// the two column names must be equivalent
+			const char* str1 = varr1.variableName();
+			const char* str2 = varr2.variableName();
+			const char* ptr1 = strchr(str1, '.');
+			const char* ptr2 = strchr(str2, '.');
+			if (ptr1 < str1 || ptr2 < str2) {
+			    return 0;
+			}
+			std::string p1, p2;
+			while (str1 < ptr1) {
+			    p1 += tolower(*str1);
+			    ++ str1;
+			}
+			while (str2 < ptr2) {
+			    p2 += tolower(*str2);
+			    ++ str2;
+			}
+			for (++ ptr1, ++ ptr2; *ptr1 != 0 && *ptr2 != 0;
+			     ++ ptr1, ++ ptr2) {
+			    if (*ptr1 != *ptr2 &&
+				toupper(*ptr1) != toupper(*ptr2)) {
+				LOGGER(ibis::gVerbose >= 0)
+				    << "Warning -- quaere::create(" << sql
+				    << ") expects same column names, but got \""
+				    << varr1.variableName() << "\" and \""
+				    << varr2.variableName() << "\"";
+				return 0;
+			    }
+			}
+			if (*ptr1 != 0 || *ptr1 != 0) {
+			    LOGGER(ibis::gVerbose >= 0)
+				<< "Warning -- quaere::create(" << sql
+				<< ") expects same column names, but got \""
+				<< varr1.variableName() << "\" and \""
+				<< varr2.variableName() << "\"";
+			    return 0;
+			}
+			if (p1.size() != p2.size() || p1.compare(p2) != 0) {
+			    ptr1 = fc.realName(p1.c_str());
+			    ptr2 = fc.realName(p2.c_str());
+			    if (stricmp(ptr1, ptr2) != 0) {
+				LOGGER(ibis::gVerbose >= 0)
+				    << "Warning -- quaere::create(" << sql
+				    << ") expects same column names, but got \""
+				    << varr1.variableName() << "\" and \""
+				    << varr2.variableName() << "\"";
+				return 0;
+			    }
+			}
+		    }
+		    const std::string& tnr =
+			ibis::qExpr::extractTableName(varr1.variableName());
+		    if (stricmp(tnr.c_str(), pr) != 0 &&
+			stricmp(tnr.c_str(), rpr) != 0) {
+			ibis::part* tmpp = partr;
+			partr = parts;
+			parts = tmpp;
+			ibis::qExpr *tmpq = condr;
+			condr = conds;
+			conds = tmpq;
+		    }
+
+		    ibis::column *colr = partr->getColumn(varr1.variableName());
+		    if (colr == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't find a column named "
+			    << varr1.variableName() << " in data partition "
+			    << partr->name() << " (" << pr << ")";
+			return 0;
+		    }
+		    const ibis::math::variable &vars =
+			*static_cast<const ibis::math::variable*>
+			(cr.getRight());
+		    ibis::column *cols = parts->getColumn(vars.variableName());
+		    if (cols == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't find a column named "
+			    << vars.variableName() << " in data partition "
+			    << parts->name() << " (" << ps << ")";
+			return 0;
+		    }
+
+		    ibis::math::barrel bar;
+		    bar.recordVariable(&varr1);
+		    bar.recordVariable(&varr2);
+		    double delta1 = static_cast<const ibis::math::term*>
+			(cr.getLeft())->eval();
+		    double delta2 = static_cast<const ibis::math::term*>
+			(cr.getTerm3())->eval();
+		    if ((cr.leftOperator() == ibis::qExpr::OP_LE ||
+			 cr.leftOperator() == ibis::qExpr::OP_LT) &&
+			(cr.rightOperator() == ibis::qExpr::OP_LE ||
+			 cr.rightOperator() == ibis::qExpr::OP_LT)) {
+			if (cr.leftOperator() == ibis::qExpr::OP_LT)
+			    delta1 = ibis::util::incrDouble(delta1);
+			if (cr.rightOperator() == ibis::qExpr::OP_LT)
+			    delta2 = ibis::util::decrDouble(delta2);
+		    }
+		    else if ((cr.leftOperator() == ibis::qExpr::OP_GE ||
+			      cr.leftOperator() == ibis::qExpr::OP_GT) &&
+			     (cr.rightOperator() == ibis::qExpr::OP_GE ||
+			      cr.rightOperator() == ibis::qExpr::OP_GT)) {
+			if (cr.leftOperator() == ibis::qExpr::OP_GT)
+			    delta1 = ibis::util::decrDouble(delta1);
+			if (cr.rightOperator() == ibis::qExpr::OP_GT)
+			    delta2 = ibis::util::incrDouble(delta2);
+			double tmp = delta1;
+			delta1 = delta2;
+			delta2 = tmp;
+		    }
+		    else {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't handle join condition \"" << cr
+			    << "\"";
+			return 0;
+		    }
+
+		    return new ibis::jRange(*parts, *partr, *cols, *colr,
+					    delta1, delta2, conds, condr,
+					    &sc, &fc, sql.c_str());
+		}
+		else if (cr.getLeft() != 0 && cr.getRight() != 0 &&
+			 cr.getTerm3() != 0 &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getLeft())->termType()
+			 == ibis::math::NUMBER &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getRight())->termType()
+			 == ibis::math::OPERATOR &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getTerm3())->termType()
+			 == ibis::math::NUMBER &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getRight()->getLeft())->termType()
+			 == ibis::math::VARIABLE &&
+			 static_cast<const ibis::math::term*>
+			 (cr.getRight()->getRight())->termType()
+			 == ibis::math::VARIABLE &&
+			 static_cast<const ibis::math::bediener*>
+			 (cr.getRight())->getOperator()
+			 == ibis::math::MINUS) {
+		    // delta1 <= a.c-b.d <= delta2
+		    const ibis::math::variable &varr =
+			*static_cast<const ibis::math::variable*>
+			(cr.getRight()->getLeft());
+		    const ibis::math::variable &vars =
+			*static_cast<const ibis::math::variable*>
+			(cr.getRight()->getLeft());
+
+		    const std::string& tnr =
+			ibis::qExpr::extractTableName(varr.variableName());
+		    if (stricmp(tnr.c_str(), pr) != 0 &&
+			stricmp(tnr.c_str(), rpr) != 0) { // swap _r and _s
+			ibis::part* tmpp = partr;
+			partr = parts;
+			parts = tmpp;
+			ibis::qExpr *tmpq = condr;
+			condr = conds;
+			conds = tmpq;
+		    }
+		    ibis::column *colr = partr->getColumn(varr.variableName());
+		    if (colr == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't find a column named "
+			    << varr.variableName() << " in data partition "
+			    << partr->name() << " (" << pr << ")";
+			return 0;
+		    }
+		    ibis::column *cols = parts->getColumn(vars.variableName());
+		    if (cols == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't find a column named "
+			    << vars.variableName() << " in data partition "
+			    << parts->name() << " (" << ps << ")";
+			return 0;
+		    }
+
+		    double delta1 = static_cast<const ibis::math::term*>
+			(cr.getLeft())->eval();
+		    double delta2 = static_cast<const ibis::math::term*>
+			(cr.getTerm3())->eval();
+		    if ((cr.leftOperator() == ibis::qExpr::OP_LE ||
+			 cr.leftOperator() == ibis::qExpr::OP_LT) &&
+			(cr.rightOperator() == ibis::qExpr::OP_LE ||
+			 cr.rightOperator() == ibis::qExpr::OP_LT)) {
+			if (cr.leftOperator() == ibis::qExpr::OP_LT)
+			    delta1 = ibis::util::incrDouble(delta1);
+			if (cr.rightOperator() == ibis::qExpr::OP_LT)
+			    delta2 = ibis::util::decrDouble(delta2);
+		    }
+		    else if ((cr.leftOperator() == ibis::qExpr::OP_GE ||
+			      cr.leftOperator() == ibis::qExpr::OP_GT) &&
+			     (cr.rightOperator() == ibis::qExpr::OP_GE ||
+			      cr.rightOperator() == ibis::qExpr::OP_GT)) {
+			if (cr.leftOperator() == ibis::qExpr::OP_GT)
+			    delta1 = ibis::util::decrDouble(delta1);
+			if (cr.rightOperator() == ibis::qExpr::OP_GT)
+			    delta2 = ibis::util::incrDouble(delta2);
+			double tmp = delta1;
+			delta1 = delta2;
+			delta2 = tmp;
+		    }
+		    else {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- quaere::create(" << sql
+			    << ") can't handle join condition \"" << cr
+			    << "\"";
+			return 0;
+		    }
+
+		    return new ibis::jRange(*partr, *parts, *colr, *cols,
+					    delta1, delta2, condr, conds,
+					    &sc, &fc, sql.c_str());
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- quaere::create(" << sql
-			<< ") can not handle join expression " << *condj
-			<< " yet.";
+			<< ") can not handle join expression \"" << *condj
+			<< "\" yet.";
 		    return 0;
 		}
 	    }
@@ -317,46 +619,46 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
 		    << ") connot process join with multiple conditions yet";
-		return 0;
 	    }
 	}
 	else { // more than two tables
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- quaere::create(" << sql
 		<< ") does not work with more than two tables";
-	    return 0;
 	}
     }
     catch (std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- quaere::create(" << sql
 	    << ") failed due to an exception -- " << e.what();
-	return 0;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- quaere::create(" << sql
 	    << ") failed due to an exception -- " << s;
-	return 0;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- quaere::create(" << sql
 	    << ") failed due to an unexpected exception";
-	return 0;
     }
+    return 0;
 } // ibis::quaere::create
 
-/// This is equivalent to SQL statement
+/// Specify a natural join operation.  This is equivalent to SQL statement
 ///
 /// "From partr Join parts Using(colname) Where condr And conds"
 ///
-/// Note that conditions specified in condr is for partr only, and conds is
+/// Note 1: conditions specified in condr is for partr only, and conds is
 /// for parts only.  If no conditions are specified, all valid records in
 /// the partition will participate in the natural join.
+///
+/// Note 2: the select clause must have fully qualified column names.
+/// Unqualified column names will assumed to be searched in partr first and
+/// then in parts.
 ibis::quaere*
-ibis::quaere::create(const ibis::part& partr, const ibis::part& parts,
+ibis::quaere::create(const ibis::part* partr, const ibis::part* parts,
 		     const char* colname, const char* condr,
-		     const char* conds) {
-    return new ibis::jNatural(partr, parts, colname, condr, conds);
+		     const char* conds, const char* sel) {
+    return new ibis::jNatural(partr, parts, colname, condr, conds, sel);
 } // ibis::quaere::create
