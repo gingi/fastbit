@@ -1,3 +1,10 @@
+2010-06-22 John Wu <John dot Wu at ACM dot org>
+	* src/fromClause.h, src/fromClause.cpp: add function reorderNames
+	* src/quaere.cpp: add code to swap the names in the from clause in
+	function ibis::quaere::create
+	* src/quaere.cpp:557 vars was assigned the same value as varr
+	* tests/join-?: add files for check-join
+
 2010-06-21 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.h, src/selectClause.cpp: rename _verify to
 	verifyTerm and change it to be a class function to make it

@@ -11,6 +11,7 @@
 
 #include <stdexcept>	// std::exception
 #include <cmath>	// std::ceil, std::floor
+#include <typeinfo>	// std::typeid
 
 /// Constructor.
 ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
@@ -471,8 +472,6 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	evt += ' ';
     evt += desc_;
     ibis::util::timer mytimer(evt.c_str());
-    const uint32_t rnamelen = strlen(partr_.name());
-    const uint32_t snamelen = strlen(parts_.name());
     std::map<const char*, uint32_t, ibis::lessi> namesToPos;
     std::vector<uint32_t> ipToPos(colnames.size());
     std::vector<const ibis::column*> ircol, iscol;
@@ -494,26 +493,13 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	}
 	int match = -1; // 0 ==> partr_, 1 ==> parts_
 	if (! tname.empty()) {
-	    if (rnamelen == tname.size() &&
-		stricmp(tname.c_str(), partr_.name()) == 0) {
-		match = 0;
-	    }
-	    else if (snamelen == tname.size() &&
-		     stricmp(tname.c_str(), parts_.name()) == 0) {
-		match = 1;
-	    }
-	    if (match < 0) {
-		if (frm_->size() == 1) {
-		    match = 1;
+	    match = frm_->position(tname.c_str());
+	    if (match >= frm_->size()) {
+		if (stricmp(tname.c_str(), partr_.name()) == 0) {
+		    match = 0;
 		}
-		else {
-		    const char* tnm = frm_->realName(tname.c_str());
-		    if (stricmp(tnm, partr_.name()) == 0) {
-			match = 0;
-		    }
-		    else if (stricmp(tnm, parts_.name()) == 0) {
-			match = 1;
-		    }
+		else if (stricmp(tname.c_str(), parts_.name()) == 0) {
+		    match = 1;
 		}
 	    }
 	}
@@ -1000,13 +986,19 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
     while (ir0 < nr && is < ns) {
 	while (ir0 < nr && rjcol[ir0] < sjcol[is]+delta1)
 	    ++ ir0;
-	ir1=(ir1>=ir0?ir1:ir0);
+	ir1 = (ir1>=ir0?ir1:ir0);
 	while (ir1 < nr && rjcol[ir1] <= sjcol[is]+delta2)
 	    ++ ir1;
 	if (ir1 > ir0) { // found matches
 	    size_t is0 = is;
 	    while (is < ns && sjcol[is] == sjcol[is0])
 		++ is;
+	    LOGGER(ibis::gVerbose > 5)
+		<< "DEBUG -- jRange::fillResult: ir0=" << ir0 << ", ir1="
+		<< ir1 << ", is0=" << is0 << ", is1=" << is << ", rjcol["
+		<< ir0 << "]=" << rjcol[ir0] << ", rjcol[" << ir1 << "]="
+		<< rjcol[ir1] << ", sjcol[" << is0 << "]=" << sjcol[is0]
+		<< ", sjcol[" << is << "]=" << sjcol[is];
 	    for (size_t jr = ir0; jr < ir1; ++ jr) {
 		for (size_t js = is0; js < is; ++ js) {
 		    for (size_t jt = 0; jt < tcnpos.size(); ++ jt) {
@@ -1021,7 +1013,7 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 				 tbuff[jt], tind,
 				 sbuff[tcnpos[jt]-rtypes.size()], js);
 			}
-		    } // j
+		    } // jt
 		    ++ tind;
 		} // js
 	    } // jr
@@ -1038,6 +1030,12 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 	return 0;
     }
 
+    LOGGER(ibis::gVerbose > 3)
+	<< "jRange(" << desc << ")::fillResult produced " << tind
+	<< " row" << (tind>1?"s":"") << " for \"" << typeid(T).name()
+	<< '[' << rjcol.size() << "] - " << typeid(T).name()
+	<< '[' << sjcol.size() << "] between " << delta1 << " and " << delta2
+	<< '\"';
     return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
 			  tbuff, ttypes, tcname);
 } // ibis::jRange::fillResult

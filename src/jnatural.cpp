@@ -760,8 +760,6 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	evt += ' ';
     evt += desc_;
     ibis::util::timer mytimer(evt.c_str());
-    const uint32_t rnamelen = strlen(R_.name());
-    const uint32_t snamelen = strlen(S_.name());
     std::map<const char*, uint32_t, ibis::lessi> namesToPos;
     std::vector<uint32_t> ipToPos(colnames.size());
     std::vector<const ibis::column*> ircol, iscol;
@@ -783,26 +781,13 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	}
 	int match = -1; // 0 ==> R_, 1 ==> S_
 	if (! tname.empty()) {
-	    if (rnamelen == tname.size() &&
-		stricmp(tname.c_str(), R_.name()) == 0) {
-		match = 0;
-	    }
-	    else if (snamelen == tname.size() &&
-		     stricmp(tname.c_str(), S_.name()) == 0) {
-		match = 1;
-	    }
-	    if (match < 0) {
-		if (frm_->size() == 1) {
-		    match = 1;
+	    match = frm_->position(tname.c_str());
+	    if (match >= frm_->size()) {
+		if (stricmp(tname.c_str(), R_.name()) == 0) {
+		    match = 0;
 		}
-		else {
-		    const char* tnm = frm_->realName(tname.c_str());
-		    if (stricmp(tnm, R_.name()) == 0) {
-			match = 0;
-		    }
-		    else if (stricmp(tnm, S_.name()) == 0) {
-			match = 1;
-		    }
+		else if (stricmp(tname.c_str(), S_.name()) == 0) {
+		    match = 1;
 		}
 	    }
 	}

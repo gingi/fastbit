@@ -329,7 +329,25 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		    (cr.getRight())->termType()
 		    == ibis::math::VARIABLE) {
 		    const ibis::math::variable &varr =
-			*static_cast<const ibis::math::variable*>(cr.getLeft());
+			*static_cast<const ibis::math::variable*>
+			(cr.getLeft());
+		    const ibis::math::variable &vars =
+			*static_cast<const ibis::math::variable*>
+			(cr.getRight());
+		    const std::string& tnr =
+			ibis::qExpr::extractTableName(varr.variableName());
+		    const std::string& tns =
+			ibis::qExpr::extractTableName(vars.variableName());
+		    if (stricmp(tnr.c_str(), pr) != 0 &&
+			stricmp(tnr.c_str(), rpr) != 0) { // swap names
+			ibis::part* tmpp = partr;
+			partr = parts;
+			parts = tmpp;
+			ibis::qExpr *tmpq = condr;
+			condr = conds;
+			conds = tmpq;
+			fc.reorderNames(tnr.c_str(), tns.c_str());
+		    }
 		    ibis::column *colr = partr->getColumn(varr.variableName());
 		    if (colr == 0) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -339,9 +357,6 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			    << partr->name() << " (" << pr << ")";
 			return 0;
 		    }
-		    const ibis::math::variable &vars =
-			*static_cast<const ibis::math::variable*>
-			(cr.getRight());
 		    ibis::column *cols = parts->getColumn(vars.variableName());
 		    if (cols == 0) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -366,25 +381,45 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			 static_cast<const ibis::math::term*>
 			 (cr.getTerm3())->termType()
 			 == ibis::math::OPERATOR &&
-			 static_cast<const ibis::math::term*>
-			 (cr.getLeft()->getLeft())->termType()
-			 == ibis::math::VARIABLE &&
-			 static_cast<const ibis::math::term*>
-			 (cr.getLeft()->getRight())->termType()
-			 == ibis::math::NUMBER &&
-			 static_cast<const ibis::math::term*>
-			 (cr.getTerm3()->getLeft())->termType()
-			 == ibis::math::VARIABLE &&
-			 static_cast<const ibis::math::term*>
-			 (cr.getTerm3()->getRight())->termType()
-			 == ibis::math::NUMBER) {
+			 ((static_cast<const ibis::math::term*>
+			   (cr.getLeft()->getLeft())->termType()
+			   == ibis::math::VARIABLE &&
+			   static_cast<const ibis::math::term*>
+			   (cr.getLeft()->getRight())->termType()
+			   == ibis::math::NUMBER) ||
+			  (static_cast<const ibis::math::term*>
+			   (cr.getLeft()->getLeft())->termType()
+			   == ibis::math::NUMBER &&
+			   static_cast<const ibis::math::term*>
+			   (cr.getLeft()->getRight())->termType()
+			   == ibis::math::VARIABLE)) &&
+			 ((static_cast<const ibis::math::term*>
+			   (cr.getTerm3()->getLeft())->termType()
+			   == ibis::math::VARIABLE &&
+			   static_cast<const ibis::math::term*>
+			   (cr.getTerm3()->getRight())->termType()
+			   == ibis::math::NUMBER) ||
+			  (static_cast<const ibis::math::term*>
+			   (cr.getTerm3()->getLeft())->termType()
+			   == ibis::math::NUMBER &&
+			   static_cast<const ibis::math::term*>
+			   (cr.getTerm3()->getRight())->termType()
+			   == ibis::math::VARIABLE))) {
 		    // a.c between b.d-delta1 and b.d+delta2
 		    const ibis::math::variable &varr1 =
 			*static_cast<const ibis::math::variable*>
-			(cr.getLeft()->getLeft());
+			((static_cast<const ibis::math::term*>
+			  (cr.getLeft()->getLeft())->termType()
+			  == ibis::math::VARIABLE) ?
+			 cr.getLeft()->getLeft() :
+			 cr.getLeft()->getRight());
 		    const ibis::math::variable &varr2 =
 			*static_cast<const ibis::math::variable*>
-			(cr.getTerm3()->getLeft());
+			((static_cast<const ibis::math::term*>
+			  (cr.getTerm3()->getLeft())->termType()
+			  == ibis::math::VARIABLE) ?
+			 cr.getTerm3()->getLeft() :
+			 cr.getTerm3()->getRight());
 		    if (varr1.variableName() != varr2.variableName() ||
 			stricmp(varr1.variableName(), varr2.variableName())
 			!= 0) {
@@ -438,16 +473,22 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			    }
 			}
 		    }
+		    const ibis::math::variable &vars =
+			*static_cast<const ibis::math::variable*>
+			(cr.getRight());
 		    const std::string& tnr =
 			ibis::qExpr::extractTableName(varr1.variableName());
+		    const std::string& tns =
+			ibis::qExpr::extractTableName(vars.variableName());
 		    if (stricmp(tnr.c_str(), pr) != 0 &&
-			stricmp(tnr.c_str(), rpr) != 0) {
+			stricmp(tnr.c_str(), rpr) != 0) { // swap
 			ibis::part* tmpp = partr;
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr;
 			condr = conds;
 			conds = tmpq;
+			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
 
 		    ibis::column *colr = partr->getColumn(varr1.variableName());
@@ -459,9 +500,6 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			    << partr->name() << " (" << pr << ")";
 			return 0;
 		    }
-		    const ibis::math::variable &vars =
-			*static_cast<const ibis::math::variable*>
-			(cr.getRight());
 		    ibis::column *cols = parts->getColumn(vars.variableName());
 		    if (cols == 0) {
 			LOGGER(ibis::gVerbose >= 0)
@@ -538,10 +576,12 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			(cr.getRight()->getLeft());
 		    const ibis::math::variable &vars =
 			*static_cast<const ibis::math::variable*>
-			(cr.getRight()->getLeft());
+			(cr.getRight()->getRight());
 
 		    const std::string& tnr =
 			ibis::qExpr::extractTableName(varr.variableName());
+		    const std::string& tns =
+			ibis::qExpr::extractTableName(vars.variableName());
 		    if (stricmp(tnr.c_str(), pr) != 0 &&
 			stricmp(tnr.c_str(), rpr) != 0) { // swap _r and _s
 			ibis::part* tmpp = partr;
@@ -550,6 +590,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 			ibis::qExpr *tmpq = condr;
 			condr = conds;
 			conds = tmpq;
+			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
 		    ibis::column *colr = partr->getColumn(varr.variableName());
 		    if (colr == 0) {

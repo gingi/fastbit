@@ -45,6 +45,12 @@ ibis::fromClause::fromClause(const ibis::fromClause& rhs)
 	    ordered_.find(aliases_[j].c_str()) == ordered_.end())
 	    ordered_[aliases_[j].c_str()] = j;
     }
+    std::map<const char*, size_t, ibis::lessi>::const_iterator it0;
+    std::map<const char*, size_t, ibis::lessi>::iterator it1;
+    for (it0 = rhs.ordered_.begin(), it1 = ordered_.begin();
+	 it0 != rhs.ordered_.end() && it1 != ordered_.end();
+	 ++ it0, ++ it1)
+	it1->second = it0->second;
 } // ibis::fromClause::fromClause
 
 ibis::fromClause::~fromClause() {
@@ -212,6 +218,9 @@ const char* ibis::fromClause::alias(const char* al) const {
 	if (it->second < aliases_.size()) {
 	    return aliases_[it->second].c_str();
 	}
+	else if (it->second < names_.size()) {
+	    return names_[it->second].c_str();
+	}
 	else {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- fromClause::alias(" << al << ") encountered "
@@ -241,3 +250,62 @@ size_t ibis::fromClause::position(const char* al) const {
 	return names_.size();
     }
 } // ibis::fromClause::position
+
+/// Reorder the table names.  The name matching nm0 will be placed first,
+/// followed by the one matching nm1.
+void ibis::fromClause::reorderNames(const char* nm0, const char* nm1) {
+    if (nm0 == 0 || nm1 == 0 || *nm0 == 0 || *nm1 == 0) return;
+
+    if (names_.empty()) { // insert new names as table names
+	aliases_.resize(2);
+	names_.resize(2);
+	names_[0] = nm0;
+	names_[1] = nm1;
+	ordered_.clear();
+	ordered_[names_[0].c_str()] = 0;
+	ordered_[names_[1].c_str()] = 1;
+    }
+    else if (names_.size() == 1) {
+	if (stricmp(nm0, aliases_[0].c_str()) == 0 &&
+	    stricmp(nm1, names_[0].c_str()) == 0) {
+	    aliases_.resize(2);
+	    names_.resize(2);
+	    names_[1] = nm1;
+	    ordered_.clear(); // because we have changed names_ and aliases_
+	    ordered_[aliases_[0].c_str()] = 0;
+	    ordered_[names_[1].c_str()] = 1;
+	}
+	else if (stricmp(nm1, aliases_[0].c_str()) == 0 &&
+		 stricmp(nm0, names_[0].c_str()) == 0) {
+	    aliases_.resize(2);
+	    names_.resize(2);
+	    names_[1] = names_[0];
+	    aliases_[0].swap(aliases_[1]);
+	    ordered_.clear();
+	    ordered_[names_[0].c_str()] = 0;
+	    ordered_[aliases_[1].c_str()] = 1;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- fromClause::reorderNames(" << nm0 << ", "
+		<< nm1 << ") expects the two input arguments to be "
+		<< aliases_[0] << " and " << names_[0];
+	}
+    }
+    else if (names_.size() == 2) {
+	if ((stricmp(nm0, names_[1].c_str()) == 0 ||
+	     stricmp(nm0, aliases_[1].c_str()) == 0) &&
+	    (stricmp(nm1, names_[0].c_str()) == 0 ||
+	     stricmp(nm1, aliases_[0].c_str()) == 0)) {
+	    aliases_[0].swap(aliases_[1]);
+	    names_[0].swap(names_[1]);
+
+	    for (std::map<const char*, size_t, ibis::lessi>::iterator it
+		     = ordered_.begin();
+		 it != ordered_.end();
+		 ++ it) {
+		it->second = (it->second == 0);
+	    }
+	}
+    }
+} // ibis::fromClause::reorderNames

@@ -22,6 +22,7 @@ TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 EXTRA_DIST=test0.csv test1.csv hist0 hist1 hist2 hist3 hist4 text-0 \
     thula-0 thula-1 tcapi-3 marksdb.csv marksdb-1 marksdb-3 marksdb-4 \
     smatch-1 inRange-1 small-1 small-2 small-3 small-4 small-5 small-6 small-7 \
+    join-1 join-2 join-3 join-4 join-5 join-6 join-7 join-8 \
     maurel.csv scripts/fastbit-config.in scripts/hcompare.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
@@ -33,7 +34,7 @@ check: clean-tmp check-am
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
-	$(MAKE) check-ibis
+	$(MAKE) check-ibis && $(MAKE) check-join
 more-check: check small-tests
 full-check: more-check large-tests
 #
@@ -143,24 +144,24 @@ really-small: $(TESTDIR)/wee1/-part.txt $(TESTDIR)/wee2/-part.txt $(TESTDIR)/wee
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@date >| $(TESTDIR)/check-join.log
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" | if [ `fgrep ' produced 0 hit' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" | if [ `fgrep ' produced 4 hits' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else Did NOT pass $@ case 2; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else Did NOT pass $@ case 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" | if [ `fgrep ' produced 0 hit' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" | if [ `fgrep ' produced 4 hits' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@if [ -f $(TESTDIR)/join-1 -a -f join-1 -a `diff -w $(TESTDIR)/join-1 join-1 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else Did NOT pass $@ case 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ -f $(TESTDIR)/join-2 -a -f join-2 -a `diff -w $(TESTDIR)/join-2 join-2 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 24 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else Did NOT pass $@ case 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 20 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@if [ -f $(TESTDIR)/join-3 -a -f join-3 -a `diff -w $(TESTDIR)/join-3 join-3 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 5 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ -f $(TESTDIR)/join-4 -a -f join-4 -a `diff -w $(TESTDIR)/join-4 join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else Did NOT pass $@ case 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a, t2a.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 | if [ `fgrep ' produced a table with 7 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/join-5 -a -f join-5 -a `diff -w $(TESTDIR)/join-5 join-5 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else Did NOT pass $@ case 5; fi
-	@if [ -f $(TESTDIR)/join-2 -a -f join-2 -a `diff -w $(TESTDIR)/join-2 join-2 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 24 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else Did NOT pass $@ case 7; fi
-	@if [ -f $(TESTDIR)/join-3 -a -f join-3 -a `diff -w $(TESTDIR)/join-3 join-3 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 5 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else Did NOT pass $@ case 9; fi
-	@if [ -f $(TESTDIR)/join-4 -a -f join-4 -a `diff -w $(TESTDIR)/join-4 join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a-t.a, distinct(s.a) from t2a as s, t2b as t where t.a - s.a between 0 and 1 and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-6 | if [ `fgrep ' produced a table with 2 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@if [ -f $(TESTDIR)/join-6 -a -f join-6 -a `diff -w $(TESTDIR)/join-6 join-6 | wc -l` -eq 0 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a-0.1 < t.a < s.a+1.1 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-7 | if [ `fgrep ' produced a table with 36 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
+	@if [ -f $(TESTDIR)/join-7 -a -f join-7 -a `diff -w $(TESTDIR)/join-7 join-7 | wc -l` -eq 0 ]; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), sum(t.b) from t2a as s, t2c as t where s.a+0.5 <= t.a <= s.a+2.5 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-8 | if [ `fgrep ' produced a table with 3 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
+	@if [ -f $(TESTDIR)/join-8 -a -f join-8 -a `diff -w $(TESTDIR)/join-8 join-8 | wc -l` -eq 0 ]; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv

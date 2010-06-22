@@ -52,6 +52,7 @@ public:
     const char* realName(const char*) const;
     const char* alias(const char*) const;
     size_t position(const char*) const;
+    void reorderNames(const char*, const char*);
 
     /// Assignment operator.
     fromClause& operator=(const fromClause& rhs) {

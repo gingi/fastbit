@@ -319,6 +319,9 @@ private:
     cursor& operator=(const cursor&);
 }; // ibis::bord::cursor
 
+/// Copy a single value from inbuf to outbuf.  The output buffer must have
+/// the correct size on entry; this function does not attempt to resize the
+/// output buffer.
 inline void ibis::bord::copyValue(ibis::TYPE_T type,
 				  void* outbuf, size_t outpos,
 				  const void* inbuf, size_t inpos) {
@@ -340,6 +343,11 @@ inline void ibis::bord::copyValue(ibis::TYPE_T type,
     case ibis::USHORT: {
 	(*static_cast<array_t<uint16_t>*>(outbuf))[outpos]
 	    = (*static_cast<const array_t<uint16_t>*>(inbuf))[inpos];
+	LOGGER(ibis::gVerbose > 5)
+	    << "DEBUG -- copied inbuf[" << inpos << "] (="
+	    << (*static_cast<const array_t<uint16_t>*>(inbuf))[inpos]
+	    << ") to outbuf[" << outpos << "] (="
+	    << (*static_cast<array_t<uint16_t>*>(outbuf))[outpos] << ')';
 	break;}
     case ibis::INT: {
 	(*static_cast<array_t<int32_t>*>(outbuf))[outpos]

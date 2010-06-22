@@ -3750,7 +3750,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		tls[i] = ibis::UNKNOWN_TYPE;
 		buff[i] = 0;
 	    }
-#if defined(_DEBUG) || defined(DEBUG)
+#if _DEBUG+0>1 || DEBUG+0>0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg;
 		lg.buffer() << "DEBUG: " << mesg << " uniquenames["
