@@ -7,6 +7,8 @@
 	* src/mensa.cpp, src/filter.cpp: wrap raw pointers used in
 	ibis::table::selct and ibis::filter::filt in std::auto_ptr to
 	address the memory leak problem reported by Jan Krivanek
+	* tests/vault: add directory for expected output files for
+	regression tests
 
 2010-06-21 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.h, src/selectClause.cpp: rename _verify to
