@@ -1,3 +1,12 @@
+2010-06-23 John Wu <John dot Wu at ACM dot org>
+	* src/quaere.cpp: add two cases in ibis::quaere::create to handle
+	range joins with zero as delta, wrap raw pointers to qExpr with
+	auto_ptr
+	* src/fromClause.cpp: change function realName and alias to return
+	the incoming argument instead of nil pointer when the incoming
+	argument is not found in the from clause, this allows the from
+	clause to be empty when joins are specified
+
 2010-06-22 John Wu <John dot Wu at ACM dot org>
 	* src/fromClause.h, src/fromClause.cpp: add function reorderNames
 	* src/quaere.cpp: add code to swap the names in the from clause in
@@ -25,7 +34,7 @@
 
 2010-06-18 John Wu <John dot Wu at ACM dot org>
 	* src/fromParser.yy: change the join condition specified with the
-	keyword USING into a propoer arithmetic expression
+	keyword USING into a proper arithmetic expression
 
 2010-06-18 Mario D. Santana <mds at mariosantana dot net>
 	* src/capi.cpp: a patch to work with text values in C API

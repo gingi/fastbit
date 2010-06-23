@@ -179,9 +179,9 @@ void ibis::fromClause::print(std::ostream& out) const {
     }
 } // ibis::fromClause::print
 
-/// Given an alias find its real name.  A nil pointer will be returned if
-/// the incoming argument is neither an alias nor an actual table name
-/// mentioned in the from clause.
+/// Given an alias find its real name.  The input string will be returned
+/// if it is neither an alias nor an actual table name mentioned in the
+/// from clause.
 const char* ibis::fromClause::realName(const char* al) const {
     if (al == 0 || *al == 0) return 0;
     std::map<const char*, size_t, ibis::lessi>::const_iterator it
@@ -196,20 +196,20 @@ const char* ibis::fromClause::realName(const char* al) const {
 		"an internal error, the name points to element "
 		<< it->second << ", but there only " << names_.size()
 		<< " name" << (names_.size() > 1 ? "s" : "");
-	    return 0;
+	    return al;
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 4)
 	    << "Warning -- fromClause::realName(" << al
 	    << ") failed to find a name for " << al;
-	return 0;
+	return al;
     }
 } // ibis::fromClause::realName
 
-/// Given a name find its alias.  A nil pointer will be returned if
-/// the incoming argument is neither an alias nor an actual table name
-/// mentioned in the from clause.
+/// Given a name find its alias.  The incoming argument will be returned if
+/// it is neither an alias nor an actual table name mentioned in the from
+/// clause.
 const char* ibis::fromClause::alias(const char* al) const {
     if (al == 0 || *al == 0) return 0;
     std::map<const char*, size_t, ibis::lessi>::const_iterator it
@@ -227,14 +227,14 @@ const char* ibis::fromClause::alias(const char* al) const {
 		"an internal error, the name points to element "
 		<< it->second << ", but there only " << aliases_.size()
 		<< " alias" << (names_.size() > 1 ? "es" : "");
-	    return 0;
+	    return al;
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 4)
 	    << "Warning -- fromClause::alias(" << al
 	    << ") failed to find an alias for " << al;
-	return 0;
+	return al;
     }
 } // ibis::fromClause::alias
 
