@@ -78,6 +78,7 @@ public:
     inline void swap(array_t<T>& rhs);	///< Exchange the content.
     inline void push_back(const T& elm);///< Add one element.
 
+    void deduplicate();
     /// Produce index for ascending order.
     void sort(array_t<uint32_t> &ind) const;
     /// Return the positions of the @c k largest elements.

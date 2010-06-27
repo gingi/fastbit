@@ -33,8 +33,10 @@
 %parse-param {class ibis::whereClause& driver}
 
 %union {
-    int		integerVal;
-    double	doubleVal;
+    int		 integerVal;
+    int64_t	 int64Val;
+    uint64_t	 uint64Val;
+    double	 doubleVal;
     std::string *stringVal;
     ibis::qExpr *whereNode;
 }
@@ -64,11 +66,15 @@
 %token <integerVal> DIVOP	"/"
 %token <integerVal> REMOP	"%"
 %token <integerVal> EXPOP	"**"
-%token <doubleVal> NUMBER	"numerical value"
-%token <stringVal> NOUNSTR	"name"
-%token <stringVal> NUMSEQ	"number sequence"
-%token <stringVal> STRSEQ	"string sequence"
-%token <stringVal> STRLIT	"string literal"
+%token <int64Val>   INT64	"integer value"
+%token <uint64Val>  UINT64	"unsigned integer value"
+%token <doubleVal>  NUMBER	"floating-point number"
+%token <stringVal>  INTSEQ	"signed integer sequence"
+%token <stringVal>  UINTSEQ	"unsigned integer sequence"
+%token <stringVal>  NOUNSTR	"name string"
+%token <stringVal>  NUMSEQ	"number sequence"
+%token <stringVal>  STRSEQ	"string sequence"
+%token <stringVal>  STRLIT	"string literal"
 
 %nonassoc INOP
 %nonassoc ANYOP
@@ -87,7 +93,7 @@
 %type <whereNode> qexpr simpleRange compRange2 compRange3 mathExpr
 
 
-%destructor { delete $$; } NOUNSTR NUMSEQ STRSEQ
+%destructor { delete $$; } INTSEQ UINTSEQ NOUNSTR NUMSEQ STRSEQ STRLIT
 %destructor { delete $$; } qexpr simpleRange compRange2 compRange3 mathExpr
 
 %{
@@ -478,6 +484,42 @@ NOUNSTR INOP NUMSEQ {
     $$ = new ibis::qAnyAny($3->c_str(), $6->c_str());
     delete $6;
     delete $3;
+}
+| NOUNSTR EQOP INT64 {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " = " << *$3;
+#endif
+    $$ = new ibis::qIntHod($1->c_str(), $3);
+    delete $1;
+}
+| NOUNSTR INOP INTSEQ {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " in ("
+	<< *$3 << ")";
+#endif
+    $$ = new ibis::qIntHod($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| NOUNSTR EQOP UINT64 {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " = " << *$3;
+#endif
+    $$ = new ibis::qUIntHod($1->c_str(), $3);
+    delete $1;
+}
+| NOUNSTR INOP UINTSEQ {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " in ("
+	<< *$3 << ")";
+#endif
+    $$ = new ibis::qUIntHod($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
 }
 ;
 
@@ -896,5 +938,6 @@ START : qexpr END { /* pass qexpr to the driver */
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::whereParser encountered " << m << " at location " << l;
+	<< "Warning -- ibis::whereParser encountered " << m
+	<< " at location " << l;
 }

@@ -1,10 +1,8 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
-   Foundation, Inc.
+      Copyright (C) 2002-2010 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,15 +37,15 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 35 of lalr1.cc  */
+/* Line 34 of lalr1.cc  */
 #line 13 "whereParser.yy"
 
 #include "whereClause.h"	// class whereClause
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 51 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 49 "whereParser.hh"
 
 
 #include <string>
@@ -55,23 +53,17 @@
 #include "stack.hh"
 
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 35 of lalr1.cc  */
-#line 65 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 60 "whereParser.hh"
   class position;
   class location;
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 35 of lalr1.cc  */
-#line 75 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 67 "whereParser.hh"
 
 #include "location.hh"
 
@@ -113,13 +105,10 @@ do {							\
 #endif
 
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 namespace ibis {
 
-/* Line 35 of lalr1.cc  */
-#line 123 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 112 "whereParser.hh"
 
   /// A Bison parser.
   class whereParser
@@ -130,18 +119,20 @@ namespace ibis {
     union semantic_type
     {
 
-/* Line 35 of lalr1.cc  */
+/* Line 34 of lalr1.cc  */
 #line 35 "whereParser.yy"
 
-    int		integerVal;
-    double	doubleVal;
+    int		 integerVal;
+    int64_t	 int64Val;
+    uint64_t	 uint64Val;
+    double	 doubleVal;
     std::string *stringVal;
     ibis::qExpr *whereNode;
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 145 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 136 "whereParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -178,11 +169,15 @@ namespace ibis {
      DIVOP = 279,
      REMOP = 280,
      EXPOP = 281,
-     NUMBER = 282,
-     NOUNSTR = 283,
-     NUMSEQ = 284,
-     STRSEQ = 285,
-     STRLIT = 286
+     INT64 = 282,
+     UINT64 = 283,
+     NUMBER = 284,
+     INTSEQ = 285,
+     UINTSEQ = 286,
+     NOUNSTR = 287,
+     NUMSEQ = 288,
+     STRSEQ = 289,
+     STRLIT = 290
    };
 
     };
@@ -353,13 +348,10 @@ namespace ibis {
     class ibis::whereClause& driver;
   };
 
-/* Line 35 of lalr1.cc  */
-#line 1 "[Bison:b4_percent_define_default]"
-
 } // ibis
 
-/* Line 35 of lalr1.cc  */
-#line 363 "whereParser.hh"
+/* Line 34 of lalr1.cc  */
+#line 355 "whereParser.hh"
 
 
 

@@ -20,6 +20,7 @@
 #include <dirent.h>	// opendir, readdir
 #endif
 
+#include <set>		// std::set
 #include <limits>	// std::numeric_limits
 
 // global variables
@@ -50,6 +51,9 @@ const short unsigned ibis::util::charIndex[] = {
     64, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
     53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 64, 64, 64, 64,
 };
+// delimiters that can be used to separate names in a name list
+const char* ibis::util::delimiters = ";, \b\f\r\t\n'\"";
+
 /// Initialize the global variable for holding all the datasets.
 ibis::partList ibis::datasets;
 
@@ -313,7 +317,7 @@ int ibis::util::readString(std::string& str, const char *&buf,
 /// returns 0.  It returns -1 if the input string is a null string, is an
 /// empty string, has only blank spaces or have one of the delimiters
 /// immediately following the leading blank spaces.  It returns -2 to
-/// indicate overflow, in which case, it resets val to 0 and move str to
+/// indicate overflow, in which case, it resets val to 0 and moves str to
 /// the next character that is not a decimal digit.
 int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     int64_t tmp = 0;
@@ -322,6 +326,10 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     for (; isspace(*str); ++ str); // skip leading space
     if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
 	return -1;
+
+    if (*str == '0' && (str[1] == 'x' || str[1] == 'X')) { // hexadecimal
+	return readUInt(reinterpret_cast<uint64_t&>(val), str, del);
+    }
 
     const bool neg = (*str == '-');
     if (*str == '-' || *str == '+') ++ str;
@@ -341,10 +349,27 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
 	}
 	++ str;
     }
+    // skip trail modifier U
+    if (*str == 'u' || *str == 'U') ++ str;
+    // skip up to two 'L'
+    if (*str == 'l' || *str == 'L') {
+	++ str;
+	if (*str == 'l' || *str == 'L') ++ str;
+    }
     if (neg) val = -val;
     return 0;
 } // ibis::util::readInt
 
+/// Attempt to convert the incoming string into a unsigned integer.  It
+/// skips leading space and converts a list of decimal digits to an
+/// integer.  On successful completion of this function, the argument val
+/// contains the converted value and str points to the next unused
+/// character in the input string.  In this case, it returns 0.  It returns
+/// -1 if the input string is a null string, is an empty string, has only
+/// blank spaces or have one of the delimiters immediately following the
+/// leading blank spaces.  It returns -2 to indicate overflow, in which
+/// case, it resets val to 0 and moves str to the next character that is
+/// not a decimal digit.
 int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
     uint64_t tmp = 0;
     val = 0;
@@ -353,21 +378,59 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
     if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
 	return -1;
 
-    while (*str != 0 && isdigit(*str) != 0) {
-	tmp = 10 * val + (*str - '0');
-	if (tmp > val) {
-	    val = tmp;
+    if (*str == '0' && (str[1] == 'x' || str[1] == 'X')) { // hexadecimal
+	while ((*str >= '0' && *str <= '9') ||
+	       (*str >= 'A' && *str <= 'F') ||
+	       (*str >= 'a' && *str < 'f')) {
+	    tmp <<= 4; // shift 4 bits
+	    if (*str >= '0' && *str <= '9') {
+		tmp += (*str - '0');
+	    }
+	    else if (*str >= 'A' && *str <= 'F') {
+		tmp += (*str - 'A' + 10);
+	    }
+	    else {
+		tmp += (*str - 'a' + 10);
+	    }
+	    if (tmp > val) { // accept the new value
+		val = tmp;
+	    }
+	    else if (val > 0) { // overflow
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- util::readUInt encounters an overflow: adding "
+		    << *str << " to " << val << " causes it to become " << tmp
+		    << ", reset val to 0";
+		val = 0;
+		while (*str != 0 && isdigit(*str) != 0) ++ str;
+		return -2;
+	    }
+	    ++ str;
 	}
-	else if (val > 0) { // overflow
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- util::readUInt encounters an overflow: adding "
-		<< *str << " to " << val << " causes it to become " << tmp
-		<< ", reset val to 0";
-	    val = 0;
-	    while (*str != 0 && isdigit(*str) != 0) ++ str;
-	    return -2;
+    }
+    else {
+	while (*str != 0 && isdigit(*str) != 0) {
+	    tmp = 10 * val + (*str - '0');
+	    if (tmp > val) {
+		val = tmp;
+	    }
+	    else if (val > 0) { // overflow
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- util::readUInt encounters an overflow: adding "
+		    << *str << " to " << val << " causes it to become " << tmp
+		    << ", reset val to 0";
+		val = 0;
+		while (*str != 0 && isdigit(*str) != 0) ++ str;
+		return -2;
+	    }
+	    ++ str;
 	}
+    }
+    // skip trail modifier U
+    if (*str == 'u' || *str == 'U') ++ str;
+    // skip up to two 'L'
+    if (*str == 'l' || *str == 'L') {
 	++ str;
+	if (*str == 'l' || *str == 'L') ++ str;
     }
     return 0;
 } // ibis::util::readUInt
@@ -377,8 +440,12 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 ///@code
 /// [+-]?\d*\.\d*[[eE][+-]?\d+]
 ///@endcode
-/// Note that the decimal point is the period!  This function leads str at
-/// the first character that does not follow the above pattern.
+///
+/// @note the decimal point is the period (.)!  This function does not
+/// understand any other notation.
+///
+/// @note This function leaves str at the first character that does not
+/// follow the above pattern.
 int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     val = 0;
     if (str == 0 || *str == 0) return -1;
@@ -1639,6 +1706,170 @@ void ibis::util::getGMTime(char *str) {
     }
 #endif
 } // ibis::util::getGMTime
+
+void ibis::nameList::select(const char* str) {
+    if (str == 0) return;
+    if (*str == static_cast<char>(0)) return;
+
+    // first put the incoming string into a list of strings
+    std::set<std::string> strlist;
+    const char* s = str;
+    const char* t = 0;
+    do {
+	s += strspn(s, ibis::util::delimiters); // remove leading space
+	if (*s) {
+	    t = strpbrk(s, ibis::util::delimiters);
+	    if (t) { // found a delimitor
+		std::string tmp;
+		while (s < t) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	    else { // no more delimitor
+		std::string tmp;
+		while (*s) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	}
+    } while (s != 0 && *s != 0);
+
+    if (! strlist.empty()) {
+	clear(); // clear existing content
+	uint32_t tot = strlist.size();
+	std::set<std::string>::const_iterator it;
+	for (it = strlist.begin(); it != strlist.end(); ++ it)
+	    tot += it->size();
+
+	buff = new char[tot];
+	cstr = new char[tot];
+
+	it = strlist.begin();
+	strcpy(buff, it->c_str());
+	strcpy(cstr, it->c_str());
+	cvec.push_back(buff);
+	char* s1 = buff + it->size();
+	char* t1 = cstr + it->size();
+	for (++ it; it != strlist.end(); ++ it) {
+	    ++ s1;
+	    *t1 = ',';
+	    ++ t1;
+	    strcpy(s1, it->c_str());
+	    strcpy(t1, it->c_str());
+	    cvec.push_back(s1);
+	    s1 += it->size();
+	    t1 += it->size();
+	}
+    }
+} // ibis::nameList::select
+
+void ibis::nameList::add(const char* str) {
+    if (str == 0) return;
+    if (*str == static_cast<char>(0)) return;
+
+    // first put the incoming string into a list of strings
+    std::set<std::string> strlist;
+    // input existing strings
+    for (unsigned i = 0; i < cvec.size(); ++ i)
+	strlist.insert(cvec[i]);
+
+    const char* s = str;
+    const char* t = 0;
+    do { // part new strings
+	s += strspn(s, ibis::util::delimiters); // remove leading space
+	if (*s) {
+	    t = strpbrk(s, ibis::util::delimiters);
+	    if (t) { // found a delimitor
+		std::string tmp;
+		while (s < t) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	    else { // no more delimitor
+		std::string tmp;
+		while (*s) {
+		    tmp += tolower(*s);
+		    ++ s;
+		}
+		strlist.insert(tmp);
+	    }
+	}
+    } while (s != 0 && *s != 0);
+
+    if (! strlist.empty()) {
+	clear(); // clear existing content
+	uint32_t tot = strlist.size();
+	std::set<std::string>::const_iterator it;
+	for (it = strlist.begin(); it != strlist.end(); ++ it)
+	    tot += it->size();
+
+	buff = new char[tot];
+	cstr = new char[tot];
+
+	it = strlist.begin();
+	strcpy(buff, it->c_str());
+	strcpy(cstr, it->c_str());
+	cvec.push_back(buff);
+	char* s1 = buff + it->size();
+	char* t1 = cstr + it->size();
+	for (++ it; it != strlist.end(); ++ it) {
+	    ++ s1;
+	    *t1 = ',';
+	    ++ t1;
+	    strcpy(s1, it->c_str());
+	    strcpy(t1, it->c_str());
+	    cvec.push_back(s1);
+	    s1 += it->size();
+	    t1 += it->size();
+	}
+    }
+} // ibis::nameList::select
+
+// the list of names are sorted
+uint32_t ibis::nameList::find(const char* key) const {
+    const uint32_t sz = cvec.size();
+    if (sz < 8) { // linear search
+	for (uint32_t i = 0; i < sz; ++ i) {
+	    int tmp = stricmp(cvec[i], key);
+	    if (tmp == 0) {
+		return i;
+	    }
+	    else if (tmp > 0) {
+		return sz;
+	    }
+	}
+    }
+    else { // binary search
+	uint32_t i = 0;
+	uint32_t j = sz;
+	uint32_t k = (i + j) / 2;
+	while (i < k) {
+	    int tmp = stricmp(cvec[k], key);
+	    if (tmp == 0) { // found a match
+		return k;
+	    }
+	    else if (tmp < 0) {
+		i = k + 1;
+		k = (k + 1 + j) / 2;
+	    }
+	    else {
+		j = k;
+		k = (i + k) / 2;
+	    }
+	}
+	if (i < j) {
+	    if (0 == stricmp(cvec[i], key))
+		return i;
+	}
+    }
+    return sz;
+} // ibis::nameList::find
 
 
 #ifdef IBIS_REPLACEMENT_RWLOCK

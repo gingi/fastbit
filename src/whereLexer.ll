@@ -87,7 +87,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a name: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a name: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext, yyleng);
     return token::NOUNSTR;
@@ -96,7 +96,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 {UNSIGNED} { /* an integer or a floating-point number (without a sign) */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a number: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a floating-point number: " << yytext;
 #endif
     yylval->doubleVal = atof(yytext);
     return token::NUMBER;
@@ -105,16 +105,64 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 0[xX][0-9a-fA-F]+ { /* a hexidacimal string */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a hexadecimal number: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a hexadecimal integer: " << yytext;
 #endif
-    (void) sscanf(yytext+2, "%x", &(yylval->integerVal));
-    return token::NUMBER;
+    const char *tmp = yytext;
+    int ierr = ibis::util::readUInt(yylval->uint64Val, tmp);
+    if (ierr != 0) {
+	throw "failed to parse a hexadecimal integer";
+    }
+    return token::UINT64;
+}
+
+[0-9]+[uU][lL]* {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ':' << __LINE__ << " got a unsigned integer: " << yytext;
+#endif
+    const char *tmp = yytext;
+    int ierr = ibis::util::readUInt(yylval->uint64Val, tmp);
+    if (ierr != 0)
+	throw "failed to parse a unsigned integer";
+    return token::UINT64;
+}
+
+[-+]?[0-9]+[lL][lL]? {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ':' << __LINE__ << " got a 64-bit integer: " << yytext;
+#endif
+    const char *tmp = yytext;
+    int ierr = ibis::util::readInt(yylval->int64Val, tmp);
+    if (ierr != 0)
+	throw "failed to parse a long integer";
+    return token::INT64;
+}
+
+\({WS}*[-+]?[0-9]+[lL][lL]?({SEP}+[-+]?[0-9]+[lL]?[lL]?)*{WS}*\) {/*\(\)*/
+    /* a series of long integers */ /*  */
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+ 	<< __FILE__ << ':' << __LINE__ << " got a signed integer sequence: " << yytext;
+#endif
+    yylval->stringVal = new std::string(yytext+1, yyleng-2);
+    return token::INTSEQ;
+}
+
+\({WS}*(0[xX][0-9a-fA-F]+|[0-9]+[uU][lL]?[lL]?)({SEP}+(0[xX][0-9a-fA-F]+|[0-9]+[uU][lL]?[lL]?))*{WS}*\) {
+    /* a series of unsigned long integers */
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+ 	<< __FILE__ << ':' << __LINE__ << " got a unsigned integer sequence: " << yytext;
+#endif
+    yylval->stringVal = new std::string(yytext+1, yyleng-2);
+    return token::UINTSEQ;
 }
 
 {QUOTED} { /* a quoted string literal */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a quoted string: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a quoted string: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext+1, yyleng-2);
     return token::STRLIT;
@@ -123,7 +171,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 \({WS}*{NUMBER}{SEP}+{NUMBER}({SEP}+{NUMBER})+{WS}*\) { /* a number series */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a number sequence: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a number sequence: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext+1, yyleng-2);
     return token::NUMSEQ;
@@ -132,7 +180,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 \({WS}*({QUOTED}|{NAME}){SEP}+({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
- 	<< __FILE__ << ":" << __LINE__ << " got a string sequence: " << yytext;
+ 	<< __FILE__ << ':' << __LINE__ << " got a string sequence: " << yytext;
 #endif
     yylval->stringVal = new std::string(yytext+1, yyleng-2);
     return token::STRSEQ;

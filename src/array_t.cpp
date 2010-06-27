@@ -12,6 +12,8 @@
 #endif
 #include "array_t.h"
 #include "util.h"
+
+#include <algorithm>	// std::sort
 #include <iomanip>	// std::setw
 #include <typeinfo>	// typeid
 
@@ -695,6 +697,46 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 	stride += stride; // double the stride every iteration
     }
 } // ibis::array_t<T>::stableSort
+
+/// Remove the duplicate values.  It sorts the values first and remove any
+/// entry that is not in strictly assending order.
+///
+/// @warning This function uses std::sort to order the values first before
+/// removign duplicates.  The function std::sort normally would places
+/// not-a-number (nan) at the end of the array which allows this function
+/// to remove them from the list of values.  However, should std::sort
+/// actually places nans at the beginning of the sorted list, this function
+/// will produce an empty array.
+template<class T>
+void ibis::array_t<T>::deduplicate() {
+    const size_t oldsize = size();
+    if (oldsize <= 1) return;
+
+    int flag = 2; // 2 == unique, 1 == sorted
+    for (size_t j = 1; j < oldsize && flag > 0; ++ j) {
+	if (m_begin[j-1] < m_begin[j]) {
+	    // nothing to do
+	}
+	else if (m_begin[j-1] == m_begin[j]) {
+	    flag = (flag > 0);
+	}
+	else {
+	    flag = 0;
+	}
+    }
+    if (flag > 1) return; // nothing to do
+
+    nosharing(); // prepare for changes
+    std::sort(m_begin, m_end);
+    size_t sz = 0;
+    for (size_t j = 1; j < oldsize; ++ j) {
+	if (m_begin[sz] < m_begin[j]) {
+	    ++ sz;
+	    m_begin[sz] = m_begin[j];
+	}
+    }
+    resize(sz+1);
+} // ibis::array_t<T>::deduplicate
 
 /// Sort the array to produce @c ind so that array_t[ind[i]] is in
 /// ascending order.  Uses the quicksort algorithm with introspection.  On

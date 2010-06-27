@@ -1,3 +1,16 @@
+2010-06-26 John Wu <John dot Wu at ACM dot org>
+	* src/whereLexer.ll, src/whereParser.yy: add rules for detecting
+	sequences of long integers and building qIntHod and qUIntHod
+
+2010-06-24 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: modify readInt and readUInt to skip trailing
+	modifiers U and L, add cases to deal with hexadecimal values
+	* src/query.cpp: moved the functions for ibis::nameList from
+	query.cpp to util.cpp (along with the definition of
+	ibis::util::delimiters)
+	* src/array_t.cpp: add function deduplicate
+	* src/qExpr.h, src/qExpr.cpp: add qIntHod and qUIntHod
+
 2010-06-23 John Wu <John dot Wu at ACM dot org>
 	* src/quaere.cpp: add two cases in ibis::quaere::create to handle
 	range joins with zero as delta, wrap raw pointers to qExpr with
@@ -6,6 +19,7 @@
 	the incoming argument instead of nil pointer when the incoming
 	argument is not found in the from clause, this allows the from
 	clause to be empty when joins are specified
+	* src/whereLexer.ll: add rules for integer constants
 
 2010-06-22 John Wu <John dot Wu at ACM dot org>
 	* src/fromClause.h, src/fromClause.cpp: add function reorderNames

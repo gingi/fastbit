@@ -2960,32 +2960,11 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<double>& val)
     : ibis::qRange(ibis::qExpr::DRANGE), name(col), values(val) {
     if (val.size() <= 1U) return;
-
-    bool sorted = (values[0] <= values[1]);
-    for (uint32_t i = 1; sorted && i < val.size()-1; ++ i)
-	sorted = (values[i] <= values[i+1]);
-    if (sorted == false) {
-	/// Sort the incoming values
-	std::sort(values.begin(), values.end());
-    }
-    uint32_t j = 0;
-    for (uint32_t i = 1; i < val.size(); ++ i) {
-	// loop to copy unique values to the beginning of the array
-	if (values[i] > values[j]) {
-	    ++ j;
-	    values[j] = values[i];
-	}
-    }
-    ++ j;
-    values.resize(j);
-    if (j < val.size() && ibis::gVerbose > 1) {
-	j = val.size() - j;
-	ibis::util::logger lg;
-	lg.buffer()
-	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
-	    << val.size() << " elements, removed " << j
-	    << " duplicate value" << (j > 1 ? "s" : "");
-    }
+    values.deduplicate();
+    LOGGER(values.size() < val.size() && ibis::gVerbose > 1)
+	<< "ibis::qDiscreteRange::ctor accepted incoming double array with "
+	<< val.size() << " elements as an array with " << values.size()
+	<< " unique value" << (values.size() > 1 ? "s" : "");
 } // ibis::qDiscreteRange::qDiscreteRange
 
 /// Construct a qDiscreteRange object from an array of double values.
@@ -2995,45 +2974,8 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     ibis::array_t<double>& val)
     : ibis::qRange(ibis::qExpr::DRANGE), name(col) {
     if (val.empty()) return;
-    if (val.size() <= 1U) return;
-
-    const uint32_t oldsize = val.size();
-    bool sorted = (val[0] <= val[1]);
-    bool distinct = (val[0] < val[1]);
-    for (uint32_t i = 2; sorted && i < oldsize; ++ i) {
-	sorted = (val[i-1] <= val[i]);
-	distinct = distinct && (val[i-1] < val[i]);
-    }
-
-    if (sorted == false) {
-	/// Sort the incoming values
-	std::sort(val.begin(), val.end());
-    }
-    uint32_t j = 0;
-    if (distinct == false) {
-	for (uint32_t i = 1; i < oldsize; ++ i) {
-	    // loop to copy unique values to the beginning of the array
-	    if (val[i] > val[j]) {
-		++ j;
-		val[j] = val[i];
-	    }
-	}
-	++ j;
-	val.resize(j);
-    }
-    else {
-	j = oldsize;
-    }
+    val.deduplicate();
     values.copy(val);
-
-    if (j < oldsize && ibis::gVerbose > 1) {
-	j = oldsize - j;
-	ibis::util::logger lg;
-	lg.buffer()
-	    << "ibis::qDiscreteRange::ctor accepted incoming double array with "
-	    << oldsize << " elements, removed " << j
-	    << " duplicate value" << (j > 1 ? "s" : "");
-    }
 } // ibis::qDiscreteRange::qDiscreteRange
 
 void ibis::qDiscreteRange::print(std::ostream& out) const {
@@ -3095,6 +3037,234 @@ void ibis::qDiscreteRange::restrictRange(double left, double right) {
     }
     values.resize(sz);
 } // ibis::qDiscreteRange::restrictRange
+
+/// Constructor.  Take a single number.
+ibis::qIntHod::qIntHod(const char* col, int64_t v1)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(1) {
+    values[0] = v1;
+} // ibis::qIntHod::qIntHod
+
+/// Constructor.  Take two numbers.
+ibis::qIntHod::qIntHod(const char* col, int64_t v1, int64_t v2)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(2) {
+    if (v1 == v2) {
+	values.resize(1);
+	values[0] = v1;
+    }
+    else if (v1 < v2) {
+	values[0] = v1;
+	values[1] = v2;
+    }
+    else {
+	values[0] = v2;
+	values[1] = v1;
+    }
+} // ibis::qIntHod::qIntHod
+
+/// Constructor.  This Constructor takes a list of values in a string.  The
+/// values are extracted using the function ibis::util::readInt.
+ibis::qIntHod::qIntHod(const char* col, const char* nums)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col) {
+    int ierr;
+    int64_t tmp;
+    while (nums != 0 && *nums != 0) {
+	// skip delimiters
+	const char* str = nums + strspn(nums, ibis::util::delimiters);
+	nums = str;
+	// extract the integer
+	ierr = ibis::util::readInt(tmp, nums);
+	if (ierr == 0) {
+	    values.push_back(tmp);
+	}
+	else if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer() << "Warning -- qIntHod::ctor failed to parse \"";
+	    while (str < nums) {
+		lg.buffer() << *str;
+		++ str;
+	    }
+	    lg.buffer() << "\" into an integer, ibis::util::readInt retruned "
+			<< ierr;
+	}
+    }
+    values.deduplicate();
+} // ibis::qIntHod::qIntHod
+
+/// Constructor.  It converts all incoming values into 64-bit signed
+/// integers, which may fail for certain data types.
+///
+/// @warning During the coversion process, fractional values will be
+/// dropped and large floating-point values will be translated into
+/// undefined integers.
+template <typename T>
+ibis::qIntHod::qIntHod(const char* col, const std::vector<T>& nums)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
+    std::copy(nums.begin(), nums.end(), values.begin());
+    values.deduplicate();
+} // ibis::qIntHod::qIntHod
+
+/// Constructor.  It converts all incoming values into 64-bit signed
+/// integers, which may fail for certain data types.
+///
+/// @warning During the coversion process, fractional values will be
+/// dropped and large floating-point values will be translated into
+/// undefined integers.  Unsigned 64-bit integers could be treated as
+/// negative numbers if they are large.
+template <typename T>
+ibis::qIntHod::qIntHod(const char* col, const ibis::array_t<T>& nums)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
+    std::copy(nums.begin(), nums.end(), values.begin());
+    values.deduplicate();
+} // ibis::qIntHod::qIntHod
+
+/// Print a short version of the query expression.
+void ibis::qIntHod::print(std::ostream& out) const {
+    out << name << " IN (";
+    if (values.size() > 0) {
+	uint32_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
+	    (1U << ibis::gVerbose) : values.size();
+	if (prt == 0)
+	    prt = 1;
+	else if (prt+prt >= values.size())
+	    prt = values.size();
+	out << values[0];
+	for (uint32_t i = 1; i < prt; ++ i)
+	    out << "LL, " << values[i];
+	if (prt < values.size())
+	    out << "LL ... " << values.size()-prt << " omitted";
+    }
+    out << ')';
+} // ibis::qIntHod::print
+
+/// Print the full list of values.  The number are follwed by suffix 'LL'
+/// to ensure the resulting string can be parsed back as the same
+/// expression.
+void ibis::qIntHod::printFull(std::ostream& out) const {
+    out << name << " IN (";
+    // std::copy(values.begin(), values.end(),
+    // 	      std::ostream_iterator<int64_t>(out, "LL, "));
+    if (values.size() > 0) {
+	out << values[0];
+	for (size_t j = 1; j < values.size(); ++ j)
+	    out << "LL, " << values[j];
+	out << "LL";
+    }
+    out << ')';
+} // ibis::qIntHod::printFull
+
+/// Constructor.  Take a single number.
+ibis::qUIntHod::qUIntHod(const char* col, uint64_t v1)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(1) {
+    values[0] = v1;
+} // ibis::qUIntHod::qUIntHod
+
+/// Constructor.  Take two numbers.
+ibis::qUIntHod::qUIntHod(const char* col, uint64_t v1, uint64_t v2)
+    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(2) {
+    if (v1 == v2) {
+	values.resize(1);
+	values[0] = v1;
+    }
+    else if (v1 < v2) {
+	values[0] = v1;
+	values[1] = v2;
+    }
+    else {
+	values[0] = v2;
+	values[1] = v1;
+    }
+} // ibis::qUIntHod::qUIntHod
+
+/// Constructor.  This Constructor takes a list of values in a string.  The
+/// values are extracted using the function ibis::util::readUInt.
+ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
+    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col) {
+    int ierr;
+    uint64_t tmp;
+    while (nums != 0 && *nums != 0) {
+	// skip delimiters
+	const char* str = nums + strspn(nums, ibis::util::delimiters);
+	nums = str;
+	// extract the integer
+	ierr = ibis::util::readUInt(tmp, nums);
+	if (ierr == 0) {
+	    values.push_back(tmp);
+	}
+	else if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg.buffer() << "Warning -- qUIntHod::ctor failed to parse \"";
+	    while (str < nums) {
+		lg.buffer() << *str;
+		++ str;
+	    }
+	    lg.buffer() << "\" into an integer, ibis::util::readUInt retruned "
+			<< ierr;
+	}
+    }
+    values.deduplicate();
+} // ibis::qUIntHod::qUIntHod
+
+/// Constructor.  It converts all incoming values into 64-bit unsigned
+/// integers.  This conversion process may fail for certain data types.
+///
+/// @warning During the coversion process, fractional values will be
+/// dropped and large floating-point values will be translated into
+/// undefined integers.
+template <typename T>
+ibis::qUIntHod::qUIntHod(const char* col, const std::vector<T>& nums)
+    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
+    std::copy(nums.begin(), nums.end(), values.begin());
+    values.deduplicate();
+} // ibis::qUIntHod::qUIntHod
+
+/// Constructor.  It converts all incoming values into 64-bit signed
+/// integers, which may fail for certain data types.
+///
+/// @warning During the coversion process, fractional values will be
+/// dropped and large floating-point values will be translated into
+/// undefined integers.  Unsigned 64-bit integers could be treated as
+/// negative numbers if they are large.
+template <typename T>
+ibis::qUIntHod::qUIntHod(const char* col, const ibis::array_t<T>& nums)
+    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
+    std::copy(nums.begin(), nums.end(), values.begin());
+    values.deduplicate();
+} // ibis::qUIntHod::qUIntHod
+
+/// Print a short version of the expression.
+void ibis::qUIntHod::print(std::ostream& out) const {
+    out << name << " IN (";
+    if (values.size() > 0) {
+	uint32_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
+	    (1U << ibis::gVerbose) : values.size();
+	if (prt == 0)
+	    prt = 1;
+	else if (prt+prt >= values.size())
+	    prt = values.size();
+	out << values[0];
+	for (uint32_t i = 1; i < prt; ++ i)
+	    out << "ULL, " << values[i];
+	if (prt < values.size())
+	    out << "ULL ... " << values.size()-prt << " omitted";
+    }
+    out << ')';
+} // ibis::qUIntHod::print
+
+/// Print a long version of the expression.  This function appends 'ULL' to
+/// each number so that they are guaranteed to be translated to the same
+/// type query expression is the output is sent back to the parser again.
+void ibis::qUIntHod::printFull(std::ostream& out) const {
+    out << name << " IN (";
+    // std::copy(values.begin(), values.end(),
+    // 	      std::ostream_iterator<uint64_t>(out, "ULL, "));
+    if (values.size() > 0) {
+	out << values[0];
+	for (size_t j = 1; j < values.size(); ++ j)
+	    out << "ULL, " << values[j];
+	out << "ULL";
+    }
+    out << ')';
+} // ibis::qUIntHod::printFull
 
 ibis::qMultiString::qMultiString(const char *col, const char *sval)
     : ibis::qExpr(ibis::qExpr::MSTRING) {

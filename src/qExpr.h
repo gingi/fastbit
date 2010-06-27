@@ -22,6 +22,8 @@ namespace ibis { // additional names related to qExpr
     class deprecatedJoin;	///< A deprecated range join operations.
     class qAnyAny;	///< A special form of any-match-any query.
     class qLike;	///< A representation of the operator LIKE.
+    class qIntHod;	///< A container of signed integers.
+    class qUIntHod;	///< A container of unsigned integers.
 }
 
 /// @ingroup FastBitIBIS
@@ -35,7 +37,7 @@ public:
     enum TYPE {
 	LOGICAL_UNDEFINED, LOGICAL_NOT, LOGICAL_AND, LOGICAL_OR, LOGICAL_XOR,
 	LOGICAL_MINUS, RANGE, DRANGE, STRING, MSTRING, COMPRANGE, MATHTERM,
-	DEPRECATEDJOIN, TOPK, ANYANY, LIKE
+	DEPRECATEDJOIN, TOPK, ANYANY, LIKE, INTHOD, UINTHOD
     };
     /// Comparison operator supported in RANGE.
     enum COMPARE {
@@ -137,6 +139,7 @@ public:
     bool directEval() const
     {return (type==RANGE || type==STRING || type==COMPRANGE ||
 	     type==DRANGE || type==MSTRING || type==ANYANY ||
+	     type==INTHOD || type==UINTHOD ||
 	     (type==LOGICAL_NOT && left && left->directEval()));}
 
     /// Is the expression simple? A simple expression contains only range
@@ -337,9 +340,11 @@ public:
 	: qRange(DRANGE), name(dr.name), values(dr.values) {}
     virtual ~qDiscreteRange() {}; // private variables automatically destructs
 
-    // main access functions
+    /// Name of the column.
     virtual const char* colName() const {return name.c_str();}
+    /// Reference to the values.
     const ibis::array_t<double>& getValues() const {return values;}
+    /// Reference to the values.
     ibis::array_t<double>& getValues() {return values;}
 
     /// Duplicate thy self.
@@ -358,11 +363,107 @@ public:
     virtual void printFull(std::ostream& out) const {print(out);}
 
 private:
-    std::string name;
-    ibis::array_t<double> values; ///< values are sorted.
+    std::string name; ///< Column name.
+    ibis::array_t<double> values; ///< Values are sorted in ascending order.
 
     qDiscreteRange& operator=(const qDiscreteRange&);
 }; // ibis::qDiscreteRange
+
+/// This query expression has similar meaning as ibis::qDiscreteRange,
+/// however, it stores the values as signed 64-bit integers.  This is
+/// primarily useful for matching 64-bit integers.
+///
+/// @note About the name: hod is a portable trough for carrying mortar,
+/// bricks, and so on.  We use it here as a short-hand for container.
+/// Since this class is not meant for user by others, this is a suitable
+/// obscure name for it.
+class ibis::qIntHod : public ibis::qExpr {
+public:
+    /// Default constructor.
+    qIntHod() : qExpr(INTHOD) {};
+    qIntHod(const char* col, int64_t v1);
+    qIntHod(const char* col, int64_t v1, int64_t v2);
+    qIntHod(const char* col, const char* nums);
+    template <typename T>
+    qIntHod(const char* col, const std::vector<T>& nums);
+    template <typename T>
+    qIntHod(const char* col, const ibis::array_t<T>& nums);
+
+    /// Copy constructor.
+    qIntHod(const qIntHod& ih)
+	: qExpr(INTHOD), name(ih.name), values(ih.values) {};
+
+    /// Destructor.
+    virtual ~qIntHod() {};
+
+    /// Name of the column involved.
+    const char* colName() const {return name.c_str();}
+    /// Reference to the values.
+    const ibis::array_t<int64_t>& getValues() const {return values;}
+    /// Reference to the values.
+    ibis::array_t<int64_t>& getValues() {return values;}
+    /// Duplicate thy self.
+    virtual qIntHod* dup() const {return new qIntHod(*this);}
+    virtual uint32_t nItems() const {return values.size();}
+
+    virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream&) const;
+
+private:
+    /// Name of the column to be compared.
+    std::string name;
+    /// Values to be compared.  The constructor of this class shall sort
+    /// the values in ascending order.
+    ibis::array_t<int64_t> values;
+}; // ibis::qIntHod
+
+/// This query expression has similar meaning as ibis::qDiscreteRange,
+/// however, it stores the values as unsigned 64-bit integers.  This is
+/// primarily useful for matching 64-bit integers.
+///
+/// @note About the name: hod is a portable trough for carrying mortar,
+/// bricks, and so on.  We use it here as a short-hand for container.
+/// Since this class is not meant for user by others, this is a suitable
+/// obscure name for it.
+class ibis::qUIntHod : public ibis::qExpr {
+public:
+    /// Default constructor.
+    qUIntHod() : qExpr(UINTHOD) {};
+    qUIntHod(const char* col, uint64_t v1);
+    qUIntHod(const char* col, uint64_t v1, uint64_t v2);
+    qUIntHod(const char* col, const char* nums);
+    template <typename T>
+    qUIntHod(const char* col, const std::vector<T>& nums);
+    template <typename T>
+    qUIntHod(const char* col, const ibis::array_t<T>& nums);
+
+    /// Copy constructor.
+    qUIntHod(const qUIntHod& ih)
+	: qExpr(UINTHOD), name(ih.name), values(ih.values) {};
+
+    /// Destructor.
+    virtual ~qUIntHod() {};
+
+    /// Name of the column involved.
+    const char* colName() const {return name.c_str();}
+    /// Reference to the values.
+    const ibis::array_t<uint64_t>& getValues() const {return values;}
+    /// Reference to the values.
+    ibis::array_t<uint64_t>& getValues() {return values;}
+    /// Duplicate thy self.
+    virtual qUIntHod* dup() const {return new qUIntHod(*this);}
+    virtual uint32_t nItems() const {return values.size();}
+
+    virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream&) const;
+
+private:
+    /// Name of the column to be compared.
+    std::string name;
+    /// Values to be compared.  The constructor of this class shall sort
+    /// the values in ascending order.
+    ibis::array_t<uint64_t> values;
+}; // ibis::qUIntHod
 
 /// The class qString encapsulates information for comparing string values.
 /// Only equality comparison is supported at this point.  It does not
@@ -823,9 +924,11 @@ private:
 class ibis::deprecatedJoin : public ibis::qExpr {
 public:
     deprecatedJoin(const char* n1, const char *n2)
-	: ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2), expr(0) {};
+	: ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2),
+	  expr(0) {};
     deprecatedJoin(const char* n1, const char *n2, ibis::math::term *x) : 
-	ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2), expr(x) {};
+	ibis::qExpr(ibis::qExpr::DEPRECATEDJOIN), name1(n1), name2(n2),
+	expr(x) {};
     virtual ~deprecatedJoin() {delete expr;};
 
     virtual void print(std::ostream& out) const;
