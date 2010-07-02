@@ -121,6 +121,8 @@ public:
     /// Estimate the cost of evaluate the query expression.
     virtual double estimateCost(const ibis::qContinuousRange &cmp) const;
     virtual double estimateCost(const ibis::qDiscreteRange &cmp) const;
+    virtual double estimateCost(const ibis::qIntHod &cmp) const;
+    virtual double estimateCost(const ibis::qUIntHod &cmp) const;
     virtual double estimateCost(const ibis::qString &cmp) const;
     virtual double estimateCost(const ibis::qMultiString &cmp) const;
 
@@ -129,12 +131,25 @@ public:
 
     /// Return an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qDiscreteRange &cmp) const;
+    /// Return an upper bound on the number of hits.
+    virtual long estimateRange(const ibis::qIntHod &cmp) const;
+    /// Return an upper bound on the number of hits.
+    virtual long estimateRange(const ibis::qUIntHod &cmp) const;
+
     /// Evaluate a continue range expression accurately.
     virtual long evaluateRange(const ibis::qContinuousRange &cmp,
 			       const ibis::bitvector &mask,
 			       ibis::bitvector &res) const;
     /// Evaluate a discrete range expression accurately.
     virtual long evaluateRange(const ibis::qDiscreteRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
+    /// Evaluate a discrete range expression accurately.
+    virtual long evaluateRange(const ibis::qIntHod &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
+    /// Evaluate a discrete range expression accurately.
+    virtual long evaluateRange(const ibis::qUIntHod &cmp,
 			       const ibis::bitvector &mask,
 			       ibis::bitvector &res) const;
 
@@ -153,6 +168,22 @@ public:
 			       ibis::bitvector &high) const;
     /// Discover the records that can not be decided using the index.
     virtual float getUndecidable(const ibis::qDiscreteRange &cmp,
+				 ibis::bitvector &iffy) const;
+
+    /// Estimate the discrete range condition.
+    virtual long estimateRange(const ibis::qIntHod &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const;
+    /// Discover the records that can not be decided using the index.
+    virtual float getUndecidable(const ibis::qIntHod &cmp,
+				 ibis::bitvector &iffy) const;
+
+    /// Estimate the discrete range condition.
+    virtual long estimateRange(const ibis::qUIntHod &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const;
+    /// Discover the records that can not be decided using the index.
+    virtual float getUndecidable(const ibis::qUIntHod &cmp,
 				 ibis::bitvector &iffy) const;
 
     /// Evaluate the range condition.  Scan the base data to resolve the
@@ -803,18 +834,30 @@ protected:
     /// Count the number rows satisfying the range expression.  T is an
     /// elementary type.
     template <typename T>
+	long doCount(const array_t<T> &vals, const ibis::qIntHod &cmp,
+		     const ibis::bitvector &mask) const;
+
+    /// Count the number rows satisfying the range expression.  T is an
+    /// elementary type.
+    template <typename T>
+	long doCount(const array_t<T> &vals, const ibis::qUIntHod &cmp,
+		     const ibis::bitvector &mask) const;
+
+    /// Count the number rows satisfying the range expression.  T is an
+    /// elementary type.
+    template <typename T>
 	long doCount(const array_t<T> &vals, const ibis::qRange &cmp,
 		     const ibis::bitvector &mask) const;
 
     /// Count the number rows satisfying the range expression.
     template <typename T, typename F>
-    long doCount(const array_t<T> &vals,
-		 const ibis::bitvector &mask, F cmp) const;
+	long doCount(const array_t<T> &vals,
+		     const ibis::bitvector &mask, F cmp) const;
 
     /// Count the number rows satisfying the range expression.
     template <typename T, typename F1, typename F2>
-    long doCount(const array_t<T> &vals,
-		 const ibis::bitvector &mask, F1 cmp1, F2 cmp2) const;
+	long doCount(const array_t<T> &vals,
+		     const ibis::bitvector &mask, F1 cmp1, F2 cmp2) const;
 
     /// Pack a cumulative distribution stored in two std::vectors into two
     /// arrays provided by the caller.

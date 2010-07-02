@@ -205,9 +205,9 @@ public:
     /// Reduce the range to be no more than [left, right].
     virtual void restrictRange(double left, double right) = 0;
     /// The lower bound of the range.
-    virtual const double& leftBound() const = 0;
+    virtual double leftBound() const = 0;
     /// The upper bound of the range.
-    virtual const double& rightBound() const = 0;
+    virtual double rightBound() const = 0;
     /// Is the current range empty?
     virtual bool empty() const = 0;
     virtual void getTableNames(std::set<std::string>& plist) const;
@@ -287,10 +287,8 @@ public:
     virtual const char *colName() const {return name;}
     COMPARE leftOperator() const {return left_op;}
     COMPARE rightOperator() const {return right_op;}
-    virtual const double& leftBound() const {
-	return (lower);}
-    virtual const double& rightBound() const {
-	return (upper);}
+    virtual double leftBound() const {return lower;}
+    virtual double rightBound() const {return upper;}
     // allow one to possibly change the left and right bounds, the left and
     // right operator
     double& leftBound() {return lower;}
@@ -352,8 +350,10 @@ public:
     virtual bool inRange(double val) const;
     virtual void restrictRange(double left, double right);
     virtual bool empty() const {return values.empty();}
-    virtual const double& leftBound() const {return values.front();}
-    virtual const double& rightBound() const {return values.back();}
+    virtual double leftBound() const {
+	return (values.empty() ? DBL_MAX : values.front());}
+    virtual double rightBound() const {
+	return (values.empty() ? -DBL_MAX : values.back());}
     virtual uint32_t nItems() const {return values.size();}
 
     /// Convert to a sequence of qContinuousRange.
@@ -377,10 +377,10 @@ private:
 /// bricks, and so on.  We use it here as a short-hand for container.
 /// Since this class is not meant for user by others, this is a suitable
 /// obscure name for it.
-class ibis::qIntHod : public ibis::qExpr {
+class ibis::qIntHod : public ibis::qRange {
 public:
     /// Default constructor.
-    qIntHod() : qExpr(INTHOD) {};
+    qIntHod() : qRange(INTHOD) {};
     qIntHod(const char* col, int64_t v1);
     qIntHod(const char* col, int64_t v1, int64_t v2);
     qIntHod(const char* col, const char* nums);
@@ -391,7 +391,7 @@ public:
 
     /// Copy constructor.
     qIntHod(const qIntHod& ih)
-	: qExpr(INTHOD), name(ih.name), values(ih.values) {};
+	: qRange(INTHOD), name(ih.name), values(ih.values) {};
 
     /// Destructor.
     virtual ~qIntHod() {};
@@ -402,6 +402,15 @@ public:
     const ibis::array_t<int64_t>& getValues() const {return values;}
     /// Reference to the values.
     ibis::array_t<int64_t>& getValues() {return values;}
+
+    virtual bool inRange(double val) const;
+    virtual bool inRange(int64_t val) const;
+    virtual void restrictRange(double, double);
+    virtual double leftBound() const {
+	return (values.empty() ? DBL_MAX : values.front());}
+    virtual double rightBound() const {
+	return (values.empty() ? -DBL_MAX : values.back());}
+    virtual bool empty() const {return values.empty();}
     /// Duplicate thy self.
     virtual qIntHod* dup() const {return new qIntHod(*this);}
     virtual uint32_t nItems() const {return values.size();}
@@ -425,10 +434,10 @@ private:
 /// bricks, and so on.  We use it here as a short-hand for container.
 /// Since this class is not meant for user by others, this is a suitable
 /// obscure name for it.
-class ibis::qUIntHod : public ibis::qExpr {
+class ibis::qUIntHod : public ibis::qRange {
 public:
     /// Default constructor.
-    qUIntHod() : qExpr(UINTHOD) {};
+    qUIntHod() : qRange(UINTHOD) {};
     qUIntHod(const char* col, uint64_t v1);
     qUIntHod(const char* col, uint64_t v1, uint64_t v2);
     qUIntHod(const char* col, const char* nums);
@@ -439,7 +448,7 @@ public:
 
     /// Copy constructor.
     qUIntHod(const qUIntHod& ih)
-	: qExpr(UINTHOD), name(ih.name), values(ih.values) {};
+	: qRange(UINTHOD), name(ih.name), values(ih.values) {};
 
     /// Destructor.
     virtual ~qUIntHod() {};
@@ -450,6 +459,15 @@ public:
     const ibis::array_t<uint64_t>& getValues() const {return values;}
     /// Reference to the values.
     ibis::array_t<uint64_t>& getValues() {return values;}
+
+    virtual bool inRange(double val) const;
+    virtual bool inRange(uint64_t val) const;
+    virtual void restrictRange(double, double);
+    virtual double leftBound() const {
+	return (values.empty() ? DBL_MAX : values.front());}
+    virtual double rightBound() const {
+	return (values.empty() ? -DBL_MAX : values.back());}
+    virtual bool empty() const {return values.empty();}
     /// Duplicate thy self.
     virtual qUIntHod* dup() const {return new qUIntHod(*this);}
     virtual uint32_t nItems() const {return values.size();}
@@ -1218,6 +1236,126 @@ inline bool ibis::qDiscreteRange::inRange(double val) const {
 	return (values[m] == val);
     }
 } // ibis::qDiscreteRange::inRange
+
+/// Is the argument @a val one of the values stored ?  Return true or
+/// false.
+/// It uses a binary search if there are more than 32 elements and uses
+/// linear search otherwise.
+inline bool ibis::qIntHod::inRange(double val) const {
+    if (values.empty()) return false;
+    if (val < values[0] || val > values.back()) return false;
+
+    uint32_t i = 0, j = values.size();
+    if (j < 32) { // sequential search
+	// -- because the heavy branch prediction cost, linear search is
+	// more efficient for fairly large range.
+	for (i = 0; i < j; ++ i)
+	    if (values[i] == val) return true;
+	return false;
+    }
+    else { // binary search
+	uint32_t m = (i + j) / 2;
+	while (i < m) {
+	    if (values[m] == val) return true;
+	    if (values[m] < val)
+		i = m;
+	    else
+		j = m;
+	    m = (i + j) / 2;
+	}
+	return (values[m] == val);
+    }
+} // ibis::qIntHod::inRange
+
+/// Is the argument @a val one of the values stored ?  Return true or
+/// false.
+/// It uses a binary search if there are more than 32 elements and uses
+/// linear search otherwise.
+inline bool ibis::qUIntHod::inRange(double val) const {
+    if (values.empty()) return false;
+    if (val < values[0] || val > values.back()) return false;
+
+    uint32_t i = 0, j = values.size();
+    if (j < 32) { // sequential search
+	// -- because the heavy branch prediction cost, linear search is
+	// more efficient for fairly large range.
+	for (i = 0; i < j; ++ i)
+	    if (values[i] == val) return true;
+	return false;
+    }
+    else { // binary search
+	uint32_t m = (i + j) / 2;
+	while (i < m) {
+	    if (values[m] == val) return true;
+	    if (values[m] < val)
+		i = m;
+	    else
+		j = m;
+	    m = (i + j) / 2;
+	}
+	return (values[m] == val);
+    }
+} // ibis::qUIntHod::inRange
+
+/// Is the argument @a val one of the values stored ?  Return true or
+/// false.
+/// It uses a binary search if there are more than 32 elements and uses
+/// linear search otherwise.
+inline bool ibis::qIntHod::inRange(int64_t val) const {
+    if (values.empty()) return false;
+    if (val < values[0] || val > values.back()) return false;
+
+    uint32_t i = 0, j = values.size();
+    if (j < 32) { // sequential search
+	// -- because the heavy branch prediction cost, linear search is
+	// more efficient for fairly large range.
+	for (i = 0; i < j; ++ i)
+	    if (values[i] == val) return true;
+	return false;
+    }
+    else { // binary search
+	uint32_t m = (i + j) / 2;
+	while (i < m) {
+	    if (values[m] == val) return true;
+	    if (values[m] < val)
+		i = m;
+	    else
+		j = m;
+	    m = (i + j) / 2;
+	}
+	return (values[m] == val);
+    }
+} // ibis::qIntHod::inRange
+
+/// Is the argument @a val one of the values stored ?  Return true or
+/// false.
+/// It uses a binary search if there are more than 32 elements and uses
+/// linear search otherwise.
+inline bool ibis::qUIntHod::inRange(uint64_t val) const {
+    if (values.empty()) return false;
+    if (val < values[0] || val > values.back()) return false;
+
+    uint32_t i = 0, j = values.size();
+    if (j < 32) { // sequential search
+	// -- because the heavy branch prediction cost, linear search is
+	// more efficient for fairly large range.
+	for (i = 0; i < j; ++ i)
+	    if (values[i] == val) return true;
+	return false;
+    }
+    else { // binary search
+	uint32_t m = (i + j) / 2;
+	while (i < m) {
+	    if (values[m] == val) return true;
+	    if (values[m] < val)
+		i = m;
+	    else
+		j = m;
+	    m = (i + j) / 2;
+	}
+	return (values[m] == val);
+    }
+} // ibis::qUIntHod::inRange
 
 /// Record the specified name.  Return the number that is to be used later
 /// in functions @c name and @c value for retrieving the variable name and

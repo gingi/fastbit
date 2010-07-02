@@ -3102,6 +3102,87 @@ long ibis::part::patternSearch(const ibis::qLike &cmp,
 } // ibis::part::patternSearch
 
 // simply pass the job to the named column
+long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &hits) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
+	hits.set(0, nEvents);
+	return 0;
+    }
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ierr = col->evaluateRange(cmp, mask, hits);
+	if (ierr < 0) {
+	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
+	    unloadIndexes();
+	    ierr = col->evaluateRange(cmp, mask, hits);
+	}
+    }
+    else {
+	logWarning("evaluateRange", "unable to find a column named %s",
+		   cmp.colName());
+	hits.set(0, nEvents);
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::evaluateRange("
+	<< cmp << "), ierr = " << ierr;
+    return ierr;
+} // ibis::part::evaluateRange
+
+/// Return sure hits in bitvector low, and sure hits plus candidates in
+/// bitvector high.  An alternative view is that low and high represent an
+/// lower bound and an upper bound of the actual hits.
+long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
+	low.set(0, nEvents);
+	high.set(0, nEvents);
+	return 0;
+    }
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ierr = col->estimateRange(cmp, low, high);
+	if (amask.size() == low.size()) {
+	    low &= amask;
+	    if (amask.size() == high.size())
+		high &= amask;
+	}
+    }
+    else {
+	logWarning("estimateRange", "unable to find a column named %s",
+		   cmp.colName());
+	high.set(0, nEvents);
+	low.set(0, nEvents);
+    }
+
+    if (high.size() == low.size() && high.cnt() > low.cnt()) {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
+    }
+    else {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp << ") = " << low.cnt();
+    }
+    return ierr;
+} // ibis::part::estimateRange
+
+// simply pass the job to the named column
 long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
     long ret = 0;
     if (columns.empty() || nEvents == 0)
@@ -3129,139 +3210,25 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
     return ret;
 } // ibis::part::estimateRange
 
-long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
-    long ret = 0;
+double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
+    double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
-    if (cmp.colName() == 0)
+    if (cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
 	return ret;
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-	ret = col->estimateRange(cmp);
-	if (ret < 0) {
-	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
-	    unloadIndexes();
-	    ret = col->estimateRange(cmp);
-	}
+	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateRange", "unable to find a column "
-		   "named %s", cmp.colName());
-    }
-
-    LOGGER(ibis::gVerbose > 7)
-	<< "ibis::part[" << name() << "]::estimateRange(" << cmp.colName()
-	<< " IN ...) <= " << ret;
-    return ret;
-} // ibis::part::estimateRange
-
-// simply pass the job to the named column
-long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
-			       const ibis::bitvector &mask,
-			       ibis::bitvector &hits) const {
-    long ierr = 0;
-    if (columns.empty() || nEvents == 0) return ierr;
-
-    if (cmp.colName() == 0 ||
-	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
-	hits.set(0, nEvents);
-	return 0;
-    }
-//     else if (cmp.rightOperator() == ibis::qExpr::OP_EQ) {
-// 	switch (comp.leftOperator()) {
-// 	case ibis::qExpr::OP_LT:
-// 	    if (! comp.leftBound() < comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_LE:
-// 	    if (! comp.leftBound() <= comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GT:
-// 	    if (! comp.leftBound() > comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GE:
-// 	    if (! comp.leftBound() >= comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_EQ:
-// 	    if (! comp.leftBound() == comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	default:
-// 	    break;
-// 	}
-//     }
-//     else if (cmp.leftOperator() == ibis::qExpr::OP_EQ) {
-// 	switch (comp.rightOperator()) {
-// 	case ibis::qExpr::OP_LT:
-// 	    if (! comp.leftBound() < comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_LE:
-// 	    if (! comp.leftBound() <= comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GT:
-// 	    if (! comp.leftBound() > comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GE:
-// 	    if (! comp.leftBound() >= comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_EQ:
-// 	    if (! comp.leftBound() == comp.rightBound()) {
-// 		hits.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	default:
-// 	    break;
-// 	}
-//     }
-
-    const ibis::column* col = getColumn(cmp.colName());
-    if (col != 0) {
-	ierr = col->evaluateRange(cmp, mask, hits);
-	if (ierr < 0) {
-	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
-	    unloadIndexes();
-	    ierr = col->evaluateRange(cmp, mask, hits);
-	}
-    }
-    else {
-	logWarning("evaluateRange", "unable to find a column named %s",
+	logWarning("estimateCost", "unable to find a column named %s ",
 		   cmp.colName());
-	hits.set(0, nEvents);
     }
-
-    LOGGER(ibis::gVerbose > 7)
-	<< "ibis::part[" << name() << "]::evaluateRange("
-	<< cmp << "), ierr = " << ierr;
-    return ierr;
-} // ibis::part::evaluateRange
+    return ret;
+} // ibis::part::estimateCost
 
 long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 			       const ibis::bitvector &mask,
@@ -3295,134 +3262,6 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	<< cmp.colName() << " IN ...), ierr = " << ierr;
     return ierr;
 } // ibis::part::evaluateRange
-
-/// Return sure hits in bitvector low, and sure hits plus candidates in
-/// bitvector high.  An alternative view is that low and high represent an
-/// lower bound and an upper bound of the actual hits.
-long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
-			       ibis::bitvector &low,
-			       ibis::bitvector &high) const {
-    long ierr = 0;
-    if (columns.empty() || nEvents == 0) return ierr;
-
-    if (cmp.colName() == 0 ||
-	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
-	low.set(0, nEvents);
-	high.set(0, nEvents);
-	return 0;
-    }
-//     else if (cmp.rightOperator() == ibis::qExpr::OP_EQ) {
-// 	switch (comp.leftOperator()) {
-// 	case ibis::qExpr::OP_LT:
-// 	    if (! comp.leftBound() < comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_LE:
-// 	    if (! comp.leftBound() <= comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GT:
-// 	    if (! comp.leftBound() > comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GE:
-// 	    if (! comp.leftBound() >= comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_EQ:
-// 	    if (! comp.leftBound() == comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	default:
-// 	    break;
-// 	}
-//     }
-//     else if (cmp.leftOperator() == ibis::qExpr::OP_EQ) {
-// 	switch (comp.rightOperator()) {
-// 	case ibis::qExpr::OP_LT:
-// 	    if (! comp.leftBound() < comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_LE:
-// 	    if (! comp.leftBound() <= comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GT:
-// 	    if (! comp.leftBound() > comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_GE:
-// 	    if (! comp.leftBound() >= comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	case ibis::qExpr::OP_EQ:
-// 	    if (! comp.leftBound() == comp.rightBound()) {
-// 		low.set(0, nEvents);
-// 		high.set(0, nEvents);
-// 		return 0;
-// 	    }
-// 	    break;
-// 	default:
-// 	    break;
-// 	}
-//     }
-
-    const ibis::column* col = getColumn(cmp.colName());
-    if (col != 0) {
-	ierr = col->estimateRange(cmp, low, high);
-	if (amask.size() == low.size()) {
-	    low &= amask;
-	    if (amask.size() == high.size())
-		high &= amask;
-	}
-    }
-    else {
-	logWarning("estimateRange", "unable to find a column named %s",
-		   cmp.colName());
-	high.set(0, nEvents);
-	low.set(0, nEvents);
-    }
-
-    if (high.size() == low.size() && high.cnt() > low.cnt()) {
-	LOGGER(ibis::gVerbose > 7)
-	    << "ibis::part[" << name() << "]::estimateRange("
-	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
-    }
-    else {
-	LOGGER(ibis::gVerbose > 7)
-	    << "ibis::part[" << name() << "]::estimateRange("
-	    << cmp << ") = " << low.cnt();
-    }
-    return ierr;
-} // ibis::part::estimateRange
 
 long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
 			       ibis::bitvector &low,
@@ -3467,13 +3306,38 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
     return ierr;
 } // ibis::part::estimateRange
 
-double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
+long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
+    long ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+    if (cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateRange(cmp);
+	if (ret < 0) {
+	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
+	    unloadIndexes();
+	    ret = col->estimateRange(cmp);
+	}
+    }
+    else {
+	logWarning("estimateRange", "unable to find a column "
+		   "named %s", cmp.colName());
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::estimateRange(" << cmp.colName()
+	<< " IN ...) <= " << ret;
+    return ret;
+} // ibis::part::estimateRange
+
+double ibis::part::estimateCost(const ibis::qDiscreteRange &cmp) const {
     double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
-    if (cmp.colName() == 0 ||
-	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
+    if (cmp.colName() == 0)
 	return ret;
 
     const ibis::column* col = getColumn(cmp.colName());
@@ -3481,13 +3345,237 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s ",
+	logWarning("estimateCost", "unable to find a column named %s",
 		   cmp.colName());
     }
     return ret;
 } // ibis::part::estimateCost
 
-double ibis::part::estimateCost(const ibis::qDiscreteRange &cmp) const {
+long ibis::part::evaluateRange(const ibis::qIntHod &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &hits) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0) { // no hit
+	hits.set(0, nEvents);
+	ierr = -7;
+    }
+    else {
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->evaluateRange(cmp, mask, hits);
+	    if (ierr < 0) {
+		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
+		unloadIndexes();
+		ierr = col->evaluateRange(cmp, mask, hits);
+	    }
+	}
+	else {
+	    logWarning("evaluateRange", "unable to find a column "
+		       "named %s", cmp.colName());
+	    hits.set(0, nEvents);
+	}
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::evaluateRange("
+	<< cmp.colName() << " IN ...), ierr = " << ierr;
+    return ierr;
+} // ibis::part::evaluateRange
+
+long ibis::part::estimateRange(const ibis::qIntHod &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0) { // no hit
+	low.set(0, nEvents);
+	high.set(0, nEvents);
+	ierr = -7;
+    }
+    else {
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->estimateRange(cmp, low, high);
+	    if (amask.size() == low.size()) {
+		low &= amask;
+		if (amask.size() == high.size())
+		    high &= amask;
+	    }
+	}
+	else {
+	    logWarning("estimateRange", "unable to find a column "
+		       "named %s", cmp.colName());
+	    high.set(0, nEvents);
+	    low.set(0, nEvents);
+	}
+    }
+
+    if (high.size() == low.size() && high.cnt() > low.cnt()) {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp.colName() << " IN ...) --> [" << low.cnt() << ", "
+	    << high.cnt() << "]";
+    }
+    else {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp.colName() << " IN ...) = " << low.cnt();
+    }
+    return ierr;
+} // ibis::part::estimateRange
+
+long ibis::part::estimateRange(const ibis::qIntHod &cmp) const {
+    long ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+    if (cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateRange(cmp);
+	if (ret < 0) {
+	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
+	    unloadIndexes();
+	    ret = col->estimateRange(cmp);
+	}
+    }
+    else {
+	logWarning("estimateRange", "unable to find a column "
+		   "named %s", cmp.colName());
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::estimateRange(" << cmp.colName()
+	<< " IN ...) <= " << ret;
+    return ret;
+} // ibis::part::estimateRange
+
+double ibis::part::estimateCost(const ibis::qIntHod &cmp) const {
+    double ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+    if (cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateCost(cmp);
+    }
+    else {
+	logWarning("estimateCost", "unable to find a column named %s",
+		   cmp.colName());
+    }
+    return ret;
+} // ibis::part::estimateCost
+
+long ibis::part::evaluateRange(const ibis::qUIntHod &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &hits) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0) { // no hit
+	hits.set(0, nEvents);
+	ierr = -7;
+    }
+    else {
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->evaluateRange(cmp, mask, hits);
+	    if (ierr < 0) {
+		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
+		unloadIndexes();
+		ierr = col->evaluateRange(cmp, mask, hits);
+	    }
+	}
+	else {
+	    logWarning("evaluateRange", "unable to find a column "
+		       "named %s", cmp.colName());
+	    hits.set(0, nEvents);
+	}
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::evaluateRange("
+	<< cmp.colName() << " IN ...), ierr = " << ierr;
+    return ierr;
+} // ibis::part::evaluateRange
+
+long ibis::part::estimateRange(const ibis::qUIntHod &cmp,
+			       ibis::bitvector &low,
+			       ibis::bitvector &high) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    if (cmp.colName() == 0) { // no hit
+	low.set(0, nEvents);
+	high.set(0, nEvents);
+	ierr = -7;
+    }
+    else {
+	const ibis::column* col = getColumn(cmp.colName());
+	if (col != 0) {
+	    ierr = col->estimateRange(cmp, low, high);
+	    if (amask.size() == low.size()) {
+		low &= amask;
+		if (amask.size() == high.size())
+		    high &= amask;
+	    }
+	}
+	else {
+	    logWarning("estimateRange", "unable to find a column "
+		       "named %s", cmp.colName());
+	    high.set(0, nEvents);
+	    low.set(0, nEvents);
+	}
+    }
+
+    if (high.size() == low.size() && high.cnt() > low.cnt()) {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp.colName() << " IN ...) --> [" << low.cnt() << ", "
+	    << high.cnt() << "]";
+    }
+    else {
+	LOGGER(ibis::gVerbose > 7)
+	    << "ibis::part[" << name() << "]::estimateRange("
+	    << cmp.colName() << " IN ...) = " << low.cnt();
+    }
+    return ierr;
+} // ibis::part::estimateRange
+
+long ibis::part::estimateRange(const ibis::qUIntHod &cmp) const {
+    long ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+    if (cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->estimateRange(cmp);
+	if (ret < 0) {
+	    ibis::util::mutexLock lock(&mutex, "part::estimateRange");
+	    unloadIndexes();
+	    ret = col->estimateRange(cmp);
+	}
+    }
+    else {
+	logWarning("estimateRange", "unable to find a column "
+		   "named %s", cmp.colName());
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::estimateRange(" << cmp.colName()
+	<< " IN ...) <= " << ret;
+    return ret;
+} // ibis::part::estimateRange
+
+double ibis::part::estimateCost(const ibis::qUIntHod &cmp) const {
     double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
@@ -4294,6 +4382,52 @@ float ibis::part::getUndecidable(const ibis::qContinuousRange &cmp,
 } // ibis::part::getUndecidable
 
 float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
+				 ibis::bitvector &iffy) const {
+    float ret = 0;
+    if (columns.empty() || nEvents == 0 || cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->getUndecidable(cmp, iffy);
+    }
+    else {
+	logWarning("getUndecidable", "unable to find a column named %s",
+		   cmp.colName());
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::getUndecidable("
+	<< cmp.colName() << " IN ...) get a bitvector with " << iffy.cnt()
+	<< " nonzeros, " << ret*100
+	<< " per cent of them might be in the range";
+    return ret;
+} // ibis::part::getUndecidable
+
+float ibis::part::getUndecidable(const ibis::qIntHod &cmp,
+				 ibis::bitvector &iffy) const {
+    float ret = 0;
+    if (columns.empty() || nEvents == 0 || cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	ret = col->getUndecidable(cmp, iffy);
+    }
+    else {
+	logWarning("getUndecidable", "unable to find a column named %s",
+		   cmp.colName());
+    }
+
+    LOGGER(ibis::gVerbose > 7)
+	<< "ibis::part[" << name() << "]::getUndecidable("
+	<< cmp.colName() << " IN ...) get a bitvector with " << iffy.cnt()
+	<< " nonzeros, " << ret*100
+	<< " per cent of them might be in the range";
+    return ret;
+} // ibis::part::getUndecidable
+
+float ibis::part::getUndecidable(const ibis::qUIntHod &cmp,
 				 ibis::bitvector &iffy) const {
     float ret = 0;
     if (columns.empty() || nEvents == 0 || cmp.colName() == 0)
@@ -9678,7 +9812,7 @@ long ibis::part::doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 long ibis::part::countHits(const ibis::qRange &cmp) const {
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
-	logWarning("countHits", "unknown column name %s in query expression",
+	logWarning("countHits", "unknown column %s in the range expression",
 		   cmp.colName());
 	return -1;
     }
@@ -9760,7 +9894,13 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
     ibis::bitvector mask;
     col->getNullMask(mask);
     mask.adjustSize(0, vals.size());
-    if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
+    if (cmp.getType() == ibis::qExpr::INTHOD) {
+	return doCount(vals, static_cast<const ibis::qIntHod&>(cmp), mask);
+    }
+    else if (cmp.getType() == ibis::qExpr::UINTHOD) {
+	return doCount(vals, static_cast<const ibis::qUIntHod&>(cmp), mask);
+    }
+    else if (cmp.getType() != ibis::qExpr::RANGE) { // not a simple range
 	return doCount(vals, cmp, mask);
     }
 
@@ -10978,6 +11118,56 @@ long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
 	    break;}
 	}
 	break;}
+    }
+    return ierr;
+} // ibis::part::doCount
+
+template <typename T>
+long ibis::part::doCount(const array_t<T> &vals, const ibis::qIntHod &cmp,
+			 const ibis::bitvector &mask) const {
+    long ierr = 0;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *iix = ix.indices();
+	if (ix.isRange()) {
+	    for (unsigned ii = *iix; ii < iix[1]; ++ ii) {
+		const int64_t tmp = (int64_t) vals[ii];
+		if (tmp == vals[ii])
+		    ierr += static_cast<int>(cmp.inRange(tmp));
+	    }
+	}
+	else {
+	    for (unsigned ii = 0; ii < ix.nIndices(); ++ ii) {
+		const int64_t tmp = (int64_t)vals[iix[ii]];
+		if (tmp == vals[iix[ii]])
+		    ierr += static_cast<int>(cmp.inRange(tmp));
+	    }
+	}
+    }
+    return ierr;
+} // ibis::part::doCount
+
+template <typename T>
+long ibis::part::doCount(const array_t<T> &vals, const ibis::qUIntHod &cmp,
+			 const ibis::bitvector &mask) const {
+    long ierr = 0;
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *iix = ix.indices();
+	if (ix.isRange()) {
+	    for (unsigned ii = *iix; ii < iix[1]; ++ ii) {
+		const uint64_t tmp = (uint64_t)vals[ii];
+		if (tmp == vals[ii])
+		    ierr += static_cast<int>(cmp.inRange(tmp));
+	    }
+	}
+	else {
+	    for (unsigned ii = 0; ii < ix.nIndices(); ++ ii) {
+		const uint64_t tmp = (uint64_t)vals[iix[ii]];
+		if (tmp == vals[iix[ii]])
+		    ierr += static_cast<int>(cmp.inRange(tmp));
+	    }
+	}
     }
     return ierr;
 } // ibis::part::doCount

@@ -1,3 +1,21 @@
+2010-07-02 John Wu <John dot Wu at ACM dot org>
+	* src/iroster.cpp: add explicit instantiation of roster::locate
+	* src/qExpr.cpp: change the constructors of qIntHod and qUIntHod
+	to reflect the change of parent class
+
+2010-07-01 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: add functions for doCount for qIntHod
+	and qUIntHod
+
+2010-06-30 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h, src/qExpr.cpp: change qIntHod and qUIntHod to
+	inherent from qRange instead of qExpr
+	* src/query.h, src/query.cpp: add cases for qIntHod and qUIntHod
+
+2010-06-28 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add functions to handle qIntHod
+	and qUIntHod
+
 2010-06-26 John Wu <John dot Wu at ACM dot org>
 	* src/whereLexer.ll, src/whereParser.yy: add rules for detecting
 	sequences of long integers and building qIntHod and qUIntHod

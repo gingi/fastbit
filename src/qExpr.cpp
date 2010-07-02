@@ -3040,13 +3040,13 @@ void ibis::qDiscreteRange::restrictRange(double left, double right) {
 
 /// Constructor.  Take a single number.
 ibis::qIntHod::qIntHod(const char* col, int64_t v1)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(1) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(1) {
     values[0] = v1;
 } // ibis::qIntHod::qIntHod
 
 /// Constructor.  Take two numbers.
 ibis::qIntHod::qIntHod(const char* col, int64_t v1, int64_t v2)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(2) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(2) {
     if (v1 == v2) {
 	values.resize(1);
 	values[0] = v1;
@@ -3064,7 +3064,7 @@ ibis::qIntHod::qIntHod(const char* col, int64_t v1, int64_t v2)
 /// Constructor.  This Constructor takes a list of values in a string.  The
 /// values are extracted using the function ibis::util::readInt.
 ibis::qIntHod::qIntHod(const char* col, const char* nums)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col) {
     int ierr;
     int64_t tmp;
     while (nums != 0 && *nums != 0) {
@@ -3098,7 +3098,7 @@ ibis::qIntHod::qIntHod(const char* col, const char* nums)
 /// undefined integers.
 template <typename T>
 ibis::qIntHod::qIntHod(const char* col, const std::vector<T>& nums)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qIntHod::qIntHod
@@ -3112,10 +3112,29 @@ ibis::qIntHod::qIntHod(const char* col, const std::vector<T>& nums)
 /// negative numbers if they are large.
 template <typename T>
 ibis::qIntHod::qIntHod(const char* col, const ibis::array_t<T>& nums)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qIntHod::qIntHod
+
+void ibis::qIntHod::restrictRange(double left, double right) {
+    if (left > right)
+	return;
+    uint32_t start = 0;
+    uint32_t size = values.size();
+    while (start < size && values[start] < left)
+	++ start;
+
+    uint32_t sz;
+    if (start > 0) { // need to copy values
+	for (sz = 0; sz+start < size && values[sz+start] <= right; ++ sz)
+	    values[sz] = values[sz+start];
+    }
+    else {
+	for (sz = 0; sz < size && values[sz] <= right; ++ sz);
+    }
+    values.resize(sz);
+} // ibis::qIntHod::restrictRange
 
 /// Print a short version of the query expression.
 void ibis::qIntHod::print(std::ostream& out) const {
@@ -3154,13 +3173,13 @@ void ibis::qIntHod::printFull(std::ostream& out) const {
 
 /// Constructor.  Take a single number.
 ibis::qUIntHod::qUIntHod(const char* col, uint64_t v1)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(1) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(1) {
     values[0] = v1;
 } // ibis::qUIntHod::qUIntHod
 
 /// Constructor.  Take two numbers.
 ibis::qUIntHod::qUIntHod(const char* col, uint64_t v1, uint64_t v2)
-    : ibis::qExpr(ibis::qExpr::INTHOD), name(col), values(2) {
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(2) {
     if (v1 == v2) {
 	values.resize(1);
 	values[0] = v1;
@@ -3178,7 +3197,7 @@ ibis::qUIntHod::qUIntHod(const char* col, uint64_t v1, uint64_t v2)
 /// Constructor.  This Constructor takes a list of values in a string.  The
 /// values are extracted using the function ibis::util::readUInt.
 ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
-    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col) {
+    : ibis::qRange(ibis::qExpr::UINTHOD), name(col) {
     int ierr;
     uint64_t tmp;
     while (nums != 0 && *nums != 0) {
@@ -3212,7 +3231,7 @@ ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
 /// undefined integers.
 template <typename T>
 ibis::qUIntHod::qUIntHod(const char* col, const std::vector<T>& nums)
-    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
+    : ibis::qRange(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qUIntHod::qUIntHod
@@ -3226,10 +3245,29 @@ ibis::qUIntHod::qUIntHod(const char* col, const std::vector<T>& nums)
 /// negative numbers if they are large.
 template <typename T>
 ibis::qUIntHod::qUIntHod(const char* col, const ibis::array_t<T>& nums)
-    : ibis::qExpr(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
+    : ibis::qRange(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qUIntHod::qUIntHod
+
+void ibis::qUIntHod::restrictRange(double left, double right) {
+    if (left > right)
+	return;
+    uint32_t start = 0;
+    uint32_t size = values.size();
+    while (start < size && values[start] < left)
+	++ start;
+
+    uint32_t sz;
+    if (start > 0) { // need to copy values
+	for (sz = 0; sz+start < size && values[sz+start] <= right; ++ sz)
+	    values[sz] = values[sz+start];
+    }
+    else {
+	for (sz = 0; sz < size && values[sz] <= right; ++ sz);
+    }
+    values.resize(sz);
+} // ibis::qUIntHod::restrictRange
 
 /// Print a short version of the expression.
 void ibis::qUIntHod::print(std::ostream& out) const {

@@ -193,6 +193,14 @@ public:
     virtual long estimateRange(const ibis::qDiscreteRange& cmp,
 			       ibis::bitvector& low,
 			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
+    virtual long estimateRange(const ibis::qIntHod& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
+    virtual long estimateRange(const ibis::qUIntHod& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
 
     /// Compute the exact answer.  If successful, return the number of
     /// hits, otherwise return a negative value.
@@ -201,6 +209,14 @@ public:
 			       ibis::bitvector& res) const;
     /// Compute the exact answer to a discrete range expression.
     virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
+			       const ibis::bitvector& mask,
+			       ibis::bitvector& res) const;
+    /// Compute the exact answer to a discrete range expression.
+    virtual long evaluateRange(const ibis::qIntHod& cmp,
+			       const ibis::bitvector& mask,
+			       ibis::bitvector& res) const;
+    /// Compute the exact answer to a discrete range expression.
+    virtual long evaluateRange(const ibis::qUIntHod& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;
 
@@ -220,11 +236,19 @@ public:
     virtual long estimateRange(const ibis::qContinuousRange& cmp) const;
     /// Compute an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qDiscreteRange& cmp) const;
+    /// Compute an upper bound on the number of hits.
+    virtual long estimateRange(const ibis::qIntHod& cmp) const;
+    /// Compute an upper bound on the number of hits.
+    virtual long estimateRange(const ibis::qUIntHod& cmp) const;
 
     /// Estimate the cost of evaluating the query expression.
     virtual double estimateCost(const ibis::qContinuousRange& cmp) const;
     /// Estimate the cost of evaluating a dicreate range expression.
     virtual double estimateCost(const ibis::qDiscreteRange& cmp) const;
+    /// Estimate the cost of evaluating a dicreate range expression.
+    virtual double estimateCost(const ibis::qIntHod& cmp) const;
+    /// Estimate the cost of evaluating a dicreate range expression.
+    virtual double estimateCost(const ibis::qUIntHod& cmp) const;
     /// Estimate the cost of evaluating a string lookup.
     virtual double estimateCost(const ibis::qString& cmp) const {
 	return 0;}
@@ -236,6 +260,12 @@ public:
 				 ibis::bitvector& iffy) const;
     /// Find rows that can not be decided with the existing index.
     virtual float getUndecidable(const ibis::qDiscreteRange& cmp,
+				 ibis::bitvector& iffy) const;
+    /// Find rows that can not be decided with the existing index.
+    virtual float getUndecidable(const ibis::qIntHod& cmp,
+				 ibis::bitvector& iffy) const;
+    /// Find rows that can not be decided with the existing index.
+    virtual float getUndecidable(const ibis::qUIntHod& cmp,
 				 ibis::bitvector& iffy) const;
 
     /// Append new data in directory df to the end of existing data in dt.
@@ -346,6 +376,12 @@ protected:
     /// Resolve a discrete range condition on a sorted column.
     virtual int searchSorted(const ibis::qDiscreteRange&,
 			     ibis::bitvector&) const;
+    /// Resolve a discrete range condition on a sorted column.
+    virtual int searchSorted(const ibis::qIntHod&,
+			     ibis::bitvector&) const;
+    /// Resolve a discrete range condition on a sorted column.
+    virtual int searchSorted(const ibis::qUIntHod&,
+			     ibis::bitvector&) const;
     /// Resolve a continuous range condition on an array of values.
     template <typename T> int
 	searchSortedICC(const array_t<T>& vals,
@@ -355,6 +391,16 @@ protected:
     template <typename T> int
 	searchSortedICD(const array_t<T>& vals,
 			const ibis::qDiscreteRange& rng,
+			ibis::bitvector& hits) const;
+    /// Resolve a discrete range condition on an array of values.
+    template <typename T> int
+	searchSortedICD(const array_t<T>& vals,
+			const ibis::qIntHod& rng,
+			ibis::bitvector& hits) const;
+    /// Resolve a discrete range condition on an array of values.
+    template <typename T> int
+	searchSortedICD(const array_t<T>& vals,
+			const ibis::qUIntHod& rng,
 			ibis::bitvector& hits) const;
     /// Resolve a continuous range condition using file operations.
     template <typename T> int
@@ -366,6 +412,17 @@ protected:
 	searchSortedOOCD(const char* fname,
 			 const ibis::qDiscreteRange& rng,
 			 ibis::bitvector& hits) const;
+    /// Resolve a discrete range condition using file operations.
+    template <typename T> int
+	searchSortedOOCD(const char* fname,
+			 const ibis::qIntHod& rng,
+			 ibis::bitvector& hits) const;
+    /// Resolve a discrete range condition using file operations.
+    template <typename T> int
+	searchSortedOOCD(const char* fname,
+			 const ibis::qUIntHod& rng,
+			 ibis::bitvector& hits) const;
+
     /// Find the smallest value >= tgt.
     template <typename T> uint32_t
 	findLower(int fdes, const uint32_t nr, const T tgt) const;

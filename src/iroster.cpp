@@ -45,28 +45,6 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
     }
 } // constructor
 
-// /// Construct a roster list from the specified data directory.
-// ibis::roster::roster(const ibis::column* c, const ibis::bitvector& mask,
-// 		     const char* dir)
-//     : col(c), inddes(-1) {
-//     if (c == 0) return;  // nothing can be done
-//     (void) read(dir); // attempt to read the existing list
-
-//     if (ind.size() != col->partition()->nRows() &&
-// 	inddes < 0) { // need to build a new roster list
-// 	if (col->partition()->nRows() <
-// 	    ibis::fileManager::bytesFree() / (8+col->elementSize()))
-// 	    icSort(dir); // in core sorting
-// 	if (ind.size() != col->partition()->nRows())
-// 	    oocSort(dir);	// out of core sorting
-//     }
-
-//     if (ibis::gVerbose > 4) {
-// 	ibis::util::logger lg;
-// 	print(lg.buffer());
-//     }
-// } // constructor
-
 /// Reconstruct from content of a @c fileManager::storage.
 /// The content of the file (following the 8-byte header) is
 /// the index array @c ind.
@@ -3309,4 +3287,61 @@ ibis::roster::locate(const std::vector<int64_t>& vals,
 		     ibis::bitvector& positions) const;
 template int
 ibis::roster::locate(const std::vector<float>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<unsigned char>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<char>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint16_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int16_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint32_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int32_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint64_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int64_t>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<float>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<double>& vals,
+		     std::vector<uint32_t>& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<unsigned char>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<char>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint16_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int16_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint32_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int32_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<uint64_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<int64_t>& vals,
+		     ibis::bitvector& positions) const;
+template int
+ibis::roster::locate(const ibis::array_t<float>& vals,
 		     ibis::bitvector& positions) const;

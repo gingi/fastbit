@@ -5269,7 +5269,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		ierr = searchSorted(cmp, low);
 		if (ierr == 0) {
 		    low &= mymask;
-		    return 0L;
+		    return low.cnt();
 		}
 	    }
 	    if (idxcost > (elementSize()+4.0) * mymask.size() &&
@@ -5280,7 +5280,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    ierr = ros.locate(cmp.getValues(), low);
 		    if (ierr >= 0) {
 			low &= mymask;
-			return 0L;
+			return low.cnt();
 		    }
 		}
 	    }
@@ -5658,6 +5658,203 @@ float ibis::column::getUndecidable(const ibis::qDiscreteRange& cmp,
     //purgeIndexFile();
     getNullMask(iffy);
     return ret;
+} // ibis::column::getUndecidable
+
+long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
+				 const ibis::bitvector& mask,
+				 ibis::bitvector& low) const {
+    long ierr = -1;
+    if (cmp.getValues().empty()) {
+	low.set(0, mask.size());
+	return 0;
+    }
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << "." << m_name
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
+	    << "the range condition is not applicable on the column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
+
+    ibis::bitvector mymask;
+    getNullMask(mymask);
+    mymask &= mask;
+    try {
+	ierr = -1;
+	if (m_sorted) {
+	    ierr = searchSorted(cmp, low);
+	}
+	else if (thePart != 0 && thePart->currentDataDir() != 0) {
+	    // use a sorted list
+	    ibis::roster ros(this);
+	    if (ros.size() == thePart->nRows()) {
+		ierr = ros.locate(cmp.getValues(), low);
+		if (ierr >= 0) {
+		    low &= mymask;
+		    ierr = low.cnt();
+		}
+	    }
+	}
+	if (ierr < 0 && thePart != 0) {
+	    ierr = thePart->doScan(cmp, mymask, low);
+	}
+
+	LOGGER(ibis::gVerbose > 3)
+	    << "column[" << thePart->name() << "." << name()
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	return ierr;
+    }
+    catch (std::exception &se) {
+	logWarning("evaluateRange", "received a std::exception -- %s",
+		   se.what());
+    }
+    catch (const char* str) {
+	logWarning("evaluateRange", "received a string exception -- %s",
+		   str);
+    }
+    catch (...) {
+	logWarning("evaluateRange", "received a unanticipated excetpion");
+    }
+
+    // Common exception handling
+    low.clear();
+    unloadIndex();
+    ierr = -3;
+    return ierr;
+} // ibis::column::evaluateRange
+
+/// Estimating hits for a discrete range.  Does nothing useful in this
+/// implementation.
+long ibis::column::estimateRange(const ibis::qIntHod& cmp,
+				 ibis::bitvector& low,
+				 ibis::bitvector& high) const {
+    low.clear();
+    high.copy(thePart->getNullMask());
+    return high.cnt();
+} // ibis::column::estimateRange
+
+double ibis::column::estimateCost(const ibis::qIntHod& cmp) const {
+    double ret;
+    ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
+			      0xFFFFFFFFU) * elementSize();
+    return ret;
+} // ibis::column::estimateCost
+
+/// A dummy function to estimate the number of possible hits.  It always
+/// returns the number of rows in the data partition.
+long ibis::column::estimateRange(const ibis::qIntHod& cmp) const {
+    long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
+    return ret;
+} // ibis::column::estimateRange
+
+/// A dummy implementation.  It always return 1.0 to indicate everything
+/// rows is undecidable.
+float ibis::column::getUndecidable(const ibis::qIntHod& cmp,
+				   ibis::bitvector& iffy) const {
+    float ret = 1.0;
+    return ret; // normal return
+} // ibis::column::getUndecidable
+
+long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
+				 const ibis::bitvector& mask,
+				 ibis::bitvector& low) const {
+    long ierr = -1;
+    if (cmp.getValues().empty()) {
+	low.set(0, mask.size());
+	return 0;
+    }
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << thePart->name() << "." << m_name
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
+	    << "the range condition is not applicable on the column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
+
+    ibis::bitvector mymask;
+    getNullMask(mymask);
+    mymask &= mask;
+    try {
+	ierr = -1;
+	if (m_sorted) {
+	    ierr = searchSorted(cmp, low);
+	}
+	else if (thePart != 0 && thePart->currentDataDir() != 0) {
+	    // use a sorted list
+	    ibis::roster ros(this);
+	    if (ros.size() == thePart->nRows()) {
+		ierr = ros.locate(cmp.getValues(), low);
+		if (ierr >= 0) {
+		    low &= mymask;
+		    ierr = low.cnt();
+		}
+	    }
+	}
+	if (ierr < 0 && thePart != 0) {
+	    ierr = thePart->doScan(cmp, mymask, low);
+	}
+
+	LOGGER(ibis::gVerbose > 3)
+	    << "column[" << thePart->name() << "." << name()
+	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	return ierr;
+    }
+    catch (std::exception &se) {
+	logWarning("evaluateRange", "received a std::exception -- %s",
+		   se.what());
+    }
+    catch (const char* str) {
+	logWarning("evaluateRange", "received a string exception -- %s",
+		   str);
+    }
+    catch (...) {
+	logWarning("evaluateRange", "received a unanticipated excetpion");
+    }
+
+    // Common exception handling
+    low.clear();
+    unloadIndex();
+    ierr = -3;
+    return ierr;
+} // ibis::column::evaluateRange
+
+/// Estimating hits for a discrete range.   Does nothing in this implementation.
+long ibis::column::estimateRange(const ibis::qUIntHod& cmp,
+				 ibis::bitvector& low,
+				 ibis::bitvector& high) const {
+    low.clear();
+    high.copy(thePart->getNullMask());
+    return high.cnt();
+} // ibis::column::estimateRange
+
+double ibis::column::estimateCost(const ibis::qUIntHod& cmp) const {
+    double ret;
+    ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
+			      0xFFFFFFFFU) * elementSize();
+    return ret;
+} // ibis::column::estimateCost
+
+/// A dummy function to estimate the number of possible hits.  It always
+/// returns the number of rows in the data partition.
+long ibis::column::estimateRange(const ibis::qUIntHod& cmp) const {
+    long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
+    return ret;
+} // ibis::column::estimateRange
+
+/// A dummy implementation.  It always return 1.0 to indicate everything
+/// rows is undecidable.
+float ibis::column::getUndecidable(const ibis::qUIntHod& cmp,
+				   ibis::bitvector& iffy) const {
+    float ret = 1.0;
+    return ret; // normal return
 } // ibis::column::getUndecidable
 
 long ibis::column::stringSearch(const char*, ibis::bitvector&) const {
@@ -8351,6 +8548,256 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
     return (ierr < 0 ? ierr : 0);
 } // ibis::column::searchSorted
 
+int ibis::column::searchSorted(const ibis::qIntHod& rng,
+			       ibis::bitvector& hits) const {
+    std::string dfname;
+    if (dataFileName(dfname) == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng.colName()
+	    << "IN ...) failed to determine the data file name";
+	return -4;
+    }
+
+    int ierr;
+    switch (m_type) {
+    case ibis::BYTE: {
+	array_t<char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<unsigned char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<float>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<double>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
+	    << "does not yet support column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -5;
+	break;}
+    } // switch (m_type)
+    return (ierr < 0 ? ierr : 0);
+} // ibis::column::searchSorted
+
+int ibis::column::searchSorted(const ibis::qUIntHod& rng,
+			       ibis::bitvector& hits) const {
+    std::string dfname;
+    if (dataFileName(dfname) == 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng.colName()
+	    << "IN ...) failed to determine the data file name";
+	return -4;
+    }
+
+    int ierr;
+    switch (m_type) {
+    case ibis::BYTE: {
+	array_t<char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<unsigned char>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint16_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint32_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<int64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<uint64_t>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<float>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> vals;
+	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
+	if (ierr == 0) {
+	    ierr = searchSortedICD(vals, rng, hits);
+	}
+	else {
+	    ierr = searchSortedOOCD<double>(dfname.c_str(), rng, hits);
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
+	    << "does not yet support column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -5;
+	break;}
+    } // switch (m_type)
+    return (ierr < 0 ? ierr : 0);
+} // ibis::column::searchSorted
+
 template<typename T>
 int ibis::column::searchSortedICC(const array_t<T>& vals,
 				  const ibis::qContinuousRange& rng,
@@ -9878,6 +10325,268 @@ int ibis::column::searchSortedOOCD(const char* fname,
 	    while (ju < u.size() && u[ju] < tmp) ++ ju;
 	    if (u[ju] == tmp)
 		hits.setBit(jv, 1);
+	    ++ jv;
+	}
+    }
+    (void) UnixClose(fdes);
+    hits.adjustSize(0, nrows);
+    return (ierr > 0 ? 0 : -3);
+} // ibis::column::searchSortedOOCD
+
+template<typename T>
+int ibis::column::searchSortedICD(const array_t<T>& vals,
+				  const ibis::qIntHod& rng,
+				  ibis::bitvector& hits) const {
+    const ibis::array_t<int64_t>& u = rng.getValues();
+    std::string evt = "column::searchSortedICD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
+    hits.clear();
+    hits.reserve(vals.size(), u.size()); // reserve space
+    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+	(u.size()+vals.size())) {
+	// go through the two lists to find matches
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will march through two sorted lists";
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() && jv < vals.size()) {
+	    while (ju < u.size() && u[ju] < (int64_t)vals[jv]) ++ ju;
+	    while (jv < vals.size() && u[ju] > (int64_t)vals[jv]) ++ jv;
+	    if (u[ju] == (int64_t)vals[jv]) {
+		hits.setBit(jv, 1);
+		++ jv;
+	    }
+	}
+    }
+    else {
+	// do binary search for each value in u
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will use " << u.size()
+	    << " binary search" << (u.size() > 1 ? "es" : "");
+	for (uint32_t j = 0; j < u.size(); ++ j) {
+	    const T tmp = static_cast<const T>(u[j]);
+	    if ((const int64_t)tmp == u[j]) {
+		uint32_t jloc = vals.find(static_cast<T>(u[j]));
+		if (vals[jloc] == u[j]) {
+		    hits.setBit(jloc, 1);
+		}
+	    }
+	}
+    }
+    hits.adjustSize(0, vals.size());
+    return 0;
+} // ibis::column::searchSortedICD
+
+/// This version of search function reads the content of data file through
+/// explicit read operations.  It sequentially reads the content of the
+/// data file.  Note the content of the data file is assumed to be sorted
+/// in ascending order as elementary data type T.
+template<typename T>
+int ibis::column::searchSortedOOCD(const char* fname,
+				   const ibis::qIntHod& rng,
+				   ibis::bitvector& hits) const {
+    const ibis::array_t<int64_t>& u = rng.getValues();
+    std::string evt = "column::searchSortedOOCD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
+    int fdes = UnixOpen(fname, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to "
+	    << "open the named data file, errno = " << errno
+	    << strerror(errno);
+	return -1;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    const uint32_t sz = sizeof(T);
+    int ierr = UnixSeek(fdes, 0, SEEK_END);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to seek to the end of file";
+	(void) UnixClose(fdes);
+	return -2;
+    }
+    ibis::fileManager::instance().recordPages(0, ierr);
+    const uint32_t nrows = ierr / sz;
+    ibis::fileManager::buffer<T> buf;
+    hits.clear();
+    hits.reserve(nrows, u.size()); // reserve space
+    ierr = UnixSeek(fdes, 0, SEEK_SET); // point to the beginning of file
+    if (buf.size() > 0) { // has a buffer to use
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
+	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
+		while (ju < u.size() && u[ju] < (int64_t)buf[j]) ++ ju;
+		if ((int64_t)buf[j] == u[ju]) {
+		    hits.setBit(jv+j, 1);
+		}
+	    }
+	    jv += ierr / sz;
+	}
+    }
+    else { // read one value at a time
+	T tmp;
+	int64_t itmp;
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, &tmp, sizeof(tmp))) > 0) {
+	    itmp = (int64_t) tmp;
+	    if ((T)itmp == tmp) {
+		while (ju < u.size() && u[ju] < itmp) ++ ju;
+		if (u[ju] == itmp)
+		    hits.setBit(jv, 1);
+	    }
+	    ++ jv;
+	}
+    }
+    (void) UnixClose(fdes);
+    hits.adjustSize(0, nrows);
+    return (ierr > 0 ? 0 : -3);
+} // ibis::column::searchSortedOOCD
+
+template<typename T>
+int ibis::column::searchSortedICD(const array_t<T>& vals,
+				  const ibis::qUIntHod& rng,
+				  ibis::bitvector& hits) const {
+    const ibis::array_t<uint64_t>& u = rng.getValues();
+    std::string evt = "column::searchSortedICD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
+    hits.clear();
+    hits.reserve(vals.size(), u.size()); // reserve space
+    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+	(u.size()+vals.size())) {
+	// go through the two lists to find matches
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will march through two sorted lists";
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() && jv < vals.size()) {
+	    while (ju < u.size() && u[ju] < (uint64_t)vals[jv]) ++ ju;
+	    while (jv < vals.size() && u[ju] > (uint64_t)vals[jv]) ++ jv;
+	    if (u[ju] == (uint64_t)vals[jv]) {
+		hits.setBit(jv, 1);
+		++ jv;
+	    }
+	}
+    }
+    else {
+	// do binary search for each value in u
+	LOGGER(ibis::gVerbose >= 5)
+	    << evt << " will use " << u.size()
+	    << " binary search" << (u.size() > 1 ? "es" : "");
+	for (uint32_t j = 0; j < u.size(); ++ j) {
+	    const T tmp = static_cast<const T>(u[j]);
+	    if ((const uint64_t)tmp == u[j]) {
+		uint32_t jloc = vals.find(static_cast<T>(u[j]));
+		if (vals[jloc] == u[j]) {
+		    hits.setBit(jloc, 1);
+		}
+	    }
+	}
+    }
+    hits.adjustSize(0, vals.size());
+    return 0;
+} // ibis::column::searchSortedICD
+
+/// This version of search function reads the content of data file through
+/// explicit read operations.  It sequentially reads the content of the
+/// data file.  Note the content of the data file is assumed to be sorted
+/// in ascending order as elementary data type T.
+template<typename T>
+int ibis::column::searchSortedOOCD(const char* fname,
+				   const ibis::qUIntHod& rng,
+				   ibis::bitvector& hits) const {
+    const ibis::array_t<uint64_t>& u = rng.getValues();
+    std::string evt = "column::searchSortedOOCD";
+    if (ibis::gVerbose >= 5) {
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 5);
+    int fdes = UnixOpen(fname, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to "
+	    << "open the named data file, errno = " << errno
+	    << strerror(errno);
+	return -1;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    const uint32_t sz = sizeof(T);
+    int ierr = UnixSeek(fdes, 0, SEEK_END);
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to seek to the end of file";
+	(void) UnixClose(fdes);
+	return -2;
+    }
+    ibis::fileManager::instance().recordPages(0, ierr);
+    const uint32_t nrows = ierr / sz;
+    ibis::fileManager::buffer<T> buf;
+    hits.clear();
+    hits.reserve(nrows, u.size()); // reserve space
+    ierr = UnixSeek(fdes, 0, SEEK_SET); // point to the beginning of file
+    if (buf.size() > 0) { // has a buffer to use
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
+	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
+		while (ju < u.size() && u[ju] < (uint64_t)buf[j]) ++ ju;
+		if ((uint64_t)buf[j] == u[ju]) {
+		    hits.setBit(jv+j, 1);
+		}
+	    }
+	    jv += ierr / sz;
+	}
+    }
+    else { // read one value at a time
+	T tmp;
+	uint64_t itmp;
+	uint32_t ju = 0;
+	uint32_t jv = 0;
+	while (ju < u.size() &&
+	       (ierr = UnixRead(fdes, &tmp, sizeof(tmp))) > 0) {
+	    itmp = (uint64_t) tmp;
+	    if ((T)itmp == tmp) {
+		while (ju < u.size() && u[ju] < itmp) ++ ju;
+		if (u[ju] == itmp)
+		    hits.setBit(jv, 1);
+	    }
 	    ++ jv;
 	}
     }

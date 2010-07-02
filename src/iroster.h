@@ -8,12 +8,12 @@
 ///@file
 /// Defines a pseudo-index.  Used in some performance comparisons.
 
-/// A roster list is a list of indices for ordering the values in ascending
-/// order.  It can use an external sort if the data and indices can not fit
-/// into memory.  The indices will be written to a file with extension .ind
-/// and the sorted values in a file with extension .srt.  If the indices
-/// can not be loaded into memory as a whole, the .ind file will be opened
-/// for future read operations.
+/// A roster is a list of values in ascending order plus their original
+/// positioins.  It can use an external sort if the data and indices can
+/// not fit into memory.  The indices will be written to a file with
+/// extension .ind and the sorted values in a file with extension .srt.  If
+/// the indices can not be loaded into memory as a whole, the .ind file
+/// will be opened for future read operations.
 ///
 /// @ingroup FastBitIBIS
 class ibis::roster {
@@ -22,8 +22,6 @@ public:
     roster(const ibis::column* c, const char* dir = 0);
     roster(const ibis::column* c, ibis::fileManager::storage* st,
 	   uint32_t offset = 8);
-//     roster(const ibis::column* c, const ibis::bitvector& mask,
-// 	   const char* dir = 0);
 
     const char* name() const {return "roster list";}
     const ibis::column* getColumn() const {return col;}
@@ -58,8 +56,8 @@ public:
 
     /// Locate the values and set their positions in the bitvector.
     /// Return the positions of the matching entries as a bitvector.
-    /// Return a negative value for error, zero or a positive value for in
-    /// case of success.
+    /// Return a negative value for error, zero or a positive value for
+    /// success.
     /// The input values are assumed to be sorted in ascending order.
     template <typename T>
     int locate(const std::vector<T>& vals,

@@ -49,6 +49,18 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
 	if (tmp != 0)
 	    res = dataset->estimateCost(*tmp);
 	break;}
+    case ibis::qExpr::INTHOD: {
+	const ibis::qIntHod* tmp =
+	    reinterpret_cast<const ibis::qIntHod*>(ex);
+	if (tmp != 0)
+	    res = dataset->estimateCost(*tmp);
+	break;}
+    case ibis::qExpr::UINTHOD: {
+	const ibis::qUIntHod* tmp =
+	    reinterpret_cast<const ibis::qUIntHod*>(ex);
+	if (tmp != 0)
+	    res = dataset->estimateCost(*tmp);
+	break;}
     case ibis::qExpr::STRING: {
 	const ibis::qString* tmp =
 	    reinterpret_cast<const ibis::qString*>(ex);
@@ -2573,6 +2585,16 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
 	     low, high);
 	break;
+    case ibis::qExpr::INTHOD:
+	mypart->estimateRange
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)),
+	     low, high);
+	break;
+    case ibis::qExpr::UINTHOD:
+	mypart->estimateRange
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
+	     low, high);
+	break;
     case ibis::qExpr::STRING:
 	if (0 <= mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), low)) {
@@ -2962,6 +2984,14 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), ht);
 	break;
+    case ibis::qExpr::INTHOD:
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)), ht);
+	break;
+    case ibis::qExpr::UINTHOD:
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)), ht);
+	break;
     case ibis::qExpr::ANYANY:
 	ierr = mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), ht);
@@ -3339,6 +3369,16 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
 	break;
     }
+    case ibis::qExpr::INTHOD: {
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)), mask, ht);
+	break;
+    }
+    case ibis::qExpr::UINTHOD: {
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)), mask, ht);
+	break;
+    }
     case ibis::qExpr::ANYANY: {
 	ierr = mypart->matchAny
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), mask, ht);
@@ -3531,6 +3571,54 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ibis::bitvector tmp;
 	    ierr = mypart->estimateRange
 		(*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
+		 ht, tmp);
+	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
+		// estimateRange produced two bounds as the solution, need to
+		// scan some entries to determine exactly which satisfy the
+		// condition
+		tmp -= ht; // tmp now contains entries to be scanned
+		ibis::bitvector res;
+		ierr = mypart->doScan
+		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
+		if (ierr >= 0)
+		    ht |= res;
+		ierr = ht.cnt();
+	    }
+	}
+	break;
+    }
+    case ibis::qExpr::INTHOD: { // call evalauteRange, use doScan on failure
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)),
+	     mypart->getNullMask(), ht);
+	if (ierr < 0) { // revert to estimate and scan
+	    ibis::bitvector tmp;
+	    ierr = mypart->estimateRange
+		(*(reinterpret_cast<const ibis::qIntHod*>(term)),
+		 ht, tmp);
+	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
+		// estimateRange produced two bounds as the solution, need to
+		// scan some entries to determine exactly which satisfy the
+		// condition
+		tmp -= ht; // tmp now contains entries to be scanned
+		ibis::bitvector res;
+		ierr = mypart->doScan
+		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
+		if (ierr >= 0)
+		    ht |= res;
+		ierr = ht.cnt();
+	    }
+	}
+	break;
+    }
+    case ibis::qExpr::UINTHOD: { // call evalauteRange, use doScan on failure
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
+	     mypart->getNullMask(), ht);
+	if (ierr < 0) { // revert to estimate and scan
+	    ibis::bitvector tmp;
+	    ierr = mypart->estimateRange
+		(*(reinterpret_cast<const ibis::qUIntHod*>(term)),
 		 ht, tmp);
 	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
 		// estimateRange produced two bounds as the solution, need to
@@ -3773,6 +3861,66 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ibis::bitvector res;
 		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
+			 tmp, res);
+		    if (ierr >= 0)
+			ht |= res;
+		}
+		ierr = ht.cnt();
+	    }
+	}
+	break;
+    }
+    case ibis::qExpr::INTHOD: { // try evaluateRange, then doScan
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)), mask, ht);
+	if (ierr < 0) { // revert to estimate and scan
+	    ibis::bitvector tmp;
+	    ierr = mypart->estimateRange
+		(*(reinterpret_cast<const ibis::qIntHod*>(term)),
+		 ht, tmp);
+	    if (ierr >= 0) {
+		if (ht.size() != tmp.size() || ht.cnt() >= tmp.cnt()) {
+		    // tmp is taken to be the same as ht, i.e., estimateRange
+		    // produced an exactly solution
+		    ht &= mask;
+		}
+		else { // estimateRange produced an approximate solution
+		    tmp -= ht;
+		    ht &= mask;
+		    tmp &= mask;
+		    ibis::bitvector res;
+		    ierr = mypart->doScan
+			(*(reinterpret_cast<const ibis::qIntHod*>(term)),
+			 tmp, res);
+		    if (ierr >= 0)
+			ht |= res;
+		}
+		ierr = ht.cnt();
+	    }
+	}
+	break;
+    }
+    case ibis::qExpr::UINTHOD: { // try evaluateRange, then doScan
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)), mask, ht);
+	if (ierr < 0) { // revert to estimate and scan
+	    ibis::bitvector tmp;
+	    ierr = mypart->estimateRange
+		(*(reinterpret_cast<const ibis::qUIntHod*>(term)),
+		 ht, tmp);
+	    if (ierr >= 0) {
+		if (ht.size() != tmp.size() || ht.cnt() >= tmp.cnt()) {
+		    // tmp is taken to be the same as ht, i.e., estimateRange
+		    // produced an exactly solution
+		    ht &= mask;
+		}
+		else { // estimateRange produced an approximate solution
+		    tmp -= ht;
+		    ht &= mask;
+		    tmp &= mask;
+		    ibis::bitvector res;
+		    ierr = mypart->doScan
+			(*(reinterpret_cast<const ibis::qUIntHod*>(term)),
 			 tmp, res);
 		    if (ierr >= 0)
 			ht |= res;
