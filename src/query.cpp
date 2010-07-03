@@ -1052,8 +1052,7 @@ long ibis::query::countHits() const {
     if (hits != 0 && (sup == 0 || sup == hits))
 	ierr = hits->cnt();
     else if (mypart != 0 && mypart->nRows() != 0 && conds.getExpr() != 0 &&
-	     (conds->getType() == ibis::qExpr::RANGE ||
-	      conds->getType() == ibis::qExpr::DRANGE))
+	     dynamic_cast<const ibis::qRange*>(conds.getExpr()) != 0)
 	ierr = mypart->countHits(*static_cast<const ibis::qRange*>
 				 (conds.getExpr()));
     else if (conds.empty())
@@ -2381,7 +2380,7 @@ void ibis::query::getBounds() {
 	sup = new ibis::bitvector;
 	hits = new ibis::bitvector;
 	doEstimate(conds.getExpr(), *hits, *sup);
-	if (sup->size() == hits->size())
+	if (sup->size() == hits->size() && sup->size() < mypart->nRows())
 	    sup->adjustSize(mypart->nRows(), mypart->nRows());
 	if (hits->size() != mypart->nRows()) {
 	    logWarning("getBounds", "hits.size(%lu) differ from expected "
@@ -2659,19 +2658,17 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	}
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose >= 0)
+    LOGGER(ibis::gVerbose > 4)
 	<< "ibis::query[" << myID << "]::doEstimate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", " << high.cnt() << "]";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0) << "low \n" << low
+    LOGGER(ibis::gVerbose > 5) << "low \n" << low
 			   << "\nhigh \n" << high;
 #else
-    if (ibis::gVerbose > 30 ||
-	((low.bytes()+high.bytes()) < (2U << ibis::gVerbose))) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "low \n" << low << "\nhigh \n" << high;
-    }
+    LOGGER(ibis::gVerbose > 30 ||
+	   ((low.bytes()+high.bytes()) < (2U << ibis::gVerbose)))
+	<< "low \n" << low << "\nhigh \n" << high;
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
@@ -3067,7 +3064,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mask.size());
 	return ierr;
     }
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 5)
 	<< "query::[" << myID << "]::doScan -- reading data to resolve "
 	<< *term << " with mask.size() = " << mask.size()
 	<< " and mask.cnt() = " << mask.cnt();
@@ -3591,48 +3588,12 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qIntHod*>(term)),
 	     mypart->getNullMask(), ht);
-	if (ierr < 0) { // revert to estimate and scan
-	    ibis::bitvector tmp;
-	    ierr = mypart->estimateRange
-		(*(reinterpret_cast<const ibis::qIntHod*>(term)),
-		 ht, tmp);
-	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
-		// estimateRange produced two bounds as the solution, need to
-		// scan some entries to determine exactly which satisfy the
-		// condition
-		tmp -= ht; // tmp now contains entries to be scanned
-		ibis::bitvector res;
-		ierr = mypart->doScan
-		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
-		if (ierr >= 0)
-		    ht |= res;
-		ierr = ht.cnt();
-	    }
-	}
 	break;
     }
     case ibis::qExpr::UINTHOD: { // call evalauteRange, use doScan on failure
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
 	     mypart->getNullMask(), ht);
-	if (ierr < 0) { // revert to estimate and scan
-	    ibis::bitvector tmp;
-	    ierr = mypart->estimateRange
-		(*(reinterpret_cast<const ibis::qUIntHod*>(term)),
-		 ht, tmp);
-	    if (ierr >= 0 && ht.size() == tmp.size() && ht.cnt() < tmp.cnt()) {
-		// estimateRange produced two bounds as the solution, need to
-		// scan some entries to determine exactly which satisfy the
-		// condition
-		tmp -= ht; // tmp now contains entries to be scanned
-		ibis::bitvector res;
-		ierr = mypart->doScan
-		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
-		if (ierr >= 0)
-		    ht |= res;
-		ierr = ht.cnt();
-	    }
-	}
 	break;
     }
     case ibis::qExpr::STRING: {
@@ -5369,7 +5330,7 @@ int64_t ibis::query::countEqualPairs(const array_t<T1>& val1,
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #if defined(DEBUG) || defined(_DEBUG)
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
@@ -5448,7 +5409,7 @@ int64_t ibis::query::countEqualPairs(const array_t<uint32_t>& val1,
 	    for (j1 = i1+1; j1 < n1 && val1[j1] == val1[i1]; ++ j1);
 	    for (j2 = i2+1; j2 < n2 && val2[i2] == val2[j2]; ++ j2);
 #if defined(DEBUG) || defined(_DEBUG)
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- query::countEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2
@@ -5526,7 +5487,7 @@ int64_t ibis::query::countDeltaPairs(const array_t<uint32_t>& val1,
 	    ++ i2;
 	cnt += i2 - i1;
 #if defined(DEBUG) || defined(_DEBUG)
-	LOGGER(ibis::gVerbose-1)
+	LOGGER(ibis::gVerbose > 5)
 	    << "DEBUG -- query::countDeltaPairs found "
 	    << "val2[" << i << "] (" << val2[i]
 	    << ") in the range of val1[" << i1 << ":" << i2
@@ -5616,7 +5577,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 			UnixWrite(fdes, idbuf, idsize);
 	    }
 #if defined(DEBUG) || defined(_DEBUG)
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 5)
 		<< "DEBUG -- query::recordEqualPairs found "
 		<< "val1[" << i1 << ":" << j1 << "] (" << val1[i1]
 		<< ") equals to val2[" << i2 << ":" << j2

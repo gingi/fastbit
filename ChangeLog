@@ -2,6 +2,13 @@
 	* src/iroster.cpp: add explicit instantiation of roster::locate
 	* src/qExpr.cpp: change the constructors of qIntHod and qUIntHod
 	to reflect the change of parent class
+	* src/column.cpp: estimateRange with qIntHod and qUIntHod needs to
+	check whether thePart is nil
+	* src/part.h, src/part.cpp: add variantions of doCompare and
+	negativeCompare for qIntHod and qUIntHod, add cases in
+	part::doScan and part::negativeScan to make use of the new
+	functions
+	* src/countQuery.cpp: add cases to deal with qIntHod and qUIntHod
 
 2010-07-01 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: add functions for doCount for qIntHod

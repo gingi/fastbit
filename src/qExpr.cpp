@@ -3149,8 +3149,9 @@ void ibis::qIntHod::print(std::ostream& out) const {
 	out << values[0];
 	for (uint32_t i = 1; i < prt; ++ i)
 	    out << "LL, " << values[i];
+	out << "LL";
 	if (prt < values.size())
-	    out << "LL ... " << values.size()-prt << " omitted";
+	    out << " ... " << values.size()-prt << " omitted";
     }
     out << ')';
 } // ibis::qIntHod::print
@@ -3282,8 +3283,9 @@ void ibis::qUIntHod::print(std::ostream& out) const {
 	out << values[0];
 	for (uint32_t i = 1; i < prt; ++ i)
 	    out << "ULL, " << values[i];
+	out << "ULL";
 	if (prt < values.size())
-	    out << "ULL ... " << values.size()-prt << " omitted";
+	    out << " ... " << values.size()-prt << " omitted";
     }
     out << ')';
 } // ibis::qUIntHod::print

@@ -5732,8 +5732,10 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 long ibis::column::estimateRange(const ibis::qIntHod& cmp,
 				 ibis::bitvector& low,
 				 ibis::bitvector& high) const {
-    low.clear();
-    high.copy(thePart->getNullMask());
+    if (thePart != 0) {
+	low.set(0, thePart->nRows());
+	high.copy(thePart->getNullMask());
+    }
     return high.cnt();
 } // ibis::column::estimateRange
 
@@ -5830,8 +5832,10 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 long ibis::column::estimateRange(const ibis::qUIntHod& cmp,
 				 ibis::bitvector& low,
 				 ibis::bitvector& high) const {
-    low.clear();
-    high.copy(thePart->getNullMask());
+    if (thePart != 0) {
+	low.set(0, thePart->nRows());
+	high.copy(thePart->getNullMask());
+    }
     return high.cnt();
 } // ibis::column::estimateRange
 

@@ -767,67 +767,89 @@ protected:
 			    ibis::bitvector&) const;
     void stringToBitvector(const char*, ibis::bitvector&) const;
 
-    /// Evaluate the range condition.  The actual comparison function is
-    /// only applied on rows with mask == 1.
     template <typename T>
     long doCompare(const array_t<T> &array,
 		   const ibis::bitvector &mask,
  		   ibis::bitvector &hits,
 		   const ibis::qRange &cmp) const;
-
-    /// Perform the negative comparison.  Hits are those don't satisfy the
-    /// range conditions, however, the comparisons are only performed on
-    /// those rows with mask == 1.
-    template <typename T>
-    long negativeCompare(const array_t<T> &array,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qRange &cmp) const;
-    /// Evaluate the range condition.  The actual comparison function is
-    /// only applied on rows with mask == 1.
     template <typename T>
     long doCompare(const char *file,
 		   const ibis::bitvector &mask,
  		   ibis::bitvector &hits,
 		   const ibis::qRange &cmp) const;
-    /// Perform the negative comparison.  Hits are those don't satisfy the
-    /// range conditions, however, the comparisons are only performed on
-    /// those rows with mask == 1.
+    template <typename T>
+    long negativeCompare(const array_t<T> &array,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qRange &cmp) const;
     template <typename T>
     long negativeCompare(const char *file,
 			 const ibis::bitvector &mask,
 			 ibis::bitvector &hits,
 			 const ibis::qRange &cmp) const;
 
-    /// Evaluate the range condition.  The actual comparison function is
-    /// only applied on rows with mask == 1.
+    template <typename T>
+    long doCompare(const array_t<T> &array,
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qIntHod &cmp) const;
+    template <typename T>
+    long doCompare(const char *file,
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qIntHod &cmp) const;
+    template <typename T>
+    long negativeCompare(const array_t<T> &array,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qIntHod &cmp) const;
+    template <typename T>
+    long negativeCompare(const char *file,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qIntHod &cmp) const;
+
+    template <typename T>
+    long doCompare(const array_t<T> &array,
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qUIntHod &cmp) const;
+    template <typename T>
+    long doCompare(const char *file,
+		   const ibis::bitvector &mask,
+ 		   ibis::bitvector &hits,
+		   const ibis::qUIntHod &cmp) const;
+    template <typename T>
+    long negativeCompare(const array_t<T> &array,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qUIntHod &cmp) const;
+    template <typename T>
+    long negativeCompare(const char *file,
+			 const ibis::bitvector &mask,
+			 ibis::bitvector &hits,
+			 const ibis::qUIntHod &cmp) const;
+
     template <typename T, typename F>
 	static long doCompare(const array_t<T> &vals, F cmp,
 			      const ibis::bitvector &mask,
 			      ibis::bitvector &hits);
 
-    /// Evaluate the range condition.  The actual comparison function is
-    /// only applied on rows with mask == 1.
     template <typename T, typename F>
 	static long doCompare0(const array_t<T> &vals, F cmp,
 			       const ibis::bitvector &mask,
 			       ibis::bitvector &hits);
 
-    /// Evaluate the range condition.  The actual comparison functions are
-    /// only applied on rows with mask == 1.
     template <typename T, typename F1, typename F2>
 	static long doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 			      const ibis::bitvector &mask,
 			      ibis::bitvector &hits);
 
-    /// Evaluate the range condition.  The actual comparison functions are
-    /// only applied on rows with mask == 1.
     template <typename T, typename F1, typename F2>
 	static long doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 			       const ibis::bitvector &mask,
 			       ibis::bitvector &hits);
 
-    /// Count the number rows satisfying the range expression.
     template <typename T>
 	long doCount(const ibis::qRange &cmp) const;
 

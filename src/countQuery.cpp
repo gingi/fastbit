@@ -545,6 +545,16 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
 	     low, high);
 	break;
+    case ibis::qExpr::INTHOD:
+	mypart->estimateRange
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)),
+	     low, high);
+	break;
+    case ibis::qExpr::UINTHOD:
+	mypart->estimateRange
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
+	     low, high);
+	break;
     case ibis::qExpr::STRING:
 	if (0 <= mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), low)) {
@@ -700,6 +710,14 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
     case ibis::qExpr::DRANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)), mask, ht);
+	break;}
+    case ibis::qExpr::INTHOD: {
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)), mask, ht);
+	break;}
+    case ibis::qExpr::UINTHOD: {
+	ierr = mypart->doScan
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)), mask, ht);
 	break;}
     case ibis::qExpr::ANYANY: {
 	ierr = mypart->matchAny
@@ -906,6 +924,14 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    }
 	    ierr = ht.cnt();
 	}
+	break;}
+    case ibis::qExpr::INTHOD: {
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qIntHod*>(term)), mask, ht);
+	break;}
+    case ibis::qExpr::UINTHOD: {
+	ierr = mypart->evaluateRange
+	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)), mask, ht);
 	break;}
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
