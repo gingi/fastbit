@@ -5947,6 +5947,7 @@ long ibis::column::append(const char* dt, const char* df,
 	return -2;
     }
 
+    long ierr;
     writeLock lock(this, evt.c_str());
     std::string to;
     std::string from;
@@ -5981,7 +5982,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    uint32_t diff = sz - j;
 	    if (diff > nbuf)
 		diff = nbuf;
-	    UnixWrite(dest, buf, diff);
+	    ierr = UnixWrite(dest, buf, diff);
 	    j += diff;
 	}
     }
@@ -6044,7 +6045,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    uint32_t diff = sz - j;
 	    if (diff > nbuf)
 		diff = nbuf;
-	    UnixWrite(dest, buf, diff);
+	    ierr = UnixWrite(dest, buf, diff);
 	    j += diff;
 	}
     }
@@ -6061,7 +6062,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    << "Warning -- " << evt << " file \"" << to << "\" size (" << j
 	    << ") differs from the expected value " << sz;
 	if (j > sz) //truncate the file to the expected size
-	    truncate(to.c_str(), sz);
+	    ierr = truncate(to.c_str(), sz);
     }
     else if (ibis::gVerbose > 10) {
 	logMessage("append", "size of \"%s\" is %lu as expected", to.c_str(),
@@ -6173,7 +6174,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    ind = ibis::index::create(this, dt);
 	    if (ind && ind->getNRows() == nold) {
 		// existing file maps successfully into an index
-		long ierr = ind->append(dt, df, nnew);
+		ierr = ind->append(dt, df, nnew);
 		// the append operation have forced the index into memory,
 		// remove record of the old index file
 		ibis::fileManager::instance().flushFile(filename.c_str());
@@ -6587,7 +6588,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6647,7 +6648,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		       static_cast<long unsigned>(ninfile));
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6708,7 +6709,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6769,7 +6770,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		       static_cast<long unsigned>(ninfile));
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6830,7 +6831,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6890,7 +6891,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		       static_cast<long unsigned>(ninfile));
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    else if (ninfile < nold*elem) {
@@ -6965,7 +6966,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    }
 	    else if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7030,7 +7031,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    }
 	    else if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
-		truncate(fn, (nold+nnew)*elem);
+		ierr = truncate(fn, (nold+nnew)*elem);
 		fdat = fopen(fn, "ab");
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7136,7 +7137,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		       "\"%s\", but only wrote %lu",
 		       static_cast<long unsigned>(nbytes), fn,
 		       static_cast<long unsigned>(nact));
-	    truncate(fn, oldbytes);
+	    ierr = truncate(fn, oldbytes);
 	    nact = 0;
 	}
 	else {
@@ -7332,7 +7333,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	    }
 	}
 	fclose(fptr);
-	(void) truncate(fname.c_str(), pos);
+	ierr = truncate(fname.c_str(), pos);
 	ierr = static_cast<long>(pos / elm);
 	if (ibis::gVerbose > 1)
 	    logMessage("saveSelected", "rewrote data file %s with %ld row%s",
@@ -7477,11 +7478,13 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
 #if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
     ierr = sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
 #else
-    ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
+    ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, FASTBIT_DIRSEP,
+			m_name.c_str());
 #endif
     if (ierr <= 0 || ierr > MAX_LINE) {
 	logWarning("truncateData", "failed to generate data file name, "
-		   "name (%s%c%s) too long", dir, FASTBIT_DIRSEP, m_name.c_str());
+		   "name (%s%c%s) too long", dir, FASTBIT_DIRSEP,
+		   m_name.c_str());
 	return -2;
     }
 

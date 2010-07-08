@@ -1700,24 +1700,25 @@ void ibis::bin::binningT(const char* f) {
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
-	UnixWrite(fdes, &nobs, sizeof(nobs));
+	ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
 	const uint32_t elem = sizeof(E);
 	array_t<int32_t> pos(nobs+1);
 	pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
 	long ierr = UnixSeek(fdes, pos[0], SEEK_SET);
 	if (ierr != pos[0]) { // write operation failed
-	    UnixClose(fdes);
+	    (void) UnixClose(fdes);
 	    remove(fnm.c_str());
 	    return;
 	}
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    if (maxval[i] > minval[i])
-		UnixWrite(fdes, binned[i]->begin(), elem * binned[i]->size());
+		ierr = UnixWrite(fdes, binned[i]->begin(),
+				 elem * binned[i]->size());
 	    delete binned[i];
 	    pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
 	}
 	ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
-	UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
+	ierr = UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
 	ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
 	UnixClose(fdes);
 	if (ibis::gVerbose > 3)
@@ -1836,7 +1837,7 @@ long ibis::bin::binOrderT(const char* basename) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
-    UnixWrite(fdes, &nobs, sizeof(nobs));
+    ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
     const uint32_t elem = sizeof(E);
     array_t<int32_t> pos(nobs+1);
     array_t<E> binned;
@@ -1845,7 +1846,7 @@ long ibis::bin::binOrderT(const char* basename) const {
 
     ierr = UnixSeek(fdes, pos[0], SEEK_SET);
     if (ierr != pos[0]) { // write operation failed
-	UnixClose(fdes);
+	(void) UnixClose(fdes);
 	remove(fnm.c_str());
 	return -3;
     }
@@ -1864,7 +1865,7 @@ long ibis::bin::binOrderT(const char* basename) const {
 			binned.push_back(basevals[ind[j]]);
 		}
 	    }
-	    UnixWrite(fdes, binned.begin(), elem * binned.size());
+	    ierr = UnixWrite(fdes, binned.begin(), elem * binned.size());
 	}
 	pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }

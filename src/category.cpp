@@ -1244,8 +1244,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	ierr = fseek(fsp, thePart->nRows()*sizeof(int64_t), SEEK_SET);
 	ierr = fread(&pos, sizeof(int64_t), 1, fsp);
 	ierr = fclose(fsp);
-	truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(int64_t));
-	truncate(dfile.c_str(), pos);
+	ierr = truncate(spfile.c_str(), (1+thePart->nRows())*sizeof(int64_t));
+	ierr = truncate(dfile.c_str(), pos);
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " truncated files " << dfile << " and "
 	    << spfile << " to contain only " << thePart->nRows() << " record"
@@ -1609,7 +1609,7 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	} // while (jbuf > 0) -- as long as there are bytes to examine
     }
     else if (str == 0 || *str == 0) { // only match empty strings
-	fread(&next, sizeof(next), 1, fsp);
+	ierr = fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
@@ -1652,7 +1652,7 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	for (uint32_t i = 0; i < pat.length(); ++ i)
 	    pat[i] = tolower(pat[i]);
 	const uint32_t slen = pat.length() + 1;
-	fread(&next, sizeof(next), 1, fsp);
+	ierr = fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
 		buf[j] = tolower(buf[j]);
@@ -1888,7 +1888,7 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 	} // while (jbuf > 0) -- as long as there are bytes to examine
     }
     else {
-	fread(&next, sizeof(next), 1, fsp);
+	ierr = fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
@@ -2099,7 +2099,7 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
 	} // while (jbuf > 0) -- as long as there are bytes to examine
     }
     else { // normal null-terminated strings, no spbuf
-	fread(&next, sizeof(next), 1, fsp);
+	ierr = fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
@@ -2613,12 +2613,13 @@ const char* ibis::text::findString(const char *str) const {
 	}
     }
 
+    long ierr;
     long next = 0;
     bool found = false;
     if (str == 0 || *str == 0) { // only match empty strings
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0 && ! found) {
 	    bool moresp = true;
-	    fread(&next, sizeof(next), 1, fsp);
+	    ierr = fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
 		logWarning("findString", "string %lu in file \"%s\" is longer "
 			   "than internal buffer (size %ld), skipping %ld "
@@ -2652,7 +2653,7 @@ const char* ibis::text::findString(const char *str) const {
 	const long slen = strlen(str);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0 && ! found) {
 	    bool moresp = true;
-	    fread(&next, sizeof(next), 1, fsp);
+	    ierr = fread(&next, sizeof(next), 1, fsp);
 	    if (next > begin+jbuf) {
 		logWarning("findString", "string %lu in file \"%s\" is longer "
 			   "than internal buffer (size %ld), skipping %ld "
@@ -3364,7 +3365,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     if (sj > static_cast<long>(spelem*(nold+nnew0))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
-	truncate(spdest.c_str(), spelem*(nold+nnew0));
+	ierr = truncate(spdest.c_str(), spelem*(nold+nnew0));
     }
     LOGGER(ibis::gVerbose > 4)
 	<< evt << " appended " << nnew0 << " element" << (nnew0>1?"s":"")
@@ -3663,7 +3664,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     if (sj > static_cast<long>(spelem*(nold+nnew))) {
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " truncating extra bytes in file " << spdest;
-	truncate(spdest.c_str(), spelem*(nold+nnew));
+	ierr = truncate(spdest.c_str(), spelem*(nold+nnew));
     }
     LOGGER(ibis::gVerbose > 4)
 	<< evt << " appended " << nnew << " element" << (nnew>1?"s":"")

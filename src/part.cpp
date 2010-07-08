@@ -13148,7 +13148,7 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	const uint32_t n1 = (uint32_t)pos / elem;
 	totmask.adjustSize(n1, nold);
 	for (uint32_t j = n1; j < nold; ++ j)
-	    UnixWrite(fdes, &fill, elem);
+	    ierr = UnixWrite(fdes, &fill, elem);
     }
     else if ((uint32_t) pos > nold*elem) {
 	pos = UnixSeek(fdes, nold*elem, SEEK_SET);

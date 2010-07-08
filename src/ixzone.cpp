@@ -362,7 +362,7 @@ int ibis::zone::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -5;
     }
-    (void) UnixWrite(fdes, &nobs, sizeof(uint32_t));
+    ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
 
     offset64.clear();
     offset32.resize(nobs+1);

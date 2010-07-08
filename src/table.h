@@ -545,8 +545,8 @@ public:
 			      const char* tdesc=0, const char* idx=0) const =0;
 
     /// Remove all data recorded.  Keeps the information about columns.  It
-    /// is intended to be used after a call to function write in
-    /// preparation before storing new rows.
+    /// is intended to prepare for new rows after invoking the function
+    /// write.
     virtual void clearData() =0;
     /// Reserve enough space for the specified number of rows.  Return the
     /// number of rows that can be stored or a negative number to indicate

@@ -404,16 +404,19 @@ namespace ibis {
 	/// Treat all bytes in buf as the string.
 	FASTBIT_CXX_DLLSPEC char* getString(const char* buf);
 	const char* getToken(char*& str, const char* tok_chrs);
-	int readInt(int64_t& val, const char *&str, const char* del=ibis::util::delimiters);
-	int readUInt(uint64_t& val, const char *&str, const char* del=ibis::util::delimiters);
-	int readDouble(double& val, const char *&str, const char* del=ibis::util::delimiters);
+	int readInt(int64_t& val, const char *&str,
+		    const char* del=ibis::util::delimiters);
+	int readUInt(uint64_t& val, const char *&str,
+		     const char* del=ibis::util::delimiters);
+	int readDouble(double& val, const char *&str,
+		       const char* del=ibis::util::delimiters);
 	int readString(std::string& str, const char*& buf, const char *delim=0);
 
 	/// Remove the content of named directory.  The directory itself is
 	/// removed unless the second argument is true.
 	void removeDir(const char* name, bool leaveDir=false);
 	/// Recursively create the name directory.
-	int makeDir(const char*dir);
+	int makeDir(const char* dir);
 	/// Return size of the file in bytes.  The value 0 is returned if
 	/// file does not exist.
 	FASTBIT_CXX_DLLSPEC off_t getFileSize(const char* name);

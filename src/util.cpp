@@ -687,7 +687,12 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	return;
     }
 
-    (void) getcwd(buf, PATH_MAX);
+    if (buf != getcwd(buf, PATH_MAX)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- util::removeDir failed to determine the current "
+	    "working directory";
+	return;
+    }
     uint32_t len = strlen(buf);
     if (strncmp(buf, name, len)) { // names differ
 	ibis::util::logMessage("util::removeDir", "specified dir name "

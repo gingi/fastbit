@@ -108,13 +108,18 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 /// @code
 /// From partr Join parts Using(colname) Where condr And conds
 /// @endcode
-/// Note that conditions specified in condr is for partr only, and
-/// conds is for parts only.  If no conditions are specified, all valid
-/// records in the partition will participate in the natural join.
+///
+/// Note that conditions specified in condr is for partr only, and conds is
+/// for parts only.  When the column names in these conditions contain
+/// table names, the table names in them are ignored.  If no conditions are
+/// specified, all valid records in the partition will participate in the
+/// natural join.  This constructor avoids the need of specifying an alias
+/// when performing self-join, however, it also makes it impossible to
+/// distingush the column names in the select clause.
 ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 			 const char* colname, const char* condr,
 			 const char* conds, const char* sel)
-    : sel_(new ibis::selectClause(sel)), R_(*partr), S_(*parts),
+    : sel_(new ibis::selectClause(sel)), frm_(0), R_(*partr), S_(*parts),
       colR_(*(partr->getColumn(colname))), colS_(*(parts->getColumn(colname))),
       orderR_(0), orderS_(0), valR_(0), valS_(0), nrows(-1) {
     if (colname == 0 || *colname == 0) {

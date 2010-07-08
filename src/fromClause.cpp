@@ -57,6 +57,7 @@ ibis::fromClause::~fromClause() {
     clear();
 }
 
+/// Remove the current content.
 void ibis::fromClause::clear() {
     names_.clear();
     ordered_.clear();
@@ -66,8 +67,8 @@ void ibis::fromClause::clear() {
     clause_.clear();
 } // ibis::fromClause::clear
 
-/// Clear the existing content.  A minimal amount of sanity check is also
-/// performed.
+/// Parse a new string.  Clear the existing content.  A minimal amount of
+/// sanity check is also performed.
 int ibis::fromClause::parse(const char *cl) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
@@ -138,7 +139,8 @@ void ibis::fromClause::getNames(ibis::table::stringList& nms) const {
 	nms.push_back(it->first);
 } // ibis::fromClause::getNames
 
-/// Write a string version of the from clause to the specified output stream.
+/// Print the content.  Write a string version of the from clause to the
+/// specified output stream.
 void ibis::fromClause::print(std::ostream& out) const {
     if (jcond_ == 0) { // no join condition, simply print the table names
 	for (size_t j = 0; j < names_.size(); ++j) {

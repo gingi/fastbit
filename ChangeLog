@@ -1,3 +1,10 @@
+2010-07-08 John Wu <John dot Wu at ACM dot org>
+	* tests/setqgen.cpp: add a test program to generate large test
+	datasets
+	* src/ibin.cpp, src/query.cpp, src/column.cpp: capture return
+	values of function write, fgets, and truncate (to address the
+	warnings produced by gcc 4.4)
+
 2010-07-02 John Wu <John dot Wu at ACM dot org>
 	* src/iroster.cpp: add explicit instantiation of roster::locate
 	* src/qExpr.cpp: change the constructors of qIntHod and qUIntHod

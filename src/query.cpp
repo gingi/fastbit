@@ -4016,7 +4016,6 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     strcpy(fn, myDir);
     strcat(fn, "query");
 
-    long i;
     FILE* fptr = fopen(fn, "r");
     if (fptr == 0) {
 	logWarning("readQuery", "unable to open query file \"%s\" ... %s", fn,
@@ -4025,8 +4024,14 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	return;
     }
 
+    ibis::util::guard gfptr = ibis::util::makeGuard(fclose, fptr);
     // user id
-    fgets(fn, MAX_LINE, fptr);
+    if (0 == fgets(fn, MAX_LINE, fptr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read user id from "
+	    << myDir << "query";
+	return;
+    }
     delete [] user;
     ptr = fn + strlen(fn);
     -- ptr;
@@ -4037,7 +4042,13 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     user = ibis::util::strnewdup(fn);
 
     // data partition names
-    fgets(fn, MAX_LINE, fptr);
+    if (0 == fgets(fn, MAX_LINE, fptr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read the data partition "
+	    "name from " << myDir << "query";
+	return;
+    }
+
     ptr = fn + strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
@@ -4058,7 +4069,13 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     }
 
     // select clause
-    fgets(fn, MAX_LINE, fptr);
+    if (0 == fgets(fn, MAX_LINE, fptr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read the select clause "
+	    "from " << myDir << "query";
+	return;
+    }
+
     ptr = fn + strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
@@ -4069,15 +4086,33 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	setSelectClause(fn);
 
     // data partitioin state (read as an integer)
-    fscanf(fptr, "%ld", &i);
-    state = (QUERY_STATE) i;
+    int ierr;
+    if (1 > fscanf(fptr, "%d", &ierr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read the query state "
+	    "from " << myDir << "query";
+	return;
+    }
+    state = (QUERY_STATE) ierr;
 
     // time stamp (read as an integer)
-    fscanf(fptr, "%ld", &dstime);
+    if (1 != fscanf(fptr, "%ld", &dstime))  {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read the time stamp "
+	    "from " << myDir << "query";
+	return;
+    }
 
     // where clause or RID list
-    fgets(fn, MAX_LINE, fptr); // skip the END_OF_LINE character
-    fgets(fn, MAX_LINE, fptr);
+    if (0 == fgets(fn, MAX_LINE, fptr)) { // skip the END_OF_LINE character
+	return;
+    }
+    if (0 == fgets(fn, MAX_LINE, fptr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- query::readQuery failed to read the where clause "
+	    "from " << myDir << "query";
+	return;
+    }
     ptr = fn + strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
@@ -4100,7 +4135,6 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	    rids_in->push_back(rid);
 	}
     }
-    fclose(fptr);
 } // ibis::query::readQuery
 
 /// Write the content of the current query into a file.
@@ -5543,6 +5577,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5567,14 +5602,14 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 		    idbuf[0] = ind1[ii];
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < j1; ++ idbuf[0])
 		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1])
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 	    }
 #if defined(DEBUG) || defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 5)
@@ -5610,6 +5645,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<uint32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5634,14 +5670,14 @@ int64_t ibis::query::recordEqualPairs(const array_t<uint32_t>& val1,
 		    idbuf[0] = ind1[ii];
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < j1; ++ idbuf[0])
 		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1])
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 	    }
 	    cnt += (j1 - i1) * (j2 - i2);
 	    i1 = j1;
@@ -5670,6 +5706,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<int32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5701,14 +5738,14 @@ int64_t ibis::query::recordEqualPairs(const array_t<int32_t>& val1,
 		    idbuf[0] = ind1[ii];
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < i2; ++ idbuf[0])
 		    for (idbuf[1] = j1; idbuf[1] < j2; ++ idbuf[1])
-			UnixWrite(fdes, idbuf, idsize);
+			ierr = UnixWrite(fdes, idbuf, idsize);
 	    }
 	    cnt += (j1 - i1) * (j2 - i2);
 	    i1 = j1;
@@ -5754,6 +5791,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 		       static_cast<long unsigned>(ind2[i]),
 		       static_cast<long unsigned>(mypart->nRows()));
 #endif
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5777,7 +5815,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	if (ind1.size() == val1.size()) {
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
-		UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 #if defined(DEBUG) || defined(_DEBUG)
 		if (idbuf[0] != ind1[jj] || idbuf[1] !=
 		    (ind2.size() == val2.size() ? ind2[i] : i) ||
@@ -5796,7 +5834,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	}
 	else {
 	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
-		(void) UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 	}
 	cnt += i2 - i1;
     } // for ..
@@ -5849,6 +5887,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<uint32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5871,12 +5910,12 @@ int64_t ibis::query::recordDeltaPairs(const array_t<uint32_t>& val1,
 	if (ind1.size() == val1.size()) {
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
-		UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 	    }
 	}
 	else {
 	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
-		UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 	}
 	cnt += i2 - i1;
     } // for ..
@@ -5905,6 +5944,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<int32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
+    int ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -5927,12 +5967,12 @@ int64_t ibis::query::recordDeltaPairs(const array_t<int32_t>& val1,
 	if (ind1.size() == val1.size()) {
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
-		UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 	    }
 	}
 	else {
 	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
-		UnixWrite(fdes, idbuf, idsize);
+		ierr = UnixWrite(fdes, idbuf, idsize);
 	}
 	cnt += i2 - i1;
     } // for ..

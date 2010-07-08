@@ -27,7 +27,6 @@ public:
     ~fromClause();
     fromClause(const fromClause&);
 
-    /// Parse a new string.
     int parse(const char *cl);
 
     /// Return a pointer to the string form of the from clause.
@@ -44,9 +43,7 @@ public:
     /// Report the join condition.
     const ibis::compRange* getJoinCondition() const {return jcond_;}
 
-    /// Print the content.
     void print(std::ostream&) const;
-    /// Remove the current content.
     void clear();
 
     const char* realName(const char*) const;

@@ -1964,6 +1964,7 @@ void ibis::bitvector::write(int out) const {
 			       static_cast<long unsigned>(n));
 	throw "bitvector::write failed to write all bytes";
     }
+    int ierr;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
@@ -1984,16 +1985,22 @@ void ibis::bitvector::write(int out) const {
 			       active.val, avmax, tmp.val);
     }
     if (tmp.nbits > 0) {
-	UnixWrite(out, (const void*)&(tmp.val), sizeof(word_t));
+	ierr = UnixWrite(out, (const void*)&(tmp.val), sizeof(word_t));
+	LOGGER(ibis::gVerbose > 0 && ierr != (int)sizeof(word_t))
+	    << "Warning -- bitvector::write failed to write avtive.val";
     }
-    UnixWrite(out, (const void*)&(tmp.nbits), sizeof(word_t));
+    ierr = UnixWrite(out, (const void*)&(tmp.nbits), sizeof(word_t));
+    LOGGER(ibis::gVerbose > 0 && ierr != (int)sizeof(word_t))
+	<< "Warning -- bitvector::write failed to write avtive.nbits";
 #else
     if (active.nbits > 0) {
-	UnixWrite(out, (const void*)&(active.val), sizeof(word_t));
+	ierr = UnixWrite(out, (const void*)&(active.val), sizeof(word_t));
+	LOGGER(ibis::gVerbose > 0 && ierr != (int)sizeof(word_t))
+	    << "Warning -- bitvector::write failed to write avtive.val";
     }
-    UnixWrite(out, (const void*)&(active.nbits), sizeof(word_t));
-    //     fwrite((const void*)&nset, sizeof(word_t), 1, out);
-    //     fwrite((const void*)&nbits, sizeof(word_t), 1, out);
+    ierr = UnixWrite(out, (const void*)&(active.nbits), sizeof(word_t));
+    LOGGER(ibis::gVerbose > 0 && ierr != (int)sizeof(word_t))
+	<< "Warning -- bitvector::write failed to write avtive.nbits";
 #endif
 } // ibis::bitvector::write
 

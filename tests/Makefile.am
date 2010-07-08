@@ -1,5 +1,5 @@
 UTOMAKE_OPTIONS=gnu
-EXTRA_PROGRAMS = readcsv smatch inRange
+EXTRA_PROGRAMS = readcsv smatch inRange setqgen
 check_SCRIPTS = scripts/matchCounts.pl
 readcsv_SOURCES = readcsv.cpp
 smatch_SOURCES = smatch.cpp
@@ -10,6 +10,10 @@ inRange_SOURCES = inRange.cpp
 inRange_CPPFLAGS = -I../src
 inRange_DEPENDENCIES = ../src/libfastbit.la
 inRange_LDADD = ../src/libfastbit.la
+setqgen_SOURCES = setqgen.cpp
+setqgen_CPPFLAGS = -I../src
+setqgen_DEPENDENCIES = ../src/libfastbit.la
+setqgen_LDADD = ../src/libfastbit.la
 #
 EXDIR=../examples
 TESTDIR=$(PWD)/tmp
