@@ -573,7 +573,7 @@ long ibis::part::writeValues(const char *fname,
 	const unsigned asize = (i+block<=vals.size() ? block : vals.size()-i);
 	for (uint32_t j = 0; j < asize; ++ j)
 	    buf[j] = vals[ind[i+j]];
-	LOGGER((ssize_t)(asize * sizeof(T)) >
+	LOGGER((long)(asize * sizeof(T)) >
 	       UnixWrite(fdes, buf.begin(), asize * sizeof(T)) &&
 	       ibis::gVerbose > 1)
 	    << "Warning -- part[" << name() << "]::writeValues failed to write "
@@ -704,7 +704,7 @@ long ibis::part::reorderValues(const char *fname,
 	const unsigned asize = (i+block<=vals.size() ? block : vals.size()-i);
 	for (unsigned j = 0; j < asize; ++ j)
 	    buf[j] = vals[indout[i+j]];
-	LOGGER((ssize_t)(asize*sizeof(T)) !=
+	LOGGER((long)(asize*sizeof(T)) !=
 	       UnixWrite(fdes, buf.begin(), asize * sizeof(T)) &&
 	       ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write " << asize

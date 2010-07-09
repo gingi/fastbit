@@ -876,12 +876,14 @@ public:
     compRange() : qExpr(ibis::qExpr::COMPRANGE), expr3(0),
 		  op12(ibis::qExpr::OP_UNDEFINED),
 		  op23(ibis::qExpr::OP_UNDEFINED) {;}
-    /// Constructor with two arithmetic expressions.
+    /// Constructor with two arithmetic expressions.  Takes the ownership
+    /// of me1 and me2.
     compRange(ibis::math::term* me1, COMPARE lop,
 	      ibis::math::term* me2)
 	: qExpr(ibis::qExpr::COMPRANGE, me1, me2), expr3(0),
 	  op12(lop), op23(ibis::qExpr::OP_UNDEFINED) {;}
-    /// Constructor with three arithmetic expressions.
+    /// Constructor with three arithmetic expressions.  Takes the ownership
+    /// of me1, me2, and me3.
     compRange(ibis::math::term* me1, ibis::qExpr::COMPARE lop,
 	      ibis::math::term* me2, ibis::qExpr::COMPARE rop,
 	      ibis::math::term* me3)
