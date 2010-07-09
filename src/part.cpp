@@ -13139,16 +13139,20 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
     if (pos < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeColumn<" << typeid(T).name() << ">(" << fdes
-	    << ", " << nold << ", " << nnew << " ...) failed to seek to "
-	    "the end of the file";
+	    << "Warning -- part::writeColumn<" << typeid(T).name() << ">("
+	    << fdes << ", " << nold << ", " << nnew << " ...) failed to seek "
+	    "to the end of the file";
 	return -3; // failed to find the EOF position
     }
     if ((uint32_t) pos < nold*elem) {
 	const uint32_t n1 = (uint32_t)pos / elem;
 	totmask.adjustSize(n1, nold);
 	for (uint32_t j = n1; j < nold; ++ j)
-	    ierr = UnixWrite(fdes, &fill, elem);
+	    LOGGER(elem > UnixWrite(fdes, &fill, elem) &&
+		   ibis::gVerbose > 1)
+		<< "Warning -- part::writeColumn<" << typeid(T).name() << ">("
+		<< fdes << ", " << nold << ", " << nnew << " ...) failed to "
+		"write fill value as " << j << "th value";
     }
     else if ((uint32_t) pos > nold*elem) {
 	pos = UnixSeek(fdes, nold*elem, SEEK_SET);

@@ -1700,11 +1700,16 @@ void ibis::bin::binningT(const char* f) {
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
-	ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
+	long ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
+	if (ierr < (long)sizeof(nobs)) { // write operation failed
+	    (void) UnixClose(fdes);
+	    remove(fnm.c_str());
+	    return;
+	}
 	const uint32_t elem = sizeof(E);
 	array_t<int32_t> pos(nobs+1);
 	pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
-	long ierr = UnixSeek(fdes, pos[0], SEEK_SET);
+	ierr = UnixSeek(fdes, pos[0], SEEK_SET);
 	if (ierr != pos[0]) { // write operation failed
 	    (void) UnixClose(fdes);
 	    remove(fnm.c_str());

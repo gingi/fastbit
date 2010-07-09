@@ -578,7 +578,7 @@ long ibis::part::writeValues(const char *fname,
 	       ibis::gVerbose > 1)
 	    << "Warning -- part[" << name() << "]::writeValues failed to write "
 	    << asize << " value" << (asize>1?"s":"") << " of type "
-	    << std::typeid(T).name();
+	    << typeid(T).name();
     }
     UnixClose(fdes);
     return vals.size();
@@ -709,7 +709,7 @@ long ibis::part::reorderValues(const char *fname,
 	       ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write " << asize
 	    << " value" << (asize>1?"s":"") << " of type "
-	    << std::typeid(T).name();
+	    << typeid(T).name();
     }
     UnixClose(fdes);
     if (ibis::gVerbose > 2) {
