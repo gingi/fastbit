@@ -1,3 +1,10 @@
+2010-07-09 John Wu <John dot Wu at ACM dot org>
+	* src/whereParser.yy: fix the problem with simple where clauses
+	(the previous change to add long-integer expresions has caused the
+	parser to reject the simplest query expressions), remove JOINOP
+	(not really used anymore)
+	* examples/thula.cpp: add function toTest to perform large selects
+
 2010-07-08 John Wu <John dot Wu at ACM dot org>
 	* tests/setqgen.cpp: add a test program to generate large test
 	datasets

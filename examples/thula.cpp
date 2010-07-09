@@ -38,12 +38,14 @@ typedef std::set< const char*, ibis::lessi > qList;
 
 // the export file, used to dump select records or the whole table
 std::ofstream xfile;
+// the number of test cases to use
+int testing = 0;
 
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	      << "[-d directory_containing_a_dataset] [-s select-clause] "
-	      << "[-w where-clause] [-f from-clause] [-v[=| ]verbose_level]"
+	      << "[-w where-clause] [-f from-clause] [-v[=| ]verbose_level] [-t[=| ]test cases]"
 	      << "\nPerforms a projection of rows satisfying the specified "
 	"conditions, a very limited version of SQL SELECT select-cuase "
 	"FROM from-clause WHERE where-clause.  Each where-clause will "
@@ -59,15 +61,6 @@ static void usage(const char* name) {
 	"  When multiple from clauses are specified, only the last one is used."
 	      << std::endl;
 } // usage
-
-// // Adds a table defined in the named directory.
-// static void addTables(ibis::tableList& tlist, const char* dir) {
-//     ibis::table *tbl = ibis::table::create(dir);
-//     if (tbl == 0) return;
-//     if (tbl->nRows() != 0 && tbl->nColumns() != 0)
-// 	tlist.add(tbl);
-//     delete tbl;
-// } // addTables
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
@@ -151,6 +144,27 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		}
 		else {
 		    ibis::gVerbose += atoi(++ptr);
+		}
+		break;}
+	    case 't':
+	    case 'T': {
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    testing += atoi(argv[i+1]);
+			    i = i + 1;
+			}
+			else {
+			    ++ testing;
+			}
+		    }
+		    else {
+			++ testing;
+		    }
+		}
+		else {
+		    testing += atoi(++ptr);
 		}
 		break;}
 	    case 'x':
@@ -783,6 +797,79 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
     delete sel;
 } // doQuery
 
+// Construct a random set of tests that may read a large number of records
+// into memory.
+void doTest(const ibis::table& tbl) {
+    std::cout << "Entering doTest with table " << tbl.name() << " ("
+	      << tbl.nRows() << " row" << (tbl.nRows()>1?"s":"") << " and "
+	      << tbl.nColumns() << " column" << (tbl.nColumns()>1?"s":"")
+	      << "\n";
+    if (tbl.nColumns() <= 1 || tbl.nRows() < 10) {
+	std::cout << " -- table too small to do anything useful here"
+		  << std::endl;
+	return;
+    }
+
+    const ibis::table::stringList& cols(tbl.columnNames());
+    for (int j = 0; j < testing; ++ j) {
+	// select a random column to build a where clause
+	int iw = std::floor(ibis::util::rand() * cols.size());
+	std::string selmm = "min(";
+	selmm += cols[iw];
+	selmm += ") as a, max(";
+	selmm += cols[iw];
+	selmm += ") as b";
+	std::auto_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
+	std::vector<double> wmin, wmax;
+	int64_t ierr = minmax->getColumnAsDoubles("a", wmin);
+	if (ierr < 1) {
+	    std::cerr << "Warning -- doTest iteration " << j
+		      << " failed to retrieve the minimum value of "
+		      << cols[iw] << "\n" << std::endl;
+	    continue;
+	}
+	ierr = minmax->getColumnAsDoubles("b", wmax);
+	if (ierr < 1) {
+	    std::cerr << "Warning -- doTest iteration " << j
+		      << " failed to retrieve the maximum value of "
+		      << cols[iw] << "\n" << std::endl;
+	    continue;
+	}
+
+	std::ostringstream where;
+	where << cols[iw] << " <= " << 0.5*(wmin[0] + wmax[0]);
+	// choose four random columns for the select clause
+	std::ostringstream sel;
+	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "/10), sum("
+	    << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "), countdistinct("
+	    << cols[(int)(ibis::util::rand() * cols.size())] << ")";
+	std::auto_ptr<ibis::table>
+	    res(tbl.select(sel.str().c_str(), where.str().c_str()));
+	if (res.get() == 0) {
+	    std::cerr << "Warning -- doTest iteration " << j
+		      << " failed to produce a table for \"select " << sel.str()
+		      << " from " << tbl.name() << " where " << where.str()
+		      << "\"\n" << std::endl;
+	    continue;
+	}
+
+	std::cout << "doTest iteration " << j << " produced " << res->nRows()
+		  << " row" << (res->nRows()>1?"s":"");
+	const uint64_t nprt = (res->nRows()>5 ? 5 : res->nRows());
+	if (nprt > 0) {
+	    res->orderby("count0");
+	    res->reverseRows();
+	    std::cout << ", the " << nprt << " heaviest row" << (nprt>1?"s":"")
+		      << " are as follws:\n";
+	    res->dump(std::cout, nprt);
+	}
+	std::cout << "\n" << std::endl;
+    }
+} // doTest
+
 int main(int argc, char** argv) {
     ibis::table* tbl = 0;
     const char* sel; // only one select clause
@@ -806,16 +893,20 @@ int main(int argc, char** argv) {
 			  << tbl->name() << std::endl;
 	}
     }
-    else if (qcnd.empty()) {
+    else if (qcnd.empty() && testing <= 0) {
 	std::clog << *argv << " must have at least one query specified."
 		  << std::endl;
 	exit(-2);
     }
 
+    if (testing > 0)
+	doTest(*tbl);
+
     for (qList::const_iterator qit = qcnd.begin();
 	 qit != qcnd.end(); ++ qit) {
 	doQuery(*tbl, *qit, sel, frm);
     }
+
     delete tbl;
     return 0;
 } // main

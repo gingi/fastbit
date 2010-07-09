@@ -159,25 +159,24 @@ namespace ibis {
      BETWEENOP = 269,
      INOP = 270,
      LIKEOP = 271,
-     JOINOP = 272,
-     ANYOP = 273,
-     BITOROP = 274,
-     BITANDOP = 275,
-     ADDOP = 276,
-     MINUSOP = 277,
-     MULTOP = 278,
-     DIVOP = 279,
-     REMOP = 280,
-     EXPOP = 281,
-     INT64 = 282,
-     UINT64 = 283,
-     NUMBER = 284,
-     INTSEQ = 285,
-     UINTSEQ = 286,
-     NOUNSTR = 287,
-     NUMSEQ = 288,
-     STRSEQ = 289,
-     STRLIT = 290
+     ANYOP = 272,
+     BITOROP = 273,
+     BITANDOP = 274,
+     ADDOP = 275,
+     MINUSOP = 276,
+     MULTOP = 277,
+     DIVOP = 278,
+     REMOP = 279,
+     EXPOP = 280,
+     INT64 = 281,
+     UINT64 = 282,
+     NUMBER = 283,
+     INTSEQ = 284,
+     UINTSEQ = 285,
+     NOUNSTR = 286,
+     NUMSEQ = 287,
+     STRSEQ = 288,
+     STRLIT = 289
    };
 
     };
@@ -351,7 +350,7 @@ namespace ibis {
 } // ibis
 
 /* Line 34 of lalr1.cc  */
-#line 355 "whereParser.hh"
+#line 354 "whereParser.hh"
 
 
 

@@ -56,7 +56,6 @@
 %token <integerVal> BETWEENOP	"between"
 %token <integerVal> INOP	"in"
 %token <integerVal> LIKEOP	"like"
-%token <integerVal> JOINOP	"self-join"
 %token <integerVal> ANYOP	"any"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
@@ -76,13 +75,12 @@
 %token <stringVal>  STRSEQ	"string sequence"
 %token <stringVal>  STRLIT	"string literal"
 
-%nonassoc INOP
-%nonassoc ANYOP
-%nonassoc JOINOP
 %left OROP
 %left XOROP
 %left ANDOP ANDNOTOP
-%left EQOP NEQOP
+%nonassoc INOP
+%nonassoc ANYOP
+%nonassoc EQOP NEQOP
 %left BITOROP
 %left BITANDOP
 %left ADDOP MINUSOP
@@ -535,12 +533,51 @@ NOUNSTR INOP NUMSEQ {
     $$ = new ibis::qIntHod($1->c_str(), $3);
     delete $1;
 }
+| NOUNSTR NEQOP INT64 {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " != " << *$3;
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qIntHod($1->c_str(), $3));
+    delete $1;
+}
 | NOUNSTR EQOP UINT64 {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " = " << *$3;
 #endif
     $$ = new ibis::qUIntHod($1->c_str(), $3);
+    delete $1;
+}
+| NOUNSTR NEQOP UINT64 {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " != " << *$3;
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qUIntHod($1->c_str(), $3));
+    delete $1;
+}
+| STRLIT EQOP NOUNSTR {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$3 << " = "
+	<< *$1;
+#endif
+    $$ = new ibis::qString($3->c_str(), $1->c_str());
+    delete $3;
+    delete $1;
+}
+| STRLIT NEQOP NOUNSTR {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$3 << " = "
+	<< *$1;
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qString($3->c_str(), $1->c_str()));
+    delete $3;
     delete $1;
 }
 | NOUNSTR EQOP STRLIT {
@@ -550,6 +587,17 @@ NOUNSTR INOP NUMSEQ {
 	<< *$3;
 #endif
     $$ = new ibis::qString($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| NOUNSTR NEQOP STRLIT {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " != "
+	<< *$3;
+#endif
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(new ibis::qString($1->c_str(), $3->c_str()));
     delete $3;
     delete $1;
 }
@@ -569,6 +617,26 @@ NOUNSTR INOP NUMSEQ {
 	$$ = new ibis::compRange(me1, ibis::qExpr::OP_EQ, me2);
     }
     delete $1;
+}
+| NOUNSTR NEQOP mathExpr {
+    ibis::math::term *me2 = static_cast<ibis::math::term*>($3);
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " = "
+	<< *me2;
+#endif
+    ibis::qExpr*tmp = 0;
+    if (me2->termType() == ibis::math::NUMBER) {
+	tmp = new ibis::qContinuousRange($1->c_str(), ibis::qExpr::OP_EQ, me2->eval());
+	delete $3;
+    }
+    else {
+	ibis::math::variable *me1 = new ibis::math::variable($1->c_str());
+	tmp = new ibis::compRange(me1, ibis::qExpr::OP_EQ, me2);
+    }
+    delete $1;
+    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+    $$->setLeft(tmp);
 }
 ;
 
@@ -634,16 +702,6 @@ mathExpr EQOP mathExpr {
 #endif
     $$ = new ibis::compRange(me1, ibis::qExpr::OP_GE, me2);
 }
-| STRLIT EQOP NOUNSTR %prec INOP {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$3 << " = "
-	<< *$1;
-#endif
-    $$ = new ibis::qString($3->c_str(), $1->c_str());
-    delete $3;
-    delete $1;
-}
 // | mathExpr EQOP STRLIT {
 //     ibis::math::term *me1 = static_cast<ibis::math::term*>($1);
 // #if defined(DEBUG) && DEBUG + 0 > 1
@@ -668,42 +726,31 @@ mathExpr EQOP mathExpr {
 // 	    "variable name on the left-hand side";
 //     }
 // }
-| STRLIT NEQOP NOUNSTR %prec INOP {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$3 << " = "
-	<< *$1;
-#endif
-    $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qString($3->c_str(), $1->c_str()));
-    delete $3;
-    delete $1;
-}
-| mathExpr NEQOP STRLIT {
-    ibis::math::term *me1 = static_cast<ibis::math::term*>($1);
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *me1 << " != "
-	<< *$3;
-#endif
-    ibis::math::variable *var = dynamic_cast<ibis::math::variable*>(me1);
-    if (var != 0) {
-	$$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-	$$->setLeft(new ibis::qString(var->variableName(), $3->c_str()));
-	delete $3;
-	delete var;
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "whereParser.yy: rule mathExpr != 'string literal' is a "
-	    "kludge for Name != 'string literal'.  The mathExpr on the "
-	    "left can only be variable name, currently " << *me1;
-	delete $3;
-	delete me1;
-	throw "The rule on line 419 in whereParser.yy expects a simple "
-	    "variable name on the left-hand side";
-    }
-}
+// | mathExpr NEQOP STRLIT {
+//     ibis::math::term *me1 = static_cast<ibis::math::term*>($1);
+// #if defined(DEBUG) && DEBUG + 0 > 1
+//     LOGGER(ibis::gVerbose >= 0)
+// 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *me1 << " != "
+// 	<< *$3;
+// #endif
+//     ibis::math::variable *var = dynamic_cast<ibis::math::variable*>(me1);
+//     if (var != 0) {
+// 	$$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+// 	$$->setLeft(new ibis::qString(var->variableName(), $3->c_str()));
+// 	delete $3;
+// 	delete var;
+//     }
+//     else {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "whereParser.yy: rule mathExpr != 'string literal' is a "
+// 	    "kludge for Name != 'string literal'.  The mathExpr on the "
+// 	    "left can only be variable name, currently " << *me1;
+// 	delete $3;
+// 	delete me1;
+// 	throw "The rule on line 419 in whereParser.yy expects a simple "
+// 	    "variable name on the left-hand side";
+//     }
+// }
 ;
 
 compRange3:
@@ -914,7 +961,7 @@ mathExpr ADDOP mathExpr {
     opr->setLeft($1);
     $$ = static_cast<ibis::qExpr*>(opr);
 }
-| NOUNSTR '(' mathExpr ')' %prec JOINOP {
+| NOUNSTR '(' mathExpr ')' %prec INOP {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
@@ -926,7 +973,7 @@ mathExpr ADDOP mathExpr {
     fun->setLeft($3);
     $$ = static_cast<ibis::qExpr*>(fun);
 }
-| NOUNSTR '(' mathExpr ',' mathExpr ')' %prec JOINOP {
+| NOUNSTR '(' mathExpr ',' mathExpr ')' %prec INOP {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("

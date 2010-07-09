@@ -73,7 +73,6 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 "^"   {return token::EXPOP;}
 "**"  {return token::EXPOP;}
 [nN][oO][tT] {return token::NOTOP;}
-[jJ][oO][iI][nN] {return token::JOINOP;}
 [iI][nN] {return token::INOP;}
 [oO][rR] {return token::OROP;}
 [aA][nN][dD] {return token::ANDOP;}

@@ -2197,6 +2197,37 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 
     int32_t ret = 0;
     try {
+	size_t rowsize = 0;
+	for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
+	    switch (it->second->type) {
+	    default:
+		rowsize += 16; break;
+	    case ibis::BYTE:
+	    case ibis::UBYTE:
+		rowsize += 1; break;
+	    case ibis::SHORT:
+	    case ibis::USHORT:
+		rowsize += 2; break;
+	    case ibis::INT:
+	    case ibis::UINT:
+	    case ibis::FLOAT:
+		rowsize += 4; break;
+	    case ibis::LONG:
+	    case ibis::ULONG:
+	    case ibis::DOUBLE:
+		rowsize += 8; break;
+	    }
+	}
+	if (rowsize > 0) {
+	    rowsize += rowsize;
+	    uint32_t tmp = ibis::fileManager::bytesFree() / rowsize;
+	    if (tmp < maxr) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "tafel::reserveSpace will reduce maxr from " << maxr
+		    << " to " << tmp;
+		maxr = tmp;
+	    }
+	}
 	ret = doReserve(maxr);
     }
     catch (...) {

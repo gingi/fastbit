@@ -1179,8 +1179,9 @@ char* getpass(const char* prompt);
 #endif
 
 /// A Linear Congruential Generator of pseudo-random numbers.  It produces
-/// a floating-point in the range of [0, 1).  It is very simple, but does
-/// not produce high-quality random numbers, nor is it thread-safe.
+/// a floating-point in the range of [0, 1).  It is very simple and fast,
+/// however, it does not produce high-quality random numbers, and is is
+/// thread-safe.
 inline double ibis::util::rand() {
     /// The internal variable @c seed is always an odd number.  Don't use
     /// it directly.
