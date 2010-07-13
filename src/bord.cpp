@@ -15,6 +15,7 @@
 #include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream
 #include <typeinfo>	// std::typeid
+#include <memory>	// std::auto_ptr
 #include <algorithm>	// std::reverse, std::copy
 
 /// Constructor.  The responsibility of freeing the memory pointed by the
@@ -998,6 +999,9 @@ void ibis::bord::freeBuffer(void *buffer, ibis::TYPE_T type) {
 /// Freeing a list of buffers.
 void ibis::bord::freeBuffers(ibis::bord::bufferList& buf,
 			     ibis::table::typeList& typ) {
+    LOGGER(ibis::gVerbose > 3)
+	<< "bord::freeBuffers to free buf[" << buf.size() << "] and typ["
+	<< typ.size() << "]";
     const size_t nbt = (buf.size() <= typ.size() ? buf.size() : typ.size());
     LOGGER((nbt < buf.size() || nbt < typ.size()) && ibis::gVerbose > 1)
 	<< "Warning -- bord::freeBuffers expects buf[" << buf.size()
@@ -1604,7 +1608,7 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger().buffer()
+	ibis::util::logger()()
 	    << "bord::backup completed writing partition " 
 	    << tname << " (" << tdesc << ") with " << columns.size()
 	    << " column" << (columns.size()>1 ? "s" : "") << " and "
@@ -1637,6 +1641,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	return new ibis::tabula(tn.c_str(), td.c_str(), nEvents);
 
     std::vector<uint32_t> bad;
+    // buf simply collects the pointers, not responsible for freeing them
     ibis::bord::bufferList buf;
     const uint32_t nc = sel.size();
     buf.reserve(sel.size());
@@ -1661,19 +1666,19 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     if (! bad.empty()) {
 	if (ibis::gVerbose >= 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- bord::part::groupby found " << bad.size()
+	    lg() << "Warning -- bord::part::groupby found " << bad.size()
 			<< " unknown name" << (bad.size()>1?"s":"")
 			<< " in \"";
-	    sel.print(lg.buffer());
-	    lg.buffer() << "\", cannot perform groupby operation";
+	    sel.print(lg());
+	    lg() << "\", cannot perform groupby operation";
 	}
 	return 0;
     }
 
     // create bundle
-    ibis::bundle *bdl = ibis::bundle::create(*this, sel, buf);
+    std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(*this, sel, buf));
     buf.clear();
-    if (bdl == 0) {
+    if (bdl.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- bord::part::groupby failed to create "
 	    "bundle for \"" << *sel << "\" from in-memory data";
@@ -1684,12 +1689,11 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- ibis::bord::part::groupby(";
-	    sel.print(lg.buffer());
-	    lg.buffer() << ") produced no answer on a table with nRows = "
+	    lg() << "Warning -- ibis::bord::part::groupby(";
+	    sel.print(lg());
+	    lg() << ") produced no answer on a table with nRows = "
 			<< nEvents;
 	}
-	delete bdl;
 	return 0;
     }
 
@@ -1781,7 +1785,6 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	tps.push_back(ibis::UINT);
 	buf.push_back(cnts);
     }
-    delete bdl;
     return new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec);
 } // ibis::bord::part::groupby
 
@@ -1978,11 +1981,11 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- bord[" << name() << "]::reorder --\n";
+	lg() << "DEBUG -- bord[" << name() << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
-		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
+		lg() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < marks.size())
 		marks[ind1[i]] = true;
 	}
@@ -1990,9 +1993,9 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 	for (uint32_t i = 0; isperm && i < marks.size(); ++ i)
 	    isperm = marks[i];
 	if (isperm)
-	    lg.buffer() << "array ind IS a permutation\n";
+	    lg() << "array ind IS a permutation\n";
 	else
-	    lg.buffer() << "array ind is NOT a permutation\n";
+	    lg() << "array ind is NOT a permutation\n";
     }
 #endif
     for (ibis::part::columnList::const_iterator it = columns.begin();
@@ -2254,7 +2257,8 @@ long ibis::bord::part::sortStrings(std::vector<std::string>& vals,
 		}
 	    }
 	    else if (segsize == 2) {
-		int cmp = vals[idxin[segstart]].compare(vals[idxin[segstart+1]]);
+		int cmp = vals[idxin[segstart]].compare
+		    (vals[idxin[segstart+1]]);
 		if (cmp < 0) { // in the right order, different strings
 		    idxout[segstart] = idxin[segstart];
 		    idxout[segstart+1] = idxin[segstart+1];

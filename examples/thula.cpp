@@ -32,6 +32,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
 #include <memory>	// std::auto_ptr
+#include <cmath>	// std::floor
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -803,7 +804,7 @@ void doTest(const ibis::table& tbl) {
     std::cout << "Entering doTest with table " << tbl.name() << " ("
 	      << tbl.nRows() << " row" << (tbl.nRows()>1?"s":"") << " and "
 	      << tbl.nColumns() << " column" << (tbl.nColumns()>1?"s":"")
-	      << "\n";
+	      << ")\n";
     if (tbl.nColumns() <= 1 || tbl.nRows() < 10) {
 	std::cout << " -- table too small to do anything useful here"
 		  << std::endl;
@@ -812,6 +813,13 @@ void doTest(const ibis::table& tbl) {
 
     const ibis::table::stringList& cols(tbl.columnNames());
     for (int j = 0; j < testing; ++ j) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "Info -- doTest iteration " << j << " starting with "
+	    << ibis::util::groupby1000(ibis::fileManager::bytesInUse())
+	    << " bytes in memory cache and "
+	    << ibis::util::groupby1000(ibis::fileManager::bytesFree())
+	    << " bytes free";
+
 	// select a random column to build a where clause
 	int iw = std::floor(ibis::util::rand() * cols.size());
 	std::string selmm = "min(";
@@ -820,6 +828,12 @@ void doTest(const ibis::table& tbl) {
 	selmm += cols[iw];
 	selmm += ") as b";
 	std::auto_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
+	if (minmax.get() == 0) {
+	    std::cerr << "Warning -- doTest iteration " << j
+		      << " failed to compute the minimum and the maximum of "
+		      << cols[iw] << "\n" << std::endl;
+	    continue;
+	}
 	std::vector<double> wmin, wmax;
 	int64_t ierr = minmax->getColumnAsDoubles("a", wmin);
 	if (ierr < 1) {
@@ -837,7 +851,8 @@ void doTest(const ibis::table& tbl) {
 	}
 
 	std::ostringstream where;
-	where << cols[iw] << " <= " << 0.5*(wmin[0] + wmax[0]);
+	where << cols[iw] << " <= "
+	      << wmin[0] + ibis::util::rand() * (1.0 + wmax[0] - wmin[0]);
 	// choose four random columns for the select clause
 	std::ostringstream sel;
 	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
@@ -857,16 +872,28 @@ void doTest(const ibis::table& tbl) {
 	}
 
 	std::cout << "doTest iteration " << j << " produced " << res->nRows()
-		  << " row" << (res->nRows()>1?"s":"");
+		  << " row" << (res->nRows()>1?"s":"") << std::endl;
 	const uint64_t nprt = (res->nRows()>5 ? 5 : res->nRows());
 	if (nprt > 0) {
 	    res->orderby("count0");
 	    res->reverseRows();
-	    std::cout << ", the " << nprt << " heaviest row" << (nprt>1?"s":"")
-		      << " are as follws:\n";
+	    res->describe(std::cout);
+	    if (nprt > 1)
+		std::cout << "  the " << nprt
+			  << " heaviest rows are as follws:\n";
+	    else
+		std::cout << "  the heaviest row is as follws:\n";
 	    res->dump(std::cout, nprt);
 	}
 	std::cout << "\n" << std::endl;
+    }
+
+    if (testing >= 0) {
+	ibis::util::logger lg;
+	lg() << "doTest completed with the following content in "
+	    "the memory cache\n";
+	ibis::fileManager::instance().printStatus(lg());
+	lg() << "\n";
     }
 } // doTest
 
@@ -899,6 +926,8 @@ int main(int argc, char** argv) {
 	exit(-2);
     }
 
+    // to print the elapsed time from this point on when -v is specified
+    ibis::util::timer mytimer(*argv, 1);
     if (testing > 0)
 	doTest(*tbl);
 

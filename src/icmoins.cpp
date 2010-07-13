@@ -32,14 +32,14 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "moins[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- constructed a "
 	    << nbases << "-component range index with "
 	    << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // constructor
@@ -58,14 +58,14 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "moins[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- constructed a "
 	    << nbases << "-component range index with "
 	    << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // constructor
@@ -83,14 +83,14 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "moins[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- constructed a "
 	    << nbases << "-component range index with "
 	    << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // copy from an ibis::bin
@@ -114,15 +114,15 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "moins[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- constructed a " << nbases
 	    << "-component interval index with " << nbits << " bitmap"
 	    << (nbits>1?"s":"") << " from a storage object @ " << st
 	    << " starting from position " << start;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // reconstruct data from content of a file

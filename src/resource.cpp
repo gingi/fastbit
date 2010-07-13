@@ -149,7 +149,7 @@ void ibis::resource::read(const char* fn) {
     fclose(conf);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     ibis::util::logger lg(4);
-    write(lg.buffer());
+    write(lg());
 #endif
 } // ibis::resource::read
 
@@ -378,11 +378,11 @@ void ibis::resource::parseNameValuePairs(const char *in,
     } // while ((tmp = strchr(str, '=')) != 0)
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::resource::parseNameValuePairs() converted \""
+	lg() << "ibis::resource::parseNameValuePairs() converted \""
 		    << in << "\" into " << lst.size() << " name-value pairs";
 	for (vList::const_iterator it = lst.begin();
 	     it != lst.end(); ++ it)
-	    lg.buffer() << "\n" << (*it).first << " = " << (*it).second;
+	    lg() << "\n" << (*it).first << " = " << (*it).second;
     }
 } // ibis::resource::parseNameValuePairs
 
@@ -463,12 +463,12 @@ void ibis::resource::write(const char* fn) const {
 	}
 	else if (ibis::gVerbose > -1) {
 	    ibis::util::logger lg;
-	    write(lg.buffer());
+	    write(lg());
 	}
     }
     else if (ibis::gVerbose > -1) {
 	ibis::util::logger lg;
-	write(lg.buffer());
+	write(lg());
     }
 } // ibis::resource::write
 

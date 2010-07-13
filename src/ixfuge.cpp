@@ -33,7 +33,7 @@ ibis::fuge::fuge(const ibis::column *c, const char *f)
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 } // ibis::fuge::fuge
 
@@ -55,7 +55,7 @@ ibis::fuge::fuge(const ibis::bin& rhs) : ibis::bin(rhs) {
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 } // copy from ibis::bin
 
@@ -165,7 +165,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "fuge[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- built an interval-equality index with "
 	    << nobs << " find bin" << (nobs>1?"s":"") << " and " << nc
@@ -173,8 +173,8 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	    << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::fuge::fuge
@@ -275,51 +275,51 @@ int ibis::fuge::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- fuge[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -695,17 +695,17 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::fuge::evaluate(" << expr << ") hit0=" << hit0
+	lg() << "ibis::fuge::evaluate(" << expr << ") hit0=" << hit0
 		  << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
-	    lg.buffer() << ", cbounds[" << c0 << "]=" << cbounds[c0];
+	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];
 	else
-	    lg.buffer() << ", cbounds[" << cbounds.size()-1 << "]="
+	    lg() << ", cbounds[" << cbounds.size()-1 << "]="
 		      << cbounds.back();
 	if (c1 < cbounds.size())
-	    lg.buffer() << ", cbounds[" << c1 << "]=" << cbounds[c1];
+	    lg() << ", cbounds[" << c1 << "]=" << cbounds[c1];
 	else
-	    lg.buffer() << ", c1=" << c1 << ", bits.size()=" << bits.size();
+	    lg() << ", c1=" << c1 << ", bits.size()=" << bits.size();
     }
     if (c0 >= c1) { // within the same coarse bin
 	long tmp = coarseEstimate(c1-1, c1);
@@ -937,11 +937,11 @@ void ibis::fuge::coarsen() {
 	cbounds[i] = cbounds[i+1] - 1;
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::fuge::coarsen will divide " << bits.size()
+	lg() << "ibis::fuge::coarsen will divide " << bits.size()
 		  << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
-	    lg.buffer() << cbounds[i] << " ";
-	lg.buffer() << "\n";
+	    lg() << cbounds[i] << " ";
+	lg() << "\n";
     }
     // fill cbits
     for (unsigned i = 0; i < cbits.size(); ++ i) {

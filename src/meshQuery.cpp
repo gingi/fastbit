@@ -106,19 +106,19 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (merge && dim.size() > 1 && ibis::gVerbose > 3)
-	    lg.buffer() <<"query[" << id() << "]::getHitsAsBlocks -- merging "
+	    lg() <<"query[" << id() << "]::getHitsAsBlocks -- merging "
 			<< nold << " " << dim.size() << "-D block"
 			<< (nold>1 ? "s" : "") << " into " << reg.size()
 			<< " used " << t2-t1 << " sec (elapsed)";
 
-	lg.buffer() << "\nquery[" << id() << "getHitsAsBlocks -- converting "
+	lg() << "\nquery[" << id() << "getHitsAsBlocks -- converting "
 		    << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
 		    << " into " << reg.size()
 		    << (reg.size()>1 ? " blocks" : " block") << " on a ("
 		    << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
-	    lg.buffer() << " x " << dim[i];
-	lg.buffer() << ") mesh took " << t2 << " sec (elapsed)";
+	    lg() << " x " << dim[i];
+	lg() << ") mesh took " << t2 << " sec (elapsed)";
     }
     return ierr;
 } // ibis::meshQuery::getHitsAsBlocks
@@ -173,17 +173,17 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (merge && shape.size() > 1 && ibis::gVerbose > 3)
-	    lg.buffer() << "query[" << id() << "]::getHitsAsBlocks -- merging "
+	    lg() << "query[" << id() << "]::getHitsAsBlocks -- merging "
 			<< nold << " " << shape.size() << "-D block"
 			<< (nold>1 ? "s" : "") << " into " << reg.size()
 			<< " used " << t2-t1 << " sec (elapsed)";
 
-	lg.buffer() << "query[" << id() << "]::getHitsAsBlocks -- converting "
+	lg() << "query[" << id() << "]::getHitsAsBlocks -- converting "
 		    << hits->cnt() << " into " << reg.size() << " block"
 		    << (reg.size() > 1 ? "s" : "") << " on a (" << shape[0];
 	for (uint32_t i = 1; i < shape.size(); ++ i)
-	    lg.buffer() << " x " << shape[i];
-	lg.buffer() << ") mesh took " << t2 << " sec (elapsed)";
+	    lg() << " x " << shape[i];
+	lg() << ") mesh took " << t2 << " sec (elapsed)";
     }
     return ierr;
 } // ibis::meshQuery::getHitsAsBlocks
@@ -746,13 +746,13 @@ void ibis::meshQuery::blocknd
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
-		    lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
+		    lg() << "DEBUG -- ibis::meshQuery[" << id()
 				<< "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
-			if (k > 0) lg.buffer() << ", ";
-			lg.buffer() << block[k];
+			if (k > 0) lg() << ", ";
+			lg() << block[k];
 		    }
-		    lg.buffer() << ")";
+		    lg() << ")";
 		}
 #endif
 		reg.push_back(block); // record it
@@ -769,13 +769,13 @@ void ibis::meshQuery::blocknd
 	    if (block[dim.size()+dim.size()-2] == 0 &&
 		block.back() == dim.back()) {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
+		lg() << "DEBUG -- ibis::meshQuery[" << id()
 			    << "]::blocknd -- " << reg.size() << "\t(";
 		for (uint32_t k = 0; k < block.size(); ++k) {
-		    if (k > 0) lg.buffer() << ", ";
-		    lg.buffer() << block[k];
+		    if (k > 0) lg() << ", ";
+		    lg() << block[k];
 		}
-		lg.buffer() << ")";
+		lg() << ")";
 	    }
 #endif
 	    reg.push_back(block);
@@ -797,13 +797,13 @@ void ibis::meshQuery::blocknd
 		if (block[dim.size()+dim.size()-2] == 0 &&
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
-		    lg.buffer() << "DEBUG -- ibis::meshQuery[" << id()
+		    lg() << "DEBUG -- ibis::meshQuery[" << id()
 				<< "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
-			if (k > 0) lg.buffer() << ", ";
-			lg.buffer() << block[k];
+			if (k > 0) lg() << ", ";
+			lg() << block[k];
 		    }
-		    lg.buffer() << ")";
+		    lg() << ")";
 		}
 #endif
 		if (j+1 < dim.size()) // record all except the last one
@@ -1377,19 +1377,19 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg.buffer()
+	    lg()
 		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
 		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 		<< " from " << reg.size() << " " << dim.size() << "-D block"
 		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
 		<< " sec (elapsed)";
 
-	lg.buffer() << "query[" << id() << "]::getPointsOnBoundary -- "
+	lg() << "query[" << id() << "]::getPointsOnBoundary -- "
 		    << bdy.size() << " point" << (bdy.size()>1?"s":"")
 		    << " on a (" << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
-	    lg.buffer() << " x " << dim[i];
-	lg.buffer() << " mesh took " << t2 << " sec (elapsed)";
+	    lg() << " x " << dim[i];
+	lg() << " mesh took " << t2 << " sec (elapsed)";
     }
     return ierr;
 } // ibis::meshQuery::getPointsOnBoundary
@@ -1458,21 +1458,21 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg.buffer()
+	    lg()
 		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
 		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 		<< " from " << reg.size() << " " << dim.size() << "-D block"
 		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
 		<< " sec (elapsed)";
 
-	lg.buffer()
+	lg()
 	    << "query[" << id() << "]::getPointsOnBoundary -- extracting "
 	    << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 	    << " from " << hits->cnt() << " hit" << (hits->cnt()>1 ? "s" : "")
 	    << " on a (" << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
-	    lg.buffer() << " x " << dim[i];
-	lg.buffer() << ") mesh took " << t2 << " sec (elapsed)";
+	    lg() << " x " << dim[i];
+	lg() << ") mesh took " << t2 << " sec (elapsed)";
     }
     return ierr;
 } // ibis::meshQuery::getPointsOnBoundary
@@ -5045,10 +5045,10 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 	cnt = coords.size() / ndim;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- ibis::meshQuery::bitvectorToCoordinates "
+	lg() << "DEBUG -- ibis::meshQuery::bitvectorToCoordinates "
 		    << "produced " << cnt << " points";
 	for (int i = 0; i < cnt; ++ i)
-	    lg.buffer() << "\n" << coords[i+i] << ", " << coords[i+i+1];
+	    lg() << "\n" << coords[i+i] << ", " << coords[i+i+1];
 #endif
 	break;}
     case 3: {

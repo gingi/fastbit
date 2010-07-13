@@ -1,9 +1,41 @@
+2010-07-11 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: replace logger::buffer with logger::operator() to
+	remove the need to use function name
+	* src/fileManager.cpp: remove uses of malloc outside of
+	constructors of fileManager::storage, consolidate the print
+	statements in the constructors of fileManager::storage, rearrange
+	the call to increaseUse to eliminate the duplicate counting of
+	in-core storage object, which appears to be the last possible
+	source of memory management errors related to the problem report
+	reported by Jan
+	* src/bundle.cpp: add if-statement to check for empty cols
+	* src/bord.cpp: wrap the raw pointer for bundle with auto_ptr
+	* src/column.cpp: wrap the raw pointers in various select
+	functions with auto_ptr
+
+2010-07-10 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h: storage::size and storage::bytes contained
+	mixed up tests
+	* src/fileManager.cpp: replace the implementation of
+	storage::enlarge with copy-and-swap completely
+	* src/colValues.cpp: replace the underlyine storage object with a
+	smaller one in the function reduce when the array size decreases
+	significantly (keeping the memory usage low)
+	* tests/setqgen.cpp: change KSEQ to be 32-bit integer (to allow
+	its values to be casted into doubles safely in thula.cpp)
+
 2010-07-09 John Wu <John dot Wu at ACM dot org>
 	* src/whereParser.yy: fix the problem with simple where clauses
 	(the previous change to add long-integer expresions has caused the
 	parser to reject the simplest query expressions), remove JOINOP
 	(not really used anymore)
 	* examples/thula.cpp: add function toTest to perform large selects
+	* src/mensa.cpp: in function util::addIncoreData, resize target
+	only if nold > 0
+	* src/fileManager.cpp: change calls to printStatus to call the
+	file manager version of it (which actually prints all files in
+	memory as intended), implement retry when constructing the storage
+	objects
 
 2010-07-08 John Wu <John dot Wu at ACM dot org>
 	* tests/setqgen.cpp: add a test program to generate large test

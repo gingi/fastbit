@@ -40,14 +40,14 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "relic[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- construct an equality index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		<< " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -76,7 +76,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	bits[0]->set(1, ntpl);
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     catch (...) {
@@ -120,14 +120,14 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "relic[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- construct an equality index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		<< " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -180,7 +180,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	    (ibis::gVerbose > 2 &&
 	     st->begin()[5] == (char)ibis::index::RELIC)) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "relic[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- extract an equality index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
@@ -188,8 +188,8 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		<< " from a storage object @ " << st << " starting at "
 		<< start;
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -497,51 +497,51 @@ int ibis::relic::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- relic[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -580,24 +580,24 @@ int ibis::relic::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- relic[" << col->partition()->name() << '.'
+	lg() << "DEBUG -- relic[" << col->partition()->name() << '.'
 		    << col->name() << "]::read(" << f
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";
 	if (header[6] == 8) {
 	    for (unsigned i = 0; i < nprt; ++ i)
-		lg.buffer() << offset64[i] << " ";
+		lg() << offset64[i] << " ";
 	}
 	else {
 	    for (unsigned i = 0; i < nprt; ++ i)
-		lg.buffer() << offset32[i] << " ";
+		lg() << offset32[i] << " ";
 	}
 	if (nprt < dim[1])
-	    lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
+	    lg() << "... (skipping " << dim[1]-nprt << ") ... ";
 	if (header[6] == 8)
-	    lg.buffer() << offset64[dim[1]];
+	    lg() << offset64[dim[1]];
 	else
-	    lg.buffer() << offset32[dim[1]];
+	    lg() << offset32[dim[1]];
     }
 #endif
 
@@ -682,7 +682,7 @@ void ibis::relic::construct(const char* f) {
     // write out the current content
     if (ibis::gVerbose > 6) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // ibis::relic::construct
 
@@ -723,15 +723,15 @@ void ibis::relic::construct(const array_t<E>& arr) {
     // write out the current content
     if (ibis::gVerbose > 2) {
  	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "relic[" << col->partition()->name() << '.' << col->name()
 	    << "]::construct<" << typeid(E).name() << "[" << arr.size()
 	    << "]> -- built an equality index with "
 	    << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 	    << " for " << nrows << " row" << (nrows>1?"s":"");
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::relic::construct
@@ -1167,10 +1167,10 @@ long ibis::relic::append(const ibis::relic& tail) {
 
     if (ibis::gVerbose > 10) {
 	ibis::util::logger lg;
-	lg.buffer() << "\nNew combined index (append an index for "
+	lg() << "\nNew combined index (append an index for "
 		    << tail.nrows
 		    << " objects to an index for " << n0 << " events\n" ;
-	print(lg.buffer());
+	print(lg());
     }
     return 0;
 } // ibis::relic::append
@@ -1852,13 +1852,13 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG -- bds array:\n";
+		lg() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
-		    lg.buffer() << bds[i] << " ";
-		lg.buffer() << "\nDEBUG -- cts array:\n";
+		    lg() << bds[i] << " ";
+		lg() << "\nDEBUG -- cts array:\n";
 		for (uint32_t i = 0; i < cts.size(); ++ i)
-		    lg.buffer() << cts[i] << " ";
-		lg.buffer() << "\n";
+		    lg() << cts[i] << " ";
+		lg() << "\n";
 	    }
 #endif
 	    bds.clear();
@@ -1900,12 +1900,12 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG -- bds array:\n";
+		lg() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
-		    lg.buffer() << bds[i] << " ";
-		lg.buffer() << "\nDEBUG -- cts array:\n";
+		    lg() << bds[i] << " ";
+		lg() << "\nDEBUG -- cts array:\n";
 		for (uint32_t i = 0; i < cts.size(); ++ i)
-		    lg.buffer() << cts[i] << " ";
+		    lg() << cts[i] << " ";
 	    }
 #endif
 	    bds.clear();

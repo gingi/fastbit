@@ -1994,12 +1994,12 @@ long ibis::part::get1DDistribution(const char* constraints,
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "")
+	lg() << "ibis::part[" << (m_name ? m_name : "")
 		    << "]::get1DDistribution computed histogram of column "
 		    << cname;
 	if (constraints != 0 && *constraints != 0)
-	    lg.buffer() << " subject to " << constraints;
-	lg.buffer() << " in " << timer.CPUTime() << " sec(CPU), "
+	    lg() << " subject to " << constraints;
+	lg() << " in " << timer.CPUTime() << " sec(CPU), "
 		    << timer.realTime() << " sec(elapsed)";
     }
 
@@ -3461,12 +3461,12 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 #if defined(_DEBUG) || defined(DEBUG)
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "ibis::part::get1DBins_ completed for " << mesg
+	lg() << "ibis::part::get1DBins_ completed for " << mesg
 		    << ", memory in use = "
 		    << ibis::fileManager::instance().bytesInUse();
 	if (ibis::gVerbose > 7) {
-	    lg.buffer() << "\nCurrent status of the file manager:";
-	    ibis::fileManager::instance().printStatus(lg.buffer());
+	    lg() << "\nCurrent status of the file manager:";
+	    ibis::fileManager::instance().printStatus(lg());
 	}
     }
 #endif
@@ -3577,17 +3577,17 @@ ibis::part::getDistribution
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- getDistribution(" << name
+	lg() << "DEBUG -- getDistribution(" << name
 		  << ") returned ierr=" << mbc << ", bds.size()="
 		  << bds.size() << ", cts.size()=" << cts.size() << "\n";
 	if (mbc > 0 && bds.size()+1 == cts.size() &&
 	    static_cast<uint32_t>(mbc) == cts.size()) {
-	    lg.buffer() << "(..., " << bds[0] << ")\t" << cts[0] << "\n";
+	    lg() << "(..., " << bds[0] << ")\t" << cts[0] << "\n";
 	    for (int i = 1; i < mbc-1; ++ i) {
-		lg.buffer() << "[" << bds[i-1] << ", "<< bds[i] << ")\t"
+		lg() << "[" << bds[i-1] << ", "<< bds[i] << ")\t"
 			  << cts[i] << "\n";
 	    }
-	    lg.buffer() << "[" << bds.back() << ", ...)\t" << cts.back()
+	    lg() << "[" << bds.back() << ", ...)\t" << cts.back()
 		      << "\n";
 	}
     }
@@ -3876,18 +3876,18 @@ ibis::part::getDistribution
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- getDistribution(" << name << ", "
+	lg() << "DEBUG -- getDistribution(" << name << ", "
 		    << constraints << ") returned ierr=" << mbc
 		    << ", bds.size()=" << bds.size() << ", cts.size()="
 		    << cts.size() << "\n";
 	if (mbc > 0 && bds.size()+1 == cts.size() &&
 	    static_cast<uint32_t>(mbc) == cts.size()) {
-	    lg.buffer() << "(..., " << bds[0] << ")\t" << cts[0] << "\n";
+	    lg() << "(..., " << bds[0] << ")\t" << cts[0] << "\n";
 	    for (int i = 1; i < mbc-1; ++ i) {
-		lg.buffer() << "[" << bds[i-1] << ", "<< bds[i] << ")\t"
+		lg() << "[" << bds[i-1] << ", "<< bds[i] << ")\t"
 			  << cts[i] << "\n";
 	    }
-	    lg.buffer() << "[" << bds.back() << ", ...)\t" << cts.back()
+	    lg() << "[" << bds.back() << ", ...)\t" << cts.back()
 		      << "\n";
 	}
     }
@@ -3938,12 +3938,12 @@ ibis::part::getCumulativeDistribution
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- getCumulativeDistribution(" << name
+	lg() << "DEBUG -- getCumulativeDistribution(" << name
 		  << ") returned ierr=" << mbc << "\n";
 	if (mbc > 0)
-	    lg.buffer() << "histogram\n(bound,\tcount)\n";
+	    lg() << "histogram\n(bound,\tcount)\n";
 	for (int i = 0; i < mbc; ++ i) {
-	    lg.buffer() << bds[i] << ",\t" << cts[i] << "\n";
+	    lg() << bds[i] << ",\t" << cts[i] << "\n";
 	}
     }
 #endif

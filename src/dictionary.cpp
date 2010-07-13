@@ -486,13 +486,13 @@ uint32_t ibis::dictionary::insert(const char* str) {
 	ordered = (strcmp(key_[j-1], key_[j]) <= 0);
     if (ordered == false && ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "Warning -- dictionary::insert(" << str
 	    << ") incorrectly produced an unsorted list of keys";
 	for (unsigned j = 0; j < nk; ++ j) {
-	    lg.buffer() << "\nkey[" << j << "] = " << key_[j];
+	    lg() << "\nkey[" << j << "] = " << key_[j];
 	    if (j > 0 && strcmp(key_[j-1], key_[j]) > 0)
-		lg.buffer() << "\t<-- out of order";
+		lg() << "\t<-- out of order";
 	}
     }
 #endif

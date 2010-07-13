@@ -31,7 +31,7 @@ ibis::bak::bak(const ibis::column* c, const char* f) : ibis::bin() {
 
 	    if (ibis::gVerbose > 4) {
 		ibis::util::logger lg;
-		print(lg.buffer());
+		print(lg());
 	    }
 	}
     }
@@ -418,7 +418,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    printMap(lg.buffer(), bmap);
+	    printMap(lg(), bmap);
 	}
     }
 } // ibis::bak::mapValues
@@ -594,7 +594,7 @@ long ibis::bak::append(const char* dt, const char* df, uint32_t nnew) {
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
     return nnew;
 } // ibis::bak::append

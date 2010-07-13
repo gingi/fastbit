@@ -383,9 +383,9 @@ ibis::table* ibis::jRange::select() const {
     ibis::table* res1 = select(sl);
     if (res1 != 0 && ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+	lg() << "jRange::select(" << *sel_ << ", " << desc_
 		    << ") produced the first intermediate table:\n";
-	res1->describe(lg.buffer());
+	res1->describe(lg());
     }
     if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
 	features == 0)
@@ -398,9 +398,9 @@ ibis::table* ibis::jRange::select() const {
 	if (res2 != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
-		lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+		lg() << "jRange::select(" << *sel_ << ", " << desc_
 			    << ") produced the second intermediate table:\n";
-		res2->describe(lg.buffer());
+		res2->describe(lg());
 	    }
 	    delete res1;
 	    res1 = res2;
@@ -419,9 +419,9 @@ ibis::table* ibis::jRange::select() const {
 	if (res3 != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
-		lg.buffer() << "jRange::select(" << *sel_ << ", " << desc_
+		lg() << "jRange::select(" << *sel_ << ", " << desc_
 			    << ") produced the third intermediate table:\n";
-		res3->describe(lg.buffer());
+		res3->describe(lg());
 	    }
 	    delete res1;
 	    res1 = res3;
@@ -578,13 +578,13 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
 	    ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::typeList  rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
     ibis::bord::bufferList rbuff(ircol.size(), 0);
-    ibis::util::guard grbuff =
+    ibis::util::guard      grbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, rbuff, rtypes);
-    ibis::table::typeList stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::typeList  stypes(iscol.size(), ibis::UNKNOWN_TYPE);
     ibis::bord::bufferList sbuff(iscol.size(), 0);
-    ibis::util::guard gsbuff =
+    ibis::util::guard      gsbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, sbuff, stypes);
     bool sane = true;
 
@@ -938,11 +938,10 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 	return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
     ibis::bord::bufferList tbuff(tcname.size());
-    ibis::table::typeList ttypes(tcname.size());
-    ibis::util::guard gtbuff =
+    ibis::table::typeList  ttypes(tcname.size());
+    ibis::util::guard      gtbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
     try {
-	bool badpos = false;
 	// allocate enough space for the output table
 	for (size_t j = 0; j < tcname.size(); ++ j) {
 	    if (tcnpos[j] < rtypes.size()) {
@@ -957,15 +956,12 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 	    else { // tcnpos is out of valid range
 		ttypes[j] = ibis::UNKNOWN_TYPE;
 		tbuff[j] = 0;
-		badpos = true;
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- jRange::fillResult detects an "
 		    "invalid tcnpos[" << j << "] = " << tcnpos[j]
 		    << ", should be less than " << rtypes.size()+stypes.size();
+		return 0;
 	    }
-	}
-	if (badpos) {
-	    return 0;
 	}
     }
     catch (...) {

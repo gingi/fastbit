@@ -17,7 +17,7 @@ ibis::selectClause::selectClause(const char *cl) : lexer(0) {
     clause_ = cl;
     std::istringstream iss(clause_);
     ibis::util::logger lg;
-    selectLexer lx(&iss, &(lg.buffer()));
+    selectLexer lx(&iss, &(lg()));
     selectParser parser(*this);
     lexer = &lx;
 #if DEBUG+0 > 2
@@ -25,7 +25,7 @@ ibis::selectClause::selectClause(const char *cl) : lexer(0) {
 #elif _DEBUG+0 > 2
     parser.set_debug_level(_DEBUG-1);
 #endif
-    parser.set_debug_stream(lg.buffer());
+    parser.set_debug_stream(lg());
     ierr = parser.parse();
     lexer = 0;
 
@@ -64,7 +64,7 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
     int ierr = 0;
     std::istringstream iss(clause_);
     ibis::util::logger lg;
-    selectLexer lx(&iss, &(lg.buffer()));
+    selectLexer lx(&iss, &(lg()));
     selectParser parser(*this);
     lexer = &lx;
 #if DEBUG+0 > 2
@@ -72,7 +72,7 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
 #elif _DEBUG+0 > 2
     parser.set_debug_level(_DEBUG-1);
 #endif
-    parser.set_debug_stream(lg.buffer());
+    parser.set_debug_stream(lg());
     ierr = parser.parse();
     lexer = 0;
 
@@ -128,7 +128,7 @@ int ibis::selectClause::parse(const char *cl) {
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
-	selectLexer lx(&iss, &(lg.buffer()));
+	selectLexer lx(&iss, &(lg()));
 	selectParser parser(*this);
 	lexer = &lx;
 #if DEBUG+0 > 2
@@ -136,7 +136,7 @@ int ibis::selectClause::parse(const char *cl) {
 #elif _DEBUG+0 > 2
 	parser.set_debug_level(_DEBUG-1);
 #endif
-	parser.set_debug_stream(lg.buffer());
+	parser.set_debug_stream(lg());
 	ierr = parser.parse();
 	if (ierr == 0) {
 	    for (uint32_t it = 0; it < terms_.size(); ++ it) {
@@ -554,10 +554,10 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 		}
 		if (! alias) {
 		    ++ ierr;
-		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- selectClause::verifyTerm can NOT find a column named "
-			<< var.variableName() << "data partition "
-			<< part0.name();
+		    LOGGER(ibis::gVerbose > 2)
+			<< "Warning -- selectClause::verifyTerm can NOT find "
+			"a column named " << var.variableName()
+			<< "data partition " << part0.name();
 		}
 	    }
 	}

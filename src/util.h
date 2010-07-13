@@ -258,7 +258,7 @@ int truncate(const char*, uint32_t);
 #endif
 
 #define LOGGER(v) \
-if (false == (v)) ; else ibis::util::logger(0).buffer() 
+if (false == (v)) ; else ibis::util::logger(0)() 
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
@@ -447,12 +447,12 @@ namespace ibis {
 	///@}
 
 	///@{
-	/// convert 32-bit integers to base-64 printable characters
 	void int2string(std::string &str, unsigned val);
 	void int2string(std::string &str, unsigned v1, unsigned v2);
 	void int2string(std::string &str, unsigned v1,
 			unsigned v2, unsigned v3);
 	void int2string(std::string &str, const std::vector<unsigned>& val);
+	template <typename T> std::string groupby1000(T);
 	///@}
 
 	/// Functions to handle manipulation of floating-point numbers.
@@ -593,7 +593,7 @@ namespace ibis {
 	    /// Destructor.
 	    ~logger();
 	    /// Retrun an output stream for caller to build a message.
-	    std::ostream& buffer() {return mybuffer;}
+	    std::ostream& operator()(void) {return mybuffer;}
 
 	protected:
 	    /// The message is stored in this buffer.
@@ -1033,7 +1033,8 @@ namespace ibis {
 		rhs.dismiss();
 	    }
 
-	    /// A template function to absorb all exceptions.
+	    /// A template to invoke the function registered.  Also absorbs
+	    /// all exceptions.
 	    template <typename T>
 	    static void cleanup(T& task) throw () {
 		try {

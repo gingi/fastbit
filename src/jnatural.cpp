@@ -525,7 +525,7 @@ ibis::jNatural::fillResult(size_t nrows,
 	return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
     ibis::bord::bufferList tbuff(tcname.size());
-    ibis::table::typeList ttypes(tcname.size());
+    ibis::table::typeList  ttypes(tcname.size());
     ibis::util::guard gtbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
     try {
@@ -639,9 +639,10 @@ ibis::jNatural::fillResult(size_t nrows,
     }
 
     ibis::bord::bufferList tbuff(tcname.size());
-    ibis::table::typeList ttypes(tcname.size());
+    ibis::table::typeList  ttypes(tcname.size());
+    ibis::util::guard      gtbuff =
+	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
     try {
-	bool badpos = false;
 	// allocate enough space for the 
 	for (size_t j = 0; j < tcname.size(); ++ j) {
 	    if (tcnpos[j] < rtypes.size()) {
@@ -656,16 +657,12 @@ ibis::jNatural::fillResult(size_t nrows,
 	    else { // tcnpos is out of valid range
 		ttypes[j] = ibis::UNKNOWN_TYPE;
 		tbuff[j] = 0;
-		badpos = true;
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- jNatural::fillResult detects an "
 		    "invalid tcnpos[" << j << "] = " << tcnpos[j]
 		    << ", should be less than " << rtypes.size()+stypes.size();
+		return 0;
 	    }
-	}
-	if (badpos) {
-	    ibis::bord::freeBuffers(tbuff, ttypes);
-	    return 0;
 	}
     }
     catch (...) {
@@ -674,7 +671,6 @@ ibis::jNatural::fillResult(size_t nrows,
 	    "sufficient memory for " << nrows << " row" << (nrows>1?"s":"")
 	    << " and " << rtypes.size()+stypes.size()
 	    << " column" << (rtypes.size()+stypes.size()>1?"s":"");
-	ibis::bord::freeBuffers(tbuff, ttypes);
 	return 0;
     }
 
@@ -718,13 +714,23 @@ ibis::jNatural::fillResult(size_t nrows,
 	    << "Warning -- jNatural::fillResult expected to produce "
 	    << nrows << " row" << (nrows>1?"s":"") << ", but produced "
 	    << tind << " instead";
-	ibis::bord::freeBuffers(tbuff, ttypes);
 	return 0;
     }
 
     std::string tn = ibis::util::shortName(desc.c_str());
-    return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
-			  tbuff, ttypes, tcname);
+    try {
+	ibis::bord* res = new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+					 tbuff, ttypes, tcname);
+	if (res != 0)
+	    gtbuff.dismiss();
+	return res;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- jNatural::fillResult failed to create the output "
+	    "data structure";
+    }
+    return 0;
 } // ibis::jNatural::fillResult
 
 ibis::table*
@@ -870,13 +876,13 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
 	    ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::typeList  rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
     ibis::bord::bufferList rbuff(ircol.size(), 0);
-    ibis::util::guard grbuff =
+    ibis::util::guard      grbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, rbuff, rtypes);
-    ibis::table::typeList stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::typeList  stypes(iscol.size(), ibis::UNKNOWN_TYPE);
     ibis::bord::bufferList sbuff(iscol.size(), 0);
-    ibis::util::guard gsbuff =
+    ibis::util::guard      gsbuff =
 	ibis::util::makeGuard(ibis::bord::freeBuffers, sbuff, stypes);
     bool sane = true;
 
@@ -1233,11 +1239,12 @@ ibis::table* ibis::jNatural::select() const {
     ibis::table* res1 = select(sl);
     if (res1 != 0 && ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+	lg() << "jNatural::select(" << *sel_ << ", " << desc_
 		    << ") produced the first intermediate table:\n";
-	res1->describe(lg.buffer());
+	res1->describe(lg());
     }
-    if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 || features == 0)
+    if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
+	features == 0)
 	return res1;
 
     if ((features & 1) != 0) { // arithmetic computations
@@ -1247,9 +1254,9 @@ ibis::table* ibis::jNatural::select() const {
 	if (res2 != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
-		lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+		lg() << "jNatural::select(" << *sel_ << ", " << desc_
 			    << ") produced the second intermediate table:\n";
-		res2->describe(lg.buffer());
+		res2->describe(lg());
 	    }
 	    delete res1;
 	    res1 = res2;
@@ -1268,9 +1275,9 @@ ibis::table* ibis::jNatural::select() const {
 	if (res3 != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
-		lg.buffer() << "jNatural::select(" << *sel_ << ", " << desc_
+		lg() << "jNatural::select(" << *sel_ << ", " << desc_
 			    << ") produced the third intermediate table:\n";
-		res3->describe(lg.buffer());
+		res3->describe(lg());
 	    }
 	    delete res1;
 	    res1 = res3;

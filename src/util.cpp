@@ -22,6 +22,8 @@
 
 #include <set>		// std::set
 #include <limits>	// std::numeric_limits
+#include <locale>	// std::numpunct<char>
+#include <iostream>	// std::cout
 
 // global variables
 #if defined(DEBUG)
@@ -1127,6 +1129,51 @@ void ibis::util::int2string(std::string& str, unsigned val) {
     str = name;
 } // ibis::util::int2string
 
+/// Produce a string version of the integer value with the decimal digits
+/// grouped into 1000s.  The type T must be an integer.
+template <typename T>
+std::string ibis::util::groupby1000(T val) {
+    const char separator = std::use_facet< std::numpunct<char> >
+	(std::cout.getloc()).thousands_sep();
+    std::string res;
+    bool neg = false;
+    if (val < 0) {
+	neg = true;
+	val = - val;
+    }
+    // loop to extract the decimal digits
+    unsigned char ott = 0;
+    while (res.empty() || val > 0) {
+	T quo = val / 10;
+	res += (unsigned char)(val - quo * 10) + '0';
+	val = quo;
+	++ ott;
+	if (ott > 2 && val > 0) {
+	    res += separator;
+	    ott = 0;
+	}
+    }
+
+    if (neg) // the negative sign
+	res += '-';
+
+    // reverse the string
+    const size_t jmax = res.size() / 2;
+    const size_t nres = res.size() - 1;
+    for (size_t j = 0; j < jmax; ++ j) {
+	ott = res[j];
+	res[j] = res[nres-j];
+	res[nres-j] = ott;
+    }
+    return res;
+} // ibis::util::groupby1000
+// explicit template initialization
+template std::string ibis::util::groupby1000(uint64_t);
+template std::string ibis::util::groupby1000(int64_t);
+template std::string ibis::util::groupby1000(uint32_t);
+template std::string ibis::util::groupby1000(int32_t);
+
+
 /// It attempts to retrieve the user name from the system and store it
 /// locally.  A global mutex lock is used to ensure that only one thread
 /// can access the locally stored user name.  If it fails to determine the
@@ -1241,7 +1288,7 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     fflush(fptr);
 #else
     ibis::util::logger lg;
-    lg.buffer() << event << " -- " << fmt << " ...";
+    lg() << event << " -- " << fmt << " ...";
 #endif
 } // ibis::util::logMessage
 
@@ -1469,7 +1516,7 @@ ibis::util::timer::timer(const char* msg, int lvl) :
     if (chrono_ != 0) {
 	chrono_->start();
 	if (ibis::gVerbose > lvl+1)
-	    ibis::util::logger(2).buffer()
+	    ibis::util::logger(2)()
 		<< mesg_ << " -- start timer ...";
     }
 } // ibis::util::timer::timer
@@ -1480,7 +1527,7 @@ ibis::util::timer::timer(const char* msg, int lvl) :
 ibis::util::timer::~timer() {
     if (chrono_ != 0) {
 	chrono_->stop();
-	ibis::util::logger(2).buffer()
+	ibis::util::logger(2)()
 	    << mesg_ << " -- duration: " << chrono_->CPUTime()
 	    << " sec(CPU), " << chrono_->realTime() << " sec(elapsed)";
 	delete chrono_;

@@ -191,11 +191,11 @@ static void printNames(const ibis::partList& tlist) {
     for (ibis::partList::const_iterator it = tlist.begin();
 	 it != tlist.end(); ++it) {
 	tinfo = new ibis::part::info(**it);
-	lg.buffer() << "Partition " << tinfo->name << ":\n";
+	lg() << "Partition " << tinfo->name << ":\n";
 	std::vector<ibis::column::info*>::const_iterator vit;
 	for (vit = tinfo->cols.begin(); vit != tinfo->cols.end(); ++vit)
-	    lg.buffer() << (*vit)->name << ' ';
-	lg.buffer() << "\n";
+	    lg() << (*vit)->name << ' ';
+	lg() << "\n";
 	delete tinfo;
     }
 } // printNames
@@ -205,7 +205,7 @@ static void printAll(const ibis::partList& tlist) {
     ibis::util::logger lg(0);
     ibis::partList::const_iterator it;
     for (it = tlist.begin(); it != tlist.end(); ++it)
-	(*it)->print(lg.buffer());
+	(*it)->print(lg());
 } // printAll
 
 // Print the detailed information about a specific column.  It will use a
@@ -222,30 +222,30 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 	long nb = tbl.getCumulativeDistribution(cond, cname, bounds, counts);
 
 	ibis::util::logger lg(0);
-	lg.buffer() << "Column " << cname << " in Partition "
-		    << tbl.name() << ":\n";
+	lg() << "Column " << cname << " in Partition "
+	     << tbl.name() << ":\n";
 	if (nb > 0) {
-	    col->print(lg.buffer());
-	    lg.buffer() << ", actual range <" << amin << ", " << amax
-			<< ">\ncumulative distribution [" << nb
-			<< "]";
+	    col->print(lg());
+	    lg() << ", actual range <" << amin << ", " << amax
+		 << ">\ncumulative distribution [" << nb
+		 << "]";
 	    if (cond != 0 && *cond != 0)
-		lg.buffer() << " under the condition of \"" << cond
-			    << "\"";
-	    lg.buffer() << "\n(bound,\t# records < bound)\n";
+		lg() << " under the condition of \"" << cond
+		     << "\"";
+	    lg() << "\n(bound,\t# records < bound)\n";
 	    for (int j = 0; j < nb; ++ j) {
 		if (j > 0 && ! (fabs(bounds[j] - bounds[j-1]) >
 				1e-15*(fabs(bounds[j])+fabs(bounds[j-1]))))
-		    lg.buffer() << "*** Error *** bounds[" << j
-				<< "] is too close to bounds[" << j-1
-				<< "]\n";
-		lg.buffer() << bounds[j] << ",\t" << counts[j] << "\n";
+		    lg() << "*** Error *** bounds[" << j
+			 << "] is too close to bounds[" << j-1
+			 << "]\n";
+		lg() << bounds[j] << ",\t" << counts[j] << "\n";
 	    }
 	}
 	else {
-	    col->print(lg.buffer());
-	    lg.buffer() << " -- getCumulativeDistribution(" << cname
-			<< ") failed with error code " << nb;
+	    col->print(lg());
+	    lg() << " -- getCumulativeDistribution(" << cname
+		 << ") failed with error code " << nb;
 	}
     }
 } // printColumn
@@ -259,11 +259,11 @@ static void printDistribution(const ibis::part& tbl) {
     ibis::part::info tinfo(tbl);
     {
 	ibis::util::logger lg(0);
-	lg.buffer() << "Partition " << tinfo.name << " (" << tinfo.description
-		    << ") -- nRows=" << tinfo.nrows << ", nCols="
-		    << tinfo.cols.size() << "\nColumn names: ";
+	lg() << "Partition " << tinfo.name << " (" << tinfo.description
+	     << ") -- nRows=" << tinfo.nrows << ", nCols="
+	     << tinfo.cols.size() << "\nColumn names: ";
 	for (uint32_t i = 0; i < tinfo.cols.size(); ++ i) {
-	    lg.buffer() << tinfo.cols[i]->name << " ";
+	    lg() << tinfo.cols[i]->name << " ";
 	}
     }
     for (uint32_t i = 0; i < tinfo.cols.size(); ++ i) {
@@ -273,30 +273,30 @@ static void printDistribution(const ibis::part& tbl) {
 					100, bounds, counts);
 
 	ibis::util::logger lg(0); // use an IO lock
-	lg.buffer() << "  Column " << tinfo.cols[i]->name << " ("
-		    << tinfo.cols[i]->description << ") "
-		    << ibis::TYPESTRING[tinfo.cols[i]->type]
-		    << " expected range [" << tinfo.cols[i]->expectedMin
-		    << ", " << tinfo.cols[i]->expectedMax << "]";
+	lg() << "  Column " << tinfo.cols[i]->name << " ("
+	     << tinfo.cols[i]->description << ") "
+	     << ibis::TYPESTRING[tinfo.cols[i]->type]
+	     << " expected range [" << tinfo.cols[i]->expectedMin
+	     << ", " << tinfo.cols[i]->expectedMax << "]";
 	if (ierr > 1) {
-	    lg.buffer() <<", actual range <" << amin << ", " << amax
-			<< ">\n # bins " << ierr << "\n";
-	    lg.buffer() << "(..., " << bounds[0] << ")\t" << counts[0] << "\n";
+	    lg() <<", actual range <" << amin << ", " << amax
+		 << ">\n # bins " << ierr << "\n";
+	    lg() << "(..., " << bounds[0] << ")\t" << counts[0] << "\n";
 	    for (int j = 1; j < ierr-1; ++ j) {
 		if (! (fabs(bounds[j] - bounds[j-1]) >
 		       1e-15*(fabs(bounds[j])+fabs(bounds[j-1]))))
-		    lg.buffer() << "*** Error *** bounds[" << j
-				<< "] is too close to bounds[" << j-1
-				<< "]\n";
-		lg.buffer() << "[" << bounds[j-1] << ", " << bounds[j] << ")\t"
-			    << counts[j] << "\n";
+		    lg() << "*** Error *** bounds[" << j
+			 << "] is too close to bounds[" << j-1
+			 << "]\n";
+		lg() << "[" << bounds[j-1] << ", " << bounds[j] << ")\t"
+		     << counts[j] << "\n";
 	    }
-	    lg.buffer() << "[" << bounds[ierr-2] << ", ...)\t"
-			<< counts[ierr-1] << "\n";
+	    lg() << "[" << bounds[ierr-2] << ", ...)\t"
+		 << counts[ierr-1] << "\n";
 	}
 	else {
-	    lg.buffer() << "\ngetCumulativeDistribution returned ierr="
-			<< ierr << ", skip ...";
+	    lg() << "\ngetCumulativeDistribution returned ierr="
+		 << ierr << ", skip ...";
 	}
     }
 } // printDistribution
@@ -316,11 +316,11 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
     long ierr = tbl.getJointDistribution(cond, col1, col2, bds1, bds2, cnts);
     if (ierr > 0 && static_cast<uint32_t>(ierr) == cnts.size()) {
 	const uint32_t nb2p1 = bds2.size() + 1;
-	lg.buffer() << "\nJoint distribution of " << col1 << " and " << col2;
+	lg() << "\nJoint distribution of " << col1 << " and " << col2;
 	if (cond && *cond)
-	    lg.buffer() << " subject to the condition " << cond;
-	lg.buffer() << ", # bins " << cnts.size() << " on " << bds1.size()+1
-		    << " x " << bds2.size()+1 << " cells\n";
+	    lg() << " subject to the condition " << cond;
+	lg() << ", # bins " << cnts.size() << " on " << bds1.size()+1
+	     << " x " << bds2.size()+1 << " cells\n";
 
 	uint32_t cnt = 0, tot=0;
 	for (uint32_t i = 0; i < cnts.size(); ++ i) {
@@ -328,26 +328,26 @@ static void printJointDistribution(const ibis::part& tbl, const char *col1,
 		uint32_t i1 = i / nb2p1;
 		uint32_t i2 = i % nb2p1;
 		if (i1 == 0)
-		    lg.buffer() << "(..., " << bds1[0] << ")";
+		    lg() << "(..., " << bds1[0] << ")";
 		else if (i1 < bds1.size())
-		    lg.buffer() << "[" << bds1[i1-1] << ", " << bds1[i1]
-				<< ")";
+		    lg() << "[" << bds1[i1-1] << ", " << bds1[i1]
+			 << ")";
 		else
-		    lg.buffer() << "[" << bds1.back() << ", ...)";
+		    lg() << "[" << bds1.back() << ", ...)";
 		if (i2 == 0)
-		    lg.buffer() << "(..., " << bds2[0] << ")";
+		    lg() << "(..., " << bds2[0] << ")";
 		else if (i2 < bds2.size())
-		    lg.buffer() << "[" << bds2[i2-1] << ", " << bds2[i2]
-				<< ")";
+		    lg() << "[" << bds2[i2-1] << ", " << bds2[i2]
+			 << ")";
 		else
-		    lg.buffer() << "[" << bds2.back() << ", ...)";
-		lg.buffer() << "\t" << cnts[i] << "\n";
+		    lg() << "[" << bds2.back() << ", ...)";
+		lg() << "\t" << cnts[i] << "\n";
 		tot += cnts[i];
 		++ cnt;
 	    }
 	}
-	lg.buffer() << "\tnumber of occupied cells: " << cnt
-		    << ", total count = " << tot << "\n";
+	lg() << "\tnumber of occupied cells: " << cnt
+	     << ", total count = " << tot << "\n";
     }
 } // printJointDistribution
 
@@ -403,17 +403,17 @@ static void print(const char* cmd, const ibis::partList& tlist) {
 		 ++ tit);
 	    if (tit != tlist.end()) { // it's a data partition
 		ibis::util::logger lg(0);
-		lg.buffer() << "Partition " << (*tit)->name() << ":\n";
-		(*tit)->print(lg.buffer());
+		lg() << "Partition " << (*tit)->name() << ":\n";
+		(*tit)->print(lg());
 	    }
 	    else if ((*it)[0] == '*') {
 		printAll(tlist);
 	    }
 	    else if (stricmp(*it, "parts") == 0) {
 		ibis::util::logger lg(0);
-		lg.buffer() << "Name(s) of all data partitioins\n";
+		lg() << "Name(s) of all data partitioins\n";
 		for (tit = tlist.begin(); tit != tlist.end(); ++tit)
-		    lg.buffer() << (*tit)->name() << ' ';
+		    lg() << (*tit)->name() << ' ';
 	    }
 	    else if (stricmp(*it, "names") == 0 ||
 		     stricmp(*it, "columns") == 0) {
@@ -431,10 +431,10 @@ static void print(const char* cmd, const ibis::partList& tlist) {
     }
     else {
 	ibis::util::logger lg(0);
-	lg.buffer() << "Name(s) of all partitions\n";
+	lg() << "Name(s) of all partitions\n";
 	for (ibis::partList::const_iterator tit = tlist.begin();
 	     tit != tlist.end(); ++tit)
-	    lg.buffer() << (*tit)->name() << ' ';
+	    lg() << (*tit)->name() << ' ';
     }
 } // print
 
@@ -526,7 +526,7 @@ static void parse_args(int argc, char** argv,
 			++ i;
 		    }
 		}
-		break;
+	    break;
 	    case 'b':
 	    case 'B': { // build indexes,
 		// it also accepts an optional argument to indicate the
@@ -566,7 +566,7 @@ static void parse_args(int argc, char** argv,
 		    confs.push_back(argv[i+1]);
 		    ++ i;
 		}
-		break;
+	    break;
 	    case 'd':
 	    case 'D': // data directory, multiple directory allowed
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -577,31 +577,31 @@ static void parse_args(int argc, char** argv,
 		    std::clog << "Warning: argument -d must be followed by "
 			      << "a directory name" << std::endl;
 		}
-		break;
+	    break;
 	    case 'e':
 	    case 'E': // estiamtion only
 		estimate_only = true;
-		if (skip_estimation)
-		    skip_estimation = false;
-		break;
+	    if (skip_estimation)
+		skip_estimation = false;
+	    break;
 	    case 'f':
 	    case 'F': // query file, multiple files allowed
 		if (i+1 < argc) {
 		    readQueryFile(argv[i+1], queff);
 		    ++ i;
 		}
-		break;
+	    break;
 	    default:
 	    case 'h':
 	    case 'H': // print usage
 		usage(*argv);
-		if (argc <= 2)
-		    exit(0);
-		break;
+	    if (argc <= 2)
+		exit(0);
+	    break;
 	    case 'i':
 	    case 'I': // interactive mode
 		mode = 1;
-		break;
+	    break;
 	    case 'j':
 	    case 'J': // junk some rows of every data partition available
 		// must have an argument after the flag to indicate a file
@@ -611,7 +611,7 @@ static void parse_args(int argc, char** argv,
 		    junkstring = argv[i+1];
 		    i = i + 1;
 		}
-		break;
+	    break;
 	    case 'k':
 	    case 'K': // keep temporary query files or reverse -j
 		if (i+1 < argc && *argv[i+1] != '-') { // reverse -j
@@ -621,7 +621,7 @@ static void parse_args(int argc, char** argv,
 		else { // keep temporary files
 		    ibis::query::keepQueryRecords();
 		}
-		break;
+	    break;
 	    case 'l':
 	    case 'L': // logfile or load index in one-shot
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -632,7 +632,7 @@ static void parse_args(int argc, char** argv,
 			 (argv[i][3] == 'g' || argv[i][3] == 'G')) {
 		    mesgfile = 0; // reset the log file to stdout
 		}
-		break;
+	    break;
 #if defined(TEST_SUMBINS_OPTIONS)
 	    case 'm':
 	    case 'M': {// _sumBins_option
@@ -669,7 +669,7 @@ static void parse_args(int argc, char** argv,
 		    outputfile = argv[i+1];
 		    i = i + 1;
 		}
-		break;
+	    break;
 	    case 'p':
 	    case 'P': // collect the print options
 		if (i+1 < argc) {
@@ -690,14 +690,14 @@ static void parse_args(int argc, char** argv,
 		else  if (printcmd.empty()) { // at least print partition names
 		    printcmd = "parts";
 		}
-		break;
+	    break;
 	    case 'q':
 	    case 'Q': // specify a query "[select ...] [from ...] where ..."
 		if (i+1 < argc) {
 		    qlist.push_back(argv[i+1]);
 		    ++ i;
 		}
-		break;
+	    break;
 	    case 's':
 	    case 'S': // sequential scan, or scan option
 #if defined(TEST_SCAN_OPTIONS)
@@ -714,9 +714,9 @@ static void parse_args(int argc, char** argv,
 		    sequential_scan = true;
 		}
 #else
-		sequential_scan = true;
+	    sequential_scan = true;
 #endif
-		break;
+	    break;
 	    case 't':
 	    case 'T': { // self-testing mode or number of threads
 		char *ptr = strchr(argv[i], '=');
@@ -824,31 +824,31 @@ static void parse_args(int argc, char** argv,
     }
     if (ibis::gVerbose > 0) {
 	ibis::util::logger lg(1);
-	lg.buffer() << "\n" << argv[0] << ": "
-		    << (mode ? "interactive mode" : "batch mode")
-		    << ", log level " << ibis::gVerbose;
+	lg() << "\n" << argv[0] << ": "
+	     << (mode ? "interactive mode" : "batch mode")
+	     << ", log level " << ibis::gVerbose;
 	if (build_index > 0) {
-	    lg.buffer() << ", building indexes";
+	    lg() << ", building indexes";
 	    if (zapping)
-		lg.buffer() << " (remove any existing indexes)";
+		lg() << " (remove any existing indexes)";
 	}
 	if (testing > 0)
-	    lg.buffer() << ", performing self test";
+	    lg() << ", performing self test";
 	if (threading > 0)
-	    lg.buffer() << ", threading " << threading;
+	    lg() << ", threading " << threading;
 	if (skip_estimation)
-	    lg.buffer() << ", skipping estimation";
+	    lg() << ", skipping estimation";
 	else if (estimate_only)
-	    lg.buffer() << ", computing only bounds";
+	    lg() << ", computing only bounds";
 	if (! alist.empty()) {
-	    lg.buffer() << "\nappending data in the following director"
-			<< (alist.size()>1 ? "ies" : "y");
+	    lg() << "\nappending data in the following director"
+		 << (alist.size()>1 ? "ies" : "y");
 	    if (appendto)
-		lg.buffer() << " to partition " << appendto;
+		lg() << " to partition " << appendto;
 	    for (uint32_t i = 0; i < alist.size(); ++ i)
-		lg.buffer() << "\n" << alist[i];
+		lg() << "\n" << alist[i];
 	}
-	lg.buffer() << "\n";
+	lg() << "\n";
     }
     if (! confs.empty()) {
 	// read all configuration files
@@ -877,18 +877,18 @@ static void parse_args(int argc, char** argv,
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg(2);
 	if (tlist.size()) {
-	    lg.buffer() << "Partition" << (tlist.size()>1 ? "s" : "")
-			<< "[" << tlist.size() << "]:\n";
+	    lg() << "Partition" << (tlist.size()>1 ? "s" : "")
+		 << "[" << tlist.size() << "]:\n";
 	    for (ibis::partList::const_iterator it = tlist.begin();
 		 it != tlist.end(); ++it)
-		lg.buffer() << (*it)->name() << "\n";
+		lg() << (*it)->name() << "\n";
 	}
 	if (qlist.size()) {
-	    lg.buffer() << "Quer" << (qlist.size()>1 ? "ies" : "y")
-			<< "[" << qlist.size() << "]:\n";
+	    lg() << "Quer" << (qlist.size()>1 ? "ies" : "y")
+		 << "[" << qlist.size() << "]:\n";
 	    for (stringList::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it)
-		lg.buffer() << *it << "\n";
+		lg() << *it << "\n";
 	}
     }
 
@@ -897,7 +897,7 @@ static void parse_args(int argc, char** argv,
 	for (ibis::partList::const_iterator it = tlist.begin();
 	     it != tlist.end(); ++it) {
 	    bool recompute = (testing>5 && ibis::gVerbose>7);
-	     // check to see if the nominal min and max are different
+	    // check to see if the nominal min and max are different
 	    ibis::part::info *info = (*it)->getInfo();
 	    for (uint32_t i = 0; i < info->cols.size() && ! recompute; ++i)
 		recompute = (info->cols[i]->type != ibis::CATEGORY &&
@@ -937,13 +937,13 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(1);
 	    if (! comp.empty())
-		lg.buffer() << "xdoQuery -- the WHERE clause \"" << old.c_str()
-			    << "\" is split into \"" << comp.c_str()
-			    << "\" AND \"" << aQuery.getWhereClause() << "\"";
+		lg() << "xdoQuery -- the WHERE clause \"" << old.c_str()
+		     << "\" is split into \"" << comp.c_str()
+		     << "\" AND \"" << aQuery.getWhereClause() << "\"";
 	    else
-		lg.buffer() << "xdoQuery -- the WHERE clause \""
-			    << aQuery.getWhereClause()
-			    << "\" is considered simple";
+		lg() << "xdoQuery -- the WHERE clause \""
+		     << aQuery.getWhereClause()
+		     << "\" is considered simple";
 	}
     }
     const char* asstr = 0;
@@ -963,10 +963,10 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	num2 = aQuery.getMaxNumHits();
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg(0);
-	    lg.buffer() << "xdoQuery -- the number of hits is ";
+	    lg() << "xdoQuery -- the number of hits is ";
 	    if (num2 > num1) 
-		lg.buffer() << "between " << num1 << " and ";
-	    lg.buffer() << num2;
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
 	}
 	if (estimate_only)
 	    return;
@@ -976,7 +976,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
     if (num2 < 0) {
 	LOGGER(0) << "xdoQuery -- failed to evaluate \"" << wstr
 		  << "\", error code = " << num2;
-	    return;
+	return;
     }
     num1 = aQuery.getNumHits();
     LOGGER(1) << "xdoQuery -- the number of hits = " << num1;
@@ -988,7 +988,7 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    ibis::column* col = tbl->getColumn(*it);
 	    if (col) {
 		LOGGER(1) << "xdoQuery -- retrieving qualified "
-			"values of " << *it;
+		    "values of " << *it;
 
 		switch (col->type()) {
 		case ibis::UBYTE:
@@ -1001,22 +1001,22 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    intarray = aQuery.getQualifiedInts(*it);
 		    ibis::util::logger lg(0);
 		    if (intarray->size() != static_cast<uint32_t>(num1))
-			lg.buffer()
+			lg()
 			    << "expected to retrieve " << num1
 			    << " entries, but got " << intarray->size();
 		    if (num1 < (2 << ibis::gVerbose) ||
 			ibis::gVerbose > 30) {
-			lg.buffer() << "selected entries of column " << *it
-				    << "\n";
+			lg() << "selected entries of column " << *it
+			     << "\n";
 			for (ibis::array_t<int32_t>::const_iterator ait =
 				 intarray->begin();
 			     ait != intarray->end(); ++ait)
-			    lg.buffer() << *ait << "\n";
+			    lg() << *ait << "\n";
 		    }
 		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << intarray->size()
-				    << " ints (expecting " << num1 << ")\n";
+			lg() << "xdoQuery -- retrieved "
+			     << intarray->size()
+			     << " ints (expecting " << num1 << ")\n";
 		    }
 		    delete intarray;
 		    break;}
@@ -1028,21 +1028,21 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    ibis::util::logger lg(0);
 		    if (floatarray->size() !=
 			static_cast<uint32_t>(num1))
-			lg.buffer() << "expected to retrieve " << num1
-				    << " entries, but got "
-				    << floatarray->size();
+			lg() << "expected to retrieve " << num1
+			     << " entries, but got "
+			     << floatarray->size();
 		    if (num1 < (2 << ibis::gVerbose) ||
 			ibis::gVerbose > 30) {
-			lg.buffer() << "selected entries of column " << *it;
+			lg() << "selected entries of column " << *it;
 			for (ibis::array_t<float>::const_iterator ait =
 				 floatarray->begin();
 			     ait != floatarray->end(); ++ait)
-			    lg.buffer() << "\n" << *ait;
+			    lg() << "\n" << *ait;
 		    }
 		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << floatarray->size()
-				    << " floats (expecting " << num1 << ")";
+			lg() << "xdoQuery -- retrieved "
+			     << floatarray->size()
+			     << " floats (expecting " << num1 << ")";
 		    }
 		    delete floatarray;
 		    break;}
@@ -1054,20 +1054,20 @@ static void xdoQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		    ibis::util::logger lg(0);
 		    if (doublearray->size() !=
 			static_cast<uint32_t>(num1))
-			lg.buffer() << "expected to retrieve " << num1
-				    << " entries, but got "
-				    << doublearray->size();
+			lg() << "expected to retrieve " << num1
+			     << " entries, but got "
+			     << doublearray->size();
 		    if (num1<(2<<ibis::gVerbose) || ibis::gVerbose>30) {
-			lg.buffer() << "selected entries of column " << *it;
+			lg() << "selected entries of column " << *it;
 			for (ibis::array_t<double>::const_iterator ait =
 				 doublearray->begin();
 			     ait != doublearray->end(); ++ait)
-			    lg.buffer() << "\n" << *ait;
+			    lg() << "\n" << *ait;
 		    }
 		    else {
-			lg.buffer() << "xdoQuery -- retrieved "
-				    << doublearray->size()
-				    << " doubles (expecting " << num1 << ")";
+			lg() << "xdoQuery -- retrieved "
+			     << doublearray->size()
+			     << " doubles (expecting " << num1 << ")";
 		    }
 		    delete doublearray;
 		    break;}
@@ -1143,14 +1143,14 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(1);
 	    if (! comp.empty())
-		lg.buffer() << "doQuery -- the WHERE clause \""
-			    <<  old.c_str() << "\" is split into \""
-			    << comp.c_str()  << "\" AND \""
-			    << aQuery.getWhereClause() << "\"";
+		lg() << "doQuery -- the WHERE clause \""
+		     <<  old.c_str() << "\" is split into \""
+		     << comp.c_str()  << "\" AND \""
+		     << aQuery.getWhereClause() << "\"";
 	    else
-		lg.buffer() << "doQuery -- the WHERE clause \""
-			    << aQuery.getWhereClause()
-			    << "\" is considered simple";
+		lg() << "doQuery -- the WHERE clause \""
+		     << aQuery.getWhereClause()
+		     << "\" is considered simple";
 	}
     }
 
@@ -1162,26 +1162,26 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 
     if (sequential_scan) {
 	num2 = aQuery.countHits();
-// 	if (num2 < 0) {
-// 	    ibis::bitvector btmp;
-// 	    num2 = aQuery.sequentialScan(btmp);
-// 	    if (num2 < 0) {
-// 		ibis::util::logger lg(0);
-// 		lg.buffer() << "doQuery:: sequentialScan("
-// 			    << aQuery.getWhereClause() << ") failed";
-// 		return;
-// 	    }
+	// 	if (num2 < 0) {
+	// 	    ibis::bitvector btmp;
+	// 	    num2 = aQuery.sequentialScan(btmp);
+	// 	    if (num2 < 0) {
+	// 		ibis::util::logger lg(0);
+	// 		lg() << "doQuery:: sequentialScan("
+	// 			    << aQuery.getWhereClause() << ") failed";
+	// 		return;
+	// 	    }
 
-// 	    num2 = btmp.cnt();
-// 	}
+	// 	    num2 = btmp.cnt();
+	// 	}
 	if (ibis::gVerbose >= 0) {
 	    timer.stop();
 	    ibis::util::logger lg(0);
-	    lg.buffer() << "doQuery:: sequentialScan("
-			<< aQuery.getWhereClause() << ") produced "
-			<< num2 << " hit" << (num2>1 ? "s" : "") << ", took "
-			<< timer.CPUTime() << " CPU seconds and "
-			<< timer.realTime() << " elapsed seconds";
+	    lg() << "doQuery:: sequentialScan("
+		 << aQuery.getWhereClause() << ") produced "
+		 << num2 << " hit" << (num2>1 ? "s" : "") << ", took "
+		 << timer.CPUTime() << " CPU seconds and "
+		 << timer.realTime() << " elapsed seconds";
 	}
 	return;
     }
@@ -1197,19 +1197,19 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	num2 = aQuery.getMaxNumHits();
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(1);
-	    lg.buffer() << "doQuery -- the number of hits is ";
+	    lg() << "doQuery -- the number of hits is ";
 	    if (num2 > num1)
-		lg.buffer() << "between " << num1 << " and ";
-	    lg.buffer() << num2;
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
 	}
 	if (estimate_only) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg(0);
-		lg.buffer() << "doQuery:: estimate("
-			    << aQuery.getWhereClause() << ") took "
-			    << timer.CPUTime() << " CPU seconds and "
-			    << timer.realTime() << " elapsed seconds";
+		lg() << "doQuery:: estimate("
+		     << aQuery.getWhereClause() << ") took "
+		     << timer.CPUTime() << " CPU seconds and "
+		     << timer.realTime() << " elapsed seconds";
 	    }
 	    return; // stop here is only want to estimate
 	}
@@ -1219,7 +1219,7 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
     if (num2 < 0) {
 	LOGGER(0) << "doQuery -- failed to evaluate \"" << wstr
 		  << "\", error code = " << num2;
-	    return;
+	return;
     }
     if ((ordkeys && *ordkeys) || limit > 0) { // top-K query
 	aQuery.limit(ordkeys, direction, limit, (testing > 0));
@@ -1257,15 +1257,15 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 		}
 		else {
 		    ibis::util::logger lg(0);
-		    lg.buffer() << "Warning ** doQuery failed to open \""
-				<< outputfile << "\" for writing query ("
-				<< aQuery.getWhereClause() << ")";
-		    printQueryResults(lg.buffer(), aQuery);
+		    lg() << "Warning ** doQuery failed to open \""
+			 << outputfile << "\" for writing query ("
+			 << aQuery.getWhereClause() << ")";
+		    printQueryResults(lg(), aQuery);
 		}
 	    }
 	    else {
 		ibis::util::logger lg(0);
-		printQueryResults(lg.buffer(), aQuery);
+		printQueryResults(lg(), aQuery);
 	    }
 	}
 	else if (outputfile != 0 && *outputfile != 0) {
@@ -1285,67 +1285,67 @@ static void doQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    }
 	    else {
 		ibis::util::logger lg(0);
-		lg.buffer() << "Warning ** doQuery failed to open file \""
-			    << outputfile << "\" for writing query ("
-			    << aQuery.getWhereClause() << ")\n";
+		lg() << "Warning ** doQuery failed to open file \""
+		     << outputfile << "\" for writing query ("
+		     << aQuery.getWhereClause() << ")\n";
 		if (ibis::gVerbose > 8)
-		    aQuery.printSelectedWithRID(lg.buffer());
+		    aQuery.printSelectedWithRID(lg());
 		else
-		    aQuery.printSelected(lg.buffer());
+		    aQuery.printSelected(lg());
 	    }
 	}
 	else {
 	    ibis::util::logger lg(0);
 	    if (ibis::gVerbose > 8)
-		aQuery.printSelectedWithRID(lg.buffer());
+		aQuery.printSelectedWithRID(lg());
 	    else
-		aQuery.printSelected(lg.buffer());
+		aQuery.printSelected(lg());
 	}
 	appendToOutput = true; // all query output go to the same file
     }
     if (ibis::gVerbose >= 0) {
 	timer.stop();
 	ibis::util::logger lg(0);
-	lg.buffer() << "doQuery:: evaluate(" << sqlstring
-		    << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-		    << ", took " << timer.CPUTime() << " CPU seconds and "
-		    << timer.realTime() << " elapsed seconds";
+	lg() << "doQuery:: evaluate(" << sqlstring
+	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
+	     << ", took " << timer.CPUTime() << " CPU seconds and "
+	     << timer.realTime() << " elapsed seconds";
     }
 
-//     if (testing > 1) {
-// 	ibis::bitvector btmp;
-// 	num2 = aQuery.sequentialScan(btmp);
-// 	if (num2 < 0) {
-// 	    ibis::util::logger lg(0);
-// 	    lg.buffer() << "doQuery:: sequentialScan("
-// 			<< aQuery.getWhereClause() << ") failed";
-// 	}
-// 	else {
-// 	    num2 = btmp.cnt();
-// 	    if (num1 != num2 && ibis::gVerbose >= 0) {
-// 		ibis::util::logger lg(0);
-// 		lg.buffer() << "Warning ** query \"" << aQuery.getWhereClause()
-// 			    << "\" generated " << num1
-// 			    << " hit" << (num1 >1  ? "s" : "")
-// 			    << " with evaluate(), but generated "
-// 			    << num2 << " hit" << (num2 >1  ? "s" : "")
-// 			    << " with sequentialScan";
-// 	    }
+    //     if (testing > 1) {
+    // 	ibis::bitvector btmp;
+    // 	num2 = aQuery.sequentialScan(btmp);
+    // 	if (num2 < 0) {
+    // 	    ibis::util::logger lg(0);
+    // 	    lg() << "doQuery:: sequentialScan("
+    // 			<< aQuery.getWhereClause() << ") failed";
+    // 	}
+    // 	else {
+    // 	    num2 = btmp.cnt();
+    // 	    if (num1 != num2 && ibis::gVerbose >= 0) {
+    // 		ibis::util::logger lg(0);
+    // 		lg() << "Warning ** query \"" << aQuery.getWhereClause()
+    // 			    << "\" generated " << num1
+    // 			    << " hit" << (num1 >1  ? "s" : "")
+    // 			    << " with evaluate(), but generated "
+    // 			    << num2 << " hit" << (num2 >1  ? "s" : "")
+    // 			    << " with sequentialScan";
+    // 	    }
 
-// 	    if (asstr != 0 && *asstr != 0) {
-// 		// create bundles, i.e., retrieve the selected values
-// 		timer.start();
-// 		ibis::bundle* bdl = ibis::bundle::create(aQuery, btmp);
-// 		delete bdl;
-// 		timer.stop();
-// 		ibis::util::logger lg(0);
-// 		lg.buffer() << "doQuery ibis::bundle::create generated "
-// 			    << num2 << " bundles in " << timer.CPUTime()
-// 			    << " CPU seconds and " << timer.realTime()
-// 			    << " elapsed seconds";
-// 	    }
-// 	}
-//     }
+    // 	    if (asstr != 0 && *asstr != 0) {
+    // 		// create bundles, i.e., retrieve the selected values
+    // 		timer.start();
+    // 		ibis::bundle* bdl = ibis::bundle::create(aQuery, btmp);
+    // 		delete bdl;
+    // 		timer.stop();
+    // 		ibis::util::logger lg(0);
+    // 		lg() << "doQuery ibis::bundle::create generated "
+    // 			    << num2 << " bundles in " << timer.CPUTime()
+    // 			    << " CPU seconds and " << timer.realTime()
+    // 			    << " elapsed seconds";
+    // 	    }
+    // 	}
+    //     }
 } // doQuery
 
 // evaluate a single query -- only work on partitions that have defined
@@ -1368,14 +1368,14 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg(0);
 	    if (! comp.empty())
-		lg.buffer() << "doMeshQuery -- the WHERE clause \""
-			    << old.c_str() << "\" is split into \""
-			    << comp.c_str() << "\" AND \""
-			    << aQuery.getWhereClause() << "\"";
+		lg() << "doMeshQuery -- the WHERE clause \""
+		     << old.c_str() << "\" is split into \""
+		     << comp.c_str() << "\" AND \""
+		     << aQuery.getWhereClause() << "\"";
 	    else
-		lg.buffer() << "doMeshQuery -- the WHERE clause \""
-			    << aQuery.getWhereClause()
-			    << "\" is considered simple";
+		lg() << "doMeshQuery -- the WHERE clause \""
+		     << aQuery.getWhereClause()
+		     << "\" is considered simple";
 	}
     }
 
@@ -1395,19 +1395,19 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	num2 = aQuery.getMaxNumHits();
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg(1);
-	    lg.buffer() << "doMeshQuery -- the number of hits is ";
+	    lg() << "doMeshQuery -- the number of hits is ";
 	    if (num1 < num2)
-		lg.buffer() << "between " << num1 << " and ";
-	    lg.buffer() << num2;
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
 	}
 	if (estimate_only) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg(0);
-		lg.buffer() << "doMeshQuery:: estimate("
-			    << aQuery.getWhereClause() << ") took "
-			    << timer.CPUTime() << " CPU seconds and "
-			    << timer.realTime() << " elapsed seconds";
+		lg() << "doMeshQuery:: estimate("
+		     << aQuery.getWhereClause() << ") took "
+		     << timer.CPUTime() << " CPU seconds and "
+		     << timer.realTime() << " elapsed seconds";
 	    }
 	    return; // stop here is only want to estimate
 	}
@@ -1417,17 +1417,17 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
     if (num2 < 0) {
 	LOGGER(0) << "doMeshQuery -- failed to evaluate \"" << wstr
 		  << "\", error code = " << num2;
-	    return;
+	return;
     }
     num1 = aQuery.getNumHits();
     if (ibis::gVerbose >= 0) {
 	timer.stop();
 	ibis::util::logger lg(0);
-	lg.buffer() << "doMeshQuery:: evaluate("
-		    << aQuery.getWhereClause() 
-		    << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-		    << ", took " << timer.CPUTime() << " CPU seconds and "
-		    << timer.realTime() << " elapsed seconds";
+	lg() << "doMeshQuery:: evaluate("
+	     << aQuery.getWhereClause() 
+	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
+	     << ", took " << timer.CPUTime() << " CPU seconds and "
+	     << timer.realTime() << " elapsed seconds";
     }
 
     std::vector< std::vector<uint32_t> > ranges;
@@ -1440,32 +1440,32 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
     }
     else {
 	ibis::util::logger lg(0);
-	lg.buffer() << "aQuery.getHitsAsBlocks() returned " << ranges.size()
-		    << " range" << (ranges.size() > 1 ? "s" : "") << " in "
-		    << ranges[0].size()/2 << "-D space\n";
+	lg() << "aQuery.getHitsAsBlocks() returned " << ranges.size()
+	     << " range" << (ranges.size() > 1 ? "s" : "") << " in "
+	     << ranges[0].size()/2 << "-D space\n";
 	if (ibis::gVerbose > 3) { // print all the ranges
 	    uint32_t tot = (ibis::gVerbose >= 30 ? ranges.size() :
-			  (1U << ibis::gVerbose));
+			    (1U << ibis::gVerbose));
 	    if (tot > ranges.size())
 		tot = ranges.size();
 	    for (uint32_t i = 0; i < tot; ++i) {
-		lg.buffer() << i << "\t(";
+		lg() << i << "\t(";
 		for (uint32_t j = 0; j < ranges[i].size(); ++j) {
 		    if (j > 0)
-			lg.buffer() << ", ";
-		    lg.buffer() << ranges[i][j];
+			lg() << ", ";
+		    lg() << ranges[i][j];
 		}
-		lg.buffer() << ")\n";
+		lg() << ")\n";
 	    }
 	    if (tot < ranges.size()) {
 		tot = ranges.size() - 1;
-		lg.buffer() << "...\n" << tot << "\t(";
+		lg() << "...\n" << tot << "\t(";
 		for (uint32_t j = 0; j < ranges[tot].size(); ++j) {
 		    if (j > 0)
-			lg.buffer() << ", ";
-		    lg.buffer() << ranges[tot][j];
+			lg() << ", ";
+		    lg() << ranges[tot][j];
 		}
-		lg.buffer() << ")";
+		lg() << ")";
 	    }
 	}
     }
@@ -1473,7 +1473,7 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
     num2 = aQuery.getPointsOnBoundary(ranges);
     if (num2 < 0) {
 	LOGGER(0) << "Warning ** aQuery.getPointsOnBoundary() returned "
-		   << num2;
+		  << num2;
     }
     else if (ranges.empty()) {
 	LOGGER(2) << "Warning ** aQuery.getPointsOnBoundary() "
@@ -1481,36 +1481,36 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
     }
     else {
 	ibis::util::logger lg(0);
-	lg.buffer() << "aQuery.getPointsOnBoundary() returned "
-		    << ranges.size() << " point"
-		    << (ranges.size() > 1 ? "s" : "") << " in "
-		    << ranges[0].size() << "-D space\n";
+	lg() << "aQuery.getPointsOnBoundary() returned "
+	     << ranges.size() << " point"
+	     << (ranges.size() > 1 ? "s" : "") << " in "
+	     << ranges[0].size() << "-D space\n";
 	if (ibis::gVerbose > 3) { // print all the points
 	    uint32_t tot = (ibis::gVerbose >= 30 ? ranges.size() :
-			  (1U << ibis::gVerbose));
+			    (1U << ibis::gVerbose));
 	    if (tot > ranges.size())
 		tot = ranges.size();
 	    if (tot < ranges.size()) {
 		for (uint32_t i = 0; i < tot; ++i) {
-		    lg.buffer() << i << "\t(" << ranges[i][0];
+		    lg() << i << "\t(" << ranges[i][0];
 		    for (uint32_t j = 1; j < ranges[i].size(); ++j) {
-			lg.buffer() << ", " << ranges[i][j];
+			lg() << ", " << ranges[i][j];
 		    }
-		    lg.buffer() << ")\n";
+		    lg() << ")\n";
 		}
 		tot = ranges.size() - 1;
-		lg.buffer() << "...\n" << tot << "\t(" << ranges[tot][0];
+		lg() << "...\n" << tot << "\t(" << ranges[tot][0];
 		for (uint32_t j = 1; j < ranges[tot].size(); ++j) {
-		    lg.buffer() << ", " << ranges[tot][j];
+		    lg() << ", " << ranges[tot][j];
 		}
-		lg.buffer() << ")";
+		lg() << ")";
 	    }
 	    else {
 		for (uint32_t i = 0; i < ranges.size(); ++ i) {
-		    lg.buffer() << "(" << ranges[i][0];
+		    lg() << "(" << ranges[i][0];
 		    for (uint32_t j = 1; j < ranges[i].size(); ++ j)
-			lg.buffer() << ", " << ranges[i][j];
-		    lg.buffer() << ")";
+			lg() << ", " << ranges[i][j];
+		    lg() << ")";
 		}
 	    }
 	}
@@ -1532,22 +1532,22 @@ static void doMeshQuery(const char* uid, ibis::part* tbl, const char* wstr,
 	    }
 	    else {
 		ibis::util::logger lg(0);
-		lg.buffer() << "Warning ** doMeshQuery failed to "
-			    << "open file \"" << outputfile
-			    << "\" for writing query ("
-			    << aQuery.getWhereClause() << ") output\n";
+		lg() << "Warning ** doMeshQuery failed to "
+		     << "open file \"" << outputfile
+		     << "\" for writing query ("
+		     << aQuery.getWhereClause() << ") output\n";
 		if (ibis::gVerbose > 8)
-		    aQuery.printSelectedWithRID(lg.buffer());
+		    aQuery.printSelectedWithRID(lg());
 		else
-		    aQuery.printSelected(lg.buffer());
+		    aQuery.printSelected(lg());
 	    }
 	}
 	else {
 	    ibis::util::logger lg(0);
 	    if (ibis::gVerbose > 8)
-		aQuery.printSelectedWithRID(lg.buffer());
+		aQuery.printSelectedWithRID(lg());
 	    else
-		aQuery.printSelected(lg.buffer());
+		aQuery.printSelected(lg());
 	}
     } // if (asstr != 0 && num1>0 && ibis::gVerbose > 0)
 } // doMeshQuery
@@ -1867,9 +1867,9 @@ static void parseString(ibis::partList& tlist, const char* uid,
     }
     else if (ibis::gVerbose > 1) {
 	ibis::util::logger lg(2);
-	lg.buffer() << "parseString(" << qstr
-		  << ") is unable to locate key word WHERE.  "
-		  << "assume the string is the where clause.";
+	lg() << "parseString(" << qstr
+	     << ") is unable to locate key word WHERE.  "
+	     << "assume the string is the where clause.";
     }
     // the end of the where clause is marked by the key words "order by" or
     // "limit" or the end of the string
@@ -1954,8 +1954,8 @@ static void parseString(ibis::partList& tlist, const char* uid,
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
 	ibis::util::logger lg(0);
-	lg.buffer() << "Warning parseString(" << qstr
-		  << ") expects the key word LIMIT, but got " << str;
+	lg() << "Warning parseString(" << qstr
+	     << ") expects the key word LIMIT, but got " << str;
     }
 
     // remove count(*) from select clause
@@ -2068,7 +2068,7 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 	ierr |= getrusage(RUSAGE_CHILDREN, &ruse1);
 	if (ierr == 0) {
 	    ibis::util::logger lg(2);
-	    lg.buffer()
+	    lg()
 		<< "Report from getrusage: maxrss = "
 		<< ruse0.ru_maxrss + ruse1.ru_maxrss
 		<< " pages (" << getpagesize() << " bytes/page)"
@@ -2090,13 +2090,13 @@ static void clean_up(ibis::partList& tlist, bool sane=true) {
 } // clean_up
 
 int main(int argc, char** argv) {
-// #if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
-//     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//     _CrtSetReportMode(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
-// 		      _CRTDBG_MODE_FILE);
-//     _CrtSetReportFile(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
-// 		      _CRTDBG_FILE_STDERR );
-// #endif
+    // #if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
+    //     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //     _CrtSetReportMode(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
+    // 		      _CRTDBG_MODE_FILE);
+    //     _CrtSetReportFile(_CRT_ASSERT | _CRT_ERROR | _CRT_WARN,
+    // 		      _CRTDBG_FILE_STDERR );
+    // #endif
     if (argc <= 1) {
 	usage(*argv);
 	return 0;
@@ -2162,15 +2162,15 @@ int main(int argc, char** argv) {
 
 		if (ibis::gVerbose >= 0) {
 		    ibis::util::logger lg(0);
-		    lg.buffer() << "self tests on " << (*it)->name();
+		    lg() << "self tests on " << (*it)->name();
 		    if (nerr == 0)
-			lg.buffer() << " found no error";
+			lg() << " found no error";
 		    else if (nerr == 1)
-			lg.buffer() << " found 1 error";
+			lg() << " found 1 error";
 		    else if (nerr > 1)
-			lg.buffer() << " found " << nerr << " errors";
+			lg() << " found " << nerr << " errors";
 		    else
-			lg.buffer() << " returned unexpected value " << nerr;
+			lg() << " returned unexpected value " << nerr;
 		}
 	    }
 	    timer3.stop();

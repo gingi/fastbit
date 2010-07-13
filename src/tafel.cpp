@@ -342,48 +342,48 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
 
 	    if (ibis::gVerbose > 4) {
 		ibis::util::logger lg;
-		lg.buffer() << "tafel::SQLCreateTable created column "
+		lg() << "tafel::SQLCreateTable created column "
 			    << col->name << " with type "
 			    << ibis::TYPESTRING[(int)col->type];
 		if (col->defval != 0) {
-		    lg.buffer() << " and defaul value ";
+		    lg() << " and defaul value ";
 		    switch (col->type) {
 		    case ibis::BYTE:
-			lg.buffer() << static_cast<short>
+			lg() << static_cast<short>
 			    (*static_cast<signed char*>(col->defval));
 			break;
 		    case ibis::UBYTE:
-			lg.buffer() << static_cast<short>
+			lg() << static_cast<short>
 			    (*static_cast<unsigned char*>(col->defval));
 			break;
 		    case ibis::SHORT:
-			lg.buffer() << *static_cast<int16_t*>(col->defval);
+			lg() << *static_cast<int16_t*>(col->defval);
 			break;
 		    case ibis::USHORT:
-			lg.buffer() << *static_cast<uint16_t*>(col->defval);
+			lg() << *static_cast<uint16_t*>(col->defval);
 			break;
 		    case ibis::INT:
-			lg.buffer() << *static_cast<int32_t*>(col->defval);
+			lg() << *static_cast<int32_t*>(col->defval);
 			break;
 		    case ibis::UINT:
-			lg.buffer() << *static_cast<uint32_t*>(col->defval);
+			lg() << *static_cast<uint32_t*>(col->defval);
 			break;
 		    case ibis::LONG:
-			lg.buffer() << *static_cast<int64_t*>(col->defval);
+			lg() << *static_cast<int64_t*>(col->defval);
 			break;
 		    case ibis::ULONG:
-			lg.buffer() << *static_cast<uint64_t*>(col->defval);
+			lg() << *static_cast<uint64_t*>(col->defval);
 			break;
 		    case ibis::FLOAT:
-			lg.buffer() << *static_cast<float*>(col->defval);
+			lg() << *static_cast<float*>(col->defval);
 			break;
 		    case ibis::DOUBLE:
-			lg.buffer() << *static_cast<double*>(col->defval);
+			lg() << *static_cast<double*>(col->defval);
 			break;
 		    case ibis::BLOB:
 		    case ibis::TEXT:
 		    case ibis::CATEGORY:
-			lg.buffer() << *static_cast<std::string*>(col->defval);
+			lg() << *static_cast<std::string*>(col->defval);
 			break;
 		    default:
 			break;
@@ -1642,7 +1642,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger().buffer()
+	ibis::util::logger()()
 	    << "tafel::writeMetaData completed writing partition " 
 	    << tname << " (" << tdesc << ") with " << cols.size()
 	    << " column" << (cols.size()>1 ? "s" : "") << " to " << dir
@@ -2101,7 +2101,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger().buffer()
+	ibis::util::logger()()
 	    << "tafel::write completed writing partition " 
 	    << tname << " (" << tdesc << ") with "
 	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
@@ -2220,7 +2220,9 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 	}
 	if (rowsize > 0) {
 	    rowsize += rowsize;
-	    uint32_t tmp = ibis::fileManager::bytesFree() / rowsize;
+	    uint32_t tmp = ibis::fileManager::bytesFree();
+	    if (tmp < 10000000) tmp = 10000000;
+	    tmp = tmp / rowsize;
 	    if (tmp < maxr) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "tafel::reserveSpace will reduce maxr from " << maxr
@@ -2276,6 +2278,9 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 int32_t ibis::tafel::doReserve(uint32_t maxr) {
     if (mrows >= maxr)
 	return mrows;
+    LOGGER(ibis::gVerbose > 3)
+	<< "tafel::doReserve is to reserve space for " << maxr
+	<< " row" << (maxr>1?"s":"");
 
     int32_t ret = 0x7FFFFFFF;
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {

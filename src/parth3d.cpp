@@ -5213,34 +5213,34 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
 #if defined(_DEBUG) || defined(DEBUG)
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- " << mesg
+	lg() << "DEBUG -- " << mesg
 		    << " scale1 = " << std::setprecision(18) << scale1
 		    << ", scale2 = " << std::setprecision(18) << scale2
 		    << ", scale3 = " << std::setprecision(18) << scale3
 		    << "\n  bounds1[" << bounds1.size()
 		    << "]: " << bounds1[0];
 	for (uint32_t i = 1; i < bounds1.size(); ++ i)
-	    lg.buffer() << ", " << bounds1[i];
-	lg.buffer() << "\n  bounds2[" << bounds2.size()
+	    lg() << ", " << bounds1[i];
+	lg() << "\n  bounds2[" << bounds2.size()
 		    << "]: " << bounds2[0];
 	for (uint32_t i = 1; i < bounds2.size(); ++ i)
-	    lg.buffer() << ", " << bounds2[i];
-	lg.buffer() << "\n  bounds3[" << bounds3.size()
+	    lg() << ", " << bounds2[i];
+	lg() << "\n  bounds3[" << bounds3.size()
 		    << "]: " << bounds3[0];
 	for (uint32_t i = 1; i < bounds3.size(); ++ i)
-	    lg.buffer() << ", " << bounds3[i];
-	lg.buffer() << "\n  bnds1[" << bnds1.size()
+	    lg() << ", " << bounds3[i];
+	lg() << "\n  bnds1[" << bnds1.size()
 		    << "]: " << bnds1[0];
 	for (uint32_t i = 1; i < bnds1.size(); ++ i)
-	    lg.buffer() << ", " << bnds1[i];
-	lg.buffer() << "\n  bnds2[" << bnds2.size()
+	    lg() << ", " << bnds1[i];
+	lg() << "\n  bnds2[" << bnds2.size()
 		    << "]: " << bnds2[0];
 	for (uint32_t i = 1; i < bnds2.size(); ++ i)
-	    lg.buffer() << ", " << bnds2[i];
-	lg.buffer() << "\n  bnds3[" << bnds3.size()
+	    lg() << ", " << bnds2[i];
+	lg() << "\n  bnds3[" << bnds3.size()
 		    << "]: " << bnds3[0];
 	for (uint32_t i = 1; i < bnds3.size(); ++ i)
-	    lg.buffer() << ", " << bnds3[i];
+	    lg() << ", " << bnds3[i];
     }
 #endif
 

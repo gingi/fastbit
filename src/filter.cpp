@@ -255,16 +255,25 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 #if _DEBUG+0>1 || DEBUG+0>0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg;
-		lg.buffer() << "DEBUG: " << mesg << " uniquenames["
+		lg() << "DEBUG: " << mesg << " uniquenames["
 			    << uniquenames.size() << "]=";
 		for (std::set<const char*, ibis::lessi>::const_iterator it =
 			 uniquenames.begin(); it != uniquenames.end(); ++ it) {
-		    lg.buffer() << (it != uniquenames.begin() ? ", " : "")
+		    lg() << (it != uniquenames.begin() ? ", " : "")
 				<< *it;
 		}
 	    }
 #endif
 	}
+    }
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << mesg << " -- processing a select clause with " << tms.size()
+	     << " term" << (tms.size()>1?"s":"") << ", " << nplain
+	     << " of which " << (nplain>1?"are":"is") << " plain";
+	if (ibis::gVerbose > 3)
+	    lg() << " (buff[" << buff.size() << "] and tls[" << tls.size()
+		 << ")";
     }
 
     uint32_t nh = 0;
@@ -343,6 +352,10 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 
 	    if (tls[i] == ibis::UNKNOWN_TYPE)
 		tls[i] = col->type();
+	    LOGGER(ibis::gVerbose > 3)
+		<< mesg << " -- adding " << nqq << " element"
+		<< (nqq>1?"s":"") << " from column " << col->name()
+		<< " of partition " << (*it)->name() << ", nh = " << nh;
 	    switch (col->type()) {
 	    case ibis::BYTE:
 	    case ibis::UBYTE: {
@@ -485,12 +498,12 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
     }
 
-    ibis::bord *brd1 =
-	new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr, &cdesc);
-    if (nplain >= tms.size() || brd1 == 0)
-	return brd1;
+    std::auto_ptr<ibis::bord> brd1
+	(new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr,
+			&cdesc));
+    if (nplain >= tms.size() || brd1.get() == 0)
+	return brd1.release();
 
-    ibis::table *brd2 = brd1->groupby(tms);
-    delete brd1;
-    return brd2;
+    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    return brd2.release();
 } // ibis::filter::filt

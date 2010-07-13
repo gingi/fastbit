@@ -163,11 +163,11 @@ long ibis::part::reorder() {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
+	lg() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
-		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
+		lg() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < marks.size())
 		marks[ind1[i]] = true;
 	}
@@ -175,9 +175,9 @@ long ibis::part::reorder() {
 	for (uint32_t i = 0; isperm && i < marks.size(); ++ i)
 	    isperm = marks[i];
 	if (isperm)
-	    lg.buffer() << "array ind IS a permutation\n";
+	    lg() << "array ind IS a permutation\n";
 	else
-	    lg.buffer() << "array ind is NOT a permutation\n";
+	    lg() << "array ind is NOT a permutation\n";
     }
 #endif
     for (columnList::const_iterator it = columns.begin();
@@ -424,11 +424,11 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "ibis::part[" << m_name << "]::reorder --\n";
+	lg() << "ibis::part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
-		lg.buffer() << "ind[" << i << "]=" << ind1[i] << "\n";
+		lg() << "ind[" << i << "]=" << ind1[i] << "\n";
 	    if (ind1[i] < ind1.size())
 		marks[ind1[i]] = true;
 	}
@@ -436,9 +436,9 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	for (uint32_t i = 0; isperm && i < ind1.size(); ++ i)
 	    isperm = marks[i];
 	if (isperm)
-	    lg.buffer() << "array ind IS a permutation\n";
+	    lg() << "array ind IS a permutation\n";
 	else
-	    lg.buffer() << "array ind is NOT a permutation\n";
+	    lg() << "array ind is NOT a permutation\n";
     }
 #endif
     for (columnList::const_iterator it = columns.begin();
@@ -862,7 +862,7 @@ long ibis::part::append1(const char *dir) {
 		   static_cast<long unsigned>(columns.size()));
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     return ierr;
@@ -992,7 +992,7 @@ long ibis::part::append2(const char *dir) {
 		   static_cast<long unsigned>(columns.size()));
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     return ierr;
@@ -1054,7 +1054,7 @@ long ibis::part::rollback() {
 		       static_cast<long unsigned>(columns.size()));
 	    if (ibis::gVerbose > 3) {
 		ibis::util::logger lg;
-		print(lg.buffer());
+		print(lg());
 	    }
 	}
 	amask.adjustSize(nEvents, nEvents);
@@ -1273,10 +1273,10 @@ long ibis::part::appendToBackup(const char* dir) {
     }
     if (ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part::appendToBackup -- The combined (new) "
+	lg() << "ibis::part::appendToBackup -- The combined (new) "
 	    "attribute list (" << clist.size() << ")\n";
 	for (cit = clist.begin(); cit != clist.end(); ++cit)
-	    lg.buffer() << *((*cit).second) << "\n";
+	    lg() << *((*cit).second) << "\n";
     }
 
     ibis::fileManager::buffer<char> mybuf;

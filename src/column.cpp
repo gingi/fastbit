@@ -15,6 +15,7 @@
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
 #include <cmath>	// std::log
+#include <memory>	// std::auto_ptr
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -51,9 +52,9 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg.buffer() << "initialized column " << m_name;
+	lg() << "initialized column " << m_name;
 	if (tbl != 0 && tbl->name() != 0)
-	    lg.buffer() << " for partition " << tbl->name();
+	    lg() << " for partition " << tbl->name();
     }
 } // ibis::column::column
 
@@ -274,9 +275,9 @@ ibis::column::column(const part* tbl, FILE* file)
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg.buffer() << "read info about column " << m_name;
+	lg() << "read info about column " << m_name;
 	if (tbl != 0 && tbl->name() != 0)
-	    lg.buffer() << " for partition " << tbl->name();
+	    lg() << " for partition " << tbl->name();
     }
 } // ibis::column::column
 
@@ -296,9 +297,9 @@ ibis::column::column(const ibis::column& rhs) :
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg.buffer() << "made a new copy of column " << m_name;
+	lg() << "made a new copy of column " << m_name;
 	if (thePart != 0 && thePart->name() != 0)
-	    lg.buffer() << " for partition " << thePart->name();
+	    lg() << " for partition " << thePart->name();
     }
 } // copy constructor
 
@@ -830,10 +831,10 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 /// of the selectTypes functions.
 ibis::array_t<char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    ibis::array_t<char>* array = new array_t<char>;
+    std::auto_ptr< ibis::array_t<char> > array(new array_t<char>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -852,7 +853,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	    logWarning("selectBytes",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -910,8 +911,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -926,17 +926,18 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectBytes
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<unsigned char>*
 ibis::column::selectUBytes(const ibis::bitvector& mask) const {
-    ibis::array_t<unsigned char>* array = new array_t<unsigned char>;
+    std::auto_ptr< ibis::array_t<unsigned char> >
+	array(new array_t<unsigned char>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -955,7 +956,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	    logWarning("selectUBytes",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1013,8 +1014,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -1029,7 +1029,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectUBytes
 
 /// Can convert all integers 2-byte or less in length.  Note that unsigned
@@ -1039,10 +1039,10 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<int16_t>*
 ibis::column::selectShorts(const ibis::bitvector& mask) const {
-    ibis::array_t<int16_t>* array = new array_t<int16_t>;
+    std::auto_ptr< ibis::array_t<int16_t> > array(new array_t<int16_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -1060,7 +1060,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1118,8 +1118,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -1136,7 +1135,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1201,7 +1200,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1264,17 +1263,17 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectShorts
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<uint16_t>*
 ibis::column::selectUShorts(const ibis::bitvector& mask) const {
-    ibis::array_t<uint16_t>* array = new array_t<uint16_t>;
+    std::auto_ptr< ibis::array_t<uint16_t> > array(new array_t<uint16_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -1292,7 +1291,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1350,8 +1349,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -1368,7 +1366,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1433,7 +1431,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	    logWarning("selectUShorts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1496,17 +1494,17 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectUShorts
 
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<int32_t>*
 ibis::column::selectInts(const ibis::bitvector& mask) const {
-    ibis::array_t<int32_t>* array = new array_t<int32_t>;
+    std::auto_ptr< ibis::array_t<int32_t> > array(new array_t<int32_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -1526,7 +1524,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1617,8 +1615,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -1634,7 +1631,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1699,7 +1696,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1764,7 +1761,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1829,7 +1826,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	    logWarning("selectInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1892,7 +1889,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectInts
 
 /// Can be called on columns of unsigned integral types, UINT, CATEGORY,
@@ -1901,10 +1898,10 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<uint32_t>*
 ibis::column::selectUInts(const ibis::bitvector& mask) const {
-    ibis::array_t<uint32_t>* array = new array_t<uint32_t>;
+    std::auto_ptr< ibis::array_t<uint32_t> > array(new array_t<uint32_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -1924,7 +1921,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -1983,8 +1980,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -2001,7 +1997,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2067,7 +2063,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 	    logWarning("selectUInts",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2131,7 +2127,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectUInts
 
 /// Can be called on all integral types.  Note that 64-byte unsigned
@@ -2142,10 +2138,10 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<int64_t>*
 ibis::column::selectLongs(const ibis::bitvector& mask) const {
-    array_t<int64_t>* array = new array_t<int64_t>;
+    std::auto_ptr< array_t<int64_t> > array(new array_t<int64_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -2164,7 +2160,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2255,8 +2251,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -2274,7 +2269,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2372,7 +2367,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2470,7 +2465,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2535,7 +2530,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2600,7 +2595,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2665,7 +2660,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	    logWarning("selectLongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2728,7 +2723,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectLongs
 
 /// Can be called on all unsigned integral types.
@@ -2736,10 +2731,10 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<uint64_t>*
 ibis::column::selectULongs(const ibis::bitvector& mask) const {
-    ibis::array_t<uint64_t>* array = new array_t<uint64_t>;
+    std::auto_ptr< ibis::array_t<uint64_t> > array(new array_t<uint64_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
 
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
@@ -2758,7 +2753,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2849,8 +2844,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -2868,7 +2862,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -2966,7 +2960,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3031,7 +3025,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	    logWarning("selectULongs",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3094,7 +3088,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectULongs
 
 /// Put selected values of a float column into an array.
@@ -3106,10 +3100,10 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<float>*
 ibis::column::selectFloats(const ibis::bitvector& mask) const {
-    array_t<float>* array = new array_t<float>;
+    std::auto_ptr< array_t<float> > array(new array_t<float>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -3128,7 +3122,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3187,8 +3181,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
     }
@@ -3205,7 +3198,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3270,7 +3263,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3335,7 +3328,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3400,7 +3393,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	    logWarning("selectFloats",
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3463,7 +3456,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 		   static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
 		   timer.CPUTime(), timer.realTime());
     }
-    return array;
+    return array.release();
 } // ibis::column::selectFloats
 
 /// Put the selected values into an array as doubles.
@@ -3474,10 +3467,10 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<double>*
 ibis::column::selectDoubles(const ibis::bitvector& mask) const {
-    array_t<double>* array = new array_t<double>;
+    std::auto_ptr< array_t<double> > array(new array_t<double>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
-	return array;
+	return array.release();
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -3497,7 +3490,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3571,7 +3564,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3645,7 +3638,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3719,7 +3712,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3793,7 +3786,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3867,7 +3860,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -3941,7 +3934,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -4016,7 +4009,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	    logWarning("selectDoubles"
 		       "the file manager faild to retrieve the content of"
 		       " the data file \"%s\"", fnm);
-	    return array;
+	    return array.release();
 	}
 
 	uint32_t i = 0;
@@ -4083,8 +4076,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 		<< "Warning -- ibis::column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
-	    delete array;
-	    array = 0;
+	    array->clear();
 	}
 #endif
 	break;}
@@ -4092,7 +4084,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	logWarning("selectDoubles", "incompatible data type");
 	break;}
     }
-    return array;
+    return array.release();
 } // ibis::column::selectDoubles
 
 /// Select values marked in the bitvector @c mask.  Pack them into the
@@ -4141,30 +4133,18 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	    << "]";
 	return -2;
     }
-    ibis::fileManager::storage *raw = 0;
-    // mask.size()*sizeof(T)/pagesize() -- number of pages
-    // mask.bytes()/sizeof(uint32_t) -- number of words (taken as the
-    // number of possible seeks needed to the desired data)
-    if (mask.size() >= 1048576 && tot+tot <= mask.size() && mask.bytes()/4 <
-	mask.size()*sizeof(T)/ibis::fileManager::pageSize()/8) {
-	// if the file is in memory, use it
-	ibis::fileManager::ACCESS_PREFERENCE apref =
-	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
-	    : ibis::fileManager::MMAP_LARGE_FILES;
-	ierr = ibis::fileManager::instance().tryGetFile(dfn, &raw, apref);
-    }
-    else {
+    array_t<T> incore; // make the raw storage more friendly
+    {
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
-	ierr = ibis::fileManager::instance().getFile(dfn, &raw, apref);
+	ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
     }
 
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of ibis::fileManager::incore
-	array_t<T> incore(raw); // make the raw storage more friendly
 	const uint32_t nr = (incore.size() <= mask.size() ?
 			     incore.size() : mask.size());
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
@@ -4335,29 +4315,17 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
-    ibis::fileManager::storage *raw = 0;
-    // mask.size()*sizeof(T)/pagesize() -- number of pages
-    // mask.bytes()/sizeof(uint32_t) -- number of words (i.e. possible
-    // seeks to perform a read)
-    if (mask.size() >= 1048576 && tot+tot <= mask.size() && mask.bytes()/4 <
-	mask.size()*sizeof(T)/ibis::fileManager::pageSize()/8) {
-	// if the file is in memory, use it
-	ibis::fileManager::ACCESS_PREFERENCE apref =
-	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
-	    : ibis::fileManager::MMAP_LARGE_FILES;
-	ierr = ibis::fileManager::instance().tryGetFile(dfn, &raw, apref);
-    }
-    else {
+    array_t<T> incore;
+    {
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
-	ierr = ibis::fileManager::instance().getFile(dfn, &raw, apref);
+	ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
     }
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
-	array_t<T> incore(raw); // make the raw storage more friendly
 	const uint32_t nr = (incore.size() <= mask.size() ?
 			     incore.size() : mask.size());
 	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
@@ -4774,13 +4742,13 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
 
 	{ // make sure the message is written before throwing
 	    ibis::util::logger lg;
-	    lg.buffer() << " Error *** column["
+	    lg() << " Error *** column["
 			<< (thePart != 0 ? thePart->name() : "")
 			<< '.' << m_name.c_str() << "]("
 			<< ibis::TYPESTRING[(int)m_type] << ")::" << event
 			<< " -- " << s;
 	    if (errno != 0)
-		lg.buffer() << " ... " << strerror(errno);
+		lg() << " ... " << strerror(errno);
 	}
 	throw s;
     }
@@ -4788,13 +4756,13 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
 #endif
 	{
 	    ibis::util::logger lg;
-	    lg.buffer() <<  " Error *** column["
+	    lg() <<  " Error *** column["
 			<< (thePart != 0 ? thePart->name() : "")
 			<< '.' << m_name.c_str() << "]("
 			<< ibis::TYPESTRING[(int)m_type] << ")::" << event
 			<< " -- " << fmt;
 	    if (errno != 0)
-		lg.buffer() << " ... " << strerror(errno);
+		lg() << " ... " << strerror(errno);
 	}
 	throw fmt;
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
@@ -4929,7 +4897,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	if (tmp != 0) {
 	    if (ibis::gVerbose > 10) {
 		ibis::util::logger lg;
-		tmp->print(lg.buffer());
+		tmp->print(lg());
 	    }
 
 	    mutexLock lck2(this, "loadIndex");
@@ -5033,7 +5001,7 @@ void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
     if (idx != 0) {
 	ibis::util::logger lg;
-	idx->speedTest(lg.buffer());
+	idx->speedTest(lg());
     }
 } // ibis::column::indexSpeedTest
 
@@ -6185,7 +6153,7 @@ long ibis::column::append(const char* dt, const char* df,
 				   "index in %s", dt);
 		    if (ibis::gVerbose > 8) {
 			ibis::util::logger lg;
-			ind->print(lg.buffer());
+			ind->print(lg());
 		    }
 		    delete ind;
 		}
@@ -6206,7 +6174,7 @@ long ibis::column::append(const char* dt, const char* df,
 			       "index in %s", dt);
 		if (ibis::gVerbose > 8) {
 		    ibis::util::logger lg;
-		    ind->print(lg.buffer());
+		    ind->print(lg());
 		}
 		delete ind;
 		ind = ibis::index::create(this, df);
@@ -6232,7 +6200,7 @@ long ibis::column::append(const char* dt, const char* df,
 			   "index in %s", dt);
 	    if (ibis::gVerbose > 8) {
 		ibis::util::logger lg;
-		ind->print(lg.buffer());
+		ind->print(lg());
 	    }
 	    delete ind;
 	    ind = ibis::index::create(this, df);
@@ -6253,7 +6221,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    ind->write(df);
 	    if (ibis::gVerbose > 8) {
 		ibis::util::logger lg;
-		ind->print(lg.buffer());
+		ind->print(lg());
 	    }
 	    delete ind;
 	}
@@ -7156,13 +7124,13 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
-	lg.buffer() << "column[" << (thePart != 0 ? thePart->name() : "")
+	lg() << "column[" << (thePart != 0 ? thePart->name() : "")
 		    << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
 		    << ")::writeData -- wrote " << nact << " entr"
 		    << (nact>1?"ies":"y") << " (expected " << nnew
 		    << ") to " << fn << "\n";
 	if (ibis::gVerbose > 16)
-	    lg.buffer() << *this;
+	    lg() << *this;
     }
 
     // part II: append new bits to update the null mask
@@ -7775,14 +7743,14 @@ T ibis::column::computeMin(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
+	lg() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
 		    << m_name << "]::computeMin -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", min = ";
 	if (strstr(typeid(T).name(), "char") != 0)
-	    lg.buffer() << (int)res;
+	    lg() << (int)res;
 	else
-	    lg.buffer() << res;
+	    lg() << res;
     }
     return res;
 } // ibis::column::computeMin
@@ -7813,14 +7781,14 @@ T ibis::column::computeMax(const array_t<T>& vals,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
+	lg() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
 		    << m_name << "]::computeMax -- vals.size() = "
 		    << vals.size() << ", mask.cnt() = " << mask.cnt()
 		    << ", max = ";
 	if (strstr(typeid(T).name(), "char") != 0)
-	    lg.buffer() << (int)res << std::endl;
+	    lg() << (int)res << std::endl;
 	else
-	    lg.buffer() << res << std::endl;
+	    lg() << res << std::endl;
     }
     return res;
 } // ibis::column::computeMax

@@ -884,15 +884,15 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (ibis::gVerbose > 4 || (ibis::gVerbose >= 0 && expr == 0)) {
 	ibis::util::logger lg;
 	if (expr != 0) {
-	    lg.buffer() << "ibis::qExpr::simplify -- output expression "
+	    lg() << "ibis::qExpr::simplify -- output expression "
 			<< "(@" << static_cast<const void*>(expr) << ") ";
 	    if (ibis::gVerbose > 8)
-		expr->printFull(lg.buffer());
+		expr->printFull(lg());
 	    else
-		expr->print(lg.buffer());
+		expr->print(lg());
 	}
 	else {
-	    lg.buffer() << "Warning -- ibis::qExpr::simply has turned a "
+	    lg() << "Warning -- ibis::qExpr::simply has turned a "
 		"non-nil expression into nil";
 	}
     }
@@ -1021,11 +1021,11 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "qExpr::reorder -- input: ";
+	lg() << "qExpr::reorder -- input: ";
 	if (ibis::gVerbose > 8)
-	    printFull(lg.buffer());
+	    printFull(lg());
 	else
-	    print(lg.buffer());
+	    print(lg());
     }
 
     adjust(); // to make sure the evaluation tree is a chain
@@ -1143,10 +1143,10 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- qExpr::reorder(" << *this
+	    lg() << "DEBUG -- qExpr::reorder(" << *this
 			<< ") -- (expression:weight,...)\n";
 	    for (i = 0; i < terms.size(); ++ i)
-		lg.buffer() << *(terms[i]) << ":" << wgt[i] << ", ";
+		lg() << *(terms[i]) << ":" << wgt[i] << ", ";
 	}
 #endif
 
@@ -1166,12 +1166,12 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "qExpr::reorder -- output (" << ret << ", @"
+	lg() << "qExpr::reorder -- output (" << ret << ", @"
 		    << static_cast<const void*>(this) << "): ";
 	if (ibis::gVerbose > 8)
-	    printFull(lg.buffer());
+	    printFull(lg());
 	else
-	    print(lg.buffer());
+	    print(lg());
     }
     return ret;
 } // ibis::qExpr::reorder
@@ -1186,8 +1186,8 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 				ibis::qExpr *&tail) const {
     if (ibis::gVerbose > 12) {
 	ibis::util::logger lg;
-	lg.buffer() << "qExpr::separateSimple -- input: ";
-	print(lg.buffer());
+	lg() << "qExpr::separateSimple -- input: ";
+	print(lg());
     }
 
     int ret = INT_MAX;
@@ -1233,9 +1233,9 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "qExpr::separateSimple -- terms joined with AND\n";
+	    lg() << "qExpr::separateSimple -- terms joined with AND\n";
 	    for (i=0; i<terms.size(); ++i)
-		lg.buffer() << *(terms[i]) << "\n";
+		lg() << *(terms[i]) << "\n";
 	}
 #endif
 
@@ -1291,23 +1291,23 @@ int ibis::qExpr::separateSimple(ibis::qExpr *&simple,
 	default:
 	case 0:
 	    if (simple) {
-		lg.buffer() << "qExpr::separateSimple -- simple  "
+		lg() << "qExpr::separateSimple -- simple  "
 		    "conditions: ";
-		simple->print(lg.buffer());
-		lg.buffer() << "\n";
+		simple->print(lg());
+		lg() << "\n";
 	    }
 	    if (tail) {
-		lg.buffer()<< "qExpr::separateSimple -- complex "
+		lg()<< "qExpr::separateSimple -- complex "
 		    "conditions: ";
-		tail->print(lg.buffer());
-		lg.buffer() << "\n";
+		tail->print(lg());
+		lg() << "\n";
 	    }
 	    break;
 	case -1:
-	    lg.buffer() << "qExpr::separateSimple -- no simple terms";
+	    lg() << "qExpr::separateSimple -- no simple terms";
 	    break;
 	case 1:
-	    lg.buffer() << "qExpr::separateSimple -- all simple terms";
+	    lg() << "qExpr::separateSimple -- all simple terms";
 	    break;
 	}
     }
@@ -2910,7 +2910,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (values.size() < val.size() && ibis::gVerbose > 1) {
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
@@ -2948,7 +2948,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (values.size() < val.size() && ibis::gVerbose > 1) {
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
@@ -3078,12 +3078,12 @@ ibis::qIntHod::qIntHod(const char* col, const char* nums)
 	}
 	else if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- qIntHod::ctor failed to parse \"";
+	    lg() << "Warning -- qIntHod::ctor failed to parse \"";
 	    while (str < nums) {
-		lg.buffer() << *str;
+		lg() << *str;
 		++ str;
 	    }
-	    lg.buffer() << "\" into an integer, ibis::util::readInt retruned "
+	    lg() << "\" into an integer, ibis::util::readInt retruned "
 			<< ierr;
 	}
     }
@@ -3212,12 +3212,12 @@ ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
 	}
 	else if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- qUIntHod::ctor failed to parse \"";
+	    lg() << "Warning -- qUIntHod::ctor failed to parse \"";
 	    while (str < nums) {
-		lg.buffer() << *str;
+		lg() << *str;
 		++ str;
 	    }
-	    lg.buffer() << "\" into an integer, ibis::util::readUInt retruned "
+	    lg() << "\" into an integer, ibis::util::readUInt retruned "
 			<< ierr;
 	}
     }

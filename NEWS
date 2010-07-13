@@ -1,3 +1,9 @@
+Version ibis1.1.9
+-- fix JNI memory leak (Zhengbing Li and Xun Hu)
+-- add test cases for very small datasets
+-- implement a new dictionary format for categorical values
+-- add reordering functions to C API by Georgiy Zhytar
+
 Fri May  7 14:02:15 PDT 2010
 Version ibis1.1.8
 -- modify ibis::part::barrel to work with in-memory data partitions (to

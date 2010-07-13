@@ -1794,10 +1794,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
+	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
 		    << col->name() << "]::sort existing with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
-	    lg.buffer() << "\narray[" << ii << "] = " << (*array)[ii];
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
 #endif
 } // colStrings::sort
@@ -1895,10 +1895,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
+	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
 		    << col->name() << "]::sort existing with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
-	    lg.buffer() << "\narray[" << ii << "] = " << (*array)[ii];
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
 #endif
 } // colStrings::sort
@@ -2092,27 +2092,27 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colInts::segment: old groups "
+    lg() << "DEBUG -- colInts::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2164,27 +2164,27 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colUInts::segment: old groups "
+    lg() << "DEBUG -- colUInts::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2237,27 +2237,27 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colLongs::segment: old groups "
+    lg() << "DEBUG -- colLongs::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2309,27 +2309,27 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colULongs::segment: old groups "
+    lg() << "DEBUG -- colULongs::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2382,27 +2382,27 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colFloats::segment: old groups "
+    lg() << "DEBUG -- colFloats::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2455,27 +2455,27 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
 #if _DEBUG+0>1 || DEBUG+0>1
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- colDoubles::segment: old groups "
+    lg() << "DEBUG -- colDoubles::segment: old groups "
 		<< (old != 0 ? nold-1 : 0) << ", new groups "
 		<< res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
 	    if (i == (*old)[jold]) {
-		lg.buffer() << "++";
+		lg() << "++";
 		++ jold;
 	    }
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
     }
     else {
 	for (unsigned i = 0; i < nelm; ++ i) {
-	    lg.buffer() << "\n" << i << "\t" << (*array)[i];
+	    lg() << "\n" << i << "\t" << (*array)[i];
 	    if (i == (*res)[jnew]) {
-		lg.buffer() << "\t--";
+		lg() << "\t--";
 		++ jnew;
 	    }
 	}
@@ -2536,6 +2536,12 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<int32_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colInts::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -2544,6 +2550,12 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<uint32_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colUInts::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -2552,6 +2564,12 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<int64_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colLongs::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -2560,6 +2578,12 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<uint64_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colULongs::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -2568,6 +2592,12 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<float> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colFloats::reduce
 
 /// remove the duplicate elements according to the array starts
@@ -2576,6 +2606,12 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts) {
     for (uint32_t i = 0; i < nseg; ++i) 
 	(*array)[i] = (*array)[starts[i]];
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<double> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colDoubles::reduce
 
 /// remove the duplicate elements according to the array starts
@@ -2754,6 +2790,12 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<int32_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colInts::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -2924,6 +2966,12 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<uint32_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colUInts::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -3093,6 +3141,12 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<int64_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colLongs::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -3263,6 +3317,12 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<uint64_t> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colULongs::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -3432,6 +3492,12 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<float> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colFloats::reduce
 
 /// Remove the duplicate elements according to the array starts
@@ -3599,6 +3665,12 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	break;
     }
     array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	ibis::array_t<double> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colDoubles::reduce
 
 void ibis::colStrings::reduce(const array_t<uint32_t>&,
@@ -3840,10 +3912,10 @@ void ibis::colStrings::topk(uint32_t k, array_t<uint32_t> &ind) const {
     }
 #if _DEBUG+0>2 || DEBUG+0>1
     ibis::util::logger lg(4);
-    lg.buffer() << "colStrings::topk(" << k << ")\n";
+    lg() << "colStrings::topk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
-    std::flush(lg.buffer());
+	lg() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
+    std::flush(lg());
 #endif
 } // ibis::colStrings::topk
 
@@ -3883,10 +3955,10 @@ void ibis::colStrings::bottomk(uint32_t k, array_t<uint32_t> &ind) const {
     ind.resize(back);
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "colStrings::bottomk(" << k << ")\n";
+    lg() << "colStrings::bottomk(" << k << ")\n";
     for (uint32_t i = 0; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
-    std::flush(lg.buffer());
+	lg() << ind[i] << "\t" << (*array)[ind[i]] << "\n";
+    std::flush(lg());
 #endif
 } // ibis::colStrings::bottomk
 

@@ -36,13 +36,13 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
 #
 # tests with different levels of thoroughness
 check: clean-tmp check-am
-	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} > /dev/null
+	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} > /dev/null
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis && $(MAKE) check-join
-more-check: check small-tests
-full-check: more-check large-tests
+more-check: check check-sq1 small-tests
+full-check: more-check check-sq2 large-tests
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -305,6 +305,18 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
+# testing with enough rows to fill the disk cache
+check-sq1: $(THULAEXE) $(TESTDIR)/sq1
+	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
+$(TESTDIR)/sq1: setqgen$(EXEEXT)
+	@setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 >| $(TESTDIR)/check-sq1.log 2>&1
+# testing with 1 billion rows, will encounter failures
+check-sq2: $(THULAEXE) $(TESTDIR)/sq2
+	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
+$(TESTDIR)/sq: setqgen$(EXEEXT)
+	@setqgen$(EXEEXT) $(TESTDIR)/sq 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 $(TESTDIR):
 	@test -d $(TESTDIR) || mkdir -p $(TESTDIR)
@@ -343,7 +355,7 @@ $(TESTDIR)/smallmem.rc: $(TESTDIR)
 #
 #
 clean: clean-am
-	-rm -f *\\~ core core.[0-9]*
+	-rm -f *~ core core.[0-9]*
 	-rm -rf $(TESTDIR) star2002*
 clean-tmp:
 	-rm -rf $(TESTDIR) .ibis
@@ -395,4 +407,4 @@ $(TCAPIEXE):
 .PHONY: clean clean-tmp multilevel match-counts large-sanity-check large-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
-.PHONY: check-marksdb check-maurel small-tests really-small
+.PHONY: check-marksdb check-maurel small-tests really-small check-sq1 check-sq2

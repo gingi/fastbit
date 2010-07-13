@@ -45,15 +45,15 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "egale[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built a " << nbases
 		<< "-component equality encoded index with " << nbits
 		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
 		<< " bin" << (nobs>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -84,15 +84,15 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "egale[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built a " << nbases
 		<< "-component equality encoded index with " << nbits
 		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
 		<< " bin" << (nobs>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -115,14 +115,14 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "egale[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- converted a simple equality index into a "
 		<< nbases << "-component equality index with "
 		<< nbits << " bitmap" << (nbits>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -166,7 +166,7 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	(ibis::gVerbose > 2 &&
 	 static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE)) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "egale[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- reconstructed a " << nbases
 	    << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
@@ -174,8 +174,8 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	    << " on " << nobs << " bin" << (nobs>1?"s":"")
 	    << " from storage object " << st << " starting at " << start;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // reconstruct data from content of a file
@@ -466,51 +466,51 @@ int ibis::egale::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- egale[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -2;
     }
@@ -1023,12 +1023,12 @@ void ibis::egale::construct(const char* f) {
     // write out the current content
     if (ibis::gVerbose > 4) {
  	ibis::util::logger lg;
-	lg.buffer() << "egale[" << col->partition()->name() << '.' << col->name()
+	lg() << "egale[" << col->partition()->name() << '.' << col->name()
 		    << "]::construct(" << fnm << ") -- finished constructing a "
 		    << nbases << "-component equality index";
 	if (ibis::gVerbose > 8) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::egale::construct

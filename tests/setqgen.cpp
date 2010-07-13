@@ -10,12 +10,13 @@
  * root-data-dir with the names that are a concatenation of the
  * root-data-dir name and hexadecimal version of the partition number.
  ***************************************************************/ 
+#include <ibis.h>	/* ibis::init */
 #include <table.h>	/* ibis::table */
 #include <util.h>	/* ibis::util::makeDir */
 #include <string.h>	/* strrchr */
 #include <stdlib.h>
 #include <stdio.h>
-#include <cmath>	/* fmod */
+#include <cmath>	/* fmod, ceil */
 #include <iomanip>	/* setprecision, setfill */
 #include <memory>	/* std::auto_ptr */
 
@@ -43,7 +44,7 @@ inline int simplerand(void) {
 } /* simplerand */
 
 static void fillRow(ibis::table::row& val, uint64_t seq) {
-    val.ulongsvalues[0]  = seq;
+    val.uintsvalues[3]   = (uint32_t)seq;
     val.uintsvalues[2]   = (simplerand() % colcard[11]) + 1;
     val.uintsvalues[1]   = (simplerand() % colcard[10]) + 1;
     val.uintsvalues[0]   = (simplerand() % colcard[9]) + 1;
@@ -71,7 +72,7 @@ static void initColumns(ibis::tablex& tab, ibis::table::row& val) {
     tab.addColumn(colname[9], ibis::UINT);
     tab.addColumn(colname[10], ibis::UINT);
     tab.addColumn(colname[11], ibis::UINT);
-    tab.addColumn(colname[12], ibis::ULONG, colname[12],
+    tab.addColumn(colname[12], ibis::UINT, colname[12],
 		  "<binning precsion=2 reorder/><encoding equality/>");
 
     val.clear();
@@ -79,10 +80,8 @@ static void initColumns(ibis::tablex& tab, ibis::table::row& val) {
     val.ubytesvalues.resize(6);
     val.ushortsnames.resize(3);
     val.ushortsvalues.resize(3);
-    val.uintsnames.resize(3);
-    val.uintsvalues.resize(3);
-    val.ulongsnames.resize(1);
-    val.ulongsvalues.resize(1);
+    val.uintsnames.resize(4);
+    val.uintsvalues.resize(4);
 } // initColumns
 
 int main(int argc, char **argv) {
@@ -99,17 +98,26 @@ int main(int argc, char **argv) {
 	return -1;
     }
 
+    ibis::init(); // initialize the file manager
     ibis::util::timer mytimer(*argv, 0);
     maxrow = atof(argv[2]);
+    if (maxrow <= 0) { // determine the number of rows based on cache size
+	maxrow = ibis::fileManager::currentCacheSize();
+	// the queries in doTest of thula.cpp needs 4 sets of doubles, wich
+	// amounts to 32 bytes per row, the Set Query Benchmark data takes
+	// 28 bytes per row, the choice below allows all intermediate
+	// results to fit in the memory cache
+	maxrow = ibis::util::compactValue(maxrow / 80.0, maxrow / 60.0);
+    }
     if (maxrow < 100) /* generate at least 100 rows */
 	maxrow = 100;
     if (argc > 3) {
 	nrpd = atof(argv[3]);
 	if (nrpd < 1)
-	    nrpd = 1;
+	    nrpd = ibis::util::compactValue(maxrow / 10.0, 1e7);
     }
     else {
-	nrpd = maxrow;
+	nrpd = (maxrow > 10000000 ? 10000000 : maxrow);
     }
     std::cout << argv[0] << " " << argv[1] << " " << maxrow << " " << nrpd
 	      << std::endl;
@@ -117,17 +125,8 @@ int main(int argc, char **argv) {
     nparts += (maxrow > nparts*nrpd);
     ierr = nparts;
     for (ndigits = 1, ierr >>= 4; ierr > 0; ierr >>= 4, ++ ndigits);
-#if defined(DEBUG) || defined(_DEBUG)
-#if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-    ibis::gVerbose = INT_MAX;
-#elif DEBUG + 0 > 0
-    ibis::gVerbose += 7 * DEBUG;
-#elif _DEBUG + 0 > 0
-    ibis::gVerbose += 5 * _DEBUG;
-#else
-    ibis::gVerbose += 3;
-#endif
-#endif
+    if (ibis::gVerbose < 1)
+	ibis::gVerbose = 1;
 
     ibis::table::row val;
     std::auto_ptr<ibis::tablex> tab(ibis::tablex::create());
@@ -136,7 +135,7 @@ int main(int argc, char **argv) {
     const uint32_t cap = tab->capacity();
 
     for (uint64_t irow = 1; irow <= maxrow;) {
-	const uint64_t krow = irow + nrpd;
+	const uint64_t krow = (irow + nrpd < maxrow+1 ? irow+nrpd : maxrow+1);
 	std::string dir;
 	if (nparts > 1) {
 	    const char* str = strrchr(argv[1], '/');

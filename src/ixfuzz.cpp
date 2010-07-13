@@ -29,7 +29,7 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 } // ibis::fuzz::fuzz
 
@@ -117,7 +117,7 @@ ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 } // ibis::fuzz::fuzz
 
@@ -206,11 +206,11 @@ void ibis::fuzz::coarsen() {
 	cbounds[i] = cbounds[i+1] - 1;
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer() << "fuzz[" << col->partition()->name() << '.'
+	lg() << "fuzz[" << col->partition()->name() << '.'
 		    << col->name() << "]::coarsen will divide " << bits.size()
 		    << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
-	    lg.buffer() << cbounds[i] << " ";
+	    lg() << cbounds[i] << " ";
     }
     // fill cbits
     for (unsigned i = 0; i < cbits.size(); ++ i) {
@@ -894,18 +894,18 @@ long ibis::fuzz::evaluate(const ibis::qContinuousRange& expr,
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg.buffer() << "fuzz[" << col->partition()->name() << '.'
+	lg() << "fuzz[" << col->partition()->name() << '.'
 		    << col->name() << "]::evaluate(" << expr << ") hit0=" << hit0
 		    << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
-	    lg.buffer() << ", cbounds[" << c0 << "]=" << cbounds[c0];
+	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];
 	else
-	    lg.buffer() << ", cbounds[" << cbounds.size()-1 << "]="
+	    lg() << ", cbounds[" << cbounds.size()-1 << "]="
 			<< cbounds.back();
 	if (c1 < cbounds.size())
-	    lg.buffer() << ", cbounds[" << c1 << "]=" << cbounds[c1];
+	    lg() << ", cbounds[" << c1 << "]=" << cbounds[c1];
 	else
-	    lg.buffer() << ", c1=" << c1 << ", bits.size()=" << bits.size();
+	    lg() << ", c1=" << c1 << ", bits.size()=" << bits.size();
     }
     if (c0 >= c1) { // within the same coarse bin
 	long tmp = coarseEstimate(c1-1, c1)
@@ -1288,51 +1288,51 @@ int ibis::fuzz::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- fuzz[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -1365,23 +1365,23 @@ int ibis::fuzz::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- fuzz[" << col->partition()->name() << '.'
+	lg() << "DEBUG -- fuzz[" << col->partition()->name() << '.'
 		    << col->name() << "]::read(" << fnm
 		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
 		    << ", the offsets of the bit vectors are\n";
 	if (offset64.size() > bits.size()) {
 	    for (unsigned i = 0; i < nprt; ++ i)
-		lg.buffer() << offset64[i] << " ";
+		lg() << offset64[i] << " ";
 	    if (nprt < dim[1])
-		lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	    lg.buffer() << offset64[dim[1]] << "\n";
+		lg() << "... (skipping " << dim[1]-nprt << ") ... ";
+	    lg() << offset64[dim[1]] << "\n";
 	}
 	else {
 	    for (unsigned i = 0; i < nprt; ++ i)
-		lg.buffer() << offset32[i] << " ";
+		lg() << offset32[i] << " ";
 	    if (nprt < dim[1])
-		lg.buffer() << "... (skipping " << dim[1]-nprt << ") ... ";
-	    lg.buffer() << offset32[dim[1]] << "\n";
+		lg() << "... (skipping " << dim[1]-nprt << ") ... ";
+	    lg() << offset32[dim[1]] << "\n";
 	}
     }
 #endif

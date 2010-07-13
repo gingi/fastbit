@@ -48,15 +48,15 @@ ibis::sapid::sapid(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "sapid[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- construct a " << bases.size()
 		<< "-component equality index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		<< " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -88,7 +88,7 @@ ibis::sapid::sapid(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::fade(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "sapid[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- construct a " << bases.size()
 	    << "-component equality index with "
@@ -96,8 +96,8 @@ ibis::sapid::sapid(const ibis::column* c, ibis::fileManager::storage* st,
 	    << " for " << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // reconstruct data from content of a file
@@ -286,7 +286,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
     // write out the current content
     if (ibis::gVerbose > 4) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // construct1
 
@@ -868,7 +868,7 @@ void ibis::sapid::construct2(const char* f, const uint32_t nbase) {
     // write out the current content
     if (ibis::gVerbose > 4) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // ibis::sapid::construct2
 

@@ -769,9 +769,9 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     qsort(ind, 0, ni);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- sort(ind[" << ni << "])";
+    lg() << "DEBUG -- sort(ind[" << ni << "])";
     for (size_t i = 0; i < ni; ++i)
-	lg.buffer() << "\nind[" << i << "]=" << ind[i] << "\t"
+	lg() << "\nind[" << i << "]=" << ind[i] << "\t"
 		    << m_begin[ind[i]];
 #endif
 } // ibis::array_t<T>::sort
@@ -835,10 +835,10 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- topk(" << k << ")\n";
+    lg() << "DEBUG -- topk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
-    std::flush(lg.buffer());
+	lg() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
+    std::flush(lg());
 #endif
 } // ibis::array_t<T>::topk
 
@@ -891,10 +891,10 @@ void ibis::array_t<T>::bottomk(uint32_t k, array_t<uint32_t>& ind) const {
     ind.resize(back); // drop the indices of partially sorted indices
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- bottomk(" << k << ")\n";
+    lg() << "DEBUG -- bottomk(" << k << ")\n";
     for (size_t i = 0; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
-    std::flush(lg.buffer());
+	lg() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
+    std::flush(lg());
 #endif
 } // ibis::array_t<T>::bottomk
 
@@ -957,9 +957,9 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     isort(ind, front, back);
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- qsort(" << front << ", " << back << ")\n";
+    lg() << "DEBUG -- qsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
+	lg() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
 } // qsort
 
@@ -1009,13 +1009,13 @@ void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
     } // while (1)
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- hsort(" << front << ", " << back << ")\n";
+    lg() << "DEBUG -- hsort(" << front << ", " << back << ")\n";
     for (size_t i = front; i < back; ++i) {
-	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]];
+	lg() << ind[i] << "\t" << m_begin[ind[i]];
 	if (i > front && m_begin[ind[i-1]] > m_begin[ind[i]])
-	    lg.buffer() << "\t*** error [ind[" << i-1 << "]] > [ind[" << i
+	    lg() << "\t*** error [ind[" << i-1 << "]] > [ind[" << i
 			<< "]] ***";
-	lg.buffer() << "\n";
+	lg() << "\n";
     }
 #endif
 } // ibis::array_t<T>::hsort
@@ -1051,9 +1051,9 @@ void ibis::array_t<T>::isort(array_t<uint32_t>& ind, uint32_t front,
     }
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- isort(" << front << ", " << back << ")\n";
+    lg() << "DEBUG -- isort(" << front << ", " << back << ")\n";
     for (i = front; i < back; ++i)
-	lg.buffer() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
+	lg() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
 #endif
 } // ibis::array_t<T>::isort
 
@@ -1205,13 +1205,13 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 	pivot = i;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg.buffer() << "DEBUG -- partition(" << front << ", " << back << ") = "
+    lg() << "DEBUG -- partition(" << front << ", " << back << ") = "
 		<< pivot << ", target = " << target << "\nfirst half: ";
     for (i = front; i < pivot; ++i)
-	lg.buffer() << m_begin[ind[i]] << " ";
-    lg.buffer() << "\nsecond half: ";
+	lg() << m_begin[ind[i]] << " ";
+    lg() << "\nsecond half: ";
     for (i = pivot; i < back; ++i)
-	lg.buffer() << m_begin[ind[i]] << " ";
+	lg() << m_begin[ind[i]] << " ";
 #endif
     return pivot;
 } // ibis::array_t<T>::partition
@@ -1292,9 +1292,9 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    else {
 		m_end = 0; m_begin = 0;
 		ibis::util::logger lg;
-		lg.buffer() << "array_t::reserve: unable to allocate " << n
+		lg() << "array_t::reserve: unable to allocate " << n
 			    << ' ' << sizeof(T) << "-byte elements";
-		if (n1) lg.buffer() << ", lost previous content of "
+		if (n1) lg() << ", lost previous content of "
 				    << n1 << " elements";
 		throw ibis::bad_alloc("failed to reserve space");
 	    }

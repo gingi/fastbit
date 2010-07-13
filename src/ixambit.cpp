@@ -190,7 +190,7 @@ ibis::ambit::ambit(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     catch (...) {
@@ -364,7 +364,7 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     catch (...) {
@@ -398,11 +398,11 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- from ibis::ambit::ambit("
+	    lg() << "DEBUG -- from ibis::ambit::ambit("
 			<< col->partition()->name() << '.' << col->name()
 			<< ", " << offset << ")" << "\n";
 	    for (uint32_t i=0; i<=nobs; ++i)
-		lg.buffer() << "offset[" << i << "] = " << offs[i] << "\n";
+		lg() << "offset[" << i << "] = " << offs[i] << "\n";
 	}
 #endif
 	if (offs[nobs] > offs[0]) {
@@ -416,7 +416,7 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     catch (...) {
@@ -457,51 +457,51 @@ int ibis::ambit::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- ambit[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -584,20 +584,20 @@ int ibis::ambit::read(const char* f) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- ibis::ambit::read(";
+	lg() << "DEBUG -- ibis::ambit::read(";
 	if (fname)
-	    lg.buffer() << fname;
+	    lg() << fname;
 	else
-	    lg.buffer() << fdes;
-	lg.buffer() << ") got the starting positions of the fine levels\n";
+	    lg() << fdes;
+	lg() << ") got the starting positions of the fine levels\n";
 	if (header[6] == 8) {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg.buffer() << "offset[" << i << "] = " << nextlevel64[i]
+		lg() << "offset[" << i << "] = " << nextlevel64[i]
 			    << "\n";
 	}
 	else {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg.buffer() << "offset[" << i << "] = " << nextlevel32[i]
+		lg() << "offset[" << i << "] = " << nextlevel32[i]
 			    << "\n";
 	}
     }
@@ -764,21 +764,21 @@ int ibis::ambit::read(int fdes, size_t start, const char *fn,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- ibis::ambit::read(";
+	lg() << "DEBUG -- ibis::ambit::read(";
 	if (fname)
-	    lg.buffer() << fname;
+	    lg() << fname;
 	else
-	    lg.buffer() << fdes;
-	lg.buffer() << ", " << start
+	    lg() << fdes;
+	lg() << ", " << start
 		  << ") got the starting positions of the fine levels\n";
 	if (header[6] == 8) {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg.buffer() << "offset[" << i << "] = " << nextlevel64[i]
+		lg() << "offset[" << i << "] = " << nextlevel64[i]
 			    << "\n";
 	}
 	else {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg.buffer() << "offset[" << i << "] = " << nextlevel32[i]
+		lg() << "offset[" << i << "] = " << nextlevel32[i]
 			    << "\n";
 	}
     }
@@ -1101,11 +1101,11 @@ int ibis::ambit::write32(int fdes) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- from ambit[" << col->partition()->name() << "."
+	lg() << "DEBUG -- from ambit[" << col->partition()->name() << "."
 		    << col->name() << "]::write(" << col->name() << ", "
 		    << start << ") -- offsets for subranges";
 	for (i=0; i<=nobs; ++i)
-	    lg.buffer() << "\noffset[" << i << "] = " << nextlevel[i];
+	    lg() << "\noffset[" << i << "] = " << nextlevel[i];
     }
 #endif
 
@@ -1255,11 +1255,11 @@ int ibis::ambit::write64(int fdes) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG -- from ambit[" << col->partition()->name() << "."
+	lg() << "DEBUG -- from ambit[" << col->partition()->name() << "."
 		    << col->name() << "]::write(" << col->name() << ", "
 		    << start << ") -- offsets for subranges";
 	for (i=0; i<=nobs; ++i)
-	    lg.buffer() << "\noffset[" << i << "] = " << nextlevel[i];
+	    lg() << "\noffset[" << i << "] = " << nextlevel[i];
     }
 #endif
 

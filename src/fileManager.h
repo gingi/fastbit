@@ -221,7 +221,7 @@ private:
 /// owned by the user code.
 class ibis::fileManager::storage {
 public:
-    storage() : name(0), m_begin(0), m_end(0), nacc(0), nref() {};
+    storage();
     explicit storage(size_t n); // allocate n bytes
     virtual ~storage() {clear();}
 
@@ -242,9 +242,10 @@ public:
     bool empty() const {return (m_begin == 0 || m_begin >= m_end);}
     /// Return the size (bytes) of the object.
     size_t size() const {
-	return (m_begin != 0 && m_begin >= m_end ? 0 : m_end - m_begin);}
+	return (m_begin!=0 && m_begin<m_end ? m_end-m_begin : 0);}
     /// Return the number of bytes contained in the object.
-    size_t bytes() const {return (m_begin >= m_end ? 0 : m_end - m_begin);}
+    size_t bytes() const {
+	return (m_begin!=0 && m_begin<m_end ? m_end-m_begin : 0);}
     /// Enlarge the current array by 61.8% if @c nelm is smaller than the
     /// current size, otherwise enlarge to the specified size.
     void enlarge(size_t nelm=0);
@@ -543,9 +544,9 @@ inline void
 ibis::fileManager::increaseUse(size_t inc, const char* evt) {
     if (inc > 0) {
 	ibis::fileManager::totalBytes += inc;
-	LOGGER(evt && ibis::gVerbose > 9)
+	LOGGER(evt != 0 && *evt != 0 && ibis::gVerbose > 9)
 	    << evt << " added " << inc << " bytes to increase totalBytes to "
-	    << ibis::fileManager::totalBytes();
+	    << ibis::util::groupby1000(ibis::fileManager::totalBytes());
     }
 } // ibis::fileManager::increaseUse
 
@@ -553,9 +554,9 @@ inline void
 ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
     if (dec > 0) {
 	ibis::fileManager::totalBytes -= dec;
-	LOGGER(evt && ibis::gVerbose > 9)
+	LOGGER(evt != 0 && *evt != 0 && ibis::gVerbose > 9)
 	    << evt << " removed " << dec << " bytes to decrease totalBytes to "
-	    << ibis::fileManager::totalBytes();
+	    << ibis::util::groupby1000(ibis::fileManager::totalBytes());
     }
 } // ibis::fileManager::decreaseUse
 
@@ -565,9 +566,9 @@ ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
 /// storage object requires the client code to update the pointers they
 /// hold.  The only way this function is used is to reallocate storage for
 /// array_t objects.  In that case, one of the storage object is a
-/// temporary one which reference count of 0 (zero).  It is important to
+/// temporary one with a reference count of 0 (zero).  It is important to
 /// keep that count 0 so the temporary storage object can be freed
-/// afterward.  Suggested by Zeid Derhally.
+/// afterward.  Suggested by Zeid Derhally (2010/02).
 inline void
 ibis::fileManager::storage::swap(ibis::fileManager::storage& rhs) throw () {
     {char* tmp = name; name = rhs.name; rhs.name = tmp;}

@@ -451,19 +451,19 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "query[" << q.id()
+	lg() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
 	    if ((1U << ibis::gVerbose) > col->size() ||
 		ibis::gVerbose > 30)
-		print(lg.buffer());
+		print(lg());
 	}
 	else if ((1U << ibis::gVerbose) > rids->size() ||
 		 ibis::gVerbose > 30) {
 	    if (ibis::gVerbose > 8)
-		printAll(lg.buffer());
+		printAll(lg());
 	    else
-		print(lg.buffer());
+		print(lg());
 	}
     }
 } // ibis::bundle1::bundle1
@@ -527,19 +527,19 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "query[" << q.id()
+	lg() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
 	    if ((1U << ibis::gVerbose) > col->size() ||
 		ibis::gVerbose > 30)
-		print(lg.buffer());
+		print(lg());
 	}
 	else if ((1U << ibis::gVerbose) > rids->size() ||
 		 ibis::gVerbose > 30) {
 	    if (ibis::gVerbose > 8)
-		printAll(lg.buffer());
+		printAll(lg());
 	    else
-		print(lg.buffer());
+		print(lg());
 	}
     }
 } // ibis::bundle1::bundle1
@@ -597,10 +597,10 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::bundle1 -- generated the bundle for \"" << *cmps
+	lg() << "ibis::bundle1 -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)
-	    print(lg.buffer());
+	    print(lg());
     }
 } // ibis::bundle1::bundle1
 
@@ -669,11 +669,11 @@ void ibis::bundle1::sort() {
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundle1[" << id << "]::sort starting with "
+	lg() << "DEBUG -- bundle1[" << id << "]::sort starting with "
 		    << nrow << " row" << (nrow > 1 ? "s" : "");
 	for (uint32_t j = 0; j < nrow; ++ j) {
-	    lg.buffer() << "\n";
-	    col->write(lg.buffer(), j);
+	    lg() << "\n";
+	    col->write(lg(), j);
 	}
     }
 #endif
@@ -716,11 +716,11 @@ void ibis::bundle1::sort() {
     if (ibis::gVerbose > 5) {
 	const size_t nGroups = starts->size()-1;
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundle1[" << id << "]::sort ending "
+	lg() << "DEBUG -- bundle1[" << id << "]::sort ending "
 		    << nGroups << " row" << (nGroups > 1 ? "s" : "");
 	for (uint32_t j = 0; j < nGroups; ++ j) {
-	    lg.buffer() << "\n";
-	    col->write(lg.buffer(), j);
+	    lg() << "\n";
+	    col->write(lg(), j);
 	}
     }
 #endif
@@ -1103,24 +1103,25 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    }
 	}
 
-	sort();
+	if (cols.size() > 0)
+	    sort();
     }
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "query[" << q.id()
+	lg() << "query[" << q.id()
 		    << "]::bundles -- generated the bundle\n";
 	if (rids == 0) {
 	    if ((1U << ibis::gVerbose) > cols[0]->size() ||
 		ibis::gVerbose > 30)
-		print(lg.buffer());
+		print(lg());
 	}
 	else if ((1U << ibis::gVerbose) > rids->size() ||
 		 ibis::gVerbose > 30) {
 	    if (ibis::gVerbose > 8)
-		printAll(lg.buffer());
+		printAll(lg());
 	    else
-		print(lg.buffer());
+		print(lg());
 	}
     }
 } // ibis::bundles::bundles
@@ -1171,23 +1172,24 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    rids = 0;
 	}
     }
-    sort();
+    if (cols.size() > 0)
+	sort();
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "query[" << q.id()
+	lg() << "query[" << q.id()
 		    << "]::bundle1 -- generated the bundle\n";
 	if (rids == 0) {
 	    if ((1U << ibis::gVerbose) > cols[0]->size() ||
 		ibis::gVerbose > 30)
-		print(lg.buffer());
+		print(lg());
 	}
 	else if ((1U << ibis::gVerbose) > rids->size() ||
 		 ibis::gVerbose > 30) {
 	    if (ibis::gVerbose > 8)
-		printAll(lg.buffer());
+		printAll(lg());
 	    else
-		print(lg.buffer());
+		print(lg());
 	}
     }
 } // ibis::bundles::bundles
@@ -1244,14 +1246,15 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 		<< (cn ? cn : "");
 	}
     }
-    sort();
+    if (cols.size() > 0)
+	sort();
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::bundles -- generated the bundle for \"" << *cmps
+	lg() << "ibis::bundles -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)
-	    print(lg.buffer());
+	    print(lg());
     }
 } // ibis::bundles::bundles
 
@@ -1259,6 +1262,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 void ibis::bundles::print(std::ostream& out) const {
     // caller must hold an ioLock ibis::util::ioLock lock;
     const uint32_t ncol = cols.size();
+    if (ncol == 0) return; // nothing to print
+
     const uint32_t size = (cols[0] != 0 ? cols[0]->size() : 0);
     bool distinct = true;
     for (uint32_t i = 0; i < ncol && distinct; ++ i) {
@@ -1301,13 +1306,15 @@ void ibis::bundles::print(std::ostream& out) const {
 
 // print out the bundles (with RIDs)
 void ibis::bundles::printAll(std::ostream& out) const {
+    const uint32_t ncol = cols.size();
+    if (ncol == 0) return;
+
     if (rids == 0 || starts == 0) {
 	print(out);
 	return;
     }
 
     bool distinct = true;
-    const uint32_t ncol = cols.size();
     for (uint32_t i = 0; i < ncol && distinct; ++ i) {
 	if (cols[i] == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -1343,20 +1350,22 @@ void ibis::bundles::printAll(std::ostream& out) const {
 /// arbitrary positions in the select clause.
 void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
+    if (ncol == 0) return;
+
     const uint32_t nplain = comps.nPlain();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort starting with "
+	lg() << "DEBUG -- bundles[" << id << "]::sort starting with "
 		    << ncol << " columns and " << nHits << " row"
 		    << (nHits > 1 ? "s" : "");
 	for (uint32_t j = 0; j < nHits; ++ j) {
-	    lg.buffer() << "\n";
+	    lg() << "\n";
 	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (i > 0) lg.buffer() << ", ";
-		cols[i]->write(lg.buffer(), j);
+		if (i > 0) lg() << ", ";
+		cols[i]->write(lg(), j);
 	    }
 	}
     }
@@ -1484,14 +1493,14 @@ void ibis::bundles::sort() {
 #if _DEBUG+0>2 || DEBUG+0>1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "DEBUG -- bundles[" << id << "]::sort ending "
+	lg() << "DEBUG -- bundles[" << id << "]::sort ending "
 		    << ncol << " columns and " << nGroups << " row"
 		    << (nGroups > 1 ? "s" : "");
 	for (uint32_t j = 0; j < nGroups; ++ j) {
-	    lg.buffer() << "\n";
+	    lg() << "\n";
 	    for (uint32_t i = 0; i < ncol; ++ i) {
-		if (i > 0) lg.buffer() << ", ";
-		cols[i]->write(lg.buffer(), j);
+		if (i > 0) lg() << ", ";
+		cols[i]->write(lg(), j);
 	    }
 	}
     }
@@ -1504,7 +1513,7 @@ void ibis::bundles::sort() {
 /// performed.
 void ibis::bundles::reorder(const char *names, int direction) {
     if (names == 0 || *names == 0) return;
-    if (starts == 0) return;
+    if (starts == 0 || cols.size() == 0) return;
     if (starts->size() <= 2) return; // one group, no need to sort
 
     ibis::nameList sortkeys; // the new keys for sorting
@@ -1695,7 +1704,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 // Change from ascending order to descending order.  Most lines of the code
 // deals with the re-ordering of the RIDs.
 void ibis::bundles::reverse() {
-    if (starts == 0) return;
+    if (starts == 0 || cols.empty()) return;
     if (starts->size() <= 2) return;
     const uint32_t ngroups = starts->size() - 1;
 
@@ -1772,7 +1781,7 @@ void ibis::bundles::reverse() {
 /// This single-arugment version of the function truncate keeps the first
 /// few rows.
 long ibis::bundles::truncate(uint32_t keep) {
-    if (starts == 0) return -2L;
+    if (starts == 0 || cols.empty()) return -2L;
     if (starts->size() <= 2) return -3L;
     const uint32_t ngroups = starts->size() - 1;
     if (ngroups <= keep)
@@ -1826,7 +1835,7 @@ long ibis::bundles::truncate(uint32_t keep, uint32_t start) {
 /// otherwise keep the smallest ones.
 long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
     if (names == 0 || *names == 0) return -1L;
-    if (starts == 0) return -2L;
+    if (starts == 0 || cols.empty()) return -2L;
     if (starts->size() <= 2) return -3L;
     if (keep == 0) return -4L;
 

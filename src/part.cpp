@@ -510,25 +510,25 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 
     if (ibis::gVerbose > 0 && m_name != 0) {
 	ibis::util::logger lg;
-	lg.buffer() << "Completed construction of an ";
+	lg() << "Completed construction of an ";
 	if (nEvents == 0)
-	    lg.buffer() << "empty ";
-	lg.buffer() << "ibis::part named "
+	    lg() << "empty ";
+	lg() << "ibis::part named "
 		    << (m_name?m_name:"<NULL>");
 	if (! m_desc.empty())
-	    lg.buffer() << " -- " << m_desc;
+	    lg() << " -- " << m_desc;
 	if (ibis::gVerbose > 1) {
-	    lg.buffer() << "\nactiveDir = \"" << activeDir << "\"";
+	    lg() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0)
-		lg.buffer() << "\nbackupDir = \"" << backupDir << "\"";
+		lg() << "\nbackupDir = \"" << backupDir << "\"";
 	}
 	if (nEvents > 0 && ! columns.empty()) {
-	    lg.buffer() << "\n";
+	    lg() << "\n";
 	    if (ibis::gVerbose > 3) {
-		print(lg.buffer());
+		print(lg());
 	    }
 	    else {
-		lg.buffer() << "  " << nEvents << " row" << (nEvents>1?"s":"")
+		lg() << "  " << nEvents << " row" << (nEvents>1?"s":"")
 			    << " and " << columns.size() << " column"
 			    << (columns.size()>1?"s":"");
 	    }
@@ -1035,22 +1035,22 @@ void ibis::part::init(const char* iname) {
 
     if (ibis::gVerbose > 0 && m_name != 0) {
 	ibis::util::logger lg;
-	lg.buffer() << "Completed construction of an ";
+	lg() << "Completed construction of an ";
 	if (nEvents == 0)
-	    lg.buffer() << "empty ";
-	lg.buffer() << "ibis::part named "
+	    lg() << "empty ";
+	lg() << "ibis::part named "
 		    << (m_name?m_name:"<NULL>");
 	if (ibis::gVerbose > 1) {
-	    lg.buffer() << "\nactiveDir = \"" << activeDir << "\"";
+	    lg() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0 && *backupDir != 0)
-		lg.buffer() << "\nbackupDir = \"" << backupDir << "\"";
+		lg() << "\nbackupDir = \"" << backupDir << "\"";
 	}
 	if (columns.size() > 0 && nEvents > 0) {
-	    lg.buffer() << "\n";
+	    lg() << "\n";
 	    if (ibis::gVerbose > 3)
-		print(lg.buffer());
+		print(lg());
 	    else
-		lg.buffer() << "  " << nEvents << " row" << (nEvents>1 ? "s":"")
+		lg() << "  " << nEvents << " row" << (nEvents>1 ? "s":"")
 			    << " and " << columns.size() << " column"
 			    << (columns.size()>1 ? "s" : "");
 	}
@@ -2361,28 +2361,28 @@ uint32_t ibis::part::countPages(const ibis::bitvector &mask,
     }
     else {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part::countPages(" << wordsize
+	lg() << "ibis::part::countPages(" << wordsize
 		    << ") page numbers: ";
 	while (ix.nIndices() > 0) {
 	    const ibis::bitvector::word_t *ind = ix.indices();
 	    const uint32_t p0 = *ind / wpp;
 	    if (last < p0*wpp) { // last not on the current page
-		lg.buffer() << last/wpp << " ";
+		lg() << last/wpp << " ";
 		++ res;
 	    }
 	    if (ix.isRange()) {
 		const unsigned mp = ind[1]/wpp - p0;
 		if (mp > 1)
-		    lg.buffer() << p0 << "*" << mp << " ";
+		    lg() << p0 << "*" << mp << " ";
 		else if (mp > 0)
-		    lg.buffer() << p0 << " ";
+		    lg() << p0 << " ";
 		last = ind[1];
 		res += mp;
 	    }
 	    else {
 		last = ind[ix.nIndices()-1];
 		if (last / wpp > p0) {
-		    lg.buffer() << p0 << " ";
+		    lg() << p0 << " ";
 		    ++ res;
 		}
 	    }
@@ -4244,15 +4244,15 @@ long ibis::part::doScan(const array_t<E> &varr,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "part::doScan -- evaluating " << cmp << " on "
+	lg() << "part::doScan -- evaluating " << cmp << " on "
 		    << mask.cnt() << typeid(E).name()
 		    << (mask.cnt() > 1 ? " values" : " value")
 		    << " (total: " << mask.size() << ") took "
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << (hits.cnt() > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "\nmask\n" << mask;
-	lg.buffer() << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return hits.cnt();
@@ -4693,14 +4693,14 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doScan -- evaluating "
 		    << cmp << " on " << mask.cnt() << " records (total: "
 		    << nEvents << ") took " << timer.realTime()
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     if (ierr >= 0)
@@ -4791,7 +4791,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::calculate -- evaluating " << trm << " on "
 		    << msk.cnt() << " records (total: " << nEvents
 		    << ") took " << timer.realTime()
@@ -4876,7 +4876,7 @@ long ibis::part::doScan(const ibis::math::term &trm,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doScan -- evaluating " << trm << " on "
 		    << msk.cnt() << " records (total: " << nEvents
 		    << ") took " << timer.realTime()
@@ -5074,7 +5074,7 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << name() << "]::buildIndexes processed "
+	lg() << "ibis::part[" << name() << "]::buildIndexes processed "
 		    << nColumns() << " column" << (nColumns()>1 ? "s" : "")
 		    << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
 		    << " took " << timer.CPUTime() << " CPU seconds and "
@@ -5859,22 +5859,22 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 		    uint32_t cnt = 0;
 		    ibis::bitvector::indexSet is = seqhits.firstIndexSet();
 		    ibis::util::logger lg;
-		    lg.buffer() << "the locations of the difference\n";
+		    lg() << "the locations of the difference\n";
 		    while (is.nIndices() && cnt < maxcnt) {
 			const ibis::bitvector::word_t *ii = is.indices();
 			if (is.isRange()) {
-			    lg.buffer() << *ii << " -- " << ii[1];
+			    lg() << *ii << " -- " << ii[1];
 			}
 			else {
 			    for (uint32_t i0=0; i0 < is.nIndices(); ++i0)
-				lg.buffer() << ii[i0] << " ";
+				lg() << ii[i0] << " ";
 			}
 			cnt += is.nIndices();
-			lg.buffer() << "\n";
+			lg() << "\n";
 			++ is;
 		    }
 		    if (cnt < seqhits.cnt())
-			lg.buffer() << "... (" << seqhits.cnt() - cnt
+			lg() << "... (" << seqhits.cnt() - cnt
 				    << " rows skipped\n";
 		}
 	    }
@@ -5900,13 +5900,13 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     {
 	ibis::util::logger lg(4);
 	const char* str = qtmp.getWhereClause();
-	lg.buffer() << "DEBUG -- query[" << qtmp.id() << ", "
+	lg() << "DEBUG -- query[" << qtmp.id() << ", "
 		    << (str?str:"<NULL>") << "]::getRIDs returned "
 		    << rid1->size() << "\n";
 #if DEBUG > 2
 	for (ibis::RIDSet::const_iterator it1 = rid1->begin();
 	     it1 != rid1->end(); ++it1)
-	    lg.buffer() << (*it1) << "\n";
+	    lg() << (*it1) << "\n";
 #endif
     }
 #endif
@@ -5916,12 +5916,12 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "rid1 after query[" << qtmp.id()
+	lg() << "rid1 after query[" << qtmp.id()
 		    << "]::evaluate contains " << rid1->size() << "\n";
 #if DEBUG > 2
 	for (ibis::RIDSet::const_iterator it1 = rid1->begin();
 	     it1 != rid1->end(); ++it1)
-	    lg.buffer() << (*it1) << "\n";
+	    lg() << (*it1) << "\n";
 #endif
     }
 #endif
@@ -5945,46 +5945,46 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	    for (i=0; i<rid1->size(); ++i) {
 		if ((*rid1)[i].value != (*rid2)[i].value) {
 		    ++cnt;
-		    lg.buffer() << i << "th RID " << (*rid1)[i]
+		    lg() << i << "th RID " << (*rid1)[i]
 				<< " != " << (*rid2)[i] << "\n";
 		}
 	    }
 	    if (cnt > 0) {
-		lg.buffer() << "Warning -- query[" << qtmp.id() << "] " << cnt
+		lg() << "Warning -- query[" << qtmp.id() << "] " << cnt
 			    << " mismatches out of a total of "
 			    << rid1->size() << "\n";
 		++(*nerrors);
 	    }
 	    else if (ibis::gVerbose > 4) {
-		lg.buffer() << "RID query returned the expected RIDs"
+		lg() << "RID query returned the expected RIDs"
 			  << "\n";
 	    }
 	}
 	else {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- query[" << qtmp.id() << "] sent "
+	    lg() << "Warning -- query[" << qtmp.id() << "] sent "
 			<< rid1->size() << " RIDs, got back "
 			<< rid2->size() << "\n";
 	    uint32_t i=0, cnt;
 	    cnt = (rid1->size() < rid2->size()) ? rid1->size() :
 		rid2->size();
 	    while (i < cnt) {
-		lg.buffer() << (*rid1)[i] << " >>> " << (*rid2)[i] << "\n";
+		lg() << (*rid1)[i] << " >>> " << (*rid2)[i] << "\n";
 		++i;
 	    }
 	    if (rid1->size() < rid2->size()) {
 		while (i < rid2->size()) {
-		    lg.buffer() << "??? >>> " << (*rid2)[i] << "\n";
+		    lg() << "??? >>> " << (*rid2)[i] << "\n";
 		    ++i;
 		}
 	    }
 	    else {
 		while (i < rid1->size()) {
-		    lg.buffer() << (*rid1)[i] << " >>> ???\n";
+		    lg() << (*rid1)[i] << " >>> ???\n";
 		    ++i;
 		}
 	    }
-	    lg.buffer() << "\n";
+	    lg() << "\n";
 	    ++(*nerrors);
 	}
 	delete rid2;
@@ -6096,7 +6096,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	const char *str = qtmp.getLastError();
 	if (str != 0 && *str != static_cast<char>(0)) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- ibis::part::queryTest last error on "
+	    lg() << "Warning -- ibis::part::queryTest last error on "
 			<< "query \"" << predicate << "\" is \n" << str;
 	    qtmp.clearErrorMessage();
 	    ++(*nerrors);
@@ -6124,7 +6124,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	str = qtmp.getLastError();
 	if (str != 0 && *str != static_cast<char>(0)) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- ibis::part::queryTest last error on "
+	    lg() << "Warning -- ibis::part::queryTest last error on "
 			<< "query \"" << predicate << "\" is \n" << str;
 	    qtmp.clearErrorMessage();
 	    ++(*nerrors);
@@ -6532,10 +6532,10 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
 
 	{
 	    ibis::util::logger lg;
-	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
+	    lg() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " -- " << s;
 	    if (errno != 0)
-		lg.buffer() << " ... " << strerror(errno);
+		lg() << " ... " << strerror(errno);
 	}
 	throw s;
     }
@@ -6543,10 +6543,10 @@ void ibis::part::logError(const char* event, const char* fmt, ...) const {
 #endif
 	{
 	    ibis::util::logger lg;
-	    lg.buffer() << " Error *** part[" << (m_name?m_name:"") << "]::"
+	    lg() << " Error *** part[" << (m_name?m_name:"") << "]::"
 			<< event << " == " << fmt << " ...";
 	    if (errno != 0)
-		lg.buffer() << " ... " << strerror(errno);
+		lg() << " ... " << strerror(errno);
 	}
 	throw fmt;
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
@@ -6718,7 +6718,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -6727,7 +6727,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -6965,7 +6965,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
@@ -6973,7 +6973,7 @@ long ibis::part::doCompare(const char* file,
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -7044,7 +7044,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt()<< " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -7053,7 +7053,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -7291,14 +7291,14 @@ long ibis::part::negativeCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "ibis::part[" << (m_name ? m_name : "?")
 	    << "]::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer()
+	lg()
 	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
@@ -7419,7 +7419,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -7428,7 +7428,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -7668,7 +7668,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
@@ -7676,7 +7676,7 @@ long ibis::part::doCompare(const char* file,
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -7749,7 +7749,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt()<< " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -7758,7 +7758,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -7999,14 +7999,14 @@ long ibis::part::negativeCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "ibis::part[" << (m_name ? m_name : "?")
 	    << "]::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer()
+	lg()
 	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
@@ -8127,7 +8127,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -8136,7 +8136,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -8374,7 +8374,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::doCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt() << " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
@@ -8382,7 +8382,7 @@ long ibis::part::doCompare(const char* file,
 		    << timer.realTime() << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -8453,7 +8453,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::negativeCompare -- performing comparison with column "
 		    << cmp.colName() << " on " << mask.cnt()<< " element"
 		    << (mask.cnt() > 1 ? "s" : "") << " of a "
@@ -8462,7 +8462,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 		    << " sec elapsed time and produced "
 		    << hits.cnt() << " hits" << "\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -8700,14 +8700,14 @@ long ibis::part::negativeCompare(const char* file,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "ibis::part[" << (m_name ? m_name : "?")
 	    << "]::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer()
+	lg()
 	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
@@ -9569,15 +9569,15 @@ long ibis::part::doScan(const array_t<T> &vals,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "part::doScan -- evaluating " << rng
+	lg() << "part::doScan -- evaluating " << rng
 		    << " on " << mask.cnt() << " " << typeid(T).name()
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "\nmask\n" << mask;
-	lg.buffer() << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -10310,15 +10310,15 @@ long ibis::part::doScan(const array_t<float> &vals,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "part::doScan -- evaluating " << rng
+	lg() << "part::doScan -- evaluating " << rng
 		    << " on " << mask.cnt() << " float "
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "\nmask\n" << mask;
-	lg.buffer() << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -11050,15 +11050,15 @@ long ibis::part::doScan(const array_t<double> &vals,
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "part::doScan -- evaluating " << rng
+	lg() << "part::doScan -- evaluating " << rng
 		    << " on " << mask.cnt() << " double "
 		    << (mask.cnt() > 1 ? " values" : " value") << " (total: "
 		    << mask.size() << ") took " << timer.realTime()
 		    << " sec elapsed time and produced " << hits.cnt()
 		    << (hits.cnt() > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "\nmask\n" << mask;
-	lg.buffer() << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -11413,7 +11413,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::part[" << (m_name ? m_name : "?")
+	lg() << "ibis::part[" << (m_name ? m_name : "?")
 		    << "]::countHits -- evaluating a condition involving "
 		    << cmp.colName() << " on " << nEvents << " records took "
 		    << timer.realTime()
@@ -13175,12 +13175,12 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
     totmask.adjustSize(totmask.size(), nnew+nold);
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg.buffer() << "part::writeColumn wrote " << pos << " bytes of "
+	lg() << "part::writeColumn wrote " << pos << " bytes of "
 		    << typeid(T).name() << " for " << nnew << " elements\n";
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: "<< totmask;
+		lg() << "mask for new records: " << newmask << "\n";
+	    lg() << "Overall bit mask: "<< totmask;
 	}
     }
     return (-5 * ((uint32_t) pos != nnew*elem));
@@ -13221,18 +13221,18 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
     totmask.adjustSize(totmask.size(), nnew+nold);
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg.buffer() << "part::writeString wrote " << pos
+	lg() << "part::writeString wrote " << pos
 		    << " strings (" << nnew << " expected)\n";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg.buffer() << "vals[" << vals.size() << "]:\n";
+	lg() << "vals[" << vals.size() << "]:\n";
 	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
 	     ++ j)
-	    lg.buffer() << "  " << j << "\t" << vals[j] << "\n";
+	    lg() << "  " << j << "\t" << vals[j] << "\n";
 #endif
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: " << totmask;
+		lg() << "mask for new records: " << newmask << "\n";
+	    lg() << "Overall bit mask: " << totmask;
 	}
     }
     return (-5 * ((uint32_t) pos != nnew));
@@ -13389,12 +13389,12 @@ int ibis::part::writeRaw(int bdes, int sdes,
     totmask.adjustSize(totmask.size(), nnew1+nold);
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg.buffer() << "part::writeRaw wrote " << nnew1 << " binary object"
+	lg() << "part::writeRaw wrote " << nnew1 << " binary object"
 		    << (nnew1>1?"s":"") << " (" << nnew << " expected)\n";
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg.buffer() << "mask for new records: " << newmask << "\n";
-	    lg.buffer() << "Overall bit mask: " << totmask;
+		lg() << "mask for new records: " << newmask << "\n";
+	    lg() << "Overall bit mask: " << totmask;
 	}
     }
     return (-17 * (nnew1 != nnew));
@@ -13556,24 +13556,24 @@ long ibis::part::barrel::open(const ibis::part *t) {
     if (ibis::gVerbose > 5) {
 	if (size() > 1) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "part[" << t->name() << "::barrel::open -- ";
+	    lg() << "part[" << t->name() << "::barrel::open -- ";
 	    if (t->currentDataDir() != 0)
-		lg.buffer() << "opened " << size() << " files from "
+		lg() << "opened " << size() << " files from "
 			    << t->currentDataDir();
 	    else
-		lg.buffer() << "prepared " << size() << " arrays in memory";
+		lg() << "prepared " << size() << " arrays in memory";
 	    if (ibis::gVerbose > 7) {
 		if (stores[0])
-		    lg.buffer() << "\n\t0: " << name(0) << ", "
+		    lg() << "\n\t0: " << name(0) << ", "
 				<< static_cast<void*>(stores[0]->begin());
 		else
-		    lg.buffer() << "\n\t0: " << name(0) << ", " << fdes[0];
+		    lg() << "\n\t0: " << name(0) << ", " << fdes[0];
 		for (uint32_t i = 1 ; i < size(); ++ i) {
-		    lg.buffer() << "; " << i << ": " << name(i) << ", ";
+		    lg() << "; " << i << ": " << name(i) << ", ";
 		    if (stores[i])
-			lg.buffer() << static_cast<void*>(stores[i]->begin());
+			lg() << static_cast<void*>(stores[i]->begin());
 		    else
-			lg.buffer() << "file " << fdes[i];
+			lg() << "file " << fdes[i];
 		}
 	    }
 	}
@@ -13919,16 +13919,16 @@ long ibis::part::vault::open(const ibis::part *t) {
 	if (ibis::gVerbose > 7) {
 	    ibis::util::logger lg;
 	    if (stores[0])
-		lg.buffer() << "0x" << static_cast<void*>(stores[0]->begin());
+		lg() << "0x" << static_cast<void*>(stores[0]->begin());
 	    else
-		lg.buffer() << "file " << fdes[0];
+		lg() << "file " << fdes[0];
 	    for (uint32_t i = 1 ; i < size(); ++ i) {
-		lg.buffer() << ", ";
+		lg() << ", ";
 		if (stores[i])
-		    lg.buffer() << "0x"
+		    lg() << "0x"
 			      << static_cast<void*>(stores[i]->begin());
 		else
-		    lg.buffer() << "file " << fdes[i];
+		    lg() << "file " << fdes[i];
 	    }
 	}
     }

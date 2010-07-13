@@ -78,7 +78,7 @@ int ibis::fromClause::parse(const char *cl) {
 	}
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
-	fromLexer lx(&iss, &(lg.buffer()));
+	fromLexer lx(&iss, &(lg()));
 	fromParser parser(*this);
 	lexer = &lx;
 #if DEBUG+0 > 2
@@ -86,7 +86,7 @@ int ibis::fromClause::parse(const char *cl) {
 #elif _DEBUG+0 > 2
 	parser.set_debug_level(_DEBUG-1);
 #endif
-	parser.set_debug_stream(lg.buffer());
+	parser.set_debug_stream(lg());
 	ierr = parser.parse();
 	lexer = 0;
     }

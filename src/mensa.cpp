@@ -47,13 +47,13 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::mensa -- constructed table "
+	lg() << "ibis::mensa -- constructed table "
 		    << name_ << " (" << desc_ << ") from ";
 	if (dir != 0 && *dir != 0)
-	    lg.buffer() << "directory " << dir;
+	    lg() << "directory " << dir;
 	else
-	    lg.buffer() << "RC file entries";
-	lg.buffer() << ".  It consists of " << parts.size() << " partition"
+	    lg() << "RC file entries";
+	lg() << ".  It consists of " << parts.size() << " partition"
 		  << (parts.size()>1 ? "s" : "") << " with "
 		  << naty.size() << " column"
 		  << (naty.size()>1 ? "s" : "") << " and "
@@ -96,18 +96,18 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
-	lg.buffer() << "ibis::mensa -- constructed table "
+	lg() << "ibis::mensa -- constructed table "
 		    << name_ << " (" << desc_ << ") from ";
 	if (dir1 != 0 && *dir1 != 0) {
 	    if (dir2 != 0 && *dir2 != 0)
-		lg.buffer() << "directories " << dir1 << " + " << dir2;
+		lg() << "directories " << dir1 << " + " << dir2;
 	    else
-		lg.buffer() << "directory " << dir1;
+		lg() << "directory " << dir1;
 	}
 	else {
-	    lg.buffer() << "RC file entries";
+	    lg() << "RC file entries";
 	}
-	lg.buffer() << ".  It consists of " << parts.size() << " partition"
+	lg() << ".  It consists of " << parts.size() << " partition"
 		    << (parts.size()>1 ? "s" : "") << " with "
 		    << naty.size() << " column"
 		    << (naty.size()>1 ? "s" : "") << " and "
@@ -3610,9 +3610,12 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
 	return ibis::table::select(parts, sel, cond);
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- table::select absorbed an exception, "
-	    "will return a nil pointer";
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- table::select absorbed an exception, "
+		"will return a nil pointer\n";
+	    ibis::fileManager::instance().printStatus(lg());
+	}
 	return 0;
     }
 } // ibis::table::select
@@ -3636,9 +3639,12 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	return ibis::table::select(mylist, sel, wc.getExpr());
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- table::select absorbed an exception, "
-	    "will return a nil pointer";
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- table::select absorbed an exception, "
+		"will return a nil pointer\n";
+	    ibis::fileManager::instance().printStatus(lg());
+	}
 	return 0;
     }
 } // ibis::table::select
@@ -3754,16 +3760,24 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 #if _DEBUG+0>1 || DEBUG+0>0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg;
-		lg.buffer() << "DEBUG: " << mesg << " uniquenames["
-			    << uniquenames.size() << "]=";
+		lg() << "DEBUG: " << mesg << " uniquenames["
+		     << uniquenames.size() << "]=";
 		for (std::set<const char*, ibis::lessi>::const_iterator it =
 			 uniquenames.begin(); it != uniquenames.end(); ++ it) {
-		    lg.buffer() << (it != uniquenames.begin() ? ", " : "")
-				<< *it;
+		    lg() << (it != uniquenames.begin() ? ", " : "") << *it;
 		}
 	    }
 #endif
 	}
+    }
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << mesg << " parsed " << sel << " into " << tms.size() << " term"
+	     << (tms.size()>1?"s":"") << ", " << nplain << " of which do"
+	     << (nplain>1?"":"es") << " not contain aggregation functions";
+	if (ibis::gVerbose > 3)
+	    lg() << " (buff[" << buff.size() << "] and tls[" << tls.size()
+		 << ")";
     }
 
     uint32_t nh = 0;
@@ -3841,6 +3855,10 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 
 		if (tls[i] == ibis::UNKNOWN_TYPE)
 		    tls[i] = col->type();
+		LOGGER(ibis::gVerbose > 3)
+		    << mesg << " -- adding " << nqq << " element"
+		    << (nqq>1?"s":"") << " from column " << col->name()
+		    << " of partition " << (*it)->name() << ", nh = " << nh;
 		switch (col->type()) {
 		case ibis::BYTE: {
 		    std::auto_ptr< array_t<char> > tmp(col->selectBytes(*hits));
@@ -4036,14 +4054,14 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
     }
 
-    ibis::bord *brd1 =
-	new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr, &cdesc);
-    if (nplain >= tms.size() || brd1 == 0)
-	return brd1;
+    std::auto_ptr<ibis::bord>
+	brd1(new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr,
+			    &cdesc));
+    if (nplain >= tms.size() || brd1.get() == 0)
+	return brd1.release();
 
-    ibis::table *brd2 = brd1->groupby(tms);
-    delete brd1;
-    return brd2;
+    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    return brd2.release();
 } // ibis::table::select
 
 /// It iterates through all data partitions to compute the number of hits.
@@ -4069,7 +4087,7 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
 	}
 	else if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- table::computeHits failed to evaluate \""
+	    lg() << "Warning -- table::computeHits failed to evaluate \""
 			<< cond << "\" on data partition " << (*it)->name()
 			<< ", query::evaluate returned " << ierr;
 	}
@@ -4100,7 +4118,7 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
 	}
 	else if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "Warning -- table::computeHits failed to evaluate \""
+	    lg() << "Warning -- table::computeHits failed to evaluate \""
 			<< *cond << "\" on data partition " << (*it)->name()
 			<< ", query::evaluate returned " << ierr;
 	}
@@ -4116,11 +4134,17 @@ void ibis::util::addIncoreData(void*& to, const array_t<T>& from,
     if (to == 0)
 	to = new array_t<T>();
     array_t<T>& target = * (static_cast<array_t<T>*>(to));
-    target.reserve(nold+nqq);
-    if (nold > target.size())
-	target.insert(target.end(), nold-target.size(), special);
-    if (nqq > 0)
-	target.insert(target.end(), from.begin(), from.end());
+    if (nqq > 0) {
+	if (nold > 0) {
+	    target.reserve(nold+nqq);
+	    if (nold > target.size())
+		target.insert(target.end(), nold-target.size(), special);
+	    target.insert(target.end(), from.begin(), from.end());
+	}
+	else {
+	    target.copy(from);
+	}
+    }
 } // ibis::util::addIncoreData
 
 void ibis::util::addStrings(void*& to, const std::vector<std::string>& from,

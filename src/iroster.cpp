@@ -41,7 +41,7 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
     if (ibis::gVerbose > 4 && (ind.size() == col->partition()->nRows() ||
 			       inddes >= 0)) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 } // constructor
 
@@ -54,7 +54,7 @@ ibis::roster::roster(const ibis::column* c,
     : col(c), ind(st, offset, c->partition()->nRows()), inddes(-1) {
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
-	print(lg.buffer());
+	print(lg());
     }
 }
 
@@ -650,14 +650,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -674,14 +674,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -698,14 +698,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -722,14 +722,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -746,14 +746,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -770,14 +770,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -794,14 +794,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -818,14 +818,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -842,14 +842,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -866,14 +866,14 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg.buffer() << "ibis::roster::icSort -- value, starting "
+	    lg() << "ibis::roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
 		while (j < n && tmp == val[ind[j]])
 		    ++ j;
-		lg.buffer() << tmp << "\t" << i << "\t" << j - i << "\n";
+		lg() << tmp << "\t" << i << "\t" << j - i << "\n";
 		i = j;
 	    }
 #endif
@@ -884,8 +884,8 @@ void ibis::roster::icSort(const char* fin) {
 	break;}
     default: {
 	ibis::util::logger lg;
-	lg.buffer() << "roster -- unable to create a roster list for ";
-	col->print(lg.buffer());
+	lg() << "roster -- unable to create a roster list for ";
+	col->print(lg());
 	break;}
     }
 
@@ -903,7 +903,7 @@ void ibis::roster::icSort(const char* fin) {
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // ibis::roster::icSort
 
@@ -1327,7 +1327,7 @@ void ibis::roster::oocSort(const char *fin) {
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 
     // open the ind file in read only mode for future operaions.
@@ -2295,7 +2295,7 @@ uint32_t ibis::roster::locate(const double& v) const {
     }
     default: {
 	ibis::util::logger lg;
-	lg.buffer() << "Warning -- column[" << col->partition()->name() << "."
+	lg() << "Warning -- column[" << col->partition()->name() << "."
 		    << col->name()
 		    << "]::roster -- no roster list for column type "
 		    << ibis::TYPESTRING[static_cast<int>(col->type())];

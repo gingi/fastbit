@@ -2984,11 +2984,11 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
 	if (j1 >= nfine1 || j2 >= nfine2) {
 	    ibis::util::logger lg;
 	    if (j1 >= nfine1)
-		lg.buffer() << "DEBUG -- Warning -- j1 (" << j1
+		lg() << "DEBUG -- Warning -- j1 (" << j1
 			    << ") is out of bound (>=" << nfine1
 			    << ") in part::adaptive2DBins";
 	    if (j2 >= nfine2)
-		lg.buffer() << "DEBUG -- Warning -- j2 (" << j2
+		lg() << "DEBUG -- Warning -- j2 (" << j2
 			    << ") is out of bound (>=" << nfine2
 			    << ") in part::adaptive2DBins";
 	}
@@ -3617,7 +3617,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     }
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger(0).buffer()
+	ibis::util::logger(0)()
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionA completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "
@@ -4156,7 +4156,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     }
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger(0).buffer()
+	ibis::util::logger(0)()
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionU completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "
@@ -4453,7 +4453,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 
     if (ibis::gVerbose > 0) {
 	timer.stop();
-	ibis::util::logger(0).buffer()
+	ibis::util::logger(0)()
 	    << "ibis::part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "

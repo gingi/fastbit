@@ -101,12 +101,12 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "countQuery::setWhereClause -- ";
+	    lg() << "countQuery::setWhereClause -- ";
 	    if (conds.getString() != 0)
-		lg.buffer() << "replace the where clause \""
+		lg() << "replace the where clause \""
 			    << conds << "\" with \"" << tmp << "\"";
 	    else
-		lg.buffer() << "add a new where clause \"" << tmp << "\"";
+		lg() << "add a new where clause \"" << tmp << "\"";
 	}
 	conds.swap(tmp);
 	if (hits == cand) {
@@ -229,18 +229,18 @@ int ibis::countQuery::estimate() {
 
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
-	lg.buffer() << "countQuery::estimate -- number of hits ";
+	lg() << "countQuery::estimate -- number of hits ";
 	if (hits != 0) {
 	    if (cand != 0)
-		lg.buffer() << "in [" << hits->cnt() << ", "
+		lg() << "in [" << hits->cnt() << ", "
 			    << cand->cnt() << "]";
 	    else
-		lg.buffer() << " is " << hits->cnt();
+		lg() << " is " << hits->cnt();
 	}
 	else {
 	    delete cand;
 	    cand = 0;
-	    lg.buffer() << " is unknown";
+	    lg() << " is unknown";
 	}
     }
     return 0;
@@ -1015,15 +1015,15 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
     }
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg;
-    lg.buffer() << "countQuery::doEvaluate("
+    lg() << "countQuery::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
-    lg.buffer() << "ht \n" << ht;
+    lg() << "ht \n" << ht;
 #else
     if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))
-	lg.buffer() << "ht \n" << ht;
+	lg() << "ht \n" << ht;
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)

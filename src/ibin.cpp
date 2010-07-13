@@ -36,14 +36,14 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -78,14 +78,14 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -119,14 +119,14 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -166,14 +166,14 @@ ibis::bin::bin(const ibis::bin& rhs)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -237,15 +237,15 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"")
 		<< " from a storage object @ " << st << " offset " << start;
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -289,15 +289,15 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- built an equality index with "
 	    << nobs << " bin" << (nobs>1?"s":"") << " for "
 	    << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st << " offset " << start;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::bin::bin
@@ -325,51 +325,51 @@ int ibis::bin::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- bin[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -1534,9 +1534,9 @@ void ibis::bin::binning(const char* f) {
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
+	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
-		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
+		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
 			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
@@ -1760,9 +1760,9 @@ void ibis::bin::binningT(const char* f) {
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
+	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
-		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
+		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
 			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
@@ -2244,10 +2244,10 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 #if defined(DBUG) && DEBUG+0 > 2
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "expected bounds  size(" << bounds.size() << ")\n";
+	    lg() << "expected bounds  size(" << bounds.size() << ")\n";
 	    for (array_t<uint32_t>::const_iterator itt = bnds.begin();
 		 itt != bnds.end(); ++ itt)
-		lg.buffer() << val[*itt] << " (" << *itt << ") ";
+		lg() << val[*itt] << " (" << *itt << ") ";
 	}
 #endif
 	if (col->type() == ibis::FLOAT ||
@@ -2331,11 +2331,11 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
+	lg() << "DEBUG - content of bounds in scanAndPartition: size("
 		    << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
 	     it != bounds.end(); ++ it)
-	    lg.buffer() << *it << " ";
+	    lg() << *it << " ";
     }
 #endif
 } // ibis::bin::scanAndPartition
@@ -2430,14 +2430,14 @@ void ibis::bin::construct(const char* df) {
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::construct(" << (df ? df : "") << ") -- finished "
 	    "constructing a simple equality index with " << nobs
 	    << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::bin::construct
@@ -2474,14 +2474,14 @@ void ibis::bin::construct(const array_t<E>& varr) {
     optionalUnpack(bits, spec);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::construct<" << typeid(E).name() << '[' << varr.size()
 	    << "]> -- finished constructing a simple equality index with "
 	    << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // ibis::bin::construct
@@ -2765,9 +2765,9 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
+	    lg() << "DEBUG -- bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
-		lg.buffer() << bounds[i] << " ";
+		lg() << bounds[i] << " ";
 	}
 #endif
 	if (col->type() == ibis::DOUBLE) {
@@ -2828,9 +2828,9 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
+	    lg() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
-		lg.buffer() << bounds[i] << " ";
+		lg() << bounds[i] << " ";
 	}
 #endif
     }
@@ -2987,9 +2987,9 @@ void ibis::bin::binning(const array_t<E>& varr) {
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    lg.buffer() << "[minval, maxval]\tbound\tcount\n";
+	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
-		lg.buffer() << "[" << minval[i] << ", " << maxval[i] << "]\t"
+		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
 			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
@@ -3077,7 +3077,7 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 	}
 	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
-	    printGranules(lg.buffer(), gmap);
+	    printGranules(lg(), gmap);
 	}
     }
 } // ibis::bin::mapGranules
@@ -3866,10 +3866,10 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 #if defined(DBUG) && DEBUG+0 > 2
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "expected bounds  size(" << bounds.size() << ")\n";
+	    lg() << "expected bounds  size(" << bounds.size() << ")\n";
 	    for (array_t<uint32_t>::const_iterator itt = bnds.begin();
 		 itt != bnds.end(); ++ itt)
-		lg.buffer() << val[*itt] << " (" << *itt << ") ";
+		lg() << val[*itt] << " (" << *itt << ") ";
 	}
 #endif
 	if (bounds.empty()) {
@@ -3888,12 +3888,12 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "scanAndPartition: raw bin boundaries\n"
+		lg() << "scanAndPartition: raw bin boundaries\n"
 			  << bounds.back();
 		for (array_t<uint32_t>::const_iterator ii = bnds.begin();
 		     ii != bnds.end(); ++ii)
 		    if (*ii < val.size())
-			lg.buffer() << " " << val[*ii];
+			lg() << " " << val[*ii];
 	    }
 #endif
 	    // for floating-point values, try to round the boundaries
@@ -3921,10 +3921,10 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "scanAndPartition: actual bin boundaries\n"
+		lg() << "scanAndPartition: actual bin boundaries\n"
 			  << bounds[0];
 		for (uint32_t ii = 1; ii < bounds.size(); ++ ii)
-		    lg.buffer() << " " << bounds[ii];
+		    lg() << " " << bounds[ii];
 	    }
 #endif
 	}
@@ -4006,11 +4006,11 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     {
 	ibis::util::logger lg(4);
-	lg.buffer() << "DEBUG - content of bounds in scanAndPartition: size("
+	lg() << "DEBUG - content of bounds in scanAndPartition: size("
 		    << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
 	     it != bounds.end(); ++ it)
-	    lg.buffer() << *it << " ";
+	    lg() << *it << " ";
     }
 #endif
 } // ibis::bin::scanAndPartition
@@ -4303,9 +4303,9 @@ void ibis::bin::setBoundaries(const char* f) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- bin bounds before duplicate removal\n";
+	    lg() << "DEBUG -- bin bounds before duplicate removal\n";
 	    for (unsigned i = 0; i < nb1; ++ i)
-		lg.buffer() << bounds[i] << " ";
+		lg() << bounds[i] << " ";
 	}
 #endif
 	if (col->type() == ibis::DOUBLE) {
@@ -4366,9 +4366,9 @@ void ibis::bin::setBoundaries(const char* f) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
-	    lg.buffer() << "DEBUG -- bin bounds after duplicate removal\n";
+	    lg() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
-		lg.buffer() << bounds[i] << " ";
+		lg() << bounds[i] << " ";
 	}
 #endif
     }
@@ -4887,10 +4887,10 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
     }
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg.buffer() << "divideBitmaps -- divided " << nbms << " bitmaps into "
+	lg() << "divideBitmaps -- divided " << nbms << " bitmaps into "
 		    << nparts << " groups\n";
 	for (unsigned i = 0; i < nparts; ++ i)
-	    lg.buffer() << parts[i] << " ";
+	    lg() << parts[i] << " ";
     }
 } // ibis::bin::divideBitmaps
 
@@ -5741,9 +5741,9 @@ long ibis::bin::append(const ibis::bin& tail) {
 
     if (ibis::gVerbose > 10) {
 	ibis::util::logger lg;
-	lg.buffer() << "\nNew combined index (append an index for " << n1
+	lg() << "\nNew combined index (append an index for " << n1
 		  << " objects to an index for " << n0 << " events\n" ;
-	print(lg.buffer());
+	print(lg());
     }
     return 0;
 } // ibis::bin::append
@@ -7737,12 +7737,12 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG -- bds array:\n";
+		lg() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
-		    lg.buffer() << bds[i] << " ";
-		lg.buffer() << "\nDEBUG -- cts array:\n";
+		    lg() << bds[i] << " ";
+		lg() << "\nDEBUG -- cts array:\n";
 		for (uint32_t i = 0; i < cts.size(); ++ i)
-		    lg.buffer() << cts[i] << " ";
+		    lg() << cts[i] << " ";
 	    }
 #endif
 	    bds.clear();
@@ -7783,12 +7783,12 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
-		lg.buffer() << "DEBUG -- bds array:\n";
+		lg() << "DEBUG -- bds array:\n";
 		for (uint32_t i = 0; i < bds.size(); ++ i)
-		    lg.buffer() << bds[i] << " ";
-		lg.buffer() << "\nDEBUG -- cts array:\n";
+		    lg() << bds[i] << " ";
+		lg() << "\nDEBUG -- cts array:\n";
 		for (uint32_t i = 0; i < cts.size(); ++ i)
-		    lg.buffer() << cts[i] << " ";
+		    lg() << cts[i] << " ";
 	    }
 #endif
 	    bds.clear();

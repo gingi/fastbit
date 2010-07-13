@@ -41,15 +41,15 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "fade[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- construct a " << bases.size()
 		<< "-component range index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		<< " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -102,7 +102,7 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 	(ibis::gVerbose > 2 &&
 	 FADE == static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)))) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "fade[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- construct a " << bases.size()
 	    << "-component range index with "
@@ -110,8 +110,8 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 	    << " for " << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 } // reconstruct data from content of a file
@@ -419,51 +419,51 @@ int ibis::fade::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "Warning -- fade[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
-		lg.buffer() << header[0];
+		lg() << header[0];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[0]
+		lg() << "0x" << std::hex << (uint16_t) header[0]
 			    << std::dec;
 	    if (isprint(header[1]) != 0)
-		lg.buffer() << header[1];
+		lg() << header[1];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[1]
+		lg() << "0x" << std::hex << (uint16_t) header[1]
 			    << std::dec;
 	    if (isprint(header[2]) != 0)
-		lg.buffer() << header[2];
+		lg() << header[2];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[2]
+		lg() << "0x" << std::hex << (uint16_t) header[2]
 			    << std::dec;
 	    if (isprint(header[3]) != 0)
-		lg.buffer() << header[3];
+		lg() << header[3];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[3]
+		lg() << "0x" << std::hex << (uint16_t) header[3]
 			    << std::dec;
 	    if (isprint(header[4]) != 0)
-		lg.buffer() << header[4];
+		lg() << header[4];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[4]
+		lg() << "0x" << std::hex << (uint16_t) header[4]
 			    << std::dec;
 	    if (isprint(header[5]) != 0)
-		lg.buffer() << header[5];
+		lg() << header[5];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[5]
+		lg() << "0x" << std::hex << (uint16_t) header[5]
 			    << std::dec;
 	    if (isprint(header[6]) != 0)
-		lg.buffer() << header[6];
+		lg() << header[6];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[6]
+		lg() << "0x" << std::hex << (uint16_t) header[6]
 			    << std::dec;
 	    if (isprint(header[7]) != 0)
-		lg.buffer() << header[7];
+		lg() << header[7];
 	    else
-		lg.buffer() << "0x" << std::hex << (uint16_t) header[7]
+		lg() << "0x" << std::hex << (uint16_t) header[7]
 			    << std::dec;
-	    lg.buffer() << ") does not contain the expected values";
+	    lg() << ") does not contain the expected values";
 	}
 	return -3;
     }
@@ -746,7 +746,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
     // write out the current content
     if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // construct1
 
@@ -1298,7 +1298,7 @@ void ibis::fade::construct2(const char* f, const uint32_t nbase) {
     // write out the current content
     if (ibis::gVerbose > 8) {
  	ibis::util::logger lg;
- 	print(lg.buffer());
+ 	print(lg());
     }
 } // ibis::fade::construct2
 

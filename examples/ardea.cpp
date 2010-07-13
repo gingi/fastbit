@@ -835,8 +835,8 @@ int main(int argc, char** argv) {
 	// use a logger object to hold the print out in memory to avoid it
 	// be interrupted by other log messages
 	ibis::util::logger lg;
-	lg.buffer() << "-- begin printing table in " << outdir << " --\n";
-	tb->describe(lg.buffer());
+	lg() << "-- begin printing table in " << outdir << " --\n";
+	tb->describe(lg());
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
 	    uint64_t nprint;
 	    if (ibis::gVerbose > 30) {
@@ -847,9 +847,9 @@ int main(int argc, char** argv) {
 		if (nprint < 10)
 		    nprint = 10;
 	    }
-	    tb->dump(lg.buffer(), nprint);
+	    tb->dump(lg(), nprint);
 	}
-	lg.buffer() << "--  end  printing table in " << outdir << " --\n";
+	lg() << "--  end  printing table in " << outdir << " --\n";
     }
     if (usersupplied == false) {
 	// check the number of hits of built-in queries

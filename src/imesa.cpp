@@ -51,14 +51,14 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "mesa[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an interval index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -110,15 +110,15 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg.buffer()
+	    lg()
 		<< "mesa[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an interval index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"")
 		<< " from an equality index";
 	    if (ibis::gVerbose > 6) {
-		lg.buffer() << "\n";
-		print(lg.buffer());
+		lg() << "\n";
+		print(lg());
 	    }
 	}
     }
@@ -138,15 +138,15 @@ ibis::mesa::mesa(const ibis::column* c, ibis::fileManager::storage* st,
 		 size_t start) : ibis::bin(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg.buffer()
+	lg()
 	    << "mesa[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- built an interval index with "
 	    << nobs << " bin" << (nobs>1?"s":"") << " for "
 	    << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
-	    lg.buffer() << "\n";
-	    print(lg.buffer());
+	    lg() << "\n";
+	    print(lg());
 	}
     }
 }
@@ -250,7 +250,7 @@ void ibis::mesa::construct(const char* df) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    print(lg.buffer());
+	    print(lg());
 	}
     }
     catch (...) {

@@ -283,7 +283,7 @@ namespace ibis {
     inline void init(const char* rcfile=0,
 		     const char* mesgfile=0) {
 #if defined(DEBUG) || defined(_DEBUG)
-	if (gVerbose == 0) {
+	if (gVerbose <= 0) {
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
 	    gVerbose = INT_MAX;
 #elif DEBUG + 0 > 0

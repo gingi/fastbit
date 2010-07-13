@@ -20,7 +20,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
-	whereLexer lx(&iss, &(lg.buffer()));
+	whereLexer lx(&iss, &(lg()));
 	whereParser parser(*this);
 	lexer = &lx;
 #if DEBUG+0 > 2
@@ -28,7 +28,7 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
 #elif _DEBUG+0 > 2
 	parser.set_debug_level(_DEBUG-1);
 #endif
-	parser.set_debug_stream(lg.buffer());
+	parser.set_debug_stream(lg());
 	ierr = parser.parse();
 	if (ierr == 0 && expr_ != 0)
 	    ibis::qExpr::simplify(expr_);
@@ -67,7 +67,7 @@ int ibis::whereClause::parse(const char* cl) {
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
-	whereLexer lx(&iss, &(lg.buffer()));
+	whereLexer lx(&iss, &(lg()));
 	whereParser parser(*this);
 	lexer = &lx;
 #if DEBUG+0 > 2
@@ -75,7 +75,7 @@ int ibis::whereClause::parse(const char* cl) {
 #elif _DEBUG+0 > 2
 	parser.set_debug_level(_DEBUG-1);
 #endif
-	parser.set_debug_stream(lg.buffer());
+	parser.set_debug_stream(lg());
 
 	delete expr_;
 	expr_ = 0;
@@ -194,9 +194,9 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
     ibis::qExpr::simplify(expr_);
     if (expr_ != 0 && ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg.buffer() << "whereClause::amplify -- "
+	lg() << "whereClause::amplify -- "
 	    "query expression with additional constraints\n";
-	expr_->printFull(lg.buffer());
+	expr_->printFull(lg());
     }
 } // ibis::whereClause::amplify
 
@@ -311,7 +311,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    }
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -325,7 +325,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(str->leftString());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->leftString();
@@ -339,7 +339,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(str->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->colName();
@@ -401,7 +401,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    }
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << var->variableName();
@@ -442,7 +442,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 		    }
 		    else {
 			++ ierr;
-			LOGGER(ibis::gVerbose > 0)
+			LOGGER(ibis::gVerbose > 2)
 			    << "whereClause::verifyExpr -- expected column \""
 			    << v1->variableName() << "\" to be of string type, "
 			    << "but it is %s" << ibis::TYPESTRING[c1->type()];
@@ -465,7 +465,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 		}
 		else {
 		    ++ ierr;
-		    LOGGER(ibis::gVerbose > 0)
+		    LOGGER(ibis::gVerbose > 2)
 			<< "whereClause::verifyExpr -- expected column \""
 			<<  v2->variableName() <<  "\" to be of string type, "
 			<< "but it is " << ibis::TYPESTRING[c2->type()];
@@ -498,7 +498,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -519,7 +519,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -531,7 +531,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	const ibis::column* c1 = part0.getColumn(rj->getName1());
 	if (c1 == 0) {
 	    ++ ierr;
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- whereClause::verifyExpr -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName1();
@@ -539,7 +539,7 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	const ibis::column* c2 = part0.getColumn(rj->getName2());
 	if (c2 == 0) {
 	    ++ ierr;
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- whereClause::verifyExpr -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName2();
@@ -578,7 +578,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    }
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -592,7 +592,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    const ibis::column* col = part0.getColumn(str->leftString());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->leftString();
@@ -606,7 +606,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    const ibis::column* col = part0.getColumn(str->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << str->colName();
@@ -635,7 +635,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -649,7 +649,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {
 		++ ierr;
-		LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- whereClause::verifyExpr -- data partition "
 		    << part0.name() << " does not contain a column named "
 		    << range->colName();
@@ -662,7 +662,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	const ibis::column* c1 = part0.getColumn(rj->getName1());
 	if (c1 == 0) {
 	    ++ ierr;
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- whereClause::verifyExpr -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName1();
@@ -670,7 +670,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	const ibis::column* c2 = part0.getColumn(rj->getName2());
 	if (c2 == 0) {
 	    ++ ierr;
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- whereClause::verifyExpr -- data partition "
 		<< part0.name() << " does not contain a column named "
 		<< rj->getName2();

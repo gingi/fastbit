@@ -889,7 +889,7 @@ long ibis::category::append(const char* dt, const char* df,
 				   "in %s", dt);
 		    if (ibis::gVerbose > 8) {
 			ibis::util::logger lg;
-			ind.print(lg.buffer());
+			ind.print(lg());
 		    }
 		}
 		else if (ibis::gVerbose > 0) {
@@ -1554,17 +1554,17 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
 		if (ibis::gVerbose > 5) {
 		    ibis::util::logger lg(4);
-		    lg.buffer()
+		    lg()
 			<< "DEBUG -- " << evt << " processing string "
 			<< irow << " \'";
 		    for (long i = curr; i < next-1; ++ i)
-			lg.buffer() << buf[i-begin];
-		    lg.buffer() << "\'";
+			lg() << buf[i-begin];
+		    lg() << "\'";
 		    if (match)
-			lg.buffer() << " == ";
+			lg() << " == ";
 		    else
-			lg.buffer() << " != ";
-		    lg.buffer() << pat;
+			lg() << " != ";
+		    lg() << pat;
 		}
 #endif
 		++ irow;
@@ -2044,17 +2044,17 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
 		if (ibis::gVerbose > 5) {
 		    ibis::util::logger lg(4);
-		    lg.buffer()
+		    lg()
 			<< "DEBUG -- " << evt << " processing string "
 			<< irow << " \'";
 		    for (long i = curr; i < next-1; ++ i)
-			lg.buffer() << buf[i-begin];
-		    lg.buffer() << "\'";
+			lg() << buf[i-begin];
+		    lg() << "\'";
 		    if (match)
-			lg.buffer() << " matches ";
+			lg() << " matches ";
 		    else
-			lg.buffer() << " does not match ";
-		    lg.buffer() << pat;
+			lg() << " does not match ";
+		    lg() << pat;
 		}
 #endif
 		++ irow;
