@@ -68,7 +68,7 @@ public:
     size_t size() const {	///< Return the number of elements.
 	return (m_begin > 0 && m_end > m_begin ? m_end - m_begin : 0);
     };
-    void clear() {m_end = m_begin;};	///< Reset the size to zero.
+    inline void clear();
 
     void pop_back() {--m_end;};		///< Remove the last element.
     void resize(size_t n);	///< Resize array.
@@ -161,6 +161,19 @@ private:
     void qsort(array_t<uint32_t>& ind, uint32_t front, uint32_t back,
 	       uint32_t lvl=0) const;
 };
+
+/// Reset the size to zero.
+template<class T>
+inline void ibis::array_t<T>::clear() {
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "array_t::clear -- (" << static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ") resets m_end from "
+	<< static_cast<const void*>(m_end) << " to "
+	<< static_cast<const void*>(m_begin);
+#endif
+    m_end = m_begin;
+} // ibis::array_t<T>::clear
 
 /// Swap the content of two array_t objects.
 template<class T>

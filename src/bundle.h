@@ -69,7 +69,7 @@ public:
     static bundle* create(const ibis::query& q);
     static bundle* create(const ibis::query& q, const ibis::bitvector& hits);
     static bundle* create(const ibis::part&, const ibis::selectClause& sel,
-			  const std::vector<void*>& vals);
+			  const ibis::table::bufferList& vals);
 
     /// Return the RIDs related to the ith bundle.
     static const ibis::RIDSet* readRIDs(const char* dir, const uint32_t i);
@@ -230,7 +230,7 @@ public:
     explicit bundle1(const ibis::query& q);
     bundle1(const ibis::query& q, const ibis::bitvector& hits);
     bundle1(const ibis::part& tbl, const ibis::selectClause& sel,
-	    const std::vector<void*>& vals);
+	    const ibis::table::bufferList& vals);
     virtual ~bundle1() {delete col;}
     virtual void write(const ibis::query&) const;
 
@@ -293,7 +293,7 @@ public:
     explicit bundles(const ibis::query& q);
     bundles(const ibis::query& q, const ibis::bitvector& hits);
     bundles(const ibis::part& tbl, const ibis::selectClause& sel,
-	    const std::vector<void*>& vals);
+	    const ibis::table::bufferList& vals);
     virtual ~bundles() {clear();}
     virtual void write(const ibis::query&) const;
 

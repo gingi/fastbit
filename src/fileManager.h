@@ -259,15 +259,8 @@ public:
     /// Unchecked index operator.  Returns the character at position i.
     char operator[](size_t i) const {return m_begin[i];}
 
-    /// Record a new active reference to this object.
-    virtual void beginUse() {
-	++ nref;
-    }
-    /// Record the termination of an active reference.
-    virtual void endUse() {
-	-- nref;
-	++ nacc;
-    }
+    virtual void beginUse();
+    virtual void endUse();
     unsigned inUse() const { ///< Number of current accesses to this object.
 	return nref();
     }

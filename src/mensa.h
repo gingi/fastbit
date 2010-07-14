@@ -5,7 +5,7 @@
 #ifndef IBIS_MENSA_H
 #define IBIS_MENSA_H
 #include "table.h"	// ibis::table
-#include "fileManager.h"// ibis::fileManager::storage
+#include "array_t.h"	// ibis::array_t
 
 /**@file
 

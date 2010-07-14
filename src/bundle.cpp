@@ -70,7 +70,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
 /// require any actual input value is count(*).
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selectClause& sel,
-				   const std::vector<void*>& vals) {
+				   const ibis::table::bufferList& vals) {
     const uint32_t nc = (vals.size() <= sel.size() ? vals.size() : sel.size());
     ibis::bundle* res = 0;
     if (nc > 1) {
@@ -548,7 +548,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 /// vals.  It will use the values in vals[0] and take on the first column
 /// name in cmps that is not '*'.
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
-		       const std::vector<void*>& vals)
+		       const ibis::table::bufferList& vals)
     : bundle(cmps) {
     if (cmps.size() == 0 || vals.size() == 0)
 	return;
@@ -1197,7 +1197,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 /// Constructor.  It creates a bundle from the values provided by the
 /// caller.
 ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
-		       const std::vector<void*>& vals)
+		       const ibis::table::bufferList& vals)
     : bundle(cmps) {
     id = tbl.name();
     for (unsigned ic = 0,  iv = 0; ic < cmps.size() && iv < vals.size();

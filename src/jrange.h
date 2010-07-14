@@ -75,10 +75,10 @@ protected:
 	       const std::string &desc,
 	       const ibis::array_t<T>& rjcol,
 	       const ibis::table::typeList& rtypes,
-	       const std::vector<void*>& rbuff,
+	       const ibis::table::bufferList& rbuff,
 	       const ibis::array_t<T>& sjcol,
 	       const ibis::table::typeList& stypes,
-	       const std::vector<void*>& sbuff,
+	       const ibis::table::bufferList& sbuff,
 	       const ibis::table::stringList& cnamet,
 	       const std::vector<uint32_t>& cnpos);
 

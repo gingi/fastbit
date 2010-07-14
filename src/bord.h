@@ -27,8 +27,8 @@ namespace ibis {
 /// @note Bord is a Danish word for "table."
 class ibis::bord : public ibis::table {
 public:
-    typedef std::vector<void *> bufferList;
-    bord(const char *tn, const char *td, uint64_t nr, bufferList &buf,
+    bord(const char *tn, const char *td, uint64_t nr,
+	 ibis::table::bufferList &buf,
 	 const ibis::table::typeList &ct,
 	 const ibis::table::stringList &cn,
 	 const ibis::table::stringList *cdesc=0);
@@ -117,7 +117,7 @@ public:
 	part(const char *tn, const char *td, uint64_t nr,
 	     const ibis::table::stringList &cn,
 	     const ibis::table::typeList   &ct,
-	     ibis::bord::bufferList        &buf,
+	     ibis::table::bufferList        &buf,
 	     const ibis::table::stringList *cdesc=0);
 
 	ibis::table* groupby(const ibis::selectClause&) const;
@@ -161,9 +161,6 @@ public:
     static void copyValue(ibis::TYPE_T type,
 			  void* outbuf, size_t outpos,
 			  const void* inbuf, size_t inpos);
-    static void* allocateBuffer(ibis::TYPE_T, size_t);
-    static void freeBuffer(void* buffer, ibis::TYPE_T type);
-    static void freeBuffers(bufferList&, ibis::table::typeList&);
 
 protected:
     part mypart; ///< The data partition for an in-memory table.

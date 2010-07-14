@@ -1,3 +1,26 @@
+2010-07-13 John Wu <John dot Wu at ACM dot org>
+	* src/table.h: change typeList and stringList to use array_t
+	instead of std::vector
+	* src/bord.h: change bufferList to use array_t instead of
+	std::vector, move bufferList to table.h, also moves functions
+	allocateBuffer, freeBuffer and freeBuffers to table.h
+	* src/array_t.cpp: add more print statement to debug memory issue
+	(surround them with conditional compilation macro DEBUG)
+	* src/array_t.cpp: change the raw pointer in function nosharing to
+	auto_ptr
+	* src/mensa.cpp, src/filter.cpp: delay the creation of scope
+	guards till after the bufferLists take on their final sizes (the
+	constructor of the scope guards took the parameters as they were
+	declared and are not aware of the changs made later) (this should
+	solve the remaining problem with memory leaks reported by Jan
+	Krivanek)
+
+2010-07-12 John Wu <John dot Wu at ACM dot org>
+	* src/bundle.cpp: add if-statement to check for empty cols
+	* src/bord.cpp: wrap the raw pointer for bundle with auto_ptr
+	* src/column.cpp: wrap the raw pointers in various select
+	functions with auto_ptr
+
 2010-07-11 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: replace logger::buffer with logger::operator() to
 	remove the need to use function name
@@ -8,10 +31,6 @@
 	in-core storage object, which appears to be the last possible
 	source of memory management errors related to the problem report
 	reported by Jan
-	* src/bundle.cpp: add if-statement to check for empty cols
-	* src/bord.cpp: wrap the raw pointer for bundle with auto_ptr
-	* src/column.cpp: wrap the raw pointers in various select
-	functions with auto_ptr
 
 2010-07-10 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h: storage::size and storage::bytes contained

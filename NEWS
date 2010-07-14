@@ -3,6 +3,16 @@ Version ibis1.1.9
 -- add test cases for very small datasets
 -- implement a new dictionary format for categorical values
 -- add reordering functions to C API by Georgiy Zhytar
+-- add integer version number, make the constructors of storage use its
+   arguments more consistently
+-- add a two-argument version of scope guard
+-- implement the range join class, add testing in tests/Makefile.am
+-- wrap most of the raw pointers with std::auto_ptr
+-- add code to accept 64-bit integers with suffices LL and ULL (only on
+   the right-hand side of a equality or a list of IN operator)
+-- add testing code for query the retrieves a larger number of rows or
+   require a lot of intermediate memory (to address the memory leak
+   issues required by Jan Krivanek
 
 Fri May  7 14:02:15 PDT 2010
 Version ibis1.1.8

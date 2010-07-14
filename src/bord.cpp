@@ -21,7 +21,7 @@
 /// Constructor.  The responsibility of freeing the memory pointed by the
 /// elements of buf is transferred to this object.
 ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
-		 ibis::bord::bufferList        &buf,
+		 ibis::table::bufferList       &buf,
 		 const ibis::table::typeList   &ct,
 		 const ibis::table::stringList &cn,
 		 const ibis::table::stringList *cdesc)
@@ -895,12 +895,12 @@ ibis::bord::groupby(const ibis::table::stringList& keys) const {
 } // ibis::bord::groupby
 
 /// Allocate a buffer of the specified type and size.
-void* ibis::bord::allocateBuffer(ibis::TYPE_T type, size_t sz) {
+void* ibis::table::allocateBuffer(ibis::TYPE_T type, size_t sz) {
     void* ret = 0;
     switch (type) {
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::bord::allocateBuffer("
+	    << "Warning -- table::allocateBuffer("
 	    << ibis::TYPESTRING[(int)type] << ", "
 	    << sz << ") unable to handle the data type";
 	break;
@@ -943,15 +943,15 @@ void* ibis::bord::allocateBuffer(ibis::TYPE_T type, size_t sz) {
         break;
     }
     return ret;
-} // ibis::bord::allocateBuffer
+} // ibis::table::allocateBuffer
 
 /// Freeing a buffer for storing in-memory values.
-void ibis::bord::freeBuffer(void *buffer, ibis::TYPE_T type) {
+void ibis::table::freeBuffer(void *buffer, ibis::TYPE_T type) {
     if (buffer != 0) {
 	switch (type) {
 	default:
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::bord::freeBuffer(" << buffer << ", "
+		<< "Warning -- table::freeBuffer(" << buffer << ", "
 		<< (int) type << ") unable to handle data type "
 		<< ibis::TYPESTRING[(int)type];
 	    break;
@@ -994,17 +994,17 @@ void ibis::bord::freeBuffer(void *buffer, ibis::TYPE_T type) {
 	    break;
 	}
     }
-} // ibis::bord::freeBuffer
+} // ibis::table::freeBuffer
 
 /// Freeing a list of buffers.
-void ibis::bord::freeBuffers(ibis::bord::bufferList& buf,
+void ibis::table::freeBuffers(ibis::table::bufferList& buf,
 			     ibis::table::typeList& typ) {
     LOGGER(ibis::gVerbose > 3)
-	<< "bord::freeBuffers to free buf[" << buf.size() << "] and typ["
+	<< "table::freeBuffers to free buf[" << buf.size() << "] and typ["
 	<< typ.size() << "]";
     const size_t nbt = (buf.size() <= typ.size() ? buf.size() : typ.size());
     LOGGER((nbt < buf.size() || nbt < typ.size()) && ibis::gVerbose > 1)
-	<< "Warning -- bord::freeBuffers expects buf[" << buf.size()
+	<< "Warning -- freeBuffers expects buf[" << buf.size()
 	<< "] and typ["	<< typ.size()
 	<< "] to be the same size, but they are not";
 
@@ -1013,7 +1013,7 @@ void ibis::bord::freeBuffers(ibis::bord::bufferList& buf,
 	    switch (typ[j]) {
 	    default:
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- ibis::bord::freeBuffers cann't free "
+		    << "Warning -- table::freeBuffers cann't free "
 		    << buf[j] << " of type " << ibis::TYPESTRING[(int)typ[j]];
 		break;
 	    case ibis::OID:
@@ -1058,7 +1058,7 @@ void ibis::bord::freeBuffers(ibis::bord::bufferList& buf,
     }
     buf.clear();
     typ.clear();
-} // ibis::bord::freeBuffers
+} // ibis::table::freeBuffers
 
 /// Constructor.  This object can only store upto 4 billion rows because it
 /// uses a 32-bit unsigned integer to store the number of rows.
@@ -1068,7 +1068,7 @@ void ibis::bord::freeBuffers(ibis::bord::bufferList& buf,
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList &cn,
 		       const ibis::table::typeList   &ct,
-		       ibis::bord::bufferList        &buf,
+		       ibis::table::bufferList        &buf,
 		       const ibis::table::stringList *cdesc)
     : ibis::part("in-core") {
     m_name = ibis::util::strnewdup(tn);
@@ -1642,7 +1642,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
     std::vector<uint32_t> bad;
     // buf simply collects the pointers, not responsible for freeing them
-    ibis::bord::bufferList buf;
+    ibis::table::bufferList buf;
     const uint32_t nc = sel.size();
     buf.reserve(sel.size());
     for (uint32_t i = 0; i < sel.size(); ++ i) {
@@ -1667,8 +1667,8 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	if (ibis::gVerbose >= 0) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- bord::part::groupby found " << bad.size()
-			<< " unknown name" << (bad.size()>1?"s":"")
-			<< " in \"";
+		 << " unknown name" << (bad.size()>1?"s":"")
+		 << " in \"";
 	    sel.print(lg());
 	    lg() << "\", cannot perform groupby operation";
 	}
@@ -1692,7 +1692,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	    lg() << "Warning -- ibis::bord::part::groupby(";
 	    sel.print(lg());
 	    lg() << ") produced no answer on a table with nRows = "
-			<< nEvents;
+		 << nEvents;
 	}
 	return 0;
     }
@@ -1704,11 +1704,11 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
     // prepare the types and values for the new table
     std::vector<std::string> nms(nc), des(nc);
-    std::vector<const char*> nmc(nc), dec(nc);
+    ibis::table::stringList nmc(nc), dec(nc);
     ibis::table::typeList tps(nc);
     buf.resize(nc);
     ibis::util::guard gbuf
-	= ibis::util::makeGuard(ibis::bord::freeBuffers, buf, tps);
+	= ibis::util::makeGuard(ibis::table::freeBuffers, buf, tps);
     uint32_t jbdl = 0;
     bool countstar = false;
     for (uint32_t i = 0; i < nc; ++ i) {
@@ -2403,13 +2403,13 @@ ibis::bord::part::evaluateTerms(const ibis::selectClause& sel,
     long ierr;
     ibis::bitvector msk;
     msk.set(1, nEvents);
-    ibis::bord::bufferList   buf(sel.size(), 0);
+    ibis::table::bufferList  buf(sel.size(), 0);
     ibis::table::typeList    ct(sel.size(), ibis::UNKNOWN_TYPE);
     ibis::table::stringList  cn(sel.size());
     ibis::table::stringList  cd(sel.size());
     std::vector<std::string> cdesc(sel.size());
     ibis::util::guard gbuf =
-	ibis::util::makeGuard(ibis::bord::freeBuffers, buf, ct);
+	ibis::util::makeGuard(ibis::table::freeBuffers, buf, ct);
     for (uint32_t j = 0; j < sel.size(); ++ j) {
 	const ibis::math::term* t = sel[j];
 

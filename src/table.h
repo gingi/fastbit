@@ -107,9 +107,13 @@ public:
     /// A list of strings.
     /// @note The pointers are expected to point to names stored internally.
     /// The caller should not attempt to free these pointers.
-    typedef std::vector<const char*> stringList;
+    typedef ibis::array_t<const char*> stringList;
     /// A list of data types.
-    typedef std::vector<ibis::TYPE_T> typeList;
+    typedef ibis::array_t<ibis::TYPE_T> typeList;
+    /// A list to hold the in-memory buffers.  The void* is either
+    /// ibis::array_t* or std::vector<std::string> depending on the
+    /// underlying data type.  Typically used together with typeList.
+    typedef ibis::array_t<void *> bufferList;
     /// An associative array of names and types.
     typedef std::map<const char*, ibis::TYPE_T, ibis::lessi> namesTypes;
 
@@ -364,6 +368,10 @@ public:
     /// Parse a string into a set of names.  Some bytes may be turned into
     /// 0 to mark the end of names or functions.
     static void parseNames(char* in, stringList& out);
+
+    static void* allocateBuffer(ibis::TYPE_T, size_t);
+    static void freeBuffer(void* buffer, ibis::TYPE_T type);
+    static void freeBuffers(bufferList&, typeList&);
 
 protected:
 

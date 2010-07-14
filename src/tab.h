@@ -18,6 +18,7 @@
 */
 
 #include "table.h"	// ibis::table
+#include "array_t.h"	// ibis::array_t
 #include <iostream>
 
 namespace ibis {

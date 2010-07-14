@@ -1065,6 +1065,13 @@ namespace ibis {
 	/// @code
 	/// ibis::util::guard myguard = ibis::util::makeGuard...;
 	/// @endcode
+	///
+	/// @note The parameters passed to the function that does the
+	/// actual clean up jobs are taken as they are at the construction
+	/// time.  If such parameters are modified, the caller needs to
+	/// either create the guard variable after the parameters take on
+	/// their final values, or dismiss the old gard and create another
+	/// one.
 	typedef const guardBase& guard;
 
 	/// A concrete class for cleanup jobs that take a function without

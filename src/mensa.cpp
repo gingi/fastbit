@@ -48,16 +48,16 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
 	lg() << "ibis::mensa -- constructed table "
-		    << name_ << " (" << desc_ << ") from ";
+	     << name_ << " (" << desc_ << ") from ";
 	if (dir != 0 && *dir != 0)
 	    lg() << "directory " << dir;
 	else
 	    lg() << "RC file entries";
 	lg() << ".  It consists of " << parts.size() << " partition"
-		  << (parts.size()>1 ? "s" : "") << " with "
-		  << naty.size() << " column"
-		  << (naty.size()>1 ? "s" : "") << " and "
-		  << nrows << " row" << (nrows>1 ? "s" : "");
+	     << (parts.size()>1 ? "s" : "") << " with "
+	     << naty.size() << " column"
+	     << (naty.size()>1 ? "s" : "") << " and "
+	     << nrows << " row" << (nrows>1 ? "s" : "");
     }
 } // constructor with one directory as argument
 
@@ -97,7 +97,7 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
 	lg() << "ibis::mensa -- constructed table "
-		    << name_ << " (" << desc_ << ") from ";
+	     << name_ << " (" << desc_ << ") from ";
 	if (dir1 != 0 && *dir1 != 0) {
 	    if (dir2 != 0 && *dir2 != 0)
 		lg() << "directories " << dir1 << " + " << dir2;
@@ -108,10 +108,10 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
 	    lg() << "RC file entries";
 	}
 	lg() << ".  It consists of " << parts.size() << " partition"
-		    << (parts.size()>1 ? "s" : "") << " with "
-		    << naty.size() << " column"
-		    << (naty.size()>1 ? "s" : "") << " and "
-		    << nrows << "row" << (nrows>1 ? "s" : "");
+	     << (parts.size()>1 ? "s" : "") << " with "
+	     << naty.size() << " column"
+	     << (naty.size()>1 ? "s" : "") << " and "
+	     << nrows << "row" << (nrows>1 ? "s" : "");
     }
 } // constructor with two directories as arguments
 
@@ -3731,11 +3731,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     // produce a list of names, types, and buffers to hold the initial selection
     std::vector<std::string> nls;
     ibis::table::typeList    tls;
-    ibis::bord::bufferList   buff;
+    ibis::table::bufferList  buff;
     std::vector<uint32_t>    tmstouse;
     uint32_t                 nplain = 0;
-    ibis::util::guard        gbuff
-	= ibis::util::makeGuard(ibis::bord::freeBuffers, buff, tls);
     if (tms.size() > 0) { // sort the names of variables to compute
 	std::set<const char*, ibis::lessi> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
@@ -3780,6 +3778,8 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		 << ")";
     }
 
+    ibis::util::guard gbuff
+	= ibis::util::makeGuard(ibis::table::freeBuffers, buff, tls);
     uint32_t nh = 0;
     // main loop through each data partition, fill the initial selection
     for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();
@@ -4088,8 +4088,8 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
 	else if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::computeHits failed to evaluate \""
-			<< cond << "\" on data partition " << (*it)->name()
-			<< ", query::evaluate returned " << ierr;
+		 << cond << "\" on data partition " << (*it)->name()
+		 << ", query::evaluate returned " << ierr;
 	}
     }
     return nhits;
@@ -4119,8 +4119,8 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
 	else if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::computeHits failed to evaluate \""
-			<< *cond << "\" on data partition " << (*it)->name()
-			<< ", query::evaluate returned " << ierr;
+		 << *cond << "\" on data partition " << (*it)->name()
+		 << ", query::evaluate returned " << ierr;
 	}
     }
     return nhits;

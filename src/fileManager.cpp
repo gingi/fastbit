@@ -1625,7 +1625,7 @@ template class ibis::fileManager::buffer<uint64_t>;
 /// Constructor.  Allocate no real storage.
 ibis::fileManager::storage::storage()
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
-    LOGGER(ibis::gVerbose > 10)
+    LOGGER(ibis::gVerbose > 8)
 	<< "fileManager::storage(" << static_cast<void*>(this) << ", "
 	<< static_cast<void*>(m_begin) << ") initialization completed";
 }
@@ -1684,7 +1684,7 @@ ibis::fileManager::storage::storage(size_t n)
 	    oss << "(" << static_cast<void*>(this) << ", "
 		<< static_cast<void*>(m_begin) << ")";
 	    evt += oss.str();
-	    LOGGER(ibis::gVerbose > 10)
+	    LOGGER(ibis::gVerbose > 8)
 		<< evt << " initialization completed";
 	}
 	ibis::fileManager::increaseUse(n, evt.c_str());
@@ -1783,7 +1783,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 	    oss << "(" << static_cast<void*>(this) << ", "
 		<< static_cast<const void*>(m_begin) << ")";
 	    evt += oss.str();
-	    LOGGER(ibis::gVerbose > 10)
+	    LOGGER(ibis::gVerbose > 8)
 		<< evt << " initialization completed";
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
@@ -1846,7 +1846,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 	    oss << "(" << static_cast<void*>(this) << ", "
 		<< static_cast<void*>(m_begin) << ")";
 	    evt += oss.str();
-	    LOGGER(ibis::gVerbose > 10)
+	    LOGGER(ibis::gVerbose > 8)
 		<< evt << " initialization completed";
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
@@ -1904,7 +1904,7 @@ void ibis::fileManager::storage::clear() {
 	    oss << ", " << name;
 	oss << ")";
 	evt += oss.str();
-	LOGGER(ibis::gVerbose > 10)
+	LOGGER(ibis::gVerbose > 8)
 	    << evt << " ...";
     }
 
@@ -2101,6 +2101,30 @@ void ibis::fileManager::storage::write(const char* file) const {
     }
 } // ibis::fileManager::storage::write
 
+/// Record a new active reference to this object.
+void ibis::fileManager::storage::beginUse() {
+    ++ nref;
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "fileManager::storage(" << static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin)
+	<< ") increased nref to " << nref();
+#endif
+}
+
+/// Record the termination of an active reference.
+void ibis::fileManager::storage::endUse() {
+    -- nref;
+    ++ nacc;
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "fileManager::storage(" << static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin)
+	<< ") decreased nref to " << nref()
+	<< " (nacc = " << nacc << ')';
+#endif
+}
+
 ////////////////////////////////////////////////////////////////////////
 // member functions of fileManager::roFile (the read-only file)
 //
@@ -2117,12 +2141,25 @@ void ibis::fileManager::roFile::beginUse() {
     }
     lastUse = time(0);
     ++ nref;
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "fileManager::roFile(" << static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ", "
+	<< (name ? name : "") << ") increased nref to " << nref();
+#endif
 } // ibis::fileManager::roFile::beginUse
 
 /// Stop using a file.  Decrement the active reference count.
 void ibis::fileManager::roFile::endUse() {
     const uint32_t nr0 = -- nref; // number of current references
     ++ nacc; // number of past accesses
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "fileManager::roFile(" << static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ", "
+	<< (name ? name : "") << ") decreased nref to " << nref()
+	<< " (nacc = " << nacc << ')';
+#endif
 
     // relinquish the read lock
     if (name != 0) {
@@ -2151,7 +2188,7 @@ void ibis::fileManager::roFile::clear() {
 	    oss << ", " << name;
 	oss << ")";
 	evt += oss.str();
-	LOGGER(ibis::gVerbose > 10)
+	LOGGER(ibis::gVerbose > 8)
 	    << evt << " ...";
     }
 
@@ -2538,7 +2575,7 @@ void ibis::fileManager::roFile::doMap(const char *file, off_t b, off_t e,
 			<< file << ", " << b << ", " << e << ", "
 			<< (opt==0?"read-only":"read-write") << ')';
 		    evt += oss.str();
-		    LOGGER(ibis::gVerbose > 10)
+		    LOGGER(ibis::gVerbose > 8)
 			<< evt << " initialization completed";
 		}
 		ibis::fileManager::increaseUse(e-b, evt.c_str());
@@ -2641,7 +2678,7 @@ void ibis::fileManager::roFile::doMap(const char* file, off_t b, off_t e,
 		<< file << ", " << b << ", " << e << ", "
 		<< (opt==0?"read-only":"read-write") << ')';
 	    evt += oss.str();
-	    LOGGER(ibis::gVerbose > 10)
+	    LOGGER(ibis::gVerbose > 8)
 		<< evt << " initialization completed";
 	}
 	ibis::fileManager::increaseUse(fsize, evt.c_str());

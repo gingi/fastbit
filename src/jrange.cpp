@@ -3,7 +3,7 @@
 // Copyright 2010 the Regents of the University of California
 #include "jrange.h"
 #include "tab.h"	// ibis::tabula
-#include "bord.h"	// ibis::bord, ibis::bord::bufferList
+#include "bord.h"	// ibis::bord, ibis::table::bufferList
 #include "countQuery.h"	// ibis::countQuery
 #include "utilidor.h"	// ibis::util::sortMerge
 #include "fromClause.h"
@@ -90,8 +90,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 ibis::jRange::~jRange() {
     delete orderr_;
     delete orders_;
-    ibis::bord::freeBuffer(valr_, colr_.type());
-    ibis::bord::freeBuffer(vals_, cols_.type());
+    ibis::table::freeBuffer(valr_, colr_.type());
+    ibis::table::freeBuffer(vals_, cols_.type());
     delete frm_;
     delete sel_;
     LOGGER(ibis::gVerbose > 4)
@@ -578,14 +578,14 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
 	    ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList  rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
-    ibis::bord::bufferList rbuff(ircol.size(), 0);
-    ibis::util::guard      grbuff =
-	ibis::util::makeGuard(ibis::bord::freeBuffers, rbuff, rtypes);
-    ibis::table::typeList  stypes(iscol.size(), ibis::UNKNOWN_TYPE);
-    ibis::bord::bufferList sbuff(iscol.size(), 0);
-    ibis::util::guard      gsbuff =
-	ibis::util::makeGuard(ibis::bord::freeBuffers, sbuff, stypes);
+    ibis::table::typeList   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferList rbuff(ircol.size(), 0);
+    ibis::util::guard       grbuff =
+	ibis::util::makeGuard(ibis::table::freeBuffers, rbuff, rtypes);
+    ibis::table::typeList   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferList sbuff(iscol.size(), 0);
+    ibis::util::guard       gsbuff =
+	ibis::util::makeGuard(ibis::table::freeBuffers, sbuff, stypes);
     bool sane = true;
 
     // retrieve values from r_
@@ -917,10 +917,10 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 			 const std::string &desc,
 			 const ibis::array_t<T>& rjcol,
 			 const ibis::table::typeList& rtypes,
-			 const std::vector<void*>& rbuff,
+			 const ibis::table::bufferList& rbuff,
 			 const ibis::array_t<T>& sjcol,
 			 const ibis::table::typeList& stypes,
-			 const ibis::bord::bufferList& sbuff,
+			 const ibis::table::bufferList& sbuff,
 			 const ibis::table::stringList& tcname,
 			 const std::vector<uint32_t>& tcnpos) {
     if (nrows < 0 || nrows > (rjcol.size() * sjcol.size()) ||
@@ -937,10 +937,10 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 	(stypes.empty() && rtypes.empty()))
 	return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
-    ibis::bord::bufferList tbuff(tcname.size());
-    ibis::table::typeList  ttypes(tcname.size());
-    ibis::util::guard      gtbuff =
-	ibis::util::makeGuard(ibis::bord::freeBuffers, tbuff, ttypes);
+    ibis::table::bufferList tbuff(tcname.size());
+    ibis::table::typeList   ttypes(tcname.size());
+    ibis::util::guard       gtbuff =
+	ibis::util::makeGuard(ibis::table::freeBuffers, tbuff, ttypes);
     try {
 	// allocate enough space for the output table
 	for (size_t j = 0; j < tcname.size(); ++ j) {

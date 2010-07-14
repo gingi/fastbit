@@ -4,7 +4,6 @@
 #include "jnatural.h"	// ibis::jNatural
 #include "jrange.h"	// ibis::jRange
 #include "filter.h"	// ibis::filter
-#include "bord.h"	// ibis::bord, ibis::bord::bufferList
 #include "fromClause.h"	// ibis::fromClause
 #include "whereClause.h"// ibis::whereClause
 

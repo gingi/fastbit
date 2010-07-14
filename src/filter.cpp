@@ -226,11 +226,9 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     // produce a list of names, types, and buffers to hold the initial selection
     std::vector<std::string> nls;
     ibis::table::typeList    tls;
-    ibis::bord::bufferList   buff;
+    ibis::table::bufferList  buff;
     std::vector<uint32_t>    tmstouse;
     uint32_t                 nplain = 0;
-    ibis::util::guard        gbuff
-	= ibis::util::makeGuard(ibis::bord::freeBuffers, buff, tls);
     if (tms.size() > 0) { // sort the names of variables to compute
 	std::set<const char*, ibis::lessi> uniquenames;
 	for (uint32_t i = 0; i < tms.size(); ++ i) {
@@ -276,6 +274,8 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		 << ")";
     }
 
+    ibis::util::guard gbuff
+	= ibis::util::makeGuard(ibis::table::freeBuffers, buff, tls);
     uint32_t nh = 0;
     // main loop through each data partition, fill the initial selection
     for (ibis::partList::const_iterator it = mylist.begin();

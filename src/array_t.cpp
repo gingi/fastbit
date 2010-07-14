@@ -12,7 +12,9 @@
 #endif
 #include "array_t.h"
 #include "util.h"
+#include "table.h"	// ibis::TYPE_T
 
+#include <memory>	// std::auto_ptr
 #include <algorithm>	// std::sort
 #include <iomanip>	// std::setw
 #include <typeinfo>	// typeid
@@ -285,6 +287,14 @@ template<class T>
 ibis::array_t<T>& ibis::array_t<T>::operator=(const array_t<T>& rhs) {
     array_t<T> tmp(rhs); // make a shallow copy
     swap(tmp); // swap, let compiler clean up the old content
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "array_t<" << typeid(T).name() << ">::operator= copied ("
+	<< static_cast<const void*>(&rhs) << ", "
+	<< static_cast<const void*>(rhs.m_begin) << ") to ("
+	<< static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ")";
+#endif
     return *this;
 }
 
@@ -293,7 +303,14 @@ template<class T>
 void ibis::array_t<T>::copy(const array_t<T>& rhs) {
     array_t<T> tmp(rhs);
     swap(tmp);
-    // let compiler clean up the old content
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "array_t<" << typeid(T).name() << ">::copy copied ("
+	<< static_cast<const void*>(&rhs) << ", "
+	<< static_cast<const void*>(rhs.m_begin) << ") to ("
+	<< static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ")";
+#endif
 } // ibis::array_t<T>::copy
 
 /// The deep copy function.  It makes an in-memory copy of @c rhs.
@@ -316,6 +333,14 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 	    swap(tmp);
 	}
     }
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 10)
+	<< "array_t<" << typeid(T).name() << ">::deepCopy copied ("
+	<< static_cast<const void*>(&rhs) << ", "
+	<< static_cast<const void*>(rhs.m_begin) << ") to ("
+	<< static_cast<const void*>(this) << ", "
+	<< static_cast<const void*>(m_begin) << ")";
+#endif
 } // ibis::array_t<T>::deepCopy
 
 /// This function makes a copy of the current content if the content is
@@ -332,15 +357,23 @@ void ibis::array_t<T>::nosharing() {
 	(m_begin != (T*)actual->begin() || actual->inUse() > 1 ||
 	 actual->filename() != 0)) {
 	// follow copy-and-swap strategy
-	ibis::fileManager::storage *tmp =
-	    new ibis::fileManager::storage
-	    (reinterpret_cast<const char*>(m_begin),
-	     reinterpret_cast<const char*>(m_end));
+	std::auto_ptr<ibis::fileManager::storage>
+	    tmp(new ibis::fileManager::storage
+		(reinterpret_cast<const char*>(m_begin),
+		 reinterpret_cast<const char*>(m_end)));
+#if defined(DEBUG) || defined(_DEBUG)
+	LOGGER(ibis::gVerbose > 10)
+	    << "array_t<" << typeid(T).name() << ">::nosharing copied ("
+	    << static_cast<const void*>(this) << ", "
+	    << static_cast<const void*>(m_begin) << ") to ("
+	    << static_cast<const void*>(this) << ", "
+	    << static_cast<const void*>(tmp->begin()) << ")";
+#endif
 	tmp->beginUse();
 	m_begin = (T*)(tmp->begin());
 	m_end = (T*)(tmp->end());
 	actual->endUse();
-	actual = tmp;
+	actual = tmp.release();
     }
 } // ibis::array_t<T>::nosharing
 
@@ -1601,6 +1634,8 @@ template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint16_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint32_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<uint64_t>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::rid_t>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::TYPE_T>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<void*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<char*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<const char*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::array_t<ibis::rid_t>*>;
