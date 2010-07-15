@@ -1848,6 +1848,76 @@ void ibis::part::combineNames(ibis::table::namesTypes &metalist) const {
     }
 } // ibis::part::combineNames
 
+/// Return column names in a list.  The list contains raw pointers.  These
+/// pointers are valid as long as the part objects are present in memory.
+ibis::table::stringList ibis::part::columnNames() const {
+    ibis::table::stringList res(columns.size());
+    if (columns.empty()) return res;
+
+    if (colorder.empty()) {
+	res.clear();
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it) {
+	    res.push_back((*it).first);
+	}
+    }
+    else if (colorder.size() == columns.size()) {
+	for (uint32_t i = 0; i < columns.size(); ++ i)
+	    res[i] = colorder[i]->name();
+    }
+    else {
+	std::set<const char*, ibis::lessi> names;
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    names.insert((*it).first);
+	res.resize(colorder.size());
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
+	    res[i] = colorder[i]->name();
+	    names.erase(colorder[i]->name());
+	}
+	for (std::set<const char*, ibis::lessi>::const_iterator it =
+		 names.begin(); it != names.end(); ++ it) {
+	    res.push_back(*it);
+	}
+    }
+    return res;
+} // ibis::part::columnNames
+
+/// Return column types in a list.
+ibis::table::typeList ibis::part::columnTypes() const {
+    ibis::table::typeList res(columns.size());
+    if (columns.empty()) return res;
+
+    if (colorder.empty()) {
+	res.clear();
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it) {
+	    res.push_back((*it).second->type());
+	}
+    }
+    else if (colorder.size() == columns.size()) {
+	for (uint32_t i = 0; i < columns.size(); ++ i)
+	    res[i] = colorder[i]->type();
+    }
+    else {
+	std::set<const char*, ibis::lessi> names;
+	for (ibis::part::columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    names.insert((*it).first);
+	res.resize(colorder.size());
+	for (uint32_t i = 0; i < colorder.size(); ++ i) {
+	    res[i] = colorder[i]->type();
+	    names.erase(colorder[i]->name());
+	}
+	for (std::set<const char*, ibis::lessi>::const_iterator it =
+		 names.begin(); it != names.end(); ++ it) {
+	    ibis::part::columnList::const_iterator cit = columns.find(*it);
+	    res.push_back(cit->second->type());
+	}
+    }
+    return res;
+} // ibis::part::columnTypes
+
 /// Print the basic information to the specified output stream.
 void ibis::part::print(std::ostream &out) const {
     //    readLock lock(this, "print");

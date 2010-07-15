@@ -758,7 +758,7 @@ large-append-test: do-large-append
 	@if [ `fgrep ' committing 512000' $(TESTDIR)/append.log | wc -l` -lt 2 ]; then echo Did NOT pass $@..  Please look through $(TESTDIR)/append.log.; else echo Passed large append tests.; fi
 	@echo
 #
-large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem.rc
+large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc
 	@echo "starting $@ with 185 different combinations of indexing options"
 	@echo > $(TESTDIR)/large-sanity-check.log
 	@jcase=0; for e in $(ENCODINGS) ; do \
@@ -770,7 +770,7 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem.rc
 	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b -z >> $(TESTDIR)/large-sanity-check.log; \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
 	test_status=$$?; \
 	else \
 	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log; \
@@ -833,14 +833,20 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	done;
 	@echo
 # testing with enough rows to fill the disk cache
-check-sq1: $(THULAEXE) $(TESTDIR)/sq1
+check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
-$(TESTDIR)/sq1: setqgen$(EXEEXT)
-	@setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 >| $(TESTDIR)/check-sq1.log 2>&1
+$(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc
+	@setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
-check-sq2: $(THULAEXE) $(TESTDIR)/sq2
+check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
 $(TESTDIR)/sq: setqgen$(EXEEXT)
 	@setqgen$(EXEEXT) $(TESTDIR)/sq 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
@@ -872,13 +878,17 @@ $(TESTDIR)/append.rc: $(TESTDIR)
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/append.rc
 	@echo "useBackupDir=1" >> $(TESTDIR)/append.rc
 	@echo "preferMMapIndex=1" >> $(TESTDIR)/append.rc
-$(TESTDIR)/smallmem.rc: $(TESTDIR)
-#	@echo "fileManager.maxBytes=1.3GB" > $(TESTDIR)/smallmem.rc
-	@echo "fileManager.maxBytes=300MB" > $(TESTDIR)/smallmem.rc
-# the above configuration statement instructs ibis to limit the amount
-# of memory used to 300MB, which is not sufficient for many of the
-# operations such as index building.  However, it has been useful to
-# test the error handling functions to include this memory restriction.
+# the following three configuration files limits the memory cache to
+# specific sizes.  For problems that require a large amount of memory,
+# limiting the memory cache size cause different types of errors.  These
+# files allow us to trigger these errors and observe the response of the
+# FastBit software.
+$(TESTDIR)/smallmem1.rc: $(TESTDIR)
+	@echo "fileManager.maxBytes=100MB" > $(TESTDIR)/smallmem1.rc
+$(TESTDIR)/smallmem2.rc: $(TESTDIR)
+	@echo "fileManager.maxBytes=400MB" > $(TESTDIR)/smallmem2.rc
+$(TESTDIR)/smallmem3.rc: $(TESTDIR)
+	@echo "fileManager.maxBytes=1.6GB" > $(TESTDIR)/smallmem3.rc
 #
 #
 clean: clean-am

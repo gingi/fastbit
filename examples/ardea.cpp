@@ -35,6 +35,7 @@ ibis::tablex::appendRow for more information about NULL values.
 #endif
 #include "table.h"	// ibis::table
 #include "resource.h"	// ibis::gParameters
+#include "array_t.h"	// ibis::array_t
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
 

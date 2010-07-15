@@ -1,3 +1,18 @@
+2010-07-14 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, src/mensa.cpp, src/filter.cpp: need to dismiss the
+	scope guards after the buffers have been successfully transferred
+	to the new table objects (otherwise the new table objects returned
+	will contain invalid pointers)
+	* src/part.h, src/part.cpp: add functions columnNames and
+	columnTypes to output names and types in the order recorded in
+	colorder as suggested by Jan Steemann
+	* src/bord.cpp, src/mensa.cpp: redirect columnNames and
+	columnTypes to use ibis::part::columnNames and
+	ibis::part::column::columnTypes
+	* tests/setqgen.cpp: accept the fourth arguement as the name of a
+	configuration file (to control how much memory to use in test case
+	check-sq1 and therefore how long make more-check will run)
+
 2010-07-13 John Wu <John dot Wu at ACM dot org>
 	* src/table.h: change typeList and stringList to use array_t
 	instead of std::vector

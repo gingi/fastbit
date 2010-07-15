@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 	return -1;
     }
 
-    ibis::init(); // initialize the file manager
+    ibis::init(argc>4?argv[4]:(const char*)0); // initialize the file manager
     ibis::util::timer mytimer(*argv, 0);
     maxrow = atof(argv[2]);
     if (maxrow <= 0) { // determine the number of rows based on cache size

@@ -34,22 +34,11 @@ void ibis::bord::clear() {
 /// @note The pointers returned are pointing to names stored internally.
 /// The caller should not attempt to free these pointers.
 ibis::table::stringList ibis::bord::columnNames() const {
-    ibis::table::stringList res(mypart.nColumns());
-    for (uint32_t i = 0; i < mypart.nColumns(); ++ i) {
-	ibis::column* col = mypart.getColumn(i);
-	if (col != 0)
-	    res[i] = col->name();
-    }
-    return res;
+    return mypart.columnNames();
 } // ibis::bord::columnNames
 
 ibis::table::typeList ibis::bord::columnTypes() const {
-    ibis::table::typeList res(mypart.nColumns());
-    for (uint32_t i = 0; i < mypart.nColumns(); ++ i) {
-	ibis::column* col = mypart.getColumn(i);
-	res[i] = (col != 0 ? col->type() : ibis::UNKNOWN_TYPE);
-    }
-    return res;
+    return mypart.columnTypes();
 } // ibis::bord::columnTypes
 
 int64_t ibis::bord::getColumnAsBytes(const char *cn, char *vals) const {
@@ -1182,8 +1171,7 @@ void ibis::bord::part::dumpNames(std::ostream& out, const char* del) const {
 	}
 	for (std::set<const char*, ibis::lessi>::const_iterator it =
 		 names.begin(); it != names.end(); ++ it) {
-	    ibis::part::columnList::const_iterator cit = columns.find(*it);
-	    out << del << (*cit).first;
+	    out << del << *it;
 	}
     }
     out << std::endl;
@@ -1704,8 +1692,8 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 
     // prepare the types and values for the new table
     std::vector<std::string> nms(nc), des(nc);
-    ibis::table::stringList nmc(nc), dec(nc);
-    ibis::table::typeList tps(nc);
+    ibis::table::stringList  nmc(nc), dec(nc);
+    ibis::table::typeList    tps(nc);
     buf.resize(nc);
     ibis::util::guard gbuf
 	= ibis::util::makeGuard(ibis::table::freeBuffers, buf, tps);
@@ -1785,7 +1773,12 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	tps.push_back(ibis::UINT);
 	buf.push_back(cnts);
     }
-    return new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec);
+    std::auto_ptr<ibis::table>
+	brd(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec));
+    if (brd.get() != 0)
+	// buf has been successfully transferred to the new table object
+	gbuf.dismiss();
+    return brd.release();
 } // ibis::bord::part::groupby
 
 long ibis::bord::part::reorder(const ibis::table::stringList& cols) {

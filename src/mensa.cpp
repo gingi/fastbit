@@ -188,21 +188,33 @@ void ibis::mensa::clear() {
 	delete parts[j];
 } // ibis::mensa::clear
 
+/// Return the column names in a list.
+///
+/// @note this implementation only look at the first data partition in the
+/// list of data partitions.
+///
+/// @note the list of column names contains raw pointers to column names.
+/// If the underlying data partition is removed, these pointers will become
+/// invalid.
 ibis::table::stringList ibis::mensa::columnNames() const {
-    ibis::table::stringList res(naty.size());
-    uint32_t i = 0;
-    for (ibis::table::namesTypes::const_iterator it = naty.begin();
-	 it != naty.end(); ++ it, ++ i)
-	res[i] = (*it).first;
-    return res;
+    if (parts.empty()) {
+	ibis::table::stringList res;
+	return res;
+    }
+    else {
+	return parts.front()->columnNames();
+    }
 } // ibis::mensa::columnNames
+
+/// Return the column types in a list.
 ibis::table::typeList ibis::mensa::columnTypes() const {
-    ibis::table::typeList res(naty.size());
-    uint32_t i = 0;
-    for (ibis::table::namesTypes::const_iterator it = naty.begin();
-	 it != naty.end(); ++ it, ++ i)
-	res[i] = (*it).second;
-    return res;
+    if (parts.empty()) {
+	ibis::table::typeList res;
+	return res;
+    }
+    else {
+	return parts.front()->columnTypes();
+    }
 } // ibis::mensa::columnTypes
 
 void ibis::mensa::describe(std::ostream& out) const {
@@ -3778,6 +3790,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		 << ")";
     }
 
+    // create a guard after buff and tls has settled to their final sizes
     ibis::util::guard gbuff
 	= ibis::util::makeGuard(ibis::table::freeBuffers, buff, tls);
     uint32_t nh = 0;
@@ -4057,6 +4070,10 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     std::auto_ptr<ibis::bord>
 	brd1(new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr,
 			    &cdesc));
+    // dismiss the scope guard since the buff is now owned by the new table
+    // object
+    if (brd1.get() != 0)
+	gbuff.dismiss();
     if (nplain >= tms.size() || brd1.get() == 0)
 	return brd1.release();
 

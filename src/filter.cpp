@@ -274,6 +274,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		 << ")";
     }
 
+    // create the guard after buff and tls have got their correct sizes
     ibis::util::guard gbuff
 	= ibis::util::makeGuard(ibis::table::freeBuffers, buff, tls);
     uint32_t nh = 0;
@@ -501,6 +502,10 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr,
 			&cdesc));
+    // need to dismiss the guard after buff has been transfered to the new
+    // table object
+    if (brd1.get() != 0)
+	gbuff.dismiss();
     if (nplain >= tms.size() || brd1.get() == 0)
 	return brd1.release();
 

@@ -76,6 +76,8 @@ public:
     /// Return the list of meta tags as a single string.  The meta tags
     /// appears as 'name=value' pairs separated by comma (,).
     std::string metaTags()	const;
+    ibis::table::stringList columnNames() const;
+    ibis::table::typeList   columnTypes() const;
     inline column* getColumn(const char* name) const;
     inline column* getColumn(uint32_t ind) const;
 
@@ -1686,12 +1688,19 @@ inline ibis::column* ibis::part::getColumn(const char* prop) const {
     return ret;
 } // ibis::part::getColumn
 
-/// Returns the pointer to the ith column.
+/// Returns the pointer to the ith column.  If an external order has been
+/// established, that order is used, otherwise, the alphabetical order is
+/// used.
 inline ibis::column* ibis::part::getColumn(uint32_t ind) const {
     if (ind < columns.size()) {
-	ibis::part::columnList::const_iterator it = columns.begin();
-	while (ind > 0) {++it; --ind;}
-	return (*it).second;
+	if (colorder.size() == columns.size()) {
+	    return const_cast<ibis::column*>(colorder[ind]);
+	}
+	else {
+	    ibis::part::columnList::const_iterator it = columns.begin();
+	    for (; ind > 0; -- ind) ++ it;
+	    return (*it).second;
+	}
     }
     else {
 	return 0;
