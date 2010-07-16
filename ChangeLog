@@ -1,3 +1,11 @@
+2010-07-15 John Wu <John dot Wu at ACM dot org>
+	* tests/setqgen.cpp:151 compute ceiling of (krow/nrpd) instead of
+	floor to ensure the left over rows are written into their own
+	partition (not the previous data partition)
+	* tests/Makefile.am: update check-sq1 to allow up to 200 Warnings
+	(because of the small memory caches used to exercise the memory
+	management functions)
+
 2010-07-14 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp, src/mensa.cpp, src/filter.cpp: need to dismiss the
 	scope guards after the buffers have been successfully transferred

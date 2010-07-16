@@ -686,8 +686,8 @@ public:
     virtual ~cursor() {};
     virtual uint64_t nRows() const =0;
     virtual uint32_t nColumns() const =0;
-    virtual ibis::table::stringList columnNames() const =0;
     virtual ibis::table::typeList columnTypes() const =0;
+    virtual ibis::table::stringList columnNames() const =0;
     /// Make the next row of the data set available for retrieval.  Returns
     /// 0 if successful, returns a negative number to indicate error.
     virtual int fetch() =0;

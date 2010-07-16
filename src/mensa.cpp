@@ -188,6 +188,13 @@ void ibis::mensa::clear() {
 	delete parts[j];
 } // ibis::mensa::clear
 
+/// Number of columns.  It actually returns the number of columns of
+/// the first data partition.  This is consistent with other functions
+/// such as columnTypes and columnNames.
+uint32_t ibis::mensa::nColumns() const {
+    return (parts.empty()?0:parts.front()->nColumns());
+} // ibis::mensa::nColumns
+
 /// Return the column names in a list.
 ///
 /// @note this implementation only look at the first data partition in the
@@ -2073,17 +2080,17 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
     if (curPart >= t.parts.size()) return; // no data partition
     if (buffer.empty()) return;
 
-    // linearize the t.naty to buffer, build a mapping between column names
-    // and the position in the buffer
+    // use the 1st data partition for the names and types
     uint32_t j = 0;
     long unsigned row_width = 0;
-    for (ibis::table::namesTypes::const_iterator it = t.naty.begin();
-	 it != t.naty.end(); ++ it, ++ j) {
-	buffer[j].cname = (*it).first;
-	buffer[j].ctype = (*it).second;
+    const ibis::part& pt1 = *(t.parts.front());
+    for (j = 0; j < pt1.nColumns(); ++ j) {
+	const ibis::column col = *(pt1.getColumn(j));
 	buffer[j].cval = 0;
-	bufmap[(*it).first] = j;
-	switch ((*it).second) {
+	buffer[j].cname = col.name();
+	buffer[j].ctype = col.type();
+	bufmap[col.name()] = j;
+	switch (col.type()) {
 	case ibis::BYTE:
 	case ibis::UBYTE:
 	    ++ row_width; break;

@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 	    std::ostringstream oss;
 	    oss << argv[1] << FASTBIT_DIRSEP << str << std::hex
 		<< std::setprecision(ndigits) << std::setw(ndigits)
-		<< std::setfill('0') << krow / nrpd;
+		<< std::setfill('0') << (krow+nrpd-1) / nrpd;
 	    dir = oss.str();
 	}
 	else {

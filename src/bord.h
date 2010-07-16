@@ -432,7 +432,8 @@ inline ibis::table::cursor* ibis::bord::createCursor() const {
 /// Evaluate the arithmetic expressions in the select clause to produce a
 /// new table object.
 inline ibis::table*
-ibis::bord::evaluateTerms(const ibis::selectClause& sel, const char* desc) const {
+ibis::bord::evaluateTerms(const ibis::selectClause& sel,
+			  const char* desc) const {
     return mypart.evaluateTerms(sel, desc);
 } // ibis::bord::evaluateTerms
 

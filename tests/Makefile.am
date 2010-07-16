@@ -41,8 +41,10 @@ check: clean-tmp check-am
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis && $(MAKE) check-join
-more-check: check check-sq1 small-tests
-full-check: more-check check-sq2 large-tests
+more-check:
+	$(MAKE) check && $(MAKE) check-sq1 && $(MAKE) small-tests
+full-check:
+	$(MAKE) more-check && $(MAKE) check-sq2 && $(MAKE) large-tests
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -311,9 +313,9 @@ check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@if [ `fgrep 'doTest iteartion' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 $(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc
-	@setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
+	@./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
 check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
@@ -321,8 +323,8 @@ check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
-$(TESTDIR)/sq: setqgen$(EXEEXT)
-	@setqgen$(EXEEXT) $(TESTDIR)/sq 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
+$(TESTDIR)/sq2: setqgen$(EXEEXT)
+	@./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 $(TESTDIR):
 	@test -d $(TESTDIR) || mkdir -p $(TESTDIR)

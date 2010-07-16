@@ -7064,6 +7064,10 @@ int ibis::bord::column::restoreCategoriesAsStrings(const ibis::part& prt) {
     return nr;
 } // ibis::bord::column::restoreCategoriesAsStrings
 
+/// Constructor.  It retrieves the columns from the table object using that
+/// function ibis::part::getColumn(uint32_t), which preserves the order
+/// specified in the original table construction, but may leave the columns
+/// in an arbitrary order.
 ibis::bord::cursor::cursor(const ibis::bord &t)
     : buffer(t.nColumns()), tab(t), curRow(-1) {
     if (buffer.empty()) return;
@@ -7079,6 +7083,7 @@ ibis::bord::cursor::cursor(const ibis::bord &t)
     }
 } // ibis::bord::cursor::cursor
 
+/// Print the content of the current row.
 int ibis::bord::cursor::dump(std::ostream& out, const char* del) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows())
 	return -1;

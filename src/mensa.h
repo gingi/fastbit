@@ -34,10 +34,10 @@ public:
     virtual ~mensa() {clear();}
 
     virtual uint64_t nRows() const {return nrows;}
-    virtual uint32_t nColumns() const {return naty.size();}
+    virtual uint32_t nColumns() const;
 
-    virtual stringList columnNames() const;
     virtual typeList columnTypes() const;
+    virtual stringList columnNames() const;
     virtual int addPartition(const char* dir);
 
     virtual void describe(std::ostream&) const;
