@@ -472,6 +472,10 @@ uint32_t ibis::dictionary::insert(const char* str) {
     char *copy = ibis::util::strnewdup(str);
     buffer_.push_back(copy);
     raw_.push_back(copy);
+    if (key_.capacity() <= nk+1)
+	key_.reserve(nk+nk);
+    if (code_.capacity() <= nk+1)
+	code_.reserve(nk+nk);
     key_.resize(nk);
     code_.resize(nk);
     for (uint32_t j = nk-1; j > ind; -- j) {

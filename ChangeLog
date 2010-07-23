@@ -1,3 +1,12 @@
+2010-07-22 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.cpp:475 add code to double the size of key_ and
+	code_ to avoid array_t::resize incrementing the array sizes one
+	element at a time
+
+2010-07-21 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.h, src/bitvector.h: add keyword explicit to the
+	constructors that may be used as implicitly converters
+
 2010-07-15 John Wu <John dot Wu at ACM dot org>
 	* tests/setqgen.cpp:151 compute ceiling of (krow/nrpd) instead of
 	floor to ensure the left over rows are written into their own

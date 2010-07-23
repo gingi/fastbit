@@ -626,8 +626,7 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 	    try {
 		ierr = ibis::fileManager::instance().getFile(fnm, arr);
 		if (ierr == 0) {
-		    // arr is implicitly converted to a bitvector
-		    mask.copy(arr);
+		    mask.copy(ibis::bitvector(arr));
 		}
 		else {
 		    mask.set(1, sz);

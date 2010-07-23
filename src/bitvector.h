@@ -67,15 +67,14 @@ class FASTBIT_CXX_DLLSPEC ibis::bitvector {
 public:
     typedef uint32_t word_t;///< The basic unit of data storage.
 
-    // constructors of bitvector class
-    /// Default constructor.
-    bitvector();
     /// Destructor.
     ~bitvector() {clear();};
-    /// Shallow copy.
+    // constructors of bitvector class
+    bitvector();
     bitvector(const bitvector& bv);
-    bitvector(const array_t<word_t>& arr);
-    bitvector(const char* file); ///< Read the content of the named file.
+    explicit bitvector(const array_t<word_t>& arr);
+    explicit bitvector(const char* file);
+
     inline const bitvector& operator=(const bitvector& bv);
     inline bitvector& copy(const bitvector& bv);
     inline bitvector& swap(bitvector& bv);
@@ -155,8 +154,8 @@ public:
 	return (m_vec.size()*sizeof(word_t) + sizeof(bitvector));
     };
     /// Compute the number of bytes in the serialized version of this
-    /// bitvector object.  This would be the size of this bitvector object
-    /// on disk or in an array_t<word_t>.
+    /// bitvector object.  This would be the number of bytes this bitvector
+    /// needs on disk or in an array_t<word_t>.
     uint32_t getSerialSize() const throw() {
 	return (m_vec.size() + 1 + (active.nbits>0)) * sizeof(word_t);
     };

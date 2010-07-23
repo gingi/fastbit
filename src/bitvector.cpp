@@ -27,7 +27,7 @@ const ibis::bitvector::word_t ibis::bitvector::HEADER0 =
 const ibis::bitvector::word_t ibis::bitvector::HEADER1 =
 (3U << ibis::bitvector::SECONDBIT);
 
-///  Creates a new empty bitvector.
+/// Default constructor.  Creates a new empty bitvector.
 ibis::bitvector::bitvector() : nbits(0), nset(0), active(), m_vec() {
     LOGGER(ibis::gVerbose > 9)
 	<< "bitvector (" << static_cast<void*>(this)
@@ -46,7 +46,7 @@ ibis::bitvector::bitvector(const bitvector& bv)
 
 /// Construct a bitvector from an array.  Because the array copy
 /// constructor performs shallow copy, this bitvector is not using any new
-/// space.
+/// space for the underlying vector.
 ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
     : nbits(0), nset(0), m_vec(arr) {
     if (m_vec.size() > 1) { // non-trivial size

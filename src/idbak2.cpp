@@ -133,7 +133,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 	mname += ".msk";
 	int i = ibis::fileManager::instance().getFile(mname.c_str(), arr);
 	if (i == 0)
-	    mask.copy(arr); // convert arr to a bitvector
+	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
 	else
 	    mask.set(1, nev); // default mask
     }

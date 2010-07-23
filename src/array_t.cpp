@@ -1273,7 +1273,12 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
     }
 } // ibis::array_t<T>::truncate
 
-/// Change the size of the array so it has no less than @n elements.
+/// Change the size of the array so it has no less than @n elements.  If n
+/// is greater than its current capacity, it allocates exactly enough space
+/// for the new array.  If the user needs to perform a series of resize
+/// operations with progressively larger size, call function reserve to
+/// increase the underlying storage to avoid this function copying the data
+/// many times.
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {
     nosharing();

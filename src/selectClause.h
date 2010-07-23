@@ -75,10 +75,8 @@ namespace ibis {
 /// In the first case, the number reported is purely determined by the
 /// where clause.  However, in the second case, because the select clause
 /// also involves the column A, all of null values of A are excluded,
-/// therefore 'count(*)' reports the number of rows actually used to
-/// compute the average in function 'avg(A)'.  In other SQL
-/// implementations, the number of rows used to compute the average is
-/// reported through 'count(A)'.
+/// therefore 'count(*)' in the second example may be different from that
+/// of the first example.
 class ibis::selectClause {
 public:
     /// Parse a new string as a select clause.

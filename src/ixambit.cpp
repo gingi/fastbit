@@ -1547,7 +1547,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	mname += ".msk";
 	i = ibis::fileManager::instance().getFile(mname.c_str(), arr);
 	if (i == 0)
-	    mask.copy(arr); // convert arr to a bitvector
+	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
     }
 
     // need to do different things for different columns

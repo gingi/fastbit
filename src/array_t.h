@@ -42,7 +42,7 @@ public:
     array_t<T>(const std::vector<T>& rhs);
     array_t<T>(const array_t<T>& rhs, const size_t offset,
 	       const size_t nelm=0);
-    array_t<T>(ibis::fileManager::storage* rhs);
+    explicit array_t<T>(ibis::fileManager::storage* rhs);
     array_t<T>(ibis::fileManager::storage* rhs,
 	       const size_t start, const size_t end);
     array_t<T>(const int fdes, const off_t begin, const off_t end);

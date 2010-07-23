@@ -760,7 +760,7 @@ void ibis::bin::binning(const char* f) {
 	mname += ".msk";
 	int i = ibis::fileManager::instance().getFile(mname.c_str(), arr);
 	if (i == 0)
-	    mask.copy(arr); // convert arr to a bitvector
+	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
 	else
 	    mask.set(1, nrows); // default mask
     }
@@ -1572,7 +1572,7 @@ void ibis::bin::binningT(const char* f) {
 	mname += ".msk";
 	int i = ibis::fileManager::instance().getFile(mname.c_str(), arr);
 	if (i == 0)
-	    mask.copy(arr); // convert arr to a bitvector
+	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
 	else
 	    mask.set(1, nrows); // default mask
     }
