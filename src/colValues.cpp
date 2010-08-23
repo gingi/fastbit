@@ -536,10 +536,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
     }
 } // ibis::colDoubles::colDoubles
 
-/// Construct ibis::colStrings from an existing list of strings.  This
-/// function will take over the actual content of the strings and leave the
-/// incoming vals with empty strings.  Do NOT use vals after invoking this
-/// function.
+/// Construct ibis::colStrings from an existing list of strings.
 ibis::colStrings::colStrings(const ibis::column* c, void* vals)
     : colValues(c), array(0) {
     if (c == 0 || vals == 0) return;
@@ -548,7 +545,7 @@ ibis::colStrings::colStrings(const ibis::column* c, void* vals)
 	    static_cast<std::vector<std::string>*>(vals);
 	array = new std::vector<std::string>(arr->size());
 	for (uint32_t i = 0; i < arr->size(); ++ i)
-	    (*array)[i].swap((*arr)[i]);
+	    (*array)[i] = ((*arr)[i]);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)

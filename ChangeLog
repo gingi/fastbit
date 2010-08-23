@@ -1,3 +1,10 @@
+2010-08-23 John Wu <John dot Wu at ACM dot org>
+	* src/colValues.cpp:548 change the function swap to operator =,
+	using swap causes the new bundle to take over the existing string
+	values which destroys the apparently const object (void* helped us
+	in circumventing the const-correctness).  This addresses a problem
+	reported by Andreas Streichardt
+
 2010-07-22 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:475 add code to double the size of key_ and
 	code_ to avoid array_t::resize incrementing the array sizes one
@@ -452,7 +459,7 @@
 
 2010-04-05 John Wu <John.Wu at ACM.org>
 	* src/capi.cpp, src/capi.h: add function
-	fastbit_get_qualified_strings (at request of Joze Nazario)
+	fastbit_get_qualified_strings (at request of Jose Nazario)
 
 2010-03-31 John Wu <John.Wu at ACM.org>
 	* src/fileManager.cpp:963,964 the variable it should have been mit

@@ -685,12 +685,10 @@ void ibis::bundle1::sort() {
 
 	const ibis::selectClause::AGREGADO agr = comps.getAggregator(0);
 	if (agr != ibis::selectClause::NIL) {
-	    col->nosharing();
 	    col->reduce(*starts, agr);
 	}
     }
     else if (comps.getAggregator(0) == ibis::selectClause::NIL) {// no function
-	col->nosharing();
 	// sort according to the values
 	col->sort(0, nrow, this);
 	// determine the starting positions of the identical segments
@@ -709,7 +707,6 @@ void ibis::bundle1::sort() {
 	starts = new array_t<uint32_t>((uint32_t)2);
 	(*starts)[1] = nrow;
 	(*starts)[0] = 0;
-	col->nosharing();
 	col->reduce(*starts, comps.getAggregator(0));
     }
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
