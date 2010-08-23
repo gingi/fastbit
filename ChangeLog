@@ -4,9 +4,10 @@
 	values which destroys the apparently const object (void* helped us
 	in circumventing the const-correctness).  This addresses a problem
 	reported by Andreas Streichardt
-	* src/bitvector.cpp: address the problem pointed out by Peter
-	Tardif in the cases where this and rhs are not of the same size in
-	operator-
+
+2010-08-23 Peter Tardif <Peter.TARDIF@3ds.com>
+	* src/bitvector.cpp: address the problem in the cases where this
+	and rhs are not of the same size in operator-
 
 2010-07-22 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:475 add code to double the size of key_ and
