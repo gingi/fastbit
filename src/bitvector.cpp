@@ -1635,7 +1635,7 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 } // ibis::bitvector::operator-=
 
 /// The operands of the bitwise minus operation are not modified, instead a
-/// new bitvector object is gnerated.
+/// new bitvector object is generated.
 ///
 ///@sa ibis::bitvector::operator&
 ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
@@ -1652,9 +1652,10 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
 #endif
     ibis::bitvector *res = new ibis::bitvector;
     if (size() > rhs.size()) {
-	res->copy(rhs);
-	res->adjustSize(0, size());
-	*res -= *this;
+	bitvector tmp(rhs);
+	tmp.adjustSize(0, size());
+	res->copy(*this);
+	*res -= tmp;
 	return res;
     }
     else if (size() < rhs.size()) {
