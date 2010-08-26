@@ -557,7 +557,7 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 		    LOGGER(ibis::gVerbose > 2)
 			<< "Warning -- selectClause::verifyTerm can NOT find "
 			"a column named " << var.variableName()
-			<< "data partition " << part0.name();
+			<< " in data partition " << part0.name();
 		}
 	    }
 	}

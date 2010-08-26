@@ -474,18 +474,23 @@ int main(int argc, char** argv) {
 	      << " columns." << std::endl;
 
     // generate output file pointers
+    int ierr = 0;
     const char *dest = (argc>2 ? argv[2] : "tmp");
 #if defined(__CYGWIN__) || defined(linux) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
     mkdir(dest, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP);
-    chdir(dest);
+    ierr = chdir(dest);
 #elif defined(_WIN32)
     _mkdir(dest);
-    _chdir(dest);
+    ierr = _chdir(dest);
 #else
     mkdir(dest);
-    chdir(dest);
+    ierr = chdir(dest);
 #endif
-    int ierr = 0;
+    if (ierr != 0) {
+	std::cerr << *argv << ": failed to change to directory " << dest
+		  << std::endl;
+	return -6;
+    }
     for (unsigned i = 0; i < columns.size(); ++ i) {
 	columns[i].file = fopen(columns[i].name.c_str(), "wb");
 	if (columns[i].file == 0) {
@@ -503,7 +508,7 @@ int main(int argc, char** argv) {
 	for (unsigned i = 0; i < columns.size(); ++ i)
 	    if (columns[i].file != 0)
 		fclose(columns[i].file);
-	return -6;
+	return -7;
     }
 
     // reading the bulk of the data
@@ -550,7 +555,7 @@ int main(int argc, char** argv) {
 	if (fptr == 0) {
 	    std::cerr << *argv << " unable to open file -part.txt in "
 		      << dest << "\n" << std::endl;
-	    return -7;
+	    return -8;
 	}
 	std::string dname = argv[1]; // data set name
 	unsigned len = dname.rfind('/');

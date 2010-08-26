@@ -3813,6 +3813,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		<< "Waring -- " << mesg << " -- select clause (" << sel
 		<< ") contains variables that are not in data partition "
 		<< (*it)->name();
+	    ierr = -11;
 	    continue;
 	}
 	ierr = qq.setSelectClause(&tms);
@@ -3821,6 +3822,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		<< mesg << " -- failed to modify the select clause of "
 		<< "the countQuery object (" << qq.getWhereClause()
 		<< ") on data partition " << (*it)->name();
+	    ierr = -12;
 	    continue;
 	}
 
@@ -3829,6 +3831,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- query.setPartition(" << (*it)->name()
 		<< ") failed with error code " << ierr;
+	    ierr = -13;
 	    continue;
 	}
 
@@ -3837,6 +3840,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- failed to process query on data partition "
 		<< (*it)->name();
+	    ierr = -14;
 	    continue;
 	}
 
@@ -3852,6 +3856,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    LOGGER(ibis::gVerbose > 1)
 			<< "Warning -- " << mesg << " -- can not handle a "
 			"math::term of undefined type";
+		    ierr = -15;
 		}
 		else {
 		    if (tls[i] == ibis::UNKNOWN_TYPE)
@@ -3870,6 +3875,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    LOGGER(ibis::gVerbose > 1)
 			<< "Warning -- " << mesg << " -- \"" << tms.argName(itm)
 			<< "\" is not a column of partition " << (*it)->name();
+		    ierr = -16;
 		    continue;
 		}
 
@@ -4046,6 +4052,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    LOGGER(ibis::gVerbose > 1)
 			<< mesg << " -- unable to process column " << tms[itm]
 			<< " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
+		    ierr = -17;
 		    break;}
 		}
 	    }
@@ -4055,7 +4062,15 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 
     std::string tn = ibis::util::shortName(mesg);
     if (nh == 0) { // return an empty table of type tabula
-	return new ibis::tabula(tn.c_str(), mesg.c_str(), nh);
+	if (ierr >= 0) { // at least succeeded on the last data partition
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), nh);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to produce any result "
+		"due to error, last error code was " << ierr;
+	    return 0;
+	}
     }
     else if (tmstouse.empty()) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), nh, tms.termName(0));

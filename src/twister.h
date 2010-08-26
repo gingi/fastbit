@@ -6,10 +6,9 @@
 /**@file
  Pseudorandom number generators.
 
- MersenneTwister:
- A C++ class that use the similar interface as java.util.Random.  The
- basic algorithm is based on the Mersenne Twister by M. Matsumoto and
- T. Nishimura.
+ MersenneTwister: A C++ class that use the similar interface as
+ java.util.Random.  The basic algorithm is the Mersenne Twister by
+ M. Matsumoto and T. Nishimura <http://dx.doi.org/10.1145/272991.272995>.
 
  MersenneTwister also include a function called nextZipf to generate Zipf
  distributed random numbers (floats).
@@ -32,6 +31,9 @@ namespace ibis {
     class discreteZipf;		// discrete Zipf 1/x^a (a > 1)
     class discreteZipf1;	// 1/x
     class discreteZipf2;	// 1/x^2
+    class randomGaussian;	// continuous Gaussian
+    class randomPoisson;	// continuous Posson
+    class randomZipf;		// continuous Zipf
 };
 
 /// A functor to generate uniform random number in the range [0, 1).
@@ -40,7 +42,8 @@ public:
     virtual double operator()() = 0;
 };
 
-/// Mersenne Twister generates uniform random numbers efficiently.
+/// Mersenne Twister.  It generates uniform random numbers, which is
+/// further used in other random number generators.
 class ibis::MersenneTwister : public ibis::uniformRandomNumber {
 public:
     // two constructors -- the default constructor uses a seed based on
@@ -53,49 +56,10 @@ public:
     long nextLong() {return next();}
     float nextFloat() {return 2.3283064365386962890625e-10*next();}
     double nextDouble() {return 2.3283064365386962890625e-10*next();}
-    // return integers in the range of [0, r)
+    /// Return integers in the range of [0, r)
     unsigned next(unsigned r) {return static_cast<unsigned>(r*nextDouble());}
 
-    // return a random number with Poisson distribution
-    // f(x) = exp(-x)
-    double nextPoisson() {return -log(nextDouble());}
-
-    // return a random number with Zipf distribution
-    // f(x) = 1 / (1 + x)^2, x >= 0
-    double nextZipf() {return (1.0 / (1.0 - nextDouble()) - 1.0);}
-
-    // return a random number with Zipf distribution
-    // f(x) = {(a-1) \over (1 + x)^a}, a > 1 and x >= 0
-    double nextZipf(double a) {
-	if (a > 1.0)
-	    return (exp(-log(1-nextDouble())/(a-1)) - 1);
-	else
-	    return -1.0;
-    }
-
-    // returns random numbers in Gaussian distribution -- based on the
-    // Box-Mueller transformation
-    double nextGaussian() {
-	if (has_gaussian != 0) { /* has extra value from the previous run */
-	    has_gaussian = 0;
-	    return gaussian_extra;
-	}
-	else {
-	    double v1, v2, r, fac;
-	    do {
-		v1 = 4.656612873077392578125e-10*next() - 1.0;
-		v2 = 4.656612873077392578125e-10*next() - 1.0;
-		r = v1 * v1 + v2 * v2;
-	    } while (r >= 1.0);
-	    fac = sqrt(-2.0 * log((double) r)/r);
-	    gaussian_extra = v2 * fac;
-	    v1 *= fac;
-	    has_gaussian = 1;
-	    return v1;
-	}
-    }
-
-    // Initializing the array with a seed
+    /// Initializing the array with a seed
     void setSeed(unsigned seed) {
 	for (int i=0; i<624; i++) {
 	    mt[i] = seed & 0xffff0000;
@@ -104,10 +68,9 @@ public:
 	    seed = 69069 * seed + 1;
 	}
 	mti = 624;
-	has_gaussian = 0;
     }
 
-    // generate the next random integer in the range of 0-2^{32}-1
+    /// Generate the next random integer in the range of 0-(2^{32}-1).
     unsigned next() {
 	unsigned y;
 	if (mti >= 624) { /* generate 624 words at one time */
@@ -139,19 +102,83 @@ public:
 private:
     // all data members are private
     int mti;
-    int has_gaussian;
-    double gaussian_extra;
     unsigned mt[624]; /* the array for the state vector  */
 }; // class MersenneTwister
 
 // ********** the following random number generators need a uniformation
 // ********** random number generator as the input
 
+/// Continuous Poisson distribution.
+class ibis::randomPoisson {
+public:
+    /// Constructor.  Must be supplied with a uniform random number generator.
+    randomPoisson(uniformRandomNumber& ur) : urand(ur) {}
+    double operator()() {return next();}
+    double next() {return -log(urand());}
+
+private:
+    uniformRandomNumber& urand;
+}; // ibis::randomPoisson
+
+/// Continuous Gaussian distribution.  It uses the Box-Mueller
+/// transformation to convert a uniform random number into Gaussian
+/// distribution.
+class ibis::randomGaussian {
+public:
+    /// Constructor.  Must be supplied with a uniform random number generator.
+    randomGaussian(uniformRandomNumber& ur)
+	: urand(ur), has_extra(0), extra(0.0) {}
+    double operator()() {return next();}
+    double next() {
+	if (has_extra != 0) { /* has extra value from the previous run */
+	    has_extra = 0;
+	    return extra;
+	}
+	else { /* Box-Mueller transformation */
+	    double v1, v2, r, fac;
+	    do {
+		v1 = 2.0 * urand() - 1.0;
+		v2 = 2.0 * urand() - 1.0;
+		r = v1 * v1 + v2 * v2;
+	    } while (r >= 1.0);
+	    fac = sqrt(-2.0 * log((double) r)/r);
+	    extra = v2 * fac;
+	    has_extra = 1;
+	    v1 *= fac;
+	    return v1;
+	}
+    }
+
+private:
+    uniformRandomNumber& urand;
+    int has_extra;
+    double extra;
+}; // ibis::randomGaussian
+
+/// Continuous Zipf distribution.  The Zipf exponent must be no less than
+/// 1.
+class ibis::randomZipf {
+public:
+    /// Constructor.  Must be supplied with a uniform random number generator.
+    randomZipf(uniformRandomNumber& ur, double a=1) : urand(ur), alpha(a-1) {}
+    double operator()() {return next();}
+    double next() {
+	if (alpha > 0.0)
+	    return (exp(-log(1 - urand())/(alpha)) - 1);
+	else
+	    return (1.0 / (1.0 - urand()) - 1.0);
+    }
+
+private:
+    uniformRandomNumber& urand;
+    const double alpha; // Zipf exponent - 1
+}; // ibis::randomZipf
+
 /// Discrete random number with Poisson distribution exp(-x/lambda).
 /// Use the rejection-inversion algorithm of W. Hormann and G. Derflinger.
 class ibis::discretePoisson {
 public:
-    discretePoisson(ibis::uniformRandomNumber* ur,
+    discretePoisson(ibis::uniformRandomNumber& ur,
 		    const double lam=1.0, long m=0)
 	: min0(m), lambda(lam), urand(ur) {init();}
 
@@ -160,7 +187,7 @@ public:
 	long k;
 	double u, x;
 	while (true) {
-	    u = ym * (*urand)();
+	    u = ym * (urand)();
 	    x = - lambda * log(u * laminv);
 	    k = static_cast<long>(x + 0.5);
 	    if (k <= k0 && k-x <= xm)
@@ -174,7 +201,7 @@ private:
     // private member variables
     long min0, k0;
     double lambda, laminv, laminv2, xm, ym;
-    uniformRandomNumber* urand;
+    uniformRandomNumber& urand;
 
     // private functions
     void init() { // check input parameters and initialize three constants
@@ -191,14 +218,14 @@ private:
 /// Specialized version of the Poisson distribution exp(-x).
 class ibis::discretePoisson1 {
 public:
-    discretePoisson1(ibis::uniformRandomNumber* ur) : urand(ur) {init();}
+    discretePoisson1(ibis::uniformRandomNumber& ur) : urand(ur) {init();}
 
     long operator()() {return next();}
     long next() {
 	long k;
 	double u, x;
 	while (true) {
-	    u = ym * (*urand)();
+	    u = ym * (urand)();
 	    x = - log(-u);
 	    k = static_cast<long>(x + 0.5);
 	    if (k <= k0 && k-x <= xm)
@@ -213,7 +240,7 @@ private:
     // private member variables
     double xm, ym;
     long k0;
-    uniformRandomNumber* urand;
+    uniformRandomNumber& urand;
 
     // private functions
     void init() { // check input parameters and initialize three constants
@@ -223,60 +250,81 @@ private:
     }
 }; // class discretePoisson1
 
-/// Discrete Zipf distribution: p(k) is proportional to (v+k)^(-a) where a
-/// > 1, k >= 0.  It uses the rejection-inversion algorithm of W. Hormann
-/// and G. Derflinger.  The values generated are in the range of [0, imax]
-/// (inclusive, both ends are included).
+/// Discrete Zipf distribution.  The value returned follow the probability
+/// distribution (1+k)^(-a) where a >= 0, k >= 0.  For a > 1, it uses the
+/// rejection-inversion algorithm of W. Hormann and G. Derflinger.  For a
+/// between 0 and 1, it uses a simple rejection method.
 class ibis::discreteZipf {
 public:
-    discreteZipf(ibis::uniformRandomNumber* ur, double a=2.0,
-		 unsigned long v=1, unsigned long imax = ULONG_MAX) :
-	min0(v), max0(imax), alpha(a), urand(ur) {init();}
+    discreteZipf(ibis::uniformRandomNumber& ur, double a=2.0,
+		 unsigned long imax = ULONG_MAX)
+	: urand(ur), max0(imax), alpha(a) {init();}
 
-    // return a discrete random number in the range of [0, imax]
+    /// Return a discrete random number in the range of [0, imax].
     unsigned long operator()() {return next();}
     unsigned long next() {
-	while (true) {
-	    double ur = (*urand)();
-	    ur = hxm + ur * hx0;
-	    double x = Hinv(ur);
-	    unsigned long k = static_cast<unsigned long>(0.5+x);
-	    if (k - x <= ss)
-		return k;
-	    else if (ur >= H(0.5+k) - exp(-log(static_cast<double>
-					       (k+min0))*alpha))
-		return k;
+	if (alpha > 1.0) { // rejection-inversion
+	    while (true) {
+		double ur = (urand)();
+		ur = hxm + ur * hx0;
+		double x = Hinv(ur);
+		unsigned long k = static_cast<unsigned long>(0.5+x);
+		if (k - x <= ss)
+		    return k;
+		else if (ur >= H(0.5+k) - exp(-log(k+1.0)*alpha))
+		    return k;
+	    }
+	}
+	else { // simple rejection
+	    unsigned long k = ((long) (urand() * max0)) % max0;
+	    double freq = std::pow((1.0+k), -alpha);
+	    while (urand() >= freq) {
+		k = ((long) (urand() * max0)) % max0;
+		freq = std::pow((1.0+k), -alpha);
+	    }
+	    return k;
 	}
     } // next
 
 private:
     // private member variables
-    long unsigned min0, max0;
+    uniformRandomNumber& urand;
+    long unsigned max0;
     double alpha, alpha1, alphainv, hx0, hxm, ss;
-    uniformRandomNumber* urand;
 
     // private member function
-    double H(double x) {return (exp(alpha1*log(min0+x)) * alphainv);}
-    double Hinv(double x) {return exp(alphainv*log(alpha1*x)) - min0;}
+    double H(double x) {return (exp(alpha1*log(1.0+x)) * alphainv);}
+    double Hinv(double x) {return exp(alphainv*log(alpha1*x)) - 1.0;}
     void init() {
-	// enforce the condition that alpha > 1 and min0 >= 1
-	if (! (alpha > 1.0))
-	    alpha = 2.0;
-	if (min0 < 1)
-	    min0 = 1;
-	alpha1 = 1.0 - alpha;
-	alphainv = 1.0 / alpha1;
-	hxm = H(max0+0.5);
-	hx0 = H(0.5) - exp(log(static_cast<double>(min0))*(-alpha)) - hxm;
-	ss = 1 - Hinv(H(1.5)-exp(-alpha*log(static_cast<double>(min0)+1.0)));
+	// enforce the condition that alpha >= 0 and max0 > 1
+	if (max0 <= 1)
+	    max0 = 100;
+	if (! (alpha >= 0.0))
+	    alpha = 1.0;
+	if (alpha > 1.0) {
+	    // the rejection-inversion algorithm of W. Hormann and
+	    // G. Derflinger
+	    alpha1 = 1.0 - alpha;
+	    alphainv = 1.0 / alpha1;
+	    hxm = H(max0 + 0.5);
+	    hx0 = H(0.5) - 1.0 - hxm;
+	    ss = 1 - Hinv(H(1.5)-exp(-alpha*log(2.0)));
+	}
+	else { // use a simple rejection scheme
+	    alpha1 = 0.0;
+	    alphainv = 0.0;
+	    hxm = 0.0;
+	    hx0 = 0.0;
+	    ss  = 0.0;
+	}
     }
 }; // Zipf distribution
 
 /// A specialized version of the Zipf distribution f(x) = 1/(1+x)^2.
-/// Should be much faster than using discreteZipf(2,1,imax).
+/// Should be much faster than using discreteZipf(2,imax).
 class ibis::discreteZipf2 {
 public:
-    discreteZipf2(ibis::uniformRandomNumber* ur,
+    discreteZipf2(ibis::uniformRandomNumber& ur,
 		  unsigned long imax = ULONG_MAX) :
 	max0(imax), urand(ur) {init();}
 
@@ -284,7 +332,7 @@ public:
     unsigned long operator()() {return next();}
     unsigned long next() {
 	while (true) {
-	    double ur = (*urand)();
+	    double ur = (urand)();
 	    ur = hxm + ur * hx0;
 	    double x = Hinv(ur);
 	    unsigned long k = static_cast<unsigned long>(0.5+x);
@@ -299,7 +347,7 @@ private:
     // private member variables
     double hx0, hxm, ss;
     long unsigned max0;
-    uniformRandomNumber* urand;
+    uniformRandomNumber& urand;
 
     // private member function
     double H(double x) {return -1.0 / (1.0 + x);}
@@ -311,17 +359,18 @@ private:
     }
 }; // Zipf2 distribution
 
-/// A specialized case of the Zipf distribution f(x) = 1/(1+x).  The
-/// general case discrateZipf requires a > 1.
+/// A specialized case of the Zipf distribution f(x) = 1/(1+x).  This
+/// implementation was the result of earlier experimentation, it is not
+/// necessarily faster than the generic version.
 class ibis::discreteZipf1 {
 public:
-    discreteZipf1(ibis::uniformRandomNumber* ur, unsigned long imax = 100) :
+    discreteZipf1(ibis::uniformRandomNumber& ur, unsigned long imax = 100) :
 	card(imax+1), cpd(imax+1), urand(ur) {init();}
 
-    // return a discrete random number in the range of [0, imax]
+    /// Return a discrete random number in the range of [0, imax].
     unsigned long operator()() {return next();}
     unsigned long next() {
-	double ur = (*urand)();
+	double ur = (urand)();
 	if (ur <= cpd[0]) return 0;
 	// return the minimal i such that cdf[i] >= ur
 	unsigned long i, j, k;
@@ -347,7 +396,7 @@ private:
     // private member variables
     const unsigned long card;
     std::vector<double> cpd; // cumulative probability distribution
-    uniformRandomNumber* urand;
+    uniformRandomNumber& urand;
 
     // private member function
     void init() { // generates the cpd
