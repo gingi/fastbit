@@ -1,3 +1,7 @@
+2010-08-30 John Wu <John dot Wu at ACM dot org>
+	* src/twister.h: include header file cmath instead of math.h
+	* tests/Makefile.am: correct spelling of the word 'iteration'
+
 2010-08-26 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp, src/filter.cpp: return a nil pointer from
 	table::select and filter::filt if the select clause is incorrect

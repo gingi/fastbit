@@ -42,9 +42,9 @@ check: clean-tmp check-am
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis && $(MAKE) check-join
 more-check:
-	$(MAKE) check && $(MAKE) check-sq1 && $(MAKE) small-tests
+	$(MAKE) check && $(MAKE) small-tests && $(MAKE) check-sq1
 full-check:
-	$(MAKE) more-check && $(MAKE) check-sq2 && $(MAKE) large-tests
+	$(MAKE) more-check && $(MAKE) large-tests && $(MAKE) check-sq2
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -307,13 +307,14 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
-# testing with enough rows to fill the disk cache
+# testing with enough rows to fill the disk cache, completing this set of tests might take an hour on a typical machine with at least 4GB of memory.  More memory will typlically reduce the test time, but not significantly.  On machines with less than 2GB of memory, one may experience more warnings.
 check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `fgrep 'doTest iteartion' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@echo
 $(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
@@ -323,6 +324,7 @@ check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@echo
 $(TESTDIR)/sq2: setqgen$(EXEEXT)
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
