@@ -4,6 +4,8 @@
 	automatic argument conversion to produce the correct code instead
 	of template instantiation), to address a problem encountered by
 	Gunther Weber and Allen Sanderson on Macs
+	* src/util.h: add FASTBIT_CXX_DLLSPEC in front of the declaration
+	of ibis::util::readString to make it available to win/trydll.cpp
 
 2010-09-06 John Wu <John dot Wu at ACM dot org>
 	* win/Win.mak, win/MinGW.mak: add reference to dictionary.cpp

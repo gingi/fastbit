@@ -141,7 +141,7 @@ int ibis::util::makeDir(const char* dir) {
     return 0;
 } // ibis::util::makeDir
 
-/// Extract a string from the given buf, remove leading and trailing spaces
+/// Extract a string from the given buf.  Remove leading and trailing spaces
 /// and surrounding quotes.  Returns a copy of the string allocated with
 /// the @c new operator.
 char* ibis::util::getString(const char* buf) {

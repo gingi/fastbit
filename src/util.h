@@ -401,8 +401,7 @@ namespace ibis {
 	inline char* strnewdup(const char* s, const uint32_t n);
 	/// Remove trailing character 'tail' from str.
 	inline void removeTail(char* str, char tail);
-	/// Treat all bytes in buf as the string.
-	FASTBIT_CXX_DLLSPEC char* getString(const char* buf);
+	char* getString(const char* buf);
 	const char* getToken(char*& str, const char* tok_chrs);
 	int readInt(int64_t& val, const char *&str,
 		    const char* del=ibis::util::delimiters);
@@ -410,7 +409,8 @@ namespace ibis {
 		     const char* del=ibis::util::delimiters);
 	int readDouble(double& val, const char *&str,
 		       const char* del=ibis::util::delimiters);
-	int readString(std::string& str, const char*& buf, const char *delim=0);
+	FASTBIT_CXX_DLLSPEC int readString(std::string& str, const char*& buf,
+					   const char *delim=0);
 
 	/// Remove the content of named directory.  The directory itself is
 	/// removed unless the second argument is true.
