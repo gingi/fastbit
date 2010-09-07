@@ -1866,83 +1866,79 @@ void ibis::bitvector::read(const char * fn) {
 
 // write bitvector to file (contents of vector is not changed)
 void ibis::bitvector::write(const char * fn) const {
+    if (fn == 0 || *fn == 0) return;
+
     FILE *out = fopen(fn, "wb");
     if (out == 0) {
-	ibis::util::logMessage("Warning", "ibis::bitvector::write() Failed to "
-			       "open \"%s\" to write the bit vector ... %s",
-			       fn, (errno ? strerror(errno) :
-				    "no free stdio stream"));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- ibis::bitvector::write failed to open \""
+	    << fn << "\" to write the bit vector ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	throw "bitvector::write failed to open file";
     }
 
+    int ierr;
+    ibis::util::guard gout = ibis::util::makeGuard(fclose, out);
 #if defined(WAH_CHECK_SIZE)
     word_t nb = (nbits > 0 ? do_cnt() : nbits);
     if (nb != nbits) {
 	ibis::util::logger lg(4);
 	print(lg());
-	lg() << "Error ibis::bitvector::write() the value returned by "
-		    << "do_cnt() (" << nb << ") is different from nbits ("
-		    << nbits << ")\n" << "Reset nbits to " << nb;
+	lg() << "Warning -- bitvector::write failed to match the return value "
+	     << "of do_cnt (" << nb << ") with nbits (" << nbits << ").  "
+	     << "Reset nbits to " << nb;
     }
 #endif
-    word_t n = m_vec.size();
-    word_t j = fwrite((const void*)m_vec.begin(), sizeof(word_t),
-		      n, out);
-    if (j != n) {
-	ibis::util::logMessage("Warning", "ibis::bitvector::write only "
-			       "wrote %lu out of %lu words to %s",
-			       static_cast<long unsigned>(j),
-			       static_cast<long unsigned>(n), fn);
-	fclose(out);
+    ierr = fwrite((const void*)m_vec.begin(), sizeof(word_t), m_vec.size(),
+		  out);
+    if (ierr != (long)(m_vec.size())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write only wrote " << ierr
+	    << " out of " << m_vec.size() << " words to " << fn;
 	throw "bitvector::write failed to write all bytes";
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
 	tmp.nbits = active.nbits % MAXBITS;
-	ibis::util::logMessage("Warning", "ibis::bitvector::write detects "
-			       "larger than expected active.nbits (%lu, "
-			       "MAX=%lu), setting it to %lu",
-			       static_cast<long unsigned>(active.nbits),
-			       static_cast<long unsigned>(MAXBITS),
-			       static_cast<long unsigned>(tmp.nbits));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write detects larger than "
+	    << "expected active.nbits (" << active.nbits << ", MAX="
+	    << MAXBITS << "), setting it to " << tmp.nbits;
     }
     const word_t avmax = (1 << tmp.nbits) - 1;
     if (active.val > avmax) {
 	tmp.val &= avmax;
-	ibis::util::logMessage("Warning", "ibis::bitvector::write detects "
-			       "larger than expected active.val (0x%.8x, "
-			       "MAX=0x%.8x), setting it to 0x%.8x",
-			       active.val, avmax, tmp.val);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write detects larger than "
+	    << "expected active.val (" << active.val << ", MAX=" << avmax
+	    << "), setting it to " << tmp.val;
     }
     if (tmp.nbits > 0) {
-	fwrite((const void*)&(tmp.val), sizeof(word_t), 1, out);
+	ierr = fwrite((const void*)&(tmp.val), sizeof(word_t), 1, out);
+	LOGGER(ierr < 1 && ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write failed to write the active word ("
+	    << tmp.val << ") to " << fn;
     }
-    fwrite((const void*)&(tmp.nbits), sizeof(word_t), 1, out);
+    ierr = fwrite((const void*)&(tmp.nbits), sizeof(word_t), 1, out);
+    LOGGER(ierr < 1 && ibis::gVerbose > 0)
+	<< "Warning -- bitvector::write failed to write the number of bits "
+	"in the active word (" << tmp.nbits << ") to " << fn;
 #else
     if (active.nbits > 0) {
-	fwrite((const void*)&(active.val), sizeof(word_t), 1, out);
+	ierr = fwrite((const void*)&(active.val), sizeof(word_t), 1, out);
+	LOGGER(ierr < 1 && ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write failed to write the active word ("
+	    << active.val << ") to " << fn;
     }
-    fwrite((const void*)&(active.nbits), sizeof(word_t), 1, out);
+    ierr = fwrite((const void*)&(active.nbits), sizeof(word_t), 1, out);
+    LOGGER(ierr < 1 && ibis::gVerbose > 0)
+	<< "Warning -- bitvector::write failed to write the number of bits "
+	"in the active word (" << active.nbits << ") to " << fn;
 #endif
-
-    //     if (0 == fwrite((const void*)&nset, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Warning", "ibis::bitvector::write() fail to "
-    // 			       "write nset to %s", fn);
-    // 	fclose(out);
-    // 	throw "bitvector::write failed to write the size";
-    //     }
-
-    //     if (0 == fwrite((const void*)&nbits, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Warning", "ibis::bitvector::write() fail to "
-    // 			       "write nbits to %s", fn);
-    // 	fclose(out);
-    // 	throw "bitvector::write failed to write the cnt";
-    //     }
-    fflush(out);
-    fclose(out);
 } // ibis::bitvector::write
 
+// Write to an open file.
 void ibis::bitvector::write(int out) const {
     if (out < 0)
 	return;
@@ -1951,39 +1947,36 @@ void ibis::bitvector::write(int out) const {
     word_t nb = (nbits > 0 ? do_cnt() : nbits);
     if (nb != nbits) {
 	ibis::util::logger lg(4);
-	lg() << "Error ibis::bitvector::write() the value returned by "
-		    << "do_cnt() (" << nb << ") is different from nbits ("
-		    << nbits << ")\n" << "Reset nbits to " << nb;
+	lg() << "Warning -- bitvector::write failed to match the return value "
+	     << "of do_cnt(" << nb << ") with nbits (" << nbits
+	     << ").  Reset nbits to " << nb;
     }
 #endif
-    word_t n = sizeof(word_t) * m_vec.size();
-    word_t j = UnixWrite(out, (const void*)m_vec.begin(), n);
-    if (j != n) {
-	ibis::util::logMessage("Warning", "ibis::bitvector::write only "
-			       "wrote %lu out of %lu bytes",
-			       static_cast<long unsigned>(j),
-			       static_cast<long unsigned>(n));
+    long ierr;
+    const word_t n = sizeof(word_t) * m_vec.size();
+    ierr = UnixWrite(out, (const void*)m_vec.begin(), n);
+    if (ierr != (long) n) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write only wrote " << ierr << " out of "
+	    << n << " bytes to open file " << out;
 	throw "bitvector::write failed to write all bytes";
     }
-    int ierr;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     active_word tmp(active);
     if (active.nbits >= MAXBITS) {
 	tmp.nbits = active.nbits % MAXBITS;
-	ibis::util::logMessage("Warning", "ibis::bitvector::write detects "
-			       "larger than expected active.nbits (%lu, "
-			       "MAX=%lu), setting it to %lu",
-			       static_cast<long unsigned>(active.nbits),
-			       static_cast<long unsigned>(MAXBITS),
-			       static_cast<long unsigned>(tmp.nbits));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write detects a larger than expected "
+	    "active.nbits (" << active.nbits << ", MAX=" << MAXBITS
+	    << "), setting it to " << tmp.nbits;
     }
     const word_t avmax = (1 << tmp.nbits) - 1;
     if (active.val > avmax) {
 	tmp.val &= avmax;
-	ibis::util::logMessage("Warning", "ibis::bitvector::write detects "
-			       "larger than expected active.val (0x%.8x, "
-			       "MAX=0x%.8x), setting it to 0x%.8x",
-			       active.val, avmax, tmp.val);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bitvector::write detects a larger than expected "
+	    "active.val (" << active.val << ", MAX=" << avmax
+	    << "), setting it to " << tmp.val;
     }
     if (tmp.nbits > 0) {
 	ierr = UnixWrite(out, (const void*)&(tmp.val), sizeof(word_t));
@@ -2002,6 +1995,48 @@ void ibis::bitvector::write(int out) const {
     ierr = UnixWrite(out, (const void*)&(active.nbits), sizeof(word_t));
     LOGGER(ibis::gVerbose > 0 && ierr != (int)sizeof(word_t))
 	<< "Warning -- bitvector::write failed to write avtive.nbits";
+#endif
+
+#ifdef FASTBIT_WRITE_WAH_RUNS
+    // conditional code for writing run information
+    if (ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "\nrun information of bitvector " << this << "("
+	     << nset << ", " << nbits << ")\n";
+	for (size_t j = 0; j < m_vec.size(); ++ j) {
+	    if (j+1 < m_vec.size()) {
+		if (m_vec[j] > ALLONES) { // fill word
+		    lg() << "\t" << (m_vec[j] & MAXCNT) << ", ";
+		    if (m_vec[j+1] <= ALLONES) {
+			lg() << cnt_ones(m_vec[j+1]) << "\n";
+			++ j;
+		    }
+		    else {
+			lg() << "0\n";
+		    }
+		}
+		else if (m_vec[j] > 0) { // literal word
+		    lg() << "\t0, " << cnt_ones(m_vec[j]) << "\n";
+		}
+		else if (m_vec[j+1] <= ALLONES) {
+		    lg() << "\t1, " << cnt_ones(m_vec[j+1]) << "\n";
+		    ++ j;
+		}
+		else {
+		    lg() << "\t1, 0\n";
+		}
+	    }
+	    else if (m_vec[j] > ALLONES) { // last word is a fill word
+		lg() << "\t" << (m_vec[j] & MAXCNT) << ", 0\n";
+	    }
+	    else if (m_vec[j] > 0) {
+		lg() << "\t0, " << cnt_ones(m_vec[j]) << "\n";
+	    }
+	    else {
+		lg() << "\t1, 0\n";
+	    }
+	}
+    }
 #endif
 } // ibis::bitvector::write
 

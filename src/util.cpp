@@ -1129,22 +1129,16 @@ void ibis::util::int2string(std::string& str, unsigned val) {
     str = name;
 } // ibis::util::int2string
 
-/// Produce a string version of the integer value with the decimal digits
-/// grouped into 1000s.  The type T must be an integer.
-template <typename T>
-std::string ibis::util::groupby1000(T val) {
+/// Produce a string version of the unsigned integer value with the decimal
+/// digits grouped into 1000s.
+std::string ibis::util::groupby1000(uint64_t val) {
     const char separator = std::use_facet< std::numpunct<char> >
 	(std::cout.getloc()).thousands_sep();
     std::string res;
-    bool neg = false;
-    if (val < 0) {
-	neg = true;
-	val = - val;
-    }
     // loop to extract the decimal digits
     unsigned char ott = 0;
     while (res.empty() || val > 0) {
-	T quo = val / 10;
+	uint64_t quo = val / 10U;
 	res += (unsigned char)(val - quo * 10) + '0';
 	val = quo;
 	++ ott;
@@ -1153,9 +1147,6 @@ std::string ibis::util::groupby1000(T val) {
 	    ott = 0;
 	}
     }
-
-    if (neg) // the negative sign
-	res += '-';
 
     // reverse the string
     const size_t jmax = res.size() / 2;
@@ -1167,11 +1158,6 @@ std::string ibis::util::groupby1000(T val) {
     }
     return res;
 } // ibis::util::groupby1000
-// explicit template initialization
-template std::string ibis::util::groupby1000(uint64_t);
-template std::string ibis::util::groupby1000(int64_t);
-template std::string ibis::util::groupby1000(uint32_t);
-template std::string ibis::util::groupby1000(int32_t);
 
 
 /// It attempts to retrieve the user name from the system and store it

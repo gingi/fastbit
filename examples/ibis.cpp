@@ -181,7 +181,7 @@ namespace ibis {
 
 // printout the usage string
 static void usage(const char* name) {
-    std::cout << "List of options for " << name
+    std::cout << "\nList of options for " << name
 	      << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
 	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
 	"\n\t[-c[onf] conf_file]"

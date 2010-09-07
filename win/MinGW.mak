@@ -21,6 +21,7 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  colValues.o \
  column.o \
  countQuery.o \
+ dictionary.o \
  fileManager.o \
  ibin.o \
  jnatural.o \
@@ -234,6 +235,10 @@ countQuery.o: ../src/countQuery.cpp ../src/countQuery.h ../src/part.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/whereClause.h ../src/selectClause.h \
   ../src/query.h
+	$(CXX) $(CCFLAGS) -c ../src/dictionary.cpp
+dictionary.o: ../src/dictionary.cpp ../src/dictionary.h ../src/util.h \
+  ../src/const.h ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
+  ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c ../src/countQuery.cpp
 fileManager.o: ../src/fileManager.cpp ../src/fileManager.h ../src/util.h \
   ../src/const.h  ../src/resource.h \

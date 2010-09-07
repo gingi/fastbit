@@ -3083,8 +3083,8 @@ ibis::qIntHod::qIntHod(const char* col, const char* nums)
 		lg() << *str;
 		++ str;
 	    }
-	    lg() << "\" into an integer, ibis::util::readInt retruned "
-			<< ierr;
+	    lg() << "\" into an integer, ibis::util::readInt returned "
+		 << ierr;
 	}
     }
     values.deduplicate();
@@ -3217,8 +3217,8 @@ ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
 		lg() << *str;
 		++ str;
 	    }
-	    lg() << "\" into an integer, ibis::util::readUInt retruned "
-			<< ierr;
+	    lg() << "\" into an integer, ibis::util::readUInt returned "
+		 << ierr;
 	}
     }
     values.deduplicate();

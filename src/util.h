@@ -452,7 +452,7 @@ namespace ibis {
 	void int2string(std::string &str, unsigned v1,
 			unsigned v2, unsigned v3);
 	void int2string(std::string &str, const std::vector<unsigned>& val);
-	template <typename T> std::string groupby1000(T);
+	std::string groupby1000(uint64_t);
 	///@}
 
 	/// Functions to handle manipulation of floating-point numbers.
@@ -592,7 +592,7 @@ namespace ibis {
 	    logger(int blanks=0);
 	    /// Destructor.
 	    ~logger();
-	    /// Retrun an output stream for caller to build a message.
+	    /// Return an output stream for caller to build a message.
 	    std::ostream& operator()(void) {return mybuffer;}
 
 	protected:
