@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="java"
 	ProjectGUID="{C5EE61F0-0EF6-431A-90C1-3F6FF3F5B614}"
+	RootNamespace="java"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -45,13 +46,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk1.6.0_10\include;C:\Tools\Java\jdk1.6.0_10\include\win32;."
-				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;_DEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORT;JAVA_EXPORT"
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk\include;C:\Tools\Java\jdk\include\win32;."
+				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;_DEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				WarningLevel="2"
+				WarningLevel="1"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -71,86 +72,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/fastbitjni.pdb"
 				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/fastbitjni.lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="dll\Release"
-			IntermediateDirectory="dll\Release"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			BuildLogFile="$(IntDir)\BuildJava.htm"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk1.6.0_10\include;C:\Tools\Java\jdk1.6.0_10\include\win32;."
-				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORT;JAVA_EXPORT"
-				RuntimeLibrary="0"
-				UsePrecompiledHeader="0"
-				WarningLevel="1"
-				DebugInformationFormat="0"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="$(OutDir)/fastbitjni.dll"
-				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/fastbitjni.lib"
@@ -236,6 +157,86 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/fastbitjni.lib"
 				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="dll\Release"
+			IntermediateDirectory="dll\Release"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			BuildLogFile="$(IntDir)\BuildJava.htm"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				WholeProgramOptimization="true"
+				AdditionalIncludeDirectories="..\src;C:\Tools\pthread\include;C:\Tools\Java\jdk\include;C:\Tools\Java\jdk\include\win32;."
+				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;WINVER=0x0600;NDEBUG;_WINDOWS;CXX_USE_DLL;DLL_EXPORT"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="0"
+				DebugInformationFormat="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
+				OutputFile="$(OutDir)/fastbitjni.dll"
+				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(OutDir)/fastbitjni.lib"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -379,10 +380,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.cpp"
 				>
 			</File>
@@ -392,6 +389,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.cpp"
 				>
 			</File>
 			<File
@@ -527,10 +528,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\mensa.cpp"
 				>
 			</File>
@@ -576,6 +573,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.cpp"
 				>
 			</File>
 			<File
@@ -661,10 +662,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.h"
 				>
 			</File>
@@ -678,6 +675,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.h"
 				>
 			</File>
 			<File
@@ -729,10 +730,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\jnatural.h"
 				>
 			</File>
@@ -762,6 +759,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.h"
 				>
 			</File>
 			<File

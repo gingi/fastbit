@@ -65,7 +65,7 @@
 				ObjectFile="Debug/"
 				ProgramDataBaseFileName="Debug/"
 				BrowseInformation="0"
-				WarningLevel="2"
+				WarningLevel="1"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -266,7 +266,7 @@
 				ObjectFile="Release/"
 				ProgramDataBaseFileName="Release/"
 				BrowseInformation="0"
-				WarningLevel="1"
+				WarningLevel="0"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

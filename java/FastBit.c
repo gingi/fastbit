@@ -3,37 +3,37 @@
 /**
    @File FastBit.c  Implements the Java Native Interface for FastBit.  This
    implementation is based on the C API defined in capi.h.
- */
-/*
-  modified by li.zhengbing, 2010-05-13 In JNI, if using
-  GetStringUTFChars/GetXXXArrayElements, you must use
-  ReleaseStringUTFChars/ReleaseXXXArrayElements to release resource.  This
-  modification adds ReleaseStringUTFChars/ReleaseXXXArrayElements.
 */
+/*
+ * modified by li.zhengbing, 2010-05-13 In JNI, if using
+ * GetStringUTFChars/GetXXXArrayElements, you must use
+ * ReleaseStringUTFChars/ReleaseXXXArrayElements to release resource.
+ * This modification adds ReleaseStringUTFChars/ReleaseXXXArrayElements. 
+ */
 JNIEXPORT void JNICALL Java_gov_lbl_fastbit_FastBit_init
-(JNIEnv *env, jobject jo, jstring jrcfile) {
-    jboolean iscopy;
-    const char *crcfile;
+(JNIEnv * env, jobject jo, jstring jrcfile) {
+    jboolean        iscopy;
+    const char     *crcfile;
     if (jrcfile != NULL)
 	crcfile = (*env)->GetStringUTFChars(env, jrcfile, &iscopy);
     else
 	crcfile = NULL;
     fastbit_init(crcfile);
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jrcfile, crcfile);
-    //end
+    // end
 } // Java_gov_lbl_fastbit_FastBit_init
 
 JNIEXPORT void JNICALL Java_gov_lbl_fastbit_FastBit_cleanup
-(JNIEnv *env, jobject jo) {
+(JNIEnv * env, jobject jo) {
     fastbit_cleanup();
-} // Java_gov_lbl_fastbit_FastBit_cleanup
+}				// Java_gov_lbl_fastbit_FastBit_cleanup
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1rows
-(JNIEnv *env, jobject jo, jstring jdir) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
+(JNIEnv * env, jobject jo, jstring jdir) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
     if (jdir == 0) {
 	ierr = -1;
 	return ierr;
@@ -41,17 +41,17 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1rows
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_rows_in_partition(cdir);
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
     // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_number_1of_1rows
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1columns
-(JNIEnv *env, jobject jo, jstring jdir) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
+(JNIEnv * env, jobject jo, jstring jdir) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
     if (jdir == 0) {
 	ierr = -1;
 	return ierr;
@@ -59,18 +59,18 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1columns
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_columns_in_partition(cdir);
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    //end
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_number_1of_1columns
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1indexes
-(JNIEnv *env, jobject jo, jstring jdir, jstring jopt) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
-    const char *copt;
+(JNIEnv * env, jobject jo, jstring jdir, jstring jopt) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
+    const char     *copt;
     if (jdir == NULL) {
 	ierr = -1;
 	return ierr;
@@ -82,24 +82,22 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1indexes
     else
 	copt = NULL;
     ierr = fastbit_build_indexes(cdir, copt);
-    
-    //add by lzb
-    if (NULL != copt)
-	{
-	    (*env)->ReleaseStringUTFChars(env, jopt, copt);	
-	}
-  
+
+    // add by lzb
+    if (NULL != copt) {
+	(*env)->ReleaseStringUTFChars(env, jopt, copt);
+    }
+
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-   
-    //end
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_build_1indexes
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1indexes
-(JNIEnv *env, jobject jo, jstring jdir) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
+(JNIEnv * env, jobject jo, jstring jdir) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
     if (jdir == NULL) {
 	ierr = -1;
 	return ierr;
@@ -107,19 +105,19 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1indexes
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_purge_indexes(cdir);
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    //end
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_purge_1indexes
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1index
-(JNIEnv *env, jobject jo, jstring jdir, jstring jcol, jstring jopt) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
-    const char *ccol;
-    const char *copt;
+(JNIEnv * env, jobject jo, jstring jdir, jstring jcol, jstring jopt) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
+    const char     *ccol;
+    const char     *copt;
     if (jdir == NULL || jcol == NULL) {
 	ierr = -1;
 	return ierr;
@@ -133,24 +131,23 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1index
 	copt = NULL;
 
     ierr = fastbit_build_index(cdir, ccol, copt);
-    
-    //add by lzb
-    if (NULL != copt)
-	{
-	    (*env)->GetStringUTFChars(env, jopt, &iscopy);
-	}  
-    (*env)->ReleaseStringUTFChars(env, jcol, ccol);    
+
+    // add by lzb
+    if (NULL != copt) {
+	(*env)->GetStringUTFChars(env, jopt, &iscopy);
+    }
+    (*env)->ReleaseStringUTFChars(env, jcol, ccol);
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    //end
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_build_1index
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1index
-(JNIEnv *env, jobject jo, jstring jdir, jstring jcol) {
-    jint ierr;
-    jboolean iscopy;
-    const char *cdir;
-    const char *ccol;
+(JNIEnv * env, jobject jo, jstring jdir, jstring jcol) {
+    jint            ierr;
+    jboolean        iscopy;
+    const char     *cdir;
+    const char     *ccol;
     if (jdir == NULL) {
 	ierr = -1;
 	return ierr;
@@ -163,57 +160,55 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1index
 	ccol = NULL;
 
     ierr = fastbit_purge_index(cdir, ccol);
-    
-    //add by lzb
+
+    // add by lzb
     if (NULL != ccol) {
-	(*env)->ReleaseStringUTFChars(env, jcol, ccol);  
+	(*env)->ReleaseStringUTFChars(env, jcol, ccol);
     }
-    (*env)->ReleaseStringUTFChars(env, jdir, cdir);  
-    //end
+    (*env)->ReleaseStringUTFChars(env, jdir, cdir);
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_purge_1index
 
 JNIEXPORT jobject JNICALL Java_gov_lbl_fastbit_FastBit_build_1query
-(JNIEnv *env, jobject jo, jstring jsel, jstring jdir, jstring jwhere) {
-       
-    jboolean iscopy;
-    const char *csel;
-    const char *cdir;
-    const char *cwhere;
+(JNIEnv * env, jobject jo, jstring jsel, jstring jdir, jstring jwhere) {
+    jboolean           iscopy;
+    const char        *csel;
+    const char        *cdir;
+    const char        *cwhere;
     FastBitQueryHandle handle;
     if (jdir == NULL || jwhere == NULL)
-	return (jobject)0;
+	return (jobject) 0;
 
     if (jsel != NULL)
 	csel = (*env)->GetStringUTFChars(env, jsel, &iscopy);
     else
 	csel = NULL;
-    cdir   = (*env)->GetStringUTFChars(env, jdir, &iscopy);
+    cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     cwhere = (*env)->GetStringUTFChars(env, jwhere, &iscopy);
     handle = fastbit_build_query(csel, cdir, cwhere);
     if (handle != 0) {
-	jobject jret =
+	jobject         jret =
 	    (*env)->NewDirectByteBuffer(env, handle, sizeof(handle));
-	    
-	//add by lzb
-        (*env)->ReleaseStringUTFChars(env, jsel, csel);  
-	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);    
+
+	// add by lzb
+	(*env)->ReleaseStringUTFChars(env, jsel, csel);
+	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);
 	(*env)->ReleaseStringUTFChars(env, jdir, cdir);
-	//end
+	// end
 	return jret;
-    }
-    else {
-    	//add by lzb
-	(*env)->ReleaseStringUTFChars(env, jsel, csel); 
-	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);    
+    } else {
+	// add by lzb
+	(*env)->ReleaseStringUTFChars(env, jsel, csel);
+	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);
 	(*env)->ReleaseStringUTFChars(env, jdir, cdir);
-	//end
-	return (jobject)(0);
+	// end
+	return (jobject) (0);
     }
 } // Java_gov_lbl_fastbit_FastBit_build_1query
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
-(JNIEnv *env, jobject jo, jobject jhandle) {
+(JNIEnv * env, jobject jo, jobject jhandle) {
 
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
@@ -222,24 +217,25 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
 } // Java_gov_lbl_fastbit_FastBit_destroy_1query
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1size
-(JNIEnv *env, jobject jo, jobject jhandle) {
+(JNIEnv * env, jobject jo, jobject jhandle) {
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
-    jint ierr = fastbit_get_result_rows(chandle);
+    jint            ierr = fastbit_get_result_rows(chandle);
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_get_1result_1size
 
-JNIEXPORT jbyteArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jbyteArray ret;
-    const char *carr;
-    jint nrows;
+JNIEXPORT jbyteArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean           iscopy;
+    const char        *ccol;
+    jbyteArray         ret;
+    const char        *carr;
+    jint               nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jbyteArray)NULL;
+	return (jbyteArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -253,30 +249,29 @@ JNIEXPORT jbyteArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
 	ret = (*env)->NewByteArray(env, nrows);
 	if (ret != NULL) {
 	    (*env)->SetByteArrayRegion(env, ret, 0, nrows,
-				       (const signed char*)carr);
+				       (const signed char *) carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
 
 JNIEXPORT jshortArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jshortArray ret;
-    const int16_t *carr;
-    jint nrows;
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean        iscopy;
+    const char     *ccol;
+    jshortArray     ret;
+    const int16_t  *carr;
+    jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jshortArray)NULL;
+	return (jshortArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -291,27 +286,27 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
 	if (ret != NULL) {
 	    (*env)->SetShortArrayRegion(env, ret, 0, nrows, carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
 
-JNIEXPORT jintArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jintArray ret;
-    const int32_t *carr;
-    jint nrows;
+JNIEXPORT jintArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean        iscopy;
+    const char     *ccol;
+    jintArray       ret;
+    const int32_t  *carr;
+    jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jintArray)NULL;
+	return (jintArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -326,28 +321,28 @@ JNIEXPORT jintArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
 	if (ret != NULL) {
 	    (*env)->SetIntArrayRegion(env, ret, 0, nrows, carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    
-    //add by lzb
+
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
 
-JNIEXPORT jlongArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jlongArray ret;
-    const int64_t *carr;
-    jint nrows;
+JNIEXPORT jlongArray JNICALL
+Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean        iscopy;
+    const char     *ccol;
+    jlongArray      ret;
+    const int64_t  *carr;
+    jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jlongArray)NULL;
+	return (jlongArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -362,28 +357,27 @@ JNIEXPORT jlongArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
 	if (ret != NULL) {
 	    (*env)->SetLongArrayRegion(env, ret, 0, nrows, carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
 
 JNIEXPORT jfloatArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jfloatArray ret;
-    const float *carr;
-    jint nrows;
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean        iscopy;
+    const char     *ccol;
+    jfloatArray     ret;
+    const float    *carr;
+    jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jfloatArray)NULL;
+	return (jfloatArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -398,28 +392,27 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
 	if (ret != NULL) {
 	    (*env)->SetFloatArrayRegion(env, ret, 0, nrows, carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
 
 JNIEXPORT jdoubleArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
-(JNIEnv *env, jobject jo, jobject jhandle, jstring jcol) {
-    jboolean iscopy;
-    const char *ccol;
-    jdoubleArray ret;
-    const double *carr;
-    jint nrows;
+(JNIEnv * env, jobject jo, jobject jhandle, jstring jcol) {
+    jboolean        iscopy;
+    const char     *ccol;
+    jdoubleArray    ret;
+    const double   *carr;
+    jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     if (jhandle == NULL || jcol == NULL)
-	return (jdoubleArray)NULL;
+	return (jdoubleArray) NULL;
 
     nrows = fastbit_get_result_rows(chandle);
     if (nrows <= 0) {
@@ -434,36 +427,35 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
 	if (ret != NULL) {
 	    (*env)->SetDoubleArrayRegion(env, ret, 0, nrows, carr);
 	}
-    }
-    else {
+    } else {
 	ret = NULL;
     }
-    //add by lzb
+    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
+    // end
     return ret;
 } // Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1message_1level
-(JNIEnv *env, jobject jo) {
+(JNIEnv * env, jobject jo) {
     return fastbit_get_verbose_level();
 } // Java_gov_lbl_fastbit_FastBit_get_1message_1level
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1message_1level
-(JNIEnv *env, jobject jo, jint jlvl) {
+(JNIEnv * env, jobject jo, jint jlvl) {
     return fastbit_set_verbose_level(jlvl);
 } // Java_gov_lbl_fastbit_FastBit_set_1message_1level
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
-(JNIEnv *env, jobject jo, jstring jfn) {
-    jboolean iscopy;
+(JNIEnv * env, jobject jo, jstring jfn) {
+    jboolean    iscopy;
     const char *cfn;
 
     if (jfn != NULL)
 	cfn = (*env)->GetStringUTFChars(env, jfn, &iscopy);
     else
 	cfn = 0;
-    //return fastbit_set_logfile(cfn);
+
     // modified by lzb
     jint ji = fastbit_set_logfile(cfn);
     (*env)->ReleaseStringUTFChars(env, jfn, cfn);
@@ -471,14 +463,14 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
 } // Java_gov_lbl_fastbit_FastBit_set_1logfile
 
 JNIEXPORT jstring JNICALL Java_gov_lbl_fastbit_FastBit_get_1logfile
-(JNIEnv *env, jobject jo) {
+(JNIEnv * env, jobject jo) {
     return (*env)->NewStringUTF(env, fastbit_get_logfile());
 } // Java_gov_lbl_fastbit_FastBit_get_1logfile
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_write_1buffer
-(JNIEnv *env, jobject jo, jstring jdir) {
-    jint ierr;
-    jboolean iscopy;
+(JNIEnv * env, jobject jo, jstring jdir) {
+    jint        ierr;
+    jboolean    iscopy;
     const char *cdir;
     if (jdir == NULL) {
 	ierr = -1;
@@ -487,45 +479,46 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_write_1buffer
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_flush_buffer(cdir);
-    //add by lzb
-    (*env)->ReleaseStringUTFChars(env, jdir, cdir );
-    //end
+    // add by lzb
+    (*env)->ReleaseStringUTFChars(env, jdir, cdir);
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_write_1buffer
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1doubles
-(JNIEnv *env, jobject jo, jstring jcol, jdoubleArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jdoubleArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "double";
     if (jcol == NULL || jvals == NULL) {
 	return ierr;
     }
-    /*   ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
-	 nelm = (*env)->GetArrayLength(env, jvals);
-	 ierr = fastbit_add_values
-	 (ccol, type, (*env)->GetDoubleArrayElements(env, jvals, &iscopy),
-	 nelm, 0U);*/
-    //modified by lzb
+    /*
+     * ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy); nelm =
+     * (*env)->GetArrayLength(env, jvals); ierr = fastbit_add_values
+     * (ccol, type, (*env)->GetDoubleArrayElements(env, jvals, &iscopy),
+     * nelm, 0U);
+     */
+    // modified by lzb
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    jdouble *dblArr = (*env)->GetDoubleArrayElements(env, jvals, &iscopy);
-    ierr = fastbit_add_values(ccol, type, dblArr,nelm, 0U);
+    jdouble        *dblArr =
+	(*env)->GetDoubleArrayElements(env, jvals, &iscopy);
+    ierr = fastbit_add_values(ccol, type, dblArr, nelm, 0U);
     // add by lzb
     (*env)->ReleaseDoubleArrayElements(env, jvals, dblArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
     // end
-	 
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1doubles
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
-(JNIEnv *env, jobject jo, jstring jcol, jfloatArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jfloatArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "float";
     if (jcol == NULL || jvals == NULL) {
@@ -533,24 +526,24 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    
-    //modified by lzb
-    jfloat *fltArr = (*env)->GetFloatArrayElements(env, jvals, &iscopy);
-    ierr = fastbit_add_values(ccol, type, fltArr,nelm, 0U);
-   
+
+    // modified by lzb
+    jfloat         *fltArr =
+	(*env)->GetFloatArrayElements(env, jvals, &iscopy);
+    ierr = fastbit_add_values(ccol, type, fltArr, nelm, 0U);
+
     // add by lzb
     (*env)->ReleaseFloatArrayElements(env, jvals, fltArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
-          
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1floats
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
-(JNIEnv *env, jobject jo, jstring jcol, jlongArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jlongArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "long";
     if (jcol == NULL || jvals == NULL) {
@@ -558,24 +551,24 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-   
-    //modified by lzb
-    jlong *lArr = (*env)->GetLongArrayElements(env, jvals, &iscopy);
+
+    // modified by lzb
+    jlong          *lArr =
+	(*env)->GetLongArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, lArr, nelm, 0U);
-   
+
     // add by lzb
     (*env)->ReleaseLongArrayElements(env, jvals, lArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
-   
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1longs
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
-(JNIEnv *env, jobject jo, jstring jcol, jintArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jintArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "int";
     if (jcol == NULL || jvals == NULL) {
@@ -583,25 +576,24 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    
-    //modified by lzb
-    jint *iArr = (*env)->GetIntArrayElements(env, jvals, &iscopy);
+
+    // modified by lzb
+    jint           *iArr =
+	(*env)->GetIntArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, iArr, nelm, 0U);
-     
+
     // add by lzb
     (*env)->ReleaseIntArrayElements(env, jvals, iArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    //end
-     
-    
+    // end
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1ints
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
-(JNIEnv *env, jobject jo, jstring jcol, jshortArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jshortArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "short";
     if (jcol == NULL || jvals == NULL) {
@@ -609,23 +601,23 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    
-    jshort *shtArr = (*env)->GetShortArrayElements(env, jvals, &iscopy);
+
+    jshort         *shtArr =
+	(*env)->GetShortArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, shtArr, nelm, 0U);
-    
+
     // add by lzb
     (*env)->ReleaseShortArrayElements(env, jvals, shtArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
     // end
-    
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1shorts
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
-(JNIEnv *env, jobject jo, jstring jcol, jbyteArray jvals) {
-    jint ierr = -1;
-    jboolean iscopy;
-    jsize nelm;
+(JNIEnv * env, jobject jo, jstring jcol, jbyteArray jvals) {
+    jint        ierr = -1;
+    jboolean    iscopy;
+    jsize       nelm;
     const char *ccol;
     const char *type = "byte";
     if (jcol == NULL || jvals == NULL) {
@@ -633,13 +625,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    jbyte *btArr = (*env)->GetByteArrayElements(env, jvals, &iscopy);
-    ierr = fastbit_add_values(ccol, type, btArr,nelm, 0U);
-   
+    jbyte          *btArr =
+	(*env)->GetByteArrayElements(env, jvals, &iscopy);
+    ierr = fastbit_add_values(ccol, type, btArr, nelm, 0U);
+
     // add by lzb
     (*env)->ReleaseByteArrayElements(env, jvals, btArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
     // end
-      
     return ierr;
 } // Java_gov_lbl_fastbit_FastBit_add_1bytes
