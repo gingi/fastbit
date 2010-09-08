@@ -450,6 +450,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
 (JNIEnv * env, jobject jo, jstring jfn) {
     jboolean    iscopy;
     const char *cfn;
+    jint        ji;
 
     if (jfn != NULL)
 	cfn = (*env)->GetStringUTFChars(env, jfn, &iscopy);
@@ -457,7 +458,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
 	cfn = 0;
 
     // modified by lzb
-    jint ji = fastbit_set_logfile(cfn);
+    ji = fastbit_set_logfile(cfn);
     (*env)->ReleaseStringUTFChars(env, jfn, cfn);
     return ji;
 } // Java_gov_lbl_fastbit_FastBit_set_1logfile
@@ -490,6 +491,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1doubles
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jdouble    *dblArr;
     const char *ccol;
     const char *type = "double";
     if (jcol == NULL || jvals == NULL) {
@@ -504,8 +506,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1doubles
     // modified by lzb
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    jdouble        *dblArr =
-	(*env)->GetDoubleArrayElements(env, jvals, &iscopy);
+    dblArr = (*env)->GetDoubleArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, dblArr, nelm, 0U);
     // add by lzb
     (*env)->ReleaseDoubleArrayElements(env, jvals, dblArr, 0);
@@ -519,6 +520,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jfloat     *fltArr;
     const char *ccol;
     const char *type = "float";
     if (jcol == NULL || jvals == NULL) {
@@ -528,8 +530,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
     nelm = (*env)->GetArrayLength(env, jvals);
 
     // modified by lzb
-    jfloat         *fltArr =
-	(*env)->GetFloatArrayElements(env, jvals, &iscopy);
+    fltArr = (*env)->GetFloatArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, fltArr, nelm, 0U);
 
     // add by lzb
@@ -544,6 +545,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jlong      *lArr;
     const char *ccol;
     const char *type = "long";
     if (jcol == NULL || jvals == NULL) {
@@ -553,8 +555,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
     nelm = (*env)->GetArrayLength(env, jvals);
 
     // modified by lzb
-    jlong          *lArr =
-	(*env)->GetLongArrayElements(env, jvals, &iscopy);
+    lArr = (*env)->GetLongArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, lArr, nelm, 0U);
 
     // add by lzb
@@ -569,6 +570,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jint       *iArr;
     const char *ccol;
     const char *type = "int";
     if (jcol == NULL || jvals == NULL) {
@@ -578,8 +580,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
     nelm = (*env)->GetArrayLength(env, jvals);
 
     // modified by lzb
-    jint           *iArr =
-	(*env)->GetIntArrayElements(env, jvals, &iscopy);
+    iArr = (*env)->GetIntArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, iArr, nelm, 0U);
 
     // add by lzb
@@ -594,6 +595,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jshort     *shtArr;
     const char *ccol;
     const char *type = "short";
     if (jcol == NULL || jvals == NULL) {
@@ -602,8 +604,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
 
-    jshort         *shtArr =
-	(*env)->GetShortArrayElements(env, jvals, &iscopy);
+    shtArr = (*env)->GetShortArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, shtArr, nelm, 0U);
 
     // add by lzb
@@ -618,6 +619,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
     jint        ierr = -1;
     jboolean    iscopy;
     jsize       nelm;
+    jbyte      *btArr;
     const char *ccol;
     const char *type = "byte";
     if (jcol == NULL || jvals == NULL) {
@@ -625,8 +627,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
     }
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
-    jbyte          *btArr =
-	(*env)->GetByteArrayElements(env, jvals, &iscopy);
+    btArr = (*env)->GetByteArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, btArr, nelm, 0U);
 
     // add by lzb

@@ -1,3 +1,8 @@
+2010-09-08 John Wu <John dot Wu at ACM dot org>
+	* java/FastBit.c: move the declaration of variables to the
+	beginning of their scope to avoid problem with compiler error
+	reported by otrack50@hotmail.com
+
 2010-09-07 John Wu <John dot Wu at ACM dot org>
 	* src/util.h, src/util.cpp: change template
 	ibis::util::groupby1000 to be a concrete function (rely on the
