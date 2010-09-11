@@ -4386,12 +4386,12 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 		    bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
 		    if (btmp->size() != nrows) {
-			c->logWarning("regenerateBitmaps", "the length (%lu) "
-				      "of the %lu-th bitvector differs from "
-				      "that of the 1st one(%lu)",
-				      static_cast<long unsigned>(btmp->size()),
-				      static_cast<long unsigned>(i),
-				      static_cast<long unsigned>(nrows));
+			col->logWarning("regenerateBitmaps", "the length (%lu) "
+					"of the %lu-th bitvector differs from "
+					"that of the 1st one(%lu)",
+					static_cast<long unsigned>(btmp->size()),
+					static_cast<long unsigned>(i),
+					static_cast<long unsigned>(nrows));
 		    }
 #else
 		    btmp->sloppySize(nrows);
@@ -4423,12 +4423,12 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 		bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
 		if (btmp->size() != nrows) {
-		    c->logWarning("readIndex", "the length (%lu) of "
-				  "the %lu-th bitvector differs from "
-				  "that of the 1st one(%lu)",
-				  static_cast<long unsigned>(btmp->size()),
-				  static_cast<long unsigned>(i),
-				  static_cast<long unsigned>(nrows));
+		    col->logWarning("readIndex", "the length (%lu) of "
+				    "the %lu-th bitvector differs from "
+				    "that of the 1st one(%lu)",
+				    static_cast<long unsigned>(btmp->size()),
+				    static_cast<long unsigned>(i),
+				    static_cast<long unsigned>(nrows));
 		}
 #else
 		btmp->sloppySize(nrows);

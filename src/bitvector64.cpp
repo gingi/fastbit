@@ -1257,23 +1257,23 @@ void ibis::bitvector64::read(const char * fn) {
 
     nbits = do_cnt();
     // some integrity check here
-    if (nbits % MAXBITS) {
+    if (nbits % MAXBITS != 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << " Error *** ibis::bitvector64::nbits(" << nbits
+	    << " Warning -- ibis::bitvector64::nbits(" << nbits
 	    << ") is expected to be multiples of "
 	    << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << " Error *** ibis::bitvector64::nset (" << nset
+	    << " Warning -- ibis::bitvector64::nset (" << nset
 	    << ") is expected to be not greater than "
 	    << nbits+active.nbits << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << " Error *** ibis::bitvector64::active::nbits ("
+	    << " Warning -- ibis::bitvector64::active::nbits ("
 	    << active.nbits << ") is expected to be less than "
 	    << MAXBITS << ", but it is not.";
 	ierr ++;
@@ -1309,8 +1309,6 @@ void ibis::bitvector64::write(const char * fn) const {
 
 #if defined(WAH_CHECK_SIZE)
     word_t nb = do_cnt();
-    if (nbits == 0)
-	nbits = nb;
     if (nb != nbits) {
 	ibis::util::logger lg(4);
 	print(lg());
@@ -1358,8 +1356,6 @@ void ibis::bitvector64::write(FILE* out) const {
 
 #if defined(WAH_CHECK_SIZE)
     word_t nb = do_cnt();
-    if (nbits == 0)
-	nbits = nb;
     if (nb != nbits) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Error ibis::bitvector64::write() the value returned by "
@@ -3141,7 +3137,7 @@ ibis::bitvector64::iterator::operator+=(int64_t incr) {
 	    }
 	    if (incr0 < 0) {
 		ibis::util::logger lg(0);
-		lg() << " Error *** "
+		lg() << " Warning -- "
 		    "ibis::bitvector64::iterator::operator+=("
 			  << incr << ") passes the beginning of the "
 			  << "bit sequence";
@@ -3167,7 +3163,7 @@ ibis::bitvector64::iterator::operator+=(int64_t incr) {
 	    }
 	    if (incr1 > 0) {
 		ibis::util::logger lg(0);
-		lg() << " Error *** "
+		lg() << " Warning -- "
 		    "ibis::bitvector64::iterator::operator+=("
 			  << incr << ") passes the end of the "
 			  << "bit sequence";
@@ -3237,7 +3233,7 @@ ibis::bitvector64::const_iterator::operator+=(int64_t incr) {
 	    }
 	    if (incr0 < 0) {
 		ibis::util::logger lg;
-		lg() << " Error *** ibis::bitvector64::const_iterator::"
+		lg() << " Warning -- ibis::bitvector64::const_iterator::"
 			  << "operator+=(" << incr
 			  << ") passes the beginning of the bit sequence";
 	    }
@@ -3260,12 +3256,10 @@ ibis::bitvector64::const_iterator::operator+=(int64_t incr) {
 		    incr1 -= nbits;
 		}
 	    }
-	    if (incr1 > 0) {
-		ibis::util::logger lg;
-		lg() << " Error *** ibis::bitvector64::const_iterator::"
-			  << "operator+=(" << incr
-			  << ") passes the end of the bit sequence";
-	    }
+	    LOGGER(incr1 > 0)
+		<< " Warning -- ibis::bitvector64::const_iterator::"
+		<< "operator+=(" << incr
+		<< ") passes the end of the bit sequence";
 	}
     }
 

@@ -1,3 +1,17 @@
+2010-09-10 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp, src/bitvector64.cpp: fix errors in
+	conditional code for WAH_CHECK_SIZE
+	* src/util.h, src/util.cpp: change the file
+	ibis::util::writeLogFileHeader to test the incoming arguments (to
+	address the problem with log files reported by Karen Schomburg)
+	* src/ibis.h: register the function ibis::util::closeLogFile with
+	ibis::init as the last function to be invoked during exit, this
+	removes the need for users to invoke the function
+
+2010-09-09 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp: replace all calls to util::logMessage with
+	LOGGER macro
+
 2010-09-08 John Wu <John dot Wu at ACM dot org>
 	* java/FastBit.c: move the declaration of variables to the
 	beginning of their scope to avoid problem with compiler error

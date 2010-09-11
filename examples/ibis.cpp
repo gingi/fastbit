@@ -4888,7 +4888,7 @@ int main(int argc, char** argv) {
 	    << " s, total elapsed time " << timer.realTime() << " s";
 
 	// last thing -- close the file logging the messages
-	ibis::util::closeLogFile();
+	//ibis::util::closeLogFile();
 	return 0;
     }
     catch (const std::exception& e) {

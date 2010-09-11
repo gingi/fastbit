@@ -514,7 +514,7 @@ namespace ibis {
 	logMessage(const char* event, const char* fmt, ...);
 	FASTBIT_CXX_DLLSPEC FILE* getLogFile();
 	int writeLogFileHeader(FILE *fptr, const char* fname);
-	FASTBIT_CXX_DLLSPEC int closeLogFile();
+	FASTBIT_CXX_DLLSPEC void closeLogFile();
 	FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
 	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 

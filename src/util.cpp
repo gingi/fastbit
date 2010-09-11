@@ -1285,7 +1285,7 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
 /// error.  It additionally sets the global variables
 /// ibis_util_logfilepointer and ibis_util_logfilename on success.
 int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
-    if (ibis_util_logfilename.empty()) return 0;
+    if (fptr == 0 || fname == 0 || *fname == 0) return 0;
 
     char tstr[28];
     ibis::util::getLocalTime(tstr);
@@ -1424,20 +1424,17 @@ const char* ibis::util::getLogFileName() {
     return ibis_util_logfilename.c_str();
 } // ibis::util::getLogFileName
 
-/// Close the log file.
-/// Return the return value of function fclose.  This function should be
-/// called.  If not, typical OS system will close the file after the
-/// termination of the process invoked FastBit, however, it is possible
-/// that the last few messages may be lost.
-int ibis::util::closeLogFile() {
-    int ierr = 0;
+/// Close the log file.  This function is registered with atexit through
+/// ibis::init.  It will be automatically invoked during exit.  However, if
+/// necessary, the log file will be reopened during later operations.  In
+/// any case, the operating system will close the log file after the
+/// termination of the program.
+void ibis::util::closeLogFile() {
     ibis::util::ioLock lock;
-    if (ibis_util_logfilepointer != 0 && ! ibis_util_logfilename.empty()) {
-	ierr = fclose(ibis_util_logfilepointer);
-	ibis_util_logfilename.erase();
+    if (ibis_util_logfilepointer != 0 && ibis_util_logfilepointer != stdout) {
+	(void) fclose(ibis_util_logfilepointer);
 	ibis_util_logfilepointer = 0;
     }
-    return ierr;
 } // ibis::util::closeLogFile
 
 /// The argument to this constructor is taken to be the number of spaces
