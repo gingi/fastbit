@@ -12,6 +12,7 @@
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
+#include <stdlib.h>
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
 // be misunderstood!
@@ -551,8 +552,8 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	break;}
     case ibis::FLOAT: {
 	errno = 0;
-#if defined(_ISOC99_SOURCE)|| defined(_ISOC9X_SOURCE) \
-    || (__STDC_VERSION__+0 >= 199901L) || (_XOPEN_SOURCE+0 >= 600)
+#if defined(_ISOC99_SOURCE) || defined(_ISOC9X_SOURCE) \
+    || (__STDC_VERSION__+0 >= 199901L)
 	float tmp = strtof(val, &ptr);
 #else
 	float tmp = strtod(val, &ptr);

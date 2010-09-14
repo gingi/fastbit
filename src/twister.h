@@ -46,11 +46,13 @@ public:
 /// further used in other random number generators.
 class ibis::MersenneTwister : public ibis::uniformRandomNumber {
 public:
-    // two constructors -- the default constructor uses a seed based on
-    // the current time
+    /// Constructor.  This default constructor uses a seed based on
+    /// the current time.
     MersenneTwister() {setSeed(time(0) ^ clock());}
+    /// Constructor.  Uses a user specified integer as seed.
     MersenneTwister(unsigned seed) {setSeed(seed);}
 
+    /// Return a floating-point value in the range of [0, 1).
     virtual double operator()() {return nextDouble();}
     int nextInt() {return next();}
     long nextLong() {return next();}

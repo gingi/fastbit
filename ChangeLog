@@ -1,3 +1,10 @@
+2010-09-13 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp:556 remove the condition on _XOPEN_SOURCE which
+	causes problems on euclid.nersc.gov with PGI compiler (fall back
+	to use strtod which is present on more platforms)
+	* INSTALL: update issue (9) regarding error with PGI compiler
+	after testing runs on ewok
+
 2010-09-10 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.cpp, src/bitvector64.cpp: fix errors in
 	conditional code for WAH_CHECK_SIZE

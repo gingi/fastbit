@@ -65,16 +65,15 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 		    word_t nb = 0;
 		    ibis::util::logger lg(4);
 		    lg() << "bitvector constructor received an array["
-				<< arr.size()
-				<< "] with the following values:";
+			 << arr.size() << "] with the following values:";
 		    for (word_t i = 0; i < arr.size(); ++ i) {
 			if (arr[i] < HEADER0)
 			    nb += MAXBITS;
 			else
 			    nb += (arr[i] & MAXCNT) * MAXBITS;
 			lg() << "\n" << i << ",\t0x" << std::hex
-				    << std::setw(8) << std::setfill('0')
-				    << arr[i] << std::dec << "\tnb=" << nb;
+			     << std::setw(8) << std::setfill('0')
+			     << arr[i] << std::dec << "\tnb=" << nb;
 		    }
 		}
 // 		throw ibis::bad_alloc("bitvector -- the input is not a "
@@ -475,8 +474,8 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
     {
 	ibis::util::logger lg(4);
 	lg() << "ibis::bitvector::setBit(" << ind << ", " << val << ") "
-		  << "-- " << nbits << " bit(s) in m_vec and "
-		  << active.nbits << " bit(s) in the active word";
+	     << "-- " << nbits << " bit(s) in m_vec and "
+	     << active.nbits << " bit(s) in the active word";
     }
 #endif
     m_vec.nosharing(); // make sure the array is not shared
@@ -1744,22 +1743,22 @@ void ibis::bitvector::read(const char * fn) {
     if (nbits % MAXBITS != 0) {
 	ibis::util::logger lg(4);
 	lg() << " Warning -- ibis::bitvector::nbits(" << nbits
-		    << ") is expected to be multiples of "
-		    << MAXBITS << ", but it is not.";
+	     << ") is expected to be multiples of "
+	     << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
 	ibis::util::logger lg(4);
 	lg() << " Warning -- ibis::bitvector::nset (" << nset
-		    << ") is expected to be not greater than "
-		    << nbits+active.nbits << ", but it is.";
+	     << ") is expected to be not greater than "
+	     << nbits+active.nbits << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
 	ibis::util::logger lg(4);
 	lg() << " Warning -- ibis::bitvector::active::nbits ("
-		    << active.nbits << ") is expected to be less than "
-		    << MAXBITS << ", but it is not.";
+	     << active.nbits << ") is expected to be less than "
+	     << MAXBITS << ", but it is not.";
 	ierr ++;
     }
 #else
@@ -4032,13 +4031,9 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		    incr0 += nbits;
 		}
 	    }
-	    if (incr0 < 0) {
-		ibis::util::logger lg;
-		lg()
-		    << " Warning -- ibis::bitvector::iterator::operator+=("
-		    << incr << ") passes the beginning of the "
-		    << "bit sequence";
-	    }
+	    LOGGER(incr0 < 0)
+		<< " Warning -- ibis::bitvector::iterator::operator+=("
+		<< incr << ") passes the beginning of the bit sequence";
 	}
     }
     else if (incr > 0) { // advance forward
@@ -4058,13 +4053,9 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		    incr1 -= nbits;
 		}
 	    }
-	    if (incr1 > 0) {
-		ibis::util::logger lg;
-		lg()
-		    << " Warning -- ibis::bitvector::iterator::operator+=("
-		    << incr << ") passes the end of the "
-		    << "bit sequence";
-	    }
+	    LOGGER(incr1 > 0)
+		<< " Warning -- ibis::bitvector::iterator::operator+=("
+		<< incr << ") passes the end of the bit sequence";
 	}
     }
 
@@ -4128,12 +4119,10 @@ ibis::bitvector::const_iterator::operator+=(int incr) {
 		    incr0 += nbits;
 		}
 	    }
-	    if (incr0 < 0) {
-		ibis::util::logger lg;
-		lg() << " Warning -- ibis::bitvector::const_iterator::"
-			    << "operator+=(" << incr
-			    << ") passes the beginning of the bit sequence";
-	    }
+	    LOGGER(incr0 < 0)
+		<< " Warning -- ibis::bitvector::const_iterator::"
+		<< "operator+=(" << incr
+		<< ") passes the beginning of the bit sequence";
 	}
     }
     else if (incr > 0) { // advance forward

@@ -298,13 +298,11 @@ Known Issues
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
 (9) The test 12 of check-ibis fails when the PGI compiler is used to
-    compile the code.  It encounters a segmentation violation some times
-    inside a string construtor and some times in the constructor of
-    string stream object.  We would guess that the PGI compiler might
-    not be producinga thread-safe operator new.  If you have any clue as
-    what is really going on or how to get around the problem, please
-    send your suggestions or corrections to
-    <fastbit-users@hpcrdm.lbl.gov>.
+    compile the code.  It encounters a segmentation violation at varying
+    locations.  We speculate that the PGI compiler might not be
+    producing a thread-safe operator new.  If you have any clue as what
+    is really going on or how to get around the problem, please send
+    your suggestions or corrections to <fastbit-users@hpcrdm.lbl.gov>.
 
 (10) If the configure script finds a working version of javac, but fails
      to find a working version of java, it is likely that CLASSPATH is
