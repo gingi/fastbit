@@ -34,7 +34,8 @@ ibis::bitvector::bitvector() : nbits(0), nset(0), active(), m_vec() {
 	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec);
 } // ctor default
 
-/// Underlying storage is reference counted.
+/// Copy constructor.  The underlying storage (m_vec) is constructed
+/// through a copy constructor as well.
 ibis::bitvector::bitvector(const bitvector& bv)
     : nbits(bv.nbits), nset(bv.nset), active(bv.active), m_vec(bv.m_vec) {
     LOGGER(ibis::gVerbose > 9)
@@ -1706,7 +1707,7 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
     o << std::endl;
 
     return o;
-} // ostream& ibis::bitvector::print(ostream& o) const
+} // ibis::bitvector::print
 
 std::ostream& operator<<(std::ostream& o, const ibis::bitvector& b) {
     return b.print(o);

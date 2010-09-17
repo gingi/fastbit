@@ -1,3 +1,18 @@
+Fri Sep 17 13:35:06 PDT 2010
+Version ibis1.2.0
+-- reserve more space in the dictionary to avoid incrementing the
+   dictionary sizes in small chunks
+-- fixing bitvector::operator- problem (by Peter Tardif)
+-- update the memory management in ibis::bundle to avoid clobbering
+   other data structures (to address a problem reported by Andreas
+   Streichardt)
+-- update the error handling in the select operation following the
+   suggestion from Jan Steemann
+-- update makefiles for windows environment
+-- fix problems with JNI code (reported by otrack50@hotmail.com)
+-- fix problems with user specified log files (reported by Karen
+   Schomburg)
+
 Thu Jul 15 20:20:18 PDT 2010
 Version ibis1.1.9
 -- fix JNI memory leak (Zhengbing Li and Xun Hu)

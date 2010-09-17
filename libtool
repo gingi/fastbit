@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.1.9.3
+# Generated automatically by config.status (fastbit) ibis1.2.0
 # Libtool was configured on host bit:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
@@ -285,7 +285,7 @@ wl="-Wl,"
 pic_flag=" -DDLL_EXPORT -DPIC"
 
 # Compiler flag to prevent dynamic linking.
-link_static_flag="-static"
+link_static_flag=""
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -9774,7 +9774,7 @@ wl="-Wl,"
 pic_flag=" -DDLL_EXPORT -DPIC"
 
 # Compiler flag to prevent dynamic linking.
-link_static_flag="-static"
+link_static_flag=""
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -9890,17 +9890,17 @@ file_list_spec=""
 hardcode_action=immediate
 
 # The directories searched by this compiler when creating a shared library.
-compiler_lib_search_dirs="/usr/lib/gcc/i686-pc-cygwin/3.4.4 /usr/lib/gcc/i686-pc-cygwin/3.4.4 /usr/lib/gcc/i686-pc-cygwin/3.4.4/../../.."
+compiler_lib_search_dirs="/usr/lib/gcc/i686-pc-cygwin/4.3.4 /usr/lib/gcc/i686-pc-cygwin/4.3.4 /usr/lib/gcc/i686-pc-cygwin/4.3.4/../../.."
 
 # Dependencies to place before and after the objects being linked to
 # create a shared library.
-predep_objects=""
-postdep_objects=""
+predep_objects="/usr/lib/gcc/i686-pc-cygwin/4.3.4/crtbegin.o"
+postdep_objects="/usr/lib/gcc/i686-pc-cygwin/4.3.4/crtend.o"
 predeps=""
-postdeps="-lstdc++ -lgcc -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32 -lgcc"
+postdeps="-lstdc++ -lgcc_s -lgcc_s -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32 -lgcc_s -lgcc_s"
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path="-L/usr/lib/gcc/i686-pc-cygwin/3.4.4 -L/usr/lib/gcc/i686-pc-cygwin/3.4.4 -L/usr/lib/gcc/i686-pc-cygwin/3.4.4/../../.."
+compiler_lib_search_path="-L/usr/lib/gcc/i686-pc-cygwin/4.3.4 -L/usr/lib/gcc/i686-pc-cygwin/4.3.4 -L/usr/lib/gcc/i686-pc-cygwin/4.3.4/../../.."
 
 # ### END LIBTOOL TAG CONFIG: CXX

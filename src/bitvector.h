@@ -493,7 +493,7 @@ inline bool ibis::bitvector::all1s() const {
 /// Compute the number of bits represented by a word.
 inline ibis::bitvector::word_t
 ibis::bitvector::cnt_bits(ibis::bitvector::word_t val) const {
-    return  ((val>ALLONES) ? ((val&MAXCNT)*MAXBITS) : MAXBITS);
+    return ((val>ALLONES) ? ((val&MAXCNT)*MAXBITS) : MAXBITS);
 } // ibis::bitvector::cnt_bits
 
 /// Compute the number of ones in a literal word.
@@ -517,26 +517,8 @@ ibis::bitvector::cnt_ones(ibis::bitvector::word_t val) const {
 	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
 	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
 	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
-    word_t cnt;
-    if (val > 0) {
-	// 32-bit integers
-	cnt = table[val&0xFFU] + table[(val>>8)&0xFFU] +
-	    table[(val>>16)&0xFFU] + table[(val>>24)&0xFFU];
-// #if INT_MAX == 0x7FFFFFFFL
-// #else
-// 	// assume 64 bit integer
-// 	//assert(8 == sizeof(word_t));
-// 	cnt = part[val&0xFFU] +
-// 	    part[(val>>8)&0xFFU] + part[(val>>16)&0xFFU] +
-// 	    part[(val>>24)&0xFFU] + part[(val>>32)&0xFFU] +
-// 	    part[(val>>40)&0xFFU] + part[(val>>48)&0xFFU] +
-// 	    part[(val>>56)&0xFFU];
-// #endif
-    }
-    else {
-	cnt = 0;
-    }
-    return cnt;
+    return table[val&0xFFU] + table[(val>>8)&0xFFU] +
+	table[(val>>16)&0xFFU] + table[(val>>24)&0xFFU];
 } // ibis::bitvector::cnt_ones
 
 /// Return the total number of bits in the bit sequence.
