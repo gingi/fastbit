@@ -485,11 +485,13 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
 	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::releaseAccess for " << mesg;
+	    << "fileManager::releaseAccess on   "
+	    << static_cast<const void*>(&lock) << " for " << mesg;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::releaseAccess for " << mesg
+	    << "Warning -- fileManager::releaseAccess on   "
+	    << static_cast<const void*>(&lock) << " for " << mesg
 	    << " failed with the error code " << ierr << " -- "
 	    << strerror(ierr);
     }
@@ -499,11 +501,13 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
     if (0 == ierr) {
 	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::gainReadAccess for " << mesg;
+	    << "fileManager::gainReadAccess on  "
+	    << static_cast<const void*>(&lock) << " for " << mesg;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::gainReadAccess for " << mesg
+	    << "Warning -- fileManager::gainReadAccess on  "
+	    << static_cast<const void*>(&lock) << " for " << mesg
 	    << " failed with the error code " << ierr << " -- "
 	    << strerror(ierr);
     }
@@ -513,11 +517,13 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     int ierr = pthread_rwlock_wrlock(&lock);
     if (0 == ierr) {
 	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::gainWriteAccess for " << mesg;
+	    << "fileManager::gainWriteAccess on "
+	    << static_cast<const void*>(&lock) << " for " << mesg;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::gainWriteAccess for " << mesg
+	    << "Warning -- fileManager::gainWriteAccess on "
+	    << static_cast<const void*>(&lock) << " for " << mesg
 	    << " failed with the error code " << ierr << " -- "
 	    << strerror(ierr);
     }

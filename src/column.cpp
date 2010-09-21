@@ -305,8 +305,8 @@ ibis::column::column(const ibis::column& rhs) :
 
 ibis::column::~column() {
     { // must not be used for anything else
-	mutexLock mk(this, "~column");
 	writeLock wk(this, "~column");
+	mutexLock mk(this, "~column");
 	delete idx;
 	LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
 	    << "clearing column " << thePart->name() << '.' << m_name;

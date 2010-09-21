@@ -214,16 +214,16 @@ public:
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 
-    virtual array_t<char>* selectBytes(const ibis::bitvector&) const;
+    virtual array_t<char>*          selectBytes(const ibis::bitvector&) const;
     virtual array_t<unsigned char>* selectUBytes(const ibis::bitvector&) const;
-    virtual array_t<int16_t>* selectShorts(const ibis::bitvector& mask) const;
-    virtual array_t<uint16_t>* selectUShorts(const ibis::bitvector& mask) const;
-    virtual array_t<int32_t>* selectInts(const ibis::bitvector& mask) const;
-    virtual array_t<uint32_t>* selectUInts(const ibis::bitvector& mask) const;
-    virtual array_t<int64_t>* selectLongs(const ibis::bitvector& mask) const;
-    virtual array_t<uint64_t>* selectULongs(const ibis::bitvector& mask) const;
-    virtual array_t<float>* selectFloats(const ibis::bitvector& mask) const;
-    virtual array_t<double>* selectDoubles(const ibis::bitvector& mask) const;
+    virtual array_t<int16_t>*       selectShorts(const ibis::bitvector&) const;
+    virtual array_t<uint16_t>*      selectUShorts(const ibis::bitvector&) const;
+    virtual array_t<int32_t>*       selectInts(const ibis::bitvector&) const;
+    virtual array_t<uint32_t>*      selectUInts(const ibis::bitvector&) const;
+    virtual array_t<int64_t>*       selectLongs(const ibis::bitvector&) const;
+    virtual array_t<uint64_t>*      selectULongs(const ibis::bitvector&) const;
+    virtual array_t<float>*         selectFloats(const ibis::bitvector&) const;
+    virtual array_t<double>*        selectDoubles(const ibis::bitvector&) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
 

@@ -133,7 +133,7 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 	}
 
 	LOGGER(ibis::gVerbose > 12)
-	    << "ibis::fileManager::getFile -- got " << arr.size()
+	    << "fileManager::getFile -- got " << arr.size()
 	    << " ints from " << name;
     }
     catch (...) {
@@ -166,7 +166,7 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 	}
 
 	LOGGER(ibis::gVerbose > 12)
-	    << "ibis::fileManager::getFile -- got " << arr.size()
+	    << "fileManager::getFile -- got " << arr.size()
 	    << " ints from " << name;
     }
     catch (...) {
@@ -191,7 +191,8 @@ void ibis::fileManager::printStatus(std::ostream& out) const {
 	(*it0).second->printStatus(out);
     }
     out << "Size of all mapped files is " << ibis::util::groupby1000(mtot)
-	<< "\n\nThe number of files read into memory is " << incore.size();
+	<< "\n\nThe number of files read into memory is " << incore.size()
+	<< "\n";
     for (fileList::const_iterator it1 = incore.begin();
 	 it1 != incore.end(); ++it1) {
 	itot += (*it1).second->size();
@@ -390,15 +391,21 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
 /// @note This function will not do anything if it is not able to acquire a
 /// write lock in the file manager object.
 void ibis::fileManager::clear() {
+    if (ibis::fileManager::totalBytes() == 0) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "fileManager::clear has nothing to do";
+	return;
+    }
     if (ibis::gVerbose > 6 ||
 	(ibis::fileManager::totalBytes() > 0 && ibis::gVerbose > 2)) {
 	ibis::util::logger lg;
-	lg() << "ibis::fileManager::clear -- starting ...";
+	lg() << "fileManager::clear -- starting ...";
 	printStatus(lg());
     }
 
     ibis::util::mutexLock mlck(&mutex, "fileManager::clear");
     invokeCleaners();
+    unload(0);
     if (! mapped.empty() || ! incore.empty()) {
 	std::vector<roFile*> tmp; // temporarily holds the read-only files
 	softWriteLock wlck(this, "clear");
@@ -670,7 +677,6 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     if (st->filename() == 0)
 	return;
 
-    readLock rock(evt.c_str());
     if (st->mapped) {
 	fileList::const_iterator it = mapped.find(st->filename());
 	if (it == mapped.end()) {
@@ -681,7 +687,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 		    << st->filename()
 		    << ") while one with the same name is already in "
 		    << "the incore list";
-		throw "ibis::fileManager::recordFile trying to register two "
+		throw "fileManager::recordFile trying to register two "
 		    "storages with the same file name (old incore, "
 		    "new mapped)";
 	    }
@@ -694,7 +700,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 		<< st->filename()
 		<< ") while one with the same name is already in "
 		<< "the mapped list";
-	    throw "ibis::fileManager::recordFile trying to register two "
+	    throw "fileManager::recordFile trying to register two "
 		"storage related the same file (both mapped)";
 	}
     }
@@ -708,7 +714,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 		    << st->filename()
 		    << ") while one with the same name is already in "
 		    << "the mapped list";
-		throw "ibis::fileManager::recordFile trying to register two "
+		throw "fileManager::recordFile trying to register two "
 		    "storage related the same file (old mapped, "
 		    "new incore)";
 	    }
@@ -721,7 +727,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 		<< st->filename()
 		<< ") while one with the same name is already in "
 		<< "the mapped list";
-	    throw "ibis::fileManager::recordFile trying to register two "
+	    throw "fileManager::recordFile trying to register two "
 		"storage related the same file (both incore)";
 	}
     }
@@ -760,7 +766,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "ibis::fileManager::getFile(" << name
+		    << "fileManager::getFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
 	    ierr = -101;
@@ -768,8 +774,8 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	}
     }
 
-    ibis::util::mutexLock lck(&mutex, evt.c_str()); // only one instance can run
     readLock rock(evt.c_str());
+    ibis::util::mutexLock lck(&mutex, evt.c_str()); // only one instance can run
     // is the named file among those mapped ?
     fileList::iterator it = mapped.find(name);
     if (it != mapped.end()) { // found it
@@ -966,7 +972,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "ibis::fileManager::tryGetFile(" << name
+		    << "fileManager::tryGetFile(" << name
 		    << ") file is empty.";
 		ierr = -106;
 		return ierr;
@@ -975,7 +981,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "ibis::fileManager::tryGetFile(" << name
+		    << "fileManager::tryGetFile(" << name
 		    << ") -- command stat failed: " << strerror(errno);
 	    }
 	    ierr = -101;
@@ -1043,7 +1049,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
 	    double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
 	    ibis::util::logger lg;
-	    lg() << "ibis::fileManager -- tryGetFile(" << name
+	    lg() << "fileManager -- tryGetFile(" << name
 		 << ") took " << treal << " sec(elapsed) ["
 		 << tcpu  << " sec(CPU)] to "
 		 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
@@ -1223,12 +1229,12 @@ int ibis::fileManager::unload(size_t size) {
 	    lg() << "\n";
 	}
 	if (size > 0)
-	    lg() << "ibis::fileManager::unload -- to free up " << size
+	    lg() << "fileManager::unload -- to free up " << size
 		 << " bytes of space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
 	else
-	    lg() << "ibis::fileManager::unload -- to free up all unused "
+	    lg() << "fileManager::unload -- to free up all unused "
 		 << "space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
@@ -1296,18 +1302,21 @@ int ibis::fileManager::unload(size_t size) {
 	    }
 	}
 	if (size == 0) {
-	    if (ibis::gVerbose > 4 && candidates.size() > 0) {
-		ibis::util::logger lg;
-		lg() << "ibis::fileManager::unload -- unloading all ("
-		     << candidates.size() << ") inactive files";
-		if (ibis::gVerbose > 6) {
-		    lg() << "\n";
-		    (*it).second->printStatus(lg());
-		}
-	    }
+	    LOGGER(ibis::gVerbose > 4 && candidates.size() > 0)
+		<< "fileManager::unload -- unloading all ("
+		<< candidates.size() << ") inactive files";
 	    for (size_t i = 0; i < candidates.size(); ++ i) {
 		it = candidates[i];
 		roFile *tmp = (*it).second; // fileManager::roFile to delete
+		if (ibis::gVerbose > 4) {
+		    ibis::util::logger lg;
+		    lg() << "fileManager::unload -- "
+			"unloading file \"" << (*it).first << "\"";
+		    if (ibis::gVerbose > 7) {
+			lg() << "\n";
+			(*it).second->printStatus(lg());
+		    }
+		}
 		if (tmp->mapped) {
 		    mapped.erase(it);
 		}
@@ -1326,7 +1335,7 @@ int ibis::fileManager::unload(size_t size) {
 		roFile *tmp = (*it).second;
 		if (ibis::gVerbose > 4) {
 		    ibis::util::logger lg;
-		    lg() << "ibis::fileManager::unload -- "
+		    lg() << "fileManager::unload -- "
 			"unloading file \"" << (*it).first << "\"";
 		    if (ibis::gVerbose > 7) {
 			lg() << "\n";
@@ -1361,7 +1370,7 @@ int ibis::fileManager::unload(size_t size) {
 	++ nwaiting;
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
-	    lg() << "ibis::fileManager::unload unable to find "
+	    lg() << "fileManager::unload unable to find "
 		 << ibis::util::groupby1000(size)
 		 << " bytes of free space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
@@ -1426,9 +1435,11 @@ int ibis::fileManager::unload(size_t size) {
 
 /// Invoke the external cleanup function registered with the file manager.
 void ibis::fileManager::invokeCleaners() const {
+    const uint64_t before = ibis::fileManager::totalBytes();
+    if (before == 0) return;
+
     LOGGER(ibis::gVerbose > 5)
 	<< "fileManager invoking registered external cleaners ...";
-    const uint64_t before = ibis::fileManager::totalBytes();
     for (cleanerList::const_iterator it = cleaners.begin();
 	 it != cleaners.end();
 	 ++it)
@@ -1436,12 +1447,12 @@ void ibis::fileManager::invokeCleaners() const {
 
     if (ibis::fileManager::totalBytes() < before) {
 	LOGGER(ibis::gVerbose > 7)
-	    << "ibis::fileManager -- external cleaners reduce totalBytes from "
+	    << "fileManager -- external cleaners reduce totalBytes from "
 	    << before << " to " << ibis::fileManager::totalBytes();
     }
     else if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "ibis::fileManager -- external cleaners "
+	lg() << "fileManager -- external cleaners "
 	     << "did not reduce the total bytes ("
 	     << ibis::fileManager::totalBytes() << ")";
 	if (ibis::gVerbose > 10) {
@@ -2141,25 +2152,25 @@ void ibis::fileManager::roFile::beginUse() {
     }
     lastUse = time(0);
     ++ nref;
-#if defined(DEBUG) || defined(_DEBUG)
+    //#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
-	<< "fileManager::roFile(" << static_cast<const void*>(this) << ", "
+	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this) << ", "
 	<< static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") increased nref to " << nref();
-#endif
+    //#endif
 } // ibis::fileManager::roFile::beginUse
 
 /// Stop using a file.  Decrement the active reference count.
 void ibis::fileManager::roFile::endUse() {
     const uint32_t nr0 = -- nref; // number of current references
     ++ nacc; // number of past accesses
-#if defined(DEBUG) || defined(_DEBUG)
+    //#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
-	<< "fileManager::roFile(" << static_cast<const void*>(this) << ", "
-	<< static_cast<const void*>(m_begin) << ", "
+	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this)
+	<< ", " << static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") decreased nref to " << nref()
 	<< " (nacc = " << nacc << ')';
-#endif
+    //#endif
 
     // relinquish the read lock
     if (name != 0) {
@@ -2208,7 +2219,7 @@ void ibis::fileManager::roFile::clear() {
 #endif
     }
 
-    if (name) {
+    if (name != 0) {
 	delete [] name;
 	name = 0;
     }

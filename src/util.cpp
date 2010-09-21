@@ -191,14 +191,15 @@ char* ibis::util::getString(const char* buf) {
 	}
     }
     else { // not quoted, copy all characters
-	s2 = ibis::util::strnewdup(s1);
-
-	// remove retailing blanks
-	char *tmp = s2 + strlen(s2) - 1;
-	while (tmp>s2 && isspace(*tmp))
+	const char *tmp = s1 + strlen(s1) - 1;
+	while (tmp>s1 && isspace(*tmp))
 	    -- tmp;
-	++ tmp;
-	*tmp = static_cast<char>(0);
+	s2 = ibis::util::strnewdup(s1, tmp-s1+1);
+
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	LOGGER(ibis::gVerbose > 0)
+	    << "DEBUG -- util::getString(" << buf << ") retrieved \"" << s2 << "\"";
+#endif
     }
     return s2;
 } // ibis::util::getString
@@ -990,6 +991,30 @@ uint32_t ibis::util::serialNumber() {
     return ++cnt;
 } // ibis::util::serialNumber
 
+/// Same as strdup() but uses 'new' instead of 'malloc'.  If s == 0, then
+/// it returns 0.
+char* ibis::util::strnewdup(const char* s) {
+    char* str = 0;
+    if (s != 0 && *s != static_cast<char>(0)) {
+	str = new char[strlen(s)+1];
+	std::strcpy(str, s);
+    }
+    return str;
+} // ibis::util::strnewdup
+
+char* ibis::util::strnewdup(const char* s, const uint32_t n) {
+    char* str = 0;
+    if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
+	uint32_t len = strlen(s);
+	if (n < len)
+	    len = n;
+	str = new char[len+1];
+	strncpy(str, s, len);
+	str[len] = 0;
+    }
+    return str;
+} // ibis::util::strnewdup
+
 // return a denominator and numerator pair to compute a uniform
 // distribution of numbers in a given range
 // the fraction (denominator / numerator) is uniformly distributed in [0, 1)
@@ -1132,31 +1157,38 @@ void ibis::util::int2string(std::string& str, unsigned val) {
 /// Produce a string version of the unsigned integer value with the decimal
 /// digits grouped into 1000s.
 std::string ibis::util::groupby1000(uint64_t val) {
-    const char separator = std::use_facet< std::numpunct<char> >
-	(std::cout.getloc()).thousands_sep();
-    std::string res;
-    // loop to extract the decimal digits
-    unsigned char ott = 0;
-    while (res.empty() || val > 0) {
-	uint64_t quo = val / 10U;
-	res += (unsigned char)(val - quo * 10) + '0';
-	val = quo;
-	++ ott;
-	if (ott > 2 && val > 0) {
-	    res += separator;
-	    ott = 0;
+    if (val >= 1000) {
+	const char separator = std::use_facet< std::numpunct<char> >
+	    (std::cout.getloc()).thousands_sep();
+	std::string res;
+	// loop to extract the decimal digits
+	unsigned char ott = 0;
+	while (res.empty() || val > 0) {
+	    uint64_t quo = val / 10U;
+	    res += (unsigned char)(val - quo * 10) + '0';
+	    val = quo;
+	    ++ ott;
+	    if (ott > 2 && val > 0) {
+		res += separator;
+		ott = 0;
+	    }
 	}
-    }
 
-    // reverse the string
-    const size_t jmax = res.size() / 2;
-    const size_t nres = res.size() - 1;
-    for (size_t j = 0; j < jmax; ++ j) {
-	ott = res[j];
-	res[j] = res[nres-j];
-	res[nres-j] = ott;
+	// reverse the string
+	const size_t jmax = res.size() / 2;
+	const size_t nres = res.size() - 1;
+	for (size_t j = 0; j < jmax; ++ j) {
+	    ott = res[j];
+	    res[j] = res[nres-j];
+	    res[nres-j] = ott;
+	}
+	return res;
     }
-    return res;
+    else {
+	std::ostringstream oss;
+	oss << val;
+	return oss.str();
+    }
 } // ibis::util::groupby1000
 
 

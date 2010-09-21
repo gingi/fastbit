@@ -1,3 +1,22 @@
+2010-09-21 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in the destructor reverse the order of the mutex
+	lock and the write lock to satisfy the helgrind (which seems to
+	want them to be in the same as as they appear elsewhere in the
+	code) (addresses some of problems reported by Andreas Streichardt)
+	* src/fileManager.cpp: in getFile accquire read lock before the
+	mutex lock (helgrind complained about lock order violation),
+	remove the read lock from ibis::fileManager::recordFile (because
+	it is unnecessary)
+	* src/fileManager.cpp:1306 refer to undefined variable it
+	* src/util.cpp: the function groupby1000 can not handle incoming
+	value being 0
+
+2010-09-20 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: rewrite functions ibis::util::trim and
+	ibis::util::removeTail to remove the function call to strlen that
+	access uninitialized variables in some cases
+	* src/util.h, src/util.cpp: move strnewdup from util.h to util.cpp
+
 2010-09-13 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp:556 remove the condition on _XOPEN_SOURCE which
 	causes problems on euclid.nersc.gov with PGI compiler (fall back

@@ -1224,13 +1224,17 @@ void ibis::part::readMeshShape(const char* const dir) {
 int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 			     const char* dir) {
     if (dir == 0 || *dir == 0) return -90;
+#if DEBUG+0>0 || _DEBUG+0>1
+    LOGGER(ibis::gVerbose > 0)
+	<< "DEBUG -- readMetaData called with dir=\"" << dir << "\"";
+#endif
     // clear the content of plist
     for (columnList::iterator it = plist.begin(); it != plist.end(); ++it)
 	delete (*it).second;
     plist.clear();
     nrows = 0;
 
-    std::string tdcname = dir;
+    std::string tdcname(dir);
     tdcname += FASTBIT_DIRSEP;
     tdcname += "-part.txt";
     FILE* file = fopen(tdcname.c_str(), "r");

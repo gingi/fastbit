@@ -19,6 +19,7 @@
 #include "const.h"
 
 #include <cctype>	// std::isspace
+#include <cstring>	// std::strcpy
 #include <stdio.h>	// sprintf, remove
 //#if HAVE_SYS_STAT_H
 #include <sys/stat.h>	// stat, mkdir, chmod
@@ -396,9 +397,9 @@ namespace ibis {
 	/// Remove leading and trailing blank space.
 	inline char* trim(char* str);
 	/// Duplicate string content with C++ default new operator.
-	inline char* strnewdup(const char* s);
+	char* strnewdup(const char* s);
 	/// Duplicate no more than n characters.
-	inline char* strnewdup(const char* s, const uint32_t n);
+	char* strnewdup(const char* s, const uint32_t n);
 	/// Remove trailing character 'tail' from str.
 	inline void removeTail(char* str, char tail);
 	char* getString(const char* buf);
@@ -1282,36 +1283,16 @@ inline void ibis::util::round_up(const Tin& inval, float& outval) {
     }
 } // ibis::util::round_up
 
-/// Same as strdup() but uses 'new' instead of 'malloc'.  If s == 0, then
-/// it returns 0.
-inline char* ibis::util::strnewdup(const char* s) {
-    char* str = 0;
-    if (s!=0 && *s!=static_cast<char>(0)) {
-	str = new char[strlen(s)+1];
-	strcpy(str, s);
-    }
-    return str;
-} // ibis::util::strnewdup
-
-inline char* ibis::util::strnewdup(const char* s, const uint32_t n) {
-    char* str = 0;
-    if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
-	uint32_t len = strlen(s);
-	if (n < len)
-	    len = n;
-	str = new char[len+1];
-	strncpy(str, s, len);
-	str[len] = 0;
-    }
-    return str;
-} // ibis::util::strnewdup
-
 // remove all the trailing char 'tail'
 inline void ibis::util::removeTail(char* str, char tail) {
-    uint32_t j = strlen(str);
-    while (j > 0 && str[j-1] == tail) {
-	-- j;
-	str[j] = static_cast<char>(0);
+    if (str != 0 && *str != 0) {
+	char *tmp = str;
+	while (*tmp != 0) ++ tmp;
+	-- tmp;
+	while (tmp > str && *tmp == tail) {
+	    *tmp = static_cast<char>(0);
+	    -- tmp;
+	}
     }
 } // ibis::util::removeTail
 
@@ -1322,16 +1303,20 @@ inline char* ibis::util::trim(char* str) {
     if (*str == 0) return head;
 
     head = str;
-    char* tail = str + strlen(str) - 1;
     while (*head) {
 	if (std::isspace(*head))
-	    ++head;
+	    ++ head;
 	else
 	    break;
     }
-    while (tail>=head && std::isspace(*tail)) {
-	*tail=static_cast<char>(0);
-	--tail;
+    if (*head == 0)
+	return head;
+
+    for (str = head; *str != 0; ++ str);
+    -- str;
+    while (str >= head && std::isspace(*str)) {
+	*str = static_cast<char>(0);
+	-- str;
     }
     return head;
 } // ibis::util::trim

@@ -1057,7 +1057,7 @@ void ibis::table::freeBuffers(ibis::table::bufferList& buf,
 ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       const ibis::table::stringList &cn,
 		       const ibis::table::typeList   &ct,
-		       ibis::table::bufferList        &buf,
+		       ibis::table::bufferList       &buf,
 		       const ibis::table::stringList *cdesc)
     : ibis::part("in-core") {
     m_name = ibis::util::strnewdup(tn);
