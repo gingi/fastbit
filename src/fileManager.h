@@ -416,11 +416,10 @@ private:
 /// A write lock for controlling access to the two internal lists.
 class ibis::fileManager::writeLock {
 public:
-    writeLock(const fileManager* fm, const char* m) :
-	manager(fm), mesg(m) {manager->gainWriteAccess(mesg);}
-    ~writeLock() {manager->releaseAccess(mesg);}
+    writeLock(const char* m) : mesg(m)
+    {ibis::fileManager::instance().gainWriteAccess(mesg);}
+    ~writeLock() {ibis::fileManager::instance().releaseAccess(mesg);}
 private:
-    const fileManager* manager;
     const char* mesg;
 
     writeLock(const writeLock&);
@@ -430,45 +429,15 @@ private:
 /// A soft write lock for controlling access to the two internal lists.
 class ibis::fileManager::softWriteLock {
 public:
-    /// Constructor.  It attempts to acquire the lock.  It records whether
-    /// a write lock was acquired as a boolean variable and that
-    /// information can be retrieved by calling the function isLocked.
-    softWriteLock(const fileManager* fm, const char* m)
-	: manager(fm), mesg(m),
-	  locked_(0 == pthread_rwlock_trywrlock(&fm->lock)) {
-	LOGGER(ibis::gVerbose > 9 && locked_)
-	    << "fileManager::softWriteAccess acquired a write lock for "
-	    << mesg;
-#if defined(DEBUG) && DEBUG > 0
-	LOGGER(ibis::gVerbose > 5 && ibis::gVerbose <= 9)
-	    << "DEBUG -- fileManager::softWriteLock "
-	    << (locked_ ? " acquired " : " failed to acquire ")
-	    << "a write lock for " << m;
-#endif
-    }
-    /// Destructor.
-    ~softWriteLock() {
-	int ierr = pthread_rwlock_unlock(&(manager->lock));
-	if (0 == ierr) {
-	    LOGGER(ibis::gVerbose > 9)
-		<< "fileManager::softWriteLock released the write lock for "
-		<< mesg;
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- fileManager::softWriteLock failed to release "
-		"the write lock for " << mesg << " with the error code "
-		<< ierr << " -- " << strerror(ierr);
-	}
-    }
-    /// Has a write block be acquired?  Returns true or false to indicate
+    softWriteLock(const char* m);
+    ~softWriteLock();
+    /// Has a write lock be acquired?  Returns true or false to indicate
     /// yes or no.
-    bool isLocked() const {return locked_;}
+    bool isLocked() const {return(locked_==0);}
 
 private:
-    const fileManager* manager;
     const char* mesg;
-    const bool locked_;
+    const int locked_;
 
     softWriteLock(const softWriteLock&);
     softWriteLock& operator=(const softWriteLock&);
@@ -485,12 +454,12 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
 	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::releaseAccess on   "
+	    << "fileManager::releaseAccess   on "
 	    << static_cast<const void*>(&lock) << " for " << mesg;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::releaseAccess on   "
+	    << "Warning -- fileManager::releaseAccess   on "
 	    << static_cast<const void*>(&lock) << " for " << mesg
 	    << " failed with the error code " << ierr << " -- "
 	    << strerror(ierr);
@@ -501,12 +470,12 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
     if (0 == ierr) {
 	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::gainReadAccess on  "
+	    << "fileManager::gainReadAccess  on "
 	    << static_cast<const void*>(&lock) << " for " << mesg;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::gainReadAccess on  "
+	    << "Warning -- fileManager::gainReadAccess  on "
 	    << static_cast<const void*>(&lock) << " for " << mesg
 	    << " failed with the error code " << ierr << " -- "
 	    << strerror(ierr);

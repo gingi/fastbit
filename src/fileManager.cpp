@@ -286,7 +286,7 @@ void ibis::fileManager::flushDir(const char* name) {
 			}
 		    }
 		    else {
-			//writeLock wlck(this, "flushDir");
+			//writeLock wlck("fileManager::flushDir");
 			LOGGER(ibis::gVerbose > 7)
 			    << "fileManager::flushDir -- removing \""
 			    << (*it).first
@@ -317,7 +317,7 @@ void ibis::fileManager::flushDir(const char* name) {
 			}
 		    }
 		    else {
-			//writeLock wlck(this, "flushDir");
+			//writeLock wlck("flushDir");
 			LOGGER(ibis::gVerbose > 7)
 			    << "fileManager::flushDir -- removing \""
 			    << (*it).first
@@ -408,13 +408,13 @@ void ibis::fileManager::clear() {
     unload(0);
     if (! mapped.empty() || ! incore.empty()) {
 	std::vector<roFile*> tmp; // temporarily holds the read-only files
-	softWriteLock wlck(this, "clear");
+	softWriteLock wlck("fileManager::clear");
 	if (! wlck.isLocked()) {
 	    if (ibis::gVerbose > 3) {
 		ibis::util::logger lg;
 		lg() << "Warning -- fileManager::clear failed to "
 		    "acquire a write lock for deleting the in-memory objects\n";
-		if (ibis::gVerbose > 6)
+		if (ibis::gVerbose > 5)
 		    printStatus(lg());
 		else
 		    lg() << "There are " << mapped.size()
@@ -774,7 +774,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 	}
     }
 
-    readLock rock(evt.c_str());
+    //20100922readLock rock(evt.c_str());
     ibis::util::mutexLock lck(&mutex, evt.c_str()); // only one instance can run
     // is the named file among those mapped ?
     fileList::iterator it = mapped.find(name);
@@ -943,14 +943,14 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 				  ACCESS_PREFERENCE pref) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
-	<< "fileManager::tryGetFile -- attempt to retrieve \"" << name
+	<< "DEBUG -- fileManager::tryGetFile -- attempt to retrieve \"" << name
 	<< "\", currently there are " << mapped.size() << " mapped files and "
 	<< incore.size() << " incore files";
 #endif
     int ierr = 0;
     uint64_t bytes = 0; // the file size in bytes
+    //20100922readLock rock("tryGetFile");
     ibis::util::mutexLock lck(&mutex, "fileManager::tryGetFile");
-    readLock rock("tryGetFile");
 
     // is the named file among those mapped ?
     fileList::iterator it = mapped.find(name);
@@ -1091,7 +1091,7 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
 				  const off_t b, const off_t e) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
-	<< "fileManager::getFileSegment -- attempt to retrieve \"" << name
+	<< "DEBUG -- fileManager::getFileSegment -- attempt to retrieve \"" << name
 	<< "\", currently there are " << mapped.size() << " mapped files and "
 	<< incore.size() << " incore files";
 #endif
@@ -1475,6 +1475,45 @@ void ibis::fileManager::signalMemoryAvailable() const {
 	    << ierr << " from pthread_cond_signal";
     }
 } // ibis::fileManager::signalMemoryAvailable
+
+/// Constructor.  It attempts to acquire the lock and records whether a
+/// write lock was acquired as a boolean variable.  The function isLocked
+/// returns whether the lock has been acquired.
+ibis::fileManager::softWriteLock::softWriteLock(const char* m)
+    : mesg(m),
+      locked_(pthread_rwlock_trywrlock(&(ibis::fileManager::instance().lock))) {
+    if (locked_ == 0) {
+	LOGGER(ibis::gVerbose > 9)
+	    << "fileManager::softWriteLock acquired the write lock ("
+	    << static_cast<const void*>(&(ibis::fileManager::instance().lock)) << ") for " << m;
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- fileManager::softWriteLock failed to acquire "
+	    "the write lock (" << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+	    << ") for " << m << ", error code = " << locked_;
+    }
+}
+
+/// Destructor.
+ibis::fileManager::softWriteLock::~softWriteLock() {
+    if (locked_ == 0) {
+	int ierr = pthread_rwlock_unlock(&(ibis::fileManager::instance().lock));
+	if (0 == ierr) {
+	    LOGGER(ibis::gVerbose > 9)
+		<< "fileManager::softWriteLock released the write lock ("
+		<< static_cast<const void*>(&(ibis::fileManager::instance().lock)) << ")for "
+		<< mesg;
+	}
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- fileManager::softWriteLock failed to release "
+		"the write lock (" << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+		<< ") for " << mesg << " with the error code "
+		<< ierr << " -- " << strerror(ierr);
+	}
+    }
+}
 
 //////////////////////////////////////////////////////////////////////
 // functions for the buffer template
@@ -2117,8 +2156,8 @@ void ibis::fileManager::storage::beginUse() {
     ++ nref;
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
-	<< "fileManager::storage(" << static_cast<const void*>(this) << ", "
-	<< static_cast<const void*>(m_begin)
+	<< "DEBUG -- fileManager::storage(" << static_cast<const void*>(this)
+	<< ", " << static_cast<const void*>(m_begin)
 	<< ") increased nref to " << nref();
 #endif
 }
@@ -2129,8 +2168,8 @@ void ibis::fileManager::storage::endUse() {
     ++ nacc;
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
-	<< "fileManager::storage(" << static_cast<const void*>(this) << ", "
-	<< static_cast<const void*>(m_begin)
+	<< "DEBUG -- fileManager::storage(" << static_cast<const void*>(this)
+	<< ", " << static_cast<const void*>(m_begin)
 	<< ") decreased nref to " << nref()
 	<< " (nacc = " << nacc << ')';
 #endif
@@ -2152,25 +2191,25 @@ void ibis::fileManager::roFile::beginUse() {
     }
     lastUse = time(0);
     ++ nref;
-    //#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
 	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this) << ", "
 	<< static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") increased nref to " << nref();
-    //#endif
+#endif
 } // ibis::fileManager::roFile::beginUse
 
 /// Stop using a file.  Decrement the active reference count.
 void ibis::fileManager::roFile::endUse() {
     const uint32_t nr0 = -- nref; // number of current references
     ++ nacc; // number of past accesses
-    //#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
 	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this)
 	<< ", " << static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") decreased nref to " << nref()
 	<< " (nacc = " << nacc << ')';
-    //#endif
+#endif
 
     // relinquish the read lock
     if (name != 0) {

@@ -624,7 +624,7 @@ void ibis::part::genName(const ibis::resource::vList &mtags,
 void ibis::part::rename(const ibis::partAssoc& known) {
     std::string tmp1, tmp2;
     std::vector<unsigned> rands;
-    mutexLock ml(this, "rename");
+    ibis::util::mutexLock ml(&mutex, "part::rename");
     if (switchTime == 0) // presume to be not yet set
 	switchTime = time(0);
     // try 0: use the description

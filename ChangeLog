@@ -1,3 +1,13 @@
+2010-09-23 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp, src/column.cpp: reorder the locks to resolve
+	complains fron helgrind
+
+2010-09-22 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h: update the constructor of
+	fileManager::softLock to check for the value of locked_ before
+	unlocking the read-write lock, which appears to address the
+	problem with unlocking not-locked locks
+
 2010-09-21 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in the destructor reverse the order of the mutex
 	lock and the write lock to satisfy the helgrind (which seems to

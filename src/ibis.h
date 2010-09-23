@@ -295,6 +295,13 @@ namespace ibis {
 #endif
 	}
 #endif
+#if defined(PTW32_STATIC_LIB)
+	if (ibis::util::envLock == PTHREAD_MUTEX_INITIALIZER) {
+	    int ierr = pthread_mutex_init(&ibis::util::envLock, 0);
+	    if (ierr != 0)
+		throw "ibis::init failed to initialize ibis::util::envLock";
+	}
+#endif
 	if (mesgfile != 0 && *mesgfile != 0) {
 	    int ierr = ibis::util::setLogFileName(mesgfile);
 	    if (ierr < 0 && ibis::gVerbose >= 0) {

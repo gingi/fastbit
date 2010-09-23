@@ -610,6 +610,13 @@ namespace ibis {
 	class ioLock {
 	public:
 	    ioLock() {
+#if defined(PTW32_STATIC_LIB)
+		if (mutex == PTHREAD_MUTEX_INITIALIZER) {
+		    int ierr = pthread_mutex_init(&mutex, 0);
+		    if (ierr != 0)
+			throw "ioLock failed to initialize the necessary mutex";
+		}
+#endif
 		if (0 != pthread_mutex_lock(&mutex))
 		    throw "ioLock failed to obtain a lock";
 	    }

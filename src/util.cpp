@@ -63,12 +63,6 @@ ibis::partList ibis::datasets;
 static std::string ibis_util_logfilename("");
 static FILE* ibis_util_logfilepointer = 0;
 
-#if defined(_MSC_VER) && defined(_WIN32)
-// Intended to serialize all time conversion calls on windows.  Only used
-// in the file.
-static pthread_mutex_t ibis_util_timeLock = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 /// Return a null-terminated string from the beginning of input string str.
 /// The first apparence of any character from characters in tok_chars is
 /// turned into null.  The incoming argument is modified to point to the
@@ -1712,7 +1706,6 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 /// least 26 bytes.  The new line character is turned into null.
 void ibis::util::secondsToString(const time_t sec, char *str) {
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -1736,7 +1729,6 @@ void ibis::util::secondsToString(const time_t sec, char *str) {
 void ibis::util::getLocalTime(char *str) {
     time_t sec = time(0); // current time in seconds
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -1757,7 +1749,6 @@ void ibis::util::getLocalTime(char *str) {
 void ibis::util::getGMTime(char *str) {
     time_t sec = time(0); // current time in seconds
 #if defined(_MSC_VER) && defined(_WIN32)
-    ibis::util::quietLock lock(&ibis_util_timeLock);
     strcpy(str, asctime(gmtime(&sec)));
     str[24] = 0;
 #else

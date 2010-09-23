@@ -306,7 +306,6 @@ ibis::column::column(const ibis::column& rhs) :
 ibis::column::~column() {
     { // must not be used for anything else
 	writeLock wk(this, "~column");
-	mutexLock mk(this, "~column");
 	delete idx;
 	LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
 	    << "clearing column " << thePart->name() << '.' << m_name;
@@ -591,7 +590,7 @@ const char* ibis::column::nullMaskName(std::string& fname) const {
 void ibis::column::getNullMask(ibis::bitvector& mask) const {
     if (thePart == 0) return;
 
-    mutexLock lock(this, "column::getNullMask");
+    ibis::util::mutexLock lock(&mutex, "column::getNullMask");
     if (mask_.size() == thePart->nRows()) {
 	ibis::bitvector tmp(mask_);
 	mask.swap(tmp);
@@ -4899,7 +4898,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 		tmp->print(lg());
 	    }
 
-	    mutexLock lck2(this, "loadIndex");
+	    ibis::util::mutexLock lck2(&mutex, "loadIndex");
 	    if (idx == 0) {
 		idx = tmp;
 	    }
@@ -6098,7 +6097,7 @@ long ibis::column::append(const char* dt, const char* df,
 	return ret;
     if (strcmp(dt, thePart->currentDataDir()) == 0) {
 	// update the mask stored internally
-	mutexLock lck(this, "column::append");
+	ibis::util::mutexLock lck(&mutex, "column::append");
 	mask_.swap(mtot);
     }
 
@@ -6390,7 +6389,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
     long ierr = 0;
     const unsigned elem = sizeof(T);
     off_t oldsz = UnixSeek(curr, 0, SEEK_END);
-    mutexLock lock(this, evt.c_str());
+    ibis::util::mutexLock lock(&mutex, evt.c_str());
     if (oldsz < 0)
 	oldsz = 0;
     else
@@ -6452,7 +6451,7 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
     evt += m_name;
     evt += "]::appendStrings";
 
-    mutexLock lock(this, evt.c_str());
+    ibis::util::mutexLock lock(&mutex, evt.c_str());
     std::string fn = thePart->currentDataDir();
     fn += FASTBIT_DIRSEP;
     fn += m_name;
@@ -7310,7 +7309,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
 	current.subset(sel, bv);
 	fname += ".msk";
 
-	mutexLock mtx(this, "saveSelected");
+	ibis::util::mutexLock mtx(&mutex, "saveSelected");
 	mask_.swap(bv);
 	if (mask_.size() > mask_.cnt())
 	    mask_.write(fname.c_str());
@@ -8263,7 +8262,7 @@ long ibis::column::getDistribution
     return ierr;
 } // ibis::column::getDistribution
 
-/// Change the m_sorted flag.  If the flag m_sorted is set to true, the
+/// Change the flag m_sorted.  If the flag m_sorted is set to true, the
 /// caller should have sorted the data file.  Incorrect flag will lead to
 /// wrong answers to queries.  This operation invokes a write lock on the
 /// column object.
@@ -10579,7 +10578,7 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 #endif
     bool toload = false;
     { // only attempt to build the index if idxcnt is zero and idx is zero
-	ibis::column::mutexLock(col, m);
+	ibis::column::readLock lk(col, m);
 	toload = (theColumn->idxcnt() == 0 && theColumn->idx == 0);
     }
     if (toload)
@@ -10615,6 +10614,80 @@ ibis::column::indexLock::~indexLock() {
 	else if (ibis::gVerbose > 9)
 	    theColumn->logMessage("releaseReadAccess",
 				  "pthread_rwlock_unlock for %s", mesg);
+    }
+}
+
+/// Constructor.  No error checking, both incoming arguments must be valid.
+ibis::column::readLock::readLock(const ibis::column* col, const char* m)
+    : theColumn(col), mesg(m) {
+    int ierr = pthread_rwlock_rdlock(&(col->rwlock));
+    if (0 != ierr)
+	col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
+			"returned %d (%s)", m, ierr, strerror(ierr));
+    else if (ibis::gVerbose > 9)
+	col->logMessage("gainReadAccess",
+			"pthread_rwlock_rdlock for %s", m);
+}
+
+/// Destructor.
+ibis::column::readLock::~readLock() {
+    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+    if (0 != ierr)
+	theColumn->logWarning("releaseReadAccess",
+			      "pthread_rwlock_unlock for %s returned %d "
+			      "(%s)", mesg, ierr, strerror(ierr));
+    else if (ibis::gVerbose > 9)
+	theColumn->logMessage("releaseReadAccess",
+			      "pthread_rwlock_unlock for %s", mesg);
+}
+
+/// Constructor.  No error checking, both incoming arguments must be valid.
+ibis::column::writeLock::writeLock(const ibis::column* col, const char* m)
+    : theColumn(col), mesg(m) {
+    int ierr = pthread_rwlock_wrlock(&(col->rwlock));
+    if (0 != ierr)
+	col->logWarning("gainWriteAccess", "pthread_rwlock_wrlock for %s "
+			"returned %d (%s)", m, ierr, strerror(ierr));
+    else if (ibis::gVerbose > 9)
+	col->logMessage("gainWriteAccess",
+			"pthread_rwlock_wrlock for %s", m);
+}
+
+/// Destructor.
+ibis::column::writeLock::~writeLock() {
+    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+    if (0 != ierr)
+	theColumn->logWarning("releaseWriteAccess",
+			      "pthread_rwlock_unlock() for %s returned %d "
+			      "(%s)", mesg, ierr, strerror(ierr));
+    else if (ibis::gVerbose > 9)
+	theColumn->logMessage("releaseWriteAccess",
+			      "pthread_rwlock_unlock for %s", mesg);
+}
+
+/// Constructor.  No error checking, both incoming arguments must be valid.
+ibis::column::softWriteLock::softWriteLock(const ibis::column* col, const char* m)
+    : theColumn(col), mesg(m),
+      locked(pthread_rwlock_trywrlock(&(col->rwlock))) {
+    if (locked != 0)
+	col->logWarning("gainWriteAccess",
+			"pthread_rwlock_trywrlock for %s failed with error code %d", m, locked);
+    else if (ibis::gVerbose > 9)
+	col->logMessage("gainWriteAccess",
+			"pthread_rwlock_trywrlock for %s successful", m);
+}
+
+/// Destructor.
+ibis::column::softWriteLock::~softWriteLock() {
+    if (locked == 0) {
+	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+	if (0 != ierr)
+	    theColumn->logWarning("releaseWriteAccess",
+				  "pthread_rwlock_unlock for %s returned "
+				  "%d (%s)", mesg, ierr, strerror(ierr));
+	else if (ibis::gVerbose > 9)
+	    theColumn->logMessage("releaseWriteAccess",
+				  "pthread_rwlock_unlock for %s successful", mesg);
     }
 }
 

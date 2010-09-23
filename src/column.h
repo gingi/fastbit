@@ -531,36 +531,8 @@ private:
 /// Provide a write lock on a ibis::column object.
 class ibis::column::writeLock {
 public:
-    writeLock(const ibis::column* col, const char* m)
-	: theColumn(col), mesg(m) {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::writeLock",
-			       "locking column %s for %s", col->name(),
-			       (m ? m : "?"));
-#endif
-	int ierr = pthread_rwlock_wrlock(&(col->rwlock));
-	if (0 != ierr)
-	    col->logWarning("gainWriteAccess", "pthread_rwlock_wrlock for %s "
-			    "returned %d (%s)", m, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    col->logMessage("gainWriteAccess",
-			    "pthread_rwlock_wrlock for %s", m);
-    }
-    ~writeLock() {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::writeLock",
-			       "unlocking column %s (%s)", theColumn->name(),
-			       (mesg ? mesg : "?"));
-#endif
-	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (0 != ierr)
-	    theColumn->logWarning("releaseWriteAccess",
-				  "pthread_rwlock_unlock() for %s returned %d "
-				  "(%s)", mesg, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    theColumn->logMessage("releaseWriteAccess",
-				  "pthread_rwlock_unlock for %s", mesg);
-    }
+    writeLock(const ibis::column* col, const char* m);
+    ~writeLock();
 
 private:
     const ibis::column* theColumn;
@@ -574,41 +546,14 @@ private:
 /// Provide a write lock on a ibis::column object.
 class ibis::column::softWriteLock {
 public:
-    softWriteLock(const ibis::column* col, const char* m)
-	: theColumn(col), mesg(m),
-	  locked(0 == pthread_rwlock_trywrlock(&(col->rwlock))) {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::softWriteLock",
-			       "locking column %s for %s", col->name(),
-			       (m ? m : "?"));
-#endif
-	if (ibis::gVerbose > 9 && locked)
-	    col->logMessage("gainWriteAccess",
-			    "pthread_rwlock_wrlock for %s", m);
-    }
-    ~softWriteLock() {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::softWriteLock",
-			       "unlocking column %s (%s)", theColumn->name(),
-			       (mesg ? mesg : "?"));
-#endif
-	if (locked) {
-	    int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	    if (0 != ierr)
-		theColumn->logWarning("releaseWriteAccess",
-				      "pthread_rwlock_unlock for %s returned "
-				      "%d (%s)", mesg, ierr, strerror(ierr));
-	    else if (ibis::gVerbose > 9)
-		theColumn->logMessage("releaseWriteAccess",
-				      "pthread_rwlock_unlock for %s", mesg);
-	}
-    }
-    bool isLocked() const {return locked;}
+    softWriteLock(const ibis::column* col, const char* m);
+    ~softWriteLock();
+    bool isLocked() const {return(locked==0);}
 
 private:
     const ibis::column* theColumn;
     const char* mesg;
-    const bool locked;
+    const int locked;
 
     softWriteLock();
     softWriteLock(const softWriteLock&);
@@ -618,36 +563,8 @@ private:
 /// Provide a write lock on a ibis::column object.
 class ibis::column::readLock {
 public:
-    readLock(const ibis::column* col, const char* m)
-	: theColumn(col), mesg(m) {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::readLock",
-			       "locking column %s for %s", col->name(),
-			       (m ? m : "?"));
-#endif
-	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-	if (0 != ierr)
-	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
-			    "returned %d (%s)", m, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    col->logMessage("gainReadAccess",
-			    "pthread_rwlock_rdlock for %s", m);
-    }
-    ~readLock() {
-#if defined(DEBUG) && DEBUG > 0
-	ibis::util::logMessage("ibis::column::readLock",
-			       "unlocking column %s (%s)", theColumn->name(),
-			       (mesg ? mesg : "?"));
-#endif
-	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (0 != ierr)
-	    theColumn->logWarning("releaseReadAccess",
-				  "pthread_rwlock_unlock for %s returned %d "
-				  "(%s)", mesg, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    theColumn->logMessage("releaseReadAccess",
-				  "pthread_rwlock_unlock for %s", mesg);
-    }
+    readLock(const ibis::column* col, const char* m);
+    ~readLock();
 
 private:
     const ibis::column* theColumn;
