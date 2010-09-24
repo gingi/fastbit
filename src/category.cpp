@@ -2727,6 +2727,25 @@ const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
 		idcol = partition()->getColumn(tmp);
 	    delete [] tmp;
 	}
+	if (idcol == 0) {
+	    str = strstr(spec, "docid");
+	    if (str == 0) {
+		str = strstr(spec, "docID");
+		if (str == 0) {
+		    str = strstr(spec, "docId");
+		    if (str == 0)
+			str = strstr(spec, "DOCID");
+		}
+	    }
+	    if (str != 0 && *str != 0) {
+		str += 5;
+		str += strspn(str, " \t=");
+		char *tmp = ibis::util::getString(str);
+		if (tmp != 0 && *tmp != 0)
+		    idcol = partition()->getColumn(tmp);
+		delete [] tmp;
+	    }
+	}
     }
     if (idcol == 0) {
 	std::string idcpar = partition()->name();
@@ -2734,7 +2753,7 @@ const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
 	idcpar += m_name;
 	idcpar += ".docIDName";
 	const char* idname = ibis::gParameters()[idcpar.c_str()];
-	if (idname)
+	if (idname != 0)
 	    idcol = partition()->getColumn(idname);
     }
     return idcol;

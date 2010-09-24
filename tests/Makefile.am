@@ -36,7 +36,8 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
 #
 # tests with different levels of thoroughness
 check: clean-tmp check-am
-	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} > /dev/null
+	@mkdir $(TESTDIR)
+	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/stdout.log 2>&1
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
@@ -59,8 +60,8 @@ check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(T
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
 	@$(THULAEXE) -d $(TESTDIR)/t1/ -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and -1 < c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 > /dev/null && if [ `diff -w vault/thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 > /dev/null && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@echo
 check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
@@ -132,16 +133,15 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
-really-small: $(TESTDIR)/wee1/-part.txt $(TESTDIR)/wee2/-part.txt $(TESTDIR)/wee3/-part.txt $(IBISEXE)
+really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt
 	@date >| $(TESTDIR)/really-small.log
-	@$(IBISEXE) -d $(TESTDIR)/wee1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/wee3 -v -q "select distinct(c_1), stdev(c_2) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
-	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
+	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
 	@if [ -f $(TESTDIR)/small-1 -a -f vault/small-1 -a `diff -w $(TESTDIR)/small-1 vault/small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@if [ -f $(TESTDIR)/small-2 -a -f vault/small-2 -a `diff -w $(TESTDIR)/small-2 vault/small-2 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@if [ -f $(TESTDIR)/small-3 -a -f vault/small-3 -a `diff -w $(TESTDIR)/small-3 vault/small-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
@@ -149,6 +149,9 @@ really-small: $(TESTDIR)/wee1/-part.txt $(TESTDIR)/wee2/-part.txt $(TESTDIR)/wee
 	@if [ -f $(TESTDIR)/small-5 -a -f vault/small-5 -a `diff -w $(TESTDIR)/small-5 vault/small-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ -f $(TESTDIR)/small-6 -a -f vault/small-6 -a `diff -w $(TESTDIR)/small-6 vault/small-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ -f $(TESTDIR)/small-7 -a -f vault/small-7 -a `diff -w $(TESTDIR)/small-7 vault/small-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='USA'" | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='CA'" | fgrep 'The number of hits is 0' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@date >| $(TESTDIR)/check-join.log
@@ -174,30 +177,36 @@ check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	@rm -rf $(TESTDIR)/t0
-	@$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv > /dev/null
+	@$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv
 	@rm -rf $(TESTDIR)/t1
-	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv > /dev/null
-	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv > /dev/null
+	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	@echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 $(TESTDIR)/t2/t2a/-part.txt: $(ARDEAEXE) test0.csv
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/t2/t2b/-part.txt: $(ARDEAEXE) test0.csv
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv > /dev/null
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 # really small data partitions (wee == very small)
-$(TESTDIR)/wee1/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/wee1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," > /dev/null
-$(TESTDIR)/wee2/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/wee2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" > /dev/null
-$(TESTDIR)/wee3/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/wee3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" > /dev/null
+$(TESTDIR)/w1/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w2/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w3/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA" >> $(TESTDIR)/stdout.log 2>&1
+	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
+	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
+	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
+	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 # a simple internal sanity check
 sanity-check: $(IBISEXE) $(TESTDIR)/append.log
 	@echo
@@ -307,7 +316,11 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
-# testing with enough rows to fill the disk cache, completing this set of tests might take an hour on a typical machine with at least 4GB of memory.  More memory will typlically reduce the test time, but not significantly.  On machines with less than 2GB of memory, one may experience more warnings.
+# testing with enough rows to fill the disk cache, completing this set
+# of tests might take an hour on a typical machine with at least 4GB of
+# memory.  More memory will typlically reduce the test time, but not
+# significantly.  On machines with less than 2GB of memory, one may
+# experience more warnings.
 check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
@@ -338,14 +351,14 @@ $(TESTDIR)/2: $(TESTDIR)
 	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv
 	-rm -rf $(TESTDIR)/marksdb
-	-./readcsv marksdb.csv $(TESTDIR)/marksdb > /dev/null
+	-./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv
 	-rm -rf $(TESTDIR)/maurel
-	-./readcsv maurel.csv $(TESTDIR)/maurel > /dev/null
+	-./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
-	-./readcsv test0.csv $(TESTDIR)/0/test0 > /dev/null
+	-./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)
-	-./readcsv test1.csv $(TESTDIR)/0/test1 > /dev/null
+	-./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/test.rc: $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc

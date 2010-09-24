@@ -22,7 +22,7 @@ ibis::keywords::keywords(const ibis::column* c,
     if (c->type() != ibis::CATEGORY &&
 	c->type() != ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::keywords::keywords -- can only index categorical "
+	    << "keywords::keywords -- can only index categorical "
 	    "values or string values";
 	throw ibis::bad_alloc("wrong column type for ibis::keywords");
     }
@@ -45,13 +45,12 @@ ibis::keywords::keywords(const ibis::column* c,
 
     // need to read a tdlist file generated externally, first check that id
     // column is a valid one
-    if (idcol != 0 &&
-	(idcol->type() == ibis::FLOAT ||
-	 idcol->type() == ibis::DOUBLE)) {
+    if (idcol != 0 && idcol->type() != ibis::INT &&
+	idcol->type() != ibis::UINT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::keywords::keywords -- the id column of "
-	    "ibis::keywords can only be integers";
-	throw ibis::bad_alloc("ibis::keywords can only use "
+	    << "keywords::keywords -- the id column of "
+	    "ibis::keywords can only be 4-byte integers";
+	throw ibis::bad_alloc("keywords can only use 4-byte "
 			      "integers as ids");
     }
     fmat.erase(fmat.size()-3);
@@ -68,9 +67,9 @@ ibis::keywords::keywords(const ibis::column* c,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::keywords::keywords -- readTermDocFile failed "
+	    << "keywords::keywords -- readTermDocFile failed "
 	    "with error code " << ierr;
-	throw ibis::bad_alloc("ibis::keywords failed to read tdlist file");
+	throw ibis::bad_alloc("keywords failed to read tdlist file");
     }
 } // ibis::keywords::keywords
 
@@ -85,7 +84,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     std::ifstream tdf(f);
     if (! tdf) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::keywords::readTermDocFile -- failed to open \""
+	    << "keywords::readTermDocFile -- failed to open \""
 	    << f << "\" for reading";
 	return -1;
     }
@@ -95,11 +94,12 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     char* buf = mybuf.address();
     if (nbuf == 0 || buf == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::keywords::readTermDocFile(" << f
+	    << "keywords::readTermDocFile(" << f
 	    << ") -- failed to acquire a buffer to reading";
 	return -2;
     }
     nrows = col->partition()->nRows();
+    size_t jline = 0;
     std::string kw;
     std::vector<uint32_t> idlist;
     typedef std::map<char*, ibis::bitvector*, ibis::lessi> TBMap;
@@ -107,33 +107,45 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     if (idcol != 0) {
 	ibis::roster ros(idcol);
 	while ((ierr = readLine(tdf, kw, idlist, buf, nbuf)) == 0) {
+	    ++ jline;
 	    ibis::bitvector bvec;
 	    ierr = ros.locate(idlist, bvec);
 	    if (ierr < 0)
 		setBits(idlist, bvec);
 	    bvec.adjustSize(0, nrows);
 	    if (bvec.cnt() > 0) {
-		tbmap[ibis::util::strnewdup(kw.c_str())] =
-		    new ibis::bitvector(bvec);
-		if (ibis::gVerbose > 1 && tbmap.size() % 100000 == 0)
-		    col->logMessage("keywords::readTermDocFile",
-				    "reading keywords from %s, got %lu", f,
-				    static_cast<long unsigned>(tbmap.size()));
+		TBMap::iterator it = tbmap.find(const_cast<char*>(kw.c_str()));
+		if (it == tbmap.end()) { // a new entry
+		    tbmap[ibis::util::strnewdup(kw.c_str())] =
+			new ibis::bitvector(bvec);
+		}
+		else {
+		    *(it->second) |= bvec;
+		}
+		LOGGER(ibis::gVerbose > 1 && jline % 100000 == 0)
+		    << "keywords::readTermDocFile -- reading keywords from "
+		    << f << ", got " << tbmap.size();
 	    }
 	} // reading a line of the term-document list file
     }
     else {
 	while ((ierr = readLine(tdf, kw, idlist, buf, nbuf)) == 0) {
+	    ++ jline;
 	    ibis::bitvector bvec;
 	    setBits(idlist, bvec);
 	    bvec.adjustSize(0, nrows);
 	    if (bvec.cnt() > 0) {
-		tbmap[ibis::util::strnewdup(kw.c_str())] =
-		    new ibis::bitvector(bvec);
-		if (ibis::gVerbose > 1 && tbmap.size() % 100000 == 0)
-		    col->logMessage("keywords::readTermDocFile",
-				    "reading keywords from %s, got %lu", f,
-				    static_cast<long unsigned>(tbmap.size()));
+		TBMap::iterator it = tbmap.find(const_cast<char*>(kw.c_str()));
+		if (it == tbmap.end()) { // a new entry
+		    tbmap[ibis::util::strnewdup(kw.c_str())] =
+			new ibis::bitvector(bvec);
+		}
+		else {
+		    *(it->second) |= bvec;
+		}
+		LOGGER(ibis::gVerbose > 1 && jline % 100000 == 0)
+		    << "keywords::readTermDocFile -- reading keywords from "
+		    << f << ", got " << tbmap.size();
 	    }
 	} // reading a line of the term-document list file
     }
@@ -144,16 +156,16 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 	ierr = 0;
 
     if (ibis::gVerbose > 1) {
-	col->logMessage("keywords::readTermDocFile",
-			"read %lu keyword%s from \"%s\" using %s as ID column",
+	col->logMessage("keywords::readTermDocFile", "read %lu keyword%s "
+			"from \"%s\" using \"%s\" as the ID column",
 			static_cast<long unsigned>(tbmap.size()),
 			(tbmap.size()>1U ? "s" : ""), f,
 			(idcol ? idcol->name() : "the row number"));
     }
-    // translates the tbmap into a dictionary and a vector of pointers
+    // translates tbmap into a dictionary and a vector of pointers
     bits.resize(tbmap.size()+1);
     bits[0] = new ibis::bitvector;
-    bits[0]->adjustSize(0, nrows);
+    bits[0]->set(0, nrows);
     std::vector<char*> toDelete;
     for (TBMap::const_iterator it = tbmap.begin();
 	 it != tbmap.end(); ++ it) {
@@ -195,7 +207,7 @@ int ibis::keywords::readLine(std::istream &in,
     char c = readKeyword(const_cast<const char*&>(str1), key);
     if (c != ':') { // failed to find the required delimiter after keyword
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::keywords::readLine -- failed to find the "
+	    << "keywords::readLine -- failed to find the "
 	    "required delimiter ':' after the keyword \"" << key
 	    << "\".  Skip the line";
 	ierr = -1;
@@ -217,9 +229,9 @@ int ibis::keywords::readLine(std::istream &in,
 	    if (eol == '\n') {
 		idlist.push_back(id);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-		LOGGER(ibis::gVerbose >= 0)
-		    << "ibis::keywords::readLine -- keyword:" << key
-		    << ", count:" << idlist.size() << " ("
+		LOGGER(ibis::gVerbose > 5)
+		    << "DEBUG -- keywords::readLine -- keyword: " << key
+		    << ", count: " << idlist.size() << " ("
 		    << idlist[0] << (idlist.size()>1 ? ", ...)" : ")");
 #endif
 		return ierr;
@@ -377,7 +389,7 @@ int ibis::keywords::write(const char* dt) const {
 	return -6;
     }
     if (useoffset64) {
-	ierr = UnixWrite(fdes, offset64.begin(), 4*(nobs+1));
+	ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
 	offset32.clear();
     }
     else {
@@ -591,11 +603,11 @@ long ibis::keywords::evaluate(const ibis::qContinuousRange& expr,
 void ibis::keywords::estimate(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& lower,
 			      ibis::bitvector& upper) const {
-    throw "ibis::keywords::estimate not implemented yet";
+    throw "keywords::estimate not implemented yet";
 } // ibis::keywords::estimate
 
 uint32_t ibis::keywords::estimate(const ibis::qContinuousRange& expr) const {
-    throw "ibis::keywords::estimate not implemented yet";
+    throw "keywords::estimate not implemented yet";
     return 0;
 } // ibis::keywords::estimate
 

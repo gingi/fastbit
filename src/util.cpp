@@ -189,12 +189,11 @@ char* ibis::util::getString(const char* buf) {
 	while (tmp>s1 && isspace(*tmp))
 	    -- tmp;
 	s2 = ibis::util::strnewdup(s1, tmp-s1+1);
-
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
-	LOGGER(ibis::gVerbose > 0)
-	    << "DEBUG -- util::getString(" << buf << ") retrieved \"" << s2 << "\"";
-#endif
     }
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+    LOGGER(ibis::gVerbose > 0)
+	<< "DEBUG -- util::getString(" << buf << ") retrieved \"" << s2 << "\"";
+#endif
     return s2;
 } // ibis::util::getString
 
@@ -303,6 +302,11 @@ int ibis::util::readString(std::string& str, const char *&buf,
 	}
 	if (str.empty()) return -2; // unquoted empty string
     }
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+    LOGGER(ibis::gVerbose > 0)
+	<< "DEBUG -- util::getString(" << buf << ") retrieved \""
+	<< str << "\"";
+#endif
     return 0;
 } // ibis::util::readString
 

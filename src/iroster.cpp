@@ -29,8 +29,8 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
     if (c->partition() == 0 || c->partition()->currentDataDir() == 0) return;
     (void) read(dir); // attempt to read the existing list
 
-    if (ind.size() != col->partition()->nRows() &&
-	inddes < 0 && dir != 0) { // need to build a new roster list
+    if (ind.size() != col->partition()->nRows() && inddes < 0) {
+	// need to build a new roster list
 	if (col->partition()->nRows() <
 	    ibis::fileManager::bytesFree() / (8+col->elementSize()))
 	    icSort(dir); // in core sorting
@@ -889,10 +889,11 @@ void ibis::roster::icSort(const char* fin) {
 	break;}
     }
 
-    ind.resize(indim.size());
-    std::copy(indim.begin(), indim.end(), ind.begin());
-    // write out the current content
-    write(static_cast<const char*>(0)); // write .ind file
+    if (indim.size() == col->partition()->nRows()) {
+	ind.swap(indim);
+	// write out the current content
+	write(static_cast<const char*>(0)); // write .ind file
+    }
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	col->logMessage("roster::icSort", "in-core sorting of %lu numbers "
@@ -2105,11 +2106,15 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
     return ierr;
 } //ibis::roster::mergeBlock2
 
-/// Only print the message if the roster list is open correctly.
+/// Print a terse message about the roster.   If the roster list is not
+/// initialized correctly, it prints a warning message.
 void ibis::roster::print(std::ostream& out) const {
     if (col != 0 && (ind.size() == col->partition()->nRows() || inddes >= 0))
 	out << "a roster list for " << col->partition()->name() << '.'
-	    << col->name() << std::endl;
+	    << col->name() << " with " << ind.size() << " row"
+	    << (ind.size() > 1 ? "s" : "");
+    else
+	out << "an empty roster list";
 } // ibis::roster::print
 
 uint32_t ibis::roster::size() const {
@@ -3070,6 +3075,8 @@ template <typename T> int
 ibis::roster::locate(const std::vector<T>& vals,
 		     ibis::bitvector& positions) const {
     int ierr = 0;
+    if (vals.empty())
+	return ierr;
     if (col == 0 || (ind.size() != col->partition()->nRows() && inddes < 0)) {
 	ierr = -2;
 	return ierr;
@@ -3079,8 +3086,6 @@ ibis::roster::locate(const std::vector<T>& vals,
 	return ierr;
     }
     positions.clear();
-    if (vals.empty())
-	return ierr;
 
     std::string evt;
     if (ibis::gVerbose >= 0) {

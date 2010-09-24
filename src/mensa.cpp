@@ -2085,7 +2085,7 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
     long unsigned row_width = 0;
     const ibis::part& pt1 = *(t.parts.front());
     for (j = 0; j < pt1.nColumns(); ++ j) {
-	const ibis::column col = *(pt1.getColumn(j));
+	const ibis::column &col = *(pt1.getColumn(j));
 	buffer[j].cval = 0;
 	buffer[j].cname = col.name();
 	buffer[j].ctype = col.type();

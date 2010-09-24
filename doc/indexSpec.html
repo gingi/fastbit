@@ -327,18 +327,22 @@ that contains term-document matrix in the form of
 term: docid, docid, docid
 </pre>
 
-Since the document identifiers (docid) are provided as values only, it
-needs to know the column name of the document ids to correctly translate
-the tdlist into bitmaps.  The recommended way to specify the name of
-document identifier is to use an index entry in file
+Since the document identifiers (docid) are provided as values only,
+FastBit needs to know the column name of the document ids to correctly
+translate the tdlist into bitmaps.  The recommended way to specify the
+name of document identifier is to use an index entry in file
 <code>-part.txt</code>, such as
 
 <pre>
 index=keywords, docidname=mid
 </pre>
 
-Note the document identifier name may be quoted if special characters,
-such as space, are used.
+<b>Note</b>: the document identifiers must be 4-byte integers.  If the
+docidname field is not specified, the integer values in the
+term-document list is taken to be the row numbers (starting from 0).
+This alternative option can be potentially faster because it requires
+less internal lookups to map the ids to bitmaps, but it is less
+flexible.
 
 <p>
 Alternatively, the docidname may be specified in an RC file (say,
@@ -348,7 +352,7 @@ table-name.column-name.docIDName=mid
 </pre>
 
 <p>
-Additional note about unbinned indexes.  If the explicit minimum and
+<b>Note about unbinned indexes</b>:  If the explicit minimum and
 maximum values are known, FastBit IBIS implementation may be able to
 avoid storing the distinct values.  This feature is implemented through
 ibis::direkte and is invoked through ibis::index::create.

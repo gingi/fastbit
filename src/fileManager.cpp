@@ -1485,12 +1485,14 @@ ibis::fileManager::softWriteLock::softWriteLock(const char* m)
     if (locked_ == 0) {
 	LOGGER(ibis::gVerbose > 9)
 	    << "fileManager::softWriteLock acquired the write lock ("
-	    << static_cast<const void*>(&(ibis::fileManager::instance().lock)) << ") for " << m;
+	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+	    << ") for " << m;
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- fileManager::softWriteLock failed to acquire "
-	    "the write lock (" << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+	    "the write lock ("
+	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
 	    << ") for " << m << ", error code = " << locked_;
     }
 }
@@ -1502,13 +1504,15 @@ ibis::fileManager::softWriteLock::~softWriteLock() {
 	if (0 == ierr) {
 	    LOGGER(ibis::gVerbose > 9)
 		<< "fileManager::softWriteLock released the write lock ("
-		<< static_cast<const void*>(&(ibis::fileManager::instance().lock)) << ")for "
+		<< static_cast<const void*>
+		(&(ibis::fileManager::instance().lock)) << ") for "
 		<< mesg;
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fileManager::softWriteLock failed to release "
-		"the write lock (" << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+		"the write lock (" << static_cast<const void*>
+		(&(ibis::fileManager::instance().lock))
 		<< ") for " << mesg << " with the error code "
 		<< ierr << " -- " << strerror(ierr);
 	}
@@ -2193,8 +2197,8 @@ void ibis::fileManager::roFile::beginUse() {
     ++ nref;
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 10)
-	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this) << ", "
-	<< static_cast<const void*>(m_begin) << ", "
+	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this)
+	<< ", " << static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") increased nref to " << nref();
 #endif
 } // ibis::fileManager::roFile::beginUse
