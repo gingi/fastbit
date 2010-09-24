@@ -339,10 +339,11 @@ index=keywords, docidname=mid
 
 <b>Note</b>: the document identifiers must be 4-byte integers.  If the
 docidname field is not specified, the integer values in the
-term-document list is taken to be the row numbers (starting from 0).
+term-document list are taken to be the row numbers (starting from 0).
 This alternative option can be potentially faster because it requires
 less internal lookups to map the ids to bitmaps, but it is less
-flexible.
+flexible.  For example, if you reorder the data or delete some rows, the
+term-document list will be wrong.
 
 <p>
 Alternatively, the docidname may be specified in an RC file (say,

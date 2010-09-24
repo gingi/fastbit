@@ -741,7 +741,7 @@ $(TESTDIR)/w2/-part.txt: $(ARDEAEXE)
 $(TESTDIR)/w3/-part.txt: $(ARDEAEXE)
 	@$(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA" >> $(TESTDIR)/stdout.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
 	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
 	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
