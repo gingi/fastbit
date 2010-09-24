@@ -5022,8 +5022,6 @@ void ibis::column::purgeIndexFile(const char *dir) const {
 	fnm += "terms";
 	remove(fnm.c_str());
 	fnm.erase(len);
-	// 	fnm += "sp";
-	// 	remove(fnm.c_str());
     }
     else if (m_type == ibis::CATEGORY) {
 	fnm.erase(fnm.size() - 3);
@@ -10585,12 +10583,21 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 	theColumn->loadIndex();
     if (theColumn->idx != 0) {
 	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-	if (0 != ierr)
-	    col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for "
-			    "%s returned %d (%s)", m, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    col->logMessage("gainReadAccess",
-			    "pthread_rwlock_rdlock for %s", m);
+	if (0 != ierr) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name() << "]::indexLock -- pthread_rwlock_rdlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg << " returned " << ierr << " (" << strerror(ierr)
+		<< ')';
+	}
+	else if (ibis::gVerbose > 9) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name() << "]::indexLock -- pthread_rwlock_rdlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg;
+	}
 
 	++ theColumn->idxcnt; // increment counter
     }
@@ -10607,13 +10614,21 @@ ibis::column::indexLock::~indexLock() {
 	-- (theColumn->idxcnt); // decrement counter
 
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (ierr)
-	    theColumn->logWarning("releaseReadAccess",
-				  "pthread_rwlock_unlock for %s returned "
-				  "%d (%s)", mesg, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    theColumn->logMessage("releaseReadAccess",
-				  "pthread_rwlock_unlock for %s", mesg);
+	if (0 != ierr) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name() << "]::indexLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg << " returned " << ierr << " (" << strerror(ierr)
+		<< ')';
+	}
+	else if (ibis::gVerbose > 9) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name() << "]::indexLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg;
+	}
     }
 }
 
@@ -10621,73 +10636,125 @@ ibis::column::indexLock::~indexLock() {
 ibis::column::readLock::readLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
     int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-    if (0 != ierr)
-	col->logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
-			"returned %d (%s)", m, ierr, strerror(ierr));
-    else if (ibis::gVerbose > 9)
-	col->logMessage("gainReadAccess",
-			"pthread_rwlock_rdlock for %s", m);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
+    }
 }
 
 /// Destructor.
 ibis::column::readLock::~readLock() {
     int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-    if (0 != ierr)
-	theColumn->logWarning("releaseReadAccess",
-			      "pthread_rwlock_unlock for %s returned %d "
-			      "(%s)", mesg, ierr, strerror(ierr));
-    else if (ibis::gVerbose > 9)
-	theColumn->logMessage("releaseReadAccess",
-			      "pthread_rwlock_unlock for %s", mesg);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
+    }
 }
 
 /// Constructor.  No error checking, both incoming arguments must be valid.
 ibis::column::writeLock::writeLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
     int ierr = pthread_rwlock_wrlock(&(col->rwlock));
-    if (0 != ierr)
-	col->logWarning("gainWriteAccess", "pthread_rwlock_wrlock for %s "
-			"returned %d (%s)", m, ierr, strerror(ierr));
-    else if (ibis::gVerbose > 9)
-	col->logMessage("gainWriteAccess",
-			"pthread_rwlock_wrlock for %s", m);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
+    }
 }
 
 /// Destructor.
 ibis::column::writeLock::~writeLock() {
     int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-    if (0 != ierr)
-	theColumn->logWarning("releaseWriteAccess",
-			      "pthread_rwlock_unlock() for %s returned %d "
-			      "(%s)", mesg, ierr, strerror(ierr));
-    else if (ibis::gVerbose > 9)
-	theColumn->logMessage("releaseWriteAccess",
-			      "pthread_rwlock_unlock for %s", mesg);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
+    }
 }
 
 /// Constructor.  No error checking, both incoming arguments must be valid.
-ibis::column::softWriteLock::softWriteLock(const ibis::column* col, const char* m)
+ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
+					   const char* m)
     : theColumn(col), mesg(m),
       locked(pthread_rwlock_trywrlock(&(col->rwlock))) {
-    if (locked != 0)
-	col->logWarning("gainWriteAccess",
-			"pthread_rwlock_trywrlock for %s failed with error code %d", m, locked);
-    else if (ibis::gVerbose > 9)
-	col->logMessage("gainWriteAccess",
-			"pthread_rwlock_trywrlock for %s successful", m);
+    if (0 != locked) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << locked << " (" << strerror(locked)
+	    << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
+    }
 }
 
 /// Destructor.
 ibis::column::softWriteLock::~softWriteLock() {
     if (locked == 0) {
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-	if (0 != ierr)
-	    theColumn->logWarning("releaseWriteAccess",
-				  "pthread_rwlock_unlock for %s returned "
-				  "%d (%s)", mesg, ierr, strerror(ierr));
-	else if (ibis::gVerbose > 9)
-	    theColumn->logMessage("releaseWriteAccess",
-				  "pthread_rwlock_unlock for %s successful", mesg);
+	if (0 != ierr) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name()
+		<< "]::softWriteLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg << " returned " << ierr << " (" << strerror(ierr)
+		<< ')';
+	}
+	else if (ibis::gVerbose > 9) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name()
+		<< "]::softWriteLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg;
+	}
     }
 }
 

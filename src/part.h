@@ -1263,6 +1263,8 @@ protected:
     void buildQueryList(ibis::part::thrArg &lst,
 			unsigned nc, unsigned nq) const;
     void checkQueryList(const ibis::part::thrArg &lst) const;
+    uint32_t recursiveQuery(const char* pref, const column* att,
+			    double low, double high, long* nerr) const;
 
 private:
 
@@ -1276,11 +1278,9 @@ private:
 
     void init(const char* prefix); ///< Get directory names from gParameters.
 
-    inline void gainReadAccess(const char* mesg) const;
-    inline void releaseAccess(const char* mesg) const;
-    inline void gainWriteAccess(const char* mesg) const;
-    uint32_t recursiveQuery(const char* pref, const column* att,
-			    double low, double high, long* nerr) const;
+    void gainReadAccess(const char* mesg) const;
+    void releaseAccess(const char* mesg) const;
+    void gainWriteAccess(const char* mesg) const;
 
     void   fillRIDs(const char* fn) const; ///< Generate new RIDs.
     void   sortRIDs() const; ///< Sort current list of RIDs.
@@ -1443,14 +1443,7 @@ private:
 class ibis::part::advisoryLock {
 public:
     /// Constructor.
-    advisoryLock(const part* tbl, const char* m)
-	: thePart(tbl), mesg(m),
-	  locked(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
-	if (ibis::gVerbose > 9)
-	    thePart->logMessage("gainWriteAccess", "%s write access for %s",
-				 (locked==0?"acquired":"could not acquire"),
-				 mesg);
-    }
+    advisoryLock(const part* tbl, const char* m);
     /// Destructor.
     ~advisoryLock() {if (locked==0) thePart->releaseAccess(mesg);}
     /// Have we acquired the desired lock?  Returns true if yes, otherwise
@@ -1634,35 +1627,6 @@ namespace ibis {
 inline ibis::part::info* ibis::part::getInfo() const {
     return new info(*this);
 }
-
-inline void ibis::part::releaseAccess(const char* mesg) const {
-    if (ibis::gVerbose > 8)
-	logMessage("releaseAccess", "releasing rwlock for %s", mesg);
-    int ierr = pthread_rwlock_unlock(&rwlock);
-    if (0 != ierr) {
-	logWarning("releaseAccess", "pthread_rwlock_unlock for %s "
-		   "returned %d (%s)", mesg, ierr, strerror(ierr));
-    }
-} // ibis::part::releaseAccess
-
-inline void ibis::part::gainReadAccess(const char* mesg) const {
-    if (ibis::gVerbose > 8)
-	logMessage("gainReadAccess", "acquiring read lock for %s", mesg);
-    int ierr = pthread_rwlock_rdlock(&rwlock);
-    if (0 != ierr) {
-	logWarning("gainReadAccess", "pthread_rwlock_rdlock for %s "
-		   "returned %d (%s)", mesg, ierr, strerror(ierr));
-    }
-} // ibis::part::gainReadAccess
-
-inline void ibis::part::gainWriteAccess(const char* mesg) const {
-    if (ibis::gVerbose > 8)
-	logMessage("gainWriteAccess", "acquiring write lock for %s", mesg);
-    int ierr = pthread_rwlock_wrlock(&rwlock);
-    if (0 != ierr)
-	logWarning("gainWriteAccess", "pthread_rwlock_wrlock for "
-		   "%s returned %d (%s)", mesg, ierr, strerror(ierr));
-} // ibis::part::gainWriteAccess
 
 /// Given a name, return the associated column.  Return nil pointer if
 /// the name is not found.  If the name contains a period, it skips the

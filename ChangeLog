@@ -6,6 +6,11 @@
 	to appear in multiple lines of the term document list
 	* tests/Makefile.am: add test two cases to really-small to
 	exercise the keyword index feature
+	* src/column.cpp: update the log messages from readLock, writeLock
+	and softWriteLock to output the address of the read-write lock
+	* src/part.h, src/part.cpp: move the definition of readLock,
+	writeLock, advisoryLock from part.h to part.cpp, change the log
+	statements to match those from ibis::fileManager
 
 2010-09-23 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp, src/column.cpp: reorder the locks to resolve

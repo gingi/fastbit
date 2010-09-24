@@ -6679,6 +6679,75 @@ void ibis::part::logMessage(const char* event,
     fflush(fptr);
 } // ibis::part::logMessage
 
+void ibis::part::releaseAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_unlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::releaseAccess -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::releaseAccess -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::releaseAccess
+
+void ibis::part::gainReadAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_rdlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::gainReadAccess -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::gainReadAccess -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::gainReadAccess
+
+void ibis::part::gainWriteAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_wrlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::gainWriteAccess -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::gainWriteAccess -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::gainWriteAccess
+
+ibis::part::advisoryLock::advisoryLock(const part* tbl, const char* m)
+    : thePart(tbl), mesg(m),
+      locked(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
+    if (locked != 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << thePart->name()
+	    << "]::gainWriteAccess -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg
+	    << " returned " << locked << " (" << strerror(locked) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << thePart->name()
+	    << "]::gainWriteAccess -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
+    }
+}
+
 /// The function that performs the actual comparison for range queries.
 /// The size of array may either match the number of bits in @c mask or the
 /// number of set bits in @c mask.  This allows one to either use the whole

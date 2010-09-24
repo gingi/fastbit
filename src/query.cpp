@@ -812,13 +812,19 @@ int ibis::query::evaluate(const bool evalSelect) {
 	if (ibis::gVerbose > 0)
 	    timer.start();
 	try {
-	    if (dslock == 0) { // acquire read lock on the mypart
-		dslock = new ibis::part::readLock(mypart, myID);
-		dstime = mypart->timestamp();
+	    if (dslock != 0 && dstime == mypart->timestamp() && hits != 0 &&
+		(sup == 0 || sup == hits)) { // nothing to do
+		ierr = hits->cnt();
 	    }
+	    else {
+		if (dslock == 0) { // acquire read lock on the mypart
+		    dslock = new ibis::part::readLock(mypart, myID);
+		    dstime = mypart->timestamp();
+		}
 
-	    ierr = computeHits(); // do actual computation here
-	    if (ierr < 0) return ierr;
+		ierr = computeHits(); // do actual computation here
+		if (ierr < 0) return ierr;
+	    }
 	    if (hits != 0 && hits->cnt() > 0 && ! conds.empty()) {
 		if (ibis::gVerbose > 3) {
 		    const unsigned nb = hits->size();
