@@ -289,7 +289,7 @@ Known Issues
     build the shared library.  For example, Cray XT systems (e.g., XT4
     franklin.nersc.gov and XT5 hopper.nersc.gov) do not support shared
     libraries on the compute nodes.  In fact on a Cray XT5 system,
-    it is not able to produce a .so file.
+    it is not possible to produce a .so file.
 
 (8) FastBit makes extensive use of STL objects, this causes a problem
     when one wants to build a DLL on a windows machine.  There is at

@@ -1,3 +1,9 @@
+2010-10-20 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp: update the conditional macro surrounding strtoll
+	* configure.ac: add test for strtoll, remove tests for unnecessary
+	header
+	* src/const.h: remove reference to memory.h
+
 2010-09-24 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp:2088 add missing & to avoid the cursor object from
 	pointing to temporary objects for names

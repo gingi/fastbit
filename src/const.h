@@ -67,15 +67,10 @@
 //
 // common headers needed
 #include <errno.h>	// errno
+#include <string.h>	// strerr, strcasecmp, strcmp, memcpy
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
 #  include "fastbit-config.h"	// macros defined by the configure script
-#  ifdef HAVE_STRING_H
-#    if !STDC_HEADERS && HAVE_MEMORY_H
-#      include <memory.h>
-#    endif
-#    include <string.h>	// strerr, strcasecmp, strcmp, memcpy
-#  endif
 #  ifdef HAVE_SYS_TYPES_H
 #    include <sys/types.h>	// timespec, etc
 #  endif
@@ -90,7 +85,6 @@
 #  if !defined(_MSC_VER)
 #    include <sys/types.h>
 #  endif
-#  include <string.h>
 #endif
 #ifndef FASTBIT_STRING
 #define FASTBIT_STRING "FastBit ibis"

@@ -466,7 +466,6 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
 
     if (*str == '.') { // values after the decimal point
 	tmp = 0.1;
-	// constrain the effective accuracy ??? (str-s0) < width+1 &&
 	for (++ str; isdigit(*str); ++ str) {
 	    val += tmp * static_cast<double>(*str - '0');
 	    tmp *= 0.1;

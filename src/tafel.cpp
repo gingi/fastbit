@@ -12,7 +12,7 @@
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
-#include <stdlib.h>
+#include <stdlib.h>	// strtol strtoul [strtoll strtoull]
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
 // be misunderstood!
@@ -472,11 +472,7 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	}
 	break;}
     case ibis::INT: {
-#if defined(_WIN32) && defined(_MSC_VER)
 	long tmp = strtol(val, &ptr, 0);
-#else
-	long long tmp = strtoll(val, &ptr, 0);
-#endif
 	if (tmp >= std::numeric_limits<int32_t>::min() &&
 	    tmp <= std::numeric_limits<int32_t>::max()) {
 	    int32_t *actual = new int32_t;
@@ -492,12 +488,8 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 	}
 	break;}
     case ibis::UINT: {
-#if defined(_WIN32) && defined(_MSC_VER)
-	long tmp = strtol(val, &ptr, 0);
-#else
-	long long tmp = strtoll(val, &ptr, 0);
-#endif
-	if (tmp >= 0 && tmp <= std::numeric_limits<uint32_t>::max()) {
+	unsigned long tmp = strtoul(val, &ptr, 0);
+	if (tmp <= std::numeric_limits<uint32_t>::max()) {
 	    uint32_t *actual = new uint32_t;
 	    *actual = static_cast<uint32_t>(tmp);
 	    col.defval = actual;
@@ -513,9 +505,11 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
     case ibis::LONG: {
 	errno = 0;
 #if defined(_WIN32) && defined(_MSC_VER)
-	long tmp = strtol(val, &ptr, 0);
-#else
+	long long tmp = strtol(val, &ptr, 0);
+#elif defined(HAVE_STRTOLL) || defined(__USE_ISOC99) || (defined(__GLIBC_HAVE_LONG_LONG) && defined(__USE_MISC))
 	long long tmp = strtoll(val, &ptr, 0);
+#else
+	long long tmp = strtol(val, &ptr, 0);
 #endif
 	if (errno == 0) {
 	    int64_t *actual = new int64_t;
@@ -533,9 +527,11 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
     case ibis::ULONG: {
 	errno = 0;
 #if defined(_WIN32) && defined(_MSC_VER)
-	long tmp = strtol(val, &ptr, 0);
+	unsigned long long tmp = strtoul(val, &ptr, 0);
+#elif defined(HAVE_STRTOLL) || defined(__USE_ISOC99) || (defined(__GLIBC_HAVE_LONG_LONG) && defined(__USE_MISC))
+	unsigned long long tmp = strtoull(val, &ptr, 0);
 #else
-	long long tmp = strtoll(val, &ptr, 0);
+	unsigned long long tmp = strtoul(val, &ptr, 0);
 #endif
 	if (tmp >= 0 && errno == 0) {
 	    uint64_t *actual = new uint64_t;

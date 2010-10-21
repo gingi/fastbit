@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.0.2],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.0.3],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -29,10 +29,10 @@ AC_CHECK_LIB([rt], [clock_gettime])
 ###AC_CHECK_LIB([pthread], [pthread_self], , AC_MSG_ERROR(FastBit requires pthread support))
 
 # Checks for header files.
+#AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h float.h inttypes.h limits.h memory.h stdint.h stdlib.h string.h sys/types.h unistd.h])
-# string.h strings.h sys/time.h
+AC_CHECK_HEADERS([inttypes.h stdint.h sys/types.h])
+# string.h strings.h sys/time.h float.h limits.h stdlib.h fcntl.h unistd.h
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_HEADER_STDBOOL
@@ -127,6 +127,12 @@ AC_TRY_LINK([
 ],[
   AC_MSG_RESULT([no])
 ])
+
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[#include <stdlib.h>]],
+	 [[char *s=0; long long tmp = strtoll("1", &s, 0);]])],
+	[AC_DEFINE(HAVE_STRTOLL, 1, [Define 1 if strtoll is defined in stdlib.h])],
+	[])
 
 AC_ARG_WITH(pthread,
 	    AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
