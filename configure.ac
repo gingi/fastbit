@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.0.3],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.0.4],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -114,25 +114,6 @@ if test "x$xopt" = "xyes" ; then
 	return (1 == static_cast<int>(std::sqrt(2.0)));
    	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
-
-AC_MSG_CHECKING([if math.h defines nextafter])
-AC_TRY_LINK([
-  #include <math.h>
-],[
-  double pi=3.141592654;
-  return (nextafter(pi, 4.0) > pi) ? 0 : -1;
-],[
-  AC_MSG_RESULT([yes])
-  AC_DEFINE(HAVE_NEXTAFTER, 1, [Define to 1 if nextafter is defined in math.h and is in libm.])
-],[
-  AC_MSG_RESULT([no])
-])
-
-AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM([[#include <stdlib.h>]],
-	 [[char *s=0; long long tmp = strtoll("1", &s, 0);]])],
-	[AC_DEFINE(HAVE_STRTOLL, 1, [Define 1 if strtoll is defined in stdlib.h])],
-	[])
 
 AC_ARG_WITH(pthread,
 	    AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
@@ -289,7 +270,7 @@ fi
 AC_SUBST(PTHREAD_CFLAGS)
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test x"$z_check_pthread_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_PTHREAD,1,[Define if you have POSIX threads libraries and header files.]),[$1])
+        ifelse([$1],,AC_DEFINE(HAVE_PTHREAD, 1, [Define if you have POSIX threads libraries and header files.]),[$1])
         :
 else
         z_check_pthread_ok=no
@@ -299,6 +280,34 @@ AC_LANG_POP([])
 ])
 #end AC_DEFUN Z_CHECK_PTHREAD
 Z_CHECK_PTHREAD(, [AC_MSG_ERROR(FastBit requires pthread support)])
+
+AC_MSG_CHECKING([if math.h defines nextafter])
+AC_TRY_LINK([
+  #include <math.h>
+],[
+  double pi=3.141592654;
+  return (nextafter(pi, 4.0) > pi) ? 0 : -1;
+],[
+  AC_MSG_RESULT([yes])
+  AC_DEFINE(HAVE_NEXTAFTER, 1, [Define to 1 if nextafter is defined in math.h and is in libm.])
+],[
+  AC_MSG_RESULT([no])
+])
+
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[#include <stdlib.h>]],
+	 [[char *s=0; long long tmp = strtoll("1", &s, 0);]])],
+	[AC_DEFINE(HAVE_STRTOLL, 1, [Set to 1 if strtoll is defined in stdlib.h])],
+	[])
+
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
+#include<sys/types.h>
+#include <pwd.h>]],
+[[uid_t id = getuid();
+struct passwd* pw = getpwuid(id);
+if (pw == 0) return -1;]])],
+[AC_DEFINE(HAVE_GETPWUID, 1, [Set to 1 if getpwuid compiles and runs correctly])],
+[])
 
 # Does this compiler have built-in functions for atomic memory access?
 AC_MSG_CHECKING([if compiler supports __sync_add_and_fetch for 32-bit integers])

@@ -1,3 +1,12 @@
+2010-10-21 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: in function util::userName add macro HAVE_GETPWUID
+	to control the access to getpwuid (on certain parallel computers,
+	getpwuid is supported differently on the compute nodes and the
+	login nodes, using it can cause the program to crash), comment out
+	the use of getlogin because it requires a login shell
+	* configure.ac: add a statement with AC_RUN_IFELSE to test for the
+	presence and usability of getpwuid
+
 2010-10-20 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp: update the conditional macro surrounding strtoll
 	* configure.ac: add test for strtoll, remove tests for unnecessary

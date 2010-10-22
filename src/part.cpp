@@ -3962,12 +3962,12 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<int64_t>(file, mask, hits, qih);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<int64_t>(file, mask, hits, qih);
 		    break;}
 		}
 	    }
@@ -3980,12 +3980,12 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		ierr = doCompare<int64_t>(file, mask, hits, qih);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		ierr = doCompare<int64_t>(file, mask, hits, qih);
 		break;}
 	    }
 	}
@@ -4027,12 +4027,12 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<uint64_t>(file, mask, hits, qih);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<uint64_t>(file, mask, hits, qih);
 		    break;}
 		}
 	    }
@@ -4045,12 +4045,12 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		ierr = doCompare<uint64_t>(file, mask, hits, qih);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		ierr = doCompare<uint64_t>(file, mask, hits, qih);
 		break;}
 	    }
 	}

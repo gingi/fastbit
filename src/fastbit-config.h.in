@@ -19,6 +19,9 @@
 /* Define to 1 if support __sync_add_and_fetch() on 64-bit integers */
 #undef HAVE_GCC_ATOMIC64
 
+/* Set to 1 if getpwuid compiles and runs correctly */
+#undef HAVE_GETPWUID
+
 /* Define to 1 if you have the `getpwuid_r' function. */
 #undef HAVE_GETPWUID_R
 
@@ -33,9 +36,6 @@
 
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
-
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
@@ -61,7 +61,7 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define 1 if strtoll is defined in stdlib.h */
+/* Set to 1 if strtoll is defined in stdlib.h */
 #undef HAVE_STRTOLL
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
@@ -105,6 +105,3 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS

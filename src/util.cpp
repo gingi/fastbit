@@ -1207,7 +1207,7 @@ const char* ibis::util::userName() {
 	    uid = buf;
 #elif defined(__MINGW32__)
 	// MinGW does not have support for user names?!
-#elif defined(_POSIX_VERSION)
+#elif defined(HAVE_GETPWUID)
 #if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
      defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(sun) || \
      defined(_THREAD_SAFE) || defined(__APPLE__) || defined(__FreeBSD__)) && \
@@ -1251,23 +1251,35 @@ const char* ibis::util::userName() {
 	(void) cuserid(buf);
 	if (*buf)
 	    uid = buf;
-#elif defined(_REENTRANT) || defined(_THREAD_SAFE) || \
-    defined(_POSIX_THREAD_SAFE_FUNCTIONS)
-	// in case we are not on a posix-compliant system and no cuserid,
-	// try getlogin, however getlongin and variants need a TTY or utmp
-	// entry to function correctly.  They may cause a core dump if this
-	// function is called without a TTY (or utmp)
-	char buf[64];
-	if (getlogin_r(buf, 64) == 0) {
-	    uid = buf;
-	}
-	else {
-	    uid = getlogin();
-	}
-#elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__)
-	uid = getlogin();
+// #elif (defined(_REENTRANT) || defined(_THREAD_SAFE) ||	\
+//        defined(_POSIX_THREAD_SAFE_FUNCTIONS)) && _POSIX_C_SOURCE+0 >= 199506L
+// 	// in case we are not on a posix-compliant system and no cuserid,
+// 	// try getlogin, however getlogin and variants need a TTY or utmp
+// 	// entry to function correctly.  They may cause a core dump if this
+// 	// function is called without a TTY (or utmp)
+// 	char buf[64];
+// 	if (getlogin_r(buf, 64) == 0) {
+// 	    uid = buf;
+// 	}
+// 	else {
+// 	    uid = getlogin();
+// 	}
+// #elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__)
+// 	uid = getlogin();
 #endif
-	// final fall back option, assign a fixed string that is commonly
+	if (uid.empty()) {
+	    const char* nm = getenv("LOGNAME");
+	    if (nm != 0 && *nm != 0) {
+		uid = nm;
+	    }
+	    else {
+		nm = getenv("USER");
+		if (nm != 0 && *nm != 0)
+		    uid = nm;
+	    }
+	}
+
+	// fall back option, assign a fixed string that is commonly
 	// interpreted as a robot
 	if (uid.empty())
 	    uid = "<(-_-)>";
