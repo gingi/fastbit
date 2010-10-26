@@ -5069,6 +5069,7 @@ void ibis::part::buildSorted(const char* cname) const {
     ibis::roster(col, activeDir);  // don't need a variable name
 } // ibis::part::buildSorted
 
+/// Make sure indexes for all columns are available.
 /// May use @c nthr threads to build indexes.  The argument opt is used to
 /// build new indexes if the corresponding columns do not already have
 /// indexes.

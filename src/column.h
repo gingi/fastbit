@@ -95,7 +95,7 @@ public:
 			       double& min, double &max) const;
 
     virtual void loadIndex(const char* opt=0, int readall=0) const throw ();
-    void unloadIndex() const;
+    virtual void unloadIndex() const;
     /// Compute the index size (in bytes).
     virtual long indexSize() const;
     /// Perform a set of built-in tests to determine the speed of common

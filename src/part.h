@@ -54,8 +54,7 @@ public:
     /// Return the current state of data partition.
     TABLE_STATE getStateNoLocking() const {return state;}
 
-    /// Make sure indexes for all columns are available.
-    void buildIndexes(const char* opt=0, int nthr=1);
+    virtual void buildIndexes(const char* opt=0, int nthr=1);
     /// Build a sorted version of the specified column.
     void buildSorted(const char* colname) const;
     /// Load indexes of all columns.

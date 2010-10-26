@@ -1,3 +1,8 @@
+2010-10-25 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: add keyword virtual to the definition
+	of ibis::part::buildIndexes to allow other packages to override it
+	more easily
+
 2010-10-21 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: in function util::userName add macro HAVE_GETPWUID
 	to control the access to getpwuid (on certain parallel computers,
