@@ -124,10 +124,10 @@
 /// multi-threaded testing.
 struct thArg {
     const char* uid;
-    const ibis::table::stringList& qlist;
+    const std::vector<const char*>& qlist;
     ibis::util::counter& task;
 
-    thArg(const char* id, const ibis::table::stringList& ql,
+    thArg(const char* id, const std::vector<const char*>& ql,
 	  ibis::util::counter& tc)
 	: uid(id), qlist(ql), task(tc) {}
 };
@@ -1883,10 +1883,10 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, int& mode,
-		       ibis::table::stringList& qlist,
-		       ibis::table::stringList& alist,
-		       ibis::table::stringList& slist,
-		       std::vector<std::string> &queff, ibis::joinlist& joins) {
+		       std::vector<const char*>& qlist,
+		       std::vector<const char*>& alist,
+		       std::vector<const char*>& slist,
+		       std::vector<std::string>& queff, ibis::joinlist& joins) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -2356,7 +2356,7 @@ static void parse_args(int argc, char** argv, int& mode,
 
     // construct the paritions using both the command line arguments and
     // the resource files
-    ibis::init(); // process data directly specified in the rc files
+    ibis::init(); // process data directories specified in the rc files
     for (std::vector<const char*>::const_iterator it = dirs.begin();
 	 it != dirs.end(); ++ it) {
 	ibis::util::gatherParts(ibis::datasets, *it);
@@ -2374,7 +2374,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	if (qlist.size() > 0) {
 	    lg() << "Quer" << (qlist.size()>1 ? "ies" : "y")
 		 << "[" << qlist.size() << "]:\n";
-	    for (ibis::table::stringList::const_iterator it = qlist.begin();
+	    for (std::vector<const char*>::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it)
 		lg() << "  " << *it << "\n";
 	}
@@ -4668,7 +4668,7 @@ int main(int argc, char** argv) {
 
     try {
 	int interactive;
-	ibis::table::stringList alist, qlist, slist;
+	std::vector<const char*> alist, qlist, slist;
 	ibis::joinlist joins;
 	std::vector<std::string> queff; // queries read from files (-f)
 	const char* uid = ibis::util::userName();
@@ -4680,7 +4680,7 @@ int main(int argc, char** argv) {
 		   queff, joins);
 
 	// add new data if any
-	for (ibis::table::stringList::const_iterator it = alist.begin();
+	for (std::vector<const char*>::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else
 	    doAppend(*it);
@@ -4781,7 +4781,7 @@ int main(int argc, char** argv) {
 	}
 	else if (qlist.size() > 1 && threading > 1) {
 #if defined(_DEBUG) || defined(DEBUG)
-	    for (ibis::table::stringList::const_iterator it = qlist.begin();
+	    for (std::vector<const char*>::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(uid, *it);
 	    }
@@ -4816,7 +4816,7 @@ int main(int argc, char** argv) {
 	    qlist.clear();
 	}
 	else if (qlist.size() > 0) { // no new threads
-	    for (ibis::table::stringList::const_iterator it = qlist.begin();
+	    for (std::vector<const char*>::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(uid, *it);
 	    }

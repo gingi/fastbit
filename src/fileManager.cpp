@@ -348,15 +348,15 @@ void ibis::fileManager::flushDir(const char* name) {
     }
 } // ibis::fileManager::flushDir
 
-/// Change the class variable maxBytes to the newsize.  Return 0 if
-/// successful, a negative number otherwise.
+/// Change the class variable maxBytes to the newsize in bytes.  Return 0
+/// if successful, a negative number otherwise.
 ///
 /// This function simply changes the maximum bytes allowed, without
 /// enforcing this limit.  Future operations that require more memory will
 /// be subject to the new cache size limit.
 ///
 /// Reducing the cache size while there are on-going operations can have
-/// very undesirable effect, therefore this function will not accept a new
+/// very undesirable effects, therefore this function will not accept a new
 /// size if it is less than the current number of bytes in memory.  It
 /// might be helpful to call ibis::fileManager::clear to reduce the memory
 /// usage before changing the cache size.
@@ -642,8 +642,9 @@ ibis::fileManager::fileManager()
     if (pthread_cond_init(&readCond, 0) != 0)
 	throw ibis::bad_alloc("pthread_cond_init(readCond) failed in "
 			      "fileManager ctor");
+
     LOGGER(ibis::gVerbose > 1)
-	<< "fileManager initialization complete\n\t-- maxBytes="
+	<< "fileManager initialization complete -- maxBytes="
 	<< maxBytes << ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
 

@@ -1,3 +1,10 @@
+2010-10-29 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: change the type of qlist, alist and slist
+	from ibis::table::stringList to std::vector<const char*> to avoid
+	triggering the initialization of the file manager object before
+	the configuration parameters are read into memory (a problem
+	reported by Ben Williams)
+
 2010-10-28 John Wu <John dot Wu at ACM dot org>
 	* src: remove the prefix ibis from most of the print statements
 	* tests/Makefile.am: in two places smallmem2.rc was incorrectly

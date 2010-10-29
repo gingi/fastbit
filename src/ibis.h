@@ -236,10 +236,10 @@ namespace ibis {
     /// (rcfile) first before initializes the memory manager.  If the
     /// caller wishes to read multiple RC files or add parameters to
     /// ibis::gParameters, these operations need to take place before
-    /// calling this function or any function that creates or uses
-    /// ibis::part or ibis::table.  If the user neglects to call
-    /// ibis::init, the memory manager will be initialized when the first
-    /// ibis::part object is created.
+    /// calling this function or any function that creates, initializes or
+    /// uses ibis::array_t, ibis::bitvector, ibis::part or ibis::table.  If
+    /// the user neglects to call ibis::init, the memory manager will be
+    /// initialized when the first time it is needed.
     ///
     /// @param rcfile A file containing name-value pairs that specifies
     ///   parameters for controlling the behavior of ibis.
