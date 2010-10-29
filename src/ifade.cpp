@@ -626,7 +626,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
     }
     catch (...) { // need to clean up bmap
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::fade::construct1 reclaiming storage "
+	    << "fade::construct1 reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)

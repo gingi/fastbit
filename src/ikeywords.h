@@ -54,6 +54,9 @@ public:
     virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    using ibis::index::evaluate;
+    using ibis::index::estimate;
+    using ibis::index::undecidable;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual void estimate(const ibis::qContinuousRange& expr,

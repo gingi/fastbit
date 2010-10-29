@@ -424,7 +424,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg() << "ibis::part[" << m_name << "]::reorder --\n";
+	lg() << "part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
@@ -1273,7 +1273,7 @@ long ibis::part::appendToBackup(const char* dir) {
     }
     if (ibis::gVerbose > 6) {
 	ibis::util::logger lg;
-	lg() << "ibis::part::appendToBackup -- The combined (new) "
+	lg() << "part::appendToBackup -- The combined (new) "
 	    "attribute list (" << clist.size() << ")\n";
 	for (cit = clist.begin(); cit != clist.end(); ++cit)
 	    lg() << *((*cit).second) << "\n";
@@ -1728,7 +1728,7 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     } // switch
     if (ierr == static_cast<long>(mask.size())) { // success
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << m_name << "]::addColumn successfully wrote "
+	    << "part[" << m_name << "]::addColumn successfully wrote "
 	    << ierr << " value" << (ierr > 1 ? "s" : "") << " for "
 	    << cname << "(" << oss.str() << ")";
 	ibis::util::mutexLock lock(&mutex, "part::addColumn");

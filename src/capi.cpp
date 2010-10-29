@@ -412,7 +412,7 @@ fastbit_build_query(const char *select, const char *from, const char *where) {
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fastbit_build_query failed to assign an "
-		<< "ibis::part (" << h->t->name() << ") object to a query";
+		<< "part (" << h->t->name() << ") object to a query";
 	    fastbit_destroy_query(h);
 	    h = 0;
 	    return h;

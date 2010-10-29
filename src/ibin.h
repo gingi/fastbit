@@ -55,6 +55,7 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
+    using ibis::index::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -447,6 +448,7 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -524,6 +526,7 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -579,6 +582,7 @@ public:
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -643,6 +647,7 @@ public:
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -699,6 +704,7 @@ public:
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -759,6 +765,7 @@ public:
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -886,6 +893,7 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
+    using ibis::bin::undecidable;
     virtual float undecidable(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& iffy) const;
 
@@ -1058,6 +1066,7 @@ public:
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const; // write to the named file
+    using ibis::bin::read;
     virtual int read(const char* idxfile);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
     virtual INDEX_TYPE type() const {return BAK;}
@@ -1126,6 +1135,7 @@ public:
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const; // write to the named file
+    using ibis::bin::read;
     virtual int read(const char* idxfile);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
     virtual INDEX_TYPE type() const {return BAK;}

@@ -43,11 +43,11 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     thePart(tbl), m_type(t), m_name(name), m_desc(desc), m_bins(""),
     m_sorted(false), lower(low), upper(high), idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-	throw "ibis::column::ctor unable to initialize the rwlock";
+	throw "column::ctor unable to initialize the rwlock";
     }
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw "ibis::column::ctor unable to initialize the mutex";
+	throw "column::ctor unable to initialize the mutex";
     }
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
@@ -71,11 +71,11 @@ ibis::column::column(const part* tbl, FILE* file)
     char *s2;
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-	throw "ibis::column::ctor unable to initialize the rwlock";
+	throw "column::ctor unable to initialize the rwlock";
     }
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t *>(0))) {
-	throw "ibis::column::ctor unable to initialize the mutex";
+	throw "column::ctor unable to initialize the mutex";
     }
 
     bool badType = false;
@@ -84,12 +84,12 @@ ibis::column::column(const part* tbl, FILE* file)
     do {
 	s1 = fgets(buf, MAX_LINE, file);
 	if (s1 == 0) {
-	    ibis::util::logMessage("Warning", "ibis::column::ctor reached "
+	    ibis::util::logMessage("Warning", "column::ctor reached "
 				   "end-of-file while reading a column");
 	    return;
 	}
 	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("Warning", "ibis::column::ctor may "
+	    ibis::util::logMessage("Warning", "column::ctor may "
 				   "have encountered a line that has more "
 				   "than %d characters", MAX_LINE);
 	}
@@ -255,21 +255,21 @@ ibis::column::column(const part* tbl, FILE* file)
 		break;}
 	    default: {
 		ibis::util::logMessage("Warning",
-				       "ibis::column::ctor encountered "
+				       "column::ctor encountered "
 				       "unknown data type \'%s\'", s1);
 		badType = true;
 		break;}
 	    }
 	}
 	else if (strnicmp(buf, "End", 3) && ibis::gVerbose > 4){
-	    ibis::util::logMessage("ibis::column::column",
+	    ibis::util::logMessage("column::column",
 				   "skipping line:\n%s", buf);
 	}
     } while (strnicmp(buf, "End", 3));
 
     if (m_name.empty() || badType) {
 	ibis::util::logMessage("Warning",
-			       "ibis::column specification does not have a "
+			       "column specification does not have a "
 			       "valid name or type");
 	m_name.erase(); // make sure the name is empty
     }
@@ -290,10 +290,10 @@ ibis::column::column(const ibis::column& rhs) :
     m_desc(rhs.m_desc), m_bins(rhs.m_bins), m_sorted(false), lower(rhs.lower),
     upper(rhs.upper), idx(0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
-	throw "ibis::column::ctor unable to initialize the rwlock";
+	throw "column::ctor unable to initialize the rwlock";
     }
     if (pthread_mutex_init(&mutex, 0)) {
-	throw "ibis::column::ctor unable to initialize the mutex";
+	throw "column::ctor unable to initialize the mutex";
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
@@ -5843,11 +5843,11 @@ long ibis::column::stringSearch(const std::vector<std::string>&,
 }
 
 long ibis::column::stringSearch(const char*) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1L);
 }
 
 long ibis::column::stringSearch(const std::vector<std::string>&) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 }
 
 long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
@@ -5859,11 +5859,11 @@ long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
 }
 
 long ibis::column::keywordSearch(const char*) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 }
 
 long ibis::column::patternSearch(const char*) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 }
 
 long ibis::column::patternSearch(const char*, ibis::bitvector &) const {
@@ -9328,8 +9328,7 @@ int ibis::column::searchSortedICC(const array_t<T>& vals,
 	case ibis::qExpr::OP_UNDEFINED:
 	default: {
 	    hits.set(0, vals.size());
-	    return -8;
-	    break;}
+	    return -8;}
 	} // switch (rng.rightOperator())
 	break;}
     } // switch (rng.leftOperator())
@@ -10038,8 +10037,7 @@ int ibis::column::searchSortedOOCC(const char* fname,
 	case ibis::qExpr::OP_UNDEFINED:
 	default: {
 	    hits.set(0, nrows);
-	    return -8;
-	    break;}
+	    return -8;}
 	} // switch (rng.rightOperator())
 	break;}
     } // switch (rng.leftOperator())
@@ -10342,8 +10340,8 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    << evt << " will use " << u.size()
 	    << " binary search" << (u.size() > 1 ? "es" : "");
 	for (uint32_t j = 0; j < u.size(); ++ j) {
-	    const T tmp = static_cast<const T>(u[j]);
-	    if ((const int64_t)tmp == u[j]) {
+	    const T tmp = static_cast<T>(u[j]);
+	    if ((int64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
 		if (vals[jloc] == u[j]) {
 		    hits.setBit(jloc, 1);
@@ -10473,8 +10471,8 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    << evt << " will use " << u.size()
 	    << " binary search" << (u.size() > 1 ? "es" : "");
 	for (uint32_t j = 0; j < u.size(); ++ j) {
-	    const T tmp = static_cast<const T>(u[j]);
-	    if ((const uint64_t)tmp == u[j]) {
+	    const T tmp = static_cast<T>(u[j]);
+	    if ((uint64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
 		if (vals[jloc] == u[j]) {
 		    hits.setBit(jloc, 1);

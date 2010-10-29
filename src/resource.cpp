@@ -16,7 +16,7 @@
 const char* ibis::resource::delimiters = "*:.";
 
 /// Read a configuration file.
-/// It will read the first file in the following list and add the content
+/// It will open the first file in the following list and add the content
 /// to the existing list of parameter,
 /// - (1) argument to this function (fn),
 /// - (2) environment variable IBISRC,
@@ -25,10 +25,11 @@ const char* ibis::resource::delimiters = "*:.";
 /// - (5) file named .ibisrc in the user's home directory (if the
 ///       environment variable HOME is defined).
 ///
-/// It will attempt to parse the content of the first file it finds.  The
-/// content of the file is parsed and added to the current content of the
-/// resouce object.  The parameters with the same will overwrite the existing
+/// It attempts to parse the content of the first file it finds.  The
+/// content of the file is added to the current content of the resouce
+/// object.  The parameters with the same names will overwrite the existing
 /// values.
+///
 /// If it can not find any one of the files, it will return without
 /// modifying the current content of the resource object.
 void ibis::resource::read(const char* fn) {
@@ -115,7 +116,7 @@ void ibis::resource::read(const char* fn) {
 
     char *value;
     LOGGER(ibis::gVerbose > 0)
-	<< "ibis::resource::read -- Reading configuration file \""
+	<< "resource::read -- parsing configuration file \""
 	<< (name?name:"") << "\""; 
     while ( !feof(conf) ) {
 	if (fgets(line, MAX_LINE, conf) == 0) continue; // skip empty line
@@ -142,7 +143,7 @@ void ibis::resource::read(const char* fn) {
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 6)
-		<< "ibis::resource::read -- skipping line \""
+		<< "resource::read -- skipping line \""
 		<< line << "\" because it contains no '='";
 	}
     }
@@ -262,16 +263,14 @@ const char* ibis::resource::operator[](const char* name) const {
 double ibis::resource::getNumber(const char* name) const {
     double sz = 0;
     const char* str = operator[](name);
-    if (str != 0) {
-	sz = atof(str);
-	if (sz > 0) {
-	    while (isspace(*str) || isdigit(*str) || *str == '.' ||
-		   *str == 'e' || *str == 'E') ++str;
-	    if (*str == 'k' || *str == 'K') sz *= 1024;
-	    else if (*str == 'm' || *str == 'M') sz *= 1048576;
-	    else if (*str == 'g' || *str == 'G') sz *= 1073742824;
-	    else if (*str == 'h' || *str == 'H') sz *= 3600;
-	}
+    if (str == 0) return 0.0;
+    if (ibis::util::readDouble(sz, str) < 0) return 0.0;
+    if (sz > 0) {
+	while (*str != 0 && isspace(*str)) ++ str;
+	if (*str == 'k' || *str == 'K') sz *= 1024;
+	else if (*str == 'm' || *str == 'M') sz *= 1048576;
+	else if (*str == 'g' || *str == 'G') sz *= 1073742824;
+	else if (*str == 'h' || *str == 'H') sz *= 3600;
     }
     return sz;
 } // ibis::resource::getNumber
@@ -378,8 +377,8 @@ void ibis::resource::parseNameValuePairs(const char *in,
     } // while ((tmp = strchr(str, '=')) != 0)
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg() << "ibis::resource::parseNameValuePairs() converted \""
-		    << in << "\" into " << lst.size() << " name-value pairs";
+	lg() << "resource::parseNameValuePairs() converted \""
+	     << in << "\" into " << lst.size() << " name-value pairs";
 	for (vList::const_iterator it = lst.begin();
 	     it != lst.end(); ++ it)
 	    lg() << "\n" << (*it).first << " = " << (*it).second;

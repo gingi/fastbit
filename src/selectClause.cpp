@@ -565,8 +565,8 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
     else if (xp0.termType() == ibis::math::UNDEFINED) {
 	++ ierr;
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- selectClause::verifyTerm can not work with an "
-	    "ibis::math::term of undefined type";
+	    << "Warning -- selectClause::verifyTerm can not work with a "
+	    "math::term of undefined type";
     }
     else {
 	if (xp0.getLeft() != 0)

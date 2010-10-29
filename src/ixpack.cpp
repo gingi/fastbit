@@ -2222,7 +2222,7 @@ void ibis::pack::estimate(const ibis::qContinuousRange& expr,
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::pack::estimate(" << expr << ") bin number ["
+	<< "pack::estimate(" << expr << ") bin number ["
 	<< cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	<< ") boundaries ["
 	<< (cand0 < bits.size() ?

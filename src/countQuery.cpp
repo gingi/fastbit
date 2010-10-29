@@ -50,11 +50,11 @@ int ibis::countQuery::setPartition(const part* tbl) {
 
     if (mypart != 0)
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::countQuery changing data partition from "
+	    << "countQuery changing data partition from "
 	    << mypart->name() << " to " << tbl->name();
     else
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::countQuery assigned data partition " << tbl->name();
+	    << "countQuery assigned data partition " << tbl->name();
     mypart = tbl;
     if (hits == cand) {
 	delete hits;

@@ -321,7 +321,7 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 # memory.  More memory will typlically reduce the test time, but not
 # significantly.  On machines with less than 2GB of memory, one may
 # experience more warnings.
-check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
+check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
@@ -331,7 +331,7 @@ check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 $(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
-check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem3.rc $(TESTDIR)/smallmem3.rc
+check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1

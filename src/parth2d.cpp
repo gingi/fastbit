@@ -69,7 +69,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -178,7 +178,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -256,7 +256,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -332,7 +332,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -407,7 +407,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -482,7 +482,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -493,7 +493,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DDistribution -- unable to "
+	    << "part::get2DDistribution -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -568,7 +568,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -686,7 +686,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -764,7 +764,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -840,7 +840,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -915,7 +915,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -990,7 +990,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- unable to "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -1001,7 +1001,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DDistribution -- unable to "
+	    << "part::get2DDistribution -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -1326,7 +1326,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::fill2DBins2 -- unable to "
+	    << "part::fill2DBins2 -- unable to "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -1370,7 +1370,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -1603,7 +1603,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DBins -- unable to "
+	    << "part::get2DBins -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -1927,7 +1927,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::fill2DBins2 -- unable to "
+	    << "part::fill2DBins2 -- unable to "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -1963,7 +1963,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -2196,7 +2196,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DBins -- unable to "
+	    << "part::get2DBins -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -2544,7 +2544,7 @@ ibis::part::fill2DBinsWeighted2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::fill2DBinsWeighted2 -- unable to "
+	    << "part::fill2DBinsWeighted2 -- unable to "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -2580,7 +2580,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a histogram of "
 	    << cname1 << " and " << cname2 << " with regular binning "
 	    << (constraints && *constraints ? "subject to " :
@@ -2840,7 +2840,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DBins -- unable to "
+	    << "part::get2DBins -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -2939,7 +2939,7 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
     std::string mesg;
     {
 	std::ostringstream oss;
-	oss << "ibis::part::adaptive2DBins<" << typeid(T1).name() << ", "
+	oss << "part::adaptive2DBins<" << typeid(T1).name() << ", "
 	    << typeid(T2).name() << ">";
 	mesg = oss.str();
     }
@@ -3155,7 +3155,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionA attempting to compute a " << nb1 << " x "
 	    << nb2 << " histogram of " << col1.name() << " and "
 	    << col2.name() << " using base data";
@@ -3179,7 +3179,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     }
     if (mask.cnt() == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::part[" << m_name
+	    << "part[" << m_name
 	    << "]::get2DDistributionA - null mask contains only 0 ";
 	bounds1.resize(0);
 	bounds2.resize(0);
@@ -3263,7 +3263,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3349,7 +3349,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3433,7 +3433,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3516,7 +3516,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3597,7 +3597,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3608,7 +3608,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DDistributionA -- unable to "
+	    << "part::get2DDistributionA -- unable to "
 	    "handle column (" << col1.name() << ") type "
 	    << ibis::TYPESTRING[(int)col1.type()];
 
@@ -3618,7 +3618,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger(0)()
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionA completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
@@ -3639,7 +3639,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionU attempting to compute a " << nb1
 	    << " x " << nb2 << " histogram of " << col1.name() << " and "
 	    << col2.name() << " using base data";
@@ -3744,7 +3744,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     }
     if (mask.cnt() == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::part[" << m_name
+	    << "part[" << m_name
 	    << "]::get2DDistributionU - null mask contains only 0 ";
 	bounds1.resize(0);
 	bounds2.resize(0);
@@ -3832,7 +3832,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3910,7 +3910,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3986,7 +3986,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4061,7 +4061,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4136,7 +4136,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "ibis::part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- unable to "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4147,7 +4147,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get2DDistributionU -- unable to "
+	    << "part::get2DDistributionU -- unable to "
 	    "handle column (" << col1.name() << ") type "
 	    << ibis::TYPESTRING[(int)col1.type()];
 
@@ -4157,7 +4157,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger(0)()
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionU completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
@@ -4176,7 +4176,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI attempting to compute a " << nb1
 	    << " x " << nb2 << " histogram of " << col1.name() << " and "
 	    << col2.name() << " using indexes";
@@ -4221,7 +4221,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
     const ibis::index* idx1 = idxlock1.getIndex();
     if (idx1 == 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI can not proceed with index for "
 	    << col1.name();
 	return -1L;
@@ -4234,7 +4234,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	idx1bin.pop_back();
     if (idx1bin.empty()) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI can not proceed because column "
 	    << col1.name() << " contains no valid values or only one value";
 	return -2L;
@@ -4244,7 +4244,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	idx1->binWeights(idx1wgt);
 	if (idx1bin.size() > idx1wgt.size()) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI can not count the number of values "
 		"in column " << col1.name();
 	    return -3L;
@@ -4258,7 +4258,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    w1bnds.pop_back();
 	if (w1bnds.size() < 2) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI can not divide " << idx1bin.size()
 		<< "bins into " << nb1 << " coarser bins";
 	    return -4L;
@@ -4281,7 +4281,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	long ierr = coarsenBins(col2, nb2, bounds2, bins2);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI can not coarsen bins of "
 		<< col2.name() << ", ierr=" << ierr;
 	    return -5L;
@@ -4303,13 +4303,13 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 				    bounds1[1]);
 	ibis::bitvector bv;
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI evaluating " << rng1
 	    << " for bin 0 in " << col1.name();
 	ierr = idx1->evaluate(rng1, bv);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI failed to evaluate range condition \""
 		<< rng1 << "\", ierr=" << ierr;
 	    return -6L;
@@ -4349,13 +4349,13 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	    rng1.leftBound() = bounds1[j];
 	    rng1.rightBound() = bounds1[j+1];
 	    LOGGER(ibis::gVerbose > 4)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI evaluating " << rng1
 		<< " for bin " << j << " in " << col1.name();
 	    ierr = idx1->evaluate(rng1, bv);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 2)
-		    << "ibis::part[" << (m_name ? m_name : "")
+		    << "part[" << (m_name ? m_name : "")
 		    << "]::get2DDistributionI failed to evaluate \""
 		    << rng1 << "\", ierr=" << ierr;
 		return -6L;
@@ -4391,13 +4391,13 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	rng1.rightOperator() = ibis::qExpr::OP_UNDEFINED;
 	rng1.leftBound() = bounds1[bounds1.size()-2];
 	LOGGER(ibis::gVerbose > 4)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI evaluating " << rng1
 	    << " for bin " << bounds1.size()-1 << " in " << col1.name();
 	ierr = idx1->evaluate(rng1, bv);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "ibis::part[" << (m_name ? m_name : "")
+		<< "part[" << (m_name ? m_name : "")
 		<< "]::get2DDistributionI failed to evaluate range condition \""
 		<< rng1 << "\", ierr=" << ierr;
 	    return -6L;
@@ -4454,7 +4454,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger(0)()
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI completed filling a " << nb1 << " x "
 	    << nb2 << " histogram on " << col1.name() << " and "
 	    << col2.name() << " with " << counts.size() << " cell"
@@ -4504,7 +4504,7 @@ long ibis::part::get2DDistribution(const char *constraints,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution attempting to compute a " << nb1 << " x "
 	    << nb2 << " histogram on " << name1 << " and " << name2
 	    << " subject to \"" << (constraints ? constraints : "") << "\"";
@@ -4523,7 +4523,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    return 0;
 	mask.copy(*hits);
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution -- the constraints \"" << constraints
 	    << "\" selects " << mask.cnt() << " record"
 	    << (mask.cnt() > 1 ? "s" : "") << " out of " << nEvents;
@@ -5185,7 +5185,7 @@ long ibis::part::old2DDistribution(const char *constraints,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::old2DDistribution attempting to compute a " << nb1
 	    << " x " << nb2 << " histogram on "
 	    << name1 << " and " << name2 << " subject to \""
@@ -5205,7 +5205,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	    return 0;
 	mask.copy(*hits);
 	LOGGER(ibis::gVerbose > 1)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::old2DDistribution -- the constraints \"" << constraints
 	    << "\" selects " << mask.cnt() << " record"
 	    << (mask.cnt() > 1 ? "s" : "") << " out of " << nEvents;
@@ -5633,7 +5633,7 @@ long ibis::part::get2DBins(const char *constraints,
     std::string mesg;
     {
 	std::ostringstream oss;
-	oss << "ibis::part[" << (m_name ? m_name : "") << "]::get2DBins("
+	oss << "part[" << (m_name ? m_name : "") << "]::get2DBins("
 	    << cname1 << ", " << cname2 << ", " << nb1 << ", " << nb2 << ")";
 	mesg = oss.str();
     }
@@ -5731,7 +5731,7 @@ void ibis::part::mapValues(array_t<E1> &val1, array_t<E2> &val2,
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
 	LOGGER(ibis::gVerbose > 4)
-	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
+	    << "part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2 << ") starting ...";
 	timer.start();
@@ -5747,7 +5747,7 @@ void ibis::part::mapValues(array_t<E1> &val1, array_t<E2> &val2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
+	    << "part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2
 	    << ") spent " << timer.CPUTime() << " sec(CPU), "
@@ -5769,7 +5769,7 @@ void ibis::part::mapValues(array_t<E1> &val1, array_t<E2> &val2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(true)
-	    << "ibis::part::mapValues(" << typeid(E1).name() << "["
+	    << "part::mapValues(" << typeid(E1).name() << "["
 	    << val1.size() << "], " << typeid(E2).name() << "["
 	    << val2.size() << "], " << nb1 << ", " << nb2
 	    << ") spent " << timer.CPUTime() << " sec(CPU), "
@@ -5943,7 +5943,7 @@ ibis::part::getJointDistribution(const char *constraints,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::getJointDistribution attempting to compute a histogram of "
 	    << name1 << " and " << name2
 	    << (constraints && *constraints ? " subject to " :

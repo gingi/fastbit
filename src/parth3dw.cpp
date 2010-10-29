@@ -42,7 +42,7 @@ ibis::part::fill3DBinsWeighted(const ibis::bitvector &mask,
 	(end3-begin3) * stride3 < 0.0)
 	return -10L;
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::part::fill3DBins<" << typeid(T1).name() << ", "
+	<< "part::fill3DBins<" << typeid(T1).name() << ", "
 	<< typeid(T2).name() << ", " << typeid(T3).name() << ">("
 	<< "vals1[" << vals1.size() << "], " << begin1 << ", "
 	<< end1 << ", " << stride1
@@ -708,7 +708,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     ibis::horometer timer;
     if (ibis::gVerbose > 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::part[" << (m_name ? m_name : "")
+	    << "part[" << (m_name ? m_name : "")
 	    << "]::get3DBins attempting to compute a histogram of "
 	    << cname1 << ", " << cname2 << ", and " << cname3
 	    << " with regular binning "
@@ -980,7 +980,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::part::get3DBins -- unable to "
+	    << "part::get3DBins -- unable to "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 

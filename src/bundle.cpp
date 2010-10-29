@@ -150,9 +150,9 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     char fn[PATH_MAX];
     uint32_t len = strlen(dir);
     if (len+8 >= PATH_MAX) {
-	ibis::util::logMessage("Error", "ibis::bundle::readRIDs -- "
+	ibis::util::logMessage("Error", "bundle::readRIDs -- "
 			       "argument dir (%s) too long", dir);
-	throw "ibis::bundle::readRIDs -- argument dir too long";
+	throw "bundle::readRIDs -- argument dir too long";
     }
 
     if (dir[len-1] == FASTBIT_DIRSEP) {
@@ -166,7 +166,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     ibis::fileManager::storage* bdlstore=0;
     int ierr = ibis::fileManager::instance().getFile(fn, &bdlstore);
     if (ierr != 0) {
-	ibis::util::logMessage("Warning", "ibis::bundle::readRIDs failed "
+	ibis::util::logMessage("Warning", "bundle::readRIDs failed "
 			       "to retrieve the bundle file %s", fn);
 	return 0;
     }
@@ -184,7 +184,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	    expected += sizes[i0] * nbdl;
 	if (expected != bdlstore->bytes()) {
 	    ibis::util::logMessage
-		("Warning", "ibis::bundle::readRIDs -- according to the "
+		("Warning", "bundle::readRIDs -- according to the "
 		 "header, %lu bytes are expected, but the file %s "
 		 "contains %lu", static_cast<long unsigned>(expected), fn,
 		 static_cast<long unsigned>(bdlstore->bytes()));
@@ -202,7 +202,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	if (fdes < 0) {
 	    if (errno != ENOENT || ibis::gVerbose > 10)
 		ibis::util::logMessage
-		    ("Warning", "ibis::bundle::readRIDs -- failed to "
+		    ("Warning", "bundle::readRIDs -- failed to "
 		     "open file \"%s\" ... %s", fn,
 		     (errno ? strerror(errno) : "no free stdio stream"));
 	    delete res;
@@ -214,7 +214,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	offset = sizeof(ibis::rid_t) * starts[i];
 	if (offset != static_cast<uint32_t>(UnixSeek(fdes, offset,
 						     SEEK_SET))) {
-	    ibis::util::logMessage("Warning", "ibis::bundle::readRIDs "
+	    ibis::util::logMessage("Warning", "bundle::readRIDs "
 				   "-- failed to fseek to %lu in file %s ",
 				   static_cast<long unsigned>(offset), fn);
 	    delete res;
@@ -228,7 +228,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
 	    (sizeof(ibis::rid_t)*starts[i], sizeof(ibis::rid_t)*starts[i+1]);
 	UnixClose(fdes);
 	if (offset != sizeof(ibis::rid_t)*len) {
-	    ibis::util::logMessage("Warning", "ibis::bundle::readRIDs -- "
+	    ibis::util::logMessage("Warning", "bundle::readRIDs -- "
 				   "expected to read %lu RIDs but got %lu ",
 				   static_cast<long unsigned>(len),
 				   static_cast<long unsigned>(nbdl));
@@ -336,7 +336,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- ibis::bundle1 can not continue with an empty "
 	    "select clause";
-	throw "ibis::bundle1 can not work with empty select clauses";
+	throw "bundle1 can not work with empty select clauses";
     }
     LOGGER(cmps.size() != 1 && ibis::gVerbose > 0)
 	<< "Warning -- ibis::bundle1 will only use the 1st terms of "
@@ -345,7 +345,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     if (c == 0)
 	c = tbl->getColumn(cmps.termName(0));
     if (c == 0) {
-	ibis::util::logMessage("Warning", "ibis::bundle1::ctor name %s "
+	ibis::util::logMessage("Warning", "bundle1::ctor name %s "
 			       "is not a column in table ", cmps.argName(0));
 	return;
     }
@@ -363,7 +363,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	ibis::fileManager::storage* bdlstore = 0;
 	int ierr = ibis::fileManager::instance().getFile(bdlfile, &bdlstore);
 	if (ierr != 0) {
-	    ibis::util::logMessage("Error", "ibis::bundle1::ctor failed "
+	    ibis::util::logMessage("Error", "bundle1::ctor failed "
 				   "to retrieve bundle file %s", bdlfile);
 	    throw ibis::bad_alloc("failed to retrieve bundle file");
 	}
@@ -400,7 +400,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	}
 	else {
 	    ibis::util::logMessage
-		("Warning", "ibis::bundle1::ctor -- according to the "
+		("Warning", "bundle1::ctor -- according to the "
 		 "header, %lu bytes are expected, but the file %s "
 		 "contains %lu", static_cast<long unsigned>(expected),
 		 bdlfile, static_cast<long unsigned>(bdlstore->bytes()));
@@ -437,7 +437,7 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
 	    }
 	    if (col->size() != hits->cnt()) {
 		ibis::util::logMessage
-		    ("Warning", "ibis::bundle1::ctor got %lu values "
+		    ("Warning", "bundle1::ctor got %lu values "
 		     "but expected %lu",
 		     static_cast<long unsigned>(col->size()),
 		     static_cast<long unsigned>(hits->cnt()));
@@ -508,7 +508,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	}
 	if (col->size() != hits.cnt()) {
 	    ibis::util::logMessage
-		("Warning", "ibis::bundle1::ctor got %lu value, but "
+		("Warning", "bundle1::ctor got %lu value, but "
 		 "expected %lu",
 		 static_cast<long unsigned>(col->size()),
 		 static_cast<long unsigned>(hits.cnt()));
@@ -518,7 +518,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	}
     }
     else {
-	ibis::util::logMessage("Error", "ibis::bundle1::ctor name \"%s\" "
+	ibis::util::logMessage("Error", "bundle1::ctor name \"%s\" "
 			       "is not a column in table %s",
 			       cmps.argName(0), tbl->name());
 	throw ibis::bad_alloc("not a valid column name");
@@ -597,7 +597,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "ibis::bundle1 -- generated the bundle for \"" << *cmps
+	lg() << "bundle1 -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)
 	    print(lg());
@@ -843,7 +843,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     uint32_t tmp = col->size();
     if (starts->size() != tmp+1) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bundle1::write invalid bundle "
+	    ("Warning", "bundle1::write invalid bundle "
 	     "(starts->size(%lu) != col->size(%lu)+1)",
 	     static_cast<long unsigned>(starts->size()),
 	     static_cast<long unsigned>(tmp));
@@ -859,7 +859,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     strcat(fn, "bundles");
     FILE* fptr = fopen(fn, "wb");
     if (fptr == 0) {
-	ibis::util::logMessage("Warning", "ibis::bundle1::write -- unable "
+	ibis::util::logMessage("Warning", "bundle1::write -- unable "
 			       "to open file \"%s\" ... %s", fn,
 			       (errno ? strerror(errno) :
 				"no free stdio stream"));
@@ -992,7 +992,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	ibis::fileManager::storage* bdlstore=0;
 	int ierr = ibis::fileManager::instance().getFile(bdlfile, &bdlstore);
 	if (ierr != 0) {
-	    ibis::util::logMessage("Error", "ibis::bundles::ctor failed "
+	    ibis::util::logMessage("Error", "bundles::ctor failed "
 				   "to retrieve bundle file %s",
 				   bdlfile);
 	    throw ibis::bad_alloc("failed to retrieve bundle file");
@@ -1032,7 +1032,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    start += sizes[2+i] * sizes[0];
 		}
 		else {
-		    ibis::util::logMessage("Error", "ibis::bundles::ctor "
+		    ibis::util::logMessage("Error", "bundles::ctor "
 					   "\"%s\" is not the name of a "
 					   "column in table %s",
 					   cmps.argName(i), tbl->name());
@@ -1044,7 +1044,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	}
 	else {
 	    ibis::util::logMessage
-		("Warning", "ibis::bundles::ctor -- according to the "
+		("Warning", "bundles::ctor -- according to the "
 		 "header, %lu bytes are expected, but the file %s "
 		 "contains %lu", static_cast<long unsigned>(expected),
 		 bdlfile, static_cast<long unsigned>(bdlstore->bytes()));
@@ -1064,11 +1064,11 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    }
 	}
 	else {
-	    ibis::util::logMessage("Error", "ibis::bundles::ctor -- query %s"
+	    ibis::util::logMessage("Error", "bundles::ctor -- query %s"
 				   " contains an invalid hit vector, call "
 				   "evaluate to generate a valid hit vector",
 				   q.id());
-	    throw ibis::bad_alloc("ibis::bundles::ctor -- no hit vector");
+	    throw ibis::bad_alloc("bundles::ctor -- no hit vector");
 	}
 	for (uint32_t i=0; i < ncol; ++i) {
 	    const ibis::column* cptr = tbl->getColumn(cmps.argName(i));
@@ -1092,7 +1092,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		cols.push_back(tmp);
 	    }
 	    else {
-		ibis::util::logMessage("Error", "ibis::bundles::ctor "
+		ibis::util::logMessage("Error", "bundles::ctor "
 				       "\"%s\" is not the name of a "
 				       "column in table %s",
 				       cmps.argName(i), tbl->name());
@@ -1156,7 +1156,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    cols.push_back(tmp);
 	}
 	else {
-	    ibis::util::logMessage("Error", "ibis::bundles::ctr \"%s\" is "
+	    ibis::util::logMessage("Error", "bundles::ctr \"%s\" is "
 				   "not the name of a column in table %s",
 				   cmps[i], tbl->name());
 	    throw ibis::bad_alloc("unknown column name");
@@ -1248,7 +1248,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "ibis::bundles -- generated the bundle for \"" << *cmps
+	lg() << "bundles -- generated the bundle for \"" << *cmps
 		    << "\"\n";
 	if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)
 	    print(lg());
@@ -1766,7 +1766,7 @@ void ibis::bundles::reverse() {
 	}
 	if (cumu != (*starts)[ngroups] && ibis::gVerbose >= 0) {
 	    ibis::util::logMessage
-		("Warning", "ibis::bundles::reverse internal error, "
+		("Warning", "bundles::reverse internal error, "
 		 "cumu (%lu) and (*starts)[%lu] (%lu) are expected to "
 		 "be equal but are not", static_cast<long unsigned>(cumu),
 		 static_cast<long unsigned>(ngroups),
@@ -2076,7 +2076,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     if (starts == 0) return;
     if (cols[0]->size() == 0) return;
     if (cols[0]->size()+1 != starts->size()) {
-	ibis::util::logMessage("Warning", "ibis::bundles::write invalid "
+	ibis::util::logMessage("Warning", "bundles::write invalid "
 			       "bundle (starts->size(%lu) != "
 			       "cols[0]->size(%lu)+1)",
 			       static_cast<long unsigned>(starts->size()),
@@ -2093,7 +2093,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     strcat(fn, "bundles");
     FILE* fptr = fopen(fn, "wb");
     if (fptr == 0) {
-	ibis::util::logMessage("Warning", "ibis::bundles::write -- unable "
+	ibis::util::logMessage("Warning", "bundles::write -- unable "
 			       "to open file \"%s\" ... %s", fn,
 			       (errno ? strerror(errno) : 
 				"no free stdio stream"));
@@ -2224,7 +2224,7 @@ ibis::query::result::result(ibis::query& q)
 	int ierr = q.evaluate();
 	if (ierr < 0) {
 	    ibis::util::logMessage
-		("Error", "ibis::query::result constructor failed "
+		("Error", "query::result constructor failed "
 		 "to evaluate query %s", q.id());
 	    throw ibis::bad_alloc("Can not evaluate query");
 	}
@@ -2232,7 +2232,7 @@ ibis::query::result::result(ibis::query& q)
     bdl_ = ibis::bundle::create(q);
     if (bdl_ == 0) {
 	ibis::util::logMessage
-	    ("Error", "ibis::query::result constructor failed "
+	    ("Error", "query::result constructor failed "
 	     "to create a bundle object from query %s", q.id());
 	throw ibis::bad_alloc("failed to create a result set from query");
     }

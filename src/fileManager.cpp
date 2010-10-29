@@ -446,7 +446,7 @@ void ibis::fileManager::clear() {
     LOGGER((ibis::fileManager::totalBytes() != 0 && ibis::gVerbose > 0) ||
 	   ibis::gVerbose > 3)
 	<< "fileManager::clear -- completed with "
-	<< ibis::fileManager::totalBytes()
+	<< ibis::util::groupby1000(ibis::fileManager::totalBytes())
 	<< " byte" << (ibis::fileManager::totalBytes()>1 ? "s" : "")
 	<< " of storage remain in memory after removing all managed objects";
 } // ibis::fileManager::clear
@@ -1091,9 +1091,9 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
 				  const off_t b, const off_t e) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
-	<< "DEBUG -- fileManager::getFileSegment -- attempt to retrieve \"" << name
-	<< "\", currently there are " << mapped.size() << " mapped files and "
-	<< incore.size() << " incore files";
+	<< "DEBUG -- fileManager::getFileSegment -- attempt to retrieve \""
+	<< name << "\", currently there are " << mapped.size()
+	<< " mapped files and " << incore.size() << " incore files";
 #endif
     ibis::fileManager::storage *st = 0;
     if (((name == 0 || *name == 0) && fdes < 0) || b >= e)

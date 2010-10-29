@@ -90,6 +90,7 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual void estimate(const ibis::qExpr* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    using ibis::table::select;
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}
@@ -203,6 +204,7 @@ public:
 			  uint64_t& nmin, uint64_t& nmax) const;
     virtual void estimate(const ibis::qExpr* cond,
 			  uint64_t& nmin, uint64_t& nmax) const;
+    using ibis::table::select;
     virtual table* select(const char*, const char*) const {return 0;}
 
     virtual table* groupby(const stringList&) const {return 0;}

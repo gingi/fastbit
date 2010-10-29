@@ -13,14 +13,14 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     if (c->type() == ibis::FLOAT ||
 	c->type() == ibis::DOUBLE ||
 	c->type() == ibis::TEXT) {
-	ibis::util::logMessage("Error", "ibis::direkte can only be used "
+	ibis::util::logMessage("Error", "direkte can only be used "
 			       "for columns with integer values (current "
 			       "column %s, type=%s)", c->name(),
 			       ibis::TYPESTRING[(int)c->type()]);
 	throw ibis::bad_alloc("wrong column type for ibis::direkte");
     }
 //     if (c->lowerBound() < 0.0 || c->lowerBound() > 1.0) {
-// 	ibis::util::logMessage("Error", "ibis::direkte can only be used "
+// 	ibis::util::logMessage("Error", "direkte can only be used "
 // 			       " on integer attributes with minimal value "
 // 			       "of 0 or 1, current minimal value is %g",
 // 			       c->lowerBound());
@@ -35,12 +35,11 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     int ierr = 0;
     switch (c->type()) {
     default: {
-	ibis::util::logMessage("Error", "ibis::direkte can only be used "
+	ibis::util::logMessage("Error", "direkte can only be used "
 			       "for columns with integer values (current "
 			       "column %s, type=%s)", c->name(),
 			       ibis::TYPESTRING[(int)c->type()]);
-	throw ibis::bad_alloc("wrong column type for ibis::direkte");
-	break;}
+	throw ibis::bad_alloc("wrong column type for ibis::direkte");}
     case ibis::BYTE: {
 	ierr = construct<signed char>(dfname.c_str());
 	break;}
@@ -68,9 +67,9 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 	break;}
     }
     if (ierr < 0) {
-	ibis::util::logMessage("Error", "ibis::direkte failed with error "
+	ibis::util::logMessage("Error", "direkte failed with error "
 			       "code %d", ierr);
-	throw ibis::bad_alloc("ibis::direkte construction failure");
+	throw ibis::bad_alloc("direkte construction failure");
     }
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;

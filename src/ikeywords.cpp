@@ -49,7 +49,7 @@ ibis::keywords::keywords(const ibis::column* c,
 	idcol->type() != ibis::UINT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "keywords::keywords -- the id column of "
-	    "ibis::keywords can only be 4-byte integers";
+	    "keywords can only be 4-byte integers";
 	throw ibis::bad_alloc("keywords can only use 4-byte "
 			      "integers as ids");
     }

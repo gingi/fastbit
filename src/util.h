@@ -746,7 +746,7 @@ namespace ibis {
 #else
 		if (0 != pthread_mutex_init(&lock_, 0))
 		    throw ibis::bad_alloc
-			("ibis::util::counter failed to initialize mutex lock");
+			("util::counter failed to initialize mutex lock");
 #endif
 	    }
 

@@ -533,7 +533,7 @@ int ibis::tafel::assignDefaultValue(ibis::tafel::column& col,
 #else
 	unsigned long long tmp = strtoul(val, &ptr, 0);
 #endif
-	if (tmp >= 0 && errno == 0) {
+	if (errno == 0) {
 	    uint64_t *actual = new uint64_t;
 	    *actual = static_cast<uint64_t>(tmp);
 	    col.defval = actual;

@@ -44,7 +44,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 		<< "Warning -- ibis::jRange(" << desc_ << ") could apply "
 		<< condr << " on partition " << partr.name()
 		<< ", ierr = " << ierr;
-	    throw "ibis::jRange failed to apply conditions on partr";
+	    throw "jRange failed to apply conditions on partr";
 	}
 	ierr = que.evaluate();
 	if (ierr < 0) {
@@ -52,7 +52,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 		<< "Warning -- ibis::jRange(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << partr.name() << ", ierr = " << ierr;
-	    throw "ibis::jRange failed to evaluate constraints on partr";
+	    throw "jRange failed to evaluate constraints on partr";
 	}
 	maskr_.copy(*que.getHitVector());
     }
@@ -67,7 +67,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 		<< "Warning -- ibis::jRange(" << desc_ << ") could apply "
 		<< conds << " on partition " << parts.name()
 		<< ", ierr = " << ierr;
-	    throw "ibis::jRange failed to apply conditions on parts";
+	    throw "jRange failed to apply conditions on parts";
 	}
 	ierr = que.evaluate();
 	if (ierr < 0) {
@@ -75,7 +75,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 		<< "Warning -- ibis::jRange(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << parts.name() << ", ierr = " << ierr;
-	    throw "ibis::jRange failed to evaluate constraints on parts";
+	    throw "jRange failed to evaluate constraints on parts";
 	}
 	masks_.copy(*que.getHitVector());
     }
@@ -83,7 +83,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 	cols.getNullMask(masks_);
     }
     LOGGER(ibis::gVerbose > 2)
-	<< "ibis::jRange(" << desc_ << ") construction complete";
+	<< "jRange(" << desc_ << ") construction complete";
 } // ibis::jRange::jRange
 
 /// Destructor.
@@ -95,7 +95,7 @@ ibis::jRange::~jRange() {
     delete frm_;
     delete sel_;
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::jRange(" << desc_ << ") cleared";
+	<< "jRange(" << desc_ << ") cleared";
 }
 
 /// Estimate the number of hits.  Nothing useful at this time.
@@ -112,7 +112,7 @@ int64_t ibis::jRange::count() const {
     }
 
     std::string mesg;
-    mesg = "ibis::jRange::count(";
+    mesg = "jRange::count(";
     mesg += desc_;
     mesg += ")";
     ibis::util::timer tm(mesg.c_str(), 1);
@@ -350,7 +350,7 @@ int64_t ibis::jRange::count() const {
 	break;}
     }
     LOGGER(ibis::gVerbose > 2)
-	<< "ibis::jRange::count(" << desc_ << ") found " << nrows
+	<< "jRange::count(" << desc_ << ") found " << nrows
 	<< " hit" << (nrows>1?"s":"");
     return nrows;
 } // ibis::jRange::count
@@ -923,7 +923,7 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 			 const ibis::table::bufferList& sbuff,
 			 const ibis::table::stringList& tcname,
 			 const std::vector<uint32_t>& tcnpos) {
-    if (nrows < 0 || nrows > (rjcol.size() * sjcol.size()) ||
+    if (nrows > (rjcol.size() * sjcol.size()) ||
 	rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
 	tcname.size() != rtypes.size() + stypes.size() ||
 	tcnpos.size() != tcname.size()) {

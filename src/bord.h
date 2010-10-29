@@ -198,6 +198,7 @@ public:
 
     virtual ibis::fileManager::storage* getRawData() const;
 
+    using ibis::column::evaluateRange;
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;

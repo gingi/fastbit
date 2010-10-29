@@ -77,7 +77,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 			"(=%lu)", static_cast<long unsigned>(nbases),
 			static_cast<long unsigned>(nbits),
 			static_cast<long unsigned>(nobs));
-	throw "ibis::egale::egale bases too small";
+	throw "egale::egale bases too small";
     }
     try { // convert from simple equality code to multicomponent code
 	convert();
@@ -1174,7 +1174,7 @@ void ibis::egale::addBits_(uint32_t ib, uint32_t ie,
     }
     if (decmp) { // use decompressed res
 	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("ibis::egale", "addBits(%lu, %lu) using "
+	    ibis::util::logMessage("egale", "addBits(%lu, %lu) using "
 				   "uncompressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -1185,7 +1185,7 @@ void ibis::egale::addBits_(uint32_t ib, uint32_t ie,
     }
     else if (ie > ib+2) { // use compressed res
 	if (ibis::gVerbose > 5) 
-	    ibis::util::logMessage("ibis::egale", "addBits(%lu, %lu) using "
+	    ibis::util::logMessage("egale", "addBits(%lu, %lu) using "
 				   "compressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -1229,7 +1229,7 @@ void ibis::egale::addBits_(uint32_t ib, uint32_t ie,
 
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("ibis::egale", "addBits(%lu, %lu) took %g "
+	ibis::util::logMessage("egale", "addBits(%lu, %lu) took %g "
 			       "sec(CPU), %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),

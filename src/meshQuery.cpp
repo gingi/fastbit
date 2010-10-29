@@ -18,9 +18,9 @@
 ibis::meshQuery::meshQuery(const char* uid, const ibis::part* et,
 			   const char* pref) : ibis::query(uid, et, pref) {
     if (et == 0)
-	throw "ibis::meshQuery can not be constructed on a nil table";
+	throw "meshQuery can not be constructed on a nil table";
     else if (et->getMeshShape().empty())
-	throw "ibis::meshQuery must have a table with a mesh";
+	throw "meshQuery must have a table with a mesh";
 } // constructor
 
 ibis::meshQuery::~meshQuery() {

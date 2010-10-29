@@ -369,7 +369,6 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 	return 0;
     }
 
-    uint32_t m = 0;
     if (key_.size() < 16) { // use linear search
 	for (uint32_t m = 0; m < key_.size(); ++ m) {
 	    const int cmp = strcmp(str, key_[m]);

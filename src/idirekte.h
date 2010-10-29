@@ -16,7 +16,8 @@ public:
     virtual INDEX_TYPE type() const {return DIREKTE;}
     virtual const char* name() const {return "direct";}
 
-
+    using ibis::index::evaluate;
+    using ibis::index::estimate;
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual void estimate(const ibis::qContinuousRange& expr,

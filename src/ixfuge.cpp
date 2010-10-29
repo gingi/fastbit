@@ -695,7 +695,7 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << "ibis::fuge::evaluate(" << expr << ") hit0=" << hit0
+	lg() << "fuge::evaluate(" << expr << ") hit0=" << hit0
 		  << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
 	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];
@@ -937,7 +937,7 @@ void ibis::fuge::coarsen() {
 	cbounds[i] = cbounds[i+1] - 1;
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "ibis::fuge::coarsen will divide " << bits.size()
+	lg() << "fuge::coarsen will divide " << bits.size()
 		  << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
 	    lg() << cbounds[i] << " ";
@@ -1425,7 +1425,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
 	else if (str != 0) { // using a ibis::fileManager::storage as back store
 	    LOGGER(ibis::gVerbose > 8)
 		<< mesg << "(" << i << ") retrieving data from "
-		"ibis::fileManager::storage(0x" << str << ")";
+		"fileManager::storage(0x" << str << ")";
 
 	    array_t<ibis::bitvector::word_t>
 		a(str, coffset64[i], coffset64[i+1]);
@@ -1481,7 +1481,7 @@ void ibis::fuge::activateCoarse(uint32_t i) const {
     else if (str != 0) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
 	    << mesg << "(" << i << ") retrieving data from "
-	    "ibis::fileManager::storage(0x" << str << ")";
+	    "fileManager::storage(0x" << str << ")";
 
 	array_t<ibis::bitvector::word_t> a(str, coffset32[i], coffset32[i+1]);
 	cbits[i] = new ibis::bitvector(a);

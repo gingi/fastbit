@@ -59,7 +59,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not assign " << *condr << " on partition "
 		<< R_.name() << ", ierr = " << ierr;
-	    throw std::invalid_argument("ibis::jNatural failed to parse "
+	    throw std::invalid_argument("jNatural failed to parse "
 					"constraints on R_");
 	}
 	ierr = que.evaluate();
@@ -68,7 +68,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << R_.name() << ", ierr = " << ierr;
-	    throw std::invalid_argument("ibis::jNatural failed to "
+	    throw std::invalid_argument("jNatural failed to "
 					"evaluate constraints on R_");
 	}
 	maskR_.copy(*que.getHitVector());
@@ -84,7 +84,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not parse " << conds << " on partition "
 		<< S_.name() << ", ierr = " << ierr;
-	    throw std::invalid_argument("ibis::jNatural failed to "
+	    throw std::invalid_argument("jNatural failed to "
 					"parse constraints on S_");
 	}
 	ierr = que.evaluate();
@@ -93,7 +93,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << S_.name() << ", ierr = " << ierr;
-	    throw std::invalid_argument("ibis::jNatural failed to evaluate "
+	    throw std::invalid_argument("jNatural failed to evaluate "
 					"constraints on S_");
 	}
 	maskS_.copy(*que.getHitVector());
@@ -125,7 +125,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
     if (colname == 0 || *colname == 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- ibis::jNatural must have a valid string for colname";
-	throw "ibis::jNatural must have a valid colname as join columns";
+	throw "jNatural must have a valid colname as join columns";
     }
 
     if (colR_.type() != colS_.type()) {
@@ -136,7 +136,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	    << S_.name()   << "." << colname << " ("
 	    << ibis::TYPESTRING[colS_.type()] << ")";
 
-	throw std::invalid_argument("ibis::jNatural join columns missing "
+	throw std::invalid_argument("jNatural join columns missing "
 				    "or having different types");
     }
     desc_ = "From ";
@@ -159,7 +159,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not parse " << condr << " on partition "
 		<< R_.name() << ", ierr = " << ierr;
-	    throw "ibis::jNatural failed to parse constraints on R_";
+	    throw "jNatural failed to parse constraints on R_";
 	}
 	ierr = que.evaluate();
 	if (ierr < 0) {
@@ -167,7 +167,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << R_.name() << ", ierr = " << ierr;
-	    throw "ibis::jNatural failed to evaluate constraints on R_";
+	    throw "jNatural failed to evaluate constraints on R_";
 	}
 	maskR_.copy(*que.getHitVector());
     }
@@ -182,7 +182,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not parse " << conds << " on partition "
 		<< S_.name() << ", ierr = " << ierr;
-	    throw "ibis::jNatural failed to parse constraints on S_";
+	    throw "jNatural failed to parse constraints on S_";
 	}
 	ierr = que.evaluate();
 	if (ierr < 0) {
@@ -190,7 +190,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 		<< "Warning -- ibis::jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << S_.name() << ", ierr = " << ierr;
-	    throw "ibis::jNatural failed to evaluate constraints on S_";
+	    throw "jNatural failed to evaluate constraints on S_";
 	}
 	maskS_.copy(*que.getHitVector());
     }
@@ -199,7 +199,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
     }
 
     LOGGER(ibis::gVerbose > 2)
-	<< "ibis::jNatural(" << desc_ << ") construction complete";
+	<< "jNatural(" << desc_ << ") construction complete";
 } // ibis::jNatural::jNatural
 
 ibis::jNatural::~jNatural() {
@@ -210,7 +210,7 @@ ibis::jNatural::~jNatural() {
     delete frm_;
     delete sel_;
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::jNatural(" << desc_ << ") cleared";
+	<< "jNatural(" << desc_ << ") cleared";
 } // ibis::jNatural::~jNatural
 
 /// Estimate the number of hits.  Don't do much right now, may change later.
@@ -228,7 +228,7 @@ int64_t ibis::jNatural::count() const {
     }
 
     std::string mesg;
-    mesg = "ibis::jNatural::count(";
+    mesg = "jNatural::count(";
     mesg += desc_;
     mesg += ")";
     ibis::util::timer tm(mesg.c_str(), 1);
@@ -490,7 +490,7 @@ int64_t ibis::jNatural::count() const {
         break;}
     }
     LOGGER(ibis::gVerbose > 2)
-	<< "ibis::jNatural::count(" << desc_ << ") found " << nrows
+	<< "jNatural::count(" << desc_ << ") found " << nrows
 	<< " hit" << (nrows>1?"s":"");
     return nrows;
 } // ibis::jNatural::count
@@ -510,7 +510,7 @@ ibis::jNatural::fillResult(size_t nrows,
 			   const ibis::table::bufferList& sbuff,
 			   const ibis::table::stringList& tcname,
 			   const std::vector<uint32_t>& tcnpos) {
-    if (nrows < 0 || nrows > (rjcol.size() * sjcol.size()) ||
+    if (nrows > (rjcol.size() * sjcol.size()) ||
 	rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
 	tcname.size() != rtypes.size() + stypes.size() ||
 	tcnpos.size() != tcname.size()) {

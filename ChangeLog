@@ -1,3 +1,10 @@
+2010-10-28 John Wu <John dot Wu at ACM dot org>
+	* src: remove the prefix ibis from most of the print statements
+	* tests/Makefile.am: in two places smallmem2.rc was incorrectly
+	writtent as smallmem3.rc
+	* src: update many files to address the warning message produced
+	by PGI compilers
+
 2010-10-25 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: add keyword virtual to the definition
 	of ibis::part::buildIndexes to allow other packages to override it

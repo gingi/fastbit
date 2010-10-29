@@ -174,7 +174,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
     catch (...) { // need to clean up bmap
 	if (ibis::gVerbose > 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "ibis::sapid::construct reclaiming storage "
+		<< "sapid::construct reclaiming storage "
 		"allocated to bitvectors (" << bmap.size() << ")";
 	}
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
@@ -981,7 +981,7 @@ void ibis::sapid::addBits_(uint32_t ib, uint32_t ie,
     }
     if (decmp) { // use decompressed res
 	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) using "
+	    ibis::util::logMessage("sapid", "addBits(%lu, %lu) using "
 				   "uncompressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -995,7 +995,7 @@ void ibis::sapid::addBits_(uint32_t ib, uint32_t ie,
     }
     else { // use compressed res
 	if (ibis::gVerbose > 5) 
-	    ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) using "
+	    ibis::util::logMessage("sapid", "addBits(%lu, %lu) using "
 				   "compressed bitvector",
 				   static_cast<long unsigned>(ib),
 				   static_cast<long unsigned>(ie));
@@ -1033,7 +1033,7 @@ void ibis::sapid::addBits_(uint32_t ib, uint32_t ie,
 
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("ibis::sapid", "addBits(%lu, %lu) took %g "
+	ibis::util::logMessage("sapid", "addBits(%lu, %lu) took %g "
 			       "sec(CPU), %g sec(elapsed).",
 			       static_cast<long unsigned>(ib),
 			       static_cast<long unsigned>(ie),

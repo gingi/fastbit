@@ -160,7 +160,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     }
     catch (...) { // need to clean up bmap
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::sbiad::construct reclaiming storage "
+	    << "sbiad::construct reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
 	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)

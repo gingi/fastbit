@@ -25,7 +25,7 @@ ibis::range::range(const ibis::column* c, const char* f)
     if (c == 0) return; // nothing else can be done
     if (nobs <= 2) {
 	clear();
-	throw "ibis::range -- binning produced two or less bins, need more";
+	throw "range -- binning produced two or less bins, need more";
     }
 
     try {
@@ -229,7 +229,7 @@ int ibis::range::read(const char* f) {
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != static_cast<off_t>(end)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "ibis::range::read(" << fnm << ") failed to seek to " << end;
+	    << "range::read(" << fnm << ") failed to seek to " << end;
 	clear();
 	return -6;
     }

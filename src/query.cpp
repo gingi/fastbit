@@ -1680,7 +1680,7 @@ std::string ibis::query::removeComplexConditions() {
 	simple->print(oss0);
 	tail->print(oss1);
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::query::removeComplexConditions split \""
+	    << "query::removeComplexConditions split \""
 	    << (conds.getString() ? conds.getString() : "<long expression>")
 	    << "\" into \"" << *simple << "\" ("
 	    << oss0.str() << ") AND \"" << *tail << "\" ("
@@ -1738,7 +1738,7 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 
     if (pthread_rwlock_init(&lock, 0) != 0) {
 	strcpy(lastError, "pthread_rwlock_init() failed in "
-	       "ibis::query::query()");
+	       "query::query()");
 	LOGGER(ibis::gVerbose >= 0) << "Warning -- " << lastError;
 	throw ibis::util::strnewdup(lastError);
     }
@@ -2665,7 +2665,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
     }
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doEstimate("
+	<< "query[" << myID << "]::doEstimate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", " << high.cnt() << "]";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
@@ -2678,7 +2678,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doEstimate("
+	<< "query[" << myID << "]::doEstimate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> [" << low.cnt() << ", "
 	<< (high.size()==low.size() ? high.cnt() : low.cnt()) << "]";
@@ -2688,7 +2688,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 int ibis::query::computeHits() {
     if (ibis::gVerbose > 7) {
 	ibis::util::logger lg;
-	lg() << "ibis::query[" << myID << "]::computeHits -- "
+	lg() << "query[" << myID << "]::computeHits -- "
 	    "starting to compute hits for the query";
 	if (conds.getExpr() != 0)
 	    lg() << " \"" << *conds.getExpr() << "\"";
@@ -2761,7 +2761,7 @@ int ibis::query::computeHits() {
 	(ibis::gVerbose > 30 ||
 	 (ibis::gVerbose > 4 && (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg;
-	lg() << "ibis::query::computeHits: hit vector" << *hits
+	lg() << "query::computeHits: hit vector" << *hits
 		    << "\n";
 	if (ibis::gVerbose > 19) {
 	    ibis::bitvector::indexSet is = hits->firstIndexSet();
@@ -3458,7 +3458,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	ht.set(0, mypart->nRows());
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
-    lg() << "ibis::query[" << myID << "]::doScan("
+    lg() << "query[" << myID << "]::doScan("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
@@ -3469,7 +3469,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doScan("
+	<< "query[" << myID << "]::doScan("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
@@ -3680,7 +3680,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
-    lg() << "ibis::query[" << myID << "]::doEvaluate("
+    lg() << "query[" << myID << "]::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
@@ -3691,7 +3691,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::query[" << myID << "]::doEvaluate("
+	<< "query[" << myID << "]::doEvaluate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
@@ -3983,7 +3983,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
-    lg() << "ibis::query[" << myID << "]::doEvaluate("
+    lg() << "query[" << myID << "]::doEvaluate("
 		<< static_cast<const void*>(term) << ": " << *term
 		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 		<< ", ierr = " << ierr << "\n";
@@ -3995,7 +3995,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "ibis::query[" << myID << "]::doEvaluate("
+	<< "query[" << myID << "]::doEvaluate("
 	<< static_cast<const void*>(term) << ": " << *term
 	<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
 	<< ", ierr = " << ierr;
@@ -4436,7 +4436,7 @@ uint32_t ibis::query::countPages(unsigned wordsize) const {
     }
     else {
 	ibis::util::logger lg;
-	lg() << "ibis::query[" << myID << "]::countPages(" << wordsize
+	lg() << "query[" << myID << "]::countPages(" << wordsize
 		    << ") page numbers: ";
 	for (uint32_t i = 0; ix.nIndices() > 0 && (i >> ibis::gVerbose) == 0;
 	     ++ i) {
@@ -5609,13 +5609,24 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < j1; ++ idbuf[0])
-		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1])
+		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1]) {
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
+		    }
 	    }
 #if defined(DEBUG) || defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 5)
@@ -5677,13 +5688,24 @@ int64_t ibis::query::recordEqualPairs(const array_t<uint32_t>& val1,
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < j1; ++ idbuf[0])
-		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1])
+		    for (idbuf[1] = i2; idbuf[1] < j2; ++ idbuf[1]) {
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
+		    }
 	    }
 	    cnt += (j1 - i1) * (j2 - i2);
 	    i1 = j1;
@@ -5745,13 +5767,24 @@ int64_t ibis::query::recordEqualPairs(const array_t<int32_t>& val1,
 		    for (uint32_t jj = i2; jj < j2; ++ jj) {
 			idbuf[1] = ind2[jj];
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
 		    }
 		}
 	    }
 	    else {
 		for (idbuf[0] = i1; idbuf[0] < i2; ++ idbuf[0])
-		    for (idbuf[1] = j1; idbuf[1] < j2; ++ idbuf[1])
+		    for (idbuf[1] = j1; idbuf[1] < j2; ++ idbuf[1]) {
 			ierr = UnixWrite(fdes, idbuf, idsize);
+			LOGGER(ibis::gVerbose > 0 &&
+			       (ierr < 0 || (unsigned)ierr != idsize))
+			    << "Warning -- query::recordEqualPairs failed to "
+			    "write (" << idbuf[0] << ", " << idbuf[1]
+			    << ") to " << filename;
+		    }
 	    }
 	    cnt += (j1 - i1) * (j2 - i2);
 	    i1 = j1;
@@ -5822,6 +5855,11 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
 #if defined(DEBUG) || defined(_DEBUG)
 		if (idbuf[0] != ind1[jj] || idbuf[1] !=
 		    (ind2.size() == val2.size() ? ind2[i] : i) ||
@@ -5839,8 +5877,14 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 	    }
 	}
 	else {
-	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
+	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0]) {
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
+	    }
 	}
 	cnt += i2 - i1;
     } // for ..
@@ -5917,11 +5961,22 @@ int64_t ibis::query::recordDeltaPairs(const array_t<uint32_t>& val1,
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
 	    }
 	}
 	else {
-	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
+	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0]) {
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
+	    }
 	}
 	cnt += i2 - i1;
     } // for ..
@@ -5974,11 +6029,22 @@ int64_t ibis::query::recordDeltaPairs(const array_t<int32_t>& val1,
 	    for (uint32_t jj = i1; jj < i2; ++ jj) {
 		idbuf[0] = ind1[jj];
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
 	    }
 	}
 	else {
-	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0])
+	    for (idbuf[0] = i1; idbuf[0] < i2 && idbuf[0] < n1; ++ idbuf[0]) {
 		ierr = UnixWrite(fdes, idbuf, idsize);
+		LOGGER(ibis::gVerbose > 0 &&
+		       (ierr < 0 || (unsigned)ierr != idsize))
+		    << "Warning -- query::recordDeltaPairs failed to "
+		    "write (" << idbuf[0] << ", " << idbuf[1]
+		    << ") to " << filename;
+	    }
 	}
 	cnt += i2 - i1;
     } // for ..

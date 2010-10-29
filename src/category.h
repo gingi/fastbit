@@ -42,15 +42,14 @@ public:
     virtual long patternSearch(const char*, ibis::bitvector&) const;
     virtual long patternSearch(const char*) const;
 
+    using ibis::column::estimateCost;
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
-    virtual double estimateCost(const ibis::qContinuousRange& cmp) const {
-	return ibis::column::estimateCost(cmp);}
-    virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {
-	return ibis::column::estimateCost(cmp);}
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
+    virtual long append(const void* vals, const ibis::bitvector& msk) {
+	return -1;}
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
     /// Return the positions of records marked 1 in the mask.
@@ -113,17 +112,16 @@ public:
 
     virtual long patternSearch(const char* pat) const;
     virtual long patternSearch(const char* pat, ibis::bitvector &hits) const;
+    using ibis::column::estimateCost;
     virtual double estimateCost(const ibis::qLike& cmp) const;
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
-    virtual double estimateCost(const ibis::qContinuousRange& cmp) const {
-	return ibis::column::estimateCost(cmp);}
-    virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {
-	return ibis::column::estimateCost(cmp);}
 
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
+    virtual long append(const void* vals, const ibis::bitvector& msk) {
+	return -1;}
     /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     virtual std::vector<std::string>*
@@ -171,6 +169,11 @@ public:
     blob(const ibis::column&);
 
     virtual long stringSearch(const char*, ibis::bitvector&) const {return -1;}
+    virtual long stringSearch(const std::vector<std::string>&,
+			      ibis::bitvector&) const {return -1;}
+    virtual long stringSearch(const char*) const {return -1;}
+    virtual long stringSearch(const std::vector<std::string>&) const {
+	return -1;}
 
     virtual void computeMinMax() {}
     virtual void computeMinMax(const char*) {}
@@ -191,35 +194,35 @@ public:
     virtual array_t<double>* selectDoubles(const bitvector&) const {return 0;}
     virtual std::vector<std::string>* selectStrings(const bitvector&) const {return 0;}
 
-    virtual long estimateRange(const ibis::qContinuousRange&,
-			       ibis::bitvector&,
-			       ibis::bitvector&) const {return -1;}
-    virtual long estimateRange(const ibis::qDiscreteRange&,
-			       ibis::bitvector&,
-			       ibis::bitvector&) const {return -1;}
-    virtual long evaluateRange(const ibis::qContinuousRange&,
-			       const ibis::bitvector&,
-			       ibis::bitvector&) const {return -1;}
-    virtual long evaluateRange(const ibis::qDiscreteRange&,
-			       const ibis::bitvector&,
-			       ibis::bitvector&) const {return -1;}
-    virtual long estimateRange(const ibis::qContinuousRange&) const {return -1;}
-    virtual long estimateRange(const ibis::qDiscreteRange&) const {return -1;}
-    virtual double estimateCost(const ibis::qContinuousRange&) const {return 0;}
-    virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {return 0;}
-    virtual double estimateCost(const ibis::qString&) const {return 0;}
-    virtual double estimateCost(const ibis::qMultiString&) const {return 0;}
+    // virtual long estimateRange(const ibis::qContinuousRange&,
+    // 			       ibis::bitvector&,
+    // 			       ibis::bitvector&) const {return -1;}
+    // virtual long estimateRange(const ibis::qDiscreteRange&,
+    // 			       ibis::bitvector&,
+    // 			       ibis::bitvector&) const {return -1;}
+    // virtual long evaluateRange(const ibis::qContinuousRange&,
+    // 			       const ibis::bitvector&,
+    // 			       ibis::bitvector&) const {return -1;}
+    // virtual long evaluateRange(const ibis::qDiscreteRange&,
+    // 			       const ibis::bitvector&,
+    // 			       ibis::bitvector&) const {return -1;}
+    // virtual long estimateRange(const ibis::qContinuousRange&) const {return -1;}
+    // virtual long estimateRange(const ibis::qDiscreteRange&) const {return -1;}
+    // virtual double estimateCost(const ibis::qContinuousRange&) const {return 0;}
+    // virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {return 0;}
+    // virtual double estimateCost(const ibis::qString&) const {return 0;}
+    // virtual double estimateCost(const ibis::qMultiString&) const {return 0;}
 
-    virtual float getUndecidable(const ibis::qContinuousRange&,
-				 ibis::bitvector&) const {return 1;}
-    virtual float getUndecidable(const ibis::qDiscreteRange&,
-				 ibis::bitvector&) const {return 1;}
+    // virtual float getUndecidable(const ibis::qContinuousRange&,
+    // 				 ibis::bitvector&) const {return 1;}
+    // virtual float getUndecidable(const ibis::qDiscreteRange&,
+    // 				 ibis::bitvector&) const {return 1;}
 
     virtual double getActualMin() const {return DBL_MAX;}
     virtual double getActualMax() const {return -DBL_MAX;}
     virtual double getSum() const {return 0;}
-    virtual long append(const void*, const ibis::bitvector&) {return -1;}
 
+    virtual long append(const void*, const ibis::bitvector&) {return -1;}
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
     virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,

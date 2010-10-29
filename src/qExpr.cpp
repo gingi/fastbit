@@ -48,7 +48,7 @@ bool ibis::math::preserveInputExpressions = false;
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
     LOGGER(ibis::gVerbose > 4)
-	<< "ibis::qExpr::simplify --  input expression " << *expr;
+	<< "qExpr::simplify --  input expression " << *expr;
 
     switch (expr->getType()) {
     default:
@@ -884,7 +884,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (ibis::gVerbose > 4 || (ibis::gVerbose >= 0 && expr == 0)) {
 	ibis::util::logger lg;
 	if (expr != 0) {
-	    lg() << "ibis::qExpr::simplify -- output expression "
+	    lg() << "qExpr::simplify -- output expression "
 			<< "(@" << static_cast<const void*>(expr) << ") ";
 	    if (ibis::gVerbose > 8)
 		expr->printFull(lg());
@@ -1845,7 +1845,7 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
 	ftype = ibis::math::TANH;
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::math::stdFunction1::stdFunction1(" << name
+	    << "math::stdFunction1::stdFunction1(" << name
 	    << ") UNKNOWN (one-argument) function name";
 	throw "unknown function name";
     }
@@ -2015,7 +2015,7 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
 	ftype = ibis::math::POW;
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::math::stdFunction2::stdFunction2(" << name
+	    << "math::stdFunction2::stdFunction2(" << name
 	    << ") UNKNOWN (two-argument) function name";
 	throw "unknown function name";
     }
@@ -2911,7 +2911,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
 	lg()
-	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
+	    << "qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
     }
@@ -2949,7 +2949,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
 	lg()
-	    << "ibis::qDiscreteRange::ctor accepted incoming int array with "
+	    << "qDiscreteRange::ctor accepted incoming int array with "
 	    << val.size() << " elements, removed " << j
 	    << " duplicate value" << (j > 1 ? "s" : "");
     }
@@ -2962,7 +2962,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (val.size() <= 1U) return;
     values.deduplicate();
     LOGGER(values.size() < val.size() && ibis::gVerbose > 1)
-	<< "ibis::qDiscreteRange::ctor accepted incoming double array with "
+	<< "qDiscreteRange::ctor accepted incoming double array with "
 	<< val.size() << " elements as an array with " << values.size()
 	<< " unique value" << (values.size() > 1 ? "s" : "");
 } // ibis::qDiscreteRange::qDiscreteRange

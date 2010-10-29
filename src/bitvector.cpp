@@ -350,7 +350,7 @@ void ibis::bitvector::decompress() {
 	    << "Warning -- bitvector::decompress(nbits=" << nbits
 	    << ") failed to allocate a temp array of "
 	    << nbits/MAXBITS << "-word";
-	throw ibis::bad_alloc("ibis::bitvector::decompress failed to "
+	throw ibis::bad_alloc("bitvector::decompress failed to "
 			      "allocate array to uncompressed bits");
     }
 
@@ -474,7 +474,7 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     {
 	ibis::util::logger lg(4);
-	lg() << "ibis::bitvector::setBit(" << ind << ", " << val << ") "
+	lg() << "bitvector::setBit(" << ind << ", " << val << ") "
 	     << "-- " << nbits << " bit(s) in m_vec and "
 	     << active.nbits << " bit(s) in the active word";
     }
@@ -1771,7 +1771,7 @@ void ibis::bitvector::read(const char * fn) {
 	nbits = do_cnt();
     if (size() > 0) {
 	ibis::util::logger lg(4);
-	lg() << "ibis::bitvector::read(" << fn << ") --\n";
+	lg() << "bitvector::read(" << fn << ") --\n";
 	(void)print(lg());
     }
     else {
@@ -4274,14 +4274,14 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
-		    << "ibis::util::intersect(" << bits1.size() << ", "
+		    << "util::intersect(" << bits1.size() << ", "
 		    << bits2.size() << ") failed to compute the intersection "
 		    << "of bitmaps bits1[" << jj << "] and bits2[" << ii << "]";
 	    }
 	}
 #if defined(_DEBUG) || defined(DEBUG)
 	LOGGER(ibis::gVerbose > 5)
-	    << "ibis::util::intersect -- completed (" << jj
+	    << "util::intersect -- completed (" << jj
 	    << ", ...), memory in use = "
 	    << ibis::fileManager::instance().bytesInUse();
 #endif
@@ -4314,7 +4314,7 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
 	    }
 #if defined(_DEBUG) || defined(DEBUG)
 	    LOGGER(ibis::gVerbose > 5)
-		<< "ibis::util::intersect -- completed (" << kk << ", " << jj
+		<< "util::intersect -- completed (" << kk << ", " << jj
 		<< ", ...), memory in use = "
 		<< ibis::fileManager::instance().bytesInUse();
 #endif

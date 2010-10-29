@@ -556,7 +556,7 @@ void ibis::bin::adjustLength(uint32_t nr) {
 /// Find the smallest i such that bounds[i] > val.
 uint32_t ibis::bin::locate(const double& val) const {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    ibis::util::logMessage("ibis::bin::locate", "searching for %g in an "
+    ibis::util::logMessage("bin::locate", "searching for %g in an "
 			   "array of %lu doubles in the range of [%g, %g]",
 			   val,
 			   static_cast<long unsigned>(bounds.size()),
@@ -1835,7 +1835,7 @@ long ibis::bin::binOrderT(const char* basename) const {
 	return ierr;
     }
     std::ostringstream mesg;
-    mesg << "ibis::column[" << col->partition()->name() << "." << col->name()
+    mesg << "column[" << col->partition()->name() << "." << col->name()
 	 << "]::bin::binOrder<" << typeid(E).name() << ">(" << fnm << ")";
     ibis::util::timer timer(mesg.str().c_str(), 3);
 
@@ -8127,9 +8127,7 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 int64_t ibis::bin::estimate(const ibis::bin& idx2,
 			    const ibis::deprecatedJoin& expr,
 			    const ibis::bitvector& mask) const {
-    return estimate(idx2, expr, mask,
-		    static_cast<const ibis::qRange* const>(0),
-		    static_cast<const ibis::qRange* const>(0));
+    return estimate(idx2, expr, mask, 0, 0);
 } // ibis::bin::estimate
 
 int64_t ibis::bin::estimate(const ibis::bin& idx2,

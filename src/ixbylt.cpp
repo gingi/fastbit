@@ -283,7 +283,7 @@ void ibis::bylt::activateCoarse() const {
     else if (str) { // using a ibis::fileManager::storage as back store
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << " retrieving data from "
-	    << "ibis::fileManager::storage(0x" << str << ")";
+	    << "fileManager::storage(0x" << str << ")";
 
 	if (coffset64.size() > nobs) {
 	    for (uint32_t i = 0; i < nobs; ++i) {
@@ -1133,7 +1133,7 @@ long ibis::bylt::evaluate(const ibis::qContinuousRange& expr,
     const uint32_t c1 = cbounds.find(hit1);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << "ibis::bylt::evaluate(" << expr << ") hit0=" << hit0
+	lg() << "bylt::evaluate(" << expr << ") hit0=" << hit0
 		    << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
 	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];

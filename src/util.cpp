@@ -455,7 +455,6 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
 	return -1;
 
     double tmp;
-    const char *s0 = str;
     const bool neg = (*str == '-');
     if (*str == '-' || *str == '+') ++ str;
     // extract the values before the decimal point

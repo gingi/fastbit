@@ -62,7 +62,7 @@ int ibis::bak2::read(const char* f) {
 // return the smallest i such that maxval[i] >= val
 uint32_t ibis::bak2::locate(const double& val) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-    ibis::util::logMessage("ibis::bak2::locate", "searching for %g in an "
+    ibis::util::logMessage("bak2::locate", "searching for %g in an "
 			   "array of %lu double(s) in the range of [%g, %g]",
 			   val, static_cast<long unsigned>(minval.size()),
 			   minval[0], maxval.back());

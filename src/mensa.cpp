@@ -47,7 +47,7 @@ ibis::mensa::mensa(const char* dir) : nrows(0) {
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
-	lg() << "ibis::mensa -- constructed table "
+	lg() << "mensa -- constructed table "
 	     << name_ << " (" << desc_ << ") from ";
 	if (dir != 0 && *dir != 0)
 	    lg() << "directory " << dir;
@@ -96,7 +96,7 @@ ibis::mensa::mensa(const char* dir1, const char* dir2) : nrows(0) {
     }
     if (ibis::gVerbose > 0 && ! name_.empty()) {
 	ibis::util::logger lg;
-	lg() << "ibis::mensa -- constructed table "
+	lg() << "mensa -- constructed table "
 	     << name_ << " (" << desc_ << ") from ";
 	if (dir1 != 0 && *dir1 != 0) {
 	    if (dir2 != 0 && *dir2 != 0)
@@ -492,7 +492,6 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
     else {
 	return ibis::table::select(mylist, sel, cond);
     }
-    return 0;
 } // ibis::mensa::select2
 
 /// Reordering the rows using the specified columns.  Each data partition
@@ -3453,7 +3452,7 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
 	desc_ += oss.str();
     }
     LOGGER(ibis::gVerbose > 0)
-	<< "ibis::liga -- constructed table " << name_ << " (" << desc_
+	<< "liga -- constructed table " << name_ << " (" << desc_
 	<< ") from a partition " << oss.str();
 } // ibis::liga::liga
 
@@ -3498,7 +3497,7 @@ ibis::liga::liga(const ibis::partList &l) : ibis::mensa() {
 	}
     }
     LOGGER(ibis::gVerbose > 0 && ! name_.empty())
-	<< "ibis::liga -- constructed table " << name_ << " (" << desc_
+	<< "liga -- constructed table " << name_ << " (" << desc_
 	<< ") from a list of " << l.size() << " data partition"
 	<< (l.size()>1 ? "s" : "") << ", with " << naty.size() << " column"
 	<< (naty.size()>1 ? "s" : "") << " and " << nrows << " row"

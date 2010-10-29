@@ -372,7 +372,7 @@ ibis::bitvector64::word_t ibis::bitvector64::do_cnt() const {
 void ibis::bitvector64::setBit(const word_t ind, int val) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< "ibis::bitvector64::setBit(" << ind << ", " << val << ") "
+	<< "bitvector64::setBit(" << ind << ", " << val << ") "
 	<< "-- " << nbits << " bit(s) in m_vec and " << active.nbits
 	<< " bit(s) in the active word";
 #endif
@@ -678,7 +678,7 @@ void ibis::bitvector64::flip() {
     if (nbits == 0)
 	nbits = nb;
     if (nb != nbits)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::flip() expects "
+	ibis::util::logMessage("Warning", "bitvector64::flip() expects "
 			       "to have %lu bits but got %lu",
 			       static_cast<long unsigned>(nbits),
 			       static_cast<long unsigned>(nb));
@@ -701,7 +701,7 @@ int ibis::bitvector64::operator==(const ibis::bitvector64& rhs) const {
 void ibis::bitvector64::operator&=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator&= "
+	ibis::util::logMessage("Warning", "bitvector64::operator&= "
 			       "can not operate on two bitvector64 of "
 			       "different sizes (%lu != %lu)",
 			       static_cast<long unsigned>(size()),
@@ -747,7 +747,7 @@ void ibis::bitvector64::operator&=(const ibis::bitvector64& rhs) {
     if (nbits == 0)
 	nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator&=() "
+	ibis::util::logMessage("Warning", "bitvector64::operator&=() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -760,7 +760,7 @@ ibis::bitvector64* ibis::bitvector64::operator&(const ibis::bitvector64& rhs)
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator& can not "
+	    ("Warning", "bitvector64::operator& can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -807,7 +807,7 @@ ibis::bitvector64* ibis::bitvector64::operator&(const ibis::bitvector64& rhs)
     if (res->nbits == 0)
 	res->nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator&() "
+	ibis::util::logMessage("Warning", "bitvector64::operator&() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -821,7 +821,7 @@ void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator|= can not "
+	    ("Warning", "bitvector64::operator|= can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -866,7 +866,7 @@ void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
     if (nbits == 0)
 	nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0) {
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator|=() "
+	ibis::util::logMessage("Warning", "bitvector64::operator|=() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -880,7 +880,7 @@ ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator| can not "
+	    ("Warning", "bitvector64::operator| can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -927,7 +927,7 @@ ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
     if (res->nbits == 0)
 	res->nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator|() "
+	ibis::util::logMessage("Warning", "bitvector64::operator|() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -941,7 +941,7 @@ void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator^= can not "
+	    ("Warning", "bitvector64::operator^= can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -977,7 +977,7 @@ void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
     if (nbits == 0)
 	nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator^=() "
+	ibis::util::logMessage("Warning", "bitvector64::operator^=() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -990,7 +990,7 @@ ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator^ can not "
+	    ("Warning", "bitvector64::operator^ can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -1029,7 +1029,7 @@ ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
     if (res->nbits == 0)
 	res->nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator^() "
+	ibis::util::logMessage("Warning", "bitvector64::operator^() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -1043,7 +1043,7 @@ void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator-= can not "
+	    ("Warning", "bitvector64::operator-= can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -1096,7 +1096,7 @@ void ibis::bitvector64::operator-=(const ibis::bitvector64& rhs) {
     if (nbits == 0)
 	nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator-=() "
+	ibis::util::logMessage("Warning", "bitvector64::operator-=() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -1109,7 +1109,7 @@ ibis::bitvector64* ibis::bitvector64::operator-(const ibis::bitvector64& rhs)
     if ((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits) {
 	ibis::util::logMessage
-	    ("Warning", "ibis::bitvector64::operator- can not "
+	    ("Warning", "bitvector64::operator- can not "
 	     "operate on two bitvector64 of different sizes "
 	     "(%lu != %lu)", static_cast<long unsigned>(size()),
 	     static_cast<long unsigned>(rhs.size()));
@@ -1162,7 +1162,7 @@ ibis::bitvector64* ibis::bitvector64::operator-(const ibis::bitvector64& rhs)
     if (res->nbits == 0)
 	res->nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0)
-	ibis::util::logMessage("Warning", "ibis::bitvector64::operator-() "
+	ibis::util::logMessage("Warning", "bitvector64::operator-() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -1236,7 +1236,7 @@ void ibis::bitvector64::read(const char * fn) {
     int ierr = ibis::fileManager::instance().getFile(fn, m_vec);
     if (ierr != 0) {
 	if (ibis::gVerbose > 5)
-	    ibis::util::logMessage("ibis::bitvector64", "read(%s) is "
+	    ibis::util::logMessage("bitvector64", "read(%s) is "
 				   "unable to open the named file", fn);
 	return;
     }
@@ -1281,7 +1281,7 @@ void ibis::bitvector64::read(const char * fn) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (size() > 0) {
 	ibis::util::logger lg(4);
-	lg() << "ibis::bitvector64::read(" << fn << ") --\n";
+	lg() << "bitvector64::read(" << fn << ") --\n";
 	(void)print(lg());
     }
     else {
@@ -1289,7 +1289,7 @@ void ibis::bitvector64::read(const char * fn) {
     }
 #endif
     if (ierr) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::read(%s) found "
+	ibis::util::logMessage("Error", "bitvector64::read(%s) found "
 			       "%d error%s in four integrity checks.",
 			       fn, ierr, (ierr>1?"s":""));
 	throw "bitvector64::read failed integrity check";
@@ -1301,7 +1301,7 @@ void ibis::bitvector64::write(const char * fn) const {
     FILE *out = fopen(fn, "wb");
     if (out == 0) {
 	ibis::util::logMessage
-	    ("Error", "ibis::bitvector64::write() Failed to "
+	    ("Error", "bitvector64::write() Failed to "
 	     "open \"%s\" to write the bit vector ... %s",
 	     fn, (errno ? strerror(errno) : "no free stdio stream"));
 	throw "bitvector64::write failed to open file";
@@ -1322,7 +1322,7 @@ void ibis::bitvector64::write(const char * fn) const {
     word_t j = fwrite((const void*)m_vec.begin(), sizeof(word_t),
 		      n, out);
     if (j != n) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::write() only "
+	ibis::util::logMessage("Error", "bitvector64::write() only "
 			       "wrote %lu out of %lu words to %s",
 			       static_cast<long unsigned>(j),
 			       static_cast<long unsigned>(n), fn);
@@ -1335,14 +1335,14 @@ void ibis::bitvector64::write(const char * fn) const {
     fwrite((const void*)&(active.nbits), sizeof(word_t), 1, out);
 
     //     if (0 == fwrite((const void*)&nset, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Error", "ibis::bitvector64::write() fail to "
+    // 	ibis::util::logMessage("Error", "bitvector64::write() fail to "
     // 			       "write nset to %s", fn);
     // 	fclose(out);
     // 	throw "bitvector64::write failed to write the size";
     //     }
 
     //     if (0 == fwrite((const void*)&nbits, sizeof(word_t), 1, out)) {
-    // 	ibis::util::logMessage("Error", "ibis::bitvector64::write() fail to "
+    // 	ibis::util::logMessage("Error", "bitvector64::write() fail to "
     // 			       "write nbits to %s", fn);
     // 	fclose(out);
     // 	throw "bitvector64::write failed to write the cnt";
@@ -1367,7 +1367,7 @@ void ibis::bitvector64::write(FILE* out) const {
     word_t j = fwrite((const void*)m_vec.begin(), sizeof(word_t),
 		      n, out);
     if (j != n) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::write() only "
+	ibis::util::logMessage("Error", "bitvector64::write() only "
 			       "wrote %lu out of %lu words",
 			       static_cast<long unsigned>(j),
 			       static_cast<long unsigned>(n));
@@ -1486,7 +1486,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::and_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -1494,7 +1494,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::and_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -1564,7 +1564,7 @@ void ibis::bitvector64::and_c1(const ibis::bitvector64& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_c1 "
+	    ibis::util::logMessage("Error", "bitvector64::and_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - i1));
@@ -1673,7 +1673,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -1681,7 +1681,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -1689,7 +1689,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
@@ -1753,7 +1753,7 @@ void ibis::bitvector64::and_d1(const ibis::bitvector64& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::and_d1 "
+	    ibis::util::logMessage("Error", "bitvector64::and_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - i0));
@@ -1885,7 +1885,7 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::or_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -1902,7 +1902,7 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::or_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -1984,7 +1984,7 @@ void ibis::bitvector64::or_c1(const ibis::bitvector64& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_c1 "
+	    ibis::util::logMessage("Error", "bitvector64::or_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - i1));
@@ -2096,7 +2096,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -2104,7 +2104,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2112,7 +2112,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
@@ -2180,7 +2180,7 @@ void ibis::bitvector64::or_d1(const ibis::bitvector64& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::or_d1 "
+	    ibis::util::logMessage("Error", "bitvector64::or_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - i0));
@@ -2223,7 +2223,7 @@ void ibis::bitvector64::or_c0(const ibis::bitvector64& rhs) {
     if (nbits == 0)
 	nbits = nb;
     if (nb != rhs.nbits && rhs.nbits > 0) {
-	ibis::util::logMessage("Warning", "ibis::bitvector64::or_c0=() "
+	ibis::util::logMessage("Warning", "bitvector64::or_c0=() "
 			       "expects to have %lu bits but got %lu",
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
@@ -2285,14 +2285,14 @@ void ibis::bitvector64::xor_c2(const ibis::bitvector64& rhs,
     } // while (x.it < m_vec.end())
 
     if (x.it != m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::xor_c2 expects "
+	ibis::util::logMessage("Error", "bitvector64::xor_c2 expects "
 			       "to exhaust i0 but there are %ld word(s) left",
 			       static_cast<long>(m_vec.end() - x.it));
 	throw "xor_c2 interal error";
     }
 
     if (y.it != rhs.m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::xor_c2 expects "
+	ibis::util::logMessage("Error", "bitvector64::xor_c2 expects "
 			       "to exhaust i1 but there are %ld word(s) left",
 			       static_cast<long>(rhs.m_vec.end() - y.it));
 	throw "xor_c2 internal error";
@@ -2338,7 +2338,7 @@ void ibis::bitvector64::xor_c1(const ibis::bitvector64& rhs,
     } // while (i0 != m_vec.end())
 
     if (i1 != rhs.m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::xor_c1 expects "
+	ibis::util::logMessage("Error", "bitvector64::xor_c1 expects "
 			       "to exhaust i1 but there are %ld word(s) left",
 			       static_cast<long>(rhs.m_vec.end() - i1));
 	throw "xor_c1 iternal error";
@@ -2447,7 +2447,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::xor_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -2455,7 +2455,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::xor_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2463,7 +2463,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::xor_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
@@ -2538,7 +2538,7 @@ void ibis::bitvector64::xor_d1(const ibis::bitvector64& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::xor_d1 "
+	    ibis::util::logMessage("Error", "bitvector64::xor_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - i0));
@@ -2673,7 +2673,7 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_c2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -2681,7 +2681,7 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_c2 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_c2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2753,7 +2753,7 @@ void ibis::bitvector64::minus_c1(const ibis::bitvector64& rhs,
 	} // while (i0 != m_vec.end())
 
 	if (i1 != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_c1 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_c1 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - i1));
@@ -2805,7 +2805,7 @@ void ibis::bitvector64::minus_c1x(const ibis::bitvector64& rhs,
     } // while (i1 != rhs.m_vec.end())
 
     if (i0 != m_vec.end()) {
-	ibis::util::logMessage("Error", "ibis::bitvector64::minus_c1x expects "
+	ibis::util::logMessage("Error", "bitvector64::minus_c1x expects "
 			       "to exhaust i0 but there are %ld word(s) left",
 			       static_cast<long>(m_vec.end() - i0));
 	throw "minus_c1x internal error";
@@ -2918,7 +2918,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
 	} // while (x.it < m_vec.end())
 
 	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - x.it));
@@ -2926,7 +2926,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
 				   "expects to exhaust i1 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(rhs.m_vec.end() - y.it));
@@ -2934,7 +2934,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
 	}
 
 	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_d2 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
 				   "expects to exhaust ir but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(res.m_vec.end() - ir));
@@ -2997,7 +2997,7 @@ void ibis::bitvector64::minus_d1(const ibis::bitvector64& rhs) {
 	} // while (i1 != rhs.m_vec.end())
 
 	if (i0 != m_vec.end()) {
-	    ibis::util::logMessage("Error", "ibis::bitvector64::minus_d1 "
+	    ibis::util::logMessage("Error", "bitvector64::minus_d1 "
 				   "expects to exhaust i0 but there are %ld "
 				   "word(s) left",
 				   static_cast<long>(m_vec.end() - i0));
@@ -3138,7 +3138,7 @@ ibis::bitvector64::iterator::operator+=(int64_t incr) {
 	    if (incr0 < 0) {
 		ibis::util::logger lg(0);
 		lg() << " Warning -- "
-		    "ibis::bitvector64::iterator::operator+=("
+		    "bitvector64::iterator::operator+=("
 			  << incr << ") passes the beginning of the "
 			  << "bit sequence";
 	    }
@@ -3164,7 +3164,7 @@ ibis::bitvector64::iterator::operator+=(int64_t incr) {
 	    if (incr1 > 0) {
 		ibis::util::logger lg(0);
 		lg() << " Warning -- "
-		    "ibis::bitvector64::iterator::operator+=("
+		    "bitvector64::iterator::operator+=("
 			  << incr << ") passes the end of the "
 			  << "bit sequence";
 	    }
@@ -3404,7 +3404,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 	f = f0;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bitvector64:clusteringFactor(" << nb << ", " << nc
+	    << "bitvector64:clusteringFactor(" << nb << ", " << nc
 	    << ", " << sz << "): sz=" << sz/sizeof(word_t) << ", den = "
 	    << den << ", nw = " << nw;
 #endif
@@ -3437,7 +3437,7 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 		 den * pow(1.0-1.0/f2, tw3));
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "ibis::bitvector64:clusteringFactor(" << nb
+		<< "bitvector64:clusteringFactor(" << nb
 		<< ", " << nc << ", " << sz << "): computed size="
 		<< (ds + sz/sizeof(word_t)) << ", ds = "
 		<< ds << ", deri = " << deri << ", f = "
@@ -3582,7 +3582,7 @@ const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
 	uint64_t expected = a.cnt();
 	expected *= b.cnt();
 	uint64_t diff = c.cnt() - oldcnt;
-	lg() << "ibis::util::outerProduct: adding the outer product "
+	lg() << "util::outerProduct: adding the outer product "
 	    "between two bitvectors with "
 		    << a.cnt() << " out of " << a.size() << " set bits and "
 		    << b.cnt() << " out of " << b.size()
@@ -3689,7 +3689,7 @@ const ibis::bitvector64& ibis::util::outerProductUpper(const ibis::bitvector& a,
 	expected *= b.cnt();
 	uint64_t diff = c.cnt();
 	diff -= oldcnt;
-	lg() << "ibis::util::outerProductUpper: adding the outer "
+	lg() << "util::outerProductUpper: adding the outer "
 	    "product between two bitvectors with "
 		  << a.cnt() << " out of " << a.size() << " set bits and "
 		  << b.cnt() << " out of " << b.size()

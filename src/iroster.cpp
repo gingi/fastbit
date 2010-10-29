@@ -650,7 +650,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -674,7 +674,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -698,7 +698,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -722,7 +722,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -746,7 +746,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -770,7 +770,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -794,7 +794,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -818,7 +818,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -842,7 +842,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -866,7 +866,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "ibis::roster::icSort -- value, starting "
+	    lg() << "roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -2463,7 +2463,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	fname += ".ind";
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
-	    ibis::util::logMessage("Warning", "ibis::roster::oocSearch failed "
+	    ibis::util::logMessage("Warning", "roster::oocSearch failed "
 				   "to open index file %s",
 				   fname.c_str());
 	    return -7;
@@ -2498,7 +2498,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			ibis::util::logMessage
-			    ("Warning", "ibis::roster::oocSearch "
+			    ("Warning", "roster::oocSearch "
 			     "failed to %lu-th index value",
 			     static_cast<long unsigned>(ir));
 			return -9;
@@ -2517,7 +2517,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
 	    ibis::util::logMessage
-		("Warning", "ibis::roster::oocSearch failed to read "
+		("Warning", "roster::oocSearch failed to read "
 		 "value %lu from the sorted file",
 		 static_cast<long unsigned>(ir));
 	    return -10;
@@ -2533,7 +2533,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    ibis::util::logMessage
-			("Warning", "ibis::roster::oocSearch failed to read "
+			("Warning", "roster::oocSearch failed to read "
 			 "value %lu from the sorted file",
 			 static_cast<long unsigned>(ir));
 		    return -11;
@@ -2550,7 +2550,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			ibis::util::logMessage
-			    ("Warning", "ibis::roster::oocSearch "
+			    ("Warning", "roster::oocSearch "
 			     "failed to %lu-th index value",
 			     static_cast<long unsigned>(ir));
 			return -12;
@@ -2560,7 +2560,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    ibis::util::logMessage
-			("Warning", "ibis::roster::oocSearch failed to read "
+			("Warning", "roster::oocSearch failed to read "
 			 "value %lu from the sorted file",
 			 static_cast<long unsigned>(ir));
 		    return -13;
@@ -2725,7 +2725,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	fname += ".ind";
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
-	    ibis::util::logMessage("Warning", "ibis::roster::oocSearch failed "
+	    ibis::util::logMessage("Warning", "roster::oocSearch failed "
 				   "to open index file %s",
 				   fname.c_str());
 	    return -7;
@@ -2760,7 +2760,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			ibis::util::logMessage
-			    ("Warning", "ibis::roster::oocSearch "
+			    ("Warning", "roster::oocSearch "
 			     "failed to %lu-th index value",
 			     static_cast<long unsigned>(ir));
 			return -9;
@@ -2779,7 +2779,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
 	    ibis::util::logMessage
-		("Warning", "ibis::roster::oocSearch failed to read "
+		("Warning", "roster::oocSearch failed to read "
 		 "value %lu from the sorted file",
 		 static_cast<long unsigned>(ir));
 	    return -10;
@@ -2795,7 +2795,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    ibis::util::logMessage
-			("Warning", "ibis::roster::oocSearch failed to read "
+			("Warning", "roster::oocSearch failed to read "
 			 "value %lu from the sorted file",
 			 static_cast<long unsigned>(ir));
 		    return -11;
@@ -2812,7 +2812,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			ibis::util::logMessage
-			    ("Warning", "ibis::roster::oocSearch "
+			    ("Warning", "roster::oocSearch "
 			     "failed to %lu-th index value",
 			     static_cast<long unsigned>(ir));
 			return -12;
@@ -2822,7 +2822,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    ibis::util::logMessage
-			("Warning", "ibis::roster::oocSearch failed to read "
+			("Warning", "roster::oocSearch failed to read "
 			 "value %lu from the sorted file",
 			 static_cast<long unsigned>(ir));
 		    return -13;

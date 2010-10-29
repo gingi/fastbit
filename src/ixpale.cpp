@@ -70,7 +70,7 @@ ibis::pale::pale(const ibis::bin& rhs) {
 	    sub.clear();
 	}
 	LOGGER(ibis::gVerbose > 2)
-	    << "ibis::pale::ctor starting to convert " << rhs.nobs
+	    << "pale::ctor starting to convert " << rhs.nobs
 	    << " bitvectors into " << nobs << " coarse bins";
 
 	// copy the first bin, it never has subranges.
@@ -1913,7 +1913,7 @@ void ibis::pale::estimate(const ibis::qContinuousRange& expr,
 	break; // case ibis::qExpr::OP_EQ
     } // switch (expr.leftOperator())
     LOGGER(ibis::gVerbose > 5)
-	<< "ibis::pale::estimate(" << expr << ") bin number ["
+	<< "pale::estimate(" << expr << ") bin number ["
 	<< cand0 << ":" << hit0 << ", " << hit1 << ":" << cand1
 	<< ") boundaries ["
 	<< (minval[cand0]<bounds[cand0] ? minval[cand0] : bounds[cand0]) << ":"

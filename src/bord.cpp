@@ -1065,7 +1065,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
     nEvents = static_cast<uint32_t>(nr);
     if (nEvents != nr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bord::part::part can not handle " << nr
+	    << "bord::part::part can not handle " << nr
 	    << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
@@ -1095,7 +1095,7 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
     amask.set(1, nEvents);
     state = ibis::part::STABLE_STATE;
     LOGGER(ibis::gVerbose > 0)
-	<< "ibis::bord::part constructed in-memory data partition "
+	<< "bord::part constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
 	<< "\nwith " << nr << " row" << (nr > 1U ? "s" : "") << " and "
 	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "");
@@ -2449,8 +2449,7 @@ ibis::bord::part::evaluateTerms(const ibis::selectClause& sel,
 			<< "Warning -- bord::part::evaluateTerms(" << desc
 			<< ") can not handle column " << j << " type "
 			<< ibis::TYPESTRING[(int)ct[j]];
-		    return 0;
-		    break;}
+		    return 0;}
 		case ibis::BYTE:
 		    buf[j] = new ibis::array_t<char>;
 		    ierr = it->second->selectValues(msk, buf[j]);
@@ -2676,7 +2675,7 @@ ibis::bord::column::column(const ibis::bord::column &c)
     default: {
 	buffer = 0;
 	ibis::util::logMessage
-	    ("ibis::bord::column::column",
+	    ("bord::column::column",
 	     "copy constructor can not handle column (%s) with type %s",
 	     c.name(), ibis::TYPESTRING[(int)c.type()]);
 	break;}
@@ -7243,7 +7242,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	default: { // unexpected
 	    if (ibis::gVerbose > 1)
 		ibis::util::logMessage
-		    ("Warning", "ibis::bord::cursor::fillRow is not expected "
+		    ("Warning", "bord::cursor::fillRow is not expected "
 		     "to encounter data type %s (column name %s)",
 		     ibis::TYPESTRING[(int)buffer[j].ctype], buffer[j].cname);
 	    break;}

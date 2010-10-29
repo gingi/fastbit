@@ -234,7 +234,7 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 		    cnt += (ints[i] == 0);
 		if (cnt + thePart->nRows() == nints) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "ibis::category["
+			<< "category["
 			<< (thePart != 0 ? thePart->name() : "")
 			<< "." << name() << "]::fillIndex -- found "
 			<< nints << " strings while expecting "
@@ -1344,15 +1344,15 @@ long ibis::text::append(const char* dt, const char* df,
 } // ibis::text::append
 
 long ibis::text::patternSearch(const char*) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 } // ibis::text::patternSearch
 
 long ibis::text::stringSearch(const char*) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 } // ibis::text::stringSearch
 
 long ibis::text::stringSearch(const std::vector<std::string>&) const {
-    return (thePart ? thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : -1);
 } // ibis::text::stringSearch
 
 /// Given a string literal, return a bitvector that marks the strings that
@@ -2258,8 +2258,8 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 	startPositions(thePart->currentDataDir(), (char*)0, 0U);
 
     const array_t<int64_t>
-	sp(fname.c_str(), static_cast<const off_t>(0),
-	   static_cast<const off_t>((mask.size()+1)*sizeof(int64_t)));
+	sp(fname.c_str(), static_cast<off_t>(0),
+	   static_cast<off_t>((mask.size()+1)*sizeof(int64_t)));
     fname.erase(fname.size()-3); // remove .sp
     int fdata = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (fdata < 0) {
@@ -2620,7 +2620,7 @@ const char* ibis::text::findString(const char *str) const {
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0 && ! found) {
 	    bool moresp = true;
 	    ierr = fread(&next, sizeof(next), 1, fsp);
-	    if (next > begin+jbuf) {
+	    if (ierr < 1 || next > begin+jbuf) {
 		logWarning("findString", "string %lu in file \"%s\" is longer "
 			   "than internal buffer (size %ld), skipping %ld "
 			   "bytes", static_cast<long unsigned>(irow),
@@ -2654,7 +2654,7 @@ const char* ibis::text::findString(const char *str) const {
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0 && ! found) {
 	    bool moresp = true;
 	    ierr = fread(&next, sizeof(next), 1, fsp);
-	    if (next > begin+jbuf) {
+	    if (ierr < 1 || next > begin+jbuf) {
 		logWarning("findString", "string %lu in file \"%s\" is longer "
 			   "than internal buffer (size %ld), skipping %ld "
 			   "bytes", static_cast<long unsigned>(irow),

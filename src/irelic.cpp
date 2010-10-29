@@ -2178,7 +2178,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << "relic::equiJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name() << ") using " << name()
 	    << " indices";
     }
@@ -2219,7 +2219,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin completed evaluating join("
+	    << "relic::equiJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
@@ -2241,7 +2241,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << "relic::equiJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name() << ") using " << name()
 	    << " indices";
     }
@@ -2279,7 +2279,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin completed evaluating join("
+	    << "relic::equiJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
@@ -2300,7 +2300,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << "relic::equiJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name() << ") using " << name()
 	    << " indices";
     }
@@ -2377,7 +2377,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin completed evaluating join("
+	    << "relic::equiJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
@@ -2397,7 +2397,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin starting to evaluate join("
+	    << "relic::equiJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name() << ") using " << name()
 	    << " indices";
     }
@@ -2471,7 +2471,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::equiJoin completed evaluating join("
+	    << "relic::equiJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name() << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
 	    << timer.realTime() << " sec elapsed time";
@@ -2499,7 +2499,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin starting to evaluate join("
+	    << "relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2537,7 +2537,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin completed evaluating join("
+	    << "relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
@@ -2564,7 +2564,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin starting to evaluate join("
+	    << "relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2599,7 +2599,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin completed evaluating join("
+	    << "relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
@@ -2632,7 +2632,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin starting to evaluate join("
+	    << "relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2707,7 +2707,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin completed evaluating join("
+	    << "relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
@@ -2737,7 +2737,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin starting to evaluate join("
+	    << "relic::deprecatedJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2809,7 +2809,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::deprecatedJoin completed evaluating join("
+	    << "relic::deprecatedJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
@@ -2843,7 +2843,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::compJoin starting to evaluate join("
+	    << "relic::compJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2876,7 +2876,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	uint64_t cnt = hits.cnt();
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::compJoin completed evaluating join("
+	    << "relic::compJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "
@@ -2907,7 +2907,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::compJoin starting to evaluate join("
+	    << "relic::compJoin starting to evaluate join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") using " << name() << " indices";
     }
@@ -2937,7 +2937,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 3)
-	    << "ibis::relic::compJoin completed evaluating join("
+	    << "relic::compJoin completed evaluating join("
 	    << col->name() << ", " << idx2.col->name()
 	    << ", " << delta << ") produced " << cnt
 	    << (cnt>1 ? " hits" : " hit") << " in "

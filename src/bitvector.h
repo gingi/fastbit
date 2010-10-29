@@ -461,7 +461,7 @@ inline void ibis::bitvector::sloppySize(word_t n) const {
     if (nb != nbits) {
 	const_cast<ibis::bitvector*>(this)->adjustSize(0, nbits);
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bitvector::sloppySize -- adjust the number of bits to"
+	    << "bitvector::sloppySize -- adjust the number of bits to"
 	    << n;
     }
 #endif
@@ -691,7 +691,7 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bitvector::copy_runs(0x"
+	    << "bitvector::copy_runs(0x"
 	    << std::hex << std::setw(8) << std::setfill('0')
 	    << *(it.it) << ", " << std::dec << nw
 	    << ") ... it.nWords = " << it.nWords;
@@ -731,7 +731,7 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
 #if defined(DEBUG) && DEBUG + 0 > 1
 	LOGGER(ibis::gVerbose >= 0)
-	    << "ibis::bitvector::copy_runsn(0x"
+	    << "bitvector::copy_runsn(0x"
 	    << std::hex << std::setw(8) << std::setfill('0')
 	    << *(it.it) << ", " << std::dec << nw
 	    << ") ... it.nWords = " << it.nWords;
