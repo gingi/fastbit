@@ -1,6 +1,6 @@
 // $Id$
 // Authors: John Wu and Aaron Hong, Lawrence Berkeley National Laboratory
-// Copyright 2006-2009 the Regents of the University of California
+// Copyright 2006-2010 the Regents of the University of California
 
 /// @defgroup FastBitJava FastBit Java API.
 /// @{
@@ -19,6 +19,9 @@ package gov.lbl.fastbit;
    @note Only a limited number of functions are provided at this time.
    To inquire about possible extensions, please contact John Wu at
    <John.Wu at ACM.org>.
+
+   @note An alternative Java Native Interface is available at
+   https://bitbucket.org/olafW/fastbit4java/
 
    @author John Wu and Aaron Hong
 */
@@ -53,7 +56,7 @@ public class FastBit {
     public native int purge_index(String dir, String col);
 
     /** An auxiliary class to hold handles to query objects. */
-    public class QueryHandle{}
+    public class QueryHandle {}
     /** Build a new query object.  The three arguments mirros the three
 	clauses of a simple SQL select statement.
 	@arg select The select clause.  May contain a list of column

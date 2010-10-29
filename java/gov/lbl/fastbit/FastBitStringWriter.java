@@ -18,9 +18,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * Java StringWriter for FastBit.  For a Java program to write
  * string-valued data to a format required by FastBit.  See
@@ -30,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
  * @ingroup FastBitJava
  */
 public class FastBitStringWriter {
-    private Log l = LogFactory.getLog(getClass());
     final static private byte zero = 0;
 
     /**
@@ -96,10 +92,6 @@ public class FastBitStringWriter {
 	    if (dicFile.exists()) {
 		dicLock =
 		    new RandomAccessFile (dicFile,"rw").getChannel().lock();
-		if (l.isDebugEnabled()) {
-		    l.debug("Try to allocate "+dicLock.channel().size()+
-			    " bytes for old dict values");
-		}
 		// Dictionary must fit in the heap memory
 		ByteBuffer oldBuffer = ByteBuffer.allocate
 		    (new Long(dicLock.channel().size()).intValue());
@@ -111,11 +103,9 @@ public class FastBitStringWriter {
 		    new RandomAccessFile (dicFile,"rw").getChannel().lock();
 	    }
 	} catch (FileNotFoundException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	}
 
 
@@ -129,11 +119,10 @@ public class FastBitStringWriter {
 	saveDictionary(handler, keys, dicLock);
 	try {
 	    dicLock.release();
-	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
-	    throw new FastBitStringWriterException (ex.getMessage());
 	}
-
+	catch (IOException ex) {
+	    throw new FastBitStringWriterException(ex.getMessage());
+	}
 	handler.close();
     }
 
@@ -168,11 +157,6 @@ public class FastBitStringWriter {
 	getOldDicValues(ByteBuffer buf, final Set<String> keys,
 			String charsetName )
 	throws UnsupportedEncodingException {
-	if (l.isDebugEnabled()) {
-	    l.debug("getOldDicValues called");
-	    l.debug("capacity: "+buf.capacity());
-	    l.debug("position: "+buf.position());
-	}
 	if (buf.position() == buf.capacity()) {
 	    return keys;
 	}
@@ -207,7 +191,6 @@ public class FastBitStringWriter {
 	    saveDictionary(handler, keys, dicLock);
 	    dicLock.release();
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	}
     }
@@ -237,7 +220,6 @@ public class FastBitStringWriter {
 	    flushBuffer(dicbuf, dicLock.channel());
 
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	}
     }
@@ -267,7 +249,6 @@ public class FastBitStringWriter {
 		(getBytes(handler.getOffset().getAndAdd(1 + ar.length)));
 
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	}
     }
@@ -327,14 +308,12 @@ public class FastBitStringWriter {
 	    raf.seek(0);
 	    raf.write(resString.getBytes());
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	} finally {
 	    try {
 		lock.release();
 		raf.close();
 	    } catch(IOException ex){
-		l.error(ex.getMessage(), ex.fillInStackTrace());
 		throw new FastBitStringWriterException (ex.getMessage());
 	    }
 	}
@@ -357,7 +336,6 @@ public class FastBitStringWriter {
 	    try {
 		header.createNewFile();
 	    } catch (IOException ex) {
-		l.error(ex.getMessage(), ex.fillInStackTrace());
 		throw new FastBitStringWriterException (ex.getMessage());
 	    }
 	} else {
@@ -427,14 +405,12 @@ public class FastBitStringWriter {
 	    raf.seek(0);
 	    raf.write(resString.getBytes());
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	} finally {
 	    try {
 		lock.release();
 		raf.close();
 	    } catch(IOException ex) {
-		l.error(ex.getMessage(), ex.fillInStackTrace());
 		throw new FastBitStringWriterException (ex.getMessage());
 	    }
 	}
@@ -460,7 +436,6 @@ public class FastBitStringWriter {
 	try {
 	    return new WriteHandle (dataFileName, spFileName, charsetName);
 	} catch (IOException ex) {
-	    l.error(ex.getMessage(), ex.fillInStackTrace());
 	    throw new FastBitStringWriterException (ex.getMessage());
 	}
     }
@@ -522,7 +497,6 @@ public class FastBitStringWriter {
 		databuf.clear();
 		spbuf.clear();
 	    } catch (IOException ex) {
-		l.error(ex.getMessage(), ex.fillInStackTrace());
 		throw new FastBitStringWriterException (ex.getMessage());
 	    }
 	}
