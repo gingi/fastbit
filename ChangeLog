@@ -8,7 +8,7 @@
 	return signed char instead of char because on some system char can
 	be default to be unsigned
 	* src/colValeus.h: add double-quote around the strings when they
-	are printed in ASCII form (a suggestion from Ben Williams)
+	are printed in ASCII form (a suggestion from Anderson Chaves)
 
 2010-10-29 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: change the type of qlist, alist and slist
