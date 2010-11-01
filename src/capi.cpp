@@ -508,8 +508,9 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
 		    delete tmp;
 		    break;}
 		case ibis::BYTE: {
-		    ibis::array_t<char> *btmp =
-			static_cast<ibis::array_t<char>*>((*tvit).second);
+		    ibis::array_t<signed char> *btmp =
+			static_cast<ibis::array_t<signed char>*>
+			((*tvit).second);
 		    delete btmp;
 		    break;}
 		case ibis::SHORT: {
@@ -656,9 +657,9 @@ fastbit_get_where_clause(FastBitQueryHandle qhandle) {
     return tmp;
 } // fastbit_get_where_clause
 
-extern "C" const char *
+extern "C" const signed char *
 fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
-    const char *ret = 0;
+    const signed char *ret = 0;
     if (qhandle == 0 || att == 0 || *att == 0) return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
@@ -695,12 +696,12 @@ fastbit_get_qualified_bytes(FastBitQueryHandle qhandle, const char *att) {
 		LOGGER(ibis::gVerbose > 3)
 		    << "fastbit_get_qualified_bytes -- found column \""
 		    << att << "\" in the existing list";
-		ret = static_cast<ibis::array_t<char>*>
+		ret = static_cast<ibis::array_t<signed char>*>
 		    ((*tvit).second)->begin();
 	    }
 	}
 	if (ret == 0) {
-	    ibis::array_t<char> *tmp =
+	    ibis::array_t<signed char> *tmp =
 		c->selectBytes(*(qhandle->q.getHitVector()));
 	    if (tmp == 0 || tmp->empty()) {
 		delete tmp;

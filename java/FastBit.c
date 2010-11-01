@@ -230,7 +230,7 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
     jboolean           iscopy;
     const char        *ccol;
     jbyteArray         ret;
-    const char        *carr;
+    const signed char *carr;
     jint               nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));

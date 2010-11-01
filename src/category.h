@@ -182,7 +182,7 @@ public:
     virtual long indexSize() const {return -1;}
     virtual int  getValuesArray(void*) const {return -1;}
 
-    virtual array_t<char>* selectBytes(const bitvector&) const {return 0;}
+    virtual array_t<signed char>* selectBytes(const bitvector&) const {return 0;}
     virtual array_t<unsigned char>* selectUBytes(const bitvector&) const {return 0;}
     virtual array_t<int16_t>* selectShorts(const bitvector&) const {return 0;}
     virtual array_t<uint16_t>* selectUShorts(const bitvector&) const {return 0;}

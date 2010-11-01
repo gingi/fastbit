@@ -215,7 +215,7 @@ public:
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 
-    virtual array_t<char>*          selectBytes(const ibis::bitvector&) const;
+    virtual array_t<signed char>*   selectBytes(const ibis::bitvector&) const;
     virtual array_t<unsigned char>* selectUBytes(const ibis::bitvector&) const;
     virtual array_t<int16_t>*       selectShorts(const ibis::bitvector&) const;
     virtual array_t<uint16_t>*      selectUShorts(const ibis::bitvector&) const;

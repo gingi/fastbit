@@ -195,7 +195,7 @@ public:
     /// content returned is read from disk when these functions are called.
     /// @{
     /// Retrieve the values of column_name as 8-bit integers.
-    array_t<char>* getQualifiedBytes(const char* column_name);
+    array_t<signed char>*   getQualifiedBytes(const char* column_name);
     /// Retrieve the values of column_name as 8-bit unsigned integers.
     array_t<unsigned char>* getQualifiedUBytes(const char* column_name);
     /// Retrieve the values of column_name as 16-bit integers.

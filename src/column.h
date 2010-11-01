@@ -23,6 +23,10 @@ namespace ibis { // additional names to the namespace ibis
 
     // the following are used for storing selected values of different types
     // of columns (implemented in colValues.cpp)
+    class colBytes;
+    class colUBytes;
+    class colShorts;
+    class colUShorts;
     class colInts;
     class colUInts;
     class colLongs;
@@ -135,7 +139,7 @@ public:
 
     /// Return selected rows of the column in an array_t object.  Caller is
     /// responsible for deleting the returned object.
-    virtual array_t<char>*     selectBytes(const bitvector& mask) const;
+    virtual array_t<signed char>*   selectBytes(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
     virtual array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
     /// Return selected rows of the column in an array_t object.
@@ -638,7 +642,7 @@ inline std::ostream& operator<<(std::ostream& out, const ibis::column& prop) {
 }
 
 namespace ibis { // for template specialization
-    template <> long column::selectToStrings<char>
+    template <> long column::selectToStrings<signed char>
     (const bitvector& mask, std::vector<std::string>& str) const;
     template <> long column::selectToStrings<unsigned char>
     (const bitvector& mask, std::vector<std::string>& str) const;

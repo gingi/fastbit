@@ -366,12 +366,12 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	    switch (col->type()) {
 	    case ibis::BYTE:
 	    case ibis::UBYTE: {
-		std::auto_ptr< ibis::array_t<char> >
+		std::auto_ptr< ibis::array_t<signed char> >
 		    tmp(col->selectBytes(*hits));
 		if (tmp.get() != 0) {
 		    if (nh > 0) {
-			ibis::util::addIncoreData(buff[i], *tmp, nh,
-						  static_cast<char>(0x7F));
+			ibis::util::addIncoreData
+			    (buff[i], *tmp, nh, static_cast<signed char>(0x7F));
 		    }
 		    else {
 			buff[i] = tmp.release();

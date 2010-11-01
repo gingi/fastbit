@@ -827,9 +827,9 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 ///
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
-ibis::array_t<char>*
+ibis::array_t<signed char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<char> > array(new array_t<char>);
+    std::auto_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -839,7 +839,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	timer.start();
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
 #if defined(FASTBIT_PREFER_READ_ALL)
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -1121,7 +1121,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 #endif
     }
     else if (m_type == ibis::BYTE) {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -1352,7 +1352,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 #endif
     }
     else if (m_type == ibis::BYTE) {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -1747,7 +1747,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == ibis::BYTE) {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -2646,7 +2646,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == BYTE) {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -3379,7 +3379,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == BYTE) {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -3846,7 +3846,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	}
 	break;}
     case ibis::BYTE: {
-	array_t<char> prop;
+	array_t<signed char> prop;
 	std::string sname;
 	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
@@ -4467,7 +4467,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     if (vals == 0) return -1L;
     switch (m_type) {
     case ibis::BYTE:
-	return selectValuesT(mask, *static_cast<array_t<char>*>(vals));
+	return selectValuesT(mask, *static_cast<array_t<signed char>*>(vals));
     case ibis::UBYTE:
 	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals));
     case ibis::SHORT:
@@ -4510,7 +4510,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
 
     switch (m_type) {
     case ibis::BYTE:
-	return selectValuesT(mask, *static_cast<array_t<char>*>(vals),
+	return selectValuesT(mask, *static_cast<array_t<signed char>*>(vals),
 			     inds);
     case ibis::UBYTE:
 	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals),
@@ -4587,10 +4587,10 @@ long ibis::column::selectToStrings(const bitvector& mask,
     return ierr;
 } // ibis::column::selectToStrings
 
-template <> long ibis::column::selectToStrings<char>
+template <> long ibis::column::selectToStrings<signed char>
 (const bitvector& mask, std::vector<std::string>& str) const {
-    ibis::array_t<char> tmp;
-    long ierr = selectValuesT<char>(mask, tmp);
+    ibis::array_t<signed char> tmp;
+    long ierr = selectValuesT<signed char>(mask, tmp);
     if (ierr <= 0) {
 	str.clear();
 	return ierr;
@@ -4668,7 +4668,7 @@ ibis::column::selectStrings(const bitvector& mask) const {
     long ierr = 0;
     switch (m_type) {
     case ibis::BYTE:
-	ierr = selectToStrings<char>(mask, *res);
+	ierr = selectToStrings<signed char>(mask, *res);
 	break;
     case ibis::UBYTE:
 	ierr = selectToStrings<unsigned char>(mask, *res);
@@ -6311,7 +6311,8 @@ long ibis::column::append(const void* vals, const ibis::bitvector& msk) {
     writeLock lock(this, "appendValues");
     switch (m_type) {
     case ibis::BYTE:
-	ierr = appendValues(* static_cast<const array_t<char>*>(vals), msk);
+	ierr = appendValues(* static_cast<const array_t<signed char>*>(vals),
+			    msk);
 	break;
     case ibis::UBYTE:
 	ierr = appendValues(* static_cast<const array_t<unsigned char>*>(vals),
@@ -8283,13 +8284,13 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-	array_t<char> vals;
+	array_t<signed char> vals;
 	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
 	if (ierr == 0) {
 	    ierr = searchSortedICC(vals, rng, hits);
 	}
 	else {
-	    ierr = searchSortedOOCC<char>(dfname.c_str(), rng, hits);
+	    ierr = searchSortedOOCC<signed char>(dfname.c_str(), rng, hits);
 	}
 	break;}
     case ibis::UBYTE: {
@@ -8408,13 +8409,13 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-	array_t<char> vals;
+	array_t<signed char> vals;
 	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
 	if (ierr == 0) {
 	    ierr = searchSortedICD(vals, rng, hits);
 	}
 	else {
-	    ierr = searchSortedOOCD<char>(dfname.c_str(), rng, hits);
+	    ierr = searchSortedOOCD<signed char>(dfname.c_str(), rng, hits);
 	}
 	break;}
     case ibis::UBYTE: {
@@ -8533,13 +8534,13 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-	array_t<char> vals;
+	array_t<signed char> vals;
 	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
 	if (ierr == 0) {
 	    ierr = searchSortedICD(vals, rng, hits);
 	}
 	else {
-	    ierr = searchSortedOOCD<char>(dfname.c_str(), rng, hits);
+	    ierr = searchSortedOOCD<signed char>(dfname.c_str(), rng, hits);
 	}
 	break;}
     case ibis::UBYTE: {
@@ -8658,13 +8659,13 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-	array_t<char> vals;
+	array_t<signed char> vals;
 	ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
 	if (ierr == 0) {
 	    ierr = searchSortedICD(vals, rng, hits);
 	}
 	else {
-	    ierr = searchSortedOOCD<char>(dfname.c_str(), rng, hits);
+	    ierr = searchSortedOOCD<signed char>(dfname.c_str(), rng, hits);
 	}
 	break;}
     case ibis::UBYTE: {

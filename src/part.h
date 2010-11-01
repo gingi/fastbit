@@ -287,7 +287,7 @@ public:
     /******************************************************************/
 
     /// Retrieve values of the name column as 8-bit integers.
-    array_t<char>*
+    array_t<signed char>*
 	selectBytes(const char* name, const ibis::bitvector &mask) const;
     /// Retrieve values of the name column as 8-bit unsigned integers.
     array_t<unsigned char>*

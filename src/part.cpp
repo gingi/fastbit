@@ -2467,25 +2467,25 @@ uint32_t ibis::part::countPages(const ibis::bitvector &mask,
 } // ibis::part::countPages
 
 ibis::fileManager::ACCESS_PREFERENCE
-ibis::part::accessHint(const ibis::bitvector &mask,
-		       unsigned elem) const {
+ibis::part::accessHint(const ibis::bitvector &mask, unsigned elem) const {
     ibis::fileManager::ACCESS_PREFERENCE hint =
 	ibis::fileManager::MMAP_LARGE_FILES;
-    if (elem == 0 || mask.size() == 0)
+    uint32_t cnt = mask.cnt();
+    if (elem == 0 || mask.size() == 0 || cnt >= (nEvents >> 3))
 	return hint;
 
     const uint32_t npages = static_cast<uint32_t>
 	(ceil(static_cast<double>(nEvents) * elem
 	      / ibis::fileManager::pageSize()));
-    // too few values selected or too many values selected, use default
-    if (mask.cnt() < (npages >> 4) || (mask.bytes() >> 5) > npages)
+    // selecting very few values or very many values, use default
+    if (cnt < (npages >> 4) || (cnt >> 5) > npages)
 	return hint;
 
     // count the number of pages, get first and last page number
     const uint32_t wpp = ibis::fileManager::pageSize() / elem;
     uint32_t first; // first page number
     uint32_t last;  // the position of the last entry encountered
-    uint32_t cnt = 0;
+    cnt = 0; // the number of pages to be accessed
     ibis::bitvector::indexSet ix = mask.firstIndexSet();
     last = *(ix.indices());
     first = *(ix.indices()) / wpp;
@@ -2504,11 +2504,9 @@ ibis::part::accessHint(const ibis::bitvector &mask,
 	++ ix;
     }
     last /= wpp; // the last page number
-    if (2*(last-first) < npages) {
+    if (cnt > 24 && (cnt+cnt >= last-first || last-first <= (npages >> 3))) {
 	// pages to be accessed are concentrated
-	if (cnt > 24 && (cnt+cnt >= last-first ||
-			 last-first <= (npages >> 3)))
-	    hint = ibis::fileManager::PREFER_MMAP;
+	hint = ibis::fileManager::PREFER_MMAP;
     }
     else if (cnt > (npages >> 4)) {
 	// more than 1/16th of the pages will be accessed
@@ -2532,9 +2530,9 @@ ibis::part::accessHint(const ibis::bitvector &mask,
 /// The selected values are packed into the resulting array.  Only those
 /// rows marked 1 are retrieved.  The caller is responsible for deleting
 /// the returned value.
-ibis::array_t<char>* ibis::part::selectBytes
+ibis::array_t<signed char>* ibis::part::selectBytes
 (const char* pname, const ibis::bitvector &mask) const {
-    ibis::array_t<char>* res = 0;
+    ibis::array_t<signed char>* res = 0;
     try {
 	const ibis::column* col = getColumn(pname);
 	if (col != 0) { // got it
@@ -4161,7 +4159,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     case ibis::BYTE: {
 	try {
-	    ibis::array_t<char> intarray;
+	    ibis::array_t<signed char> intarray;
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
@@ -4173,11 +4171,11 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		}
 	    }
 	    else {
-		ierr = doCompare<char>(file, mask, hits, cmp);
+		ierr = doCompare<signed char>(file, mask, hits, cmp);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<char>(file, mask, hits, cmp);
+	    ierr = doCompare<signed char>(file, mask, hits, cmp);
 	}
 	catch (...) {
 	    throw;
@@ -14778,19 +14776,16 @@ ibis::part::doScan(const array_t<double>&,
 		   const ibis::qRange&, const ibis::bitvector&,
 		   ibis::bitvector&);
 template long
-ibis::part::doCompare(const array_t<char>&, const ibis::bitvector&,
+ibis::part::doCompare(const array_t<signed char>&, const ibis::bitvector&,
 		      ibis::bitvector&, const ibis::qRange&) const;
 template long
-ibis::part::doCompare<char>(const char*, const ibis::bitvector&,
-			    ibis::bitvector&, const ibis::qRange&) const;
+ibis::part::doCompare<signed char>(const char*, const ibis::bitvector&,
+				   ibis::bitvector&, const ibis::qRange&) const;
 
 template int ibis::part::writeColumn<ibis::rid_t>
 (int, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<ibis::rid_t>&, const ibis::rid_t&, ibis::bitvector&,
  const ibis::bitvector&);
-template int ibis::part::writeColumn<char>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
- const array_t<char>&, const char&, ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<signed char>
 (int, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<signed char>&, const signed char&,

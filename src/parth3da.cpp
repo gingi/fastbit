@@ -173,9 +173,9 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
     switch (col3.type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val3;
+	array_t<signed char>* val3;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val3 = new array_t<char>;
+	    val3 = new array_t<signed char>;
 	    ierr = col3.getValuesArray(val3);
 	    if (ierr < 0) {
 		delete val3;
@@ -410,9 +410,9 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
     switch (col2.type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val2;
+	array_t<signed char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<char>;
+	    val2 = new array_t<signed char>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
 		delete val2;
@@ -704,9 +704,9 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     switch (col1->type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val1;
+	array_t<signed char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<char>;
+	    val1 = new array_t<signed char>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
 		delete val1;

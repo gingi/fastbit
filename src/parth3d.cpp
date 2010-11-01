@@ -5423,7 +5423,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 	break;}
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* vals1 = col1.selectBytes(mask);
+	array_t<signed char>* vals1 = col1.selectBytes(mask);
 	if (vals1 != 0) {
 	    ierr = get3DDistributionA1(mask, *vals1, col2, col3, nb1, nb2, nb3,
 				       bounds1, bounds2, bounds3, counts);
@@ -5591,7 +5591,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 	break;
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* vals2 = col2.selectBytes(mask);
+	array_t<signed char>* vals2 = col2.selectBytes(mask);
 	if (vals2 != 0) {
 	    ierr = get3DDistributionA2(mask, vals1, *vals2, col3, nb1, nb2,
 				       nb3, bounds1, bounds2, bounds3, counts);
@@ -5759,7 +5759,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 	break;
 #ifdef FASTBIT_EXPAND_ALL_TYPES
   case ibis::BYTE: {
-	array_t<char>* vals3 = col3.selectBytes(mask);
+	array_t<signed char>* vals3 = col3.selectBytes(mask);
 	if (vals3 != 0) {
 	    try {
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,

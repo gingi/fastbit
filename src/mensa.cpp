@@ -519,7 +519,7 @@ int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals) const {
     }
 
     uint32_t ierr = 0;
-    array_t<char> tmp;
+    array_t<signed char> tmp;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	const ibis::part& dp = **it;
@@ -580,7 +580,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals) const {
     switch ((*nit).second) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -689,7 +689,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals) const {
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -886,7 +886,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals) const {
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -1148,7 +1148,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals) const {
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -1266,7 +1266,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals) const {
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -1455,7 +1455,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -1639,7 +1639,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
     uint32_t ierr = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<char> tmp;
+	array_t<signed char> tmp;
 	for (ibis::partList::const_iterator it = parts.begin();
 	     it != parts.end(); ++ it) {
 	    const ibis::part& dp = **it;
@@ -2316,7 +2316,7 @@ void ibis::mensa::cursor::clearBuffers() {
 	    buffer[i].cval = 0;
 	    break;
 	case ibis::BYTE:
-	    static_cast<array_t<char>*>(buffer[i].cval)->clear();
+	    static_cast<array_t<signed char>*>(buffer[i].cval)->clear();
 	    break;
 	case ibis::UBYTE:
 	    static_cast<array_t<unsigned char>*>(buffer[i].cval)->clear();
@@ -2428,7 +2428,8 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 	    res.bytesnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
 		res.bytesvalues.push_back
-		    ((*static_cast<const array_t<char>*>(buffer[j].cval))[il]);
+		    ((*static_cast<const array_t<signed char>*>
+		      (buffer[j].cval))[il]);
 	    }
 	    else {
 		res.bytesvalues.push_back(0x7F);
@@ -3281,7 +3282,7 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
 	oss << static_cast<int>
-	    ((*(static_cast<array_t<char>*>(buffer[j].cval)))[irow]);
+	    ((*(static_cast<array_t<signed char>*>(buffer[j].cval)))[irow]);
 	val = oss.str();
 	ierr = 0;
 	break;}
@@ -3381,7 +3382,7 @@ ibis::mensa::cursor::bufferElement::~bufferElement() {
 	delete static_cast<array_t<unsigned char>*>(cval);
 	break;
     case ibis::BYTE:
-	delete static_cast<array_t<char>*>(cval);
+	delete static_cast<array_t<signed char>*>(cval);
 	break;
     case ibis::UBYTE:
 	delete static_cast<array_t<unsigned char>*>(cval);
@@ -3886,11 +3887,13 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    << " of partition " << (*it)->name() << ", nh = " << nh;
 		switch (col->type()) {
 		case ibis::BYTE: {
-		    std::auto_ptr< array_t<char> > tmp(col->selectBytes(*hits));
+		    std::auto_ptr< array_t<signed char> >
+			tmp(col->selectBytes(*hits));
 		    if (tmp.get() != 0) {
 			if (nh > 0) {
-			    ibis::util::addIncoreData(buff[i], *tmp, nh,
-						      static_cast<char>(0x7F));
+			    ibis::util::addIncoreData
+				(buff[i], *tmp, nh,
+				 static_cast<signed char>(0x7F));
 			}
 			else {
 			    buff[i] = tmp.release();
@@ -4203,8 +4206,8 @@ void ibis::util::addStrings(void*& to, const std::vector<std::string>& from,
 
 // explicit template function instantiations
 template void
-ibis::util::addIncoreData<char>(void*&, const array_t<char>&, uint32_t,
-				const char);
+ibis::util::addIncoreData<signed char>(void*&, const array_t<signed char>&,
+				       uint32_t, const signed char);
 template void
 ibis::util::addIncoreData<unsigned char>(void*&, const array_t<unsigned char>&,
 					 uint32_t, const unsigned char);

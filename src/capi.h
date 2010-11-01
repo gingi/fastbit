@@ -138,7 +138,7 @@ extern "C" {
     FASTBIT_DLLSPEC const double*
     fastbit_get_qualified_doubles(FastBitQueryHandle query,
 				  const char* cname);
-    FASTBIT_DLLSPEC const char*
+    FASTBIT_DLLSPEC const signed char*
     fastbit_get_qualified_bytes(FastBitQueryHandle query,
 				const char* cname);
     FASTBIT_DLLSPEC const int16_t*

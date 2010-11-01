@@ -897,7 +897,7 @@ void* ibis::table::allocateBuffer(ibis::TYPE_T type, size_t sz) {
 	ret = new array_t<rid_t>(sz);
 	break;
     case ibis::BYTE:
-	ret = new array_t<char>(sz);
+	ret = new array_t<signed char>(sz);
 	break;
     case ibis::UBYTE:
 	ret = new array_t<unsigned char>(sz);
@@ -948,7 +948,7 @@ void ibis::table::freeBuffer(void *buffer, ibis::TYPE_T type) {
 	    delete static_cast<array_t<rid_t>*>(buffer);
 	    break;
 	case ibis::BYTE:
-	    delete static_cast<array_t<char>*>(buffer);
+	    delete static_cast<array_t<signed char>*>(buffer);
 	    break;
 	case ibis::UBYTE:
 	    delete static_cast<array_t<unsigned char>*>(buffer);
@@ -1009,7 +1009,7 @@ void ibis::table::freeBuffers(ibis::table::bufferList& buf,
 		delete static_cast<array_t<ibis::rid_t>*>(buf[j]);
 		break;
 	    case ibis::BYTE:
-		delete static_cast<array_t<char>*>(buf[j]);
+		delete static_cast<array_t<signed char>*>(buf[j]);
 		break;
 	    case ibis::UBYTE:
 		delete static_cast<array_t<unsigned char>*>(buf[j]);
@@ -1428,11 +1428,11 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
 
 	switch (col.type()) {
 	case ibis::BYTE: {
-	    array_t<char> *values = col.selectBytes(msk0);
+	    array_t<signed char> *values = col.selectBytes(msk0);
 	    if (values != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
-		     (char)0x7F, msk1, msk0);
+		     (signed char)0x7F, msk1, msk0);
 	    }
 	    else {
 		ierr = -4;
@@ -1726,6 +1726,22 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	}
 
 	switch (tps[i]) {
+	case ibis::BYTE:
+	    buf[i] = new array_t<signed char>
+		(* static_cast<const array_t<signed char>*>(bptr));
+	    break;
+	case ibis::UBYTE:
+	    buf[i] = new array_t<unsigned char>
+		(* static_cast<const array_t<unsigned char>*>(bptr));
+	    break;
+	case ibis::SHORT:
+	    buf[i] = new array_t<int16_t>
+		(* static_cast<const array_t<int16_t>*>(bptr));
+	    break;
+	case ibis::USHORT:
+	    buf[i] = new array_t<uint16_t>
+		(* static_cast<const array_t<uint16_t>*>(bptr));
+	    break;
 	case ibis::INT:
 	    buf[i] = new array_t<int32_t>
 		(* static_cast<const array_t<int32_t>*>(bptr));
@@ -1761,6 +1777,10 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
 	    buf[i] = tmp;
 	    break;}
 	default:
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << td << " can not process column "
+		<< nms[i] << " (" << des[i] << ") of type "
+		<< ibis::TYPESTRING[static_cast<int>(tps[i])];
 	    buf[i] = 0;
 	    break;
 	}
@@ -1952,7 +1972,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    case ibis::BYTE:
-		ierr = sortValues(* static_cast<array_t<char>*>
+		ierr = sortValues(* static_cast<array_t<signed char>*>
 				  (col->getArray()), ind1, ind0, starts);
 		break;
 	    default:
@@ -2047,7 +2067,7 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
 				 (col->getArray()), ind1);
 	    break;
 	case ibis::BYTE:
-	    ierr = reorderValues(* static_cast<array_t<char>*>
+	    ierr = reorderValues(* static_cast<array_t<signed char>*>
 				 (col->getArray()), ind1);
 	    break;
 	default:
@@ -2451,7 +2471,7 @@ ibis::bord::part::evaluateTerms(const ibis::selectClause& sel,
 			<< ibis::TYPESTRING[(int)ct[j]];
 		    return 0;}
 		case ibis::BYTE:
-		    buf[j] = new ibis::array_t<char>;
+		    buf[j] = new ibis::array_t<signed char>;
 		    ierr = it->second->selectValues(msk, buf[j]);
 		    if (ierr < 0) {
 			LOGGER(ibis::gVerbose > 0)
@@ -2634,7 +2654,8 @@ ibis::bord::column::column(const ibis::bord::column &c)
 		   c.lower, c.upper) {
     switch (c.m_type) {
     case ibis::BYTE: {
-	buffer = new array_t<char>(* static_cast<array_t<char>*>(c.buffer));
+	buffer = new array_t<signed char>
+	    (* static_cast<array_t<signed char>*>(c.buffer));
 	break;}
     case ibis::UBYTE: {
 	buffer = new array_t<unsigned char>
@@ -2686,7 +2707,7 @@ ibis::bord::column::column(const ibis::bord::column &c)
 ibis::bord::column::~column() {
     switch (m_type) {
     case ibis::BYTE: {
-	delete static_cast<array_t<char>*>(buffer);
+	delete static_cast<array_t<signed char>*>(buffer);
 	break;}
     case ibis::UBYTE: {
 	delete static_cast<array_t<unsigned char>*>(buffer);
@@ -2737,7 +2758,7 @@ ibis::bord::column::getRawData() const {
     ibis::fileManager::storage *str = 0;
     switch (m_type) {
     case ibis::BYTE: {
-	str = static_cast<array_t<char>*>(buffer)->getStorage();
+	str = static_cast<array_t<signed char>*>(buffer)->getStorage();
 	break;}
     case ibis::UBYTE: {
 	str = static_cast<array_t<unsigned char>*>(buffer)->getStorage();
@@ -2993,8 +3014,8 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::BYTE: {
-	const array_t<char> &val =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &val =
+	    * static_cast<const array_t<signed char>*>(buffer);
 	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::USHORT: {
@@ -3060,8 +3081,8 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::BYTE: {
-	const array_t<char> &val =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &val =
+	    * static_cast<const array_t<signed char>*>(buffer);
 	ierr = ibis::part::doScan(val, cmp, mask, res);
 	break;}
     case ibis::USHORT: {
@@ -3326,9 +3347,9 @@ long ibis::bord::column::patternSearch(const char* pat,
     return hits.cnt();
 } // ibis::bord::column::patternSearch
 
-ibis::array_t<char>*
+ibis::array_t<signed char>*
 ibis::bord::column::selectBytes(const ibis::bitvector &mask) const {
-    ibis::array_t<char>* array = new array_t<char>;
+    ibis::array_t<signed char>* array = new array_t<signed char>;
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array;
@@ -3337,8 +3358,8 @@ ibis::bord::column::selectBytes(const ibis::bitvector &mask) const {
     if (ibis::gVerbose > 5)
 	timer.start();
     if (m_type == ibis::BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 	uint32_t i = 0;
 	array->resize(tot);
 	const uint32_t nprop = prop.size();
@@ -3543,8 +3564,8 @@ ibis::bord::column::selectShorts(const ibis::bitvector &mask) const {
 	}
     }
     else if (m_type == ibis::BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 	uint32_t i = 0;
 	array->resize(tot);
 	const uint32_t nprop = prop.size();
@@ -3992,8 +4013,8 @@ ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
 	}
     }
     else if (m_type == ibis::BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 	uint32_t i = 0;
 	array->resize(tot);
 	const uint32_t nprop = prop.size();
@@ -4731,8 +4752,8 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -5226,8 +5247,8 @@ ibis::bord::column::selectULongs(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -5517,8 +5538,8 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == BYTE) {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -5910,8 +5931,8 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	}
 	break;}
     case ibis::BYTE: {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -6471,8 +6492,8 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 	}
 	break;}
     case ibis::BYTE: {
-	const array_t<char> &prop =
-	    * static_cast<const array_t<char>*>(buffer);
+	const array_t<signed char> &prop =
+	    * static_cast<const array_t<signed char>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -6847,8 +6868,8 @@ int ibis::bord::column::getValuesArray(void* vals) const {
 	    "support column type " << ibis::TYPESTRING[(int)m_type];
 	break;}
     case ibis::BYTE: {
-	static_cast<array_t<char>*>(vals)->
-	    copy(* static_cast<const array_t<char>*>(buffer));
+	static_cast<array_t<signed char>*>(vals)->
+	    copy(* static_cast<const array_t<signed char>*>(buffer));
 	break;}
     case ibis::UBYTE: {
 	static_cast<array_t<unsigned char>*>(vals)->
@@ -6934,8 +6955,8 @@ void ibis::bord::column::reverseRows() {
 	std::reverse(prop.begin(), prop.end());
 	break;}
     case ibis::BYTE: {
-	array_t<char> &prop =
-	    * static_cast<array_t<char>*>(buffer);
+	array_t<signed char> &prop =
+	    * static_cast<array_t<signed char>*>(buffer);
 	std::reverse(prop.begin(), prop.end());
 	break;}
     case ibis::FLOAT: {
@@ -7006,8 +7027,8 @@ int ibis::bord::column::limit(uint32_t nr) {
 	    prop.resize(nr);
 	break;}
     case ibis::BYTE: {
-	array_t<char> &prop =
-	    * static_cast<array_t<char>*>(buffer);
+	array_t<signed char> &prop =
+	    * static_cast<array_t<signed char>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
 	break;}
@@ -7260,7 +7281,7 @@ int ibis::bord::cursor::getColumnAsByte(uint32_t j, char& val) const {
     switch (buffer[j].ctype) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     default: {
@@ -7300,7 +7321,7 @@ int ibis::bord::cursor::getColumnAsShort(uint32_t j, int16_t& val) const {
     int ierr;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
@@ -7356,7 +7377,7 @@ int ibis::bord::cursor::getColumnAsInt(uint32_t j, int32_t& val) const {
     int ierr;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
@@ -7429,7 +7450,7 @@ int ibis::bord::cursor::getColumnAsLong(uint32_t j, int64_t& val) const {
     int ierr;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
@@ -7518,7 +7539,7 @@ int ibis::bord::cursor::getColumnAsFloat(uint32_t j, float& val) const {
     int ierr;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
@@ -7557,7 +7578,7 @@ int ibis::bord::cursor::getColumnAsDouble(uint32_t j, double& val) const {
     int ierr;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	val = (* static_cast<const array_t<char>*>(buffer[j].cval))[curRow];
+	val = (* static_cast<const array_t<signed char>*>(buffer[j].cval))[curRow];
 	ierr = 0;
 	break;}
     case ibis::UBYTE: {
@@ -7606,7 +7627,7 @@ int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     std::ostringstream oss;
     switch (buffer[j].ctype) {
     case ibis::BYTE: {
-	oss << static_cast<int>((* static_cast<const array_t<char>*>
+	oss << static_cast<int>((* static_cast<const array_t<signed char>*>
 				 (buffer[j].cval))[curRow]);
 	val = oss.str();
 	ierr = 0;

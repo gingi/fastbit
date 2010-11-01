@@ -520,9 +520,9 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 
     switch (col->type()) {
     case ibis::BYTE: {
-	array_t<char>* vals;
+	array_t<signed char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    vals = new array_t<char>;
+	    vals = new array_t<signed char>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
@@ -879,9 +879,9 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 
     switch (col->type()) {
     case ibis::BYTE: {
-	array_t<char>* vals;
+	array_t<signed char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    vals = new array_t<char>;
+	    vals = new array_t<signed char>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
@@ -1273,9 +1273,9 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 
     switch (col->type()) {
     case ibis::BYTE: {
-	array_t<char>* vals;
+	array_t<signed char>* vals;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    vals = new array_t<char>;
+	    vals = new array_t<signed char>;
 	    ierr = col->getValuesArray(vals);
 	    if (ierr < 0) {
 		delete vals;
@@ -1665,7 +1665,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 
     switch (col->type()) {
     case ibis::BYTE: {
-	array_t<char> *vals = col->selectBytes(mask);
+	array_t<signed char> *vals = col->selectBytes(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
@@ -1684,8 +1684,8 @@ long ibis::part::get1DDistribution(const char* constraints,
 	    return -6;
 	}
 
-	ierr = adaptiveInts<char>(*vals, (char)-128, (char)127,
-				  nbins, bounds, counts);
+	ierr = adaptiveInts<signed char>(*vals, (char)-128, (char)127,
+					 nbins, bounds, counts);
 	delete vals;
 	break;}
     case ibis::UBYTE: {
@@ -2625,11 +2625,11 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	ierr = -7;
 	break;}
     case ibis::BYTE: {
-	char vmin, vmax;
-	array_t<char> *vals=0;
+	signed char vmin, vmax;
+	array_t<signed char> *vals=0;
 	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
 	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<char>;
+	    vals = new array_t<signed char>;
 	    ierr = col.getValuesArray(vals);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose > 1)
@@ -4308,7 +4308,7 @@ long ibis::part::packCumulativeDistribution
 
 // explicit instantiation
 template long ibis::part::adaptiveFloats
-(const array_t<char> &, const char, const char, uint32_t,
+(const array_t<signed char> &, const signed char, const signed char, uint32_t,
  std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptiveFloats
 (const array_t<unsigned char> &, const unsigned char, const unsigned char,

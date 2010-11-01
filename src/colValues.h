@@ -273,7 +273,7 @@ private:
     colUInts& operator=(const colUInts&);
 }; // ibis::colUInts
 
-/// A class to store integer values.
+/// A class to store signed 64-bit integer values.
 class FASTBIT_CXX_DLLSPEC ibis::colLongs : public ibis::colValues {
 public:
     colLongs() : colValues(), array(0) {};
@@ -287,7 +287,7 @@ public:
 
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
-    virtual uint32_t elementSize() const {return sizeof(int);}
+    virtual uint32_t elementSize() const {return sizeof(int64_t);}
     virtual ibis::TYPE_T getType() const {return ibis::LONG;}
     virtual void* getArray() const {return array;}
     virtual void nosharing() {array->nosharing();}
@@ -310,7 +310,7 @@ public:
     virtual uint32_t write(FILE* fptr) const {
 	if (array) {
 	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(int), nelm, fptr);
+	    return nelm - fwrite(array->begin(), sizeof(int64_t), nelm, fptr);
 	}
 	else {
 	    return 0;
@@ -352,7 +352,7 @@ private:
     colLongs& operator=(const colLongs&);
 }; // ibis::colLongs
 
-/// A class to store unsigned integer values.
+/// A class to store unsigned 64-bit integer values.
 class FASTBIT_CXX_DLLSPEC ibis::colULongs : public ibis::colValues {
 public:
     colULongs() : colValues(), array(0) {};
@@ -366,7 +366,7 @@ public:
 
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
-    virtual uint32_t elementSize() const {return sizeof(unsigned);}
+    virtual uint32_t elementSize() const {return sizeof(uint64_t);}
     virtual ibis::TYPE_T getType() const {return ibis::ULONG;}
     virtual void* getArray() const {return array;}
     virtual void nosharing() {array->nosharing();}
@@ -389,7 +389,7 @@ public:
     virtual uint32_t write(FILE* fptr) const {
 	if (array) {
 	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(unsigned), nelm, fptr);
+	    return nelm - fwrite(array->begin(), sizeof(uint64_t), nelm, fptr);
 	}
 	else {
 	    return 0;
@@ -443,6 +443,324 @@ private:
     colULongs(const colULongs&);
     colULongs& operator=(const colULongs&);
 }; // ibis::colULongs
+
+/// A class to store short integer values.
+class FASTBIT_CXX_DLLSPEC ibis::colShorts : public ibis::colValues {
+public:
+    colShorts() : colValues(), array(0) {};
+    colShorts(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectShorts(hits)) {}
+    colShorts(const ibis::column* c, ibis::fileManager::storage* store,
+	      const uint32_t start, const uint32_t nelm)
+	: colValues(c), array(new array_t<int16_t>(store, start, nelm)) {}
+    colShorts(const ibis::column* c, void* vals);
+    virtual ~colShorts() {delete array;}
+
+    virtual bool   empty() const {return (col==0 || array==0);}
+    virtual uint32_t size() const {return (array ? array->size() : 0);}
+    virtual uint32_t elementSize() const {return sizeof(int16_t);}
+    virtual ibis::TYPE_T getType() const {return ibis::SHORT;}
+    virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
+
+    virtual void   reduce(const array_t<uint32_t>& starts);
+    virtual void   reduce(const array_t<uint32_t>& starts,
+			  ibis::selectClause::AGREGADO func);
+    virtual void   erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void   swap(uint32_t i, uint32_t j) {
+	int16_t tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
+	(*array)[j] = tmp;}
+
+    void swap(colShorts& rhs) { // swap two colShorts
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	array_t<int16_t>* a = rhs.array; rhs.array = array; array = a;}
+
+    // write out whole array as binary
+    virtual uint32_t write(FILE* fptr) const {
+	if (array) {
+	    uint32_t nelm = array->size();
+	    return nelm - fwrite(array->begin(), sizeof(int16_t), nelm, fptr);
+	}
+	else {
+	    return 0;
+	}
+    }
+    // write ith element as text
+    virtual void write(std::ostream& out, uint32_t i) const
+    {out << (*array)[i];}
+
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
+		      colList::iterator head, colList::iterator tail);
+    virtual void sort(uint32_t i, uint32_t j,
+		      array_t<uint32_t>& neworder) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>* old=0) const;
+    virtual void reorder(const array_t<uint32_t>& ind)
+    {ibis::util::reorder(*array, ind);}
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->topk(k, ind);}
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->bottomk(k, ind);}
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
+
+    virtual double getMin() const;
+    virtual double getMax() const;
+    virtual double getSum() const;
+    virtual int32_t getInt(uint32_t i) const {return (int32_t)(*array)[i];}
+    virtual uint32_t getUInt(uint32_t i) const {return (uint32_t)(*array)[i];}
+    virtual int64_t getLong(uint32_t i) const {return (*array)[i];}
+    virtual uint64_t getULong(uint32_t i) const {return (uint64_t)(*array)[i];}
+    virtual float getFloat(uint32_t i) const {return (float)(*array)[i];};
+    virtual double getDouble(uint32_t i) const {return (double)(*array)[i];};
+
+private:
+    array_t<int16_t>* array;
+
+    colShorts(const colShorts&);
+    colShorts& operator=(const colShorts&);
+}; // ibis::colShorts
+
+/// A class to store unsigned short integer values.
+class FASTBIT_CXX_DLLSPEC ibis::colUShorts : public ibis::colValues {
+public:
+    colUShorts() : colValues(), array(0) {};
+    colUShorts(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectUShorts(hits)) {}
+    colUShorts(const ibis::column* c, ibis::fileManager::storage* store,
+	    const uint32_t start, const uint32_t nelm)
+	: colValues(c), array(new array_t<uint16_t>(store, start, nelm)) {}
+    colUShorts(const ibis::column* c, void* vals);
+    virtual ~colUShorts() {delete array;}
+
+    virtual bool   empty() const {return (col==0 || array==0);}
+    virtual uint32_t size() const {return (array ? array->size() : 0);}
+    virtual uint32_t elementSize() const {return sizeof(uint16_t);}
+    virtual ibis::TYPE_T getType() const {return ibis::USHORT;}
+    virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
+
+    virtual void   erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void   swap(uint32_t i, uint32_t j) {
+	uint16_t tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
+	(*array)[j] = tmp;}
+
+    virtual void   reduce(const array_t<uint32_t>& starts);
+    virtual void   reduce(const array_t<uint32_t>& starts,
+			  ibis::selectClause::AGREGADO func);
+    void swap(colUShorts& rhs) { // swap two colUShorts
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	array_t<uint16_t>* a = rhs.array; rhs.array = array; array = a;}
+
+    /// Write out the whole array as binary.
+    virtual uint32_t write(FILE* fptr) const {
+	if (array) {
+	    uint32_t nelm = array->size();
+	    return nelm - fwrite(array->begin(), sizeof(uint16_t), nelm, fptr);
+	}
+	else {
+	    return 0;
+	}
+    }
+    /// Write the ith element as text.
+    virtual void write(std::ostream& out, uint32_t i) const {
+	out << (*array)[i];
+    }
+
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
+		      colList::iterator head, colList::iterator tail);
+    virtual void sort(uint32_t i, uint32_t j,
+		      array_t<uint32_t>& neworder) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>* old=0) const;
+    virtual void reorder(const array_t<uint32_t>& ind)
+    {ibis::util::reorder(*array, ind);}
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->topk(k, ind);}
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->bottomk(k, ind);}
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
+
+    virtual double getMin() const;
+    virtual double getMax() const;
+    virtual double getSum() const;
+    virtual int32_t getInt(uint32_t i) const {return (int32_t)(*array)[i];}
+    virtual uint32_t getUInt(uint32_t i) const {return (uint32_t)(*array)[i];}
+    virtual int64_t getLong(uint32_t i) const {return (int64_t)(*array)[i];}
+    virtual uint64_t getULong(uint32_t i) const {return (*array)[i];}
+    virtual float getFloat(uint32_t i) const {return (float)(*array)[i];};
+    virtual double getDouble(uint32_t i) const {return (double)(*array)[i];};
+
+private:
+    array_t<uint16_t>* array;
+
+    colUShorts(const colUShorts&);
+    colUShorts& operator=(const colUShorts&);
+}; // ibis::colUShorts
+
+/// A class to store signed 8-bit integer values.
+class FASTBIT_CXX_DLLSPEC ibis::colBytes : public ibis::colValues {
+public:
+    colBytes() : colValues(), array(0) {};
+    colBytes(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectBytes(hits)) {}
+    colBytes(const ibis::column* c, ibis::fileManager::storage* store,
+	    const uint32_t start, const uint32_t nelm)
+	: colValues(c), array(new array_t<signed char>(store, start, nelm)) {}
+    colBytes(const ibis::column* c, void* vals);
+    virtual ~colBytes() {delete array;}
+
+    virtual bool   empty() const {return (col==0 || array==0);}
+    virtual uint32_t size() const {return (array ? array->size() : 0);}
+    virtual uint32_t elementSize() const {return sizeof(char);}
+    virtual ibis::TYPE_T getType() const {return ibis::BYTE;}
+    virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
+
+    virtual void   reduce(const array_t<uint32_t>& starts);
+    virtual void   reduce(const array_t<uint32_t>& starts,
+			  ibis::selectClause::AGREGADO func);
+    virtual void   erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void   swap(uint32_t i, uint32_t j) {
+	signed char tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
+	(*array)[j] = tmp;}
+
+    void swap(colBytes& rhs) { // swap two colBytes
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	array_t<signed char>* a = rhs.array; rhs.array = array; array = a;}
+
+    // write out whole array as binary
+    virtual uint32_t write(FILE* fptr) const {
+	if (array) {
+	    uint32_t nelm = array->size();
+	    return nelm - fwrite(array->begin(), sizeof(char), nelm, fptr);
+	}
+	else {
+	    return 0;
+	}
+    }
+    // write ith element as text
+    virtual void write(std::ostream& out, uint32_t i) const
+    {out << (int16_t)(*array)[i];}
+
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
+		      colList::iterator head, colList::iterator tail);
+    virtual void sort(uint32_t i, uint32_t j,
+		      array_t<uint32_t>& neworder) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>* old=0) const;
+    virtual void reorder(const array_t<uint32_t>& ind)
+    {ibis::util::reorder(*array, ind);}
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->topk(k, ind);}
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->bottomk(k, ind);}
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
+
+    virtual double getMin() const;
+    virtual double getMax() const;
+    virtual double getSum() const;
+    virtual int32_t getInt(uint32_t i) const {return (int32_t)(*array)[i];}
+    virtual uint32_t getUInt(uint32_t i) const {return (uint32_t)(*array)[i];}
+    virtual int64_t getLong(uint32_t i) const {return (*array)[i];}
+    virtual uint64_t getULong(uint32_t i) const {return (uint64_t)(*array)[i];}
+    virtual float getFloat(uint32_t i) const {return (float)(*array)[i];};
+    virtual double getDouble(uint32_t i) const {return (double)(*array)[i];};
+
+private:
+    array_t<signed char>* array;
+
+    colBytes(const colBytes&);
+    colBytes& operator=(const colBytes&);
+}; // ibis::colBytes
+
+/// A class to store unsigned 64-bit integer values.
+class FASTBIT_CXX_DLLSPEC ibis::colUBytes : public ibis::colValues {
+public:
+    colUBytes() : colValues(), array(0) {};
+    colUBytes(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectUBytes(hits)) {}
+    colUBytes(const ibis::column* c, ibis::fileManager::storage* store,
+	    const uint32_t start, const uint32_t nelm)
+	: colValues(c), array(new array_t<unsigned char>(store, start, nelm)) {}
+    colUBytes(const ibis::column* c, void* vals);
+    virtual ~colUBytes() {delete array;}
+
+    virtual bool   empty() const {return (col==0 || array==0);}
+    virtual uint32_t size() const {return (array ? array->size() : 0);}
+    virtual uint32_t elementSize() const {return sizeof(char);}
+    virtual ibis::TYPE_T getType() const {return ibis::UBYTE;}
+    virtual void* getArray() const {return array;}
+    virtual void nosharing() {array->nosharing();}
+
+    virtual void   erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void   swap(uint32_t i, uint32_t j) {
+	unsigned char tmp = (*array)[i];
+	(*array)[i] = (*array)[j];
+	(*array)[j] = tmp;}
+
+    virtual void   reduce(const array_t<uint32_t>& starts);
+    virtual void   reduce(const array_t<uint32_t>& starts,
+			  ibis::selectClause::AGREGADO func);
+    void swap(colUBytes& rhs) { // swap two colUBytes
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	array_t<unsigned char>* a = rhs.array; rhs.array = array; array = a;}
+
+    /// Write out the whole array as binary.
+    virtual uint32_t write(FILE* fptr) const {
+	if (array) {
+	    uint32_t nelm = array->size();
+	    return nelm - fwrite(array->begin(), sizeof(char), nelm, fptr);
+	}
+	else {
+	    return 0;
+	}
+    }
+    /// Write the ith element as text.
+    virtual void write(std::ostream& out, uint32_t i) const {
+	out << (uint16_t)(*array)[i];
+    }
+
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
+    virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
+		      colList::iterator head, colList::iterator tail);
+    virtual void sort(uint32_t i, uint32_t j,
+		      array_t<uint32_t>& neworder) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>* old=0) const;
+    virtual void reorder(const array_t<uint32_t>& ind)
+    {ibis::util::reorder(*array, ind);}
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->topk(k, ind);}
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const
+    {array->bottomk(k, ind);}
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
+
+    virtual double getMin() const;
+    virtual double getMax() const;
+    virtual double getSum() const;
+    virtual int32_t getInt(uint32_t i) const {return (int32_t)(*array)[i];}
+    virtual uint32_t getUInt(uint32_t i) const {return (uint32_t)(*array)[i];}
+    virtual int64_t getLong(uint32_t i) const {return (int64_t)(*array)[i];}
+    virtual uint64_t getULong(uint32_t i) const {return (*array)[i];}
+    virtual float getFloat(uint32_t i) const {return (float)(*array)[i];};
+    virtual double getDouble(uint32_t i) const {return (double)(*array)[i];};
+
+private:
+    array_t<unsigned char>* array;
+
+    colUBytes(const colUBytes&);
+    colUBytes& operator=(const colUBytes&);
+}; // ibis::colUBytes
 
 /// A class to store single precision float-point values.
 class FASTBIT_CXX_DLLSPEC ibis::colFloats : public ibis::colValues {
@@ -633,7 +951,7 @@ public:
     virtual uint32_t write(FILE* fptr) const;
     // write ith element as text
     virtual void write(std::ostream& out, uint32_t i) const {
-	out << (*array)[i];}
+	out << '"' << (*array)[i] << '"';}
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,

@@ -62,6 +62,8 @@ namespace ibis {
 	template <typename T>
 	void sort_radix(array_t<char>& keys, array_t<T>& vals);
 	template <typename T>
+	void sort_radix(array_t<signed char>& keys, array_t<T>& vals);
+	template <typename T>
 	void sort_radix(array_t<unsigned char>& keys, array_t<T>& vals);
 	template <typename T>
 	void sort_radix(array_t<uint16_t>& keys, array_t<T>& vals);
@@ -295,7 +297,7 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 		     (1 << ibis::gVerbose) : nvals);
     ibis::util::logger lg(4);
     lg() << "util::sortAll(arr1[" << arr1.size()
-		<< "], arr2[" << arr2.size() << "]) completed ";
+	 << "], arr2[" << arr2.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -303,7 +305,7 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\narr1[" << j << "]=" << arr1[j] << ", arr2[" << j
-			<< "]=" << arr2[j];
+		 << "]=" << arr2[j];
 	if (iprt < nvals)
 	    lg() << "\n... " << nvals-iprt << " ommitted\n";
     }
@@ -366,7 +368,7 @@ void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
 		     (1 << ibis::gVerbose) : nvals);
     ibis::util::logger lg(4);
     lg() << "util::sortAll_shell(arr1[" << arr1.size()
-		<< "], arr2[" << arr2.size() << "]) completed ";
+	 << "], arr2[" << arr2.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -374,7 +376,7 @@ void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\narr1[" << j << "]=" << arr1[j] << ", arr2[" << j
-			<< "]=" << arr2[j];
+		 << "]=" << arr2[j];
 	if (iprt < nvals)
 	    lg() << "\n... " << nvals-iprt << " ommitted\n";
     }
@@ -467,8 +469,8 @@ uint32_t ibis::util::sortAll_split(array_t<T1>& arr1, array_t<T2>& arr2) {
 		     (1 << ibis::gVerbose) : nvals);
     ibis::util::logger lg(4);
     lg() << "util::sortAll_split(arr1[" << arr1.size()
-		<< "], arr2[" << arr2.size() << "]) completed with i0 = "
-		<< i0 << " and i1 = " << i1 << ", pivot = (";
+	 << "], arr2[" << arr2.size() << "]) completed with i0 = "
+	 << i0 << " and i1 = " << i1 << ", pivot = (";
     if (sizeof(T1) > 1)
 	lg() << pivot1;
     else
@@ -497,7 +499,7 @@ uint32_t ibis::util::sortAll_split(array_t<T1>& arr1, array_t<T2>& arr2) {
     if (j1 < i0)
 	lg() << " ... (" << i0 - j1 << " ommitted)";
     lg() << "\npartition 2, # elements = "
-		<< nvals - i0 << ": ";
+	 << nvals - i0 << ": ";
     j1 = (i0+iprt < nvals ? i0+iprt : nvals);
     for (uint32_t j0 = i0; j0 < j1; ++ j0) {
 	lg() << " (";
@@ -611,7 +613,7 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_quick(keys[" << keys.size() << "], vals["
-		<< vals.size() << "]) completed ";
+	 << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << " successfully";
     }
@@ -619,7 +621,7 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	lg() << " with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -661,7 +663,7 @@ void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_quick3(keys[" << keys.size() << "], vals["
-		<< vals.size() << "]) completed";
+	 << vals.size() << "]) completed";
     if (sorted) {
 	lg() << " successfully";
     }
@@ -669,7 +671,7 @@ void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
 	lg() << " with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -735,7 +737,7 @@ void ibis::util::sort_heap(array_t<T1>& keys, array_t<T2>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_heap(keys[" << keys.size() << "], vals["
-		<< vals.size() << "]) completed";
+	 << vals.size() << "]) completed";
     if (sorted) {
 	lg() << " successfully";
     }
@@ -743,7 +745,7 @@ void ibis::util::sort_heap(array_t<T1>& keys, array_t<T2>& vals) {
 	lg() << " with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -826,15 +828,15 @@ uint32_t ibis::util::sort_partition(array_t<T1>& keys, array_t<T2>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_partition(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed with i0 = "
-		<< i0 << " and i1 = " << i1;
+	 << "], vals[" << vals.size() << "]) completed with i0 = "
+	 << i0 << " and i1 = " << i1;
     lg() << "\npartition 1 (<  ";
     if (sizeof(T1) > 1)
 	lg() << *pivot;
     else
 	lg() << (int)*pivot;
     lg() << ") # elements = "
-		<< i0 << ": ";
+	 << i0 << ": ";
     uint32_t j1 = (iprt <= i0 ? iprt : i0);
     if (sizeof(T1) > 1) {
 	for (uint32_t j0 = 0; j0 < j1; ++ j0)
@@ -1001,9 +1003,9 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 
     ibis::util::logger lg(4);
     lg() << (cnt1+cnt2+cnt3>0 ? "Warning -- " : "")
-		<< "util::sort_partition3(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed with starteq = "
-		<< starteq << " and startgt = " << startgt;
+	 << "util::sort_partition3(keys[" << keys.size()
+	 << "], vals[" << vals.size() << "]) completed with starteq = "
+	 << starteq << " and startgt = " << startgt;
     lg() << "\npartition 1 ( < ";
     if (sizeof(T1) > 1)
 	lg() << *pivot;
@@ -1027,7 +1029,7 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
     else
 	lg() << (int)*pivot;
     lg() << ", cnt2 = " << cnt2 << ") # elements = "
-		<< startgt - starteq << ": ";
+	 << startgt - starteq << ": ";
     j1 = (starteq+iprt <= startgt ? starteq+iprt  : startgt);
     if (sizeof(T1) > 1) {
 	for (j0 = starteq; j0 < j1; ++ j0)
@@ -1045,7 +1047,7 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
     else
 	lg() << (int) *pivot;
     lg() << ", cnt3 = " << cnt3 << ") # elements = "
-		<< nelm - startgt << ": ";
+	 << nelm - startgt << ": ";
     j1 = (startgt+iprt < nelm ? startgt+iprt : nelm);
     if (sizeof(T1) > 1) {
 	for (j0 = startgt; j0 < j1; ++ j0)
@@ -1112,7 +1114,7 @@ void ibis::util::sort_shell(array_t<T1>& keys, array_t<T2>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_shell(keys[" << keys.size() << "], vals["
-		<< vals.size() << "]) completed ";
+	 << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1120,7 +1122,7 @@ void ibis::util::sort_shell(array_t<T1>& keys, array_t<T2>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1171,7 +1173,7 @@ void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_insertion(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1179,7 +1181,7 @@ void ibis::util::sort_insertion(array_t<T1>& keys, array_t<T2>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1261,8 +1263,8 @@ void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 			   (1 << ibis::gVerbose) : (end-begin));
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_quick(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", " << end
-		<< ") completed ";
+	 << "], vals[" << vals.size() << "], " << begin << ", " << end
+	 << ") completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1270,7 +1272,7 @@ void ibis::util::sortStrings_quick(std::vector<std::string>& keys,
 	lg() << "with errors";
 	for (unsigned j = begin; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < end)
 	    lg() << "\n... " << end-iprt << " ommitted\n";
     }
@@ -1325,8 +1327,8 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_shell(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", "
-		<< end << ") completed ";
+	 << "], vals[" << vals.size() << "], " << begin << ", "
+	 << end << ") completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1334,7 +1336,7 @@ void ibis::util::sortStrings_shell(std::vector<std::string>& keys,
 	lg() << "with errors";
 	for (unsigned j = begin; j < begin+iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1423,9 +1425,9 @@ ibis::util::sortStrings_partition(std::vector<std::string>& keys,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_partition(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", "
-		<< end << ") completed with i0 = " << i0 << " and i1 = " << i1
-		<< ", pivot = \"" << pivot << "\"";
+	 << "], vals[" << vals.size() << "], " << begin << ", "
+	 << end << ") completed with i0 = " << i0 << " and i1 = " << i1
+	 << ", pivot = \"" << pivot << "\"";
     lg() << "\npartition 1, # elements = " << i0 << ": ";
     uint32_t j1 = (begin+iprt <= i0 ? begin+iprt : i0);
     for (uint32_t j0 = begin; j0 < j1; ++ j0)
@@ -1496,8 +1498,8 @@ void ibis::util::sortStrings_quick(ibis::array_t<const char*>& keys,
 			   (1 << ibis::gVerbose) : (end-begin));
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_quick(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", " << end
-		<< ") completed ";
+	 << "], vals[" << vals.size() << "], " << begin << ", " << end
+	 << ") completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1505,7 +1507,7 @@ void ibis::util::sortStrings_quick(ibis::array_t<const char*>& keys,
 	lg() << "with errors";
 	for (unsigned j = begin; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < end)
 	    lg() << "\n... " << end-iprt << " ommitted\n";
     }
@@ -1564,8 +1566,8 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*>& keys,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_shell(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", "
-		<< end << ") completed ";
+	 << "], vals[" << vals.size() << "], " << begin << ", "
+	 << end << ") completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1573,7 +1575,7 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*>& keys,
 	lg() << "with errors";
 	for (unsigned j = begin; j < begin+iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1672,9 +1674,9 @@ ibis::util::sortStrings_partition(ibis::array_t<const char*>& keys,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sortStrings_partition(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "], " << begin << ", "
-		<< end << ") completed with i0 = " << i0 << " and i1 = " << i1
-		<< ", pivot = \"" << pivot << "\"";
+	 << "], vals[" << vals.size() << "], " << begin << ", "
+	 << end << ") completed with i0 = " << i0 << " and i1 = " << i1
+	 << ", pivot = \"" << pivot << "\"";
     lg() << "\npartition 1, # elements = " << i0 << ": ";
     uint32_t j1 = (begin+iprt <= i0 ? begin+iprt : i0);
     for (uint32_t j0 = begin; j0 < j1; ++ j0)
@@ -1736,7 +1738,7 @@ void ibis::util::sort_radix(array_t<char>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1744,7 +1746,67 @@ void ibis::util::sort_radix(array_t<char>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << std::hex << keys[j]
-			<< std::dec << ", vals[" << j << "]=" << vals[j];
+		 << std::dec << ", vals[" << j << "]=" << vals[j];
+	if (iprt < nelm)
+	    lg() << "\n... " << nelm-iprt << " ommitted\n";
+    }
+#endif
+} // ibis::util::sort_radix
+
+template <typename T>
+void ibis::util::sort_radix(array_t<signed char>& keys, array_t<T>& vals) {
+    const uint32_t nelm = (keys.size() <= vals.size() ?
+			   keys.size() : vals.size());
+    array_t<uint32_t> offsets(256, 0);
+    bool sorted = true;
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	++ offsets[keys[j]+128];
+	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+    }
+    if (sorted) return;
+
+    uint32_t maxv = offsets[0];
+    uint32_t prev = offsets[0];
+    offsets[0] = 0;
+    for (uint32_t j = 1; j < 256; ++ j) {
+	const uint32_t cnt = offsets[j];
+	offsets[j] = prev;
+	prev += cnt;
+	if (maxv < cnt) maxv = cnt;
+    }
+    if (maxv < nelm) {
+	array_t<signed char> ktmp(nelm);
+	array_t<T> vtmp(nelm);
+	for (uint32_t j = 0; j < nelm; ++ j) {
+	    ktmp[offsets[keys[j]+128]] = keys[j];
+	    vtmp[offsets[keys[j]+128]] = vals[j];
+	    ++ offsets[keys[j]+128];
+	}
+	keys.swap(ktmp);
+	vals.swap(vtmp);
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    sorted = true;
+    for (uint32_t j = 1; j < nelm; ++ j) {
+	if (keys[j-1] > keys[j]) {
+	    sorted = false;
+	    break;
+	}
+    }
+
+    uint32_t iprt = ((nelm >> ibis::gVerbose) > 0 ?
+		     (1 << ibis::gVerbose) : nelm);
+    ibis::util::logger lg(4);
+    lg() << "util::sort_radix(keys[" << keys.size()
+	 << "], vals[" << vals.size() << "]) completed ";
+    if (sorted) {
+	lg() << "successfully";
+    }
+    else {
+	lg() << "with errors";
+	for (unsigned j = 0; j < iprt; ++ j)
+	    lg() << "\nkeys[" << j << "]=" << std::hex << keys[j]
+		 << std::dec << ", vals[" << j << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1798,7 +1860,7 @@ void ibis::util::sort_radix(array_t<unsigned char>& keys,
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1806,7 +1868,7 @@ void ibis::util::sort_radix(array_t<unsigned char>& keys,
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << std::hex << keys[j]
-			<< std::dec << ", vals[" << j << "]=" << vals[j];
+		 << std::dec << ", vals[" << j << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1889,7 +1951,7 @@ void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1897,7 +1959,7 @@ void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -1980,7 +2042,7 @@ void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -1988,7 +2050,7 @@ void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2102,7 +2164,7 @@ void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2110,7 +2172,7 @@ void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2224,7 +2286,7 @@ void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2232,7 +2294,7 @@ void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2426,7 +2488,7 @@ void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2434,7 +2496,7 @@ void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2628,7 +2690,7 @@ void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2636,7 +2698,7 @@ void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2762,7 +2824,7 @@ void ibis::util::sort_radix(array_t<float>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2770,8 +2832,8 @@ void ibis::util::sort_radix(array_t<float>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << "("
-			<< std::hex << ikeys[j] << std::dec << ")"
-			<< ", vals[" << j << "]=" << vals[j];
+		 << std::hex << ikeys[j] << std::dec << ")"
+		 << ", vals[" << j << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -2986,7 +3048,7 @@ void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
 		     (1 << ibis::gVerbose) : nelm);
     ibis::util::logger lg(4);
     lg() << "util::sort_radix(keys[" << keys.size()
-		<< "], vals[" << vals.size() << "]) completed ";
+	 << "], vals[" << vals.size() << "]) completed ";
     if (sorted) {
 	lg() << "successfully";
     }
@@ -2994,7 +3056,7 @@ void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
 	lg() << "with errors";
 	for (unsigned j = 0; j < iprt; ++ j)
 	    lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j
-			<< "]=" << vals[j];
+		 << "]=" << vals[j];
 	if (iprt < nelm)
 	    lg() << "\n... " << nelm-iprt << " ommitted\n";
     }
@@ -3167,8 +3229,8 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
 
 // explicit template instantiations
 template int64_t
-ibis::util::sortMerge<char>(array_t<char>&, array_t<uint32_t>&,
-			    array_t<char>&, array_t<uint32_t>&);
+ibis::util::sortMerge<signed char>(array_t<signed char>&, array_t<uint32_t>&,
+				   array_t<signed char>&, array_t<uint32_t>&);
 template int64_t
 ibis::util::sortMerge<unsigned char>
 (array_t<unsigned char>&, array_t<uint32_t>&,
@@ -3198,9 +3260,9 @@ template int64_t
 ibis::util::sortMerge<double>(array_t<double>&, array_t<uint32_t>&,
 			      array_t<double>&, array_t<uint32_t>&);
 template int64_t
-ibis::util::sortMerge<char>(array_t<char>&, array_t<uint32_t>&,
-			    array_t<char>&, array_t<uint32_t>&,
-			    double, double);
+ibis::util::sortMerge<signed char>(array_t<signed char>&, array_t<uint32_t>&,
+				   array_t<signed char>&, array_t<uint32_t>&,
+				   double, double);
 template int64_t
 ibis::util::sortMerge<unsigned char>
 (array_t<unsigned char>&, array_t<uint32_t>&,
@@ -3246,7 +3308,8 @@ template void
 ibis::util::reorder<unsigned char>(array_t<unsigned char>&,
 				   const array_t<uint32_t>&);
 template void
-ibis::util::reorder<char>(array_t<char>&, const array_t<uint32_t>&);
+ibis::util::reorder<char>(array_t<char>&,
+			  const array_t<uint32_t>&);
 template void
 ibis::util::reorder<int16_t>(array_t<int16_t>&, const array_t<uint32_t>&);
 template void
@@ -3345,7 +3408,7 @@ template void
 ibis::util::sortAll<double, double>(array_t<double>&, array_t<double>&);
 
 template void
-ibis::util::sort_quick3(array_t<char>&, array_t<uint32_t>&);
+ibis::util::sort_quick3(array_t<signed char>&, array_t<uint32_t>&);
 template void
 ibis::util::sort_quick3(array_t<unsigned char>&, array_t<uint32_t>&);
 template void
@@ -3366,7 +3429,7 @@ template void
 ibis::util::sort_quick3(array_t<double>&, array_t<uint32_t>&);
 
 template void
-ibis::util::sort_shell(array_t<char>&, array_t<uint32_t>&);
+ibis::util::sort_shell(array_t<signed char>&, array_t<uint32_t>&);
 template void
 ibis::util::sort_shell(array_t<unsigned char>&, array_t<uint32_t>&);
 template void
@@ -3387,7 +3450,7 @@ template void
 ibis::util::sort_shell(array_t<double>&, array_t<uint32_t>&);
 
 template void
-ibis::util::sort_insertion(array_t<char>&, array_t<uint32_t>&);
+ibis::util::sort_insertion(array_t<signed char>&, array_t<uint32_t>&);
 template void
 ibis::util::sort_insertion(array_t<unsigned char>&, array_t<uint32_t>&);
 template void
@@ -3410,6 +3473,8 @@ ibis::util::sort_insertion(array_t<double>&, array_t<uint32_t>&);
 template void
 ibis::util::sortKeys(array_t<char>&, array_t<uint32_t>&);
 template void
+ibis::util::sortKeys(array_t<signed char>&, array_t<uint32_t>&);
+template void
 ibis::util::sortKeys(array_t<unsigned char>&, array_t<uint32_t>&);
 template void
 ibis::util::sortKeys(array_t<int16_t>&, array_t<uint32_t>&);
@@ -3429,7 +3494,7 @@ template void
 ibis::util::sortKeys(array_t<double>&, array_t<uint32_t>&);
 
 template void
-ibis::util::sortKeys(array_t<char>&, array_t<ibis::rid_t>&);
+ibis::util::sortKeys(array_t<signed char>&, array_t<ibis::rid_t>&);
 template void
 ibis::util::sortKeys(array_t<unsigned char>&, array_t<ibis::rid_t>&);
 template void

@@ -1348,11 +1348,11 @@ ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
 /// An implicit casting will be performed if possible.  A null pointer will
 /// be returned if the underlying values can not be safely cast into 32-bit
 /// integers.
-ibis::array_t<char>*
+ibis::array_t<signed char>*
 ibis::query::getQualifiedBytes(const char* colname) {
     if (state != FULL_EVALUATE || dstime != mypart->timestamp())
 	evaluate();
-    ibis::array_t<char>* res = 0;
+    ibis::array_t<signed char>* res = 0;
     if (dstime == mypart->timestamp() && hits != 0) {
 	readLock lck0(this, "getQualifiedBytes");
 	res = mypart->selectBytes(colname, *hits);

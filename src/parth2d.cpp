@@ -1128,9 +1128,9 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
     switch (col2.type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val2;
+	array_t<signed char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<char>;
+	    val2 = new array_t<signed char>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
 		delete val2;
@@ -1405,9 +1405,9 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     switch (col1->type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val1;
+	array_t<signed char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<char>;
+	    val1 = new array_t<signed char>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
 		delete val1;
@@ -1729,9 +1729,9 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
     switch (col2.type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val2;
+	array_t<signed char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<char>;
+	    val2 = new array_t<signed char>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
 		delete val2;
@@ -1998,9 +1998,9 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     switch (col1->type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val1;
+	array_t<signed char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<char>;
+	    val1 = new array_t<signed char>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
 		delete val1;
@@ -2336,9 +2336,9 @@ ibis::part::fill2DBinsWeighted2(const ibis::bitvector &mask,
     switch (col2.type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val2;
+	array_t<signed char>* val2;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val2 = new array_t<char>;
+	    val2 = new array_t<signed char>;
 	    ierr = col2.getValuesArray(val2);
 	    if (ierr < 0) {
 		delete val2;
@@ -2632,9 +2632,9 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     switch (col1->type()) {
 #ifdef FASTBIT_EXPAND_ALL_TYPES
     case ibis::BYTE: {
-	array_t<char>* val1;
+	array_t<signed char>* val1;
 	if (mask.cnt() > (nEvents >> 4)) {
-	    val1 = new array_t<char>;
+	    val1 = new array_t<signed char>;
 	    ierr = col1->getValuesArray(val1);
 	    if (ierr < 0) {
 		delete val1;
@@ -6468,37 +6468,37 @@ ibis::part::getJointDistribution(const char *constraints,
 
 // explicit instantiation
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<unsigned char> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<unsigned char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<int16_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<int16_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<uint16_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<uint16_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<int32_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<int32_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<uint32_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<uint32_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<int64_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<int64_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<uint64_t> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<uint64_t> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<float> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<float> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<char> &, const array_t<double> &, uint32_t, uint32_t,
+(const array_t<signed char> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<unsigned char> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<unsigned char> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<unsigned char> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6528,7 +6528,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<unsigned char> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<int16_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<int16_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<int16_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6558,7 +6558,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<int16_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<uint16_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<uint16_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<uint16_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6588,7 +6588,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<uint16_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<int32_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<int32_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<int32_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6618,7 +6618,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<int32_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<uint32_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<uint32_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<uint32_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6648,7 +6648,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<uint32_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<int64_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<int64_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<int64_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6678,7 +6678,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<int64_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<uint64_t> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<uint64_t> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<uint64_t> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6708,7 +6708,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<uint64_t> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<float> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<float> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<float> &, const array_t<unsigned char> &, uint32_t, uint32_t,
@@ -6738,7 +6738,7 @@ template long ibis::part::adaptive2DBins
 (const array_t<float> &, const array_t<double> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
-(const array_t<double> &, const array_t<char> &, uint32_t, uint32_t,
+(const array_t<double> &, const array_t<signed char> &, uint32_t, uint32_t,
  std::vector<double> &, std::vector<double> &, std::vector<uint32_t> &);
 template long ibis::part::adaptive2DBins
 (const array_t<double> &, const array_t<unsigned char> &, uint32_t, uint32_t,

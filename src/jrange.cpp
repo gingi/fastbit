@@ -144,10 +144,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<char>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<char>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<signed char>*>(valr_), *orderr_,
+	     *static_cast<array_t<signed char>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::UBYTE: {
 	valr_ = colr_.selectUBytes(maskr_);
@@ -189,10 +189,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<int16_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<int16_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<int16_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<int16_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::USHORT: {
 	valr_ = colr_.selectUShorts(maskr_);
@@ -211,10 +211,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<uint16_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<uint16_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<uint16_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<uint16_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::INT: {
 	valr_ = colr_.selectInts(maskr_);
@@ -233,10 +233,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<int32_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<int32_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<int32_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<int32_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::UINT: {
 	valr_ = colr_.selectUInts(maskr_);
@@ -255,10 +255,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<uint32_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<uint32_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<uint32_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<uint32_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::LONG: {
 	valr_ = colr_.selectLongs(maskr_);
@@ -277,10 +277,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<int64_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<int64_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<int64_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<int64_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::ULONG: {
 	valr_ = colr_.selectULongs(maskr_);
@@ -299,10 +299,10 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<uint64_t>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<uint64_t>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<uint64_t>*>(valr_), *orderr_,
+	     *static_cast<array_t<uint64_t>*>(vals_), *orders_,
+	     delta1_, delta2_);
 	break;}
     case ibis::FLOAT: {
 	valr_ = colr_.selectFloats(maskr_);
@@ -321,10 +321,9 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<float>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<float>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<float>*>(valr_), *orderr_,
+	     *static_cast<array_t<float>*>(vals_), *orders_, delta1_, delta2_);
 	break;}
     case ibis::DOUBLE: {
 	valr_ = colr_.selectDoubles(maskr_);
@@ -343,10 +342,9 @@ int64_t ibis::jRange::count() const {
 		<< masks_.cnt() << ") failed";
 	    return -4;
 	}
-	nrows = ibis::util::sortMerge(*static_cast<array_t<double>*>(valr_),
-				      *orderr_,
-				      *static_cast<array_t<double>*>(vals_),
-				      *orders_, delta1_, delta2_);
+	nrows = ibis::util::sortMerge
+	    (*static_cast<array_t<double>*>(valr_), *orderr_,
+	     *static_cast<array_t<double>*>(vals_), *orders_, delta1_, delta2_);
 	break;}
     }
     LOGGER(ibis::gVerbose > 2)
