@@ -1,4 +1,4 @@
-UTOMAKE_OPTIONS=gnu
+AUTOMAKE_OPTIONS=gnu
 EXTRA_PROGRAMS = readcsv smatch inRange setqgen
 check_SCRIPTS = scripts/matchCounts.pl
 readcsv_SOURCES = readcsv.cpp
@@ -90,8 +90,10 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/
 check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0/ -b -v -v > $(TESTDIR)/check-text.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where -5 < c < 10" -o $(TESTDIR)/t0-0 >> $(TESTDIR)/check-text.log 2>&1
+	@perl -pi -e 's/\"//g' $(TESTDIR)/t0-0
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-0 | wc -l` -le 2 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where c between 10 and 20" -o $(TESTDIR)/t0-1 >> $(TESTDIR)/check-text.log 2>&1
+	@perl -pi -e 's/\"//g' $(TESTDIR)/t0-1
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep 88 - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi

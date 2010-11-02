@@ -3908,23 +3908,23 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4084,23 +4084,23 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4259,23 +4259,23 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4435,23 +4435,23 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4610,23 +4610,23 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4786,23 +4786,23 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -4961,23 +4961,23 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -5137,23 +5137,23 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -5313,23 +5313,23 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {
@@ -5487,23 +5487,23 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 	double avg;
         uint32_t count;
 	for (uint32_t i = 0; i < nseg; ++i) {
-            count=1; // calculate avg first because needed in the next step
+            count = 1; // calculate avg first because needed in the next step
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
 		    sum += (*array)[j];
-                    ++count;
+                    ++ count;
                 }
-		avg=(sum / (starts[i+1]-starts[i]));
+		avg = (sum / (starts[i+1]-starts[i]));
 	    }
 	    else {
-		avg=(*array)[starts[i]];
+		avg = (*array)[starts[i]];
 	    }
 
 
-            if ((func == ibis::selectClause::VARSAMP) ||
-		(func == ibis::selectClause::STDSAMP)) {
-		--count; // sample version denominator is number of rows -1
+            if (((func == ibis::selectClause::VARSAMP) ||
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
 	    }
 
 	    if (starts[i+1] > starts[i]+1) {

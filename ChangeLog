@@ -9,6 +9,13 @@
 	be default to be unsigned
 	* src/colValeus.h: add double-quote around the strings when they
 	are printed in ASCII form (a suggestion from Anderson Chaves)
+	* tests/Makefile.am: strip double quotes from tmp/t0-0 and
+	tmp/t0-1 to make it easier for comparisons
+	* src/colValues.cpp: update computation of stddev to produce more
+	consistent output when it is not possible to compute stddev (only
+	decrement count if it is greater than 1)
+	* tests/vault/small-5: update file after the redefinition of
+	stddev
 
 2010-10-29 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: change the type of qlist, alist and slist
