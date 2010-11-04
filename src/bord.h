@@ -529,7 +529,7 @@ inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     case ibis::CATEGORY: {
 	std::string tmp;
 	getString(i, tmp);
-	out << tmp;
+	out << '"' << tmp << '"';
 	ierr = 0;
 	break;}
     default: {

@@ -1,6 +1,12 @@
+2010-11-04 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h: add quotes to string values printed from
+	ibis::bord::column (as suggested by Anderson Chaves)
+	* tests/Makefile.am: update check-ibis test 2 and check-text test
+	4 to accommodate the changes in printout
+
 2010-11-03 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp:1694 the statement "if (n < 8) n = 8" causes
-	some allocation of 4-byte arrays to fail consistency checks
+	some allocations of 4-byte arrays to fail consistency checks
 	* tests/Makefile.am: change rule for $(TESTDIR) to TESTDIR and
 	modify it to initialize the file stdout.log, this also ensures
 	that the test directory and stdout.log are only created once
