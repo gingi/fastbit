@@ -233,7 +233,7 @@ public:
 		out << "<NULL>";
 	    }
 	    else {
-		out << str;
+		out << '"' << str << '"';
 	    }
 	}
 	else {
