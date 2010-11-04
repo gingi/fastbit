@@ -1447,7 +1447,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::mensa::getColumnAsDoubles failed to "
+	    << "Warning -- mensa::getColumnAsDoubles failed to "
 	    "allocate the output std::vector<double>";
 	return -3;
     }

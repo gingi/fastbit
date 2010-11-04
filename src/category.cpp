@@ -2575,7 +2575,7 @@ const char* ibis::text::findString(const char *str) const {
     uint32_t nbuf = mybuf.size();
     if (buf == 0 || nbuf == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::text["
+	    << "Warning -- text["
 	    << (thePart != 0 ? thePart->name() : "") << "." << name()
 	    << "]::findString(" << str << ") unable to allocate "
 	    "enough work space";

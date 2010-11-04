@@ -588,14 +588,14 @@ void ibis::keywords::clear() {
 
 long ibis::keywords::append(const char* dt, const char* df, uint32_t nnew) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::keywords::append not implemented yet";
+	<< "Warning -- keywords::append not implemented yet";
     return -1L;
 } // ibis::keywords::append
 
 long ibis::keywords::evaluate(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& lower) const {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::keywords::evaluate for qContinuousRange has "
+	<< "Warning -- keywords::evaluate for qContinuousRange has "
 	"not been implemented";
     return -1L;
 } // ibis::keywords::evaluate

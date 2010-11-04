@@ -2573,7 +2573,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     array_t<double> *wts = wcol->selectDoubles(hits);
     if (wts == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get3DDistribution failed retrieve values from column "
 	    << wcol->name() << " as weights";
 	return -3L;
@@ -5313,7 +5313,7 @@ long ibis::part::get3DDistribution(const char *cname1, const char *cname2,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::get3DDistributionA - null mask of " << col1->name()
 	    << " has " << mask.size() << " bits, but " << nEvents
 	    << " are expected";

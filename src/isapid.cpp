@@ -193,7 +193,7 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
 
 	if (ibis::gVerbose > -1) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- ibis::sapid::construct1 the bitvectors "
+		<< "Warning -- sapid::construct1 the bitvectors "
 		"do not have the expected size(" << col->partition()->nRows()
 		<< "). stopping..";
 	}

@@ -612,7 +612,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     array_t<double> *wts = wcol->selectDoubles(hits);
     if (wts == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution failed retrieve values from column "
 	    << wcol->name() << " as weights";
 	return -3L;
@@ -2623,7 +2623,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
     }
     if (wts == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get2DBins failed retrieve values from column "
 	    << wcol->name() << " as weights";
 	return -3L;
@@ -3171,7 +3171,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::get2DDistributionA - null mask of " << col1.name()
 	    << " has " << mask.size() << " bits, but " << nEvents
 	    << " are expected";
@@ -3720,7 +3720,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
     if (nbins != nb1 * nb2) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::get2DDistributionU - nbins (" << nbins
 	    << ") is expected to be the product of nb1 (" << nb1
 	    << ") and nb2 (" << nb2 << "), but is actually " << nbins;
@@ -3736,7 +3736,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::get2DDistributionU - null mask of " << col1.name()
 	    << " has " << mask.size() << " bits, but " << nEvents
 	    << " are expected";
@@ -4446,7 +4446,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
 	}
 
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get2DDistributionI received an exception, stopping";
 	return -7L;
     }

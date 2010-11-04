@@ -64,7 +64,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    delete b2[i];
@@ -124,7 +124,7 @@ ibis::mesa::mesa(const ibis::bin& rhs) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::mesa::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;

@@ -190,7 +190,7 @@ char* ibis::util::getString(const char* buf) {
 	    -- tmp;
 	s2 = ibis::util::strnewdup(s1, tmp-s1+1);
     }
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
 	<< "DEBUG -- util::getString(" << buf << ") retrieved \"" << s2 << "\"";
 #endif
@@ -302,7 +302,7 @@ int ibis::util::readString(std::string& str, const char *&buf,
 	}
 	if (str.empty()) return -2; // unquoted empty string
     }
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+#if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
 	<< "DEBUG -- util::getString(" << buf << ") retrieved \""
 	<< str << "\"";

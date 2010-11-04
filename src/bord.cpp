@@ -1677,7 +1677,7 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     if (nr == 0) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- ibis::bord::part::groupby(";
+	    lg() << "Warning -- bord::part::groupby(";
 	    sel.print(lg());
 	    lg() << ") produced no answer on a table with nRows = "
 		 << nEvents;

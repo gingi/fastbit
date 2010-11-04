@@ -49,7 +49,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear(); // need to call clear before rethrow the exception
 	throw;
@@ -91,7 +91,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -132,7 +132,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -179,7 +179,7 @@ ibis::bin::bin(const ibis::bin& rhs)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column[" << col->name()
+	    << "Warning -- column[" << col->name()
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -205,11 +205,16 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
     : ibis::index(c, st),
       nobs(*(reinterpret_cast<uint32_t*>(st->begin()+start+sizeof(uint32_t)))),
       bounds(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8),
-	     nobs),
+	     8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
+	     sizeof(double)*nobs),
       maxval(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
-	     sizeof(double)*nobs, nobs),
+	     sizeof(double)*nobs,
+	     8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
+	     sizeof(double)*nobs*2),
       minval(st, 8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
-	     sizeof(double)*(nobs+nobs), nobs) {
+	     sizeof(double)*nobs*2,
+	     8*((start+(*st)[6]*(nobs+1)+2*sizeof(uint32_t)+7)/8) +
+	     sizeof(double)*nobs*3) {
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
 	if (c->partition()->getState() == ibis::part::STABLE_STATE &&
@@ -270,10 +275,12 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 	       ibis::fileManager::storage* st, size_t start)
     : ibis::index(c, st),
       nobs(*(reinterpret_cast<uint32_t*>(st->begin()+start+sizeof(uint32_t)))),
-      bounds(st, 8*((7+start+3*sizeof(uint32_t))/8), nobs),
-      maxval(st, 8*((7+start+3*sizeof(uint32_t))/8)+nobs*sizeof(double), nobs),
+      bounds(st, 8*((7+start+3*sizeof(uint32_t))/8),
+	     8*((7+start+3*sizeof(uint32_t))/8)+nobs*sizeof(double)),
+      maxval(st, 8*((7+start+3*sizeof(uint32_t))/8)+nobs*sizeof(double),
+	     8*((7+start+3*sizeof(uint32_t))/8)+2*nobs*sizeof(double)),
       minval(st, 8*((7+start+3*sizeof(uint32_t))/8)+2*nobs*sizeof(double),
-	     nobs) {
+	     8*((7+start+3*sizeof(uint32_t))/8)+3*nobs*sizeof(double)) {
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     size_t offpos = 8*((7+start+3*sizeof(uint32_t))/8)+3*nobs*sizeof(double);
     int ierr = initOffsets(st, offpos, nbits);
@@ -5967,7 +5974,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- ibis::bin::evaluate(" << expr << ")\nlower = \n" << lower;
+	<< "DEBUG -- bin::evaluate(" << expr << ")\nlower = \n" << lower;
 #endif
     return ierr0;
 } // ibis::bin::evaluate
@@ -6031,7 +6038,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- ibis::bin::estimate("<< expr << ")\nlower = \n"
+	<< "DEBUG -- bin::estimate("<< expr << ")\nlower = \n"
 	<< lower << "upper = \n" << upper;
 #endif
 } // ibis::bin::estimate

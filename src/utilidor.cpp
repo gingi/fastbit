@@ -274,8 +274,8 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 		array_t<T2> front2(arr2, 0, split);
 		sortAll(front1, front2);
 	    }
-	    array_t<T1> back1(arr1, split, nvals-split);
-	    array_t<T2> back2(arr2, split, nvals-split);
+	    array_t<T1> back1(arr1, split, nvals);
+	    array_t<T2> back2(arr2, split, nvals);
 	    sortAll(back1, back2);
 	}
     }
@@ -555,8 +555,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	// find the pivot element
 	uint32_t pivot;
 	if (front > 0 || back < nelm) {
-	    array_t<T1> ktmp(keys, front, back-front);
-	    array_t<T2> vtmp(vals, front, back-front);
+	    array_t<T1> ktmp(keys, front, back);
+	    array_t<T2> vtmp(vals, front, back);
 	    pivot = front + ibis::util::sort_partition(ktmp, vtmp);
 	}
 	else {
@@ -567,8 +567,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	    front = back;
 	}
 	else if (pivot-front <= back-pivot) { // the front part is smaller
-	    array_t<T1> kfront(keys, front, pivot-front);
-	    array_t<T2> vfront(vals, front, pivot-front);
+	    array_t<T1> kfront(keys, front, pivot);
+	    array_t<T2> vfront(vals, front, pivot);
 	    if (pivot-front >= FASTBIT_QSORT_MIN) {
 		if (lvl <= FASTBIT_QSORT_MAX_DEPTH)
 		    sort_quick(kfront, vfront, lvl+1);
@@ -581,8 +581,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	    front = pivot;
 	}
 	else { // the back part is smaller
-	    array_t<T1> kback(keys, pivot, back-pivot);
-	    array_t<T2> vback(vals, pivot, back-pivot);
+	    array_t<T1> kback(keys, pivot, back);
+	    array_t<T2> vback(vals, pivot, back);
 	    if (back-pivot >= FASTBIT_QSORT_MIN) {
 		if (lvl <= FASTBIT_QSORT_MAX_DEPTH)
 		    sort_quick(kback, vback, lvl+1);
@@ -596,8 +596,8 @@ void ibis::util::sort_quick(array_t<T1>& keys, array_t<T2>& vals,
 	}
     }
     if (back > front) { // sort the left over elements
-	array_t<T1> kfront(keys, front, back-front);
-	array_t<T2> vfront(vals, front, back-front);
+	array_t<T1> kfront(keys, front, back);
+	array_t<T2> vfront(vals, front, back);
 	sort_shell(kfront, vfront);
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -643,8 +643,8 @@ void ibis::util::sort_quick3(array_t<T1>& keys, array_t<T2>& vals) {
 	    sort_shell(kfront, vfront);
     }
     if (j0 < j1 && j1 < nelm) {
-	array_t<T1> kback(keys, j1, nelm-j1);
-	array_t<T2> vback(vals, j1, nelm-j1);
+	array_t<T1> kback(keys, j1, nelm);
+	array_t<T2> vback(vals, j1, nelm);
 	if (nelm-j1 >= 32)
 	    sort_quick3(kback, vback);
 	else
@@ -928,7 +928,7 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 	    // exchange i0, i1
 	    -- i1;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	    std::cout << "DEBUG -- ibis::util::sort_partition3 swapping keys["
+	    std::cout << "DEBUG -- util::sort_partition3 swapping keys["
 		      << i0 << "] (" << keys[i0] << " with keys[" << i1
 		      << "] (" << keys[i1] << std::endl;
 #endif
@@ -964,7 +964,7 @@ void ibis::util::sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 	i0 += (keys[i0] <= *pivot);
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    std::cout << "DEBUG -- ibis::util::sort_partition3 -- keys[" << i0
+    std::cout << "DEBUG -- util::sort_partition3 -- keys[" << i0
 	      << "] = " << keys[i0] << ", keys[" << i1 << "] = "
 	      << keys[i1] << ", pivot = " << *pivot << std::endl;
 #endif
@@ -3084,7 +3084,7 @@ ibis::util::sortMerge(std::vector<std::string>& valR, array_t<uint32_t>& indR,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::util::sortMerge(std::string["
+	    << "Warning -- util::sortMerge(std::string["
 	    << valR.size() << "], std::string[" << valS.size()
 	    << "]) failed to sort the two values or to create index arrays";
 	return -1;
@@ -3141,7 +3141,7 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
+	    << "Warning -- util::sortMerge(" << typeid(T).name() << "["
 	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
 	    << "]) failed to sort the values or to create index arrays";
 	return -1;
@@ -3198,7 +3198,7 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::util::sortMerge(" << typeid(T).name() << "["
+	    << "Warning -- util::sortMerge(" << typeid(T).name() << "["
 	    << valR.size() << "], " << typeid(T).name() << "[" << valS.size()
 	    << "]) failed to sort the values or to create index arrays";
 	return -1;

@@ -719,7 +719,7 @@ void ibis::egale::convert() {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG -- ibis::egale::convert " << i << " ...";
+		    << "DEBUG -- egale::convert " << i << " ...";
 	    }
 #endif
 	}
@@ -744,7 +744,7 @@ void ibis::egale::convert() {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG -- ibis::egale::convert " << nobs << " DONE";
+	    << "DEBUG -- egale::convert " << nobs << " DONE";
     }
 #endif
     optionalUnpack(bits, col->indexSpec());
@@ -1241,7 +1241,7 @@ void ibis::egale::addBits_(uint32_t ib, uint32_t ie,
 void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- ibis::egale::evalEQ(" << b << ")...";
+	<< "DEBUG -- egale::evalEQ(" << b << ")...";
 #endif
     if (b >= nobs) {
 	res.set(0, nrows);
@@ -1254,7 +1254,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 	    const uint32_t j = offset + k;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG -- ibis::egale::evalEQ(" << b << ")... component "
+		<< "DEBUG -- egale::evalEQ(" << b << ")... component "
 		<< i << " = " << k << ", bits[" << j << "]";
 #endif
 	    if (bits[j] == 0)
@@ -1271,7 +1271,7 @@ void ibis::egale::evalEQ(ibis::bitvector& res, uint32_t b) const {
 void ibis::egale::evalLE(ibis::bitvector& res, uint32_t b) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- ibis::egale::evalLE(" << b << ")...";
+	<< "DEBUG -- egale::evalLE(" << b << ")...";
 #endif
     if (b+1 >= nobs) {
 	res.set(1, nrows);
@@ -1337,7 +1337,7 @@ void ibis::egale::evalLL(ibis::bitvector& res,
 			 uint32_t b0, uint32_t b1) const {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- ibis::egale::evalLL(" << b0 << ", " << b1 << ")...";
+	<< "DEBUG -- egale::evalLL(" << b0 << ", " << b1 << ")...";
 #endif
     if (b0 >= b1) { // no hit
 	res.set(0, nrows);

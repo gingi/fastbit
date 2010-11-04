@@ -46,7 +46,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colStrings(c, hits);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colValues does not support type "
+	    << "Warning -- colValues does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
 	return 0;
     }
@@ -81,7 +81,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colDoubles(c, store, start, nelm);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colValues does not yet support type "
+	    << "Warning -- colValues does not yet support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
 	return 0;
     }
@@ -116,7 +116,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colStrings(c, vals);
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colValues does not support type "
+	    << "Warning -- colValues does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
 	return 0;
     }
@@ -134,7 +134,7 @@ ibis::colBytes::colBytes(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colBytes does not support type "
+	    << "Warning -- colBytes does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colBytes::colBytes
@@ -151,7 +151,7 @@ ibis::colUBytes::colUBytes(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colUBytes does not support type "
+	    << "Warning -- colUBytes does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colUBytes::colUBytes
@@ -181,7 +181,7 @@ ibis::colShorts::colShorts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colInts does not support type "
+	    << "Warning -- colInts does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colShorts::colShorts
@@ -211,7 +211,7 @@ ibis::colUShorts::colUShorts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colUShorts does not support type "
+	    << "Warning -- colUShorts does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colUShorts::colUShorts
@@ -282,7 +282,7 @@ ibis::colInts::colInts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colInts does not support type "
+	    << "Warning -- colInts does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colInts::colInts
@@ -353,7 +353,7 @@ ibis::colUInts::colUInts(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colUInts does not support type "
+	    << "Warning -- colUInts does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colUInts::colUInts
@@ -424,7 +424,7 @@ ibis::colLongs::colLongs(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colLongs does not support type "
+	    << "Warning -- colLongs does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colLongs::colLongs
@@ -495,7 +495,7 @@ ibis::colULongs::colULongs(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colULongs does not support type "
+	    << "Warning -- colULongs does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colULongs::colULongs
@@ -566,7 +566,7 @@ ibis::colFloats::colFloats(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colFloats does not support type "
+	    << "Warning -- colFloats does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colFloats::colFloats
@@ -637,7 +637,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c, void* vals)
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colDoubles does not support type "
+	    << "Warning -- colDoubles does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colDoubles::colDoubles
@@ -655,7 +655,7 @@ ibis::colStrings::colStrings(const ibis::column* c, void* vals)
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::colStrings does not support type "
+	    << "Warning -- colStrings does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colStrings::colStrings

@@ -461,7 +461,7 @@ inline void ibis::bitvector::sloppySize(word_t n) const {
     if (nb != nbits) {
 	const_cast<ibis::bitvector*>(this)->adjustSize(0, nbits);
 	LOGGER(ibis::gVerbose >= 0)
-	    << "bitvector::sloppySize -- adjust the number of bits to"
+	    << "bitvector::sloppySize -- adjust the number of bits to "
 	    << n;
     }
 #endif
@@ -1113,7 +1113,7 @@ inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
 	if (ind >= nbits + active.nbits ||
 	    active.val >= (1U << active.nbits)) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "FastBit::bitvector::turnOnRawBit(" << ind
+		<< "bitvector::turnOnRawBit(" << ind
 		<< ") found a bad active word";
 	}
 #endif

@@ -334,12 +334,12 @@ ibis::bundle1::bundle1(const ibis::query& q) : bundle(q) {
     const ibis::selectClause& cmps = q.components();
     if (cmps.empty()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::bundle1 can not continue with an empty "
+	    << "Warning -- bundle1 can not continue with an empty "
 	    "select clause";
 	throw "bundle1 can not work with empty select clauses";
     }
     LOGGER(cmps.size() != 1 && ibis::gVerbose > 0)
-	<< "Warning -- ibis::bundle1 will only use the 1st terms of "
+	<< "Warning -- bundle1 will only use the 1st terms of "
 	<< cmps.size();
     ibis::column* c = tbl->getColumn(cmps.argName(0));
     if (c == 0)
@@ -1540,7 +1540,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	rid2.reserve(ngroups);
 	for (uint32_t i = 0; i < ngroups; ++ i)
 	    rid2.push_back(new array_t<ibis::rid_t>
-			   (*rids, (*starts)[i], (*starts)[i+1]-(*starts)[i]));
+			   (*rids, (*starts)[i], (*starts)[i+1]));
 
 	if (sortkeys.size() > 1) { // multiple keys
 	    array_t<uint32_t> gb;
@@ -1859,7 +1859,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	rid2.reserve(ngroups);
 	for (uint32_t i = 0; i < ngroups; ++ i)
 	    rid2.push_back(new array_t<ibis::rid_t>
-			   (*rids, (*starts)[i], (*starts)[i+1]-(*starts)[i]));
+			   (*rids, (*starts)[i], (*starts)[i+1]));
 
 	if (sortkeys.size() > 1) {
 	    array_t<uint32_t> gb;

@@ -391,27 +391,53 @@ ibis::ambit::ambit(const ibis::column* c, ibis::fileManager::storage* st,
     : ibis::bin(c, st, offset), max1(*(minval.end())),
       min1(*(1+minval.end())) {
     try {
-	array_t<int32_t>
-	    offs(st,
-		 8*((offset+sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
-		 sizeof(double)*(nobs*3+2), nobs+1);
+	const size_t begin =
+	    8*((offset+sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)+
+	    sizeof(double)*(nobs*3+2);
+	if (st->begin()[6] == 8) {
+	    const size_t end = begin + 8 * (nobs+1);
+	    array_t<int64_t> offs(st, begin, end);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg(4);
-	    lg() << "DEBUG -- from ibis::ambit::ambit("
-			<< col->partition()->name() << '.' << col->name()
-			<< ", " << offset << ")" << "\n";
-	    for (uint32_t i=0; i<=nobs; ++i)
-		lg() << "offset[" << i << "] = " << offs[i] << "\n";
-	}
+	    if (ibis::gVerbose > 5) {
+		ibis::util::logger lg(4);
+		lg() << "DEBUG -- from ibis::ambit::ambit("
+		     << col->partition()->name() << '.' << col->name()
+		     << ", " << offset << ")" << "\n";
+		for (uint32_t i=0; i<=nobs; ++i)
+		    lg() << "offset[" << i << "] = " << offs[i] << "\n";
+	    }
 #endif
-	if (offs[nobs] > offs[0]) {
-	    sub.resize(nobs);
-	    for (uint32_t i=0; i<nobs; ++i) {
-		if (offs[i+1] > offs[i])
-		    sub[i] = new ambit(c, st, offs[i]);
-		else
-		    sub[i] = 0;
+	    if (offs[nobs] > offs[0]) {
+		sub.resize(nobs);
+		for (uint32_t i=0; i<nobs; ++i) {
+		    if (offs[i+1] > offs[i])
+			sub[i] = new ambit(c, st, offs[i]);
+		    else
+			sub[i] = 0;
+		}
+	    }
+	}
+	else if (st->begin()[6] == 4) {
+	    const size_t end = begin + 4 * (nobs+1);
+	    array_t<int32_t> offs(st, begin, end);
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    if (ibis::gVerbose > 5) {
+		ibis::util::logger lg(4);
+		lg() << "DEBUG -- from ibis::ambit::ambit("
+		     << col->partition()->name() << '.' << col->name()
+		     << ", " << offset << ")" << "\n";
+		for (uint32_t i=0; i<=nobs; ++i)
+		    lg() << "offset[" << i << "] = " << offs[i] << "\n";
+	    }
+#endif
+	    if (offs[nobs] > offs[0]) {
+		sub.resize(nobs);
+		for (uint32_t i=0; i<nobs; ++i) {
+		    if (offs[i+1] > offs[i])
+			sub[i] = new ambit(c, st, offs[i]);
+		    else
+			sub[i] = 0;
+		}
 	    }
 	}
 	if (ibis::gVerbose > 6) {
@@ -584,7 +610,7 @@ int ibis::ambit::read(const char* f) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg() << "DEBUG -- ibis::ambit::read(";
+	lg() << "DEBUG -- ambit::read(";
 	if (fname)
 	    lg() << fname;
 	else
@@ -764,7 +790,7 @@ int ibis::ambit::read(int fdes, size_t start, const char *fn,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
-	lg() << "DEBUG -- ibis::ambit::read(";
+	lg() << "DEBUG -- ambit::read(";
 	if (fname)
 	    lg() << fname;
 	else

@@ -36,7 +36,7 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
 #
 # tests with different levels of thoroughness
 check: clean-tmp check-am
-	@mkdir $(TESTDIR)
+	@$(MAKE) TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/stdout.log 2>&1
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
@@ -64,7 +64,7 @@ check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(T
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), avg(a/b)" -x $(TESTDIR)/thula-1 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@echo
-check-tcapi: $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt $(TCAPIEXE)
+check-tcapi: $(TCAPIEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt
 	@$(TCAPIEXE) $(TESTDIR)/t1/ "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and -2 <= c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w vault/tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
@@ -210,7 +210,7 @@ $(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 # a simple internal sanity check
-sanity-check: $(IBISEXE) $(TESTDIR)/append.log
+sanity-check: $(TESTDIR)/stdout.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
 	@if [ -f $(TESTDIR)/append.rc ] ; then \
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log; \
@@ -252,10 +252,9 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc
 	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b -z >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log; \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
 	test_status=$$?; \
 	else \
@@ -270,8 +269,7 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
 	test_status=$$?; \
@@ -289,18 +287,14 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc
 match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
 	@ncases=0; npassed=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
-	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/0/test?/-part.txt; \
-	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/stdout.log; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	perl -pi -e "s/index = .*/index = none/" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b -z; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b "none" -z >> $(TESTDIR)/stdout.log; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; echo; \
 	if [ $${npassed} -lt $${ncases} ]; then \
 	echo Did NOT pass `expr $${ncases} - $${npassed}` out of $${ncases} $@ test cases; \
@@ -314,7 +308,6 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	echo; \
-	fgrep 'index = ' $(TESTDIR)/0/test1/-part.txt; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
@@ -343,8 +336,8 @@ check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 $(TESTDIR)/sq2: setqgen$(EXEEXT)
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
-$(TESTDIR):
-	@test -d $(TESTDIR) || mkdir -p $(TESTDIR)
+TESTDIR:
+	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@ started on " `/bin/date` >> $(TESTDIR)/stdout.log)
 $(TESTDIR)/0: $(TESTDIR)
 	@test -d $(TESTDIR)/0 || mkdir $(TESTDIR)/0
 $(TESTDIR)/1: $(TESTDIR)
@@ -437,3 +430,4 @@ $(TCAPIEXE):
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
 .PHONY: check-marksdb check-maurel small-tests really-small check-sq1 check-sq2
+.PHONY: TESTDIR

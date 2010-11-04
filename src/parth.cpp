@@ -281,7 +281,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     std::auto_ptr< array_t<double> > wts(wcol->selectDoubles(mask));
     if (wts.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get1DDistribution failed retrieve values from column "
 	    << wcol->name() << " as weights";
 	return -3L;
@@ -1265,7 +1265,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
     }
     if (wts == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get1DDistribution failed retrieve values from column "
 	    << wcol->name() << " as weights";
 	return -3L;
@@ -1668,7 +1668,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<signed char> *vals = col->selectBytes(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
 		<< ", but got nothing";
@@ -1676,7 +1676,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
 		<< ", but got " << vals->size() << " instead";
@@ -1692,7 +1692,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<unsigned char> *vals = col->selectUBytes(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "bytes" : "byte")
 		<< ", but got nothing";
@@ -1700,7 +1700,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "bytess" : "byte")
 		<< ", but got " << vals->size() << " instead";
@@ -1717,7 +1717,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<int16_t> *vals = col->selectShorts(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int16_ts" : "int16_t")
 		<< ", but got nothing";
@@ -1725,7 +1725,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int16_ts" : "int16_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1753,7 +1753,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<uint16_t> *vals = col->selectUShorts(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint16_ts" : "uint16_t")
 		<< ", but got nothing";
@@ -1761,7 +1761,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint16_ts" : "uint16_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1789,7 +1789,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<int32_t> *vals = col->selectInts(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int32_ts" : "int32_t")
 		<< ", but got nothing";
@@ -1797,7 +1797,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int32_ts" : "int32_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1824,7 +1824,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<uint32_t> *vals = col->selectUInts(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint32_ts" : "uint32_t")
 		<< ", but got nothing";
@@ -1832,7 +1832,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint32_ts" : "uint32_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1858,7 +1858,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<int64_t> *vals = col->selectLongs(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int64_ts" : "int64_t")
 		<< ", but got nothing";
@@ -1866,7 +1866,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "int64_ts" : "int64_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1892,7 +1892,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<uint64_t> *vals = col->selectULongs(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint64_ts" : "uint64_t")
 		<< ", but got nothing";
@@ -1900,7 +1900,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "uint64_ts" : "uint64_t")
 		<< ", but got " << vals->size() << " instead";
@@ -1926,7 +1926,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<float> *vals = col->selectFloats(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "floats" : "float")
 		<< ", but got nothing";
@@ -1934,7 +1934,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "floats" : "float")
 		<< ", but got " << vals->size() << " instead";
@@ -1957,7 +1957,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	array_t<double> *vals = col->selectDoubles(mask);
 	if (vals == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "doubles" : "double")
 		<< ", but got nothing";
@@ -1965,7 +1965,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	}
 	else if (vals->size() != mask.cnt()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::part[" << (m_name ? m_name : "")
+		<< "Warning -- part[" << (m_name ? m_name : "")
 		<< "]::get1DDistribution expected to retrieve "
 		<< mask.cnt() << (mask.cnt() > 1 ? "doubles" : "double")
 		<< ", but got " << vals->size() << " instead";
@@ -1986,7 +1986,7 @@ long ibis::part::get1DDistribution(const char* constraints,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::get1DDistribution does not currently support column type "
 	    << ibis::TYPESTRING[(int) col->type()];
 	return -7;}

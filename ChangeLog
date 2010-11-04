@@ -1,3 +1,23 @@
+2010-11-03 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.cpp:1694 the statement "if (n < 8) n = 8" causes
+	some allocation of 4-byte arrays to fail consistency checks
+	* tests/Makefile.am: change rule for $(TESTDIR) to TESTDIR and
+	modify it to initialize the file stdout.log, this also ensures
+	that the test directory and stdout.log are only created once
+	* src/array_t.h, src/array_t.cpp: change the constructor of
+	array_t that take a segment of an existing array_t from nelm to
+	end-position to match other array section constructors
+	* src/index.cpp: initOffsets from in-memory storage object
+	initializes offs with the incorrect parameter 3
+	* src/ibin.cpp, src/ixambit.cpp: update the constructors with
+	storage objects to properly use the new 64-bit offsets
+
+2010-11-02 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: update large-sanity-check and match-counts to
+	more reliably set the indexing options
+	* bitvector.cpp: bitvector::adjustSize neglected to erase etra
+	bits and mishandled the bits after nv
+
 2010-11-01 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: update accessHint to use MMAP_LARGE_FILES when a
 	majority of the values are selected

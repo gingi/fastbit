@@ -872,13 +872,13 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
     }
     if (size() != res.size()+(j-i)) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::bitvector::erase(" << i << ", " << j
+	    << "Warning -- bitvector::erase(" << i << ", " << j
 	    << ") res.size(" << res.size() << ") is expected to be "
 	    << size()-(j-i) << ", but is not";
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 2)
-	<< "DEBUG -- ibis::bitvector::erase(" << i << ", " << j
+	<< "DEBUG -- bitvector::erase(" << i << ", " << j
 	<< ") ...\nInput\n" << *this << "\nOutput\n" << res;
 #endif
     swap(res);
@@ -1648,7 +1648,7 @@ std::ostream& ibis::bitvector::print(std::ostream& o) const {
 	else if (nset == 0) {
 	    word_t nb = do_cnt();
 	    LOGGER(nbits != nb && nbits > 0 && ibis::gVerbose >= 0)
-		<< "Warning -- FastBit::bitvector::print detected nbits ("
+		<< "Warning -- bitvector::print detected nbits ("
 		<< nbits << ") mismatching return value of do_cnt ("
 		<< nb << "), use the return value of do_cnt";
 	}
@@ -1743,21 +1743,21 @@ void ibis::bitvector::read(const char * fn) {
     // some integrity check here
     if (nbits % MAXBITS != 0) {
 	ibis::util::logger lg(4);
-	lg() << " Warning -- ibis::bitvector::nbits(" << nbits
+	lg() << "Warning -- bitvector::nbits(" << nbits
 	     << ") is expected to be multiples of "
 	     << MAXBITS << ", but it is not.";
 	ierr ++;
     }
     if (nset > nbits+active.nbits) {
 	ibis::util::logger lg(4);
-	lg() << " Warning -- ibis::bitvector::nset (" << nset
+	lg() << "Warning -- bitvector::nset (" << nset
 	     << ") is expected to be not greater than "
 	     << nbits+active.nbits << ", but it is.";
 	ierr ++;
     }
     if (active.nbits >= MAXBITS) {
 	ibis::util::logger lg(4);
-	lg() << " Warning -- ibis::bitvector::active::nbits ("
+	lg() << "Warning -- bitvector::active::nbits ("
 	     << active.nbits << ") is expected to be less than "
 	     << MAXBITS << ", but it is not.";
 	ierr ++;
@@ -1781,7 +1781,7 @@ void ibis::bitvector::read(const char * fn) {
 #endif
     if (ierr) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::bitvector::read(" << fn << ") found "
+	    << "Warning -- bitvector::read(" << fn << ") found "
 	    << ierr << " error" << (ierr>1?"s":"") << " in three sanity checks";
 	throw "bitvector::read failed integrity check";
     }
@@ -1794,7 +1794,7 @@ void ibis::bitvector::write(const char * fn) const {
     FILE *out = fopen(fn, "wb");
     if (out == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::bitvector::write failed to open \""
+	    << "Warning -- bitvector::write failed to open \""
 	    << fn << "\" to write the bit vector ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	throw "bitvector::write failed to open file";
@@ -2296,7 +2296,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
 			     ibis::bitvector& res) const {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 2)
-	<< "DEBUG -- ibis::bitvector::and_d2 -- starting with \nOperand 1\n"
+	<< "DEBUG -- bitvector::and_d2 -- starting with \nOperand 1\n"
 	<< *this << "\nOperand 2\n" << rhs;
 #endif
     // establish a uncompressed bitvector with the right size
@@ -2560,7 +2560,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
 		y.decode();
 #if defined(_DEBUG) || defined(DEBUG)
 	    LOGGER((x.nWords == 0 || y.nWords == 0) && ibis::gVerbose >= 0)
-		<< " Error -- ibis::bitvector::or_c2 serious problem here ...";
+		<< " Error -- bitvector::or_c2 serious problem here ...";
 #endif
 	    if (x.isFill != 0) { // x points to a fill
 		// if both x and y point to fills, use the longer one
@@ -3772,12 +3772,26 @@ void ibis::bitvector::adjustSize(word_t nv, word_t nt) {
     if (sz == nt) return;
     m_vec.nosharing();
 
-    if (nv > nt)
-	nv = nt;
-    if (sz < nv)
-	appendFill(1, nv - sz);
-    if (nv < nt)
-	appendFill(0, nt - sz);
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+    LOGGER(ibis::gVerbose > 5)
+	<< "DEBUG -- bitvector::adjustSize(" << nv << ", " << nt
+	<< ") on bitvector with size " << sz;
+#endif
+    if (nt > sz) { // add some bits to the end
+	if (nv > nt)
+	    nv = nt;
+	if (nv > sz) {
+	    appendFill(1, nv - sz);
+	    if (nt > nv)
+		appendFill(0, nt - nv);
+	}
+	else {
+	    appendFill(0, nt - sz);
+	}
+    }
+    else { // truncate
+	erase(nt, sz);
+    }
 } // ibis::bitvector::adjustSize
 
 /// Reserve enough space for a bit vector.  The caller needs to specify the
@@ -3825,7 +3839,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 	f = f0;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG -- ibis::bitvector:clusteringFactor(" << nb << ", " << nc
+	    << "DEBUG -- bitvector:clusteringFactor(" << nb << ", " << nc
 	    << ", " << sz << "): sz=" << sz << ", den = "
 	    << den << ", nw = " << nw;
 #endif
@@ -3859,7 +3873,7 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 		 den * pow(1.0-1.0/f2, tw3));
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "DEBUG -- ibis::bitvector:clusteringFactor(" << nb
+		<< "DEBUG -- bitvector:clusteringFactor(" << nb
 		<< ", " << nc << ", " << sz << "): computed size="
 		<< (ds + sz) << ", ds = "
 		<< ds << ", deri = " << deri << ", f = "
@@ -4033,7 +4047,7 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		}
 	    }
 	    LOGGER(incr0 < 0)
-		<< " Warning -- ibis::bitvector::iterator::operator+=("
+		<< "Warning -- bitvector::iterator::operator+=("
 		<< incr << ") passes the beginning of the bit sequence";
 	}
     }
@@ -4055,7 +4069,7 @@ ibis::bitvector::iterator& ibis::bitvector::iterator::operator+=(int incr) {
 		}
 	    }
 	    LOGGER(incr1 > 0)
-		<< " Warning -- ibis::bitvector::iterator::operator+=("
+		<< "Warning -- bitvector::iterator::operator+=("
 		<< incr << ") passes the end of the bit sequence";
 	}
     }
@@ -4121,7 +4135,7 @@ ibis::bitvector::const_iterator::operator+=(int incr) {
 		}
 	    }
 	    LOGGER(incr0 < 0)
-		<< " Warning -- ibis::bitvector::const_iterator::"
+		<< "Warning -- bitvector::const_iterator::"
 		<< "operator+=(" << incr
 		<< ") passes the beginning of the bit sequence";
 	}
@@ -4144,7 +4158,7 @@ ibis::bitvector::const_iterator::operator+=(int incr) {
 		}
 	    }
 	    LOGGER(incr1 > 0)
-		<< " Warning -- ibis::bitvector::const_iterator::operator+=("
+		<< "Warning -- bitvector::const_iterator::operator+=("
 		<< incr << ") passes the end of the bit sequence";
 	}
     }

@@ -920,7 +920,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::fileManager::getFile(" << name
+	    << "Warning -- fileManager::getFile(" << name
 	    << ") failed retrieving " << bytes << " bytes (actually retrieved "
 	    << tmp->size() << ")";
 	delete tmp;
@@ -1691,7 +1691,7 @@ ibis::fileManager::storage::storage(size_t n)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     LOGGER(ibis::gVerbose > 15)
 	<< "fileManager::storage::storage(" << n << ") ...";
-    if (n < 8) n = 8; // at least 8 bytes
+    if (n == 0) n = 8; // give 8 bytes if asks for 0
     if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
 	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
 				  "fileManager::storage::ctor");
@@ -2462,7 +2462,7 @@ void ibis::fileManager::roFile::mapFile(const char* file) {
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::fileManager::roFile is busy and cann't "
+	    << "Warning -- fileManager::roFile is busy and cann't "
 	    "read new content";
 	return;
     }

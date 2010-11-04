@@ -4046,7 +4046,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	    bdry.push_back(off);
 	    if (nb2[i+1] > 1) {
 		const array_t<uint32_t> tmp(cnt, off,
-					    (i+1<j?weight[i+1]:ncnt)-off);
+					    (i+1<j?weight[i+1]:ncnt));
 		array_t<uint32_t> bnd(nb2[i+1]);
 		if (ibis::gVerbose > 7)
 		    ibis::util::logMessage
@@ -4195,11 +4195,11 @@ int ibis::index::initOffsets(ibis::fileManager::storage* st, size_t start,
 			     uint32_t nobs) {
     // check offset size -- can only be 4 or 8
     if (st->begin()[6] == 8) {
-	array_t<int64_t> offs(st, start, nobs+1);
+	array_t<int64_t> offs(st, start, start+8*nobs+8);
 	offset64.swap(offs);
     }
     else if (st->begin()[6] == 4) {
-	array_t<int32_t> offs(st, start, nobs+1);
+	array_t<int32_t> offs(st, start, start+4*nobs+4);
 	offset32.swap(offs); // save the offsets
     }
     else {
@@ -5925,7 +5925,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			tmp.first = *(op1.first) | *(op2.first);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG -- sumBins-using priority queue: "
+			    << "DEBUG -- sumBins using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()
@@ -6101,7 +6101,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			tmp.first = *(op1.first) | *(op2.first);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 			LOGGER(ibis::gVerbose >= 0)
-			    << "DEBUG -- sumBins-using priority queue: "
+			    << "DEBUG -- sumBins using priority queue: "
 			    << op1.first->bytes()
 			    << (op1.second ? "(transient), " : ", ")
 			    << op2.first->bytes()

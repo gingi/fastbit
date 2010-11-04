@@ -147,8 +147,7 @@ public:
     /// Return the RIDs of the <code>ind</code>th bundle.
     const ibis::RIDSet* getRIDs(uint32_t ind) const {
 	if (rids != 0 && starts != 0 && ind+1 < starts->size()) {
-	    return new ibis::RIDSet(*rids, (*starts)[ind],
-				    (*starts)[ind+1]-(*starts)[ind]);
+	    return new ibis::RIDSet(*rids, (*starts)[ind], (*starts)[ind+1]);
 	}
 	else {
 	    return static_cast<ibis::RIDSet*>(0);

@@ -114,8 +114,8 @@ int ibis::direkte::construct(const char* dfname) {
 				"%lu bitvectors",
 				static_cast<long unsigned>(nbits));
 	}
-	if (vals.size() > nrows)
-	    vals.resize(nrows);
+	// if (vals.size() > nrows)
+	//     vals.resize(nrows);
 
 	for (ibis::bitvector::indexSet iset = mask.firstIndexSet();
 	     iset.nIndices() > 0; ++ iset) {
@@ -158,7 +158,7 @@ int ibis::direkte::construct(const char* dfname) {
 
 	LOGGER(ibis::gVerbose > 5)
 	    << "direkte[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct -- constructing the index by reading the values from "
+	    << "]::construct -- starting to read the values from "
 	    << dfname << " one at a time";
 	if (col->upperBound() > col->lowerBound()) {
 	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
@@ -275,8 +275,11 @@ void ibis::direkte::print(std::ostream& out) const {
 
 	for (uint32_t i=0; i<nobs; i += skip) {
 	    if (bits[i]) {
-		out << i << "\t" << bits[i]->cnt()
-		    << "\t" << bits[i]->bytes() << "\n";
+		out << i << "\t" << bits[i]->cnt() << "\t" << bits[i]->bytes()
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		    << "\t" << bits[i]->size()
+#endif
+		    << "\n";
 	    }
 	}
 	if ((nobs-1) % skip) {
@@ -539,11 +542,11 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     if (offsetsize == 8) {
-	array_t<int64_t> offs(st, pos, nobs+1);
+	array_t<int64_t> offs(st, pos, pos+8*nobs+8);
 	offset64.copy(offs);
     }
     else if (offsetsize == 4) {
-	array_t<int32_t> offs(st, pos, nobs+1);
+	array_t<int32_t> offs(st, pos, pos+4*nobs+4);
 	offset32.copy(offs);
     }
     else {
@@ -1032,7 +1035,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
     switch (col->type()) {
     default: {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::direkte can only be used "
+	    << "Warning -- direkte can only be used "
 	    "for columns with integer values (current column " << col->name()
 	    << ", type=" <<  ibis::TYPESTRING[(int)col->type()] << ")";
 	ierr = -2;
@@ -1065,7 +1068,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
     }
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::direkte::construct failed with error code "
+	    << "Warning -- direkte::construct failed with error code "
 	    << ierr;
     }
     else {

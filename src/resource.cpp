@@ -43,7 +43,7 @@ void ibis::resource::read(const char* fn) {
 
 	if (conf == 0){
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- ibis::resource::read failed to open user "
+		<< "Warning -- resource::read failed to open user "
 		"specified file \"" << name << "\" ... "
 		<< (errno ? strerror(errno) : "no free stdio stream");
 	    return;

@@ -163,7 +163,7 @@ long ibis::part::reorder() {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg() << "DEBUG -- ibis::part[" << m_name << "]::reorder --\n";
+	lg() << "DEBUG -- part[" << m_name << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
@@ -1638,7 +1638,7 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
     ibis::selectClause xpr(aexpr);
     if (xpr.size() != 1) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::addColumn expects to parse \"" << aexpr
 	    << "\" into a single arithmetic expression, but it got "
 	    << xpr.size();
@@ -1661,14 +1661,14 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     long ierr = calculate(*xpr, mask, vals);
     if (ierr <= 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name << "]::addColumn(" << xpr
+	    << "Warning -- part[" << m_name << "]::addColumn(" << xpr
 	    << ") failed to evaluate the arithmetic expression, ierr = "
 	    << ierr;
 	return -3L;
     }
     else if (static_cast<unsigned long>(ierr) != mask.cnt()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << m_name << "]::addColumn(" << xpr
+	    << "Warning -- part[" << m_name << "]::addColumn(" << xpr
 	    << ") expected to receive " << mask.cnt() << " values, but got "
 	    << ierr;
 	return -4L;
@@ -1737,7 +1737,7 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part[" << m_name
+	    << "Warning -- part[" << m_name
 	    << "]::addColumn failed to write" << mask.size() << " values for "
 	    << cname << ", only wrote " << ierr;
 	delete xcol;

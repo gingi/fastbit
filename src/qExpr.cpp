@@ -892,7 +892,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		expr->print(lg());
 	}
 	else {
-	    lg() << "Warning -- ibis::qExpr::simply has turned a "
+	    lg() << "Warning -- qExpr::simply has turned a "
 		"non-nil expression into nil";
 	}
     }

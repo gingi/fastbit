@@ -542,27 +542,27 @@ int ibis::fade::read(ibis::fileManager::storage* st) {
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
     pos = (pos / 8) * 8;
-    const uint32_t nbases= *(reinterpret_cast<uint32_t*>
-			   (st->begin()+pos +
-			    sizeof(double)*card+sizeof(uint32_t)*(nobs+1)));
     {
 	array_t<double> dbl(st, pos, card);
 	vals.swap(dbl);
     }
-    {
-	array_t<uint32_t> szt(st, pos + sizeof(double)*card
-			    + sizeof(uint32_t)*(nobs+2), card);
-	cnts.swap(szt);
-    }
-    {
-	array_t<uint32_t> szb(st, 8*(pos/8) + sizeof(double)*card
-			    + sizeof(uint32_t)*(card+nobs+2), nbases);
-	bases.swap(szb);
-    }
-    int ierr = initOffsets(st, pos+sizeof(double)*card, nobs);
+    pos += sizeof(double)*card;
+    int ierr = initOffsets(st, pos, nobs);
     if (ierr < 0) {
 	clear();
 	return ierr;
+    }
+
+    pos += (nobs+1) * (st->begin()[6]);
+    const uint32_t nbases= *(reinterpret_cast<uint32_t*>(st->begin()+pos));
+    {
+	array_t<uint32_t> szt(st, pos+4, card);
+	cnts.swap(szt);
+    }
+    pos += 4 * card + 4;
+    {
+	array_t<uint32_t> szb(st, pos, nbases);
+	bases.swap(szb);
     }
     initBitmaps(st);
     return 0;
@@ -644,7 +644,7 @@ void ibis::fade::construct1(const char* f, const uint32_t nbase) {
 	ibis::fileManager::instance().signalMemoryAvailable();
 
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::fade::construct1 the bitvectors "
+	    << "Warning -- fade::construct1 the bitvectors "
 	    "do not have the expected size(" << col->partition()->nRows()
 	    << "). stopping..";
 

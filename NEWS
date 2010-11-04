@@ -1,3 +1,18 @@
+Wed Nov  3 18:21:35 PDT 2010
+Version ibis1.2.1
+-- address the locking issues reported by Andreas Streichardt
+-- update the code for Compute Node Linux (mostly related to the usage
+   of getpwuid)
+-- add using clauses to address the complaints produced by PGI compilers
+-- remove references to commons logging objects to reduce the
+   dependencies of Java interface (prompted by a test case from Anderson
+   Chaves)
+-- add members to the colValues class hierarchy to handle shorter
+   integers (to reduce the memory usage, prompted by a use case from Ben
+   Williams)
+-- clean up the regression tests
+
+
 Fri Sep 17 13:35:06 PDT 2010
 Version ibis1.2.0
 -- reserve more space in the dictionary to avoid incrementing the
@@ -12,6 +27,7 @@ Version ibis1.2.0
 -- fix problems with JNI code (reported by otrack50@hotmail.com)
 -- fix problems with user specified log files (reported by Karen
    Schomburg)
+
 
 Thu Jul 15 20:20:18 PDT 2010
 Version ibis1.1.9
@@ -32,6 +48,7 @@ Version ibis1.1.9
 -- fix the ordering of columns returned by columnNames and columnTypes
    (a problem reported by Jan Steemann)
 
+
 Fri May  7 14:02:15 PDT 2010
 Version ibis1.1.8
 -- modify ibis::part::barrel to work with in-memory data partitions (to
@@ -48,6 +65,7 @@ Version ibis1.1.8
 -- added code from Bernd Jaenichen to test discrete range queries on
    in-memory data partitions
 -- consolidate the functions for evaluating discrete range queries
+
 
 Wed Apr 14 13:14:28 PDT 2010
 Version ibis1.1.7

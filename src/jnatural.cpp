@@ -56,7 +56,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.setWhereClause(condr);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not assign " << *condr << " on partition "
 		<< R_.name() << ", ierr = " << ierr;
 	    throw std::invalid_argument("jNatural failed to parse "
@@ -65,7 +65,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << R_.name() << ", ierr = " << ierr;
 	    throw std::invalid_argument("jNatural failed to "
@@ -81,7 +81,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.setWhereClause(conds);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not parse " << conds << " on partition "
 		<< S_.name() << ", ierr = " << ierr;
 	    throw std::invalid_argument("jNatural failed to "
@@ -90,7 +90,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << S_.name() << ", ierr = " << ierr;
 	    throw std::invalid_argument("jNatural failed to evaluate "
@@ -124,13 +124,13 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
       orderR_(0), orderS_(0), valR_(0), valS_(0), nrows(-1) {
     if (colname == 0 || *colname == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::jNatural must have a valid string for colname";
+	    << "Warning -- jNatural must have a valid string for colname";
 	throw "jNatural must have a valid colname as join columns";
     }
 
     if (colR_.type() != colS_.type()) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::jNatural detects the join columns with "
+	    << "Warning -- jNatural detects the join columns with "
 	    << "mismatching types: " << R_.name() << "." << colname
 	    << " (" << ibis::TYPESTRING[colR_.type()] << "), "
 	    << S_.name()   << "." << colname << " ("
@@ -156,7 +156,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.setWhereClause(condr);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not parse " << condr << " on partition "
 		<< R_.name() << ", ierr = " << ierr;
 	    throw "jNatural failed to parse constraints on R_";
@@ -164,7 +164,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << R_.name() << ", ierr = " << ierr;
 	    throw "jNatural failed to evaluate constraints on R_";
@@ -179,7 +179,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.setWhereClause(conds);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not parse " << conds << " on partition "
 		<< S_.name() << ", ierr = " << ierr;
 	    throw "jNatural failed to parse constraints on S_";
@@ -187,7 +187,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural(" << desc_
+		<< "Warning -- jNatural(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << S_.name() << ", ierr = " << ierr;
 	    throw "jNatural failed to evaluate constraints on S_";
@@ -240,14 +240,14 @@ int64_t ibis::jNatural::count() const {
     switch (colR_.type()) {
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::jNatural[" << desc_
+	    << "Warning -- jNatural[" << desc_
 	    << "] cann't handle join column of type " << colR_.type();
 	return -2;
     case ibis::BYTE: {
 	valR_ = colR_.selectBytes(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectBytes("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -255,7 +255,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectBytes(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectBytes("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -268,7 +268,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectUBytes(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectUBytes("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -276,7 +276,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectUBytes(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectUBytes("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -291,7 +291,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectShorts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectShorts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -299,7 +299,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectShorts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectShorts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -312,7 +312,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectUShorts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectUShorts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -320,7 +320,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectUShorts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectUShorts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -333,7 +333,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectInts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectInts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -341,7 +341,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectInts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectInts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -354,7 +354,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectUInts(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectUInts("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -362,7 +362,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectUInts(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectUInts("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -375,7 +375,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectLongs(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectLongs("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -383,7 +383,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectLongs(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectLongs("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -396,7 +396,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectULongs(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectULongs("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -404,7 +404,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectULongs(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectULongs("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -417,7 +417,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectFloats(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectFloats("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -425,7 +425,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectFloats(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectFloats("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -438,7 +438,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectDoubles(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectDoubles("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -446,7 +446,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectDoubles(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectDoubles("
 		<< maskS_.cnt() << ") failed";
 	    return -4;
@@ -460,7 +460,7 @@ int64_t ibis::jNatural::count() const {
 	valR_ = colR_.selectStrings(maskR_);
 	if (valR_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colR_.name() << "->selectStrings("
 		<< maskR_.cnt() << ") failed";
 	    return -3;
@@ -468,7 +468,7 @@ int64_t ibis::jNatural::count() const {
 	valS_ = colS_.selectStrings(maskS_);
 	if (valS_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jNatural::count(" << desc_
+		<< "Warning -- jNatural::count(" << desc_
 		<< ") call to " << colS_.name() << "->selectStrings("
 		<< maskS_.cnt() << ") failed";
 	    return -4;

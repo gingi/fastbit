@@ -145,12 +145,20 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
 }
 
 /// A shallow copy constructor.  It makes a new array out of a section of
-/// an existing array.
+/// an existing array.  The values of begin and end are indices to the
+/// array rhs.  If end is less than or equal to begin, it is assume to
+/// extend all the way to the end of rhs.
 template<class T>
-ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t offset,
-			  const size_t nelm)
-    : actual(rhs.actual), m_begin(rhs.m_begin+offset), m_end(m_begin+nelm) {
-    if (m_end > rhs.m_end)
+ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
+			  const size_t end)
+    : actual(rhs.actual), m_begin(rhs.m_begin+begin), m_end(m_begin+end) {
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(end < begin && end != 0 && ibis::gVerbose > 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< "> called with a suspicious looking section [" << begin
+	<< ", " << end << ')';
+#endif
+    if (m_end > rhs.m_end || m_end <= rhs.m_begin)
 	m_end = rhs.m_end;
     if (actual != 0)
 	actual->beginUse();
@@ -160,9 +168,8 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t offset,
 	<< static_cast<void*>(this) << " with actual="
 	<< static_cast<void*>(actual) << " m_begin="
 	<< static_cast<void*>(m_begin) << " and actual->size()="
-	<< actual->size() << ", copied " << nelm << " element"
-	<< (nelm>1?"s":"") << " from " << static_cast<const void*>(&rhs)
-	<< " starting with offset " << offset;
+	<< actual->size() << " using section [" << begin << ", "
+	<< end << ") from " << static_cast<const void*>(&rhs);
 }
 
 /// Turn a raw storage object into an array_t object.  The input storage
@@ -189,13 +196,19 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 /// is allocated.
 ///
 /// The arguments @c start and @c end are offsets into the raw storage
-/// measured in number of bytes, NOT the number of element of type T.
+/// measured in number of bytes, NOT the number of element of type T!
 template<class T>
 ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
 			  const size_t start, const size_t end)
     : actual(rhs),
       m_begin((T*)(rhs != 0 ? rhs->begin()+start : 0)),
       m_end((T*)(rhs != 0 ? rhs->begin()+end : 0)) {
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(end < start && end != 0 && ibis::gVerbose > 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< "> called with a suspicious looking section [" << start
+	<< ", " << end << ')';
+#endif
     if (actual != 0 && m_begin != 0 && m_end != 0) {
 	if ((const char*)(m_begin) >= rhs->end()) {
 	    LOGGER(ibis::gVerbose > 0)
@@ -215,8 +228,8 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
 	<< static_cast<const void*>(this) << " with actual="
 	<< static_cast<const void*>(actual) << ", m_begin="
 	<< static_cast<const void*>(m_begin) << " and m_end="
-	<< static_cast<const void*>(m_end) << " from "
-	<< static_cast<const void*>(rhs) << " starting with offset " << start;
+	<< static_cast<const void*>(m_end) << " using section [" << start
+	<< ", " << end << ") from " << static_cast<const void*>(rhs);
 }
 
 /// Construct a new array by reading a part of a binary file.  The argument
@@ -228,8 +241,18 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
     : actual(new ibis::fileManager::storage(fdes, begin, end)),
       m_begin((T*) (actual != 0 ? actual->begin() : 0)),
       m_end((T*) (actual != 0 ? actual->end() : 0)) {
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(end < begin && end != 0 && ibis::gVerbose > 0)
+	<< "Warning -- array_t<" << typeid(T).name()
+	<< "> called with a suspicious looking section [" << begin
+	<< ", " << end << ')';
+#endif
     if (m_begin == 0 || m_begin + (end - begin)/sizeof(T) != m_end) {
 	delete actual;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
+	    << "from file descriptor " << fdes << " between " << begin
+	    << " and " << end;
 	throw ibis::bad_alloc("array_t failed to read file segment");
     }
     if (actual != 0)
@@ -250,6 +273,10 @@ ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
       m_end(actual ? (T*) actual->end() : (T*)0) {
     if (m_begin == 0 || m_begin + (end - begin)/sizeof(T) != m_end) {
 	delete actual;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
+	    << "from file \"" << fn << "\" between " << begin
+	    << " and " << end;
 	throw ibis::bad_alloc("array_t failed to read file segment");
     }
     if (actual != 0)
@@ -270,6 +297,10 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
       m_end(actual ? (T*) actual->end() : (T*)0) {
     if (m_begin == 0 || m_begin + (end - begin)/sizeof(T) != m_end) {
 	delete actual;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
+	    << "from file \"" << fn << "\" (" << fdes << ") between " << begin
+	    << " and " << end;
 	throw ibis::bad_alloc("array_t failed to read file segment");
     }
     if (actual != 0)

@@ -906,7 +906,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -1009,7 +1009,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -1113,7 +1113,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -1344,7 +1344,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -1610,7 +1610,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -1975,7 +1975,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -2246,7 +2246,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -2839,7 +2839,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -3176,7 +3176,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -4071,7 +4071,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	long ierr = selectValuesT(mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column["
+		<< "Warning -- column["
 		<< (thePart!=0 ? thePart->name() : "") << "." << m_name
 		<< "]::selectValuesT failed with error code " << ierr;
 	    array->clear();
@@ -4125,7 +4125,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column["
+	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValuesT failed to allocate space for vals[" << tot
 	    << "]";
@@ -4299,7 +4299,7 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::column["
+	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValuesT failed to allocate space for vals[" << tot
 	    << "] and inds[" << tot << "]";
@@ -4956,7 +4956,7 @@ void ibis::column::unloadIndex() const {
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::column[" << thePart->name()
+		<< "Warning -- column[" << thePart->name()
 		<< "." << name() << "]::unloadIndex failed because "
 		"idxcnt (" << idxc << ") is not zero";
 	}
@@ -5267,7 +5267,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    else { // index::evaluate failed
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose > 2)
-		    << "INFO -- ibis::column[" << thePart->name()
+		    << "INFO -- column[" << thePart->name()
 		    << "." << name() << "]::evaluateRange(" << cmp.colName()
 		    << " IN ...) -- idx(" << idx->name()
 		    << ")->evaluate returned " << ierr

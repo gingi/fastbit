@@ -347,7 +347,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	    }
 	    else if (errno != 0) {
 		LOGGER(ibis::gVerbose > 5 || errno != ENOENT)
-		    << "Warning -- ibis::part::part(" << (void*)adir << ", "
+		    << "Warning -- part::part(" << (void*)adir << ", "
 		    << (void*)bdir << ") stat(" << adir << ") failed ... "
 		    << strerror(errno);
 		throw std::invalid_argument("the argument to part::part "
@@ -439,10 +439,10 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	    amask.read(mskfile.c_str());
 	    if (amask.size() != nEvents) {
 		LOGGER(ibis::gVerbose > 1 && amask.size() > 0)
-		    << "Warning -- ibis::part::ctor read a unexpected "
+		    << "Warning -- part::ctor read a unexpected "
 		    "-part.msk, mask file \"" << mskfile
 		    << "\" contains only " << amask.size()
-		    << "bit" << (amask.size()>1?"s":"")
+		    << " bit" << (amask.size()>1?"s":"")
 		    << ", but " << nEvents << (nEvents>1?" were":" was")
 		    << " expected";
 		amask.adjustSize(nEvents, nEvents);
@@ -988,7 +988,7 @@ void ibis::part::init(const char* iname) {
 		    << "Warning -- part::init read a unexpected "
 		    "-part.msk, mask file \"" << mskfile
 		    << "\" contains only " << amask.size()
-		    << "bit" << (amask.size()>1?"s":"")
+		    << " bit" << (amask.size()>1?"s":"")
 		    << ", but " << nEvents << (nEvents>1?" were":" was")
 		    << " expected";
 		amask.adjustSize(nEvents, nEvents);
@@ -2541,7 +2541,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2550,7 +2550,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2559,7 +2559,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2584,7 +2584,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2593,7 +2593,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2602,7 +2602,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2627,7 +2627,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2636,7 +2636,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2645,7 +2645,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2670,7 +2670,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2679,7 +2679,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2688,7 +2688,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2713,7 +2713,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2722,7 +2722,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2731,7 +2731,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2756,7 +2756,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2765,7 +2765,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2774,7 +2774,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2799,7 +2799,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2808,7 +2808,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2817,7 +2817,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2842,7 +2842,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2851,7 +2851,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2860,7 +2860,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
 	    << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2885,7 +2885,7 @@ ibis::array_t<float>* ibis::part::selectFloats
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2894,7 +2894,7 @@ ibis::array_t<float>* ibis::part::selectFloats
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2903,7 +2903,7 @@ ibis::array_t<float>* ibis::part::selectFloats
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectFloats(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2928,7 +2928,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2937,7 +2937,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2946,7 +2946,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectDoubles(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -2971,7 +2971,7 @@ std::vector<std::string>* ibis::part::selectStrings
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectStrings(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following std::exception -- " << e.what();
@@ -2980,7 +2980,7 @@ std::vector<std::string>* ibis::part::selectStrings
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectStrings(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received the following string exception -- " << s;
@@ -2989,7 +2989,7 @@ std::vector<std::string>* ibis::part::selectStrings
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "")
+	    << "Warning -- part[" << (m_name ? m_name : "")
 	    << "]::selectStrings(" << (pname ? pname : "")
 	    << ") with mask(" << mask.cnt() << " out of " << mask.size() 
 	    << ") received a unexpected exception";
@@ -4715,7 +4715,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     ierr = vlist.open();
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+	    << "Warning -- part[" << (m_name ? m_name : "?")
 	    << "]::doScan -- failed to prepare data for " << cmp;
 	return ierr;
     }
@@ -4832,7 +4832,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
     ierr = vlist.open();
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- ibis::part[" << (m_name ? m_name : "?")
+	    << "Warning -- part[" << (m_name ? m_name : "?")
 	    << "]::calculate -- failed to prepare data for " << trm;
 	return ierr;
     }
@@ -5762,7 +5762,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     str = qtmp.getLastError();
     if (str != 0 && *str != static_cast<char>(0)) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part::quickTest last error on query "
+	    << "Warning -- part::quickTest last error on query "
 	    << "\"" << clause << "\" is \n" << str;
 	qtmp.clearErrorMessage();
 	++(*nerrors);
@@ -5803,7 +5803,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
     str = qtmp.getLastError();
     if (str != 0 && *str != static_cast<char>(0)) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- ibis::part::quickTest last error on query "
+	    << "Warning -- part::quickTest last error on query "
 	    << "\"" << clause << "\" is \n" << str;
 	qtmp.clearErrorMessage();
 	++(*nerrors);
@@ -6169,7 +6169,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	const char *str = qtmp.getLastError();
 	if (str != 0 && *str != static_cast<char>(0)) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- ibis::part::queryTest last error on "
+	    lg() << "Warning -- part::queryTest last error on "
 			<< "query \"" << predicate << "\" is \n" << str;
 	    qtmp.clearErrorMessage();
 	    ++(*nerrors);
@@ -6197,7 +6197,7 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	str = qtmp.getLastError();
 	if (str != 0 && *str != static_cast<char>(0)) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- ibis::part::queryTest last error on "
+	    lg() << "Warning -- part::queryTest last error on "
 			<< "query \"" << predicate << "\" is \n" << str;
 	    qtmp.clearErrorMessage();
 	    ++(*nerrors);
@@ -6581,7 +6581,7 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
 		++ nerr0;
 		++ (*lst.nerrors);
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- ibis::part::checkQueryList found the "
+		    << "Warning -- part::checkQueryList found the "
 		    "number of hits (" << lst.hits[i] << ") for \""
 		    << lst.conds[i] << "\" not matching the sum ("
 		    << fromChildren[i] << ") from its two sub-divisions";
@@ -6959,7 +6959,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -6990,7 +6990,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -7005,7 +7005,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to read a value at " << diff;
@@ -7021,7 +7021,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -7037,7 +7037,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
@@ -7055,7 +7055,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -7078,7 +7078,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << diff;
@@ -7252,7 +7252,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -7290,7 +7290,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -7305,7 +7305,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") expected to read " << diff
@@ -7326,7 +7326,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -7350,7 +7350,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -7378,7 +7378,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -7403,7 +7403,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
@@ -7662,7 +7662,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -7693,7 +7693,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -7708,7 +7708,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to read a value at " << diff;
@@ -7724,7 +7724,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -7740,7 +7740,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
@@ -7758,7 +7758,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -7781,7 +7781,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << diff;
@@ -7960,7 +7960,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -7998,7 +7998,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -8013,7 +8013,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") expected to read " << diff
@@ -8034,7 +8034,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -8058,7 +8058,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -8086,7 +8086,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -8111,7 +8111,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
@@ -8368,7 +8368,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -8399,7 +8399,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -8414,7 +8414,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::doCompare(" << file
 				<< ") failed to read a value at " << diff;
@@ -8430,7 +8430,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -8446,7 +8446,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
@@ -8464,7 +8464,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -8487,7 +8487,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::doCompare(" << file
 			    << ") failed to seek to " << diff;
@@ -8661,7 +8661,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part[" << (m_name ? m_name : "?")
+			<< "Warning -- part[" << (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
@@ -8699,7 +8699,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
@@ -8714,7 +8714,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") expected to read " << diff
@@ -8735,7 +8735,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- ibis::part["
+				<< "Warning -- part["
 				<< (m_name ? m_name : "?")
 				<< "]::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
@@ -8759,7 +8759,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -8787,7 +8787,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- ibis::part["
+			<< "Warning -- part["
 			<< (m_name ? m_name : "?")
 			<< "]::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
@@ -8812,7 +8812,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- ibis::part["
+			    << "Warning -- part["
 			    << (m_name ? m_name : "?")
 			    << "]::negativeCompare(" << file
 			    << ") failed to seek to " << diff;

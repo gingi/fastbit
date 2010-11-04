@@ -41,7 +41,7 @@ int ibis::countQuery::setPartition(const part* tbl) {
 	int ierr = conds.verify(*tbl, m_sel);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- ibis::countQuery where clause \"" << conds
+		<< "Warning -- countQuery where clause \"" << conds
 		<< "\" can not be processed on data partition " << tbl->name()
 		<< ", ierr = " << ierr;
 	    return -6;

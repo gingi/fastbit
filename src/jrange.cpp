@@ -41,7 +41,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 	ierr = que.setWhereClause(condr);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange(" << desc_ << ") could apply "
+		<< "Warning -- jRange(" << desc_ << ") could apply "
 		<< condr << " on partition " << partr.name()
 		<< ", ierr = " << ierr;
 	    throw "jRange failed to apply conditions on partr";
@@ -49,7 +49,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange(" << desc_
+		<< "Warning -- jRange(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << partr.name() << ", ierr = " << ierr;
 	    throw "jRange failed to evaluate constraints on partr";
@@ -64,7 +64,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 	ierr = que.setWhereClause(conds);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange(" << desc_ << ") could apply "
+		<< "Warning -- jRange(" << desc_ << ") could apply "
 		<< conds << " on partition " << parts.name()
 		<< ", ierr = " << ierr;
 	    throw "jRange failed to apply conditions on parts";
@@ -72,7 +72,7 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
 	ierr = que.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange(" << desc_
+		<< "Warning -- jRange(" << desc_
 		<< ") could not evaluate " << que.getWhereClause()
 		<< " on partition " << parts.name() << ", ierr = " << ierr;
 	    throw "jRange failed to evaluate constraints on parts";
@@ -124,14 +124,14 @@ int64_t ibis::jRange::count() const {
     switch (colr_.type()) {
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- ibis::jRange[" << desc_
+	    << "Warning -- jRange[" << desc_
 	    << "] cann't handle join column of type " << colr_.type();
 	return -2;
     case ibis::BYTE: {
 	valr_ = colr_.selectBytes(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectBytes("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -139,7 +139,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectBytes(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectBytes("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -153,7 +153,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectUBytes(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectUBytes("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -161,7 +161,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectUBytes(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectUBytes("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -176,7 +176,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectShorts(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectShorts("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -184,7 +184,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectShorts(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectShorts("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -198,7 +198,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectUShorts(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectUShorts("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -206,7 +206,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectUShorts(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectUShorts("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -220,7 +220,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectInts(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectInts("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -228,7 +228,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectInts(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectInts("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -242,7 +242,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectUInts(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectUInts("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -250,7 +250,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectUInts(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectUInts("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -264,7 +264,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectLongs(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectLongs("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -272,7 +272,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectLongs(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectLongs("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -286,7 +286,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectULongs(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectULongs("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -294,7 +294,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectULongs(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectULongs("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -308,7 +308,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectFloats(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectFloats("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -316,7 +316,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectFloats(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectFloats("
 		<< masks_.cnt() << ") failed";
 	    return -4;
@@ -329,7 +329,7 @@ int64_t ibis::jRange::count() const {
 	valr_ = colr_.selectDoubles(maskr_);
 	if (valr_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << colr_.name() << "->selectDoubles("
 		<< maskr_.cnt() << ") failed";
 	    return -3;
@@ -337,7 +337,7 @@ int64_t ibis::jRange::count() const {
 	vals_ = cols_.selectDoubles(masks_);
 	if (vals_ == 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- ibis::jRange::count(" << desc_
+		<< "Warning -- jRange::count(" << desc_
 		<< ") call to " << cols_.name() << "->selectDoubles("
 		<< masks_.cnt() << ") failed";
 	    return -4;
