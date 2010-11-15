@@ -163,18 +163,55 @@ int64_t ibis::filter::count() const {
 ibis::table* ibis::filter::select() const {
     const ibis::partList &myparts = (parts_ != 0 ? *parts_ : ibis::datasets);
     if (wc_ == 0) {
-	// empty where clause, SQL standard dictates it to select everyont
+	// empty where clause, SQL standard dictates it to select every row
 	return new ibis::liga(myparts);
     }
-    if (sel_ != 0) {
-	return ibis::filter::filt(*sel_, myparts, *wc_);
-    }
-    else {
+    if (sel_ == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- filter::select can not proceed without "
 	    "a select clause";
 	return 0;
     }
+    try {
+	return ibis::filter::filt(*sel_, myparts, *wc_);
+    }
+    catch (const ibis::bad_alloc &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a bad_alloc exception ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const std::exception &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a std::exception ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const char *s) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a string exception ("
+		 << s << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (...) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed an unknown exception, "
+		"will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    return 0;
 } // ibis::filter::select
 
 ibis::table*
@@ -186,7 +223,46 @@ ibis::filter::select(const ibis::table::stringList& colnames) const {
 	    "select clause";
 	return 0;
     }
-    return ibis::filter::filt(sc, *parts_, *wc_);
+    try {
+	return ibis::filter::filt(sc, *parts_, *wc_);
+    }
+    catch (const ibis::bad_alloc &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a bad_alloc exception ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const std::exception &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a std::exception ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const char *s) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a string exception ("
+		 << s << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (...) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed an unknown exception, "
+		"will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    return 0;
 } // ibis::filter::select
 
 /// Select the rows satisfying the where clause and store the results

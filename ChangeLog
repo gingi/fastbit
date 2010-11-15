@@ -1,3 +1,9 @@
+2010-11-14 John Wu <John dot Wu at ACM dot org>
+	* src/filter.cpp, src/mensa.cpp: add printing statements to help
+	debug problems with exceptions absorbed by table::select and
+	filter::select (in an attempt to address an issue raised by
+	Anderson Chavez)
+
 2010-11-04 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: add quotes to string values printed from
 	ibis::bord::column (as suggested by Anderson Chaves)
