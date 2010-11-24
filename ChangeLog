@@ -1,3 +1,8 @@
+2010-11-23 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp, src/bitvector.cpp: change the operation to read
+	bitvectors to prefer read (instead of file map) to address a
+	problem observed by Chavdar Kopoev
+
 2010-11-14 John Wu <John dot Wu at ACM dot org>
 	* src/filter.cpp, src/mensa.cpp: add printing statements to help
 	debug problems with exceptions absorbed by table::select and

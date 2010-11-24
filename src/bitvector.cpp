@@ -1717,8 +1717,9 @@ std::ostream& operator<<(std::ostream& o, const ibis::bitvector& b) {
 // minimal amount of integrity checking
 void ibis::bitvector::read(const char * fn) {
     if (fn == 0 || *fn == 0) return;
-    // let the file manager handle IO to avoid extra copying
-    int ierr = ibis::fileManager::instance().getFile(fn, m_vec);
+    // let the file manager handle the read operation to avoid extra copying
+    int ierr = ibis::fileManager::instance().getFile
+	(fn, m_vec, ibis::fileManager::PREFER_READ);
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 5)
 	    << "Warning -- failed to read the content of " << fn

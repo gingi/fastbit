@@ -623,7 +623,8 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 	    fnm = nullMaskName(sname);
 	    int ierr = -1;
 	    try {
-		ierr = ibis::fileManager::instance().getFile(fnm, arr);
+		ierr = ibis::fileManager::instance().getFile
+		    (fnm, arr, ibis::fileManager::PREFER_READ);
 		if (ierr == 0) {
 		    mask.copy(ibis::bitvector(arr));
 		}
