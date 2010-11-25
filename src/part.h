@@ -87,6 +87,8 @@ public:
     /// Return the number of rows.
     uint32_t nRows() const {return nEvents;}
 
+    int updateData();
+
     /// Output a description of every column of the data partition.
     void print(std::ostream &out) const;
 
@@ -684,14 +686,14 @@ public:
 protected:
     class cleaner;	///< Cleaner for the file manager.
     class writeLock;	///< A write lock on the partition.
-    class advisoryLock; ///< A non-block version of writeLock.
+    class softWriteLock; ///< A non-block version of writeLock.
     class mutexLock;    ///< A mutual exclusion lock.
 
     friend struct info;
     friend class cleaner;
     friend class readLock;
     friend class writeLock;
-    friend class advisoryLock;
+    friend class softWriteLock;
     friend class mutexLock;
 
     /******************************************************************/
@@ -1365,6 +1367,8 @@ namespace ibis {
 		    bool ro=false);
 	/// Cleanup the data partitions.
 	void clearDatasets(void);
+	/// Update the metadata about the data partitions.
+	void updateDatasets(void);
     } // namespace util
 } // namespace ibis
 
@@ -1439,26 +1443,26 @@ private:
 /// An non-blocking version of writeLock.  The function @c acquired returns
 /// true is the object has acquired a write lock successfully, otherwise the
 /// function returns false.
-class ibis::part::advisoryLock {
+class ibis::part::softWriteLock {
 public:
     /// Constructor.
-    advisoryLock(const part* tbl, const char* m);
+    softWriteLock(const part* tbl, const char* m);
     /// Destructor.
-    ~advisoryLock() {if (locked==0) thePart->releaseAccess(mesg);}
+    ~softWriteLock() {if (lckd==0) thePart->releaseAccess(mesg);}
     /// Have we acquired the desired lock?  Returns true if yes, otherwise
     /// false.
-    bool acquired() const {return (locked==0);}
+    bool isLocked() const {return (lckd==0);}
 
 private:
     const part* thePart;
     const char* mesg;
-    const int locked;
+    const int lckd;
 
-    advisoryLock() : thePart(0), mesg(0), locked(0) {};
-    advisoryLock(const advisoryLock &rhs)
-	: thePart(rhs.thePart), mesg(rhs.mesg), locked(0) {};
-    const advisoryLock &operator=(const advisoryLock&);
-}; // ibis::part::advisoryLock
+    softWriteLock() : thePart(0), mesg(0), lckd(0) {};
+    softWriteLock(const softWriteLock &rhs)
+	: thePart(rhs.thePart), mesg(rhs.mesg), lckd(0) {};
+    const softWriteLock &operator=(const softWriteLock&);
+}; // ibis::part::softWriteLock
 
 /// Provide a mutual exclusion lock on an ibis::part object.  Used
 /// externally by derived class of ibis::part.

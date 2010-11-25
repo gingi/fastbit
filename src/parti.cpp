@@ -1745,3 +1745,54 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     }
     return ierr;
 } // ibis::part::addColumn
+
+/// Check the time stamp on the metadata files to update the in-memory
+/// metadata information.
+int ibis::part::updateData() {
+    emptyCache();
+    if (activeDir == 0 || *activeDir == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << m_name << "]::updateData can not proceed "
+	    "because the activeDir is not defined";
+	return -1;
+    }
+
+    softWriteLock lock(this, "updateData");
+    if (lock.isLocked() == false) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << m_name << "]::updateData can not proceed, "
+	    "must free all queries and stop other accesses before continuing";
+	return -2;
+    }
+
+    int ierr;
+    time_t t0;
+    Stat_T st;
+    std::string fn = activeDir;
+    fn += FASTBIT_DIRSEP;
+    fn += "-part.txt";
+    ierr = UnixStat(fn.c_str(), &st);
+    if (ierr != 0) {
+	fn.erase(fn.size() - 9);
+	fn += "table.tdc";
+	ierr = UnixStat(fn.c_str(), &st);
+    }
+    if (ierr != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << m_name << "]::updateData failed to "
+	    "determine the status of -part.txt, errno = " << errno
+	    << " (" << strerror(errno) << ')';
+	return -3;
+    }
+    t0 = st.st_ctime;
+    fn.erase(fn.size()-9);
+    fn += "-part.msk";
+    ierr = UnixStat(fn.c_str(), &st);
+    if (ierr == 0 && t0 < st.st_ctime)
+	t0 = st.st_ctime;
+    if (switchTime >= t0) return 0; // up-to-date
+
+    if (ierr == 0 && switchTime < st.st_ctime)
+	amask.read(fn.c_str()); // re-read the mask file
+    readMetaData(nEvents, columns, activeDir); // re-read column information
+} // ibis::part::updateData

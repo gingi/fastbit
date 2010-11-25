@@ -1550,6 +1550,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    }
 	}
 
+	switchTime = time(0); // record the current time
 	if (mt > 0 && activeDir != 0 && *activeDir != 0) {
 	    // write an updated metadata file
 	    LOGGER(ibis::gVerbose > 1)
@@ -1994,11 +1995,12 @@ void ibis::part::readRIDs() const {
     }
 } // ibis::part::readRIDs
 
-// a function to remove RIDs
+/// If only complete the task if it can acquire a write lock on the
+/// ibis::part object.  Otherwise, the rids will be left unchanged.
 void ibis::part::freeRIDs() const {
-    if (rids) {
-	advisoryLock lock(this, "freeRIDs");
-	if (lock.acquired()) {
+    if (rids != 0) {
+	softWriteLock lock(this, "freeRIDs");
+	if (lock.isLocked()) {
 	    // only perform deletion if it actually acquired a write lock
 	    delete rids;
 	    rids = 0;
@@ -6729,15 +6731,15 @@ void ibis::part::gainWriteAccess(const char* mesg) const {
     }
 } // ibis::part::gainWriteAccess
 
-ibis::part::advisoryLock::advisoryLock(const part* tbl, const char* m)
+ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
     : thePart(tbl), mesg(m),
-      locked(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
-    if (locked != 0) {
+      lckd(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
+    if (lckd != 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part[" << thePart->name()
 	    << "]::gainWriteAccess -- pthread_rwlock_trywrlock("
 	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg
-	    << " returned " << locked << " (" << strerror(locked) << ')';
+	    << " returned " << lckd << " (" << strerror(lckd) << ')';
     }
     else if (ibis::gVerbose > 9) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -14729,6 +14731,14 @@ ibis::part* ibis::findDataset(const char* pn) {
 	return 0;
     }
 } // ibis::findDataset
+
+/// Loop through all known data partitions and check for any update in the
+/// metadata files.
+void ibis::util::updateDatasets() {
+    const uint32_t npt = ibis::datasets.size();
+    for (uint32_t j = 0; j < npt; ++ j)
+	ibis::datasets[j]->updateData();
+} // ibis::util::updateDatasets
 
 // explicit instantiations of the templated functions
 template long
