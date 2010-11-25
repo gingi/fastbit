@@ -1,3 +1,11 @@
+2010-11-25 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp: add statement to clear the cached content from
+	the directory ibis::tafel::write is writing to
+
+2010-11-24 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp, src/parti.cpp: add part::updateData
+	and util::updateDatasets at the request of Chavdar Kopeov
+
 2010-11-23 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp, src/bitvector.cpp: change the operation to read
 	bitvectors to prefer read (instead of file map) to address a

@@ -1555,6 +1555,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	<< " column" << (cols.size()>1?"s":"") << " to " << dir << " as "
 	<< " data partition " << tname;
 
+    ibis::fileManager::instance().flushDir(dir);
     std::ofstream md(mdfile.c_str());
     if (! md) {
 	LOGGER(ibis::gVerbose > 0)
@@ -1636,7 +1637,6 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	}
     }
     md.close(); // close the file
-    ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger()()
@@ -1749,6 +1749,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		    << ", will append " << mrows << " new row"
 		    << (mrows>1 ? "s" : "");
 	    }
+	    tmp.emptyCache(); // empty cached content from dir
 	}
     }
 
