@@ -3826,10 +3826,10 @@ double ibis::bitvector::clusteringFactor(word_t nb, word_t nc,
 					 word_t sz) {
     double f = 1.0;
     sz /= sizeof(word_t); // internally use the number words as size measure
-    if (sz <= 3) {
+    if (sz <= 3 || nc >= nb) {
 	f = nc;
     }
-    else if (nb > MAXBITS && nc > 0 && nb >= nc && nb > MAXBITS * sz) {
+    else if (nb > MAXBITS && nc > 0 && nb > nc && nb > MAXBITS * sz) {
 	const int tw3 = MAXBITS + MAXBITS - 3;
 	const double den = static_cast<double>(nc) /
 	    static_cast<double>(nb);

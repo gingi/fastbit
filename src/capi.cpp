@@ -10,6 +10,7 @@
 #include "tafel.h"	// a concrete instance of ibis::tablex
 
 extern "C" {
+    /// The object underlying the FastBit query handle.
     struct FastBitQuery {
 	const ibis::part *t; ///< The ibis::part this query refers to.
 	ibis::query q; ///< The ibis::query object
@@ -37,11 +38,13 @@ extern "C" {
     };
 }
 
-// A class that is only used in this file for implementing the C API.
+/// A list of data partitions known to the C API.  This class that is only
+/// used in this file for implementing the C API.
 class fastbit_part_list {
 public:
     fastbit_part_list();
     ~fastbit_part_list();
+    void remove(const char* dir);
     ibis::part* find(const char* dir);
 
 private:
@@ -60,6 +63,7 @@ static fastbit_part_list *_capi_tlist=0;
 // The pointer to the in-memory buffer used to store new data records.
 static ibis::tablex *_capi_tablex=0;
 
+/// Constructor.
 fastbit_part_list::fastbit_part_list() {
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
@@ -67,6 +71,7 @@ fastbit_part_list::fastbit_part_list() {
     }
 } // ctor
 
+/// Clear all data partitions from the list.
 void fastbit_part_list::clear() {
     ibis::util::mutexLock lock(&mutex, "~fastbit_part_list");
     for (ibis::partAssoc::iterator it = parts.begin();
@@ -79,11 +84,14 @@ void fastbit_part_list::clear() {
     parts.clear();
 } // fastbit_part_list::clear
 
+/// Destructor.
 fastbit_part_list::~fastbit_part_list() {
     clear();
     pthread_mutex_destroy(&mutex);
 } // dtor
 
+/// Locate the named directory in the list of data partitions.  If the
+/// named directory is not already in the list, it is added to the list.
 ibis::part* fastbit_part_list::find(const char* dir) {
     ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
     ibis::partAssoc::const_iterator it = parts.find(dir);
@@ -115,6 +123,17 @@ ibis::part* fastbit_part_list::find(const char* dir) {
 	return tmp;
     }
 } // fastbit_part_list::find
+
+/// Delete the named directory from the list.
+void fastbit_part_list::remove(const char* dir) {
+    ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
+    ibis::partAssoc::iterator it = parts.find(dir);
+    if (it != parts.end()) {
+	delete [] (*it).first;
+	delete (*it).second;
+	parts.erase(it);
+    }
+} // fastbit_part_list::remove
 
 extern "C" int fastbit_get_version_number() {
     return ibis::util::getVersionNumber();
@@ -2207,6 +2226,7 @@ fastbit_flush_buffer(const char *dir) {
     int ierr = 0;
     if (dir == 0 || *dir == 0)
 	return -1;
+
     try {
 	ibis::util::mutexLock
 	    lock(&ibis::util::envLock, "fastbit_flush_buffer");
@@ -2215,6 +2235,23 @@ fastbit_flush_buffer(const char *dir) {
 	    ierr = _capi_tablex->write(dir, 0, 0);
 	    delete _capi_tablex;
 	    _capi_tablex = 0;
+
+	    // update the data partition in the directory dir
+	    if (ierr == 0 && _capi_tlist != 0) {
+		ibis::part *t = _capi_tlist->find(dir);
+		if (t != 0) {
+		    ierr = t->updateData();
+		    if (ierr < 0) {
+			// failed to update the data partition
+			LOGGER(ibis::gVerbose > 2)
+			    << "fastbit_flush_buffer failed to update the data "
+			    "partition based on directory " << dir
+			    << ", will remove it from the list of known data "
+			    "partitions";
+			_capi_tlist->remove(dir);
+		    }
+		}
+	    }
 	}
     }
     catch (const std::exception& e) {
@@ -2318,7 +2355,8 @@ fastbit_add_values(const char *colname, const char *coltype,
 		std::cout.flush();
 		tvals[i] = tmp[i];
 	    }
-	    ierr = _capi_tablex->append(colname, start, start+nelem, (void *)&tvals);
+	    ierr = _capi_tablex->append(colname, start, start+nelem,
+					(void *)&tvals);
 	} else {
 	    ierr = _capi_tablex->append(colname, start, start+nelem, vals);
 	}

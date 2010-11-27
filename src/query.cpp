@@ -311,7 +311,7 @@ int ibis::query::setWhereClause(const char* str) {
     if (ibis::gVerbose > 0) {
 	ibis::util::logger lg;
 	lg() << "query[" << myID << "]::setWhereClause -- where \""
-		    << str << "\"";
+	     << str << "\"";
 	if (ibis::gVerbose > 3) {
 	    lg() << "\n  Translated the WHERE clause into: ";
 	    conds.getExpr()->printFull(lg());
@@ -2198,8 +2198,7 @@ void ibis::query::printRIDs(const ibis::RIDSet& ridset) const {
     ibis::RIDSet::const_iterator it = ridset.begin();
     lg() << "RID set length = " << len << std::endl;
     for (int i=0; i<len; ++i, ++it) {
-	lg() << " [ " << (*it).num.run << ", "
-		    << (*it).num.event << " ] ";
+	lg() << " [ " << (*it).num.run << ", " << (*it).num.event << " ] ";
 	if (3 == i%4)
 	    lg() << std::endl;
     }
@@ -2222,8 +2221,8 @@ void ibis::query::logError(const char* event, const char* fmt, ...) const {
 	(void) strncpy(lastError+7, s, MAX_LINE-7);
 	{
 	    ibis::util::logger lg;
-	    lg() << " Error *** query[" << myID << "]::" << event
-			<< " -- " << s;
+	    lg() << " Error *** query[" << myID << "]::" << event << " -- "
+		 << s;
 	    if (errno != 0)
 		lg() << " ... " << strerror(errno);
 	}
@@ -2235,7 +2234,7 @@ void ibis::query::logError(const char* event, const char* fmt, ...) const {
 	{
 	    ibis::util::logger lg;
 	    lg() << " Error *** query[" << myID << "]::" << event
-			<< " -- " << fmt << " ...";
+		 << " -- " << fmt << " ...";
 	    if (errno != 0)
 		lg() << " ... " << strerror(errno);
 	}
@@ -2256,8 +2255,8 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 	va_end(args);
 
 	ibis::util::logger lg;
-	lg() << "Warning -- query[" << myID << "]::"
-		    << event << " -- " << lastError+9;
+	lg() << "Warning -- query[" << myID << "]::" << event << " -- "
+	     << lastError+9;
 	if (errno != 0) {
 	    if (errno != ENOENT)
 		lg() << " ... " << strerror(errno);
@@ -2274,7 +2273,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 
 	    ibis::util::logger lg;
 	    lg() << "Warning -- query[" << myID << "]::" << event
-			<< " -- " << s;
+		 << " -- " << s;
 	    if (errno != 0) {
 		if (errno != ENOENT)
 		    lg() << " ... " << strerror(errno);
@@ -2301,7 +2300,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 
     ibis::util::logger lg;
     lg() << "Warning -- query[" << myID << "]::" << event
-		<< " -- " << fmt << " ...";
+	 << " -- " << fmt << " ...";
     if (errno != 0) {
 	if (errno != ENOENT)
 	    lg() << " ... " << strerror(errno);
@@ -2357,7 +2356,7 @@ void ibis::query::reorderExpr() {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "query[" << myID << "]:reorderExpr returns " << ret
-		    << ".  The new query expression is \n";
+	     << ".  The new query expression is \n";
 	conds.getExpr()->printFull(lg());
     }
 } // ibis::query::reorderExpr
@@ -2761,8 +2760,7 @@ int ibis::query::computeHits() {
 	(ibis::gVerbose > 30 ||
 	 (ibis::gVerbose > 4 && (1U<<ibis::gVerbose) >= hits->bytes()))) {
 	ibis::util::logger lg;
-	lg() << "query::computeHits: hit vector" << *hits
-		    << "\n";
+	lg() << "query::computeHits: hit vector" << *hits << "\n";
 	if (ibis::gVerbose > 19) {
 	    ibis::bitvector::indexSet is = hits->firstIndexSet();
 	    lg() << "row numbers of the hits\n";
@@ -2879,7 +2877,7 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 		    }
 		    if (cnt < diff.cnt())
 			lg() << "... (" << diff.cnt() - cnt
-				    << " rows skipped)\n";
+			     << " rows skipped)\n";
 		}
 	    }
 	}
@@ -3459,8 +3457,8 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg() << "query[" << myID << "]::doScan("
-		<< static_cast<const void*>(term) << ": " << *term
-		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
+	 << static_cast<const void*>(term) << ": " << *term
+	 << ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg() << "ht \n" << ht;
 #else
@@ -3681,8 +3679,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg() << "query[" << myID << "]::doEvaluate("
-		<< static_cast<const void*>(term) << ": " << *term
-		<< ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
+	 << static_cast<const void*>(term) << ": " << *term
+	 << ") --> " << ht.cnt() << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg() << "ht \n" << ht;
 #else
@@ -3984,9 +3982,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg(4);
     lg() << "query[" << myID << "]::doEvaluate("
-		<< static_cast<const void*>(term) << ": " << *term
-		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
-		<< ", ierr = " << ierr << "\n";
+	 << static_cast<const void*>(term) << ": " << *term
+	 << ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
+	 << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg() << "ht \n" << ht;
 #else
@@ -4231,8 +4229,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
     else {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logger lg(4);
-	lg() << "query[" << myID << "::readRIDs() got " << rids->size()
-		    << "\n";
+	lg() << "query[" << myID << "::readRIDs() got " << rids->size() << "\n";
 	for (ibis::RIDSet::const_iterator it = rids->begin();
 	     it != rids->end(); ++it)
 	    lg() << (*it) << "\n";
@@ -4437,7 +4434,7 @@ uint32_t ibis::query::countPages(unsigned wordsize) const {
     else {
 	ibis::util::logger lg;
 	lg() << "query[" << myID << "]::countPages(" << wordsize
-		    << ") page numbers: ";
+	     << ") page numbers: ";
 	for (uint32_t i = 0; ix.nIndices() > 0 && (i >> ibis::gVerbose) == 0;
 	     ++ i) {
 	    const ibis::bitvector::word_t *ind = ix.indices();
@@ -4688,15 +4685,14 @@ int64_t ibis::query::processJoin() {
 	    lg() << "computed ";
 	else
 	    lg() << "estimated (baed on " << *(terms.back())
-			<< ") to be no more than ";
-	lg() << cnt2 << " hits, took "
-		    << tm1.realTime() << " sec\n"
-		    << "processJoin with OPTION 3 -- basic bitmap index + "
+		 << ") to be no more than ";
+	lg() << cnt2 << " hits, took " << tm1.realTime() << " sec\n"
+	     << "processJoin with OPTION 3 -- basic bitmap index + "
 	    "bitmap mask and ";
 	if (range1) {
 	    if (range2) {
 		lg() << "two range constraints (" << *range1
-			    << " and " << *range2 << ")";
+		     << " and " << *range2 << ")";
 	    }
 	    else {
 		lg() << "one range constraint (" << *range1 << ")";
@@ -4712,7 +4708,7 @@ int64_t ibis::query::processJoin() {
 	    lg() << " computed ";
 	else
 	    lg() << "estimated (baed on " << *(terms.back())
-			<< ") to be no more than ";
+		 << ") to be no more than ";
 	lg() << cnt3 << " hits, took " << tm2.realTime() << " sec";
     }
     if (idx1 != 0 && idx2 != 0 && terms.size() > 1 &&
@@ -4815,15 +4811,14 @@ int64_t ibis::query::processJoin() {
 	else
 	    lg() << "computed ";
 	lg() << cnt2 << " hits, took "
-		    << tm1.realTime() << " sec\n"
-		    << "processJoin with OPTION 3 -- basic bitmap index + "
+	     << tm1.realTime() << " sec\n"
+	     << "processJoin with OPTION 3 -- basic bitmap index + "
 	    "bitmap mask and additional range constraints";
 	if (approx3)
 	    lg() << " estimated to be no more than ";
 	else
 	    lg() << " computed ";
-	lg() << cnt3 << " hits, took "
-		    << tm2.realTime() << " sec";
+	lg() << cnt3 << " hits, took " << tm2.realTime() << " sec";
     }
     if (idx1 != 0 && idx2 != 0 && terms.size() == 1 &&
 	idx1->type() == ibis::index::BINNING &&
@@ -4845,12 +4840,11 @@ int64_t ibis::query::processJoin() {
 	ibis::util::logger lg;
 	lg() << "processJoin with OPTION 2 -- basic binned index + "
 	    "bitmap mask estimated the maximum hits to be " << cnt2
-		    << ", took "
-		    << tm1.realTime() << " sec\n"
-		    << "processJoin with OPTION 3 -- basic binned index + "
+	     << ", took " << tm1.realTime() << " sec\n"
+	     << "processJoin with OPTION 3 -- basic binned index + "
 	    "bitmap mask and additional range constraints"
 	    " estimated the maximum hits to be " << cnt3
-		    << ", took " << tm2.realTime() << " sec";
+	     << ", took " << tm2.realTime() << " sec";
     }
     if (idx1 != 0 && idx2 != 0 && terms.size() > 1 &&
 	idx1->type() == ibis::index::BINNING &&
@@ -4957,13 +4951,13 @@ int64_t ibis::query::processJoin() {
 	ibis::util::logger lg;
 	lg() << "processJoin with OPTION 2 -- basic binned index + "
 	    "bitmap mask estimated the maximum hits to be " << cnt2
-		    << ", took " << tm1.realTime() << " sec\n"
-		    << "processJoin with OPTION 3 -- basic binned index + "
+	     << ", took " << tm1.realTime() << " sec\n"
+	     << "processJoin with OPTION 3 -- basic binned index + "
 	    "bitmap mask and ";
 	if (range1) {
 	    if (range2) {
 		lg() << "two range constraints (" << *range1
-			    << " and " << *range2 << ")";
+		     << " and " << *range2 << ")";
 	    }
 	    else {
 		lg() << "one range constraint (" << *range1 << ")";
@@ -5084,13 +5078,12 @@ int64_t ibis::query::processJoin() {
 			if (ix.isRange()) {
 			    for (ibis::bitvector64::word_t i = *ind;
 				 i < ind[1]; ++ i)
-				lg() << i/nrows << ",\t" << i%nrows
-					    << "\n";
+				lg() << i/nrows << ",\t" << i%nrows << "\n";
 			}
 			else {
 			    for (uint32_t i = 0; i < ix.nIndices(); ++ i)
 				lg() << ind[i]/nrows << ",\t"
-					    << ind[i]%nrows << "\n";
+				     << ind[i]%nrows << "\n";
 			}
 		    }
 		}
@@ -5125,13 +5118,12 @@ int64_t ibis::query::processJoin() {
 			if (ix.isRange()) {
 			    for (ibis::bitvector64::word_t i = *ind;
 				 i < ind[1]; ++ i)
-				lg() << i/nrows << ",\t" << i%nrows
-					    << "\n";
+				lg() << i/nrows << ",\t" << i%nrows << "\n";
 			}
 			else {
 			    for (uint32_t i = 0; i < ix.nIndices(); ++ i)
 				lg() << ind[i]/nrows << ",\t"
-					    << ind[i]%nrows << "\n";
+				     << ind[i]%nrows << "\n";
 			}
 		    }
 		}
@@ -5213,7 +5205,7 @@ int64_t ibis::query::processJoin() {
 		    else {
 			for (uint32_t i = 0; i < ix.nIndices(); ++ i)
 			    lg() << ind[i]/nrows << ",\t"
-					<< ind[i]%nrows << "\n";
+				 << ind[i]%nrows << "\n";
 		    }
 		}
 	    }

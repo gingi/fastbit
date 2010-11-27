@@ -770,7 +770,7 @@ void ibis::tafel::normalize() {
 	switch (col.type) {
 	case ibis::BYTE: {
 	    array_t<signed char>& vals =
-		* static_cast<array_t<signed char>*>(col.values);
+		*static_cast<array_t<signed char>*>(col.values);
 	    if (mrows < vals.size()) {
 		mrows = vals.size();
 		need2nd = true;
@@ -781,7 +781,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::UBYTE: {
 	    array_t<unsigned char>& vals =
-		* static_cast<array_t<unsigned char>*>(col.values);
+		*static_cast<array_t<unsigned char>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -792,7 +792,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::SHORT: {
 	    array_t<int16_t>& vals =
-		* static_cast<array_t<int16_t>*>(col.values);
+		*static_cast<array_t<int16_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -803,7 +803,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::USHORT: {
 	    array_t<uint16_t>& vals =
-		* static_cast<array_t<uint16_t>*>(col.values);
+		*static_cast<array_t<uint16_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -814,7 +814,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::INT: {
 	    array_t<int32_t>& vals =
-		* static_cast<array_t<int32_t>*>(col.values);
+		*static_cast<array_t<int32_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -825,7 +825,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::UINT: {
 	    array_t<uint32_t>& vals =
-		* static_cast<array_t<uint32_t>*>(col.values);
+		*static_cast<array_t<uint32_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -836,7 +836,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t>& vals =
-		* static_cast<array_t<int64_t>*>(col.values);
+		*static_cast<array_t<int64_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -847,7 +847,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t>& vals =
-		* static_cast<array_t<uint64_t>*>(col.values);
+		*static_cast<array_t<uint64_t>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -858,7 +858,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>& vals =
-		* static_cast<array_t<float>*>(col.values);
+		*static_cast<array_t<float>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -869,7 +869,7 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>& vals =
-		* static_cast<array_t<double>*>(col.values);
+		*static_cast<array_t<double>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -881,7 +881,7 @@ void ibis::tafel::normalize() {
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
 	    std::vector<std::string>& vals =
-		* static_cast<std::vector<std::string>*>(col.values);
+		*static_cast<std::vector<std::string>*>(col.values);
 	    if (vals.size() > mrows) {
 		mrows = vals.size();
 		need2nd = true;
@@ -919,12 +919,12 @@ void ibis::tafel::normalize() {
 	switch (col.type) {
 	case ibis::BYTE: {
 	    array_t<signed char>& vals =
-		* static_cast<array_t<signed char>*>(col.values);
+		*static_cast<array_t<signed char>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<signed char*>(col.defval));
+				*static_cast<signed char*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -938,12 +938,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::UBYTE: {
 	    array_t<unsigned char>& vals =
-		* static_cast<array_t<unsigned char>*>(col.values);
+		*static_cast<array_t<unsigned char>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<unsigned char*>(col.defval));
+				*static_cast<unsigned char*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -957,12 +957,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::SHORT: {
 	    array_t<int16_t>& vals =
-		* static_cast<array_t<int16_t>*>(col.values);
+		*static_cast<array_t<int16_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<int16_t*>(col.defval));
+				*static_cast<int16_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -976,12 +976,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::USHORT: {
 	    array_t<uint16_t>& vals =
-		* static_cast<array_t<uint16_t>*>(col.values);
+		*static_cast<array_t<uint16_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<uint16_t*>(col.defval));
+				*static_cast<uint16_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -995,12 +995,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::INT: {
 	    array_t<int32_t>& vals =
-		* static_cast<array_t<int32_t>*>(col.values);
+		*static_cast<array_t<int32_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<int32_t*>(col.defval));
+				*static_cast<int32_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1014,12 +1014,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::UINT: {
 	    array_t<uint32_t>& vals =
-		* static_cast<array_t<uint32_t>*>(col.values);
+		*static_cast<array_t<uint32_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<uint32_t*>(col.defval));
+				*static_cast<uint32_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1033,12 +1033,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t>& vals =
-		* static_cast<array_t<int64_t>*>(col.values);
+		*static_cast<array_t<int64_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(0, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<int64_t*>(col.defval));
+				*static_cast<int64_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1053,12 +1053,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t>& vals =
-		* static_cast<array_t<uint64_t>*>(col.values);
+		*static_cast<array_t<uint64_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<uint64_t*>(col.defval));
+				*static_cast<uint64_t*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1073,12 +1073,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>& vals =
-		* static_cast<array_t<float>*>(col.values);
+		*static_cast<array_t<float>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<float*>(col.defval));
+				*static_cast<float*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1093,12 +1093,12 @@ void ibis::tafel::normalize() {
 	    break;}
 	case ibis::DOUBLE: {
 	    array_t<double>& vals =
-		* static_cast<array_t<double>*>(col.values);
+		*static_cast<array_t<double>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<double*>(col.defval));
+				*static_cast<double*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1114,12 +1114,12 @@ void ibis::tafel::normalize() {
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
 	    std::vector<std::string>& vals =
-		* static_cast<std::vector<std::string>*>(col.values);
+		*static_cast<std::vector<std::string>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
 		    col.mask.set(1, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				* static_cast<std::string*>(col.defval));
+				*static_cast<std::string*>(col.defval));
 		}
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
@@ -1135,9 +1135,9 @@ void ibis::tafel::normalize() {
 	    if (col.starts.size() < mrows+1) {
 		if (col.defval != 0) {
 		    ibis::array_t<char>& bytes =
-			* static_cast<array_t<char>*>(col.values);
+			*static_cast<array_t<char>*>(col.values);
 		    const std::string &def =
-			* static_cast<std::string*>(col.defval);
+			*static_cast<std::string*>(col.defval);
 		    col.starts.reserve(mrows+1);
 		    if (col.starts.size() <= 1) {
 			col.starts.resize(1);
@@ -1158,7 +1158,7 @@ void ibis::tafel::normalize() {
 	    else if (col.starts.size() > mrows+1) {
 		col.starts.resize(mrows+1);
 		ibis::array_t<unsigned char>& bytes =
-		    * static_cast<array_t<unsigned char>*>(col.values);
+		    *static_cast<array_t<unsigned char>*>(col.values);
 		if (bytes.size() > col.starts[mrows]) {
 		    bytes.resize(col.starts.back());
 		}
@@ -1866,14 +1866,14 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<signed char>*>(col.values),
-		     * static_cast<const signed char*>(col.defval),
+		     *static_cast<const array_t<signed char>*>(col.values),
+		     *static_cast<const signed char*>(col.defval),
 		     msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<signed char>*>(col.values),
+		     *static_cast<const array_t<signed char>*>(col.values),
 		     (signed char)0x7F, msk, col.mask);
 	    }
 	    break;
@@ -1881,14 +1881,14 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<unsigned char>*>(col.values),
+		     *static_cast<const array_t<unsigned char>*>(col.values),
 		     *static_cast<const unsigned char*>(col.defval),
 		     msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<unsigned char>*>(col.values),
+		     *static_cast<const array_t<unsigned char>*>(col.values),
 		     (unsigned char)0xFF, msk, col.mask);
 	    }
 	    break;
@@ -1896,13 +1896,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int16_t>*>(col.values),
-		     * static_cast<const int16_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<int16_t>*>(col.values),
+		     *static_cast<const int16_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int16_t>*>(col.values),
+		     *static_cast<const array_t<int16_t>*>(col.values),
 		     (int16_t)0x7FFF, msk, col.mask);
 	    }
 	    break;
@@ -1910,13 +1910,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<uint16_t>*>(col.values),
-		     * static_cast<const uint16_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<uint16_t>*>(col.values),
+		     *static_cast<const uint16_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<uint16_t>*>(col.values),
+		     *static_cast<const array_t<uint16_t>*>(col.values),
 		     (uint16_t)0xFFFF, msk, col.mask);
 	    }
 	    break;
@@ -1924,13 +1924,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int32_t>*>(col.values),
-		     * static_cast<const int32_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<int32_t>*>(col.values),
+		     *static_cast<const int32_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int32_t>*>(col.values),
+		     *static_cast<const array_t<int32_t>*>(col.values),
 		     (int32_t)0x7FFFFFFF, msk, col.mask);
 	    }
 	    break;
@@ -1938,13 +1938,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<uint32_t>*>(col.values),
-		     * static_cast<const uint32_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<uint32_t>*>(col.values),
+		     *static_cast<const uint32_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<uint32_t>*>(col.values),
+		     *static_cast<const array_t<uint32_t>*>(col.values),
 		     (uint32_t)0xFFFFFFFF, msk, col.mask);
 	    }
 	    break;
@@ -1954,13 +1954,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		tmp.set(1, mrows);
 		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int64_t>*>(col.values),
-		     * static_cast<const int64_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<int64_t>*>(col.values),
+		     *static_cast<const int64_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<int64_t>*>(col.values),
+		     *static_cast<const array_t<int64_t>*>(col.values),
 		     0x7FFFFFFFFFFFFFFFLL, msk, col.mask);
 	    }
 	    break;
@@ -1968,12 +1968,12 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn<uint64_t>
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<uint64_t>*>(col.values),
-		     * static_cast<const uint64_t*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<uint64_t>*>(col.values),
+		     *static_cast<const uint64_t*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn<uint64_t>
-		    (fdes, nold, mrows, * static_cast<const array_t<uint64_t>*>
+		    (fdes, nold, mrows, *static_cast<const array_t<uint64_t>*>
 		     (col.values), 0xFFFFFFFFFFFFFFFFULL, msk, col.mask);
 	    }
 	    break;
@@ -1981,13 +1981,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<float>*>(col.values),
-		     * static_cast<const float*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<float>*>(col.values),
+		     *static_cast<const float*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<float>*>(col.values),
+		     *static_cast<const array_t<float>*>(col.values),
 		     std::numeric_limits<float>::quiet_NaN(), msk, col.mask);
 	    }
 	    break;
@@ -1995,13 +1995,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<double>*>(col.values), 
-		     * static_cast<const double*>(col.defval), msk, col.mask);
+		     *static_cast<const array_t<double>*>(col.values), 
+		     *static_cast<const double*>(col.defval), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
-		     * static_cast<const array_t<double>*>(col.values), 
+		     *static_cast<const array_t<double>*>(col.values), 
 		     std::numeric_limits<double>::quiet_NaN(), msk, col.mask);
 	    }
 	    break;
@@ -2010,13 +2010,13 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    if (col.defval != 0) {
 		ierr = ibis::part::writeString
 		    (fdes, nold, mrows,
-		     * static_cast<const std::vector<std::string>*>
+		     *static_cast<const std::vector<std::string>*>
 		     (col.values), msk, col.mask);
 	    }
 	    else {
 		ierr = ibis::part::writeString
 		    (fdes, nold, mrows,
-		     * static_cast<const std::vector<std::string>*>
+		     *static_cast<const std::vector<std::string>*>
 		     (col.values), msk, col.mask);
 	    }
 	    break;
@@ -2037,7 +2037,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 
 	    ierr = ibis::part::writeRaw
 		(fdes, sdes, nold, mrows,
-		 * static_cast<const array_t<unsigned char>*>(col.values),
+		 *static_cast<const array_t<unsigned char>*>(col.values),
 		 col.starts, msk, col.mask);
 	    break;}
 	default:
@@ -2073,7 +2073,6 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	else { // remove the mask file
 	    remove(mskfile.c_str());
 	}
-	ibis::fileManager::instance().flushFile(mskfile.c_str());
 
 	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
 	   << ibis::TYPESTRING[(int) col.type];

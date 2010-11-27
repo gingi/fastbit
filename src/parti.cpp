@@ -1764,6 +1764,9 @@ int ibis::part::updateData() {
 	    "must free all queries and stop other accesses before continuing";
 	return -2;
     }
+    LOGGER(ibis::gVerbose > 3)
+	<< "part[" << m_name << "]::updateData to check time stamps on "
+	<< activeDir << "/-part.txt and " << activeDir << "/-part.msk";
 
     int ierr;
     time_t t0;
@@ -1784,15 +1787,21 @@ int ibis::part::updateData() {
 	    << " (" << strerror(errno) << ')';
 	return -3;
     }
-    t0 = st.st_ctime;
+    t0 = (st.st_ctime >= st.st_mtime ? st.st_ctime : st.st_mtime);
     fn.erase(fn.size()-9);
     fn += "-part.msk";
     ierr = UnixStat(fn.c_str(), &st);
-    if (ierr == 0 && t0 < st.st_ctime)
-	t0 = st.st_ctime;
-    if (switchTime >= t0) return 0; // up-to-date
+    if (ierr == 0) {
+	if (t0 < st.st_ctime)
+	    t0 = st.st_ctime;
+	else if (t0 < st.st_mtime)
+	    t0 = st.st_mtime;
+    }
+    if (switchTime > t0) return 0; // up-to-date
 
-    if (ierr == 0 && switchTime < st.st_ctime)
+    if (ierr == 0 && (switchTime <= st.st_ctime || switchTime <= st.st_mtime))
 	amask.read(fn.c_str()); // re-read the mask file
     readMetaData(nEvents, columns, activeDir); // re-read column information
+    amask.adjustSize(nEvents, nEvents);
+    return 0;
 } // ibis::part::updateData

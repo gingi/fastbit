@@ -1,6 +1,16 @@
+2010-11-26 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp:3829 change the test condition to avoid
+	division by 0 (when density is 1)
+	* src/parti.cpp: in function part::updateData check both st_ctime
+	and st_mtime (my own windows-based laptop seems to not update
+	st_ctime, but st_mtime), reading the metadata files if time stamps
+	are the same as previously recorded to allow for quick changes
+	within the same second
+
 2010-11-25 John Wu <John dot Wu at ACM dot org>
-	* src/tafel.cpp: add statement to clear the cached content from
-	the directory ibis::tafel::write is writing to
+	* src/tafel.cpp: in function ibis::tafel::write and
+	ibis::tafel::writeMetaData move the statement to flush the data
+	directory to the beginning of the respective function
 
 2010-11-24 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp, src/parti.cpp: add part::updateData
