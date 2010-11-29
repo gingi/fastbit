@@ -55,7 +55,7 @@ void usage(const char *name) {
     respectively.   The columns a and b have values 0, ..., 99 and column c
     has values 100, 99, ..., 1.
  */
-static void buildin(const char *nm, FILE* output) {
+static void builtin(const char *nm, FILE* output) {
     int nerrors = 0;
     int i, mult;
     int32_t ivals[100];
@@ -90,15 +90,34 @@ static void buildin(const char *nm, FILE* output) {
 	int nhits = fastbit_get_result_rows(h);
 	if (nhits != mult * counts[i]) {
 	    ++ nerrors;
-	    fprintf(output, "%s: query \"%s\" on %d build-in records found "
+	    fprintf(output, "%s: query \"%s\" on %d built-in records found "
 		    "%d hits, but %d were expected\n", nm, conditions[i],
 		    (int)(mult*100), nhits, (int)(mult*counts[i]));
 	}
 	fastbit_destroy_query(h);
     }
-    fprintf(output, "%s: build-in tests finished with nerrors = %d\n",
+
+    // try to append the same data again
+    fastbit_add_values("a", "int", ivals, 100, 0);
+    fastbit_add_values("b", "short", svals, 100, 0);
+    fastbit_add_values("c", "float", fvals, 100, 0);
+    fastbit_flush_buffer(dir);
+    // test the same queries once more
+    ++ mult;
+    for (i = 0; i < 5; ++ i) {
+	FastBitQueryHandle h = fastbit_build_query(0, dir, conditions[i]);
+	int nhits = fastbit_get_result_rows(h);
+	if (nhits != mult * counts[i]) {
+	    ++ nerrors;
+	    fprintf(output, "%s: query \"%s\" on %d built-in records found "
+		    "%d hits, but %d were expected\n", nm, conditions[i],
+		    (int)(mult*100), nhits, (int)(mult*counts[i]));
+	}
+	fastbit_destroy_query(h);
+    }
+    fprintf(output, "%s: built-in tests finished with nerrors = %d\n",
 	    nm, nerrors);
-}
+} // builtin
 
 int main(int argc, char **argv) {
     int ierr, nhits, vselect;
@@ -179,7 +198,7 @@ int main(int argc, char **argv) {
     output = stdout;
 #endif
     if (argc <= vselect) {
-	buildin(*argv, output);
+	builtin(*argv, output);
 	return -1;
     }
 

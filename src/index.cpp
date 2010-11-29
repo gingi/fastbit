@@ -5660,8 +5660,8 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 
 /// Sum up <code>bits[ib:ie-1]</code> and place the result in res.  The
 /// bitmaps (bits) are held by this index object and may be regenerated as
-/// needed.  It uses the combined strategy that was determined in previous
-/// tests.  The basic rule is as follows.
+/// needed.  It uses the combined strategy that was determined in an series
+/// of earlier tests.  The basic rule is as follows.
 /// - If there are two or less bit vectors, use |= operator directly.
 /// - Compute the total size of the bitmaps involved.
 /// - If the total size times log(number of bitvectors involved) is less
@@ -6241,8 +6241,8 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 
 /// This function attempts to take advantage of existing results of a
 /// previously computed sum.
-/// - On input, res = sum_{i=ib0}^{ie0} bits[i].
-/// - On exit, res = sum_{i=ib}^{ie} bits[i].
+/// - On input, res = sum_{i=ib0}^{ie0-1} bits[i].
+/// - On exit, res = sum_{i=ib}^{ie-1} bits[i].
 void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  uint32_t ib0, uint32_t ie0) const {
     LOGGER(ibis::gVerbose > 7)
@@ -6335,9 +6335,10 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 /// @c bts[ib] through @c bts[ie-1] and expects the caller to have filled
 /// these bitvectors already.
 ///
-/// @note  The caller need to activate the required bit vectors!
-/// @note If bts[i] is a null pointer, it is skipped which is equivalent to
-/// it being a bitvector of all 0s.
+/// @note The caller need to activate the required bit vectors!  In other
+/// words, bts[ib:ie-1] must be in memory.
+/// @note If bts[i] is a null pointer, it is skipped, which is equivalent
+/// to it being a bitvector of all 0s.
 void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
@@ -6492,9 +6493,12 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 } // ibis::index::addBits
 
 /// Sum up @c bts[ib:ie-1] and place the result in @c res.
-/// @note This function may either use bts[ib:ie-1] or bts[0:ib-1] and
-/// bts[ie:nobs-1] depending which set has more bit vectors!  This
-/// requires the caller to activate the appropriate set.
+///
+/// @note This function either uses bts[ib:ie-1] or bts[0:ib-1] and
+/// bts[ie:nobs-1] depending which set has more bit vectors!  This requires
+/// the caller to determine with set of them are to be used and then load
+/// them to memory before calling this function.
+///
 /// @note This function always uses the operator |=.
 /// Tests show that using the function @c setBit is always slower.
 void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
@@ -7683,11 +7687,13 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 } // ibis::index::sumBits
 
 /// Sum up @c bts[ib:ie-1] and add the result to @c res.  It is assumed
-/// that all bts add up to @c tot.  In the other version of sumBits
-/// without this argument @c tot, it was assumed that all bitmaps add up to
-/// a bit vector of all ones.  The decision of whether to use bts[ib:ie-1]
-/// directly or use the subtractive version (using bts[0:ib-1] and
-/// bts[ie:nobs-1]) are based on the number of bit vectors.
+/// that all bts add up to @c tot.  In the other version of sumBits without
+/// this argument @c tot, it was assumed that all bitmaps add up to a bit
+/// vector of all ones.  The decision of whether to use bts[ib:ie-1]
+/// directly or use the subtractive version (with bts[0:ib-1] and
+/// bts[ie:nobs-1]) are based on the number of bit vectors.  The caller is
+/// responsible to ensuring the necessary bitmaps are already in memory
+/// before calling this function.
 void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 			  const ibis::bitvector& tot, uint32_t ib,
 			  uint32_t ie, ibis::bitvector& res) {

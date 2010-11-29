@@ -4687,7 +4687,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     if (ibis::gVerbose > 1) {
 	LOGGER(ibis::gVerbose > 2)
 	    << "part[" << m_name
-	    << "]::doScan - starting scaning data for \"" << cmp
+	    << "]::doScan - starting scanning data for \"" << cmp
 	    << "\" with mask (" << mask.cnt() << " out of "
 	    << mask.size() << ")";
 	timer.start();
