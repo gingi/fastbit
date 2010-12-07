@@ -19,7 +19,7 @@
 #include "bundle.h"		// ibis::bundle
 #include "quaere.h"		// ibis::quaere
 #include "query.h"		// ibis::query
-#include "part.h"		// ibis::part
+#include "part.h"		// ibis::part, ibis::column, ibis::table
 #include "rids.h"		// ibis::ridHandler
 
 /*! \mainpage Overview of FastBit IBIS Implementation

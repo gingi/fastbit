@@ -1,3 +1,7 @@
+2010-12-06 John Wu <John dot Wu at ACM dot org>
+	* src/ikeywords.h, src/ikeywords.cpp: allow
+	ibis::keywords::readKeywords to read keywords with embedded spaces
+
 2010-11-28 John Wu <John dot Wu at ACM dot org>
 	* examples/tcapi.c: change buildin to builtin, add a repeat of the
 	built-in tests to mimic the test case from Chavdar Kopeov

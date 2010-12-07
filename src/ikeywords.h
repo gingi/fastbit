@@ -97,17 +97,33 @@ private:
 }; // class ibis::keywords
 
 /// A keyword is any number of printable characters.  Returns the first
-/// non-space character after the keyword.
+/// non-space character following the keyword, which should be the
+/// delimiter ':'.  Consecutive spaces in the keyword are replaced with a
+/// single plain space character.
 inline char ibis::keywords::readKeyword(const char*& buf,
 					std::string &keyword) const {
     while (isspace(*buf)) // skip leading space
 	++ buf;
-    while (isprint(*buf) && !(isspace(*buf) || *buf == ':')) {
-	keyword += *buf;
-	++ buf;
+    while (isprint(*buf)) { // loop through all printable till the delimiter
+	if (*buf == ':') {
+	    return *buf;
+	}
+	else if (isspace(*buf)) {
+	    for (++ buf; isspace(*buf); ++ buf);
+	    if (*buf == ':') {
+		return *buf;
+	    }
+	    else {
+		keyword += ' ';
+		keyword += *buf;
+		++ buf;
+	    }
+	}
+	else {
+	    keyword += *buf;
+	    ++ buf;
+	}
     }
-    while (isspace(*buf)) // skip trailing space
-	++ buf;
     return *buf;
 } // ibis::keywords::readKeyword
 

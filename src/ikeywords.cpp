@@ -206,8 +206,8 @@ int ibis::keywords::readLine(std::istream &in,
     str1 = linebuf;
     char c = readKeyword(const_cast<const char*&>(str1), key);
     if (c != ':') { // failed to find the required delimiter after keyword
-	LOGGER(ibis::gVerbose > 3)
-	    << "keywords::readLine -- failed to find the "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- keywords::readLine -- failed to find the "
 	    "required delimiter ':' after the keyword \"" << key
 	    << "\".  Skip the line";
 	ierr = -1;

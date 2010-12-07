@@ -11,8 +11,6 @@
  * root-data-dir name and hexadecimal version of the partition number.
  ***************************************************************/ 
 #include <ibis.h>	/* ibis::init */
-#include <table.h>	/* ibis::table */
-#include <util.h>	/* ibis::util::makeDir */
 #include <string.h>	/* strrchr */
 #include <stdlib.h>
 #include <stdio.h>
@@ -161,12 +159,10 @@ int main(int argc, char **argv) {
 
 	    fillRow(val, irow);
 	    ierr = tab->appendRow(val);
-	    if (ierr != totcols) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- " << *argv << " failed to add values of row "
-		    << irow << " to the in-memory table, appendRow returned "
-		    << ierr;
-	    }
+	    LOGGER(ierr != totcols && ibis::gVerbose >= 0)
+		<< "Warning -- " << *argv << " failed to add values of row "
+		<< irow << " to the in-memory table, appendRow returned "
+		<< ierr;
 	    if (tab->mRows() >= cap) {
 		ierr= tab->write(dir.c_str());
 		LOGGER(ierr < 0)
