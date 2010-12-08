@@ -8344,10 +8344,6 @@ _lt_linker_boilerplate=`cat conftest.err`
 $RM -r conftest*
 
 
-## CAVEAT EMPTOR:
-## There is no encapsulation within the following macros, do not change
-## the running order or otherwise move them around unless you know exactly
-## what you are doing...
 if test -n "$compiler"; then
 
 lt_prog_compiler_no_builtin_flag=
@@ -16126,7 +16122,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16129 "configure" */
+/* #line 16125 "configure" */
 public class Test {
 }
 EOF
@@ -16257,7 +16253,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16260: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16256: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -16334,7 +16330,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16337 "configure" */
+/* #line 16333 "configure" */
 public class Test {
 }
 EOF
@@ -16369,7 +16365,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 16372 "configure" */
+/* [#]line 16368 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

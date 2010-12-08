@@ -891,10 +891,18 @@ size_t ibis::keywords::getSerialSize() const throw () {
     return res;
 } // ibis::keywords::getSerialSize
 
-/// Tokenizer.  If no delimiter is specified, it turns all non-alphanumeric
-/// characters into null and returns the starting positions of groups of
-/// alphanumeric characters as tokens.  If a list of delimiters are
-/// provided, any of the delimiters will terminate a token.
+/// Tokenizer.  Turn the buffer buf into a list of tokens based on the
+/// following rules.
+///
+/// - If no delimiter is specified, it turns all non-alphanumeric
+/// characters into the null character and returns the starting positions
+/// of groups of alphanumeric characters as tokens.
+///
+/// - If a list of delimiters are provided, any of the delimiters will
+/// terminate a token.  Blank spaces surrounding the delimiters will be
+/// turned into null characters along with the delimiters.
+///
+/// This function returns 0 in normal cases.
 int ibis::keywords::tokenizer::operator()
     (std::vector<const char*>& tkns, char *buf) {
     tkns.clear();

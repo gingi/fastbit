@@ -84,7 +84,7 @@ const char* K3[] = {
     "BB",
     "BB-",
     "BB+",
-    "BBB ",
+    "BBB",
     "BBB-",
     "BBB+",
     "C",

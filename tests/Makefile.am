@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=gnu
-EXTRA_PROGRAMS = readcsv smatch inRange setqgen
-check_SCRIPTS = scripts/matchCounts.pl
+EXTRA_PROGRAMS = readcsv smatch inRange setqgen jrf
+check_SCRIPTS = scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
 readcsv_SOURCES = readcsv.cpp
 smatch_SOURCES = smatch.cpp
 smatch_CPPFLAGS = -I../src
@@ -28,7 +28,7 @@ THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
-    scripts/fastbit-config.in scripts/hcompare.pl \
+    scripts/fastbit-config.in scripts/hcompare.pl scripts/jrf-check.pl \
     scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
     vault/hist0 vault/hist1 vault/hist2 vault/hist3 vault/hist4 \
@@ -47,7 +47,7 @@ check: clean-tmp check-am
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis && $(MAKE) check-join
 more-check:
-	$(MAKE) check && $(MAKE) small-tests && $(MAKE) check-sq1
+	$(MAKE) check && $(MAKE) check-jrf && $(MAKE) small-tests && $(MAKE) check-sq1
 full-check:
 	$(MAKE) more-check && $(MAKE) large-tests && $(MAKE) check-sq2
 #
@@ -113,6 +113,10 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange | fgrep -v std::exception | diff - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
+	@echo
+check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
+	@scripts/jrf-check.pl $(IBISEXE) $(TESTDIR)/jrf | tee $(TESTDIR)/check-jrf.log
+	@if [ `fgrep Success $(TESTDIR)/check-jrf.log | wc -l` -eq 3 ] ; then echo Passed $@; else Did NOT pass $@; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -b -v -v > $(TESTDIR)/check-marksdb.log 2>&1
@@ -438,4 +442,4 @@ $(TCAPIEXE):
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
 .PHONY: check-marksdb check-maurel small-tests really-small check-sq1 check-sq2
-.PHONY: TESTDIR
+.PHONY: check-jrf TESTDIR
