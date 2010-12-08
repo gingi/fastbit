@@ -34,6 +34,8 @@ public:
     virtual ~keywords() {clear();}
     keywords(const ibis::column* c,
 	     const ibis::column* idcol=0, const char* f=0);
+    keywords(const ibis::column* c, ibis::text::tokenizer& tkn,
+	     const char* f=0);
     keywords(const ibis::column* c, ibis::fileManager::storage* st);
 
     virtual INDEX_TYPE type() const {return KEYWORDS;}
@@ -73,21 +75,18 @@ public:
     virtual double estimateCost(const ibis::qContinuousRange& expr) const;
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
+    struct tokenizer;
+
 protected:
     virtual size_t getSerialSize() const throw();
-    /// Reads a term-document list from a external file.  Returns the
-    /// number of terms found if successful, otherwise returns a negative
-    /// number to indicate error.
     int readTermDocFile(const ibis::column* idcol, const char* f);
-    /// Extract the keyword from a line of input term-document file.
-    inline char readKeyword(const char*& buf, std::string &key) const;
-    /// Extract the next integer in an inputline.
+    inline char readTerm(const char*& buf, std::string &key) const;
     inline uint32_t readUInt(const char*& buf) const;
-    /// Read and process one line from the term-docuement file.
-    int readLine(std::istream& in, std::string& key,
-		 std::vector<uint32_t>& idlist,
-		 char* buf, uint32_t nbuf) const;
+    int readTDLine(std::istream& in, std::string& key,
+		   std::vector<uint32_t>& idlist,
+		   char* buf, uint32_t nbuf) const;
     void setBits(std::vector<uint32_t>& pos, ibis::bitvector& bvec) const;
+    int parseTextFile(ibis::text::tokenizer &tkn, const char *f);
 
     /// Clear the current content.
     void clear();
@@ -96,12 +95,13 @@ private:
     ibis::dictionary terms;	//< A dictionary for the terms.
 }; // class ibis::keywords
 
+/// Extract the term from a line of input term-document file.
 /// A keyword is any number of printable characters.  Returns the first
 /// non-space character following the keyword, which should be the
 /// delimiter ':'.  Consecutive spaces in the keyword are replaced with a
 /// single plain space character.
-inline char ibis::keywords::readKeyword(const char*& buf,
-					std::string &keyword) const {
+inline char ibis::keywords::readTerm(const char*& buf,
+				     std::string &keyword) const {
     while (isspace(*buf)) // skip leading space
 	++ buf;
     while (isprint(*buf)) { // loop through all printable till the delimiter
@@ -125,8 +125,9 @@ inline char ibis::keywords::readKeyword(const char*& buf,
 	}
     }
     return *buf;
-} // ibis::keywords::readKeyword
+} // ibis::keywords::readTerm
 
+/// Extract the next integer in an inputline.
 inline uint32_t ibis::keywords::readUInt(const char*& buf) const {
     uint32_t res = 0;
     while (*buf && ! isdigit(*buf)) // skip leading non-digit
@@ -138,4 +139,21 @@ inline uint32_t ibis::keywords::readUInt(const char*& buf) const {
     }
     return res;
 } // ibis::keywords::readUInt
+
+/// A simple tokenizer used to parse the keywords.
+class ibis::keywords::tokenizer : public ibis::text::tokenizer {
+public:
+    /// Constructor.  It takes a list of delimiters.  Any character in the
+    /// list of delimiters will terminate a token.  If no delimiter is
+    /// given anything other than alphanumerical characters will terminate
+    /// a token.
+    tokenizer(const char *d=0) : delim_(d) {}
+    /// Destructor.
+    virtual ~tokenizer() {}
+
+    virtual int operator()(std::vector<const char*>& tkns, char *buf);
+
+private:
+    std::string delim_; ///< The list of delimiters.  May be empty.
+}; // class ibis::keywords::tokenizer
 #endif

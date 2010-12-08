@@ -14,6 +14,10 @@ setqgen_SOURCES = setqgen.cpp
 setqgen_CPPFLAGS = -I../src
 setqgen_DEPENDENCIES = ../src/libfastbit.la
 setqgen_LDADD = ../src/libfastbit.la
+jrf_SOURCES = jrf.cpp
+jrf_CPPFLAGS = -I../src
+jrf_DEPENDENCIES = ../src/libfastbit.la
+jrf_LDADD = ../src/libfastbit.la
 #
 EXDIR=../examples
 TESTDIR=$(PWD)/tmp
@@ -351,6 +355,9 @@ $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv
 $(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv
 	-rm -rf $(TESTDIR)/maurel
 	-./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT)
+	-rm -rf $(TESTDIR)/jrf
+	-./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
 	-./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)

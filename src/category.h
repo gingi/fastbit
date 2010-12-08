@@ -67,6 +67,20 @@ public:
 
     const column* IDColumnForKeywordIndex() const;
 
+    /// A tokenizer class to turn a string buffer into tokens.  Used by
+    /// ibis::keywords to build a term-document index.
+    struct tokenizer {
+	/// A tokenizer must implement a two-argument operator().  It takes
+	/// a input string in buf to produce a list of tokens in tkns.  The
+	/// input buffer may be modified to in this function.  The return
+	/// value shall be zero (0) to indicate success, and a positive
+	/// value to carray a warning message and a negative value to
+	/// indicate fatal error.
+	virtual int operator()(std::vector<const char*>& tkns, char *buf) = 0;
+	/// Destructor.
+	virtual ~tokenizer() {}
+    }; // struct tokenizer
+
 protected:
     /// Locate the starting position of each string.
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;

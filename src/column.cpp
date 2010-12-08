@@ -561,9 +561,18 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
 			thePart!=0 ? thePart->currentDataDir() : 0);
     if (adir != 0 && *adir != 0) {
 	fname = adir;
-	if (fname[fname.size()-1] != FASTBIT_DIRSEP)
-	    fname += FASTBIT_DIRSEP;
-	fname += m_name;
+	size_t jtmp = fname.rfind(FASTBIT_DIRSEP);
+	if (jtmp < fname.size()) {
+	    if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
+		== 0) {
+		fname.erase(jtmp+1+m_name.size());
+	    }
+	}
+	else {
+	    if (fname[fname.size()-1] != FASTBIT_DIRSEP)
+		fname += FASTBIT_DIRSEP;
+	    fname += m_name;
+	}
 	name = fname.c_str();
     }
     return name;

@@ -7,10 +7,10 @@
 #include "iroster.h"	// ibis::iroster
 #include "part.h"	// ibis::table
 #include <fstream>	// std::ifstream
+#include <cctype>	// std::isalnum
 
 #include <algorithm>	// std::sort
-#include <string.h>	// strlen
-
+#include <string.h>	// strlen, strchr
 
 /// Constructor.  It first tries to read the terms (@c .terms) and the
 /// tdmat (@c .idx) files if they both exist.  If that fails, it tries to
@@ -43,22 +43,85 @@ ibis::keywords::keywords(const ibis::column* c,
 	return;
     }
 
-    // need to read a tdlist file generated externally, first check that id
-    // column is a valid one
-    if (idcol != 0 && idcol->type() != ibis::INT &&
-	idcol->type() != ibis::UINT) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "keywords::keywords -- the id column of "
-	    "keywords can only be 4-byte integers";
-	throw ibis::bad_alloc("keywords can only use 4-byte "
-			      "integers as ids");
+    if (idcol == 0) {
+	std::string delim;
+	const char *spec = col->indexSpec();
+	if (spec != 0 && *spec != 0) {
+	    const char *tmp = strstr(spec, "delimiters");
+	    if (tmp == 0) {
+		tmp = strstr(spec, "Delimiters");
+		if (tmp == 0) {
+		    tmp = strstr(spec, "delim");
+		    if (tmp == 0) {
+			tmp = strstr(spec, "Delim");
+			if (tmp != 0)
+			    tmp += 5;
+		    }
+		    else {
+			tmp += 5;
+		    }
+		}
+		else {
+		    tmp += 10;
+		}
+	    }
+	    else {
+		tmp += 10;
+	    }
+	    if (tmp != 0) {
+		tmp += strspn(tmp, " \t=");
+		ibis::util::readString(delim, tmp);
+	    }
+	}
+	ibis::keywords::tokenizer tkn(delim.c_str());
+	int ierr = parseTextFile(tkn, f);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords failed to parse text file "
+		"to build a keyword index, parseTextFile returned " << ierr;
+	    throw ibis::bad_alloc("keywords::ctr failed to parse text file");
+	}
     }
-    fmat.erase(fmat.size()-3);
-    fmat += "tdlist";
-    int ierr = readTermDocFile(idcol, fmat.c_str());
-    if (ierr == -1 && f != 0 && *f != 0)
-	ierr = readTermDocFile(idcol, f);
-    if (ierr >= 0) { // write out the dictionary and the boolean matrix
+    else {
+	// need to read a tdlist file generated externally, first check that id
+	// column is a valid one
+	if (idcol->type() != ibis::INT &&
+	    idcol->type() != ibis::UINT) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords -- the id column of "
+		"keywords can only be 4-byte integers";
+	    throw ibis::bad_alloc("keywords can only use 4-byte "
+				  "integers as ids");
+	}
+	fmat.erase(fmat.size()-3);
+	fmat += "tdlist";
+	int ierr = readTermDocFile(idcol, fmat.c_str());
+	if (ierr == -1 && f != 0 && *f != 0)
+	    ierr = readTermDocFile(idcol, f);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords -- readTermDocFile failed "
+		"with error code " << ierr;
+	    throw ibis::bad_alloc("keywords::ctor failed to read tdlist file");
+	}
+    }
+
+    optionalUnpack(bits, col->indexSpec());
+    write(f);
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	print(lg());
+    }
+} // ibis::keywords::keywords
+
+/// Constructor.  Construct a keyword index using the user-provided tokenizer.
+ibis::keywords::keywords(const ibis::column *c, ibis::text::tokenizer &tkn,
+			 const char *f) : ibis::index(c) {
+    if (c == 0) return;
+
+    int ierr = parseTextFile(tkn, f);
+    if (ierr >= 0) {
+	optionalUnpack(bits, col->indexSpec());
 	write(f);
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
@@ -67,17 +130,21 @@ ibis::keywords::keywords(const ibis::column* c,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "keywords::keywords -- readTermDocFile failed "
-	    "with error code " << ierr;
-	throw ibis::bad_alloc("keywords failed to read tdlist file");
+	    << "Warning -- keywords::keywords -- parseTextFile failed with "
+	    "error code " << ierr;
+	throw ibis::bad_alloc("keywords::ctor failed to parse text file");
     }
 } // ibis::keywords::keywords
 
+/// Constructor.  Construct a keyword index from an existing file.
 ibis::keywords::keywords(const ibis::column* c, ibis::fileManager::storage* st)
     : ibis::index(c, st) {
     read(st);
 } // ibis::keywords::keywords
 
+/// Reads a term-document list from an external file.  Returns the number
+/// of terms found if successful, otherwise returns a negative number to
+/// indicate error.
 int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     int ierr = 0;
 
@@ -106,7 +173,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     TBMap tbmap;
     if (idcol != 0) {
 	ibis::roster ros(idcol);
-	while ((ierr = readLine(tdf, kw, idlist, buf, nbuf)) == 0) {
+	while ((ierr = readTDLine(tdf, kw, idlist, buf, nbuf)) == 0) {
 	    ++ jline;
 	    ibis::bitvector bvec;
 	    ierr = ros.locate(idlist, bvec);
@@ -129,7 +196,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 	} // reading a line of the term-document list file
     }
     else {
-	while ((ierr = readLine(tdf, kw, idlist, buf, nbuf)) == 0) {
+	while ((ierr = readTDLine(tdf, kw, idlist, buf, nbuf)) == 0) {
 	    ++ jline;
 	    ibis::bitvector bvec;
 	    setBits(idlist, bvec);
@@ -188,11 +255,13 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     return ierr;
 } // ibis::keywords::readTermDocFile
 
-// read one line from the input stream, extract the keyword and the list of ids
-int ibis::keywords::readLine(std::istream &in,
-			     std::string &key,
-			     std::vector<uint32_t> &idlist,
-			     char* linebuf, uint32_t nbuf) const {
+/// Read one line from the term-docuement file.  The caller has opened the
+/// file already, read one line from the input stream.  Extract the keyword
+/// and the list of ids.
+int ibis::keywords::readTDLine(std::istream &in,
+			       std::string &key,
+			       std::vector<uint32_t> &idlist,
+			       char* linebuf, uint32_t nbuf) const {
     int ierr = 0;
     char *str1, *str2;
     key.erase(); // empty the content of keyword
@@ -204,10 +273,10 @@ int ibis::keywords::readLine(std::istream &in,
 	return 2;
 
     str1 = linebuf;
-    char c = readKeyword(const_cast<const char*&>(str1), key);
+    char c = readTerm(const_cast<const char*&>(str1), key);
     if (c != ':') { // failed to find the required delimiter after keyword
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- keywords::readLine -- failed to find the "
+	    << "Warning -- keywords::readTDLine -- failed to find the "
 	    "required delimiter ':' after the keyword \"" << key
 	    << "\".  Skip the line";
 	ierr = -1;
@@ -230,7 +299,7 @@ int ibis::keywords::readLine(std::istream &in,
 		idlist.push_back(id);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose > 5)
-		    << "DEBUG -- keywords::readLine -- keyword: " << key
+		    << "DEBUG -- keywords::readTDLine -- keyword: " << key
 		    << ", count: " << idlist.size() << " ("
 		    << idlist[0] << (idlist.size()>1 ? ", ...)" : ")");
 #endif
@@ -251,9 +320,9 @@ int ibis::keywords::readLine(std::istream &in,
     }
     ierr = 1; // terminating without seeing the end of a line
     return ierr;
-} // ibis::keywords::readLine
+} // ibis::keywords::readTDLine
 
-// turn on the specified positions in a bitvector
+/// Turn on the specified positions in a bitvector.
 void ibis::keywords::setBits(std::vector<uint32_t>& pos,
 			     ibis::bitvector& bvec) const {
     bvec.clear(); // clear the current content
@@ -263,6 +332,126 @@ void ibis::keywords::setBits(std::vector<uint32_t>& pos,
 	bvec.setBit(*it, 1);
     }
 } // ibis::keywords::setBits
+
+/// Parse the text file to build a keyword index.  This function is called
+/// by the constructor of the class to build a new keyword index.
+int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
+				  const char *dir) {
+    std::string tfname, spname;
+    if (col == 0) return -1;
+    if (0 == col->dataFileName(tfname, dir))
+	return -2;
+
+    spname = tfname;
+    spname += ".sp";
+    int tfdesc = UnixOpen(tfname.c_str(), OPEN_READONLY);
+    if (tfdesc < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- keywords::parseTextFile failed to open file \""
+	    << tfname << "\", the open function returned " << tfdesc;
+	return -3;
+    }
+
+    ibis::util::guard tfdguard = ibis::util::makeGuard(UnixClose, tfdesc);
+    int spdesc = UnixOpen(spname.c_str(), OPEN_READONLY);
+    if (spdesc < 0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- keywords::parseTextFile failed to open file \""
+	    << spname << "\", the open function returned " << spdesc;
+	return -4;
+    }
+
+    ibis::util::guard spdguard = ibis::util::makeGuard(UnixClose, spdesc);
+    int64_t start, end;
+    int64_t ierr = UnixRead(spdesc, &start, sizeof(start));
+    if (ierr < 8) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- keywords::parseTextFile failed to read the first "
+	    "value from " << spname;
+	return -5;
+    }
+    nrows = 0;
+    ibis::fileManager::buffer<char> buf(2048);
+    // main loop to actually read the strings one row at a time
+    while ((ierr = UnixRead(spdesc, &end, sizeof(end))) == 8) {
+	if (start+1 >= end) { // null string
+	    start = end;
+	    ++ nrows;
+	    continue;
+	}
+
+	const size_t sz = end - start;
+	if (buf.size() < sz) { // buffer too small
+	    buf.resize((sz+2047)/2048);
+	    if (buf.size() < sz) {
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- keywords::parseTextFile failed to allocate "
+		    "enough buffer space to read a " << sz << "-byte string";
+		clear();
+		return -6;
+	    }
+	}
+
+	ierr = UnixSeek(tfdesc, start, SEEK_SET);
+	if (ierr != start) {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- keywords::parseTextFile failed to seek to "
+		<< start << ", function seek returned " << ierr;
+	    clear();
+	    return -6;
+	}
+
+	ierr = UnixRead(tfdesc, buf.address(), sz);
+	if (ierr < (int64_t)sz) {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- keywords::parseTextFile expected to read "
+		<< sz << " byte" << (sz > 1 ? "s" : "")
+		<< ", but the function read returned " << ierr;
+	    clear();
+	    return -7;
+	}
+
+	std::vector<const char*> tokens;
+	ierr = tkn(tokens, buf.address());
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- keywords::parseTextFile failed to tokenize "
+		"entry # " << nrows << ", tokenizer returned " << ierr
+		<< ", skipping the row";
+	    tokens.clear();
+	}
+
+	for (size_t j = 0; j < tokens.size(); ++ j) {
+	    uint32_t ibits = terms.insert(tokens[j]);
+	    if (ibits >= bits.size()) {
+		size_t jold = bits.size();
+		if (bits.capacity() <= ibits+1)
+		    bits.reserve(ibits+ibits+2);
+		bits.resize(ibits+1);
+		while (jold <= ibits) {
+		    bits[jold] = 0;
+		    ++ jold;
+		}
+	    }
+	    if (bits[ibits] == 0)
+		bits[ibits] = new ibis::bitvector;
+	    bits[ibits]->setBit(nrows, 1);
+	}
+	start = end;
+	++ nrows;
+    } // read spdesc
+
+    for (size_t j = 0; j < bits.size(); ++ j)
+	if (bits[j] != 0)
+	    bits[j]->adjustSize(0, nrows);
+    if (col->partition() != 0) {
+	LOGGER(col->partition()->nRows() != nrows && ibis::gVerbose > 0)
+	    << "Warning -- parseTextFile read " << nrows << " string value"
+	    << (nrows>1?"s":"") << " from " << tfname << ", but expected "
+	    << col->partition()->nRows();
+    }
+    return 0;
+} // ibis::keywords::parseTextFile
 
 void ibis::keywords::binWeights(std::vector<uint32_t>& bw) const {
     bw.resize(bits.size());
@@ -701,3 +890,64 @@ size_t ibis::keywords::getSerialSize() const throw () {
 	    res += bits[j]->getSerialSize();
     return res;
 } // ibis::keywords::getSerialSize
+
+/// Tokenizer.  If no delimiter is specified, it turns all non-alphanumeric
+/// characters into null and returns the starting positions of groups of
+/// alphanumeric characters as tokens.  If a list of delimiters are
+/// provided, any of the delimiters will terminate a token.
+int ibis::keywords::tokenizer::operator()
+    (std::vector<const char*>& tkns, char *buf) {
+    tkns.clear();
+    if (buf == 0 || *buf == 0)
+	return 0;
+
+    if (delim_.empty()) {
+	while (*buf != 0) {
+	    while (*buf != 0 && std::isalnum(*buf) == 0) {
+		*buf = 0;
+		++ buf;
+	    }
+	    if (*buf != 0) {
+		tkns.push_back(buf);
+		for (++ buf; std::isalnum(*buf) != 0; ++ buf);
+	    }
+	}
+    }
+    else if (delim_.size() == 1) {
+	while (*buf != 0) {
+	    while (*buf != 0 && (*buf == delim_[0] ||
+				 std::isspace(*buf) != 0)) { // leading spaces
+		*buf = 0;
+		++ buf;
+	    }
+	    if (*buf != 0) {
+		tkns.push_back(buf);
+		for (++ buf; *buf != 0 && *buf != delim_[0]; ++ buf);
+		if (buf > tkns.back()) { // trailing spaces
+		    for (char *t=buf-1; std::isspace(*t) != 0; -- t)
+			*t = 0;
+		}
+	    }
+	}
+    }
+    else {
+	while (*buf != 0) {
+	    while (*buf != 0 && (strchr(delim_.c_str(), *buf) != 0 ||
+				 std::isspace(*buf) != 0)) { // leading spaces
+		*buf = 0;
+		++ buf;
+	    }
+	    if (*buf != 0) {
+		tkns.push_back(buf);
+		for (++ buf;
+		     *buf != 0 && strchr(delim_.c_str(), *buf) == 0;
+		     ++ buf);
+		if (buf > tkns.back()) { // tailing spaces
+		    for (char *t=buf-1; std::isspace(*t) != 0; -- t)
+			*t = 0;
+		}
+	    }
+	}
+    }
+    return 0;
+} // ibis::keywords::tokenizer::operator()

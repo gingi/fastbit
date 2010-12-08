@@ -1,3 +1,14 @@
+2010-12-07 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: update ibis::column::dataFileName to check for
+	incoming name already containing the column name or index file
+	name
+	* src/category.h: add class ibis::text::tokenizer as a virtual
+	base class for tokenizers
+	* src/ikeywords.h, src/ikeywords.cpp: add
+	ibis::keywords::tokenizer and ibis::keywords::parseTextFile for
+	generating keyword index from text first directly without a
+	user-provided term-document list
+
 2010-12-06 John Wu <John dot Wu at ACM dot org>
 	* src/ikeywords.h, src/ikeywords.cpp: allow
 	ibis::keywords::readKeywords to read keywords with embedded spaces

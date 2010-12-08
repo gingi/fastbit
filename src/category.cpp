@@ -1021,8 +1021,9 @@ ibis::text::text(const ibis::column& col) : ibis::column(col) {
 /// If @c nbuf = 0, this function allocates its own working space.
 void ibis::text::startPositions(const char *dir, char *buf,
 				uint32_t nbuf) const {
+    if (thePart == 0) return;
     if (dir == 0) // default to the current data directory
-	dir = (thePart != 0 ? thePart->currentDataDir() : 0);
+	dir = thePart->currentDataDir();
     if (dir == 0 || *dir == 0) return;
 
     std::string dfile = dir;
@@ -1030,6 +1031,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     dfile += m_name;
     std::string spfile = dfile;
     spfile += ".sp";
+    mutexLock lock(this, "text::startPositions");
     FILE *fdata = fopen(dfile.c_str(), "r+b"); // mostly for reading
     FILE *fsp = fopen(spfile.c_str(), "r+b"); // mostly for writing
     if (fsp == 0) // probably because the file does not exist, try again
@@ -2704,8 +2706,10 @@ const char* ibis::text::findString(const char *str) const {
 	return 0;
 } // ibis::text::findString
 
-// check indexSpec first for docIDName=xx for the name of the ID column,
-// then check global parameter <table-name>.<column-name>.docIDName.
+/// Locate the ID column for processing term-document list provided by the
+/// user.  This function checks indexSpec first for docIDName=xx for the
+/// name of the ID column, then checks the global parameter
+/// <table-name>.<column-name>.docIDName.
 const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
     const ibis::column* idcol = 0;
     const char* spec = indexSpec();
@@ -2762,6 +2766,7 @@ const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
 long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
     long ierr = 0;
     try {
+	startPositions(0, 0, 0);
 	indexLock lock(this, "keywordSearch");
 	if (idx) {
 	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str, hits);
@@ -2779,6 +2784,7 @@ long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
 long ibis::text::keywordSearch(const char* str) const {
     long ierr = 0;
     try {
+	startPositions(0, 0, 0);
 	indexLock lock(this, "keywordSearch");
 	if (idx) {
 	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str);
