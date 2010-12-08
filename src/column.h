@@ -108,11 +108,7 @@ public:
     /// Purge the index files assocated with the current column.
     void purgeIndexFile(const char *dir=0) const;
 
-    /// Name of the data file in the given data directory.  If the
-    /// directory name is not given, the directory is assumed to be the
-    /// current data directory of the data partition.
     const char* dataFileName(std::string& fname, const char *dir=0) const;
-    /// Name of the NULL mask file.
     const char* nullMaskName(std::string& fname) const;
     void  getNullMask(bitvector& mask) const;
 

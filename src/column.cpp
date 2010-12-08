@@ -548,41 +548,50 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
-/// There is no need for the caller to free this pointer.  In normal case,
-/// the pointer returned is fname.c_str(); otherwise, the return value is a
-/// nil pointer.
+/// Name of the data file in the given data directory.  If the
+/// directory name is not given, the directory is assumed to be the
+/// current data directory of the data partition.
+/// There is no need for the caller to free this pointer.  Upon successful
+/// completion of this function, it returns fname.c_str(); otherwise, it
+/// returns th nil pointer.
 const char*
 ibis::column::dataFileName(std::string& fname, const char *dir) const {
-    const char *name = 0;
-    if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
-	return name;
+    if (m_name.empty())
+	return 0;
+    if ((dir == 0 || *dir == 0) && thePart != 0)
+	dir = thePart->currentDataDir();
+    if (dir == 0 || *dir == 0)
+	return 0;
 
-    const char *adir = ((dir != 0 && *dir != 0) ? dir :
-			thePart!=0 ? thePart->currentDataDir() : 0);
-    if (adir != 0 && *adir != 0) {
-	fname = adir;
-	size_t jtmp = fname.rfind(FASTBIT_DIRSEP);
-	if (jtmp < fname.size()) {
-	    if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
-		== 0) {
+    fname = dir;
+    bool needtail = true;
+    size_t jtmp = fname.rfind(FASTBIT_DIRSEP);
+    if (jtmp+m_name.size() < fname.size()) {
+	if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
+	    == 0) {
+	    if (fname.size() == jtmp+5+m_name.size() &&
+		strcmp(fname.c_str()+jtmp+1+m_name.size(), ".idx") == 0) {
 		fname.erase(jtmp+1+m_name.size());
+		needtail = false;
 	    }
+	    needtail = (fname.size() != jtmp+1+m_name.size());
 	}
-	else {
-	    if (fname[fname.size()-1] != FASTBIT_DIRSEP)
-		fname += FASTBIT_DIRSEP;
-	    fname += m_name;
-	}
-	name = fname.c_str();
     }
-    return name;
+    if (needtail) {
+	if (fname[fname.size()-1] != FASTBIT_DIRSEP)
+	    fname += FASTBIT_DIRSEP;
+	fname += m_name;
+    }
+    return fname.c_str();
 } // ibis::column::dataFileName
 
+/// Name of the NULL mask file.
 /// On successful completion of this function, the return value is the
 /// result of fname.c_str(); otherwise the return value is a nil pointer to
 /// indicate error.
 const char* ibis::column::nullMaskName(std::string& fname) const {
-    if (thePart == 0 || thePart->currentDataDir() == 0) return 0;
+    if (thePart == 0 || thePart->currentDataDir() == 0 || m_name.empty())
+	return 0;
 
     fname = thePart->currentDataDir();
     fname += FASTBIT_DIRSEP;
