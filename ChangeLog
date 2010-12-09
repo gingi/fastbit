@@ -7,6 +7,8 @@
 	there are directory separators in the incoming argument dir
 	* tests/scripts/jrf-check.pl: change from dos style line break to
 	unix style line break to get the tests to run on a linux machine
+	* tests/setqgen.cpp:149 generate the file names with subdirectory
+	names starting with 0
 
 2010-12-07 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: update ibis::column::dataFileName to check for

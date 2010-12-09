@@ -856,9 +856,9 @@ void doTest(const ibis::table& tbl) {
 	// choose four random columns for the select clause
 	std::ostringstream sel;
 	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "/10), sum("
+	    << "/80), sum("
 	    << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "), stddev(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << "), countdistinct("
 	    << cols[(int)(ibis::util::rand() * cols.size())] << ")";
 	std::auto_ptr<ibis::table>
@@ -888,7 +888,7 @@ void doTest(const ibis::table& tbl) {
 	std::cout << "\n" << std::endl;
     }
 
-    if (testing >= 0) {
+    if (testing > 0) {
 	ibis::util::logger lg;
 	lg() << "doTest completed with the following content in "
 	    "the memory cache\n";

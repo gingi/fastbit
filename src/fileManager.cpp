@@ -410,7 +410,7 @@ void ibis::fileManager::clear() {
 	std::vector<roFile*> tmp; // temporarily holds the read-only files
 	softWriteLock wlck("fileManager::clear");
 	if (! wlck.isLocked()) {
-	    if (ibis::gVerbose > 3) {
+	    if (ibis::gVerbose > 1) {
 		ibis::util::logger lg;
 		lg() << "Warning -- fileManager::clear failed to "
 		    "acquire a write lock for deleting the in-memory objects\n";
