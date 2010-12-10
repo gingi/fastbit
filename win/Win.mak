@@ -7,8 +7,8 @@ LINK=$(VC)\BIN\link
 OPT=/MD /EHsc /GR /O2 /W1 /arch:SSE2
 #OPT=/MD /EHsc /GR /Ox
 INC=-I ..\src -I "C:\Tools\pthread\include" -I .
-DEF=/D WIN32 /D _CONSOLE /D FASTBIT_MAX_WAIT_TIME=3 /D WITHOUT_FASTBIT_CONFIG_H
-#/INCREMENTAL:NO /NOLOGO /D WINVER=0x0501
+DEF=/D WIN32 /D _CONSOLE /D FASTBIT_MAX_WAIT_TIME=3 /D WITHOUT_FASTBIT_CONFIG_H /D WINVER=0x0501
+#/INCREMENTAL:NO /NOLOGO
 LIB=/LIBPATH:"$(VC)\Lib" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v6.0A\lib" /LIBPATH:"C:\Tools\pthread\lib" /SUBSYSTEM:CONSOLE pthreadVC2.lib psapi.lib advapi32.lib
 # ******
 # for VisualStudio .Net and earlier, the following libpath is needed

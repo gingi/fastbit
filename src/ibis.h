@@ -326,6 +326,31 @@ namespace ibis {
 	(void) ibis::fileManager::instance(); // initialize the file manager
 	if (! ibis::gParameters().empty())
 	    (void) ibis::util::gatherParts(ibis::datasets, ibis::gParameters());
+#if defined(_WIN32) && defined(_MSC_VER) && (defined(_DEBUG) || defined(DEBUG))
+	std::cout << "DEBUG - WIN32 related macros";
+#ifdef NTDDI_VERSION
+	std::cout << "\nNTDDI_VERSION=" << std::hex << NTDDI_VERSION
+		  << std::dec;
+#endif
+#ifdef NTDDI_WINVISTA
+	std::cout << "\nNTDDI_WINVISTA=" << std::hex << NTDDI_WINVISTA
+		  << std::dec;
+#endif
+#ifdef WINVER
+	std::cout << "\nWINVER=" << std::hex << WINVER << std::dec;
+#endif
+#if defined(HAVE_WIN_ATOMIC32)
+	std::cout << "\nHAVE_WIN_ATOMIC32 true";
+#else
+	std::cout << "\nHAVE_WIN_ATOMIC32 flase";
+#endif
+#if defined(HAVE_WIN_ATOMIC64)
+	std::cout << "\nHAVE_WIN_ATOMIC64 true";
+#else
+	std::cout << "\nHAVE_WIN_ATOMIC64 flase";
+#endif
+	std::cout << std::endl;
+#endif
     }
 }
 #endif // IBIS_H

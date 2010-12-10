@@ -50,7 +50,7 @@
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
-				PreprocessorDefinitions="WINVER=0x0600;FASTBIT_MAX_WAIT_TIME=10"
+				PreprocessorDefinitions="WINVER=0x0501;FASTBIT_MAX_WAIT_TIME=10"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="1"
@@ -91,106 +91,6 @@
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			BuildLogFile="$(IntDir)\BuildArdea.htm"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName="Release/ardea.tlb"
-				HeaderFileName=""
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
-				PreprocessorDefinitions="WINVER=0x0600;FASTBIT_MAX_WAIT_TIME=30"
-				StringPooling="true"
-				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="true"
-				EnableEnhancedInstructionSet="2"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/ardea.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
-				BrowseInformation="0"
-				WarningLevel="1"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="Release\ardea.exe"
-				LinkIncremental="0"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				ProgramDatabaseFile="Release/ardea.pdb"
-				SubSystem="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="pthreadVCE.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -291,6 +191,106 @@
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			BuildLogFile="$(IntDir)\BuildArdea.htm"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName="Release/ardea.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
+				PreprocessorDefinitions="WINVER=0x0600;FASTBIT_MAX_WAIT_TIME=30"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="2"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="Release/ardea.pch"
+				AssemblerListingLocation="Release/"
+				ObjectFile="Release/"
+				ProgramDataBaseFileName="Release/"
+				BrowseInformation="0"
+				WarningLevel="1"
+				SuppressStartupBanner="true"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="pthreadVC2.lib psapi.lib"
+				OutputFile="Release\ardea.exe"
+				LinkIncremental="0"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
+				ProgramDatabaseFile="Release/ardea.pdb"
+				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="pthreadVCE.lib"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -451,10 +451,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.cpp"
 				>
 			</File>
@@ -464,6 +460,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.cpp"
 				>
 			</File>
 			<File
@@ -595,10 +595,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\mensa.cpp"
 				>
 			</File>
@@ -648,6 +644,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.cpp"
 				>
 			</File>
 			<File
@@ -728,10 +728,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.h"
 				>
 			</File>
@@ -745,6 +741,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.h"
 				>
 			</File>
 			<File
@@ -792,10 +792,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\jnatural.h"
 				>
 			</File>
@@ -825,6 +821,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.h"
 				>
 			</File>
 			<File

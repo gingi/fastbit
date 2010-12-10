@@ -1,3 +1,8 @@
+2010-12-09 John Wu <John dot Wu at ACM dot org>
+	* examples/ardea.cpp: add call to ibis::init before calling
+	parse_args (i.e., before possibly doing anything with the FastBit
+	functions)
+
 2010-12-08 John Wu <John dot Wu at ACM dot org>
 	* tests/jrf.cpp: to generate random data based on 20-entry Risk
 	Category from Justo Ruiz Ferrer <justo.ruizferrer@endelec.com>

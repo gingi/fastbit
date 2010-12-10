@@ -33,9 +33,7 @@ ibis::tablex::appendRow for more information about NULL values.
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
-#include "table.h"	// ibis::table
-#include "resource.h"	// ibis::gParameters
-#include "array_t.h"	// ibis::array_t
+#include "ibis.h"	// FastBit IBIS public header file
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
 
@@ -703,6 +701,7 @@ int main(int argc, char** argv) {
 	oss << argv[i];
     }
 
+    ibis::init();
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
     bool usersupplied = (! sqlfiles.empty()) ||
 	((! metadata.empty() || metadatafile != 0) &&
