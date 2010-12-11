@@ -1,7 +1,8 @@
 2010-12-10 John Wu <John dot Wu at ACM dot org>
 	* win/ibis.sln, win/*.vcproj: remove the definition of WINVER and
 	remove the X64 platform specifications (the X64 platform causes
-	visual studio express to complain about the project files)
+	visual studio express to complain about the project files), remove
+	some unused items from the .vcproj files
 
 2010-12-09 John Wu <John dot Wu at ACM dot org>
 	* examples/ardea.cpp: add call to ibis::init before calling

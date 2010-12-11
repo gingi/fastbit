@@ -35,9 +35,6 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Debug\thula.tlb"
 				HeaderFileName=""
@@ -57,9 +54,6 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Debug\thula.pch"
-				AssemblerListingLocation="Debug"
-				ObjectFile="Debug"
-				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -133,11 +127,8 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Release/thula.tlb"
+				TypeLibraryName="Release\thula.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -157,10 +148,7 @@
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/thula.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
+				PrecompiledHeaderFile="Release\thula.pch"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
 			/>
@@ -181,7 +169,7 @@
 				OutputFile="Release\thula.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				ProgramDatabaseFile="Release/thula.pdb"
+				ProgramDatabaseFile="Release\thula.pdb"
 				SubSystem="1"
 				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"

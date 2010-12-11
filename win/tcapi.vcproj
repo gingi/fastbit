@@ -36,9 +36,6 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Debug\tcapi.tlb"
 				HeaderFileName=""
@@ -59,9 +56,6 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Debug\tcapi.pch"
-				AssemblerListingLocation="Debug"
-				ObjectFile="Debug"
-				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="2"
 				SuppressStartupBanner="true"
@@ -135,9 +129,6 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Release\tcapi.tlb"
 				HeaderFileName=""
@@ -159,9 +150,6 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Release\tcapi.pch"
-				AssemblerListingLocation="Release"
-				ObjectFile="Release"
-				ProgramDataBaseFileName="Release"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
 			/>

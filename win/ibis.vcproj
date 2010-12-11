@@ -36,9 +36,6 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Debug\ibis.tlb"
 				HeaderFileName=""
@@ -58,9 +55,6 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Debug\ibis.pch"
-				AssemblerListingLocation="Debug"
-				ObjectFile="Debug"
-				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -135,9 +129,6 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Release\ibis.tlb"
 				HeaderFileName=""
@@ -160,9 +151,6 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="Release\ibis.pch"
-				AssemblerListingLocation="Release"
-				ObjectFile="Release"
-				ProgramDataBaseFileName="Release"
 				BrowseInformation="0"
 				WarningLevel="0"
 				SuppressStartupBanner="true"
