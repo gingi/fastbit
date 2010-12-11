@@ -40,7 +40,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Debug/tcapi.tlb"
+				TypeLibraryName="Debug\tcapi.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -58,10 +58,10 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Debug/tcapi.pch"
-				AssemblerListingLocation="Debug/"
-				ObjectFile="Debug/"
-				ProgramDataBaseFileName="Debug/"
+				PrecompiledHeaderFile="Debug\tcapi.pch"
+				AssemblerListingLocation="Debug"
+				ObjectFile="Debug"
+				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="2"
 				SuppressStartupBanner="true"
@@ -82,11 +82,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dll\Debug\fastbit.lib pthreadVC2.lib psapi.lib"
-				OutputFile="Debug/tcapi.exe"
+				OutputFile="Debug\tcapi.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Debug"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="Debug/tcapi.pdb"
+				ProgramDatabaseFile="Debug\tcapi.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Release/tcapi.tlb"
+				TypeLibraryName="Release\tcapi.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -158,10 +158,10 @@
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/tcapi.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
+				PrecompiledHeaderFile="Release\tcapi.pch"
+				AssemblerListingLocation="Release"
+				ObjectFile="Release"
+				ProgramDataBaseFileName="Release"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
 			/>
@@ -182,7 +182,7 @@
 				OutputFile="Release\tcapi.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib;dll\Release"
-				ProgramDatabaseFile="Release/tcapi.pdb"
+				ProgramDatabaseFile="Release\tcapi.pdb"
 				SubSystem="1"
 				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"

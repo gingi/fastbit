@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="dll/Debug/fastbit.dll"
+				OutputFile="$(OutDir)\fastbit.dll"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
-				ProgramDatabaseFile="dll/Debug/fastbit.pdb"
+				ProgramDatabaseFile="dll\debug\fastbit.pdb"
 				GenerateMapFile="true"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="dll/Debug/fastbit.lib"
+				ImportLibrary="dll\debug\fastbit.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -147,7 +147,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="dll/Release/fastbit.dll"
+				OutputFile="$(OutDir)\fastbit.dll"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -156,7 +156,7 @@
 				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="dll/Release/fastbit.lib"
+				ImportLibrary="dll\release\fastbit.lib"
 				TargetMachine="1"
 			/>
 			<Tool

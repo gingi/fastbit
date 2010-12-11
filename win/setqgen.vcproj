@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Debug/setqgen.tlb"
+				TypeLibraryName="Debug\setqgen.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,10 +56,10 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Debug/setqgen.pch"
-				AssemblerListingLocation="Debug/"
-				ObjectFile="Debug/"
-				ProgramDataBaseFileName="Debug/"
+				PrecompiledHeaderFile="Debug\setqgen.pch"
+				AssemblerListingLocation="Debug"
+				ObjectFile="Debug"
+				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -80,11 +80,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="Debug/setqgen.exe"
+				OutputFile="Debug\setqgen.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="Debug/setqgen.pdb"
+				ProgramDatabaseFile="Debug\setqgen.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Release/setqgen.tlb"
+				TypeLibraryName="Release\setqgen.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -157,10 +157,10 @@
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/setqgen.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
+				PrecompiledHeaderFile="Release\setqgen.pch"
+				AssemblerListingLocation="Release"
+				ObjectFile="Release"
+				ProgramDataBaseFileName="Release"
 				WarningLevel="0"
 				SuppressStartupBanner="true"
 			/>
@@ -181,7 +181,7 @@
 				OutputFile="Release\setqgen.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				ProgramDatabaseFile="Release/setqgen.pdb"
+				ProgramDatabaseFile="Release\setqgen.pdb"
 				SubSystem="1"
 				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
@@ -392,10 +392,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\mensa.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\meshQuery.cpp"
 				>
 			</File>
@@ -586,10 +582,6 @@
 			</File>
 			<File
 				RelativePath="..\src\iroster.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\jrange.h"
 				>
 			</File>
 			<File

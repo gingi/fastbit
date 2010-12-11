@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Debug/rara.tlb"
+				TypeLibraryName="Debug\rara.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,10 +56,10 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Debug/rara.pch"
-				AssemblerListingLocation="Debug/"
-				ObjectFile="Debug/"
-				ProgramDataBaseFileName="Debug/"
+				PrecompiledHeaderFile="Debug\rara.pch"
+				AssemblerListingLocation="Debug"
+				ObjectFile="Debug"
+				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -80,11 +80,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="Debug/rara.exe"
+				OutputFile="Debug\rara.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="Debug/rara.pdb"
+				ProgramDatabaseFile="Debug\rara.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Release/rara.tlb"
+				TypeLibraryName="Release\rara.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -157,10 +157,10 @@
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/rara.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
+				PrecompiledHeaderFile="Release\rara.pch"
+				AssemblerListingLocation="Release"
+				ObjectFile="Release"
+				ProgramDataBaseFileName="Release"
 				WarningLevel="0"
 				SuppressStartupBanner="true"
 			/>
@@ -181,7 +181,7 @@
 				OutputFile="Release\rara.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				ProgramDatabaseFile="Release/rara.pdb"
+				ProgramDatabaseFile="Release\rara.pdb"
 				SubSystem="1"
 				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
@@ -385,10 +385,6 @@
 			</File>
 			<File
 				RelativePath="..\src\jrange.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\mensa.cpp"
 				>
 			</File>
 			<File

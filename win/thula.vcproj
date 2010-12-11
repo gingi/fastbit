@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Debug/thula.tlb"
+				TypeLibraryName="Debug\thula.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,10 +56,10 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Debug/thula.pch"
-				AssemblerListingLocation="Debug/"
-				ObjectFile="Debug/"
-				ProgramDataBaseFileName="Debug/"
+				PrecompiledHeaderFile="Debug\thula.pch"
+				AssemblerListingLocation="Debug"
+				ObjectFile="Debug"
+				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -80,11 +80,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="Debug/thula.exe"
+				OutputFile="Debug\thula.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="Debug/thula.pdb"
+				ProgramDatabaseFile="Debug\thula.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -396,10 +396,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\mensa.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\meshQuery.cpp"
 				>
 			</File>
@@ -590,10 +586,6 @@
 			</File>
 			<File
 				RelativePath="..\src\quaere.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\jrange.h"
 				>
 			</File>
 			<File

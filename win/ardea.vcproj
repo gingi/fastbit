@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Debug/ardea.tlb"
+				TypeLibraryName="Debug\ardea.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,10 +56,10 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Debug/ardea.pch"
-				AssemblerListingLocation="Debug/"
-				ObjectFile="Debug/"
-				ProgramDataBaseFileName="Debug/"
+				PrecompiledHeaderFile="Debug\ardea.pch"
+				AssemblerListingLocation="Debug"
+				ObjectFile="Debug"
+				ProgramDataBaseFileName="Debug"
 				BrowseInformation="0"
 				WarningLevel="0"
 				SuppressStartupBanner="true"
@@ -80,11 +80,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pthreadVC2.lib psapi.lib"
-				OutputFile="Debug/ardea.exe"
+				OutputFile="Debug\ardea.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="Debug/ardea.pdb"
+				ProgramDatabaseFile="Debug\ardea.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="Release/ardea.tlb"
+				TypeLibraryName="Release\ardea.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -157,10 +157,10 @@
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="Release/ardea.pch"
-				AssemblerListingLocation="Release/"
-				ObjectFile="Release/"
-				ProgramDataBaseFileName="Release/"
+				PrecompiledHeaderFile="Release\ardea.pch"
+				AssemblerListingLocation="Release"
+				ObjectFile="Release"
+				ProgramDataBaseFileName="Release"
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
@@ -183,7 +183,7 @@
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="C:\Tools\pthread\lib"
-				ProgramDatabaseFile="Release/ardea.pdb"
+				ProgramDatabaseFile="Release\ardea.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -390,10 +390,6 @@
 			</File>
 			<File
 				RelativePath="..\src\jrange.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\mensa.cpp"
 				>
 			</File>
 			<File
