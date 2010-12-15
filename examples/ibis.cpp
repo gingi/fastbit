@@ -2318,17 +2318,21 @@ static void parse_args(int argc, char** argv, int& mode,
 	}
 	lg() << "\n";
     }
-    if (! confs.empty()) {
-	// read all configuration files
-	for (uint32_t i = 0; i < confs.size(); ++ i)
+    if (confs.size() > 1) {
+	// read all configuration files except the last one
+	for (uint32_t i = 0; i < confs.size()-1; ++ i)
 	    ibis::gParameters().read(confs[i]);
-    }
-    else if (ibis::gParameters().empty()) {
-	// try default configuration files
-	ibis::gParameters().read();
     }
     if (accessIndexInWhole > 0) {
 	ibis::gParameters().add("all.preferMMapIndex", "T");
+    }
+    // process data directories specified in the rc files
+    ibis::init(confs.empty()?(const char*)0:confs.back());
+    // construct the paritions using both the command line arguments and
+    // the resource files
+    for (std::vector<const char*>::const_iterator it = dirs.begin();
+	 it != dirs.end(); ++ it) {
+	ibis::util::gatherParts(ibis::datasets, *it);
     }
 
     // reorder the data directories first, a data directory may be followed
@@ -2352,14 +2356,6 @@ static void parse_args(int argc, char** argv, int& mode,
 	    ibis::part tbl(rdirs[i], static_cast<const char*>(0));
 	    tbl.reorder();
 	}
-    }
-
-    // construct the paritions using both the command line arguments and
-    // the resource files
-    ibis::init(); // process data directories specified in the rc files
-    for (std::vector<const char*>::const_iterator it = dirs.begin();
-	 it != dirs.end(); ++ it) {
-	ibis::util::gatherParts(ibis::datasets, *it);
     }
 
     if (ibis::gVerbose > 1) {

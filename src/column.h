@@ -114,11 +114,11 @@ public:
 
     /// Return the string value for the <code>i</code>th row.  Only
     /// implemented for ibis::text and ibis::category.  @sa ibis::text
-    virtual void getString(uint32_t i, std::string &val) const {};
+    virtual void getString(uint32_t, std::string &) const {};
     /// Determine if the input string has appeared in this data partition.
     /// If yes, return the pointer to the incoming string, otherwise return
     /// nil.
-    virtual const char* findString(const char* str) const
+    virtual const char* findString(const char*) const
     {return static_cast<const char*>(0);}
 
     /// Return all rows of the column as an array_t object.  Caller is
@@ -250,10 +250,10 @@ public:
     /// Estimate the cost of evaluating a dicreate range expression.
     virtual double estimateCost(const ibis::qUIntHod& cmp) const;
     /// Estimate the cost of evaluating a string lookup.
-    virtual double estimateCost(const ibis::qString& cmp) const {
+    virtual double estimateCost(const ibis::qString&) const {
 	return 0;}
     /// Estimate the cost of looking up a group of strings.
-    virtual double estimateCost(const ibis::qMultiString& cmp) const {
+    virtual double estimateCost(const ibis::qMultiString&) const {
 	return 0;}
 
     virtual float getUndecidable(const ibis::qContinuousRange& cmp,
@@ -465,7 +465,7 @@ private:
 /// Some basic information about a column.  Can only be used if the
 /// original column used to generate the info object exists in memory.
 class FASTBIT_CXX_DLLSPEC ibis::column::info {
-public:
+ public:
     const char* name;		///< Column name.
     const char* description;	///< A description about the column.
     const double expectedMin;	///< The expected lower bound.
@@ -475,6 +475,14 @@ public:
 	: name(col.name()), description(col.description()),
 	  expectedMin(col.lowerBound()),
 	  expectedMax(col.upperBound()), type(col.type()) {};
+    info(const info& rhs)
+	: name(rhs.name), description(rhs.description),
+	expectedMin(rhs.expectedMin),
+	expectedMax(rhs.expectedMax),
+	type(rhs.type) {};
+ private:
+    info();
+    info& operator=(const info&);
 }; // ibis::column::info
 
 /// A class for controlling access of the index object of a column.  It

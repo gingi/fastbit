@@ -106,16 +106,16 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (merge && dim.size() > 1 && ibis::gVerbose > 3)
-	    lg() <<"query[" << id() << "]::getHitsAsBlocks -- merging "
-			<< nold << " " << dim.size() << "-D block"
-			<< (nold>1 ? "s" : "") << " into " << reg.size()
-			<< " used " << t2-t1 << " sec (elapsed)";
+	    lg() << "query[" << id() << "]::getHitsAsBlocks -- merging "
+		 << nold << " " << dim.size() << "-D block"
+		 << (nold>1 ? "s" : "") << " into " << reg.size()
+		 << " used " << t2-t1 << " sec (elapsed)\n";
 
-	lg() << "\nquery[" << id() << "getHitsAsBlocks -- converting "
-		    << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
-		    << " into " << reg.size()
-		    << (reg.size()>1 ? " blocks" : " block") << " on a ("
-		    << dim[0];
+	lg() << "query[" << id() << "getHitsAsBlocks -- converting "
+	     << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
+	     << " into " << reg.size()
+	     << (reg.size()>1 ? " blocks" : " block") << " on a ("
+	     << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
 	    lg() << " x " << dim[i];
 	lg() << ") mesh took " << t2 << " sec (elapsed)";
@@ -124,6 +124,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 } // ibis::meshQuery::getHitsAsBlocks
 
 /**
+   Translate hit vector into bounding boxes.
    This variant of getHitsAsBlocks uses the dimensions defined by
    ibis::table::getMeshShape().
 
@@ -174,13 +175,14 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	ibis::util::logger lg;
 	if (merge && shape.size() > 1 && ibis::gVerbose > 3)
 	    lg() << "query[" << id() << "]::getHitsAsBlocks -- merging "
-			<< nold << " " << shape.size() << "-D block"
-			<< (nold>1 ? "s" : "") << " into " << reg.size()
-			<< " used " << t2-t1 << " sec (elapsed)";
+		 << nold << " " << shape.size() << "-D block"
+		 << (nold>1 ? "s" : "") << " into " << reg.size()
+		 << " used " << t2-t1 << " sec (elapsed)\n";
 
 	lg() << "query[" << id() << "]::getHitsAsBlocks -- converting "
-		    << hits->cnt() << " into " << reg.size() << " block"
-		    << (reg.size() > 1 ? "s" : "") << " on a (" << shape[0];
+	     << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
+	     << " into " << reg.size() << " block"
+	     << (reg.size() > 1 ? "s" : "") << " on a (" << shape[0];
 	for (uint32_t i = 1; i < shape.size(); ++ i)
 	    lg() << " x " << shape[i];
 	lg() << ") mesh took " << t2 << " sec (elapsed)";
@@ -747,7 +749,7 @@ void ibis::meshQuery::blocknd
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
 		    lg() << "DEBUG -- meshQuery[" << id()
-				<< "]::blocknd -- " << reg.size() << "\t(";
+			 << "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
 			if (k > 0) lg() << ", ";
 			lg() << block[k];
@@ -770,7 +772,7 @@ void ibis::meshQuery::blocknd
 		block.back() == dim.back()) {
 		ibis::util::logger lg(4);
 		lg() << "DEBUG -- meshQuery[" << id()
-			    << "]::blocknd -- " << reg.size() << "\t(";
+		     << "]::blocknd -- " << reg.size() << "\t(";
 		for (uint32_t k = 0; k < block.size(); ++k) {
 		    if (k > 0) lg() << ", ";
 		    lg() << block[k];
@@ -798,7 +800,7 @@ void ibis::meshQuery::blocknd
 		    block.back() == dim.back()) {
 		    ibis::util::logger lg(4);
 		    lg() << "DEBUG -- meshQuery[" << id()
-				<< "]::blocknd -- " << reg.size() << "\t(";
+			 << "]::blocknd -- " << reg.size() << "\t(";
 		    for (uint32_t k = 0; k < block.size(); ++k) {
 			if (k > 0) lg() << ", ";
 			lg() << block[k];
@@ -1303,6 +1305,7 @@ void ibis::meshQuery::mergeNDBlocks
 } // ibis::meshQuery::mergeNDBlocks
 
 /**
+   Determine points with neighbors that are not hits.
    Assume the records are a linearization of points on a simple regular
    mesh, the function @c getPointsOnBoundary computes all points that
    satisfy the conditions specified by function @c setWhereClause but have
@@ -1377,16 +1380,15 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg()
-		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
+	    lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
 		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 		<< " from " << reg.size() << " " << dim.size() << "-D block"
 		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
 		<< " sec (elapsed)";
 
 	lg() << "query[" << id() << "]::getPointsOnBoundary -- "
-		    << bdy.size() << " point" << (bdy.size()>1?"s":"")
-		    << " on a (" << dim[0];
+	     << bdy.size() << " point" << (bdy.size()>1?"s":"")
+	     << " on a (" << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
 	    lg() << " x " << dim[i];
 	lg() << " mesh took " << t2 << " sec (elapsed)";
@@ -1395,6 +1397,7 @@ int ibis::meshQuery::getPointsOnBoundary
 } // ibis::meshQuery::getPointsOnBoundary
 
 /**
+   Determine points with neighbors that are not hits.
    The variant of getPointsOnBoundary use dimensions returned by
    ibis::table::getMeshShape().
 
@@ -1458,15 +1461,13 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg()
-		<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
+	    lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
 		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 		<< " from " << reg.size() << " " << dim.size() << "-D block"
 		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
 		<< " sec (elapsed)";
 
-	lg()
-	    << "query[" << id() << "]::getPointsOnBoundary -- extracting "
+	lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
 	    << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
 	    << " from " << hits->cnt() << " hit" << (hits->cnt()>1 ? "s" : "")
 	    << " on a (" << dim[0];
@@ -4983,6 +4984,10 @@ void ibis::meshQuery::boundarynd
     } // main loop through each block in the vector reg
 } // ibis::meshQuery::boundarynd
 
+/// Convert positions in a bit vector to mesh coordinates.  It converts
+/// the positions of bits that are 1 to coordinates in a regular mesh
+/// with deminsions given in @c dim.  The C-sytle array ordering is
+/// assumed.
 int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 					    const std::vector<uint32_t>& dim,
 					    std::vector<uint32_t>& coords) {
@@ -5046,7 +5051,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- meshQuery::bitvectorToCoordinates "
-		    << "produced " << cnt << " points";
+	     << "produced " << cnt << " points";
 	for (int i = 0; i < cnt; ++ i)
 	    lg() << "\n" << coords[i+i] << ", " << coords[i+i+1];
 #endif
@@ -5149,3 +5154,389 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
     }
     return cnt;
 } // ibis::meshQuery::bitvectorToCoordinates
+
+/// The array-based find operation.  This is the find operation of the
+/// implicit union-find data structur that uses the array rep to represent
+/// the union-find data structure.  Starting a node s, it returns the root
+/// of the union-find tree containing s.
+///
+/// @note The incoming value of s is used as the position in array rep.  If
+/// the value of s is too large to be a valid position in rep, its value is
+/// immediately returned, which is equivalent to indicating the node is the
+/// root of a tree.
+///
+/// @note The path from s to the root is compressed in this function, i.e.,
+/// all nodes from s to the root will point directly to the root at the
+/// conclusion of this function.
+///
+/// @sa http://crd.lbl.gov/~kewu/ps/LBNL-59102.html
+uint32_t ibis::meshQuery::afind(ibis::array_t<uint32_t>& rep,
+				uint32_t s) {
+    if (s < rep.size()) {
+	uint32_t r = s;
+	while (rep[s] < s) // find the root
+	    s = rep[s];
+	while (s < rep[r]) { // compress the path
+	    const uint32_t t = rep[r];
+	    rep[r] = s;
+	    r = t;
+	}
+    }
+    return s;
+} // ibis::meshQuery::afind
+
+/// Reset all nodes from s to the root to directly point to node r.  This
+/// is the path-compression operation of the implicit union-find data
+/// structure.
+///
+/// In the implicit union-find data structure, the values s1 and s2 are
+/// used as positions in array rep.  If the array is too small, this
+/// function extends rep so that the newly created trees all have only a
+/// single node each.
+///
+/// @note The union and find operations are to be implemented with a
+/// combination of afind and aset.  For example, the find operation with
+/// path-compress can be implemented with a call to afind followed by a
+/// call to aset; the union operation can be implemented with two calls to
+/// afind followed by two calls to aset.
+///
+/// @sa http://crd.lbl.gov/~kewu/ps/LBNL-59102.html
+void ibis::meshQuery::aset(ibis::array_t<uint32_t>& rep,
+			   uint32_t s, uint32_t r) {
+    if (s >= rep.size()) { // extend the rep array
+	for (uint32_t j = rep.size(); j <= s; ++ j)
+	    rep[j] = j;
+    }
+
+    while (r < rep[s]) {
+	const uint32_t t = rep[s];
+	rep[s] = r;
+	s = t;
+    }
+} // ibis::meshQuery::aset
+
+/// Flatten the array-based union-find data strucutre.  It also compress
+/// all labels to be consecutive integers starting from 0.  It returns the
+/// number of unique labels used.
+uint32_t ibis::meshQuery::aflatten(ibis::array_t<uint32_t>& rep) {
+    uint32_t cnt = 0; // the number labels actually used
+    for (uint32_t curr = 0; curr < rep.size(); ++ curr) {
+	if (rep[curr] < curr) {
+	    rep[curr] = rep[rep[curr]];
+	}
+	else {
+	    rep[curr] = cnt;
+	    ++ cnt;
+	}
+    }
+    return cnt;
+} // ibis::meshQuery::aflatten
+
+/// Assign labels to blocks on a 1D mesh.  A node on this 1D mesh is
+/// assumed to connected to its two immediate neighbors.  Furthermore, it
+/// assumes that the blocks are sorted and do not overlap.  This function
+/// may fail if it fails to allocate enough space for the array labels.
+int ibis::meshQuery::label1DSimple
+(std::vector<uint32_t>& labels,
+ const std::vector< std::vector<uint32_t> >& blocks) {
+    labels.resize(blocks.size());
+    if (blocks.empty()) return 0;
+    labels[0] = 0;
+    uint32_t lbl = 1;
+    for (size_t j = 1; j < blocks.size(); ++ j) {
+	if (blocks[j-1][1] < blocks[j][0]) {
+	    labels[j] = labels[j-1];
+	}
+	else {
+	    labels[j] = lbl;
+	    ++ lbl;
+	}
+    }
+    return lbl;
+} // ibis::meshQuery::label1DSimple
+
+/// Assign labels to blocks on 2D regular mesh.  A node on this mesh is
+/// assumed to connect to its four nearest neighbors.  The blocks are
+/// assumed to be in ascending order.  Furthermore, the blocks are
+/// constructed in such way that if two blocks are connected along the
+/// second (the faster varying) dimension, they would be absorbed into a
+/// single block.  This simplifies the processing of blocks in this
+/// function.
+int ibis::meshQuery::label2DSimple
+(std::vector<uint32_t>& labels,
+ const std::vector< std::vector<uint32_t> >& blocks) {
+    labels.resize(blocks.size());
+    if (blocks.empty()) return 0;
+    if (blocks.size() == 1) {
+	labels[0] = 0;
+	return 1;
+    }
+
+    size_t line = 0; // start of the current mesh line
+    size_t curr = 0; // the current block
+    size_t prev = 0; // the matching query line on the previous mesh line
+    size_t cnt = 0; // # of union operations
+    uint32_t lbl;
+    ibis::array_t<uint32_t> uf;
+    for (curr = 0; curr < blocks.size(); ++ curr) { // loop I
+	if (blocks[curr][0] == blocks[line][0]) {
+	    // on the same line, nothing to do here
+	}
+	else if (blocks[curr][0] > blocks[line][0]) {
+	    // current block starts on different line
+	    line = curr;
+	}
+	else { // error
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- meshQuery::label2DSimple expects incoming "
+		"blocks to be in ascending order, but block " << curr << " ("
+		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		<< blocks[curr][2] << ", " << blocks[curr][3] << ") is not";
+	    return -2;
+	}
+
+	if (prev < line) {
+	    // move prev to the previous mesh line
+	    while (blocks[prev][1] < blocks[curr][0]) ++ prev;
+	    // move prev to a block that is possible to overlap with the
+	    // current block
+	    while (blocks[prev][1] == blocks[curr][0] &&
+		   blocks[prev][3] <= blocks[curr][2]) ++ prev;
+	}
+
+	if (prev < line && blocks[prev][1] == blocks[curr][0] &&
+	    blocks[prev][3] > blocks[curr][2] &&
+	    blocks[prev][2] < blocks[curr][3]) {
+	    size_t start = prev;
+	    lbl = afind(uf, labels[prev]);
+	    for (++ prev;
+		 prev < line && blocks[prev][2] < blocks[curr][3];
+		 ++ prev) { // iterate through other matches
+		uint32_t tmp = afind(uf, labels[prev]);
+		cnt += (lbl != tmp);
+		if (tmp < lbl) lbl = tmp;
+	    }
+	    while (start < prev) { // compress paths
+		aset(uf, labels[start], lbl);
+		++ start;
+	    }
+	    labels[curr] = lbl;
+	}
+	else {
+	    lbl = uf.size();
+	    uf.push_back(lbl);
+	    labels[curr] = lbl;
+	}
+    } // loop I
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::label2DSimple completed the 1st pass with " << uf.size()
+	<< " provisional label" << (uf.size()>1 ? "s" : "") << " for "
+	<< blocks.size() << " blocks, performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "");
+    if (cnt == 0) // if there was never any union operations, we are done
+	return uf.size();
+
+    // loop II: flatten the union-find trees, produce the final labels
+    cnt = aflatten(uf);
+
+    // loop III: assign the final labels to each block
+    for (curr = 0; curr < blocks.size(); ++ curr)
+	labels[curr] = uf[labels[curr]];
+
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::label2DSimple completed labeling " << blocks.size()
+	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
+    return cnt;
+} //ibis::meshQuery::label2DSimple
+
+int ibis::meshQuery::label3DSimple
+(std::vector<uint32_t>& labels,
+ const std::vector< std::vector<uint32_t> >& blocks) {
+    labels.resize(blocks.size());
+    if (blocks.empty()) return 0;
+    if (blocks.size() == 1) {
+	labels[0] = 0;
+	return 1;
+    }
+
+    size_t plane = 0;
+    size_t line = 0;
+    size_t prevp = 0;
+    size_t prevl = 0;
+    size_t curr;
+    size_t cnt = 0;
+    uint32_t lbl;
+    ibis::array_t<uint32_t> uf;
+    // loop I: scan the blocks to establish connectivity among them
+    for (curr = 0; curr < blocks.size(); ++ curr) {
+	if (blocks[curr][0] == blocks[plane][0]) { // same plane
+	    if (blocks[curr][2] == blocks[line][2]) { // same mesh line
+		// nothing to do here
+	    }
+	    else if (blocks[curr][2] > blocks[line][2]) { // a new mesh line
+		line = curr;
+	    }
+	    else { // error
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- meshQuery::label3DSimple expects incoming "
+		    "blocks to be in ascending order, but block " << curr
+		    << " (" << blocks[curr][0] << ", " << blocks[curr][1]
+		    << ", " << blocks[curr][2] << ", " << blocks[curr][3]
+		    << ", " << blocks[curr][4] << ", " << blocks[curr][5]
+		    << ") is not";
+		return -2;
+	    }
+	}
+	else if (blocks[curr][0] > blocks[plane][0]) { // new plane
+	    plane = curr;
+	    line = curr;
+	}
+	else { // error
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- meshQuery::label3DSimple expects incoming "
+		"blocks to be in ascending order, but block " << curr
+		<< " (" << blocks[curr][0] << ", " << blocks[curr][1]
+		<< ", " << blocks[curr][2] << ", " << blocks[curr][3]
+		<< ", " << blocks[curr][4] << ", " << blocks[curr][5]
+		<< ") is not";
+	    return -2;
+	}
+
+	if (prevp < plane) {
+	    // move prevp to the previous plane
+	    while (blocks[prevp][1] < blocks[curr][0]) ++ prevp;
+	    // move prevp to the matching mesh line in the previous plane
+	    while (blocks[prevp][1] == blocks[curr][0] &&
+		   blocks[prevp][3] <= blocks[curr][2]) ++ prevp;
+	    // move prevp to a block that may overlap with the current
+	    while (blocks[prevp][1] == blocks[curr][0] &&
+		   blocks[prevp][2] == blocks[curr][2] &&
+		   blocks[prevp][5] <= blocks[curr][4]) ++ prevp;
+	}
+	if (prevl < line) {
+	    // move prevl to the previous line
+	    while (prevl < line && blocks[prevl][3] < blocks[curr][2])
+		++ prevl;
+	    // move prevl to a possible matching position
+	    while (prevl < line && blocks[prevl][3] == blocks[curr][2] &&
+		   blocks[prevl][5] <= blocks[curr][4])
+		++ prevl;
+	}
+
+	if (prevp < plane &&
+	    blocks[prevp][1] == blocks[curr][0] &&
+	    blocks[prevp][2] < blocks[curr][3] &&
+	    blocks[prevp][3] > blocks[curr][2] &&
+	    blocks[prevp][4] < blocks[curr][5] &&
+	    blocks[prevp][5] > blocks[curr][4]) {
+	    size_t startp = prevp;
+	    lbl = afind(uf, labels[prevp]);
+	    for (++ prevp;
+		 prevp < plane &&
+		 blocks[prevp][1] == blocks[curr ][0] &&
+		 blocks[prevp][2]  < blocks[curr ][3] &&
+		 blocks[curr ][2]  < blocks[prevp][3] &&
+		 blocks[prevp][4]  < blocks[curr ][5];
+				     ++ prevp) {
+		uint32_t tmp = afind(uf, labels[prevp]);
+		cnt += (tmp != lbl);
+		if (tmp < lbl) lbl = tmp;
+	    }
+	    if (prevl < line &&
+		blocks[prevl][3] == blocks[curr][2] &&
+		blocks[prevl][4]  < blocks[curr][5] &&
+		blocks[prevl][5]  > blocks[curr][4]) {
+		size_t startl = prevl;
+		while (prevl < line &&
+		       blocks[prevl][3] == blocks[curr][2] &&
+		       blocks[prevl][4]  < blocks[curr][5] &&
+		       blocks[prevl][5]  > blocks[curr][4]) {
+		    uint32_t tmp = afind(uf, labels[prevl]);
+		    cnt += (tmp != lbl);
+		    if (tmp < lbl) lbl = tmp;
+		    ++ prevl;
+		}
+		while (startl < prevl) { // union
+		    aset(uf, labels[startl], lbl);
+		    ++ startl;
+		}
+	    }
+	    while (startp < prevp) { // union
+		aset(uf, labels[startp], lbl);
+		++ startp;
+	    }
+	    labels[curr] = lbl;
+	}
+	else if (prevl < line &&
+	    blocks[prevl][3] == blocks[curr][2] &&
+	    blocks[prevl][4]  < blocks[curr][5] &&
+	    blocks[prevl][5]  > blocks[curr][4]) {
+	    size_t startl = prevl;
+	    lbl = afind(uf, labels[prevl]);
+	    for (++ prevl;
+		 prevl < line &&
+		     blocks[prevl][3] == blocks[curr][2] &&
+		     blocks[prevl][4]  < blocks[curr][5] &&
+		     blocks[prevl][5]  > blocks[curr][4];
+		 ++ prevl) {
+		uint32_t tmp = afind(uf, labels[prevl]);
+		cnt += (tmp != lbl);
+		if (tmp < lbl) lbl = tmp;
+	    }
+	    while (startl < prevl) { // union
+		aset(uf, labels[startl], lbl);
+		++ startl;
+	    }
+	    labels[curr] = lbl;
+	}
+	else {
+	    lbl = uf.size();
+	    uf.push_back(lbl);
+	    labels[curr] = lbl;
+	}
+    } // loop I
+    LOGGER(ibis::gVerbose > 4)
+    << "meshQuery::label3DSimple completed the 1st pass with " << uf.size()
+    << " provisional label" << (uf.size()>1 ? "s" : "") << " for "
+    << blocks.size() << " blocks, performed " << cnt
+    << " union operation" << (cnt>1 ? "s" : "");
+    if (cnt == 0) // if there was never any union operations, we are done
+	return uf.size();
+
+    // loop II: flatten the union-find trees, produce the final labels
+    cnt = aflatten(uf);
+
+    // loop III: assign the final labels to each block
+    for (curr = 0; curr < blocks.size(); ++ curr)
+	labels[curr] = uf[labels[curr]];
+
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::label3DSimple completed labeling " << blocks.size()
+	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
+    return cnt;
+} // ibis::meshQuery::label3DSimple
+
+int ibis::meshQuery::label4DSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks) {
+    labels.resize(blocks.size());
+    if (blocks.empty()) return 0;
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- ibis::meshQuery::label4DSimple has not been "
+	"implemented yet";
+    return -1;
+
+    // scanning
+} // ibis::meshQuery::label4DSimple
+
+int ibis::meshQuery::labelNDSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks,
+	 const std::vector<uint32_t>& dims) {
+    labels.resize(blocks.size());
+    if (blocks.empty()) return 0;
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- ibis::meshQuery::labelNDSimple has not been "
+	"implemented yet";
+    return -1;
+} // ibis::meshQuery::labelNDSimple

@@ -14,37 +14,47 @@ namespace ibis { // extend ibis name space
 } // namespace
 
 /// The class adds more functionality to ibis::query to handle data from
-/// meshes.  The new functions treats cells of meshes as connected regions
-/// in space.
+/// regular meshes.  The new functions treats cells of meshes as connected
+/// regions in space.
 class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
-public:
+ public:
     virtual ~meshQuery();
     /// Constructor for building a new query.
     meshQuery(const char* uid, const part* et, const char* pref=0);
     /// Constructor for recoverying from crash.
     meshQuery(const char* dir, const ibis::partList& tl) : query(dir, tl) {};
 
-    /// Translate hit vector into bounding boxes.
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 			 const std::vector<uint32_t>& dim,
 			 const bool merge=false) const;
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 			 const bool merge=false) const;
 
-    /// Determine points with neighbors that are not hits.
     int  getPointsOnBoundary(std::vector< std::vector<uint32_t> >& bdy,
 			     const std::vector<uint32_t>& dim) const;
     int  getPointsOnBoundary(std::vector< std::vector<uint32_t> >& bdy) const;
 
-    /// Convert positions in a bit vector to mesh coordinates.  It converts
-    /// the positions of bits that are 1 to coordinates in a regular mesh
-    /// with deminsions given in @c dim.  The C-sytle array ordering is
-    /// assumed.
     static int bitvectorToCoordinates(const ibis::bitvector& bv,
 				      const std::vector<uint32_t>& dim,
 				      std::vector<uint32_t>& coords);
+    static int label1DSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks);
+    static int label2DSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks);
+    static int label3DSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks);
+    static int label4DSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks);
+    static int labelNDSimple
+	(std::vector<uint32_t>& labels,
+	 const std::vector< std::vector<uint32_t> >& blocks,
+	 const std::vector<uint32_t>& dim);
 
-private:
+ protected:
     // convert a bitmap into a set of blocks in dim.size()-dimensional grid
     // assume the simple row-major ordering
     int  toBlocks(const ibis::bitvector& bv,
@@ -84,6 +94,12 @@ private:
 		    const std::vector< std::vector<uint32_t> >& rang,
 		    std::vector< std::vector<uint32_t> >& bdy) const;
 
+    static uint32_t afind(ibis::array_t<uint32_t>& rep, uint32_t s);
+    static void aset(ibis::array_t<uint32_t>& rep,
+		     uint32_t s, uint32_t r);
+    static uint32_t aflatten(ibis::array_t<uint32_t>& rep);
+
+ private:
     meshQuery();
     meshQuery(const meshQuery&);
     meshQuery& operator=(const meshQuery&);

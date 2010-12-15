@@ -1390,6 +1390,7 @@ struct FASTBIT_CXX_DLLSPEC ibis::part::info {
 
 private:
     info();	// private default constructor, not implemented!
+    info& operator=(const info&);
 }; // ibis::part::info
 
 /// A cleaner to be used by the fileManager::unload function.
@@ -1547,6 +1548,9 @@ private:
     uint32_t seekValue(int fd, const T &val) const;
     template <class T>
     uint32_t seekValue(const array_t<T>&arr, const T &val) const;
+
+    vault();
+    vault& operator=(const vault&);
 }; // ibis::part::vault
 /*
 barrel
@@ -1688,9 +1692,9 @@ inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
 
-inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &cmp,
-					const ibis::bitvector &mask,
-					const char *pairfile) const {
+inline int64_t ibis::part::evaluateJoin(const ibis::deprecatedJoin &,
+					const ibis::bitvector &,
+					const char *) const {
     logWarning("evaluate", "not implemented yet");
     return -1;
 } // ibis::part::evaluateJoin

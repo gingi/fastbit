@@ -204,7 +204,7 @@ public:
     /// @note The intent is for this function to recursively examine its
     /// subdirecories when possible.  Therefore it may find an arbitrary
     /// number of data partitions.
-    virtual int addPartition(const char* dir) {return -1;}
+    virtual int addPartition(const char*) {return -1;}
     /// Retrieve the list of partitions.
     virtual int getPartitions(std::vector<const ibis::part*>&) const {
 	return -1;}

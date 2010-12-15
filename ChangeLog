@@ -1,3 +1,13 @@
+2010-12-14 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: rearrange the call to ibis::init so that it
+	reads the last configuration file from the command line (instead
+	of attempting to read the default configuration file)
+
+2010-12-13 John Wu <John dot Wu at ACM dot org>
+	* src/meshQuery.cpp, src/meshQuery.h: add functions afind, aset,
+	label2DSimple and label3Dsimple to handle connected component
+	labeling
+
 2010-12-10 John Wu <John dot Wu at ACM dot org>
 	* win/ibis.sln, win/*.vcproj: remove the definition of WINVER and
 	remove the X64 platform specifications (the X64 platform causes
